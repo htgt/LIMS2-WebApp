@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Project;
+package LIMS2::Model::Schema::Result::OldProject;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Project
+LIMS2::Model::Schema::Result::OldProject
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<projects>
+=head1 TABLE: C<old_projects>
 
 =cut
 
-__PACKAGE__->table("projects");
+__PACKAGE__->table("old_projects");
 
 =head1 ACCESSORS
 
@@ -43,7 +43,18 @@ __PACKAGE__->table("projects");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'projects_id_seq'
+  sequence: 'old_projects_id_seq'
+
+=head2 sponsor_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 allele_request
+
+  data_type: 'text'
+  is_nullable: 0
 
 =head2 gene_id
 
@@ -88,12 +99,6 @@ __PACKAGE__->table("projects");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 targeting_profile_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -102,8 +107,12 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "projects_id_seq",
+    sequence          => "old_projects_id_seq",
   },
+  "sponsor_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "allele_request",
+  { data_type => "text", is_nullable => 0 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
   "targeting_type",
@@ -120,8 +129,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "recovery_class_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "targeting_profile_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -138,9 +145,11 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<gene_type_species_profile_key>
+=head2 C<sponsor_gene_type_species_key>
 
 =over 4
+
+=item * L</sponsor_id>
 
 =item * L</gene_id>
 
@@ -148,50 +157,28 @@ __PACKAGE__->set_primary_key("id");
 
 =item * L</species_id>
 
-=item * L</targeting_profile_id>
-
 =back
 
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "gene_type_species_profile_key",
-  [
-    "gene_id",
-    "targeting_type",
-    "species_id",
-    "targeting_profile_id",
-  ],
+  "sponsor_gene_type_species_key",
+  ["sponsor_id", "gene_id", "targeting_type", "species_id"],
 );
 
 =head1 RELATIONS
 
-=head2 experiments
+=head2 old_project_alleles
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::Experiment>
+Related object: L<LIMS2::Model::Schema::Result::OldProjectAllele>
 
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
-  "LIMS2::Model::Schema::Result::Experiment",
-  { "foreign.project_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 project_sponsors
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_sponsors",
-  "LIMS2::Model::Schema::Result::ProjectSponsor",
+  "old_project_alleles",
+  "LIMS2::Model::Schema::Result::OldProjectAllele",
   { "foreign.project_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -216,67 +203,25 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 targeting_profile
+=head2 sponsor
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::TargetingProfile>
+Related object: L<LIMS2::Model::Schema::Result::Sponsor>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "targeting_profile",
-  "LIMS2::Model::Schema::Result::TargetingProfile",
-  { id => "targeting_profile_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
+  "sponsor",
+  "LIMS2::Model::Schema::Result::Sponsor",
+  { id => "sponsor_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MW9rEeT4zSlkVgyiiibv2w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FqviHS5WCXQHvOAXSkvyow
 
-__PACKAGE__->many_to_many(
-    sponsors => 'project_sponsors',
-    'sponsor',
-);
-
-sub as_hash {
-    my $self = shift;
-
-    my @sponsors = $self->sponsor_ids;
-
-    return {
-          "id"                => $self->id,
-          "gene_id"           => $self->gene_id,
-          "targeting_type"    => $self->targeting_type,
-          "species_id"        => $self->species_id,
-          "htgt_project_id"   => $self->htgt_project_id,
-          "effort_concluded"  => $self->effort_concluded,
-          "recovery_class"    => $self->recovery_class,
-          "recovery_comment"  => $self->recovery_comment,
-          "priority"          => $self->priority,
-          "sponsors"          => join "/", @sponsors,
-    }
-}
-
-sub recovery_class_name {
-    my $self = shift;
-
-    return $self->recovery_class ? $self->recovery_class->name : undef;
-}
-
-sub sponsor_ids{
-    my $self = shift;
-
-    my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
-    my @sorted = sort @sponsors;
-    return @sorted;
-}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

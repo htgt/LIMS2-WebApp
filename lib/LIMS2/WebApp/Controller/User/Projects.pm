@@ -4,6 +4,7 @@ use LIMS2::WebApp::Pageset;
 use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
+use List::MoreUtils qw( uniq );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -19,7 +20,67 @@ Catalyst Controller.
 
 =cut
 
+sub manage_projects :Path('/user/manage_projects'){
+    my ( $self, $c ) = @_;
 
+    $c->assert_user_roles('edit');
+
+    my $species_id = $c->session->{selected_species};
+    my $gene_id;
+    if(my $gene = $c->req->param('gene')){
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $gene, species => $species_id } ) };
+        if($gene_info){
+            $gene_id = $gene_info->{gene_id};
+        }
+        else{
+            $gene_id = $gene;
+        }
+    }
+
+    if($c->req->param('create_project')){
+        # create project and redirect to view_project
+    }
+    elsif($c->req->param('search_projects')){
+        # stash list of matching project IDs
+        # display these as links on manage_projects page
+        my $search = {};
+        if($gene_id){
+            $c->log->debug("Searching for projects with gene_id $gene_id");
+            $search->{gene_id} = $gene_id;
+        }
+        if(my $targ_type = $c->req->param('targeting_type')){
+            $c->log->debug("Searching for projects with targeting_type $targ_type");
+            $search->{targeting_type} = $targ_type;
+        }
+        my @projects = map { $_->as_hash }
+                       $c->model('Golgi')->schema->resultset('Project')->search($search, { order_by => 'id' })->all;
+        $c->stash->{projects} = \@projects;
+    }
+
+    my @sponsors = map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+
+    $c->stash->{sponsors} = \@sponsors;
+    return;
+}
+
+sub view_project :Path('/user/view_project'){
+    my ( $self, $c) = @_;
+
+    my $project = $c->model('Golgi')->retrieve_project({
+            id => $c->req->param('project_id'),
+        });
+
+    if($c->req->param('update_sponsors')){
+
+    }
+
+    if($c->req->param('add_experiment')){
+
+    }
+
+    $c->stash->{project} = $project;
+    return;
+}
 =head2 index
 
 =cut
@@ -33,20 +94,20 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my $species_id = $c->session->{selected_species};
 
-    my @sponsors_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
+    my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( {
             species_id  => $species_id,
-        },{
-            columns     => [ qw/sponsor_id/ ],
-            distinct    => 1
+        },
+        {
+            prefetch => [ 'project_sponsors' ]
         }
     );
 
-    my @sponsors =  map { $_->sponsor_id } @sponsors_rs;
+    my @sponsors = sort { $a cmp $b } ( uniq map { $_->sponsor_ids } @projects_rs );
 
     my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
     $c->stash(
-        sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
+        sponsor_id       => \@sponsors,
         effort_concluded => ['true', 'false'],
         title            => 'Project Efforts',
         columns          => $columns,
@@ -56,32 +117,25 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my $sel_sponsor = $params->{sponsor_id};
 
-    my $search;
-    if ($params->{sponsor_id} eq 'All') {
-        $search = {
-            species_id => $species_id,
-            sponsor_id => { -not_in => [ 'All', 'Transfacs'] },
-        };
-    } else {
-        $search = {
-            species_id => $species_id,
-            sponsor_id => $params->{sponsor_id},
-        };
-    }
-
-    my @projects_rs =  $c->model('Golgi')->schema->resultset('Project')->search( $search , {order_by => { -asc => 'gene_id' } });
+    my @projects = $c->model('Golgi')->schema->resultset('Project')->search( {
+            'project_sponsors.sponsor_id'  => $sel_sponsor,
+        },
+        {
+            prefetch => [ 'project_sponsors' ]
+        }
+    );
 
     my @project_genes = map { [
         $_->id,
         $_->gene_id,
         $c->model('Golgi')->find_gene( { species => $species_id, search_term => $_->gene_id } )->{gene_symbol},
-        $_->sponsor_id,
+        (join "/", $_->sponsor_ids),
         $_->targeting_type,
         $_->effort_concluded,
         $_->recovery_class_name // '',
         $_->recovery_comment // '',
         $_->priority // '',
-    ] } @projects_rs;
+    ] } @projects;
 
 
     my $recovery_classes =  [ map { $_->name } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } }) ];
@@ -89,7 +143,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
     my $priority_classes = ['low', 'medium', 'high'];
 
     $c->stash(
-        sponsor_id       => [ map { $_->sponsor_id } @sponsors_rs ],
+        sponsor_id       => \@sponsors,
         effort_concluded => ['true', 'false'],
         title            => 'Project Efforts',
         columns          => $columns,

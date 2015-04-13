@@ -86,6 +86,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 old_projects
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::OldProject>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_projects",
+  "LIMS2::Model::Schema::Result::OldProject",
+  { "foreign.recovery_class_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 projects
 
 Type: has_many
@@ -102,8 +117,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-10 15:44:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nmwnzh6sNpnVgHzsUWEwCg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bma2ceBab5yGdGHeKM9/wQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

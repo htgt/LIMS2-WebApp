@@ -89,7 +89,7 @@ sub _build_sponsors {
     my @sponsor_ids;
 
     foreach my $sponsor ( @$sponsor_ids_rs ) {
-        my $sponsor_id = $sponsor->{ id };
+        my $sponsor_id = $sponsor->{ sponsor_id };
         DEBUG "Sponsor id found = ".$sponsor_id;
 
         $sponsor_id eq 'All' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
@@ -904,12 +904,16 @@ sub genes {
         my ($sponsors_str, $effort);
         my ($recovery_class, $priority, $effort_concluded);
 
-        my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
-                    gene_id => $gene_id,
-                    sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
-                    }, {
-                    order_by => 'sponsor_id'
-                    } ) );
+        my @gene_projects = $self->model->schema->resultset('Project')->search({
+                        gene_id => $gene_id,
+                    })->all;
+        my @all_sponsors = uniq map { $_->sponsors } @gene_projects;
+        my @sponsors;
+        foreach my $sponsor (@sponsors){
+            next if $sponsor eq 'All';
+            next if $sponsor eq 'Transfacs';
+            push @sponsors, $sponsor;
+        }
 
         $sponsors_str = join  ( '; ', @sponsors );
 
@@ -1351,6 +1355,7 @@ SQL_END
 
         # project specific filtering
         ## no critic (ProhibitCascadingIfElse)
+        my $targeting_profile;
         if ($self->species eq 'Human') {
             $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
         }
@@ -1365,12 +1370,17 @@ SQL_END
         }
         elsif ($sponsor_id eq 'EUCOMMTools Recovery') {
             $sql .= " AND ( sponsor_id = 'EUCOMMTools Recovery' );";
+            $targeting_profile = 'ko_first';
         }
         elsif ($sponsor_id eq 'Barry Short Arm Recovery') {
             $sql .= " AND ( sponsor_id = 'Barry Short Arm Recovery' );";
+            $targeting_profile = 'ko_first';
         }
         elsif ($sponsor_id eq 'MGP Recovery') {
             $sql .= " AND ( sponsor_id = 'MGP Recovery' );";
+        }
+        elsif ($sponsor_id eq 'Cre Knockin'){
+            $targeting_profile = 'cre_knockin';
         }
 
         ## use critic
@@ -1486,58 +1496,20 @@ SQL_END
         # push the data for the report
         my ($sponsors_str, $effort);
         my ($recovery_class, $priority, $effort_concluded);
-        if ($sponsor_id ne 'All') {
-            $effort = $self->model->retrieve_project({
-                        sponsor_id => $sponsor_id,
-                        gene_id => $gene_id,
-                        targeting_type => $self->targeting_type,
-                        species_id => $self->species,
-                    });
-            $sponsors_str = $effort->sponsor_id;
-            $recovery_class = $effort->recovery_class_name;
-            $priority = $effort->priority;
-            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-        } else {
-            my @sponsors = ( map { $_->sponsor_id } $self->model->schema->resultset('Project')->search({
-                        gene_id => $gene_id,
-                        sponsor_id => { -not_in => [ 'All', 'Transfacs'] }
-                        }, {
-                        order_by => 'sponsor_id'
-                        } ) );
-
-            $sponsors_str = join  ( '; ', @sponsors );
-
-            if (scalar @sponsors == 1) {
-                $effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsors_str,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                        });
-                $recovery_class = $effort->recovery_class_name;
-                $priority = $effort->priority;
-                $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-            } else {
-
-                my (@recovery_class, @priority, @effort_concluded);
-
-                foreach my $sponsor (@sponsors) {
-                    my $sponsor_effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsor,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                    });
-
-                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
-                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
-                }
-                $recovery_class = join  ( '; ', @recovery_class );
-                $priority = join  ( '; ', @priority );
-                $effort_concluded = join  ( '; ', @effort_concluded );
-            }
+        my $project_search = {
+            gene_id => $gene_id,
+            targeting_type => $self->targeting_type,
+            species_id => $self->species,
+        };
+        if($targeting_profile){
+            $project_search->{targeting_profile_id} = $targeting_profile;
         }
+        $effort = $self->model->retrieve_project($project_search);
+
+        $sponsors_str = join "; ", $effort->sponsor_ids;
+        $recovery_class = $effort->recovery_class_name;
+        $priority = $effort->priority;
+        $effort_concluded = $effort->effort_concluded ? 'yes' : '';
 
         # push the data for the report
         push @genes_for_display, {
@@ -2398,12 +2370,12 @@ sub create_sql_select_sponsors_with_projects {
     my ( $self, $species_id, $targeting_type ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT distinct(s.id)
-FROM sponsors s
-JOIN projects pr ON pr.sponsor_id = s.id
-WHERE pr.species_id = '$species_id'
+SELECT distinct(ps.sponsor_id)
+FROM project_sponsors ps, projects pr
+WHERE ps.project_id = pr.id
+AND pr.species_id = '$species_id'
 AND pr.targeting_type = '$targeting_type'
-ORDER BY s.id
+ORDER BY ps.sponsor_id
 SQL_END
 
     return $sql_query;
@@ -2414,12 +2386,13 @@ sub create_sql_count_genes_for_a_sponsor {
     my ( $self, $sponsor_id, $targeting_type, $species_id ) = @_;
 
 my $sql_query =  <<"SQL_END";
-SELECT p.sponsor_id, count(distinct(gene_id)) AS genes
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT ps.sponsor_id, count(distinct(gene_id)) AS genes
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
-GROUP BY p.sponsor_id
+GROUP BY ps.sponsor_id
 SQL_END
 
     return $sql_query;
@@ -2431,8 +2404,9 @@ sub create_sql_sel_targeted_genes {
 
 my $sql_query =  <<"SQL_END";
 SELECT distinct(p.gene_id)
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
 ORDER BY p.gene_id
@@ -2478,7 +2452,7 @@ sub sql_count_st_vectors {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -2491,9 +2465,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2544,9 +2519,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2596,7 +2572,7 @@ sub sql_count_st_dna {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -2609,9 +2585,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2661,9 +2638,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2713,7 +2691,7 @@ sub sql_count_st_eps {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -2726,9 +2704,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2778,9 +2757,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2830,7 +2810,7 @@ sub sql_count_st_accepted_clones {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -2843,9 +2823,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2895,9 +2876,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -2950,7 +2932,7 @@ sub sql_select_st_vectors {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -2963,9 +2945,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3020,9 +3003,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3078,7 +3062,7 @@ sub sql_select_st_dna {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3091,9 +3075,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3150,9 +3135,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3209,7 +3195,7 @@ sub sql_select_st_electroporations {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3222,9 +3208,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3279,9 +3266,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3336,7 +3324,7 @@ sub sql_select_st_accepted_clones {
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3349,9 +3337,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3408,9 +3397,10 @@ SQL_END
 
 $sql_query =  <<"SQL_END";
 WITH project_requests AS (
-SELECT p.id, p.sponsor_id, p.gene_id, p.targeting_type
-FROM projects p
-WHERE p.sponsor_id = '$sponsor_id'
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
 AND p.targeting_type = 'single_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3445,7 +3435,7 @@ sub sql_count_dt_vectors {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3458,9 +3448,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3518,7 +3509,7 @@ sub sql_count_dt_vectors_neo_and_bsd {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3531,9 +3522,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3643,7 +3635,7 @@ sub sql_count_dt_vectors_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3656,9 +3648,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3717,7 +3710,7 @@ sub sql_count_dt_dna {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3730,9 +3723,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3790,7 +3784,7 @@ sub sql_count_dt_dna_neo_and_bsd {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3803,9 +3797,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3914,7 +3909,7 @@ sub sql_count_dt_dna_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -3927,9 +3922,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -3988,7 +3984,7 @@ sub sql_count_dt_first_eps {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4001,9 +3997,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4061,7 +4058,7 @@ sub sql_count_dt_first_eps_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4074,9 +4071,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4135,7 +4133,7 @@ sub sql_count_dt_first_accepted_clones {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4148,9 +4146,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4208,7 +4207,7 @@ sub sql_count_dt_second_eps {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4221,9 +4220,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4281,7 +4281,7 @@ sub sql_count_dt_second_eps_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4294,9 +4294,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4355,7 +4356,7 @@ sub sql_count_dt_second_accepted_clones {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4368,9 +4369,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4431,7 +4433,7 @@ sub sql_select_dt_vectors {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4444,9 +4446,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4509,7 +4512,7 @@ sub sql_select_dt_vectors_neo_bsd {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4522,9 +4525,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4644,7 +4648,7 @@ sub sql_select_dt_vectors_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4657,9 +4661,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4723,7 +4728,7 @@ sub sql_select_dt_dna {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4736,9 +4741,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4803,7 +4809,7 @@ sub sql_select_dt_dna_neo_bsd {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4816,9 +4822,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -4940,7 +4947,7 @@ sub sql_select_dt_dna_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -4953,9 +4960,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5021,7 +5029,7 @@ sub sql_select_dt_first_eps {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5034,9 +5042,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5099,7 +5108,7 @@ sub sql_select_dt_first_eps_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5112,9 +5121,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5178,7 +5188,7 @@ sub sql_select_dt_first_accepted_clones {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5191,9 +5201,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5257,7 +5268,7 @@ sub sql_select_dt_second_eps {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5270,9 +5281,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5336,7 +5348,7 @@ sub sql_select_dt_second_eps_with_resistance {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5349,9 +5361,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5415,7 +5428,7 @@ sub sql_select_dt_second_accepted_clones {
 my $sql_query =  <<"SQL_END";
 WITH project_requests AS (
 SELECT p.id AS project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -5428,9 +5441,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id = '$sponsor_id'
+JOIN project_sponsors ps ON ps.project_id = p.id
+WHERE ps.sponsor_id = '$sponsor_id'
 AND p.targeting_type = 'double_targeted'
 AND p.species_id = '$species_id'
 )
@@ -5503,8 +5517,9 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
-where pr.sponsor_id='$sponsor_id'
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
@@ -5543,8 +5558,9 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
-where pr.sponsor_id='$sponsor_id'
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
@@ -5583,8 +5599,9 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
-where pr.sponsor_id='$sponsor_id'
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
@@ -5624,8 +5641,9 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
-where pr.sponsor_id='$sponsor_id'
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
@@ -5656,8 +5674,9 @@ sub sql_count_crispr_eps{
     my $species_id = $self->species;
 
 my $sql_query = <<"SQL_END";
-select count(distinct s.design_gene_id) from projects pr, summaries s
-where pr.sponsor_id='$sponsor_id'
+select count(distinct s.design_gene_id) from project_sponsors ps, projects pr, summaries s
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=s.design_gene_id
 and s.crispr_ep_well_accepted='true'
@@ -5671,8 +5690,9 @@ sub sql_select_crispr_eps{
 
 my $sql_query = <<"SQL_END";
 select s.design_gene_id, s.design_gene_symbol, s.crispr_ep_well_cell_line, s.crispr_ep_well_nuclease
-from projects pr, summaries s
-where pr.sponsor_id='$sponsor_id'
+from project_sponsors ps, projects pr, summaries s
+where ps.sponsor_id='$sponsor_id'
+and ps.project_id = p.id
 and pr.species_id='$species_id'
 and pr.gene_id=s.design_gene_id
 and s.crispr_ep_well_accepted='true'

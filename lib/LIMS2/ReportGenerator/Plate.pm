@@ -432,7 +432,7 @@ sub design_and_gene_cols {
     };
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return ( $design->id, $design->design_type_id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
@@ -542,7 +542,7 @@ sub crispr_design_and_gene_cols{
     }
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return (
         join( q{/}, uniq @design_ids ),

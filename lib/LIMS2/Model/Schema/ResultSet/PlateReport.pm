@@ -85,7 +85,7 @@ in hash keyed on the gene id's.
         my $schema = $self->result_source->schema;
         my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
         for my $gp ( @gene_projects ) {
-            push @{ $projects_by_gene_id{ $gp->gene_id } }, $gp->sponsor_id;
+            push @{ $projects_by_gene_id{ $gp->gene_id } }, $gp->sponsor_ids;
         }
 
         return;
@@ -298,7 +298,7 @@ sub _design_gene_data {
         $well_data->{gene_symbols} = $gene ? $gene->{gene_symbol} : 'unknown';
 
         my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
-        my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+        my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
         $well_data->{sponsors} = join( '/', @sponsors );
     }
 

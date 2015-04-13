@@ -162,6 +162,10 @@ sub existing_genotyping_result_type {
     return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
+sub existing_sponsor {
+    return shift->in_resultset( 'Sponsor', 'id' );
+}
+
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
 }
@@ -263,6 +267,18 @@ sub pass_or_fail {
 
 sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
+}
+
+sub existing_design_id {
+    return shift->in_resultset( 'Design', 'id' );
+}
+
+sub existing_crispr_pair_id {
+    return shift->in_resultset( 'CrisprPair', 'id' );
+}
+
+sub existing_crispr_group_id {
+    return shift->in_resultset( 'CrisprGroup', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

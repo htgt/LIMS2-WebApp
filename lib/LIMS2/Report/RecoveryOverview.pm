@@ -214,8 +214,11 @@ sub _build_projects {
 
     my $project_rs = $self->model->schema->resultset('Project')->search(
         {
-            sponsor_id => { -in => \@sponsors }
+            'project_sponsors.sponsor_id' => { -in => \@sponsors }
         },
+        {
+            join => ['project_sponsors']
+        }
     );
 
     return [ $project_rs->all ];
