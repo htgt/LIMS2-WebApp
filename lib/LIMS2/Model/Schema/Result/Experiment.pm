@@ -241,6 +241,69 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:31:50
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jY+6DMtaTv42ooTBAbaZkw
 
+sub as_hash{
+    my $self = shift;
+
+    return {
+        id              => $self->id,
+        project_id      => $self->project_id,
+        design_id       => $self->design_id,
+        crispr_id       => $self->crispr_id,
+        crispr_pair_id  => $self->crispr_pair_id,
+        crispr_group_id => $self->crispr_group_id,
+    };
+}
+
+sub as_hash_with_detail{
+    my $self = shift;
+
+    my $info = $self->as_hash;
+
+    $info->{gene_id} = $self->project->gene_id;
+
+    if(my $design = $self->design){
+        my @design_primers = map { $_->as_hash } $design->genotyping_primers;
+        $info->{design_genotyping_primers} = \@design_primers;
+    }
+
+    my @crisprs;
+    my @crispr_entities;
+    if(my $crispr = $self->crispr){
+        push @crisprs, $crispr;
+        push @crispr_entities, $crispr;
+    }
+    if(my $pair = $self->crispr_pair){
+        push @crisprs, $pair->left_crispr, $pair->right_crispr;
+        push @crispr_entities, $pair;
+    }
+    if(my $group = $self->crispr_group){
+        push @crisprs, $group->crisprs;
+        push @crispr_entities, $group;
+    }
+
+    if(@crisprs){
+        my @crispr_info;
+        foreach my $crispr (@crisprs){
+            push @crispr_info, {
+                id  => $crispr->id,
+                seq => $crispr->seq,
+            };
+        }
+        $info->{crisprs} = \@crispr_info;
+    }
+
+    if(@crispr_entities){
+        my @primers;
+        foreach my $entity (@crispr_entities){
+            foreach my $primer ($entity->crispr_primers){
+                push @primers, $primer->as_hash;
+            }
+        }
+        $info->{crispr_primers} = \@primers;
+    }
+    return $info;
+}
+
 sub crispr_description{
     my $self = shift;
 
@@ -257,11 +320,9 @@ sub crispr_description{
 
     if(my $group = $self->crispr_group){
         my $location = $self->_chr_location($group);
-        my $count_left = scalar @{ $group->left_ranked_crisprs };
-        my $count_right = scalar @{ $group->right_ranked_crisprs };
+        my $count = scalar $group->crisprs;
         $description.="Crispr group ".$group->id
-        ." ($location). $count_left crisprs left of target, $count_right crisprs right of target."
-        ." Gene: ".$group->gene_id;
+        ." ($location, $count crisprs)";
     }
 
     return $description;

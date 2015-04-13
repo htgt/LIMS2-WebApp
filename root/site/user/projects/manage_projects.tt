@@ -2,80 +2,87 @@
   <h1>Manage Projects</h1>
 </div>
 
-<div class="accordion" id="search_project_div">
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#search_project_div" href="#search">
-        Search for a project
-      </a>
-    </div>
-    <div id="search" class="accordion-body collapse in">
-      <div class="accordion-inner">
-        <form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="well">
-          Gene Identifier <input class="text" name="gene" value="[% gene %]">
-          Targeting Type <select name="targeting_type">
-              <option value=""></option>
-              <option value="single_targeted">Single Targeted</option>
-              <option value="double_targeted">Double Targeted</option>
-          </select>
-          [% IF  c.session.selected_species == "Mouse" %]
-          Targeting Profile<select name="targeting_profile_id">
-              <option value=""></option>
-              <option value="homozygous">homozygous</option>
-              <option value="cre_knockin">cre_knockin</option>
-              <option value="ko_first">ko_first</option>
-          </select>
-          [% END %]
-          <button type="submit" class="btn" name="search_projects" value="1">Search</button>
-        </form>
-        [% IF projects %]
-        <table class='table well'>
-          <tr>
-           <th>Project ID</th>
-           <th>View/Edit Project</th>
-           <th>Gene ID</th>
-           <th>Targeting Type</th>
-           [% IF  c.session.selected_species == "Mouse" %]
-           <th>Targeting Profile</th>
-           [% END %]
-           <th>Sponsor</th>
-          </tr>
-          [% FOREACH project IN projects %]
-           <tr>
-             <td>[% project.id %]</td>
-             <td>
-               <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
-               View/Edit
-               </a>
-             </td>
-             <td>[% project.gene_id %]</td>
-             <td>[% project.targeting_type %]</td>
-             [% IF  c.session.selected_species == "Mouse" %]
-             <td>[% project.targeting_profile_id %]</td>
-             [% END %]
-             <td>[% project.sponsors %]</td>
-           </tr>
-          [% END %]
-        </table>
-        [% END %]
-      </div>
+<form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="form-horizontal well">
+  <div class="control-group">
+    <label class="control-label">Gene Identifier</label>
+    <div class="controls">
+      <input class="text" name="gene" value="[% gene %]">
     </div>
   </div>
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#create_project_div" href="#create">
-        Create a new project
-      </a>
-    </div>
-    <div id="create" class="accordion-body collapse in">
-      <div class="accordion-inner">
-        <form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="well">
-          Gene Identifier <input class="text" name="gene" value="[% new_gene_id %]">
-        </form>
-      </div>
+  <div class="control-group">
+    <label class="control-label">Targeting Type</label>
+    <div class="controls">
+    <select name="targeting_type">
+      <option value=""></option>
+      <option value="single_targeted">Single Targeted</option>
+      <option value="double_targeted">Double Targeted</option>
+    </select>
     </div>
   </div>
-</div>
+  [% IF  c.session.selected_species == "Mouse" %]
+  <div class="control-group">
+    <label class="control-label">Targeting Profile</label>
+    <div class="controls">
+    <select name="targeting_profile_id">
+      <option value=""></option>
+      <option value="homozygous">homozygous</option>
+      <option value="cre_knockin">cre_knockin</option>
+      <option value="ko_first">ko_first</option>
+    </select>
+    </div>
+  </div>
+  [% END %]
+  <div class="control-group">
+    <label class="control-label">Sponsor</label>
+    <div class="controls">
+    <select name="sponsor">
+      <option value=""></option>
+      [% FOREACH sponsor IN sponsors %]
+        <option value="[% sponsor %]">[% sponsor %]</option>
+      [% END %]
+    </select>
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+    <button type="submit" class="btn btn-primary" name="search_projects" value="1">Search</button>
+    <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
+    </div>
+  </div>
+</form>
+
+[% IF projects %]
+<table class='table well'>
+  <tr>
+   <th>Project ID</th>
+   <th>View/Edit Project</th>
+   <th>Gene ID</th>
+   <th>Targeting Type</th>
+   [% IF  c.session.selected_species == "Mouse" %]
+   <th>Targeting Profile</th>
+   [% END %]
+   <th>Sponsor</th>
+  </tr>
+  [% FOREACH project IN projects %]
+   <tr>
+     <td>[% project.id %]</td>
+     <td>
+       <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
+       View/Edit
+       </a>
+     </td>
+     <td>[% project.gene_id %]</td>
+     <td>[% project.targeting_type %]</td>
+     [% IF  c.session.selected_species == "Mouse" %]
+     <td>[% project.targeting_profile_id %]</td>
+     [% END %]
+     <td>[% project.sponsors %]</td>
+   </tr>
+  [% END %]
+</table>
+[% END %]
+
+
 
 <script type="text/javascript">
 $("input[name='gene']").autocomplete({

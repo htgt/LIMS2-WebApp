@@ -43,7 +43,7 @@ sub manage_projects :Path('/user/manage_projects'){
     elsif($c->req->param('search_projects')){
         # stash list of matching project IDs
         # display these as links on manage_projects page
-        my $search = {};
+        my $search = { species_id => $species_id };
         if($gene_id){
             $c->log->debug("Searching for projects with gene_id $gene_id");
             $search->{gene_id} = $gene_id;
@@ -56,9 +56,17 @@ sub manage_projects :Path('/user/manage_projects'){
             $c->log->debug("Searching for projects with targeting_profile_id $targ_profile");
             $search->{targeting_profile_id} = $targ_profile;
         }
+        if(my $sponsor = $c->req->param('sponsor')){
+            $c->log->debug("Searching for project with sponsor $sponsor");
+            $search->{'project_sponsors.sponsor_id'} = $sponsor;
+        }
 
-        my @projects = map { $_->as_hash }
-                       $c->model('Golgi')->schema->resultset('Project')->search($search, { order_by => 'id' })->all;
+        my $projects_rs = $c->model('Golgi')->schema->resultset('Project')->search( $search,
+                          {
+                            order_by => 'id',
+                            join => 'project_sponsors',
+                        });
+        my @projects = map { $_->as_hash } $projects_rs->all;
         $c->stash->{projects} = \@projects;
     }
 

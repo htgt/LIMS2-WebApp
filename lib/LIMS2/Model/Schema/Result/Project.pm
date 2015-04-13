@@ -258,7 +258,7 @@ sub as_hash {
           "species_id"        => $self->species_id,
           "htgt_project_id"   => $self->htgt_project_id,
           "effort_concluded"  => $self->effort_concluded,
-          "recovery_class"    => $self->recovery_class,
+          "recovery_class"    => $self->recovery_class_name,
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
           "sponsors"          => join "/", @sponsors,
