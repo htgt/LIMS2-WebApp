@@ -833,17 +833,10 @@ sub generate_crispr_PCR_primers{
 
 sub get_single_crispr_id{
     my ($self, $well) = @_;
-    my $plate_type = $well->plate->type_id;
-    my ($crispr_left, $crispr_right);
-    if($plate_type eq 'CRISPR' or $plate_type eq 'CRISPR_V'){
-        # For single crispr we may be working on pre-assembly stage plate
-        $crispr_left = $well;
-    }
-    else{
-        # If post assembly use left_and_right_crispr_wells method
-        ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
-    }
-    return ($crispr_left->crispr->id, $crispr_left->crispr);
+    # returns array of crisprs, use the first one we encounter, this replicated the previous
+    # logic ...
+    my ( $crispr ) = $well->crisprs;
+    return ($crispr->id, $crispr);
 }
 
 sub get_crispr_pair_id{
