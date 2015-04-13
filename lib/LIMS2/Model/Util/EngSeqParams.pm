@@ -50,7 +50,7 @@ sub generate_well_eng_seq_params{
     # If there is no design then the well may be linked to a crispr well
     # in that case call a seperate method to generate this type of eng seq
     unless ( $design ) {
-        my $crispr = $well->crispr;
+        my $crispr = $well->crispr; # assumes link to single crispr
         LIMS2::Exception->throw( 'Can not produce eng seq params for well that has'
                 . ' neither a design or crispr ancestor' )
             unless $crispr;
