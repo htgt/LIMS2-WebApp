@@ -41,6 +41,7 @@ use Carp;
 use Path::Class;
 use Data::Dumper;
 use LIMS2::Util::QcPrimers;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use Data::UUID;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 
@@ -885,9 +886,7 @@ sub get_crispr_group_id{
 
     if(@crispr_ids){
         $self->log->debug("finding crispr group for all crisprs used in well ".$well->name);
-        $group = $self->model->get_crispr_group_by_crispr_ids({
-            crispr_ids => \@crispr_ids,
-        });
+        $group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => \@crispr_ids } );
     }
     else{
         $self->log->debug("finding crispr group linked to design for well ".$well->name);

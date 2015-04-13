@@ -20,6 +20,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
@@ -665,9 +666,7 @@ sub _check_wells_group_crispr_assembly {
     }
 
     try{
-        my $group = $model->get_crispr_group_by_crispr_ids({
-            crispr_ids => \@crispr_ids,
-        });
+        my $group = get_crispr_group_by_crispr_ids( $model->schema, { crispr_ids => \@crispr_ids } );
     }
     catch ($err) {
         my $ids_list = join ", ",@crispr_ids;

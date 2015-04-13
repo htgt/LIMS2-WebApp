@@ -6,6 +6,7 @@ use warnings;
 use Moose;
 use MooseX::ClassAttribute;
 use LIMS2::Exception::Implementation;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq any );
 use Try::Tiny;
@@ -760,7 +761,7 @@ retrieve crispr group given list of crispr ids
 sub crispr_group_data {
     my ( $self, $crispr_ids ) = @_;
 
-    my $crispr_group = $self->model->get_crispr_group_by_crispr_ids({ crispr_ids => $crispr_ids });
+    my $crispr_group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => $crispr_ids } );
 
     return ( 'crispr_group', $crispr_group );
 }
