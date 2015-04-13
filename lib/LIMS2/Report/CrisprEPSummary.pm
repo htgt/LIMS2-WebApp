@@ -77,10 +77,8 @@ sub _build_column_map {
         { design_gene_symbol       => "Design Gene Symbol" },
         { design_id                => "Design ID" },
         { int_plate_name           => "Int Plate Name" },
-        { l_crispr_v               => "Left Crispr Vector" },
-        { r_crispr_v               => "Right Crispr Vector" },
-        { l_crispr                 => "Left Crispr" },
-        { r_crispr                 => "Right Crispr" },
+        { crispr_vector            => "Crispr Vectors" },
+        { crispr                   => "Crisprs" },
         { final_pick_plate_name    => "Final Pick Plate Name" },
         { final_pick_cassette_name => "Final Pick Cassette Name" },
         { final_pick_backbone_name => "Final Pick Backbone Name" },
@@ -179,12 +177,14 @@ sub build_ep_detail {
                 well_name  => $summary->assembly_well_name,
             } );
 
-            for my $crispr_v ( $crispr_well->parent_crispr_v ) {
-                my $type = $crispr_v->crispr->pam_right ? 'r' : 'l';
-
-                $data{$type.'_crispr_v'} = _well_name( $crispr_v );
-                $data{$type.'_crispr'} = _well_name( $crispr_v->parent_crispr );
+            my ( @crispr_vectors, @crispr_wells );
+            for my $crispr_v ( $crispr_well->parent_crispr_vectors ) {
+                push @crispr_vectors, _well_name( $crispr_v );
+                my ( $crispr_well ) = $crispr_v->parent_crispr_wells; # will only be one value in return array
+                push @crispr_wells, _well_name( $crispr_well );
             }
+            $data{'crispr_vector'} = join( ' ', @crispr_vectors );
+            $data{'crispr'} = join( ' ', @crispr_wells );
 
             my @epds = $self->model->schema->resultset('Summary')->search(
                 { crispr_ep_well_id => $summary->crispr_ep_well_id },
