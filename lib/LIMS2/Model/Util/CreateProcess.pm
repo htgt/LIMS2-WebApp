@@ -553,7 +553,7 @@ sub _check_wells_single_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
@@ -591,15 +591,16 @@ sub _check_wells_paired_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            unless ( defined $_->crispr->pam_right) {
+            unless ( defined $crispr->pam_right) {
             LIMS2::Exception::Validation->throw(
-                'Crispr '. $_->crispr->id . ' does not have direction' );
+                'Crispr '. $crispr->id . ' does not have direction' );
             }
-            if ($_->crispr->pam_right) {
+            if ($crispr->pam_right) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
@@ -647,11 +648,12 @@ sub _check_wells_group_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            push @crispr_ids, $_->crispr;
+            push @crispr_ids, $crispr;
         }
         if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
     }
