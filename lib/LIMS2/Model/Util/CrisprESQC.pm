@@ -277,8 +277,6 @@ sub analyse_plate {
 
     # check plate is or right type
     my $plate = $self->plate;
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
-        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     #initialise lazy build
     $self->qc_run;
@@ -393,7 +391,7 @@ sub analyse_well {
 
 =head2 align_and_analyse_well_reads
 
-Gather the primer reads and align against the target region the crispr pair
+Gather the primer reads and align against the target region the crispr entity
 will hit.
 The alignment and analysis work is done by the HTGT::QC::Util::CrisprDamageVEP
 module.
@@ -597,6 +595,7 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
+    $analysis_data->{is_group}   = $crispr->is_group if $crispr;
     $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;
