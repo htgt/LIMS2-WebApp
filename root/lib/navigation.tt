@@ -290,7 +290,7 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
             </li>
           </ul>
         </li>
