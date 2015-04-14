@@ -466,7 +466,8 @@ sub gene_ids_for_crispr {
     else {
         # now we have a crispr or crispr pair and no linked designs, need to look at sequence
         my $slice = $crispr->target_slice;
-        my @genes = @{ $slice->get_all_Genes } if $slice;
+        return unless $slice;
+        my @genes = @{ $slice->get_all_Genes };
 
         foreach my $gene (@genes) {
             my $gene_finder = $model->find_gene(

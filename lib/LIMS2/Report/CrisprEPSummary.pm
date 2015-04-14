@@ -172,13 +172,13 @@ sub build_ep_detail {
             #push @data, [ map { fmt_bool( $summary->$_ ) } @{ $self->summary_fields } ];
             $data{$_} = $summary->$_ for @{ $self->summary_fields };
 
-            my $crispr_well = $self->model->retrieve_well( {
+            my $assembly_well = $self->model->retrieve_well( {
                 plate_name => $summary->assembly_plate_name,
                 well_name  => $summary->assembly_well_name,
             } );
 
             my ( @crispr_vectors, @crispr_wells );
-            for my $crispr_v ( $crispr_well->parent_crispr_vectors ) {
+            for my $crispr_v ( $assembly_well->parent_crispr_vectors ) {
                 push @crispr_vectors, _well_name( $crispr_v );
                 my ( $crispr_well ) = $crispr_v->parent_crispr_wells; # will only be one value in return array
                 push @crispr_wells, _well_name( $crispr_well );
