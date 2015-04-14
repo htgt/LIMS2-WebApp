@@ -212,7 +212,10 @@ sub pspec_update_crispr_es_qc_well {
 
 =head2 update_crispr_well_damage
 
-Update the crispr_damage type value of a crispr es qc well row
+Update the specific values of a crispr es qc well row
+- damage_type
+- variant_size
+- accepted
 
 =cut
 sub update_crispr_es_qc_well{
