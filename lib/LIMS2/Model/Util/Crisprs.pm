@@ -472,7 +472,7 @@ sub gene_ids_for_crispr {
         foreach my $gene (@genes) {
             my $gene_finder = $model->find_gene(
                 {   species     => $crispr->species_id,
-                    search_term => $gene->id
+                    search_term => $gene->display_id,
                 }
             );
             push @gene_ids, $gene_finder->{gene_id};
