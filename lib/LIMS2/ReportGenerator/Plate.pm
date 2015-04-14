@@ -509,8 +509,9 @@ sub crispr_marker_symbols{
 sub crispr_design_and_gene_cols{
     my ($self, $crispr) = @_;
 
-    my @design_ids = map{ $_->id } $crispr->related_designs;
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $self->model, $crispr ) };
+    my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
+    my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
 
     my @symbols;
     for my $gene_id ( @gene_ids ) {
@@ -524,8 +525,8 @@ sub crispr_design_and_gene_cols{
     my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return (
-        join( q{/}, uniq @design_ids ),
-        '', # design type column - leave empty for now
+        join( q{/}, keys %designs ),
+        join( q{/}, values %designs ),
         join( q{/}, @gene_ids ),
         join( q{/}, uniq @symbols ),
         join( q{/}, @sponsors )
