@@ -282,6 +282,7 @@ gene finder should be a coderef pointing to a method that finds genes.
 usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
 
 =cut
+## no critic(ProhibitExcessComplexity)
 sub format_well_data {
     my ( $self, $gene_finder, $params, $run, $gene_ids ) = @_;
 
@@ -385,6 +386,7 @@ sub format_well_data {
         variant_size            => $self->variant_size,
     };
 }
+## use critic
 
 =head2 crispr
 
