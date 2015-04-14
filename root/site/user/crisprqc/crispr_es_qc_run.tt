@@ -130,7 +130,7 @@ $(document).ready(function() {
             <th>Well</th>
             <th>ES QC Well ID</th>
             <th>Gene</th>
-            <th>Pair ID</th>
+            <th>Crispr ID</th>
             <th>Alignment</th>
             <th>Accept</th>
             <th>Damage Type</th>
@@ -148,7 +148,7 @@ $(document).ready(function() {
 
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                 = row
-                    accept              = 1
+                    accept              = can_accept_wells
                     edit                = 1
                     complete_info       = 1
                     hide_crispr_well_id = 0
