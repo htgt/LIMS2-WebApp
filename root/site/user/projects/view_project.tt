@@ -1,3 +1,5 @@
+[%- META title = 'View Project' %]
+
 <div class="page-header">
   <h1>View Project [% project.id %]
   [% IF project.effort_concluded %]
@@ -65,7 +67,7 @@
     </div>
     <div id="update_sponsors_form" class="accordion-body collapse in">
       <div class="accordion-inner">
-		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form">
 		  <input type="hidden" name="project_id" value="[% project.id %]">
 		  [% FOREACH sponsor IN all_sponsors %]
       <label class="checkbox">
@@ -102,7 +104,7 @@
     </td>
     <td>[% exp.crispr_description %]</td>
     <td>
-      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]">
+      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form">
         <button type="submit" class="btn btn-danger" name="delete_experiment" value="[% exp.id %]">
           <i class="icon-remove icon-white"></i>
         </button>
@@ -125,7 +127,7 @@ No experiments for this project
     </div>
     <div id="add_experiment_form" class="accordion-body collapse in">
       <div class="accordion-inner">
-		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well" name="add_experiment_form">
           <input type="text" name="design_id" placeholder="Design ID">
           <input type="text" name="crispr_id" placeholder="Crispr ID">
           <input type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">

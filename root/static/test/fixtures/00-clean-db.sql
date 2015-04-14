@@ -23,6 +23,7 @@ DELETE FROM design_oligos;
 DELETE FROM design_targets;
 DELETE FROM gene_design;
 DELETE FROM crispr_designs;
+DELETE FROM experiments;
 DELETE FROM designs;
 DELETE FROM bac_clone_loci;
 DELETE FROM bac_clones;
@@ -78,4 +79,5 @@ DELETE FROM nucleases;
 DELETE FROM crispr_es_qc_runs;
 DELETE FROM crispr_es_qc_wells;
 DELETE FROM barcode_states;
+
 

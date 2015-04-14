@@ -98,6 +98,9 @@ sub manage_projects :Path('/user/manage_projects'){
                             join => 'project_sponsors',
                         });
         @project_results = $projects_rs->all;
+        unless(@project_results){
+            $c->stash->{error_msg} = "No projects found";
+        }
     }
 
     my @projects;

@@ -1,3 +1,5 @@
+[%- META title = 'Manage Projects' %]
+
 <div class="page-header">
   <h1>Manage Projects</h1>
 </div>
@@ -53,7 +55,7 @@
   </div>
 </form>
 
-[% IF projects %]
+[% IF projects.size %]
 <table class='table well'>
   <tr>
    <th>Project ID</th>
