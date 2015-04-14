@@ -450,9 +450,12 @@ sub crisprs_for_design {
 
 Return gene ids linked to a crispr
 
+gene finder should be a coderef pointing to a method that finds genes.
+usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
+
 =cut
 sub gene_ids_for_crispr {
-    my ( $model, $crispr ) = @_;
+    my ( $gene_finder, $crispr ) = @_;
     my @gene_ids;
 
     if ( $crispr->is_group ) {
@@ -469,14 +472,9 @@ sub gene_ids_for_crispr {
         return unless $slice;
         my @genes = @{ $slice->get_all_Genes };
 
-        foreach my $gene (@genes) {
-            my $gene_finder = $model->find_gene(
-                {   species     => $crispr->species_id,
-                    search_term => $gene->display_id,
-                }
-            );
-            push @gene_ids, $gene_finder->{gene_id};
-        }
+        my @gene_names = map{ $_->display_id } @genes;
+        @gene_ids = map { $_->{gene_id} }
+                      values %{ $gene_finder->( $crispr->species_id, \@gene_names ) };
     }
 
     return \@gene_ids;
