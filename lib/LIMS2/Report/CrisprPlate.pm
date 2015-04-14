@@ -21,7 +21,7 @@ override _build_name => sub {
 override _build_columns => sub {
     return [
         "Well Name",
-        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
+        "Design Id", "Design Type", "Gene Id", "Gene Symbol", "Gene Sponsors",
         "Crispr Id","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
     ];
