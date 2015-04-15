@@ -16,7 +16,7 @@ use Sub::Exporter -setup => {
 };
 
 use Log::Log4perl qw( :easy );
-use List::MoreUtils qw( none );
+use List::MoreUtils qw( none uniq );
 use LIMS2::Exception;
 use LIMS2::Model::Util::DesignInfo;
 use Try::Tiny;
@@ -462,14 +462,14 @@ sub gene_ids_for_crispr {
         push @gene_ids, $crispr->gene_id;
     }
     # method on both crispr and crispr pair that looks at linked designs
-    # to find a gene_id
-    elsif ( my $gene_id = $crispr->gene_id ) {
-        push @gene_ids, $crispr->gene_id;
+    elsif ( my @designs = $crispr->related_designs ) {
+        my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
+        push @gene_ids, uniq @design_gene_ids;
     }
     else {
         # now we have a crispr or crispr pair and no linked designs, need to look at sequence
-        my $slice = $crispr->target_slice;
-        return unless $slice;
+        my $slice = try{ $crispr->target_slice };
+        return [] unless $slice;
         my @genes = @{ $slice->get_all_Genes };
 
         my @gene_names = map{ $_->display_id } @genes;
