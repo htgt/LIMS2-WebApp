@@ -256,6 +256,9 @@ sub _view_cached_csv {
     open( my $csv_handle, "<:encoding(UTF-8)", $cached_file_name )
         or die "unable to open cached file ($cached_file_name): $!";
     while (<$csv_handle>) {
+        if ( ! $c->user_exists ) {
+            $_ = _filter_public_attributes( $_ );
+        }
         push @lines_out, $_;
     }
     close $csv_handle
@@ -263,6 +266,35 @@ sub _view_cached_csv {
 
     return $c->response->body( join( '', @lines_out ));
 }
+
+
+# some fields should not be present in the publicly available CSV file
+
+sub _filter_public_attributes {
+    my $line = shift;
+
+    # match anything except the last comma separated field (the info field).
+    $line =~ /^(.*),.*$/xgms;
+    my $mod_line = $1;
+
+
+#    /^(.*),.*$/xgms
+#        ^ assert position at start of a line
+#        1st Capturing group (.*)
+#            .* matches any character
+#                Quantifier: * Between zero and unlimited times, as many times as possible, giving back as needed [greedy]
+#        , matches the character , literally
+#        .* matches any character
+#            Quantifier: * Between zero and unlimited times, as many times as possible, giving back as needed [greedy]
+#        $ assert position at end of a line
+#        x modifier: extended. Spaces and text after a # in the pattern are ignored
+#        g modifier: global. All matches (don't return on first match)
+#        m modifier: multi-line. Causes ^ and $ to match the begin/end of each line (not only begin/end of string)
+#        s modifier: single line. Dot matches newline characters
+
+    return $mod_line . "\n";
+}
+
 
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
