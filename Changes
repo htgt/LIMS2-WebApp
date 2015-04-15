@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.303     2015-04-15 10:01:44 Europe/London
+
+   Added project and experiment management pages
+
 0.302     2015-04-08 15:54:18 Europe/London
 
    Added targeting_profile_id to project table
