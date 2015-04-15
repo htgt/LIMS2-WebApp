@@ -96,6 +96,7 @@ sub manage_projects :Path('/user/manage_projects'){
                           {
                             order_by => 'id',
                             join => 'project_sponsors',
+                            distinct => 1,
                         });
         @project_results = $projects_rs->all;
         unless(@project_results){
