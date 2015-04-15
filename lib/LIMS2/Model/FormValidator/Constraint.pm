@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.299';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.304';
 }
 ## use critic
 
@@ -168,6 +168,10 @@ sub existing_genotyping_result_type {
     return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
+sub existing_sponsor {
+    return shift->in_resultset( 'Sponsor', 'id' );
+}
+
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
 }
@@ -235,6 +239,10 @@ sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
 }
 
+sub existing_crispr_tracker_rna {
+    return shift->existing_row( 'CrisprTrackerRna', 'name');
+}
+
 sub existing_crispr_primer_type {
 	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
@@ -265,6 +273,18 @@ sub pass_or_fail {
 
 sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
+}
+
+sub existing_design_id {
+    return shift->in_resultset( 'Design', 'id' );
+}
+
+sub existing_crispr_pair_id {
+    return shift->in_resultset( 'CrisprPair', 'id' );
+}
+
+sub existing_crispr_group_id {
+    return shift->in_resultset( 'CrisprGroup', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

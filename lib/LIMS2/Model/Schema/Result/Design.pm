@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.299';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.304';
 }
 ## use critic
 
@@ -218,6 +218,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 genes
 
 Type: has_many
@@ -344,8 +359,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-16 13:37:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:o2o5Z9QfEnGbLi3Wchpl3g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wzzQdVF7ohmrYFtsQapVUw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

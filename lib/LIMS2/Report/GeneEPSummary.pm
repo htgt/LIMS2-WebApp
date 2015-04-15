@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.299';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.304';
 }
 ## use critic
 
@@ -372,16 +372,19 @@ override iterator => sub {
         }
     }
 
+    INFO( 'Sponsors: ' . (join ", ", @sponsors) );
     my $project_rs = $self->model->schema->resultset('Project')->search({
-        sponsor_id     => { -in => [@sponsors] },
+        'project_sponsors.sponsor_id' => { -in => [@sponsors] },
     },{
-        select => [ 'gene_id', 'sponsor_id'],
+        prefetch => ['project_sponsors'],
     });
+    INFO ( 'Project count: ' . $project_rs->count );
+
     my %gene_sponsor_hash;
 
     while (my $project = $project_rs->next) {
     # create list of genes
-       push @{$gene_sponsor_hash{$project->gene_id}}, $project->sponsor_id;
+       push @{$gene_sponsor_hash{$project->gene_id}}, $project->sponsor_ids;
     }
     my @gene_list = keys %gene_sponsor_hash;
     my $gene_designs_rs = $self->model->schema->resultset('GeneDesign')->search({

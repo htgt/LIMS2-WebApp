@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::FpPickingList;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::FpPickingList::VERSION = '0.299';
+    $LIMS2::Model::Plugin::FpPickingList::VERSION = '0.304';
 }
 ## use critic
 

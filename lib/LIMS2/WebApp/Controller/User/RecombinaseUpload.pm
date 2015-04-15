@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::RecombinaseUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::RecombinaseUpload::VERSION = '0.299';
+    $LIMS2::WebApp::Controller::User::RecombinaseUpload::VERSION = '0.304';
 }
 ## use critic
 

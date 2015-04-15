@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.299';
+    $LIMS2::ReportGenerator::VERSION = '0.304';
 }
 ## use critic
 
@@ -155,7 +155,7 @@ sub vectors{
     DEBUG "finding $allele allele vectors";
 
     # Find the cassette function specification for this allele
-    my $project_allele = $project->project_alleles->find({ allele_type => $allele });
+    my $project_allele = $project->targeting_profile->targeting_profile_alleles->find({ allele_type => $allele });
     return 0 unless $project_allele;
     my $function = $project_allele->cassette_function;
 

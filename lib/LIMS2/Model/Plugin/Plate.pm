@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.299';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.304';
 }
 ## use critic
 
@@ -409,17 +409,38 @@ sub create_plate_csv_upload {
     $plate_process_data{process_type} = $params->{process_type};
 
     my $expected_csv_headers;
-    if ($params->{process_type} eq 'second_electroporation') {
+    if ( $params->{process_type} eq 'second_electroporation' ) {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
-    } elsif ($params->{process_type} eq 'single_crispr_assembly') {
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
-    } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
-                                'crispr_vector2_plate', 'crispr_vector2_well' ];
-    } elsif($params->{process_type} eq 'group_crispr_assembly') {
+    }
+    elsif ( $params->{process_type} eq 'single_crispr_assembly' ) {
+        $expected_csv_headers = [
+            'well_name',       'final_pick_plate',
+            'final_pick_well', 'crispr_vector_plate',
+            'crispr_vector_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'paired_crispr_assembly' ) {
+        $expected_csv_headers = [
+            'well_name',           'final_pick_plate',
+            'final_pick_well',     'crispr_vector1_plate',
+            'crispr_vector1_well', 'crispr_vector2_plate',
+            'crispr_vector2_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'group_crispr_assembly' ) {
         # Require final pick plate/well and at least one crispr_vector plate/well
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well' ];
-    } else {
+        $expected_csv_headers = [
+            'well_name',       'final_pick_plate',
+            'final_pick_well', 'crispr_vector1_plate',
+            'crispr_vector1_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'oligo_assembly' ) {
+        # require one design well and one crispr well
+        $expected_csv_headers
+            = [ 'well_name', 'design_plate', 'design_well', 'crispr_plate', 'crispr_well' ];
+    }
+    else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
 

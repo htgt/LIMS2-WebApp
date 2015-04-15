@@ -1,3 +1,25 @@
+0.304     2015-04-15 14:26:50 Europe/London
+
+    Corrected the reporting of final_pick_well_accepted in gene summary reporting
+    Fixed traces and added gene id on Clone Genotyping page 
+
+0.303     2015-04-15 10:01:44 Europe/London
+
+   Added project and experiment management pages
+
+0.302     2015-04-08 15:54:18 Europe/London
+
+   Added targeting_profile_id to project table
+   Added targeting_profile_alleles to replace project_alleles
+
+0.301     2015-04-07 14:15:05 Europe/London
+
+   Restructure of project-sponsor relationship - now many-to-many
+
+0.300     2015-04-07 07:24:03 Europe/London
+
+    Add oligo assembly plates to LIMS2.
+
 0.299     2015-03-27 16:36:35 Europe/London
 
     Well genotyping info renamed to cloe genotyping plus minor changes in the page.

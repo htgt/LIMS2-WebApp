@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.299';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.304';
 }
 ## use critic
 
@@ -57,13 +57,10 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
 
     # fetch projects for this gene
-    my @sponsors = $c->model('Golgi')->schema->resultset('Project')->search({
+    my @projects = $c->model('Golgi')->schema->resultset('Project')->search({
         gene_id  => $gene_id,
-    },{
-        select   => [ 'sponsor_id' ],
-        order_by => 'sponsor_id',
     });
-    my $sponsor = join (', ', (map {$_->sponsor_id} @sponsors) );
+    my $sponsor = join (', ', (map {$_->sponsor_ids} @projects) );
 
     # fetch designs for this gene
     # Uses WebAppCommon::Plugin::Design
@@ -464,7 +461,7 @@ sub fetch_values_for_type_final_pick {
         my $well_name      = $summary_row->final_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
         my $well_is_accepted;
-        if ( $summary_row->final_well_accepted ) {
+        if ( $summary_row->final_pick_well_accepted ) {
             $well_is_accepted = 'yes';
         }
         else {

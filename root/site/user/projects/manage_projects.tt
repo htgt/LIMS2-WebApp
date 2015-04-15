@@ -1,0 +1,99 @@
+[%- META title = 'Manage Projects' %]
+
+<div class="page-header">
+  <h1>Manage Projects</h1>
+</div>
+
+<form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="form-horizontal well">
+  <div class="control-group">
+    <label class="control-label">Gene Identifier</label>
+    <div class="controls">
+      <input class="text" name="gene" value="[% gene %]">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label">Targeting Type</label>
+    <div class="controls">
+    <select name="targeting_type">
+      <option value=""></option>
+      <option value="single_targeted" [% IF targeting_type == 'single_targeted' %]selected[% END %]>Single Targeted</option>
+      <option value="double_targeted" [% IF targeting_type == 'double_targeted' %]selected[% END %]>Double Targeted</option>
+    </select>
+    </div>
+  </div>
+  [% IF  c.session.selected_species == "Mouse" %]
+  <div class="control-group">
+    <label class="control-label">Targeting Profile</label>
+    <div class="controls">
+    <select name="targeting_profile_id">
+      <option value=""></option>
+      <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
+      <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
+      <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
+    </select>
+    </div>
+  </div>
+  [% END %]
+  <div class="control-group">
+    <label class="control-label">Sponsor</label>
+    <div class="controls">
+    <select name="sponsor">
+      <option value=""></option>
+      [% FOREACH sp IN sponsors %]
+        <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
+      [% END %]
+    </select>
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+    <button type="submit" class="btn btn-primary" name="search_projects" value="1">Search</button>
+    [% IF c.check_user_roles( 'edit' ) %]
+    <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
+    [% END %]
+    </div>
+  </div>
+</form>
+
+[% IF projects.size %]
+<table class='table well'>
+  <tr>
+   <th>Project ID</th>
+   <th>View/Edit Project</th>
+   <th>Gene ID</th>
+   <th>Gene Symbol</th>
+   <th>Targeting Type</th>
+   [% IF  c.session.selected_species == "Mouse" %]
+   <th>Targeting Profile</th>
+   [% END %]
+   <th>Sponsor</th>
+  </tr>
+  [% FOREACH project IN projects %]
+   <tr>
+     <td>[% project.id %]</td>
+     <td>
+       <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
+       View/Edit
+       </a>
+     </td>
+     <td>[% project.gene_id %]</td>
+     <td>[% project.gene_symbol %]</td>
+     <td>[% project.targeting_type %]</td>
+     [% IF  c.session.selected_species == "Mouse" %]
+     <td>[% project.targeting_profile_id %]</td>
+     [% END %]
+     <td>[% project.sponsors %]</td>
+   </tr>
+  [% END %]
+</table>
+[% END %]
+
+
+
+<script type="text/javascript">
+$("input[name='gene']").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+
+</script>

@@ -1,7 +1,7 @@
 package LIMS2::Report::RecoveryOverview;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::RecoveryOverview::VERSION = '0.299';
+    $LIMS2::Report::RecoveryOverview::VERSION = '0.304';
 }
 ## use critic
 
@@ -220,8 +220,11 @@ sub _build_projects {
 
     my $project_rs = $self->model->schema->resultset('Project')->search(
         {
-            sponsor_id => { -in => \@sponsors }
+            'project_sponsors.sponsor_id' => { -in => \@sponsors }
         },
+        {
+            join => ['project_sponsors']
+        }
     );
 
     return [ $project_rs->all ];
