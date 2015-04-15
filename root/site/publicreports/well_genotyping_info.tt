@@ -51,8 +51,12 @@
       <td>[% data.well_name %]</td>
     </tr>
     <tr>
-      <th>Gene</th>
+      <th>Gene Symbol</th>
       <td>[% data.gene %]</td>
+    </tr>
+    <tr>
+      <th>Gene ID</th>
+      <td>[% data.gene_id %]</td>
     </tr>
     <tr>
       <th>Species</th>
@@ -175,7 +179,7 @@
             </span>
           </div>
         </div>
-        [% IF c.user %]
+        [% IF data.qc_data.fwd_read AND data.qc_data.rev_read %]
             <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
         [% END %]
       </td>

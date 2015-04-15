@@ -204,7 +204,35 @@ sub add_project_sponsor{
 
     my $validated_params = $self->check_params( $params, $self->_pspec_add_project_sponsor);
 
-    my $project = $self->schema->resultset('ProjectSponsor')->create($validated_params);
+    my $project_sponsor_link = $self->schema->resultset('ProjectSponsor')->create($validated_params);
+
+    return $project_sponsor_link;
+}
+
+sub _pspec_update_project_sponsors{
+    return {
+        project_id => { validate => 'integer' },
+        sponsor_list => { validate => 'existing_sponsor' },
+    };
+}
+
+## NB: This method deletes all existing project-sponsor links and replaces
+## them with the sponsors provided in sponsor_list
+## If you just want to add to the list of existing sponsors use add_project_sponsor
+sub update_project_sponsors{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_update_project_sponsors);
+    my $project = $self->retrieve_project_by_id({ id => $validated_params->{project_id} });
+
+    $project->delete_related('project_sponsors');
+
+    foreach my $sponsor (@{ $validated_params->{sponsor_list} }){
+        $self->schema->resultset('ProjectSponsor')->create({
+            project_id => $project->id,
+            sponsor_id => $sponsor,
+        });
+    }
     return $project;
 }
 
@@ -240,6 +268,14 @@ sub create_experiment{
 
     my $experiment  = $self->schema->resultset('Experiment')->create($validated_params);
     return $experiment;
+}
+
+sub delete_experiment{
+    my ($self,$params) = @_;
+
+    my $experiment = $self->retrieve_experiment($params);
+    $experiment->delete;
+    return;
 }
 
 1;
