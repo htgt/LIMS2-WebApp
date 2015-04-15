@@ -1476,6 +1476,7 @@ sub genotyping_info {
 
   return {
       gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
       design_id        => $design->id,
       well_id          => $self->id,
       well_name        => $self->name,
