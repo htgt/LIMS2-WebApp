@@ -204,8 +204,9 @@ sub add_project_sponsor{
 
     my $validated_params = $self->check_params( $params, $self->_pspec_add_project_sponsor);
 
-    $self->schema->resultset('ProjectSponsor')->create($validated_params);
-    return;
+    my $project_sponsor_link = $self->schema->resultset('ProjectSponsor')->create($validated_params);
+
+    return $project_sponsor_link;
 }
 
 sub _pspec_update_project_sponsors{
