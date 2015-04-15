@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.302';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.303';
 }
 ## use critic
 
@@ -260,10 +260,11 @@ sub as_hash {
           "id"                => $self->id,
           "gene_id"           => $self->gene_id,
           "targeting_type"    => $self->targeting_type,
+          "targeting_profile_id" => $self->targeting_profile_id,
           "species_id"        => $self->species_id,
           "htgt_project_id"   => $self->htgt_project_id,
           "effort_concluded"  => $self->effort_concluded,
-          "recovery_class"    => $self->recovery_class,
+          "recovery_class"    => $self->recovery_class_name,
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
           "sponsors"          => join "/", @sponsors,

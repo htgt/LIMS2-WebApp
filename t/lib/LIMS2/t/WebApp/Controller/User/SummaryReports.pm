@@ -123,6 +123,14 @@ sub all_tests  : Tests
             }), 'sponsor added to project';
         ok my ($sponsor) = $project_inserted->sponsor_ids, 'project sponsor found';
         is $sponsor, 'Syboss', 'project sponsor correct';
+
+        ok model('Golgi')->update_project_sponsors({
+                project_id => $project_inserted->id,
+                sponsor_list => ['Mutation'],
+            }), 'project sponsors updated';
+        ok my @new_sponsors = $project_inserted->sponsor_ids, 'project sponsor found';
+        is scalar(@new_sponsors), 1, 'project has correct number of sponsors';
+        is $new_sponsors[0],'Mutation', 'project sponsor is correct';
 	}
 
 	# fetch summaries data from yaml

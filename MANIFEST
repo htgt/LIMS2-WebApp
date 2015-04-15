@@ -411,6 +411,7 @@ root/site/user/primers/generate_primers_results.tt
 root/site/user/projects/index.tt
 root/site/user/projects/manage_projects.tt
 root/site/user/projects/recovery_classes.tt
+root/site/user/projects/view_project.tt
 root/site/user/qc/create_plates.tt
 root/site/user/qc/create_template_plate.tt
 root/site/user/qc/index.tt
@@ -2503,6 +2504,18 @@ root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.cs
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Well.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crispr_loci.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crisprs.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/Crispr.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/CrisprLocus.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/CrisprOffTargetSummary.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/CrisprPair.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/Design.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/DesignOligo.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/DesignOligoLocus.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/GeneDesign.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/Project.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/ProjectSponsor.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Projects/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/Crispr.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/CrisprDesign.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Report/CrisprPair.csv
@@ -2781,6 +2794,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Graph.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateCopy.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateEdit.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_PlateUpload.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Projects.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_QC.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_RecombinaseUpload.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Report.t
@@ -3002,6 +3016,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/Graph.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateCopy.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateEdit.pm
 t/lib/LIMS2/t/WebApp/Controller/User/PlateUpload.pm
+t/lib/LIMS2/t/WebApp/Controller/User/Projects.pm
 t/lib/LIMS2/t/WebApp/Controller/User/QC.pm
 t/lib/LIMS2/t/WebApp/Controller/User/RecombinaseUpload.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Report.pm
