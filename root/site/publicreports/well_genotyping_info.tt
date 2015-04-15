@@ -51,8 +51,12 @@
       <td>[% data.well_name %]</td>
     </tr>
     <tr>
-      <th>Gene</th>
+      <th>Gene Symbol</th>
       <td>[% data.gene %]</td>
+    </tr>
+    <tr>
+      <th>Gene ID</th>
+      <td>[% data.gene_id %]</td>
     </tr>
     <tr>
       <th>Species</th>
