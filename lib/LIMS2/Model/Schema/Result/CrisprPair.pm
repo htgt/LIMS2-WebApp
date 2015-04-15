@@ -245,15 +245,6 @@ sub target_slice {
     return $slice;
 }
 
-sub gene_id {
-    my $self = shift;
-    my $crispr_designs = $self->crispr_designs
-        or return;
-    my $genes = $crispr_designs->first->design->genes
-        or return;
-    return $genes->first->gene_id;
-}
-
 sub species_id {
     return shift->right_crispr->species_id;
 }
