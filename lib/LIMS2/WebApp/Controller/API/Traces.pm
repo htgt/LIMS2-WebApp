@@ -27,7 +27,7 @@ sub trace_data : Path( '/api/trace_data' ) : Args(0) : ActionClass( 'REST' ) {
 sub trace_data_GET{
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles('read');
+    # $c->assert_user_roles('read');
 
     my $params = $c->request->params;
 
