@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.305';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.306';
 }
 ## use critic
 
@@ -123,8 +123,6 @@ sub experiment : Path( '/api/experiment' ) : Args(0) : ActionClass( 'REST' ){
 
 sub experiment_GET{
     my ($self, $c) = @_;
-
-    $c->assert_user_roles('read');
 
     my $project = $c->model( 'Golgi' )->txn_do(
         sub {

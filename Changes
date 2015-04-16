@@ -1,3 +1,8 @@
+0.306     2015-04-16 15:52:47 Europe/London
+
+    Added view toggle button for alignment context in CRISPR QC
+    Updated Experiments API
+
 0.305     2015-04-16 07:21:54 Europe/London
 
    Refactor many crispr methods that did not take into account crispr groups.

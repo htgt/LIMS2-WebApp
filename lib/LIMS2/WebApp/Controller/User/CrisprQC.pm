@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.305';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.306';
 }
 ## use critic
 
@@ -72,6 +72,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         damage_types      => [ map{ $_->id } @crispr_damage_types ],
         run_validated     => $run->validated,
         can_accept_wells  => $can_accept_wells,
+        truncate          => $params->{truncate},
     );
 
     return;
