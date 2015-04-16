@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.303';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.305';
 }
 ## use critic
 
@@ -102,6 +102,7 @@ sub manage_projects :Path('/user/manage_projects'){
                           {
                             order_by => 'id',
                             join => 'project_sponsors',
+                            distinct => 1,
                         });
         @project_results = $projects_rs->all;
         unless(@project_results){

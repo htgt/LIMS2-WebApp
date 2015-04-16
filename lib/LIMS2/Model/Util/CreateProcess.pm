@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.303';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.305';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
@@ -558,7 +559,7 @@ sub _check_wells_single_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
@@ -596,15 +597,16 @@ sub _check_wells_paired_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            unless ( defined $_->crispr->pam_right) {
+            unless ( defined $crispr->pam_right) {
             LIMS2::Exception::Validation->throw(
-                'Crispr '. $_->crispr->id . ' does not have direction' );
+                'Crispr '. $crispr->id . ' does not have direction' );
             }
-            if ($_->crispr->pam_right) {
+            if ($crispr->pam_right) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
@@ -652,11 +654,12 @@ sub _check_wells_group_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            push @crispr_ids, $_->crispr;
+            push @crispr_ids, $crispr;
         }
         if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
     }
@@ -671,9 +674,7 @@ sub _check_wells_group_crispr_assembly {
     }
 
     try{
-        my $group = $model->get_crispr_group_by_crispr_ids({
-            crispr_ids => \@crispr_ids,
-        });
+        my $group = get_crispr_group_by_crispr_ids( $model->schema, { crispr_ids => \@crispr_ids } );
     }
     catch ($err) {
         my $ids_list = join ", ",@crispr_ids;

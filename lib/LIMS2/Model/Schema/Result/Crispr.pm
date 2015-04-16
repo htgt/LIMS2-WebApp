@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.303';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.305';
 }
 ## use critic
 
@@ -430,15 +430,6 @@ sub current_locus {
     );
 
     return $loci;
-}
-
-sub gene_id {
-    my $self = shift;
-    my $crispr_design = $self->crispr_designs->first
-        or return;
-    my $genes = $crispr_design->design->genes
-        or return;
-    return $genes->first->gene_id;
 }
 
 sub start {

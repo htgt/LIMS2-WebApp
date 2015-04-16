@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.303';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.305';
 }
 ## use critic
 
@@ -461,7 +461,7 @@ sub fetch_values_for_type_final_pick {
         my $well_name      = $summary_row->final_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
         my $well_is_accepted;
-        if ( $summary_row->final_well_accepted ) {
+        if ( $summary_row->final_pick_well_accepted ) {
             $well_is_accepted = 'yes';
         }
         else {
@@ -569,13 +569,10 @@ sub fetch_values_for_type_assembly {
 
             my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 
-            my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
-            my $crispr_pair = $well->crispr_pair;
-            my $crispr_pair_id = 'Invalid';
-            if ( $crispr_pair ) { # would be an invalid crispr pair (left and right crisprs but not linked into valid pair)
-                $crispr_pair_id = $right_crispr ? $well->crispr_pair->id : $left_crispr->crispr->id;
-            }
-            my $crispr_id = $left_crispr->crispr->id;
+            my $crispr_entity = $well->crispr_entity;
+            my $crispr_type = $crispr_entity->is_pair  ? 'crispr_pair'
+                            : $crispr_entity->is_group ? 'crispr_group'
+                            :                            'crispr';
 
             my $well_hash = {
                 'well_id'           => $summary_row->assembly_well_id,
@@ -586,8 +583,8 @@ sub fetch_values_for_type_assembly {
                 'created_at'        => $summary_row->assembly_well_created_ts->ymd,
                 'is_accepted'       => $well_is_accepted,
                 'design_id'        => $well->design->id,
-                'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
-                'crispr_type_id'   => $right_crispr ? $crispr_pair_id : $crispr_id,
+                'crispr_type'      => $crispr_type,
+                'crispr_type_id'   => $crispr_entity->id,
                 'gene_symbol'      => $summary_row->design_gene_symbol,
                 'gene_ids'         => $summary_row->design_gene_id,
                 'browser_target'   => $plate_name . $well_name,

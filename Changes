@@ -1,3 +1,11 @@
+0.305     2015-04-16 07:21:54 Europe/London
+
+   Refactor many crispr methods that did not take into account crispr groups.
+   - Added crispr_entity method to Well resultset, returns any crispr entity for that well
+   - Adde gene_ids_for_crispr that takes a crispr entity and returns any linked gene ids
+   Allow Crispr ES QC to be run on any plate that has crisprs linked to its wells.
+   Added link to crispr on Assembly wells in the gene summary page.
+
 0.303     2015-04-15 10:01:44 Europe/London
 
    Added project and experiment management pages
