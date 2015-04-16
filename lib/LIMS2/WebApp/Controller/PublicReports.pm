@@ -273,10 +273,11 @@ sub _view_cached_csv {
 sub _filter_public_attributes {
     my $line = shift;
 
+    my $mod_line;
     # match anything except the last comma separated field (the info field).
-    $line =~ /^(.*),.*$/xgms;
-    my $mod_line = $1;
-
+    if ( $line =~ /^(.*),.*$/xgms ) {
+        $mod_line = $1;
+    }
 
 #    /^(.*),.*$/xgms
 #        ^ assert position at start of a line
