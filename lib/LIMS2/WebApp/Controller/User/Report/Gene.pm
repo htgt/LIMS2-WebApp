@@ -455,7 +455,7 @@ sub fetch_values_for_type_final_pick {
         my $well_name      = $summary_row->final_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
         my $well_is_accepted;
-        if ( $summary_row->final_well_accepted ) {
+        if ( $summary_row->final_pick_well_accepted ) {
             $well_is_accepted = 'yes';
         }
         else {
