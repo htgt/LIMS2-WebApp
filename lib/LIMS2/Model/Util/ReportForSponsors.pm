@@ -1019,16 +1019,29 @@ sub genes {
         }
 
 
-        # DNA wells
-        my @dna = $summary_rs->search(
-            { dna_well_accepted => 't',
+
+        # FINAL_PICK wells
+        my @final_pick = $summary_rs->search(
+            { final_pick_well_accepted => 't',
               to_report => 't' },
             {
-                columns => [ qw/dna_plate_name dna_well_name/ ],
+                columns => [ qw/final_pick_plate_name final_pick_well_name/ ],
                 distinct => 1
             }
         );
-        my $dna_pass_count = scalar @dna;
+        my $final_pick_pass_count = scalar @final_pick;
+
+
+        # # DNA wells
+        # my @dna = $summary_rs->search(
+        #     { dna_well_accepted => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/dna_plate_name dna_well_name/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $dna_pass_count = scalar @dna;
 
 
         # EP wells
@@ -1188,7 +1201,7 @@ sub genes {
 
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
-            'passing_vector_wells'   => $dna_pass_count,
+            'passing_vector_wells'   => $final_pick_pass_count,
             'electroporations'       => $ep_count,
 
 
