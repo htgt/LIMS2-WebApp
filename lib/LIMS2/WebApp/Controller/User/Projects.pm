@@ -129,8 +129,10 @@ sub view_project :Path('/user/view_project'){
 
     $c->assert_user_roles('read');
 
+    my $proj_id = $c->req->param('project_id');
+
     my $project = $c->model('Golgi')->retrieve_project_by_id({
-            id => $c->req->param('project_id'),
+            id => $proj_id,
         });
 
     my $gene_info = try{ $c->model('Golgi')->find_gene( {
