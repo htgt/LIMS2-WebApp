@@ -223,6 +223,12 @@ sub index :Path( '/user/projects' ) :Args(0) {
 
     my @sponsors = sort { $a cmp $b } ( uniq map { $_->sponsor_ids } @projects_rs );
 
+    try {
+        my $index = 0;
+        $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+        splice(@sponsors, $index, 1);
+    };
+
     my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
     $c->stash(
