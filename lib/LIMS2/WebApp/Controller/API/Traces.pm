@@ -42,6 +42,18 @@ sub trace_data_GET{
 
     my ( $match, @rest ) = $self->_get_matches( $seq, $params->{search_seq} );
 
+    # if we don't have a match, the reverse flag might be wrong.... try and reverse it
+    if (!$match) {
+        if ($params->{reverse}) {
+            delete $params->{reverse};
+        } else {
+            $params->{reverse} = 1;
+        }
+        $params->{search_seq} = revcom( $params->{search_seq} )->seq;
+    }
+
+    ( $match, @rest ) = $self->_get_matches( $seq, $params->{search_seq} );
+
     return $self->status_bad_request( $c, message => "Couldn't find specified sequence in the trace" ) unless $match;
     return $self->status_bad_request( $c, message => "Found the search sequence more than once" ) if @rest;
 
