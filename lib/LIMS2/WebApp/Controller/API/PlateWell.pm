@@ -170,7 +170,6 @@ sub well_accepted_override_PUT {
     );
 }
 
-
 sub well_toggle_to_report : Path( '/api/well/toggle_to_report' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
@@ -477,7 +476,6 @@ sub well_primer_bands_POST {
     );
 }
 
-
 sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClass('REST') {
 }
 
@@ -584,9 +582,7 @@ sub well_genotyping_crispr_qc_GET {
     my ( $self, $c, $barcode ) = @_;
 
     #if this is slow we should use processgraph instead of 1 million traversals
-
-    #well_id will become barcode
-    #my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
+    $c->assert_user_roles('read');
 
     my $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
 
