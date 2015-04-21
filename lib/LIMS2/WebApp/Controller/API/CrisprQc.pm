@@ -21,6 +21,8 @@ sub update_crispr_es_qc_well :Path('/api/update_crispr_es_qc_well') :Args(0) :Ac
 sub update_crispr_es_qc_well_POST {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles('edit');
+
     try{
         my $qc_well = $c->model('Golgi')->txn_do(
             sub {
