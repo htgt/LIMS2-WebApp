@@ -1,5 +1,12 @@
 #!/usr/bin/env perl
 
+# NB: TryCatch blocks in the Schema/Result modules cause schema dump
+# to fail with an error like this:
+#
+# PL_linestr not long enough, was Devel::Declare loaded soon enough in (eval 1152)
+#
+# Solution is to use Try::Tiny instead
+
 use strict;
 use warnings FATAL => 'all';
 
