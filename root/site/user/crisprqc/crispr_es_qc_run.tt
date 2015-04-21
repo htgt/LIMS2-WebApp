@@ -93,7 +93,7 @@ $(document).ready(function() {
         </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
-        <i class="icon-remove"></i> Delete QC Run
+        <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
 
     [% IF truncate %]
