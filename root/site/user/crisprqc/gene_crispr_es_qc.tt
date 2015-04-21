@@ -18,7 +18,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 });
 </script>
