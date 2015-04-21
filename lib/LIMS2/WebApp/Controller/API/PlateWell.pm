@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.306';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.307';
 }
 ## use critic
 
