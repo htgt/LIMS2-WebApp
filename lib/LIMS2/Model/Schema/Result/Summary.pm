@@ -850,7 +850,8 @@ __PACKAGE__->table("summaries");
 =head2 to_report
 
   data_type: 'boolean'
-  is_nullable: 1
+  default_value: true
+  is_nullable: 0
 
 =cut
 
@@ -1183,7 +1184,7 @@ __PACKAGE__->add_columns(
   "sponsor_id",
   { data_type => "text", is_nullable => 1 },
   "to_report",
-  { data_type => "boolean", is_nullable => 1 },
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -1199,8 +1200,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 16:37:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vnqx4wJzHo+TyOAojg+FbQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-21 10:40:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wbQkyfPmxjcwWx4sBsRYnw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

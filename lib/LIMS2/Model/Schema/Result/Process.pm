@@ -184,6 +184,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_doubling
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessDoubling>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_doubling",
+  "LIMS2::Model::Schema::Result::ProcessDoubling",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_global_arm_shortening_design
 
 Type: might_have
@@ -244,6 +259,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_oxygen_condition
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessOxygenCondition>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_oxygen_condition",
+  "LIMS2::Model::Schema::Result::ProcessOxygenCondition",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_recombinases
 
 Type: has_many
@@ -295,8 +325,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 09:04:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:umPiQonfJC/hHuEEJrjpBg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-21 10:40:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f0BGykqVIEFy9hplZwesEQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

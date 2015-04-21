@@ -11,6 +11,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
     upload_plate_scan
     send_out_well_barcode
     do_picklist_checkout
+    start_doubling_well_barcode
 );
 use namespace::autoclean;
 use JSON;
@@ -528,6 +529,68 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
         });
 
         $c->flash->{success_msg} = "Barcode $barcode has been sent out" unless $failed;
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+    }
+    elsif($barcode){
+        # return well details
+        my $well;
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+        }
+        return;
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+    }
+    return;
+}
+
+sub piq_start_doubling : Path( '/user/piq_start_doubling' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+
+    $c->stash->{barcode} = $barcode;
+
+    if($c->request->param('cancel_start_doubling')){
+        $c->flash->{info_msg} = "Cancelled start doubling of barcode $barcode";
+        # FIXME: better to redirect to individual barcode details??
+        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        return;
+    }
+    elsif($c->request->param('confirm_start_doubling')){
+
+        my $failed;
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                start_doubling_well_barcode(
+                    $c->model('Golgi'),
+                    {
+                        barcode => $barcode,
+                        user    => $c->user->name,
+                        comment => $c->request->param('oxygen_condition'),
+                    }
+                );
+            }
+            catch($e){
+                $c->flash->{error_msg} = "Start doubling of barcode $barcode failed with error $e";
+                $c->log->debug("rolling back barcode start doubling actions");
+                $c->model('Golgi')->txn_rollback;
+                $failed = 1;
+            };
+        });
+
+        $c->flash->{success_msg} = "Barcode $barcode has begun doubling" unless $failed;
         $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
     }
     elsif($barcode){

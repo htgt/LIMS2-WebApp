@@ -1295,7 +1295,7 @@ in these cases the crispr pair will be returned.
 sub crispr_entity {
     my ( $self ) = @_;
     use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
-    use TryCatch;
+    use Try::Tiny;
 
     my @crisprs = $self->crisprs;
     my $num_crisprs = scalar( @crisprs );
@@ -1311,9 +1311,9 @@ sub crispr_entity {
                 { crispr_ids => [ map{ $_->id } @crisprs ] },
             );
         }
-        catch($err) {
-            ERROR( "Unable to find crispr group: $err" );
-        }
+        catch{
+            ERROR( "Unable to find crispr group: $_" );
+        };
     }
     elsif ( $num_crisprs == 2 ) {
         # if one crispr left and the other right then search for crispr pair
@@ -1335,9 +1335,9 @@ sub crispr_entity {
                     { crispr_ids => [ map{ $_->id } @crisprs ] },
                 );
             }
-            catch ($err) {
-                ERROR( "Unable to find crispr group: $err" );
-            }
+            catch{
+                ERROR( "Unable to find crispr group: $_" );
+            };
         }
     }
     else {
@@ -1449,6 +1449,23 @@ sub crispr_primer_for{
     }
 
     return $crispr_primer_seq;
+}
+
+sub distributable_descendant_barcodes{
+    my ( $self ) = @_;
+
+    my @barcodes;
+
+    # Find all descendant wells which have a barcode and are distributable (accepted)
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+          while( my $well = $descendants->next ){
+              next unless $well->well_barcode;
+              next unless $well->is_accepted;
+              push @barcodes, $well->well_barcode->barcode;
+          }
+    }
+    return \@barcodes;
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,

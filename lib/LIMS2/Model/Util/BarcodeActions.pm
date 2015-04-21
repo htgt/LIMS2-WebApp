@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
               upload_plate_scan
               send_out_well_barcode
               do_picklist_checkout
+              start_doubling_well_barcode
           )
     ]
 };
@@ -370,6 +371,53 @@ sub send_out_well_barcode{
         user      => $validated_params->{user},
         comment   => $validated_params->{comment},
     });
+
+    my $plate = $bc->well->plate;
+
+    # remove_well_barcodes_from_plate(wells,plate,comment,user)
+    # unless it was already on virtual plate
+    my $new_plate = $plate;
+    unless($plate->is_virtual){
+        $new_plate = remove_well_barcodes_from_plate(
+            $model,
+            [ $validated_params->{barcode} ],
+            $plate,
+            $validated_params->{user}
+        );
+    }
+
+    return $new_plate;
+}
+
+sub pspec_start_doubling_well_barcode{
+    return {
+        barcode  => { validate => 'well_barcode' },
+        user     => { validate => 'existing_user' },
+        oxygen_condition => { validate => 'existing_oxygen_condition' },
+    };
+}
+
+sub start_doubling_well_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_start_doubling_well_barcode);
+
+    my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
+    my $plate_type = $well_barcode->well->plate->type_id;
+
+    die "Cannot start doubling well from $plate_type plate (must be PIQ)\n" unless $plate_type eq "PIQ";
+
+    my $bc = $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'doubling_in_progress',
+        user      => $validated_params->{user},
+    });
+
+    ## TODO ##
+    # Start new output process from well
+    # process type: doubling
+    # process param: oxygen condition
+    # process will not have any output wells yet - will this cause problems?
 
     my $plate = $bc->well->plate;
 

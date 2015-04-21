@@ -31,6 +31,10 @@ Actions:
     Send Out
     </a>
     <br><br>
+    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => well_details.barcode) %]" class="btn btn-primary">
+    Start Doubling
+    </a>
+    <br><br>
       [% END %]
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="text" name="reason" value="[% reason %]" placeholder="reason for discard"/>

@@ -32,6 +32,10 @@
     <a  href="[% c.uri_for('/user/piq_send_out', barcode => bc.barcode) %]" class="btn btn-primary">
     Send Out
     </a>
+    <br><br>
+    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => bc.barcode) %]" class="btn btn-primary btn-mini">
+    Start Doubling
+    </a>
   [% END %]
   </td>
   <td>
