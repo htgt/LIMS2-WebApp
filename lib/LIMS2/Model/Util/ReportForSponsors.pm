@@ -16,7 +16,7 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 use feature "switch";
-
+use Smart::Comments;
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
@@ -437,7 +437,6 @@ sub generate_sub_report {
                                             # 'colonies_picked',
                                             # 'targeted_clones',
                                             # 'recovery_class',
-                                            # 'priority',
                                             # 'effort_concluded',
 
                                             'total_colonies',
@@ -450,6 +449,7 @@ sub generate_sub_report {
                                             'wt_count',
                                             'ms_count',
 
+                                            'priority',
                                             'recovery_class',
 
                                             'ep_data',
@@ -474,7 +474,6 @@ sub generate_sub_report {
                                             # 'iPSCs colonies picked',
                                             # 'homozygous targeted clones',
                                             # 'recovery_class',
-                                            # 'priority',
                                             # 'effort concluded',
 
                                             '# colonies',
@@ -488,6 +487,7 @@ sub generate_sub_report {
                                             '# wt clones',
                                             '# mosaic clones',
 
+                                            'priority',
                                             'info',
                                         ],
         },
@@ -901,22 +901,17 @@ sub genes {
             { %search },
         );
 
-        my ($sponsors_str, $effort);
-        my ($recovery_class, $priority, $effort_concluded);
+        my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => $gene_id, targeting_type => $self->targeting_type })->all;
 
-        my @gene_projects = $self->model->schema->resultset('Project')->search({
-                        gene_id => $gene_id,
-                    })->all;
-        my @all_sponsors = uniq map { $_->sponsors } @gene_projects;
-        my @sponsors;
-        foreach my $sponsor (@sponsors){
-            next if $sponsor eq 'All';
-            next if $sponsor eq 'Transfacs';
-            push @sponsors, $sponsor;
-        }
+        my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
-        $sponsors_str = join  ( '; ', @sponsors );
+        try {
+            my $index = 0;
+            $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+            splice(@sponsors, $index, 1);
+        };
 
+        my $sponsors_str = join  ( '; ', @sponsors );
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Pathogen Group 3/PG3/;
@@ -927,45 +922,28 @@ sub genes {
         $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
-        if (scalar @sponsors == 1 && $sponsor_id ne 'All') {
-            $effort = $self->model->retrieve_project({
-                        sponsor_id => $sponsor_id,
-                        gene_id => $gene_id,
-                        targeting_type => $self->targeting_type,
-                        species_id => $self->species,
-            });
-
-            $recovery_class = $effort->recovery_class_name;
-            $priority = $effort->priority;
-            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-        } else {
-
-            my (@recovery_class, @priority, @effort_concluded);
-
-            foreach my $sponsor (@sponsors) {
-                try {
-                    my $sponsor_effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsor,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                    });
-
-                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
-                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
-                }
-            }
-            $recovery_class = join ( '; ', @recovery_class );
+        my ($priority, $recovery_class, $effort_concluded);
+        try {
+            my @priority = uniq map { $_->priority } @gene_projects;
             $priority = join ( '; ', @priority );
-            $effort_concluded = join ( '; ', @effort_concluded );
-        }
+        };
+        if (! $priority) {$priority = '-'}
+
+        try {
+            my @recovery_class = uniq map { $_->recovery_class->name } @gene_projects;
+            $recovery_class = join ( '; ', @recovery_class );
+        };
         if (! $recovery_class) {$recovery_class = '-'}
+
+        try {
+            my @effort_concluded = uniq map { $_->effort_concluded } @gene_projects;
+            $effort_concluded = join ( '; ', @effort_concluded );
+        };
+
 
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
-
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1019,16 +997,29 @@ sub genes {
         }
 
 
-        # DNA wells
-        my @dna = $summary_rs->search(
-            { dna_well_accepted => 't',
+
+        # FINAL_PICK wells
+        my @final_pick = $summary_rs->search(
+            { final_pick_well_accepted => 't',
               to_report => 't' },
             {
-                columns => [ qw/dna_plate_name dna_well_name/ ],
+                columns => [ qw/final_pick_plate_name final_pick_well_name/ ],
                 distinct => 1
             }
         );
-        my $dna_pass_count = scalar @dna;
+        my $final_pick_pass_count = scalar @final_pick;
+
+
+        # # DNA wells
+        # my @dna = $summary_rs->search(
+        #     { dna_well_accepted => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/dna_plate_name dna_well_name/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $dna_pass_count = scalar @dna;
 
 
         # EP wells
@@ -1182,13 +1173,12 @@ sub genes {
             'gene_symbol'            => $gene_symbol,
             'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
-            'priority'               => $priority ? $priority : '0',
 
             # 'vector_wells'           => scalar @design_ids,
 
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
-            'passing_vector_wells'   => $dna_pass_count,
+            'passing_vector_wells'   => $final_pick_pass_count,
             'electroporations'       => $ep_count,
 
 
@@ -1200,6 +1190,7 @@ sub genes {
             'wt_count'               => $total_wt_count,
             'ms_count'               => $total_ms_count,
 
+            'priority'               => $priority,
             'recovery_class'         => $recovery_class,
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,

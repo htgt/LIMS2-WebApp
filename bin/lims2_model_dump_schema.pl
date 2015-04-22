@@ -5,7 +5,9 @@
 #
 # PL_linestr not long enough, was Devel::Declare loaded soon enough in (eval 1152)
 #
-# Solution is to use TryTiny instead
+
+# Solution is to use Try::Tiny instead
+
 
 use strict;
 use warnings FATAL => 'all';

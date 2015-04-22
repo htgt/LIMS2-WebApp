@@ -172,6 +172,17 @@ document.title = "[%- sponsor_id %]";
               [% END %]
             [%- END %]
 
+        [%- ELSIF col == 'priority' %]
+            [%- IF colval == 'high' %]
+              <td><font color='#FF4646'>[%- colval %]</font></td>
+            [%- ELSIF colval == 'medium' %]
+              <td><font color='#FFA500'>[%- colval %]</font></td>
+            [%- ELSIF colval == 'low' %]
+              <td><font color='#8AD95A'>[%- colval %]</font></td>
+            [%- ELSE %]
+              <td>[%- colval %]</td>
+            [%- END %]
+
         [%- ELSIF col == 'targeted_clones' %]
           [%- IF row.item('targeted_clones') && row.item('chromosome') == "X" %]
             <td style="background:#FFA500">[%- colval %]</td>
@@ -209,8 +220,6 @@ document.title = "[%- sponsor_id %]";
                || col == 'crispr_vector_wells'
                || col == 'crispr_dna_wells'
                || col == 'accepted_crispr_dna_wells'
-
-               || col == 'priority'
 
                || col == 'total_colonies'
                || col == 'effort_concluded'

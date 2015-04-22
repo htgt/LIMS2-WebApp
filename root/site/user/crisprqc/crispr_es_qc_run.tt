@@ -27,7 +27,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 
     // validate or invalidate run
@@ -93,7 +93,7 @@ $(document).ready(function() {
         </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
-        <i class="icon-remove"></i> Delete QC Run
+        <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
 
     [% IF truncate %]

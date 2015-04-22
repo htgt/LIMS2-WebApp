@@ -129,8 +129,10 @@ sub view_project :Path('/user/view_project'){
 
     $c->assert_user_roles('read');
 
+    my $proj_id = $c->req->param('project_id');
+
     my $project = $c->model('Golgi')->retrieve_project_by_id({
-            id => $c->req->param('project_id'),
+            id => $proj_id,
         });
 
     my $gene_info = try{ $c->model('Golgi')->find_gene( {
@@ -222,6 +224,12 @@ sub index :Path( '/user/projects' ) :Args(0) {
     );
 
     my @sponsors = sort { $a cmp $b } ( uniq map { $_->sponsor_ids } @projects_rs );
+
+    try {
+        my $index = 0;
+        $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+        splice(@sponsors, $index, 1);
+    };
 
     my $columns = ['id', 'gene_id', 'gene_symbol', 'sponsor', 'targeting type', 'concluded?', 'recovery class', 'recovery comment', 'priority'];
 
