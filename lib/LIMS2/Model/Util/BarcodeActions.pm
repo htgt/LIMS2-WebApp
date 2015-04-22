@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
               upload_plate_scan
               send_out_well_barcode
               do_picklist_checkout
+              upload_qc_plate
           )
     ]
 };
@@ -765,6 +766,65 @@ sub upload_plate_scan{
     }
 
     return ($new_plate, \@list_messages);
+}
+
+# Input: csv file of barcode locations, plate name
+sub pspec_upload_qc_plate{
+    return{
+        new_plate_name      => { validate => 'plate_name' },
+        species             => { validate => 'existing_species' },
+        user                => { validate => 'existing_user' },
+        comment             => { validate => 'non_empty_string', optional => 1 },
+        csv_fh              => { validate => 'file_handle'},
+        plate_type          => { validate => 'existing_plate_type' },
+        process_type        => { validate => 'existing_process_type' },
+    }
+}
+
+# Use this method to create a plate for QC using barcodes which
+# are no longer "in_freezer", e.g. when material comes back from CGAP for QC.
+# The new plate will not have barcodes on it. The wells on the new plate will
+# be parented by the well that is linked to the barcode in LIMS2, e.g. last
+# known location on a versioned plate
+sub upload_qc_plate{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_upload_qc_plate);
+
+    my $csv_data = _parse_plate_well_barcodes_csv_file($validated_params->{csv_fh});
+
+    my @wells;
+
+    foreach my $well_name (keys %{ $csv_data }){
+        # FIXME: check barcode exists
+        my $well_barcode = $model->retrieve_well_barcode({
+            barcode => $csv_data->{$well_name},
+        });
+
+        # FIXME: error if barcode is in_freezer?
+        # FIXME: error if well is not from species
+        my $well_data = {
+            well_name    => $well_name,
+            parent_plate => $well_barcode->well->plate->name,
+            parent_plate_version => $well_barcode->well->plate->version,
+            parent_well  => $well_barcode->well->name,
+            process_type => $validated_params->{process_type},
+        };
+
+        DEBUG "Well $well_name has parent well ".$well_barcode->well->as_string;
+        push @wells, $well_data;
+    }
+
+    my $plate = $model->create_plate({
+        name       => $validated_params->{new_plate_name},
+        species    => $validated_params->{species},
+        type       => $validated_params->{plate_type},
+        created_by => $validated_params->{user},
+        wells      => \@wells,
+        is_virtual => 0,
+    });
+
+    return $plate;
 }
 
 sub _get_new_well_details{

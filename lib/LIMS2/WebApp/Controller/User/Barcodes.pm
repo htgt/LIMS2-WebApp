@@ -11,6 +11,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
     upload_plate_scan
     send_out_well_barcode
     do_picklist_checkout
+    upload_qc_plate
 );
 use namespace::autoclean;
 use JSON;
@@ -552,6 +553,65 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
     return;
 }
 
+sub create_qc_plate : Path( '/user/create_qc_plate' ) : Args(0){
+    my ($self, $c) = @_;
+
+    # Store mapping so user does not have to select both plate and process type
+    my $process_type_for_plate = {
+        CGAP_QC => 'cgap_qc',
+        MS_QC   => 'ms_qc',
+        PIQ     => 'rearray',
+    };
+
+    $c->assert_user_roles('edit');
+
+    $c->stash->{plate_type_list} = [ keys %{ $process_type_for_plate } ];
+    $c->stash->{plate_type} = $c->req->param('plate_type');
+
+    if($c->request->param('create_plate')){
+        my ($plate_name,$data_file) = $self->_plate_upload_checks($c);
+        return unless $data_file;
+
+        my $plate_type = $c->req->param('plate_type');
+        my $process_type = $process_type_for_plate->{$plate_type};
+
+        unless($process_type){
+            $c->stash->{'error_msg'} = "No default process type found for plate type $plate_type";
+            return;
+        }
+
+        my $plate;
+
+        $c->model('Golgi')->txn_do(
+            sub {
+                try{
+                    my $upload_params = {
+                        new_plate_name      => $plate_name,
+                        plate_type          => $plate_type,
+                        process_type        => $process_type,
+                        species             => $c->session->{selected_species},
+                        user                => $c->user->name,
+                        csv_fh              => $data_file->fh,
+                    };
+                    $plate = upload_qc_plate($c->model('Golgi'), $upload_params);
+                }
+                catch($e){
+                    $c->stash->{ 'error_msg' } = 'Error encountered while uploading qc plate: ' . $e;
+                    $c->log->debug('rolling back qc plate upload actions');
+                    $c->model('Golgi')->txn_rollback;
+                };
+            }
+        );
+
+        if($plate){
+            $c->flash->{'success_msg'} = "Plate $plate_name was created";
+            $c->res->redirect( $c->uri_for("/user/view_plate", {id => $plate->id }) );
+        }
+    }
+
+    return;
+}
+
 sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     # Upload a barcode scan file to create a new plate
     # which contains tubes that have already been registered in LIMS2
@@ -561,29 +621,8 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     $c->assert_user_roles( 'edit' );
 
     if($c->request->param('create_plate')){
-        my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
-
-        unless ( $csv_barcodes_data_file ) {
-            $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
-            return;
-        }
-
-        my $plate_name = $c->request->param('plate_name');
-
-        unless($plate_name){
-            $c->flash->{ 'error_msg' } = "No plate name provided";
-            return;
-        }
-        $c->stash->{plate_name} = $plate_name;
-
-        my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
-            name => $plate_name,
-        })->first;
-
-        if($plate_exists){
-            $c->flash->{ 'error_msg' } = "Plate $plate_name already exists. Please use a different name.";
-            return;
-        }
+        my ($plate_name,$csv_barcodes_data_file) = $self->_plate_upload_checks($c);
+        return unless $csv_barcodes_data_file;
 
         my $list_messages = [];
         my $plate;
@@ -615,6 +654,37 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     }
 
     return;
+}
+
+# Check we have an upload file and a new plate name
+sub _plate_upload_checks{
+    my ($self, $c) = @_;
+
+    my $plate_name = $c->request->param('plate_name');
+
+    unless($plate_name){
+        $c->flash->{ 'error_msg' } = "No plate name provided";
+        return;
+    }
+    $c->stash->{plate_name} = $plate_name;
+
+    my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+    unless ( $csv_barcodes_data_file ) {
+        $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+        return;
+    }
+
+    my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
+        name => $plate_name,
+    })->first;
+
+    if($plate_exists){
+        $c->flash->{ 'error_msg' } = "Plate $plate_name already exists. Please use a different name.";
+        return;
+    }
+
+    return ($plate_name,$csv_barcodes_data_file);
 }
 
 sub rescan_barcoded_plate : Path( '/user/rescan_barcoded_plate' ) : Args(0){
