@@ -1,0 +1,49 @@
+[% META title = "Create Plate for QC", tab_name = 'Barcodes' -%]
+
+
+<div class="page-header">
+  <h1>Create Plate for QC</h1>
+</div>
+
+<div class="row">
+  <div class="span6 offset3">
+
+    <form method="POST" id="plate_create" action="[% c.uri_for( '/user/create_qc_plate' ) %]" class="form well"  enctype="multipart/form-data" >
+        Use this form to create a QC plate for barcodes which are no longer in the freezer, e.g. when samples have been sent out to an external resource and then returned to us for re-QC
+        <br>
+        <br>
+        Upload a csv file where the first column contains the new well names and the second column
+        contains the LIMS2 barcodes.
+        <br>
+        <br>
+        <label>New Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+         />
+
+        <label>New Plate Type</label>
+        <select name="plate_type">
+          <option value=""></option>
+          [% FOREACH type IN plate_type_list %]
+          <option value="[% type %]">[% type %]</option>
+          [% END %]
+        </select>
+
+        <label>Well Barcode File</label>
+        <input name="wellbarcodesfile" type="file">
+
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
+            <i class="icon-upload"></i> Create Plate
+        </button>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+</script>
