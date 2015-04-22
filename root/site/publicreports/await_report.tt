@@ -24,7 +24,7 @@
 
 <script type="text/javascript">
   $.smartPoller( function(retry){
-    $.getJSON( "[% c.uri_for( '/public_reports/ready', report_id ) %]", function(response){
+    $.getJSON( "[% c.uri_for( '/public_api/report_ready', report_id ) %]", function(response){
       if( response.status == "DONE" ) {
          $("#report_pending").hide();
          $("#report_complete").show();
