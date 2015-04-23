@@ -54,6 +54,8 @@ const our %PROCESS_PLATE_TYPES => (
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
+    'cgap_qc'                => [qw( CGAP_QC )],
+    'ms_qc'                  => [qw( MS_QC )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -190,6 +192,14 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'oligo_assembly' => {
         type   => [qw( DESIGN CRISPR )],
         number => 2,
+    },
+    'cgap_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'ms_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
     },
 );
 
