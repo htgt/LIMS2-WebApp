@@ -16,7 +16,7 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 use feature "switch";
-use Smart::Comments;
+
 extends qw( LIMS2::ReportGenerator );
 
 # Rows on report view
@@ -449,6 +449,8 @@ sub generate_sub_report {
                                             'wt_count',
                                             'ms_count',
 
+                                            'distrib_clones',
+
                                             'priority',
                                             'recovery_class',
 
@@ -486,6 +488,8 @@ sub generate_sub_report {
                                             '# in-frame clones',
                                             '# wt clones',
                                             '# mosaic clones',
+
+                                            'distributable clones',
 
                                             'priority',
                                             'info',
@@ -924,20 +928,25 @@ sub genes {
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority = uniq map { $_->priority } @gene_projects;
-            $priority = join ( '; ', @priority );
+            my @priority_array = map { $_->priority } @gene_projects;
+
+            my $index = 0;
+            $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
+            splice(@priority_array, $index, 1);
+
+            $priority = join ( '; ', @priority_array );
         };
         if (! $priority) {$priority = '-'}
 
         try {
-            my @recovery_class = uniq map { $_->recovery_class->name } @gene_projects;
-            $recovery_class = join ( '; ', @recovery_class );
+            my @recovery_class_array = uniq map { $_->recovery_class->name } @gene_projects;
+            $recovery_class = join ( '; ', @recovery_class_array );
         };
         if (! $recovery_class) {$recovery_class = '-'}
 
         try {
-            my @effort_concluded = uniq map { $_->effort_concluded } @gene_projects;
-            $effort_concluded = join ( '; ', @effort_concluded );
+            my @effort_concluded_array = uniq map { $_->effort_concluded } @gene_projects;
+            $effort_concluded = join ( '; ', @effort_concluded_array );
         };
 
 
@@ -1167,6 +1176,38 @@ sub genes {
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
+
+
+        # PIQ wells
+        my @piq = $summary_rs->search(
+            {   piq_plate_name => { '!=', undef },
+                to_report => 't' },
+            {
+                columns => [ qw/piq_plate_name piq_well_name/ ],
+                distinct => 1
+            }
+        );
+
+        my $piq_pass_count = 0;
+        # Ancestor PIQ is required for reporting
+        my %ancestor_piq;
+        foreach my $curr_piq (@piq) {
+            if ($curr_piq->piq_well_accepted) {
+                $piq_pass_count++;
+            }
+            try {
+                my $well = $self->model->retrieve_well( { plate_name => $curr_piq->piq_plate_name, well_name => $curr_piq->piq_well_name } );
+                my $ancestor = $well->ancestor_piq;
+                $ancestor_piq{$ancestor->id} = $ancestor;
+            };
+        }
+
+        foreach my $well ( keys %ancestor_piq ) {
+            if ( $ancestor_piq{$well}->is_accepted ) {
+                $piq_pass_count++;
+            }
+        }
+
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
@@ -1181,7 +1222,6 @@ sub genes {
             'passing_vector_wells'   => $final_pick_pass_count,
             'electroporations'       => $ep_count,
 
-
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
             'total_colonies'         => $total_total_colonies,
@@ -1189,6 +1229,8 @@ sub genes {
             'if_count'               => $total_if_count,
             'wt_count'               => $total_wt_count,
             'ms_count'               => $total_ms_count,
+
+            'distrib_clones'         => $piq_pass_count,
 
             'priority'               => $priority,
             'recovery_class'         => $recovery_class,
@@ -1212,6 +1254,8 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
+            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
+            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
             $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
             $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
             $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
@@ -2877,7 +2921,12 @@ AND p.species_id = '$species_id'
 SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+INNER JOIN crispr_es_qc_wells cw ON cw.well_id = s.ep_pick_well_id
+INNER JOIN crispr_es_qc_runs cr ON cw.crispr_es_qc_run_id = cr.id
 WHERE s.ep_pick_well_accepted = true
+AND cw.crispr_damage_type_id = 'frameshift'
+AND cw.accepted = true
+AND cr.validated = true
 $condition
 SQL_END
 

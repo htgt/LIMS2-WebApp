@@ -207,6 +207,7 @@ document.title = "[%- sponsor_id %]";
             <td></td>
         [%- ELSIF col == 'passing_vector_wells'
                || col == 'accepted_crispr_vector'
+               || col == 'distrib_clones'
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
         [%- ELSIF col == 'crispr_pairs'
