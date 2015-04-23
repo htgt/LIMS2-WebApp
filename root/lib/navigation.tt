@@ -146,7 +146,7 @@
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/crisprqc/create_qc_plate' ) %]">Create QC Plate</a>
+              <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
             </li>
             [% END %]
           </ul>
