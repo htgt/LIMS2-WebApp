@@ -9,7 +9,9 @@
   <div class="span6 offset3">
 
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/create_qc_plate' ) %]" class="form well"  enctype="multipart/form-data" >
-        Use this form to create a QC plate for barcodes which are no longer in the freezer, e.g. when samples have been sent out to an external resource and then returned to us for re-QC
+        Use this form to create a QC plate for barcodes which are no longer in the freezer, e.g. when samples have been sent out to an external resource and then returned to us for QC.
+        <br>
+        <strong>The wells on the new plate will NOT have barcodes</strong>
         <br>
         <br>
         Upload a csv file where the first column contains the new well names and the second column
@@ -25,7 +27,7 @@
         <select name="plate_type">
           <option value=""></option>
           [% FOREACH type IN plate_type_list %]
-          <option value="[% type %]">[% type %]</option>
+          <option value="[% type %]" [% IF type == plate_type %]selected[% END %]>[% type %]</option>
           [% END %]
         </select>
 

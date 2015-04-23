@@ -796,13 +796,28 @@ sub upload_qc_plate{
     my @wells;
 
     foreach my $well_name (keys %{ $csv_data }){
-        # FIXME: check barcode exists
-        my $well_barcode = $model->retrieve_well_barcode({
-            barcode => $csv_data->{$well_name},
-        });
+        my $barcode = $csv_data->{$well_name};
+        my $well_barcode;
+        try{
+            $well_barcode = $model->retrieve_well_barcode({
+                barcode => $barcode,
+            });
+        }
+        unless($well_barcode){
+            die "Barcode $barcode not found\n";
+        }
 
-        # FIXME: error if barcode is in_freezer?
-        # FIXME: error if well is not from species
+        if($well_barcode->barcode_state->id eq 'in_freezer' ){
+            # This check might be too strict?
+            die "Barcode $barcode state: in_freezer."
+                ."QC plates can only be created for wells which are no longer in the freezer\n";
+        }
+
+        unless($well_barcode->well->plate->species_id eq $validated_params->{species}){
+            die "Barcode $barcode does not have the expected species (expected: "
+                .$validated_params->{species}.", got: ".$well_barcode->well->plate->species_id;
+        }
+
         my $well_data = {
             well_name    => $well_name,
             parent_plate => $well_barcode->well->plate->name,
@@ -1003,8 +1018,16 @@ sub _parse_plate_well_barcodes_csv_file {
 
     my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
 
+    my $line_num = 0;
     while ( my $line = $csv->getline( $fh )) {
-        my @fields = split "," , $line;
+        $line_num++;
+        if($line_num == 1){
+            # Skip if first line looks like a header
+            # NB: we are still assuming the well is in first col and barcode in second
+            if($line->[0]=~/well/){
+                next;
+            }
+        }
         my $curr_well = $line->[0];
         my $curr_barcode = $line->[1];
         $csv_data->{ $curr_well } = $curr_barcode;

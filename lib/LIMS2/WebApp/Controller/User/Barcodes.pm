@@ -573,6 +573,12 @@ sub create_qc_plate : Path( '/user/create_qc_plate' ) : Args(0){
         return unless $data_file;
 
         my $plate_type = $c->req->param('plate_type');
+
+        unless($plate_type){
+            $c->stash->{'error_msg'} = "No plate type provided";
+            return;
+        }
+
         my $process_type = $process_type_for_plate->{$plate_type};
 
         unless($process_type){
@@ -660,9 +666,12 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
 sub _plate_upload_checks{
     my ($self, $c) = @_;
 
+    $c->log->debug("Checking plate upload params");
+
     my $plate_name = $c->request->param('plate_name');
 
     unless($plate_name){
+        $c->log->debug("plate name missing");
         $c->flash->{ 'error_msg' } = "No plate name provided";
         return;
     }
