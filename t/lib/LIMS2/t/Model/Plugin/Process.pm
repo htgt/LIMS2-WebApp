@@ -49,6 +49,8 @@ sub process_types : Tests() {
         crispr_ep
         global_arm_shortening
         oligo_assembly
+        cgap_qc
+        ms_qc
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
