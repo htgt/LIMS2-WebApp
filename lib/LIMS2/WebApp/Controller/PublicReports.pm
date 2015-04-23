@@ -528,7 +528,7 @@ sub _stash_well_genotyping_info {
     try {
         #needs to be given a method for finding genes
         my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
-        $data->{distributable_descendants} = $well->distributable_descendant_barcodes;
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
 
         my @crisprs = $well->parent_crispr_wells;

@@ -67,8 +67,8 @@
         <td>[% data.cell_line %]</td>
     </tr>
     <tr>
-      <th>Descendants</th>
-        <td>[% data.distributable_descendants.join(", ") %]</td>
+      <th>Child Barcodes</th>
+        <td>[% data.child_barcodes.join(", ") %]</td>
     </tr>
 </table>
 
