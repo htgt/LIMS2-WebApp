@@ -27,7 +27,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 
     // validate or invalidate run
@@ -95,6 +95,17 @@ $(document).ready(function() {
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
+
+    [% IF truncate %]
+        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
+            <i class="icon-resize-full"></i> Show Full Reads
+        </a>
+    [% ELSE %]
+        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
+            <i class="icon-resize-small"></i> Truncate Reads
+        </a>
+    [% END %]
+
     [% IF wells.size > 0 %]
         <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
             <i class="icon-gift icon-white"></i> Validate QC Run
@@ -130,7 +141,7 @@ $(document).ready(function() {
             <th>Well</th>
             <th>ES QC Well ID</th>
             <th>Gene</th>
-            <th>Pair ID</th>
+            <th>Crispr ID</th>
             <th>Alignment</th>
             <th>Accept</th>
             <th>Damage Type</th>
@@ -148,7 +159,7 @@ $(document).ready(function() {
 
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                 = row
-                    accept              = 1
+                    accept              = can_accept_wells
                     edit                = 1
                     complete_info       = 1
                     hide_crispr_well_id = 0

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::CrisprQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.304';
+    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.308';
 }
 ## use critic
 
@@ -26,6 +26,8 @@ sub update_crispr_es_qc_well :Path('/api/update_crispr_es_qc_well') :Args(0) :Ac
 
 sub update_crispr_es_qc_well_POST {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
 
     try{
         my $qc_well = $c->model('Golgi')->txn_do(

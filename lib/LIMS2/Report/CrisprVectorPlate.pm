@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.304';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.308';
 }
 ## use critic
 
@@ -26,7 +26,7 @@ override _build_columns => sub {
 
     return [
         'Well Name',
-        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors", 'Genbank File',
+        "Design Id", "Design Type", "Gene Id", "Gene Symbol", "Gene Sponsors", 'Genbank File',
         'Crispr Plate', 'Crispr Well', 'Crispr ID',
         'Backbone',
         'Created By','Created At',

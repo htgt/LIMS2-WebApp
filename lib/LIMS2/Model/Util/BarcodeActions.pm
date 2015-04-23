@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.304';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.308';
 }
 ## use critic
 
@@ -19,6 +19,7 @@ use Sub::Exporter -setup => {
               upload_plate_scan
               send_out_well_barcode
               do_picklist_checkout
+              upload_qc_plate
           )
     ]
 };
@@ -773,6 +774,80 @@ sub upload_plate_scan{
     return ($new_plate, \@list_messages);
 }
 
+# Input: csv file of barcode locations, plate name
+sub pspec_upload_qc_plate{
+    return{
+        new_plate_name      => { validate => 'plate_name' },
+        species             => { validate => 'existing_species' },
+        user                => { validate => 'existing_user' },
+        comment             => { validate => 'non_empty_string', optional => 1 },
+        csv_fh              => { validate => 'file_handle'},
+        plate_type          => { validate => 'existing_plate_type' },
+        process_type        => { validate => 'existing_process_type' },
+    }
+}
+
+# Use this method to create a plate for QC using barcodes which
+# are no longer "in_freezer", e.g. when material comes back from CGAP for QC.
+# The new plate will not have barcodes on it. The wells on the new plate will
+# be parented by the well that is linked to the barcode in LIMS2, e.g. last
+# known location on a versioned plate
+sub upload_qc_plate{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_upload_qc_plate);
+
+    my $csv_data = _parse_plate_well_barcodes_csv_file($validated_params->{csv_fh});
+
+    my @wells;
+
+    foreach my $well_name (keys %{ $csv_data }){
+        my $barcode = $csv_data->{$well_name};
+        my $well_barcode;
+        try{
+            $well_barcode = $model->retrieve_well_barcode({
+                barcode => $barcode,
+            });
+        }
+        unless($well_barcode){
+            die "Barcode $barcode not found\n";
+        }
+
+        if($well_barcode->barcode_state->id eq 'in_freezer' ){
+            # This check might be too strict?
+            die "Barcode $barcode state: in_freezer."
+                ."QC plates can only be created for wells which are no longer in the freezer\n";
+        }
+
+        unless($well_barcode->well->plate->species_id eq $validated_params->{species}){
+            die "Barcode $barcode does not have the expected species (expected: "
+                .$validated_params->{species}.", got: ".$well_barcode->well->plate->species_id;
+        }
+
+        my $well_data = {
+            well_name    => $well_name,
+            parent_plate => $well_barcode->well->plate->name,
+            parent_plate_version => $well_barcode->well->plate->version,
+            parent_well  => $well_barcode->well->name,
+            process_type => $validated_params->{process_type},
+        };
+
+        DEBUG "Well $well_name has parent well ".$well_barcode->well->as_string;
+        push @wells, $well_data;
+    }
+
+    my $plate = $model->create_plate({
+        name       => $validated_params->{new_plate_name},
+        species    => $validated_params->{species},
+        type       => $validated_params->{plate_type},
+        created_by => $validated_params->{user},
+        wells      => \@wells,
+        is_virtual => 0,
+    });
+
+    return $plate;
+}
+
 sub _get_new_well_details{
     my ($new_well_name, $parent_well) = @_;
 
@@ -949,8 +1024,16 @@ sub _parse_plate_well_barcodes_csv_file {
 
     my $csv = Text::CSV_XS->new( { blank_is_undef => 1, allow_whitespace => 1 } );
 
+    my $line_num = 0;
     while ( my $line = $csv->getline( $fh )) {
-        my @fields = split "," , $line;
+        $line_num++;
+        if($line_num == 1){
+            # Skip if first line looks like a header
+            # NB: we are still assuming the well is in first col and barcode in second
+            if($line->[0]=~/well/){
+                next;
+            }
+        }
         my $curr_well = $line->[0];
         my $curr_barcode = $line->[1];
         $csv_data->{ $curr_well } = $curr_barcode;

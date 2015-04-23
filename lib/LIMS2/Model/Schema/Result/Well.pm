@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.304';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.308';
 }
 ## use critic
 
@@ -850,16 +850,6 @@ sub design {
     return $process_design ? $process_design->design : undef;
 }
 
-sub crispr {
-    my $self = shift;
-
-    #TODO what if we have 2 crisprs applied? sp12 Tue 01 Oct 2013 09:26:47 BST
-
-    my $process_crispr = $self->ancestors->find_process( $self, 'process_crispr' );
-
-    return $process_crispr ? $process_crispr->crispr : undef;
-}
-
 sub nuclease {
     my $self = shift;
 
@@ -1218,23 +1208,12 @@ sub descendant_crispr_vectors {
     return @crispr_vectors;
 }
 
-## no critic(RequireFinalReturn)
-sub parent_crispr {
-    my $self = shift;
+=head2 parent_crispr_wells
 
-    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
-    while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
-            return $ancestor;
-        }
-    }
+Return array of all the parent CRISPR wells.
 
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw( "Failed to determine crispr plate/well for $self" );
-}
-## use critic
-
-sub parent_crisprs {
+=cut
+sub parent_crispr_wells {
     my $self = shift;
 
     my @crisprs;
@@ -1248,13 +1227,16 @@ sub parent_crisprs {
     }
     return @crisprs;
 }
-## use critic
 
+=head2 parent_crispr_vectors
+
+This returns the final set of CRISPR_V parent wells
+It will stop traversing if it hits a CRISPR_V grandparent,
+i.e. if CRISPR_V plates have been rearrayed
+
+=cut
 ## no critic(RequireFinalReturn)
-## This returns the final set (single or paired) of CRISPR_V parents
-## It will stop traversing if it hits a CRISPR_V grandparent,
-## i.e. if CRISPR_V plates have been rearrayed
-sub parent_crispr_v {
+sub parent_crispr_vectors {
     my $self = shift;
 
     my @parents;
@@ -1262,10 +1244,10 @@ sub parent_crispr_v {
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
 
-            # Exit loop when we start seeing CRIPSR_V grandparents
-            last if grep { $_->plate->type_id eq 'CRISPR_V' } $self->ancestors->output_wells($ancestor);
-
-            push ( @parents, $ancestor );
+            # Ignore CRISPR_V well if it does not have any DNA child wells..
+            if ( grep { $_->plate->type_id eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
+                push ( @parents, $ancestor );
+            }
         }
     }
 
@@ -1280,13 +1262,15 @@ sub parent_crispr_v {
 
 sub parent_assembly_well{
     my $self = shift;
-    if($self->plate->type_id eq 'ASSEMBLY'){
+    if ( $self->plate->type_id eq 'ASSEMBLY' || $self->plate->type_id eq 'OLIGO_ASSEMBLY' ) {
         return $self;
     }
     else{
         my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
         while( my $ancestor = $ancestors->next ) {
-            if ( $ancestor->plate->type_id eq 'ASSEMBLY' ) {
+            if (   $ancestor->plate->type_id eq 'ASSEMBLY'
+                || $ancestor->plate->type_id eq 'OLIGO_ASSEMBLY' )
+            {
                 return $ancestor;
             }
         }
@@ -1304,52 +1288,128 @@ sub parent_assembly_process_type{
     return;
 }
 
-sub crisprs{
-    my $self = shift;
+=head2 crispr_entity
 
-    my @crispr_vectors = $self->parent_crispr_v;
-    return map { $_->parent_crispr->crispr } @crispr_vectors;
-}
+Return any crispr entity ( crispr, crispr pair or crispr group ) linked to the well.
+Method takes a list of crisprs linked to the well and trys to work out what type of
+crispr entity we have.
 
-## no critic(RequireFinalReturn)
-sub left_and_right_crispr_wells {
-    my $self = shift;
+NOTE: There is a small chance we can have a crispr group and crispr pair that are identical,
+in these cases the crispr pair will be returned.
 
-    my ($crispr_v_1, $crispr_v_2) = $self->parent_crispr_v;
+=cut
+sub crispr_entity {
+    my ( $self ) = @_;
+    use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+    use Try::Tiny;
 
-    my ($right_crispr, $left_crispr);
-    if (defined $crispr_v_2) {
-        if ($crispr_v_2->crispr->pam_right) {
-            $right_crispr = $crispr_v_2->parent_crispr;
-            $left_crispr = $crispr_v_1->parent_crispr;
-        } else {
-            $right_crispr = $crispr_v_1->parent_crispr;
-            $left_crispr = $crispr_v_2->parent_crispr;
+    my @crisprs = $self->crisprs;
+    my $num_crisprs = scalar( @crisprs );
+
+    my $crispr_entity;
+    if ( $num_crisprs == 1 ) {
+        $crispr_entity = $crisprs[0];
+    }
+    elsif ( $num_crisprs > 2 ) {
+        try{
+            $crispr_entity = get_crispr_group_by_crispr_ids(
+                $self->result_source->schema,
+                { crispr_ids => [ map{ $_->id } @crisprs ] },
+            );
         }
-        return ($left_crispr, $right_crispr);
-    } elsif (defined $crispr_v_1) {
-        $right_crispr = undef;
-        $left_crispr = $crispr_v_1->parent_crispr;
-        return ($left_crispr, $right_crispr);
+        catch{
+            ERROR( "Unable to find crispr group: $_" );
+        };
+    }
+    elsif ( $num_crisprs == 2 ) {
+        # if one crispr left and the other right then search for crispr pair
+        my ( $right_crispr ) = grep { $_->pam_right } @crisprs;
+        my ( $left_crispr ) = grep { !$_->pam_right } @crisprs;
+        if ( $left_crispr && $right_crispr ) {
+            $crispr_entity = $self->result_source->schema->resultset('CrisprPair')->find(
+                {   left_crispr_id  => $left_crispr->id,
+                    right_crispr_id => $right_crispr->id,
+                }
+            );
+        }
+
+        # its not a pair, maybe its a group
+        unless ( $crispr_entity ) {
+            try{
+                $crispr_entity = get_crispr_group_by_crispr_ids(
+                    $self->result_source->schema,
+                    { crispr_ids => [ map{ $_->id } @crisprs ] },
+                );
+            }
+            catch{
+                ERROR( "Unable to find crispr group: $_" );
+            };
+        }
+    }
+    else {
+        ERROR( "No crisprs linked to well $self" );
     }
 
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+   return $crispr_entity;
 }
-## use critic
+
+=head2 crisprs
+
+Return array of all crispr(s) linked to this well.
+
+=cut
+sub crisprs {
+    my $self = shift;
+    return map { $_->process_output_wells->first->process->process_crispr->crispr } $self->parent_crispr_wells;
+}
+
+=head2 crispr_pair
+
+Legacy method, returns a crispr pair object if the well is linked to one
+
+=cut
 sub crispr_pair {
     my $self = shift;
 
-    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-    my $crispr_pair;
-    # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    if ( $left_crispr && $right_crispr ) {
-        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-               'left_crispr_id' => $left_crispr->crispr->id,
-               'right_crispr_id' => $right_crispr->crispr->id,
-            });
+    my $crispr_entity = $self->crispr_entity;
+    if ( $crispr_entity->is_pair ) {
+        return $crispr_entity;
     }
-    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
+    ERROR( "Well is not linked to a crispr pair" );
+    return;
+}
+
+=head2 crispr
+
+Legacy method, returns a crispr object if the well is linked to one.
+
+=cut
+sub crispr {
+    my $self = shift;
+
+    my $crispr_entity = $self->crispr_entity;
+    if ( !$crispr_entity->is_pair && !$crispr_entity->is_group ) {
+        return $crispr_entity;
+    }
+    ERROR( "Well is not linked to a single crispr" );
+    return;
+}
+
+=head2 crispr_group
+
+Returns a crispr_group object if the well is linked to one.
+Added because we have a crispr and crispr_pair method.
+
+=cut
+sub crispr_group {
+    my $self = shift;
+
+    my $crispr_entity = $self->crispr_entity;
+    if ( $crispr_entity->is_group ) {
+        return $crispr_entity;
+    }
+    ERROR( "Well is not linked to a crispr group" );
+    return;
 }
 
 sub crispr_primer_for{
@@ -1359,28 +1419,16 @@ sub crispr_primer_for{
     my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
     return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
 
-    # Decide if well relates to a pair or a single crispr
-    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
     my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
-
-    my $crispr_col_label;
-    my $crispr_id_value;
-    if (! $right_crispr ) {
-       $crispr_col_label = 'crispr_id';
-       $crispr_id_value = $left_crispr->crispr->id;
-    }
-    else {
-        $crispr_col_label = 'crispr_pair_id';
-        $crispr_id_value = $self->crispr_pair->id;
-    }
+    my $crispr_entity = $self->crispr_entity;
 
     if ( $primer_type eq 'crispr_primer' ){
-        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
-            $crispr_col_label => $crispr_id_value,
-            'primer_name' => $params->{'primer_label'},
-            is_rejected => [0, undef],
-        });
+        my $result = $crispr_entity->crispr_primers->find(
+            {
+                'primer_name' => $params->{'primer_label'},
+                is_rejected => [0, undef],
+            }
+        );
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;
         }

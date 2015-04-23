@@ -1,25 +1,26 @@
-package LIMS2::WebApp::Controller::API::Traces;
+package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Traces::VERSION = '0.304';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.308';
 }
 ## use critic
 
 
 use Moose;
-use namespace::autoclean;
-
+use LIMS2::Report;
+use Try::Tiny;
 use LIMS2::Util::TraceServer;
 use Bio::SCF;
 use Bio::Perl qw( revcom );
+use namespace::autoclean;
 
 with "MooseX::Log::Log4perl";
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN {extends 'Catalyst::Controller::REST'; }
 
 has traceserver => (
-    is => 'ro',
-    isa => 'LIMS2::Util::TraceServer',
+    is         => 'ro',
+    isa        => 'LIMS2::Util::TraceServer',
     lazy_build => 1,
 );
 
@@ -27,13 +28,11 @@ sub _build_traceserver {
     return LIMS2::Util::TraceServer->new;
 }
 
-sub trace_data : Path( '/api/trace_data' ) : Args(0) : ActionClass( 'REST' ) {
+sub trace_data : Path( '/public_api/trace_data' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
 sub trace_data_GET{
     my ( $self, $c ) = @_;
-
-    # $c->assert_user_roles('read');
 
     my $params = $c->request->params;
 
@@ -48,12 +47,20 @@ sub trace_data_GET{
 
     my ( $match, @rest ) = $self->_get_matches( $seq, $params->{search_seq} );
 
+    # if we don't have a match, the reverse flag might be wrong.... try and reverse it
+    if (!$match) {
+        if ($params->{reverse}) {
+            delete $params->{reverse};
+        } else {
+            $params->{reverse} = 1;
+        }
+        $params->{search_seq} = revcom( $params->{search_seq} )->seq;
+    }
+
+    ( $match, @rest ) = $self->_get_matches( $seq, $params->{search_seq} );
+
     return $self->status_bad_request( $c, message => "Couldn't find specified sequence in the trace" ) unless $match;
     return $self->status_bad_request( $c, message => "Found the search sequence more than once" ) if @rest;
-
-    #$self->log->debug( $seq );
-    #$self->log->debug( "Start: " . $match->{start} . " End: " . $match->{end} );
-    #$self->log->debug( "Start: " . $scf{bases}[$match->{start}] . " End: " . $scf{bases}[$match->{end}] );
 
     my $data = $self->_extract_region( \%scf, $match->{start}, $match->{end}, $params->{reverse} );
 
@@ -149,5 +156,77 @@ sub _extract_region {
 
     return { labels => \@labels, series => \@series, length => $length };
 }
+
+=head1 NAME
+
+LIMS2::WebApp::Controller::PublicAPI- Catalyst Controller
+
+=head1 DESCRIPTION
+
+Catalyst Controller - API for public, no login required
+
+=cut
+
+sub report_ready :Path( '/public_api/report_ready' ) :Args(1) :ActionClass('REST') {
+}
+
+sub report_ready_GET {
+    my ( $self, $c, $report_id ) = @_;
+
+    my $status = LIMS2::Report::get_report_status( $report_id );
+    return $self->status_ok( $c, entity => { status => $status } );
+}
+
+sub experiment : Path( '/public_api/experiment' ) : Args(0) : ActionClass( 'REST' ){
+}
+
+sub experiment_GET{
+    my ($self, $c) = @_;
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->retrieve_experiment( { id => $c->request->param( 'id' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $project->as_hash_with_detail );
+}
+
+# keeping url to api and not public_api for now as I believe it is being used
+# by external groups
+sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args(1) :ActionClass('REST') {
+}
+
+sub well_genotyping_crispr_qc_GET {
+    my ( $self, $c, $barcode ) = @_;
+
+    #if this is slow we should use processgraph instead of 1 million traversals
+    my $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
+
+    return $self->status_bad_request( $c, message => "Barcode $barcode doesn't exist" )
+        unless $well;
+
+    my ( $data, $error );
+    try {
+        #needs to be given a method for finding genes
+        $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+    }
+    catch {
+        #get string representation if its a lims2::exception
+        $error = ref $_ && $_->can('as_string') ? $_->as_string : $_;
+    };
+
+    return $error ? $self->status_bad_request( $c, message => $error )
+                  : $self->status_ok( $c, entity => $data );
+}
+
+=head1 LICENSE
+
+This library is free software. You can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+__PACKAGE__->meta->make_immutable;
 
 1;

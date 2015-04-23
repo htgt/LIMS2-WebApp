@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.304';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.308';
 }
 ## use critic
 
@@ -12,6 +12,7 @@ use warnings;
 use Moose;
 use MooseX::ClassAttribute;
 use LIMS2::Exception::Implementation;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids gene_ids_for_crispr );
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq any );
 use Try::Tiny;
@@ -514,66 +515,29 @@ sub crispr_marker_symbols{
 sub crispr_design_and_gene_cols{
     my ($self, $crispr) = @_;
 
-    my (@design_ids, @gene_ids, @symbols);
+    my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
+    my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
 
-    # usually there is a design linked to the crispr
-    if ($crispr->related_designs) {
-        my %symbols;
-
-        foreach my $design ($crispr->related_designs){
-            $self->_symbols_from_design($design, \%symbols);
-            push @design_ids, $design->id;
-            push @gene_ids,  map { $_->gene_id } $design->genes;
-        }
-
-        @symbols = keys %symbols;
-
-    # if there is no design, get gene info through the crispr location
-    } else {
-        my $slice = $crispr->target_slice;
-
-        my @genes;
-        @genes = @{ $slice->get_all_Genes } unless !$slice;
-
-        foreach my $gene (@genes) {
-          my $gene_finder = $self->model->find_gene({
-                        species => $crispr->species_id,
-                        search_term => $gene->id
-                    });
-
-          push (@symbols, $gene_finder->{gene_symbol});
-          push (@gene_ids, $gene_finder->{gene_id});
-        }
+    my @symbols;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $self->model->find_gene( { species => $self->species, search_term => $gene_id } );
+            push @symbols, $gene->{gene_symbol};
+        };
     }
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
     my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return (
-        join( q{/}, uniq @design_ids ),
-        join( q{/}, uniq @gene_ids ),
+        join( q{/}, keys %designs ),
+        join( q{/}, values %designs ),
+        join( q{/}, @gene_ids ),
         join( q{/}, uniq @symbols ),
         join( q{/}, @sponsors )
     );
 
-}
-
-sub _symbols_from_design{
-    my ($self, $design, $symbols) = @_;
-
-    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols;
-    try {
-        @gene_symbols  = uniq map {
-            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
-        } @gene_ids;
-    };
-
-    # Add any symbols we found to the hash
-    foreach my $symbol (@gene_symbols){
-        $symbols->{$symbol} = 1;
-    }
-    return;
 }
 
 =head create_button_json
@@ -766,7 +730,7 @@ retrieve crispr group given list of crispr ids
 sub crispr_group_data {
     my ( $self, $crispr_ids ) = @_;
 
-    my $crispr_group = $self->model->get_crispr_group_by_crispr_ids({ crispr_ids => $crispr_ids });
+    my $crispr_group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => $crispr_ids } );
 
     return ( 'crispr_group', $crispr_group );
 }

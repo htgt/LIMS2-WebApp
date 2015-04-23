@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.304';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.308';
 }
 ## use critic
 
@@ -283,8 +283,6 @@ sub analyse_plate {
 
     # check plate is or right type
     my $plate = $self->plate;
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
-        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     #initialise lazy build
     $self->qc_run;
@@ -361,7 +359,7 @@ sub analyse_well {
     my $work_dir = $self->base_dir->subdir( $well->as_string );
     $work_dir->mkpath;
 
-    my $crispr = $self->crispr_for_well( $well );
+    my $crispr = $well->crispr_entity;
     my $design = $well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
@@ -399,7 +397,7 @@ sub analyse_well {
 
 =head2 align_and_analyse_well_reads
 
-Gather the primer reads and align against the target region the crispr pair
+Gather the primer reads and align against the target region the crispr entity
 will hit.
 The alignment and analysis work is done by the HTGT::QC::Util::CrisprDamageVEP
 module.
@@ -428,48 +426,6 @@ sub align_and_analyse_well_reads {
     };
 
     return $crispr_damage_analyser;
-}
-
-=head2 crispr_for_well
-
-Return the crispr pair or crispr linked to the well.
-
-=cut
-sub crispr_for_well {
-    my ( $self, $well ) = @_;
-
-    my ( $left_crispr_well, $right_crispr_well ) = $well->left_and_right_crispr_wells;
-
-    if ( $left_crispr_well && $right_crispr_well ) {
-        my $left_crispr  = $left_crispr_well->crispr;
-        my $right_crispr = $right_crispr_well->crispr;
-
-        my $crispr_pair = $self->model->schema->resultset('CrisprPair')->find(
-            {
-                left_crispr_id  => $left_crispr->id,
-                right_crispr_id => $right_crispr->id,
-            }
-        );
-
-        unless ( $crispr_pair ) {
-            $self->log->error(
-                "Unable to find crispr pair: left crispr $left_crispr, right crispr $right_crispr" );
-            return;
-        }
-        $self->log->debug("Crispr pair for well $well: $crispr_pair" );
-
-        return $crispr_pair;
-    }
-    elsif ( $left_crispr_well ) {
-        my $crispr = $left_crispr_well->crispr;
-        $self->log->debug("Crispr pair for $well: $crispr" );
-        return $crispr;
-    }
-    else {
-        $self->log->error( "Unable to determine crispr pair or crispr for well $well" );
-    }
-
-    return;
 }
 
 =head2 align_primer_reads
@@ -645,6 +601,7 @@ sub parse_analysis_data {
     $analysis_data->{crispr_id}  = $crispr->id if $crispr;
     $analysis_data->{design_id}  = $design->id;
     $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
+    $analysis_data->{is_group}   = $crispr->is_group if $crispr;
     $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;

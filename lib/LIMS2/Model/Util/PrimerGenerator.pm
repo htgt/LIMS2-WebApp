@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.304';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.308';
 }
 ## use critic
 
@@ -47,6 +47,7 @@ use Carp;
 use Path::Class;
 use Data::Dumper;
 use LIMS2::Util::QcPrimers;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use Data::UUID;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 
@@ -838,17 +839,10 @@ sub generate_crispr_PCR_primers{
 
 sub get_single_crispr_id{
     my ($self, $well) = @_;
-    my $plate_type = $well->plate->type_id;
-    my ($crispr_left, $crispr_right);
-    if($plate_type eq 'CRISPR' or $plate_type eq 'CRISPR_V'){
-        # For single crispr we may be working on pre-assembly stage plate
-        $crispr_left = $well;
-    }
-    else{
-        # If post assembly use left_and_right_crispr_wells method
-        ($crispr_left, $crispr_right) = $well->left_and_right_crispr_wells;
-    }
-    return ($crispr_left->crispr->id, $crispr_left->crispr);
+    # returns array of crisprs, use the first one we encounter, this replicated the previous
+    # logic ...
+    my ( $crispr ) = $well->crisprs;
+    return ($crispr->id, $crispr);
 }
 
 sub get_crispr_pair_id{
@@ -891,9 +885,7 @@ sub get_crispr_group_id{
 
     if(@crispr_ids){
         $self->log->debug("finding crispr group for all crisprs used in well ".$well->name);
-        $group = $self->model->get_crispr_group_by_crispr_ids({
-            crispr_ids => \@crispr_ids,
-        });
+        $group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => \@crispr_ids } );
     }
     else{
         $self->log->debug("finding crispr group linked to design for well ".$well->name);

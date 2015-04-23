@@ -114,7 +114,6 @@ requires:
   LIMS2::Exception::NotFound: 0
   LIMS2::Exception::System: 0
   LIMS2::Exception::Validation: 0
-  LIMS2::Model::Util::LegacyCreKnockInProjectReport: 0
   LIMS2::REST::Client: 0
   LIMS2::Util: 0
   LIMS2::Util::ESQCUpdateWellAccepted: 0
@@ -122,6 +121,7 @@ requires:
   LIMS2::Util::Errbit: 0
   LIMS2::Util::QcPrimers: 0
   LIMS2::Util::Solr: 0
+  LIMS2::Util::Tarmits: 0
   LIMS2::Util::TraceServer: 0
   LIMS2::Util::WGE: 0
   LWP::UserAgent: 0
@@ -176,4 +176,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.304
+version: 0.308

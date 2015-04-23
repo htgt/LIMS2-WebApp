@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.304';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.308';
 }
 ## use critic
 
@@ -592,64 +592,6 @@ sub create_crispr_group {
     });
 
     return $crispr_group;
-}
-
-# Given a list of crispr IDs find a crispr group that contains all of them
-# Check all crisprs in this group are in the list provided
-# This method is needed in case we end up with crisprs belonging to multiple
-# crispr groups, or different sized groups containing subsets of other groups,
-# and other possible situations for which the simple search query is not enough
-# to identify the correct group
-sub get_crispr_group_by_crispr_ids{
-    my ($self, $params) = @_;
-
-    my @crispr_ids = @{ $params->{crispr_ids} }
-        or die "No crispr_ids array provided to get_crispr_group_by_crispr_ids";
-
-    my @crispr_groups = $self->schema->resultset('CrisprGroup')->search(
-        {
-            'crispr_group_crisprs.crispr_id' => { 'IN' => \@crispr_ids },
-        },
-        {
-            join     => 'crispr_group_crisprs',
-            distinct => 1,
-        }
-    )->all;
-
-    my %input_ids = map { $_ => 1 } @crispr_ids;
-    $self->log->debug('input IDs: '.(join ",",@crispr_ids));
-    my $error_msg = "No crispr group found for crispr IDs ".(join ",",@crispr_ids).". ";
-    foreach my $group (@crispr_groups){
-        my $group_id = $group->id;
-        $self->log->debug('Comparing crispr group '.$group->id.' to crispr ID list');
-        my @group_crispr_ids = map { $_->crispr_id } $group->crispr_group_crisprs;
-        my %group_ids = map { $_ => 1 } @group_crispr_ids;
-
-        # See if any input crispr IDs are not in the group
-        my @inputs_not_in_group = grep { !$group_ids{$_} } @crispr_ids;
-
-        # See if any group crispr IDs are not in the input list
-        my @group_ids_not_in_input = grep { !$input_ids{$_} } @group_crispr_ids;
-
-        if(@inputs_not_in_group == 0 and @group_ids_not_in_input == 0){
-            # This is the right group so return it
-            return $group;
-        }
-        else{
-            # Generate some error messages
-            if( @inputs_not_in_group ){
-               $error_msg .= "Group $group_id does not contain these crispr IDs which were in the input list: "
-                             .(join ",", @inputs_not_in_group).". ";
-            }
-
-            if (@group_ids_not_in_input){
-                $error_msg .= "Group $group_id contains these crispr IDs which were not in the input list: "
-                              .(join ",", @group_ids_not_in_input).". ";
-            }
-        }
-    }
-    LIMS2::Exception->throw($error_msg);
-    return;
 }
 
 sub pspec_retrieve_crispr_collection{

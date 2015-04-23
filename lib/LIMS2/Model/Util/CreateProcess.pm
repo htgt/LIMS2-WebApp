@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.304';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.308';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
@@ -171,6 +172,8 @@ my %process_check_well = (
     'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
     'oligo_assembly'         => \&_check_wells_oligo_assembly,
+    'cgap_qc'                => \&_check_wells_cgap_qc,
+    'ms_qc'                  => \&_check_wells_ms_qc,
 );
 
 sub check_process_wells {
@@ -558,7 +561,7 @@ sub _check_wells_single_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
@@ -596,15 +599,16 @@ sub _check_wells_paired_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            unless ( defined $_->crispr->pam_right) {
+            unless ( defined $crispr->pam_right) {
             LIMS2::Exception::Validation->throw(
-                'Crispr '. $_->crispr->id . ' does not have direction' );
+                'Crispr '. $crispr->id . ' does not have direction' );
             }
-            if ($_->crispr->pam_right) {
+            if ($crispr->pam_right) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
@@ -652,11 +656,12 @@ sub _check_wells_group_crispr_assembly {
     foreach (@input_parent_wells) {
         if ($_->plate->type_id eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            push @crispr_ids, $_->crispr;
+            push @crispr_ids, $crispr;
         }
         if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
     }
@@ -671,9 +676,7 @@ sub _check_wells_group_crispr_assembly {
     }
 
     try{
-        my $group = $model->get_crispr_group_by_crispr_ids({
-            crispr_ids => \@crispr_ids,
-        });
+        my $group = get_crispr_group_by_crispr_ids( $model->schema, { crispr_ids => \@crispr_ids } );
     }
     catch ($err) {
         my $ids_list = join ", ",@crispr_ids;
@@ -729,6 +732,26 @@ sub _check_wells_oligo_assembly {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_cgap_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_ms_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
@@ -755,6 +778,8 @@ my %process_aux_data = (
     'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
     'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
+    'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
+    'ms_qc'                  => \&_create_process_aux_data_ms_qc,
 );
 
 sub create_process_aux_data {
@@ -1249,6 +1274,19 @@ sub _create_process_aux_data_oligo_assembly {
 
     $process->create_related( process_crispr_tracker_rna => { crispr_tracker_rna_id => _crispr_tracker_rna_id_for( $model, $validated_params->{crispr_tracker_rna} ) } );
 
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_cgap_qc {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_ms_qc {
+    # FIXME: Need to implement this
     return;
 }
 ## use critic

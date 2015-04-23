@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.304';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.308';
 }
 ## use critic
 
@@ -432,15 +432,6 @@ sub current_locus {
     return $loci;
 }
 
-sub gene_id {
-    my $self = shift;
-    my $crispr_design = $self->crispr_designs->first
-        or return;
-    my $genes = $crispr_design->design->genes
-        or return;
-    return $genes->first->gene_id;
-}
-
 sub start {
     return shift->current_locus->chr_start;
 }
@@ -578,28 +569,32 @@ sub pairs {
 
 # Designs may be linked to single crispr directly or to crispr pair
 sub related_designs {
-  my $self = shift;
+    my $self = shift;
 
-  my @designs;
-  foreach my $crispr_design ($self->crispr_designs->all){
-      my $design = $crispr_design->design;
-      push @designs, $design;
-  }
+    my @designs;
+    foreach my $crispr_design ( $self->crispr_designs->all ) {
+        my $design = $crispr_design->design;
+        push @designs, $design;
+    }
 
-  foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
-      foreach my $pair_crispr_design ($pair->crispr_designs->all){
-          my $pair_design = $pair_crispr_design->design;
-          push @designs, $pair_design;
-      }
-  }
+    foreach my $nonsense_design ( $self->nonsense_designs->all ) {
+        push @designs, $nonsense_design;
+    }
 
-  foreach my $group ($self->crispr_groups->all){
-      foreach my $group_design ($group->crispr_designs){
-          push @designs, $group_design->design;
-      }
-  }
+    foreach my $pair ( $self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all ) {
+        foreach my $pair_crispr_design ( $pair->crispr_designs->all ) {
+            my $pair_design = $pair_crispr_design->design;
+            push @designs, $pair_design;
+        }
+    }
 
-  return @designs;
+    foreach my $group ( $self->crispr_groups->all ) {
+        foreach my $group_design ( $group->crispr_designs ) {
+            push @designs, $group_design->design;
+        }
+    }
+
+    return @designs;
 }
 
 sub crispr_wells{

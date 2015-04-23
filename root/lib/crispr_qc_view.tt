@@ -15,10 +15,17 @@
     <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
+    <span class="label">Crispr Pair</span>
+  [% ELSIF row.is_crispr_group %]
+    <a href="[% c.uri_for( '/user/crispr_group' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+    <span class="label">Crispr Group</span>
   [% ELSE %]
     <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
+    <span class="label">Single Crispr</span>
   [% END %]
 </td>
 
@@ -40,7 +47,7 @@
 <!-- If edit flag is true allow setting on crispr damage type and variant size info, otherwise just display info -->
 [% IF edit %]
 
-    <!--Add accepted checkbox, only want to show this on teh main crispr es qc page -->
+    <!--Add accepted checkbox, only want to show this on the main crispr es qc page -->
     [% IF accept %]
       <td>
         <div class="control-group">

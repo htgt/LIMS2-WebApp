@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.304';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.308';
 }
 ## use critic
 
@@ -57,14 +57,22 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
     my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
 
+    my $plate_type  = $run->crispr_es_qc_wells->first->well->plate->type_id;
+    my $can_accept_wells = 0;
+    if ( $plate_type eq 'PIQ' || $plate_type eq 'EP_PICK' ) {
+        $can_accept_wells = 1;
+    }
+
     $c->stash(
-        qc_run_id     => $run->id,
-        seq_project   => $run->sequencing_project,
-        sub_project   => $run->sub_project,
-        species       => $run->species_id,
-        wells         => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
-        damage_types  => [ map{ $_->id } @crispr_damage_types ],
-        run_validated => $run->validated,
+        qc_run_id         => $run->id,
+        seq_project       => $run->sequencing_project,
+        sub_project       => $run->sub_project,
+        species           => $run->species_id,
+        wells             => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
+        damage_types      => [ map{ $_->id } @crispr_damage_types ],
+        run_validated     => $run->validated,
+        can_accept_wells  => $can_accept_wells,
+        truncate          => $params->{truncate},
     );
 
     return;
@@ -212,10 +220,6 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
         }
 
         my $plate = $c->model('Golgi')->retrieve_plate( { name => $validated_params->{plate_name} } );
-        if ( $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ' ) {
-            $c->stash( error_msg => "Plate must be of EP_PICK or PIQ type, $plate is " . $plate->type_id );
-            return;
-        }
 
         my $qc_run;
 		try {
