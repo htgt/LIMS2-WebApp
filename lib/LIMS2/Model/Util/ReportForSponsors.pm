@@ -1181,6 +1181,7 @@ sub genes {
         # PIQ wells
         my @piq = $summary_rs->search(
             {   piq_plate_name => { '!=', undef },
+                piq_well_accepted=> 't',
                 to_report => 't' },
             {
                 columns => [ qw/piq_plate_name piq_well_name/ ],
@@ -1188,25 +1189,18 @@ sub genes {
             }
         );
 
-        my $piq_pass_count = 0;
-        # Ancestor PIQ is required for reporting
-        my %ancestor_piq;
-        foreach my $curr_piq (@piq) {
-            if ($curr_piq->piq_well_accepted) {
-                $piq_pass_count++;
+        my @ancestor_piq = $summary_rs->search(
+            {   ancestor_piq_plate_name => { '!=', undef },
+                ancestor_piq_well_accepted=> 't',
+                to_report => 't' },
+            {
+                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                distinct => 1
             }
-            try {
-                my $well = $self->model->retrieve_well( { plate_name => $curr_piq->piq_plate_name, well_name => $curr_piq->piq_well_name } );
-                my $ancestor = $well->ancestor_piq;
-                $ancestor_piq{$ancestor->id} = $ancestor;
-            };
-        }
+        );
+        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
 
-        foreach my $well ( keys %ancestor_piq ) {
-            if ( $ancestor_piq{$well}->is_accepted ) {
-                $piq_pass_count++;
-            }
-        }
+
 
         # push the data for the report
         push @genes_for_display, {
@@ -1254,15 +1248,15 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'distrib_clones' }        cmp $a->{ 'distrib_clones' }        ||
+            $b->{ 'fs_count' }              cmp $a->{ 'fs_count' }              ||
+            $b->{ 'targeted_clones' }       cmp $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       cmp $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      cmp $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  cmp $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'vector_wells' }          cmp $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'accepted_crispr_vector' } cmp $a->{ 'accepted_crispr_vector' } ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
