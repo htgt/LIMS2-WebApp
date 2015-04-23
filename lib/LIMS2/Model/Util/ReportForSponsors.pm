@@ -928,20 +928,25 @@ sub genes {
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority = uniq map { $_->priority } @gene_projects;
-            $priority = join ( '; ', @priority );
+            my @priority_array = map { $_->priority } @gene_projects;
+
+            my $index = 0;
+            $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
+            splice(@priority_array, $index, 1);
+
+            $priority = join ( '; ', @priority_array );
         };
         if (! $priority) {$priority = '-'}
 
         try {
-            my @recovery_class = uniq map { $_->recovery_class->name } @gene_projects;
-            $recovery_class = join ( '; ', @recovery_class );
+            my @recovery_class_array = uniq map { $_->recovery_class->name } @gene_projects;
+            $recovery_class = join ( '; ', @recovery_class_array );
         };
         if (! $recovery_class) {$recovery_class = '-'}
 
         try {
-            my @effort_concluded = uniq map { $_->effort_concluded } @gene_projects;
-            $effort_concluded = join ( '; ', @effort_concluded );
+            my @effort_concluded_array = uniq map { $_->effort_concluded } @gene_projects;
+            $effort_concluded = join ( '; ', @effort_concluded_array );
         };
 
 
@@ -1190,9 +1195,11 @@ sub genes {
             if ($curr_piq->piq_well_accepted) {
                 $piq_pass_count++;
             }
-            my $well = $self->model->retrieve_well( { plate_name => $curr_piq->piq_plate_name, well_name => $curr_piq->piq_well_name } );
-            my $ancestor = $well->ancestor_piq;
-            $ancestor_piq{$ancestor->id} = $ancestor;
+            try {
+                my $well = $self->model->retrieve_well( { plate_name => $curr_piq->piq_plate_name, well_name => $curr_piq->piq_well_name } );
+                my $ancestor = $well->ancestor_piq;
+                $ancestor_piq{$ancestor->id} = $ancestor;
+            };
         }
 
         foreach my $well ( keys %ancestor_piq ) {
