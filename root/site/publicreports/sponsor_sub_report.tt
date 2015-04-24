@@ -256,7 +256,9 @@ document.title = "[%- sponsor_id %]";
                   <td>[%- ep_data.item('wt_count') %]</td>
                   <td>[%- ep_data.item('ms_count') %]</td>
                 [% IF c.user %]
-                  <td colspan=1></td>
+                  <td colspan=3></td>
+                [%- ELSE %]
+                  <td colspan=2></td>
                 [%- END %]
                 </tr>
 
