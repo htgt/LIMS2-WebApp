@@ -395,7 +395,7 @@ sub pspec_start_doubling_well_barcode{
     return {
         barcode  => { validate => 'well_barcode' },
         user     => { validate => 'existing_user' },
-        oxygen_condition => { validate => 'existing_oxygen_condition' },
+        oxygen_condition => { validate => 'oxygen_condition' },
     };
 }
 
@@ -420,6 +420,11 @@ sub start_doubling_well_barcode{
     # process type: doubling
     # process param: oxygen condition
     # process will not have any output wells yet - will this cause problems?
+    my $process = $model->create_process({
+        input_wells => [ { id => $bc->well->id }],
+        type        => 'doubling',
+        oxygen_condition => $validated_params->{oxygen_condition},
+    });
 
     my $plate = $bc->well->plate;
 
