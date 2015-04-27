@@ -19,7 +19,7 @@ Only barcodes which are currently checked out can be used to start doubling (FIX
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <select name="oxygen_condition" id="oxygen_condition">
       <option value="" selected>select oxygen condition</option>
-      [% FOREACH ox_condition IN oxygen_conditions %]
+      [% FOREACH ox_condition IN oxygen_condition_list %]
       <option value="[% ox_condition %]">[% ox_condition %]</option>
       [% END %]
     </select>

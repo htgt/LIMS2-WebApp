@@ -755,7 +755,8 @@ sub _check_wells_doubling {
 
     # process can be created initially with no output wells
     # as it takes weeks to complete
-    if($process->output_wells){
+    my @output_wells = $process->output_wells;
+    if(scalar @output_wells){
         check_output_wells( $model, $process);
     }
 
@@ -1315,7 +1316,7 @@ sub _create_process_aux_data_doubling {
     my ($model, $params, $process) = @_;
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_doubling );
-    $process->create_related( process_parameter => {
+    $process->create_related( process_parameters => {
         parameter_name  => 'oxygen_condition',
         parameter_value => $validated_params->{oxygen_condition}
     });

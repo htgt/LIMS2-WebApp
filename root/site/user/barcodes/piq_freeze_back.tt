@@ -1,7 +1,7 @@
-[% META title = "FP Well Freeze Back", tab_name = 'Barcodes' -%]
+[% META title = "PIQ Well Freeze Back", tab_name = 'Barcodes' -%]
 
-<h1>FP Well Freeze Back</h1>
-[% barcode_state_error = (well_details.barcode_state != 'checked_out') %]
+<h1>PIQ Well Freeze Back</h1>
+[% barcode_state_error = (well_details.barcode_state != 'doubling_in_progress') %]
 
 [% IF piq_plate_name %]
 [% barcode_state_error = 0 %]
@@ -11,11 +11,11 @@
 
 [% IF piq_plate_name %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
-  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] (no barcode required)<br><br>
+  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] with barcode [% qc_piq_barcode %]<br><br>
   PIQ wells with the following lab numbers have been created on temporary plate [% piq_plate_name %]. Please enter barcodes.
   <fieldset>
-    <input type="hidden" name="freeze_back_type" value="FP"/>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="hidden" name="freeze_back_type" value="PIQ"/>
     <input type="hidden" name="number_of_wells" value="[% number_of_wells %]"/>
     <input type="hidden" name="lab_number" value="[% lab_number %]"/>
     <input type="hidden" name="qc_piq_plate_name" value="[% qc_piq_plate_name %]"/>
@@ -37,8 +37,14 @@
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
-    <input type="hidden" name="freeze_back_type" value="FP"/>
+    <input type="hidden" name="freeze_back_type" value="PIQ"/>
     <table>
+    <tr>
+     <td>
+      <label>Number of Doublings</label>
+      <input type="number" name="number_of_doublings" value="[% number_of_doublings %]"/>
+     </td>
+    </tr>
     <tr>
      <td>
       <label>Number of PIQ wells to create</label>
@@ -58,6 +64,12 @@
       <label>Name of PIQ QC well</label>
       <input type="text" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
      </td>
+     <td>
+      <label>Barcode of PIQ QC well</label>
+      <input type="text" name="qc_piq_well_barcode" value="[% qc_piq_well_barcode %]"/>
+     </td>
+    </tr>
+    <tr>
      <td>
       <button type="submit" name="create_piq_wells" class="btn btn-danger" value="create_piq_wells">
       Create PIQ Wells

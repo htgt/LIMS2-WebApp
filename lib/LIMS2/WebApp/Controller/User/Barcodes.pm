@@ -6,7 +6,8 @@ use List::MoreUtils qw (uniq);
 use LIMS2::Model::Util::BarcodeActions qw(
     checkout_well_barcode
     discard_well_barcode
-    freeze_back_barcode
+    freeze_back_fp_barcode
+    freeze_back_piq_barcode
     add_barcodes_to_wells
     upload_plate_scan
     send_out_well_barcode
@@ -325,13 +326,21 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     return;
 }
 
-sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
+sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     my ($self, $c) = @_;
 
     $c->assert_user_roles( 'edit' );
 
     my $barcode = $c->request->param('barcode');
     $c->stash->{barcode} = $barcode;
+
+    my $type = $c->req->param('freeze_back_type');
+    if($type eq 'FP'){
+        $c->stash->{template} = 'user/barcodes/fp_freeze_back.tt';
+    }
+    elsif($type eq 'PIQ'){
+        $c->stash->{template} = 'user/barcodes/piq_freeze_back.tt';
+    }
 
     my $well;
     if($barcode){
@@ -359,14 +368,29 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
             $c->stash->{$item} = $c->req->param($item);
         }
 
-        # Requires: FP barcode, number of PIQ wells, lab number,
+        my $freeze_back_method;
+
+        if($c->req->param('freeze_back_type') eq 'PIQ'){
+            $freeze_back_method = \&freeze_back_piq_barcode;
+            foreach my $item ( qw(number_of_doublings qc_piq_well_barcode) ){
+                $c->stash->{$item} = $c->req->param($item);
+            }
+        }
+        elsif($c->req->param('freeze_back_type') eq 'FP'){
+            $freeze_back_method = \&freeze_back_fp_barcode;
+        }
+        else{
+            die "Freeze back type not specified in form";
+        }
+
+        # Requires: orig FP or PIQ barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
         my $tmp_piq_plate;
         $c->model('Golgi')->txn_do( sub {
             try{
                 my $params = $c->request->parameters;
                 $params->{user} = $c->user->name;
-                $tmp_piq_plate = freeze_back_barcode( $c->model('Golgi'), $params );
+                $tmp_piq_plate = $freeze_back_method->( $c->model('Golgi'), $params );
             }
             catch($e){
                 $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
@@ -559,14 +583,36 @@ sub piq_start_doubling : Path( '/user/piq_start_doubling' ) : Args(0){
 
     $c->assert_user_roles( 'edit' );
 
+    $c->stash->{oxygen_condition_list} = [ qw(normoxic hypoxic) ];
+
     my $barcode = $c->request->param('barcode');
 
     $c->stash->{barcode} = $barcode;
 
+    my $well;
+    if($barcode){
+        # get well details
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+            return;
+        }
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+        return;
+    }
+
     if($c->request->param('cancel_start_doubling')){
         $c->flash->{info_msg} = "Cancelled start doubling of barcode $barcode";
-        # FIXME: better to redirect to individual barcode details??
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
         return;
     }
     elsif($c->request->param('confirm_start_doubling')){
@@ -579,39 +625,22 @@ sub piq_start_doubling : Path( '/user/piq_start_doubling' ) : Args(0){
                     {
                         barcode => $barcode,
                         user    => $c->user->name,
-                        comment => $c->request->param('oxygen_condition'),
+                        oxygen_condition => $c->request->param('oxygen_condition'),
                     }
                 );
             }
             catch($e){
-                $c->flash->{error_msg} = "Start doubling of barcode $barcode failed with error $e";
+                $c->stash->{error_msg} = "Start doubling of barcode $barcode failed with error $e";
                 $c->log->debug("rolling back barcode start doubling actions");
                 $c->model('Golgi')->txn_rollback;
                 $failed = 1;
             };
         });
 
-        $c->flash->{success_msg} = "Barcode $barcode has begun doubling" unless $failed;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
-    }
-    elsif($barcode){
-        # return well details
-        my $well;
-        try{
-            $well = $c->model('Golgi')->retrieve_well({
-                barcode => $barcode,
-            });
-        };
-        if($well){
-            $c->stash->{well_details} = $self->_well_display_details($c, $well);
-        }
-        else{
-            $c->stash->{error_msg} = "Barcode $barcode not found";
-        }
-        return;
-    }
-    else{
-        $c->stash->{error_msg} = "No barcode provided";
+        return if $failed;
+
+        $c->flash->{success_msg} = "Barcode $barcode has begun doubling";
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     }
     return;
 }

@@ -395,9 +395,14 @@ sub render {
     # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
+        my @labels = ( $well->as_string, 'Plate Type: ' . $well->plate->type_id );
+        if($well->well_barcode){
+            push @labels, 'Barcode: '.$well->well_barcode->barcode;
+        }
+        push @labels, process_data_for($well);
         $graph->add_node(
             name   => $well->as_string,
-            label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ],
+            label  => \@labels,
             URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
             target => '_blank',
         );

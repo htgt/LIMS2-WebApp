@@ -8,7 +8,8 @@ use Sub::Exporter -setup => {
         qw(
               checkout_well_barcode
               discard_well_barcode
-              freeze_back_barcode
+              freeze_back_fp_barcode
+              freeze_back_piq_barcode
               add_barcodes_to_wells
               upload_plate_scan
               send_out_well_barcode
@@ -193,7 +194,9 @@ sub do_picklist_checkout{
     return $messages;
 }
 
-sub pspec_freeze_back_barcode{
+### TODO: factor out common bits and add freeze_back_piq_barcode method
+# for mutation signatures project
+sub pspec_freeze_back_fp_barcode{
     return {
         barcode           => { validate => 'well_barcode' },
         number_of_wells   => { validate => 'integer' },
@@ -204,10 +207,10 @@ sub pspec_freeze_back_barcode{
     }
 }
 
-sub freeze_back_barcode{
+sub freeze_back_fp_barcode{
     my ($model, $params) = @_;
 
-    my $validated_params = $model->check_params($params, pspec_freeze_back_barcode, ignore_unknown => 1);
+    my $validated_params = $model->check_params($params, pspec_freeze_back_fp_barcode, ignore_unknown => 1);
 
     my $barcode = $validated_params->{barcode};
 
@@ -307,6 +310,10 @@ sub freeze_back_barcode{
     }
 
     return $tmp_piq_plate;
+}
+
+sub freeze_back_piq_barcode{
+    return;
 }
 
 sub pspec_discard_well_barcode{
@@ -415,10 +422,7 @@ sub start_doubling_well_barcode{
         user      => $validated_params->{user},
     });
 
-    ## TODO ##
     # Start new output process from well
-    # process type: doubling
-    # process param: oxygen condition
     # process will not have any output wells yet - will this cause problems?
     my $process = $model->create_process({
         input_wells => [ { id => $bc->well->id }],
