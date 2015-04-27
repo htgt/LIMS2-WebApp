@@ -177,13 +177,21 @@ sub experiment : Path( '/public_api/experiment' ) : Args(0) : ActionClass( 'REST
 sub experiment_GET{
     my ($self, $c) = @_;
 
-    my $project = $c->model( 'Golgi' )->txn_do(
-        sub {
-            shift->retrieve_experiment( { id => $c->request->param( 'id' ) } );
-        }
-    );
+    my $id =  $c->request->param( 'id' );
+    my $project;
+    try{
+        $project = $c->model( 'Golgi' )->retrieve_experiment( { id => $id } );
+    }
+    catch{
+         $c->stash->{json_data} = { error => "experiment $_ not found"};
+    };
 
-    return $self->status_ok( $c, entity => $project->as_hash_with_detail );
+    if($project){
+        $c->stash->{json_data} = $project->as_hash_with_detail;
+    }
+
+    $c->forward('View::JSON');
+    return;
 }
 
 # keeping url to api and not public_api for now as I believe it is being used
