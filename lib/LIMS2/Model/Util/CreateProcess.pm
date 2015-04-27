@@ -166,6 +166,8 @@ my %process_check_well = (
     'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
     'oligo_assembly'         => \&_check_wells_oligo_assembly,
+    'cgap_qc'                => \&_check_wells_cgap_qc,
+    'ms_qc'                  => \&_check_wells_ms_qc,
 );
 
 sub check_process_wells {
@@ -724,6 +726,26 @@ sub _check_wells_oligo_assembly {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_cgap_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_ms_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
@@ -750,6 +772,8 @@ my %process_aux_data = (
     'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
     'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
+    'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
+    'ms_qc'                  => \&_create_process_aux_data_ms_qc,
 );
 
 sub create_process_aux_data {
@@ -1244,6 +1268,19 @@ sub _create_process_aux_data_oligo_assembly {
 
     $process->create_related( process_crispr_tracker_rna => { crispr_tracker_rna_id => _crispr_tracker_rna_id_for( $model, $validated_params->{crispr_tracker_rna} ) } );
 
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_cgap_qc {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_ms_qc {
+    # FIXME: Need to implement this
     return;
 }
 ## use critic
