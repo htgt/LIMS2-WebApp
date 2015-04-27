@@ -79,7 +79,7 @@ function toggle_btn(btn, show_or_hide) {
 <div class="row">
   <div class="span6 offset3">
 <div class="well">
-    <h4 align="center">Targeted Clones Summary</h4>
+    <h4 align="center">[% type %] Clones Summary</h4>
     <dl class="dl-horizontal">
         <dt>Genotyped</dt>
         <dd>[% summary.genotyped %]</dd>
@@ -103,7 +103,7 @@ function toggle_btn(btn, show_or_hide) {
 </div>
 </div>
 
-<h3>Targeted Clones</h3>
+<h3>[% type %] Clones</h3>
 
 <button type="button" class="btn btn-info" data-toggle="button" id="epd_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
 
@@ -120,7 +120,7 @@ function toggle_btn(btn, show_or_hide) {
     <th>Detailed Description</th>
   </thead>
   <tbody>
-    [% FOREACH well IN targeted_clones %]
+    [% FOREACH well IN clones %]
     <tr>
       <td>[% well.name %]</td>
       <td>[% well.plate_name %]</td>
