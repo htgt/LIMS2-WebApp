@@ -183,7 +183,7 @@ sub experiment_GET{
         $project = $c->model( 'Golgi' )->retrieve_experiment( { id => $id } );
     }
     catch{
-         $c->stash->{json_data} = { error => "experiment $_ not found"};
+         $c->stash->{json_data} = { error => "experiment not found: $_"};
     };
 
     if($project){
