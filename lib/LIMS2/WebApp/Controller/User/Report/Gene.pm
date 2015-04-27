@@ -564,24 +564,25 @@ sub fetch_values_for_type_assembly {
             my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 
             my $crispr_entity = $well->crispr_entity;
-            my $crispr_type = $crispr_entity->is_pair  ? 'crispr_pair'
+            my $crispr_type = !$crispr_entity          ? 'NA'
+                            : $crispr_entity->is_pair  ? 'crispr_pair'
                             : $crispr_entity->is_group ? 'crispr_group'
                             :                            'crispr';
 
             my $well_hash = {
-                'well_id'           => $summary_row->assembly_well_id,
-                'well_id_string'    => $well_id_string,
-                'plate_id'          => $summary_row->assembly_plate_id,
-                'plate_name'        => $summary_row->assembly_plate_name,
-                'well_name'         => $summary_row->assembly_well_name,
-                'created_at'        => $summary_row->assembly_well_created_ts->ymd,
-                'is_accepted'       => $well_is_accepted,
-                'design_id'        => $well->design->id,
-                'crispr_type'      => $crispr_type,
-                'crispr_type_id'   => $crispr_entity->id,
-                'gene_symbol'      => $summary_row->design_gene_symbol,
-                'gene_ids'         => $summary_row->design_gene_id,
-                'browser_target'   => $plate_name . $well_name,
+                'well_id'        => $summary_row->assembly_well_id,
+                'well_id_string' => $well_id_string,
+                'plate_id'       => $summary_row->assembly_plate_id,
+                'plate_name'     => $summary_row->assembly_plate_name,
+                'well_name'      => $summary_row->assembly_well_name,
+                'created_at'     => $summary_row->assembly_well_created_ts->ymd,
+                'is_accepted'    => $well_is_accepted,
+                'design_id'      => $well->design->id,
+                'crispr_type'    => $crispr_type,
+                'crispr_type_id' => $crispr_entity ? $crispr_entity->id : '',
+                'gene_symbol'    => $summary_row->design_gene_symbol,
+                'gene_ids'       => $summary_row->design_gene_id,
+                'browser_target' => $plate_name . $well_name,
 
             };
 
