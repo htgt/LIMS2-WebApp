@@ -205,6 +205,8 @@ sub _add_crispr_well_values {
             = scalar(@{ $design_summary->{ all_crisprs } });
         $designs_hash->{$design_id}->{ design_details }->{ crispr_pair_count }
             = scalar(@{ $design_summary->{ all_pairs } });
+        $designs_hash->{$design_id}->{ design_details }->{ crispr_group_count }
+            = scalar(@{ $design_summary->{ all_groups } });
 
         foreach my $crispr_id (keys %{ $design_summary->{plated_crisprs} }){
 
