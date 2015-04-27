@@ -94,15 +94,16 @@ sub get_crispr_summaries_for_designs{
     DEBUG "Finding crisprs for designs";
 
     if($params->{find_all_crisprs}){
-        # Fetch all crisprs and pairs targetting the design
+        # Fetch all crispr entities targetting the design
         # Not done by default as this is slow
         DEBUG "finding all crisprs targetting design";
         foreach my $design_id (@{ $params->{id_list} }){
             my $design = $self->c_retrieve_design({ id => $design_id });
 
-            my ($crisprs, $pairs) = crisprs_for_design($self,$design);
+            my ($crisprs, $pairs, $groups) = crisprs_for_design($self,$design);
             $result->{$design_id}->{all_crisprs} = $crisprs;
             $result->{$design_id}->{all_pairs} = $pairs;
+            $result->{$design_id}->{all_groups} = $groups;
         }
     }
 
@@ -122,6 +123,11 @@ sub get_crispr_summaries_for_designs{
             # Store pairs of IDs
             $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{left_id} = $pair->left_crispr_id;
             $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{right_id} = $pair->right_crispr_id;
+        }
+        elsif(my $group = $link->crispr_group){
+            my @group_crispr_ids = map { $_->crispr_id } $group->crispr_group_crisprs->all;
+            push @crispr_ids, @group_crispr_ids;
+            $result->{$link->design_id}{plated_groups}{$group->id} = \@group_crispr_ids;
         }
 
         foreach my $crispr_id (@crispr_ids){
@@ -238,7 +244,6 @@ sub get_summaries_for_crispr_wells{
     return $result;
 }
 
-
 sub get_crispr_wells_for_design {
     my ($self, $design_id) = @_;
 
@@ -263,6 +268,11 @@ sub get_crispr_wells_for_design {
             # Store pairs of IDs
             $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{left_id} = $pair->left_crispr_id;
             $result->{$link->design_id}->{plated_pairs}->{$pair->id}->{right_id} = $pair->right_crispr_id;
+        }
+        elsif(my $group = $link->crispr_group){
+            my @group_crispr_ids = map { $_->crispr_id } $group->crispr_group_crisprs->all;
+            push @crispr_ids, @group_crispr_ids;
+            $result->{$link->design_id}{plated_groups}{$group->id} = \@group_crispr_ids;
         }
 
         foreach my $crispr_id (@crispr_ids){
