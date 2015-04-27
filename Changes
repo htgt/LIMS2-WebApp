@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.309     2015-04-27 12:55:29 Europe/London
+
+    Various bugfixes:
+    - deal with crispr groups better when reporting
+    - Don't throw error in gene summary page when no crispr entity for assembly well
+    - public API for experiment now returns in JSON instead of YAML
+
 0.308     2015-04-23 16:45:05 Europe/London
 
     Sponsor report count of Targeted Genes now only counts genes with frameshift mutations
