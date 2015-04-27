@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.307';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.309';
 }
 ## use critic
 
@@ -116,21 +116,6 @@ sub project_priority_GET{
     }
 
     return $self->status_ok( $c, entity => $project->as_hash );
-}
-
-sub experiment : Path( '/api/experiment' ) : Args(0) : ActionClass( 'REST' ){
-}
-
-sub experiment_GET{
-    my ($self, $c) = @_;
-
-    my $project = $c->model( 'Golgi' )->txn_do(
-        sub {
-            shift->retrieve_experiment( { id => $c->request->param( 'id' ) } );
-        }
-    );
-
-    return $self->status_ok( $c, entity => $project->as_hash_with_detail );
 }
 
 1;

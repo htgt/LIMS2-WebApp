@@ -276,12 +276,11 @@ lib/LIMS2/WebApp/Controller/API/PlateWell.pm
 lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
-lib/LIMS2/WebApp/Controller/API/Traces.pm
 lib/LIMS2/WebApp/Controller/Admin.pm
 lib/LIMS2/WebApp/Controller/Auth.pm
 lib/LIMS2/WebApp/Controller/FixtureData.pm
+lib/LIMS2/WebApp/Controller/PublicAPI.pm
 lib/LIMS2/WebApp/Controller/PublicReports.pm
-lib/LIMS2/WebApp/Controller/PublicReports/API.pm
 lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/Barcodes.pm
@@ -340,6 +339,7 @@ root/site/publicreports/well_genotyping_info.tt
 root/site/publicreports/well_genotyping_info_search.tt
 root/site/user/barcodes/checkout_from_picklist.tt
 root/site/user/barcodes/create_barcoded_plate.tt
+root/site/user/barcodes/create_qc_plate.tt
 root/site/user/barcodes/discard_barcode.tt
 root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
@@ -2784,6 +2784,7 @@ t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Design.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_PlateWell.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_QC.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Report.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Barcodes.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseDesigns.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
@@ -3006,6 +3007,7 @@ t/lib/LIMS2/t/WebApp/Controller/Admin.pm
 t/lib/LIMS2/t/WebApp/Controller/Auth.pm
 t/lib/LIMS2/t/WebApp/Controller/Root.pm
 t/lib/LIMS2/t/WebApp/Controller/User.pm
+t/lib/LIMS2/t/WebApp/Controller/User/Barcodes.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm

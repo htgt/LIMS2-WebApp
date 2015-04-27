@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.307';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.309';
 }
 ## use critic
 
@@ -680,27 +680,44 @@ sub fetch_values_for_type_PIQ {
     my $summary_row_values = $params->{ summary_row_values };
     my $stored_values = $params->{ stored_values };
     my $curr_well = $params->{ curr_well };
+    my $ancestor_well = $curr_well->ancestor_piq;
 
     if( (not exists $stored_values->{ stored_piq_well_id }) || ($curr_well->id != $stored_values->{ stored_piq_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
         TRACE caller()." Fetching new values for PIQ well : ".$curr_well->id;
-        $stored_values->{ 'stored_piq_well_id' }                = try{ $curr_well->id }; # well id
-        $stored_values->{ 'stored_piq_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
-        $stored_values->{ 'stored_piq_plate_id' }               = try{ $curr_well->plate->id }; # plate id
-        $stored_values->{ 'stored_piq_plate_name' }             = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
-        $stored_values->{ 'stored_piq_well_created_ts' }        = try{ $curr_well->created_at->iso8601 }; # well created timestamp
-        $stored_values->{ 'stored_piq_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
-        $stored_values->{ 'stored_piq_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
-        $stored_values->{ 'stored_piq_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
+        $stored_values->{ 'stored_piq_well_id' }                  = try{ $curr_well->id }; # well id
+        $stored_values->{ 'stored_piq_well_name' }                = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_piq_plate_id' }                 = try{ $curr_well->plate->id }; # plate id
+        $stored_values->{ 'stored_piq_plate_name' }               = try{ $curr_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_piq_well_created_ts' }          = try{ $curr_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_piq_well_assay_complete' }      = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
+        $stored_values->{ 'stored_piq_well_accepted' }            = try{ $curr_well->is_accepted }; # well accepted (with override)
+
+        $stored_values->{ 'stored_ancestor_piq_well_id' }         = try{ $ancestor_well->id }; # well id
+        $stored_values->{ 'stored_ancestor_piq_well_name' }       = try{ $ancestor_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
+        $stored_values->{ 'stored_ancestor_piq_plate_id' }        = try{ $ancestor_well->plate->id }; # plate id
+        $stored_values->{ 'stored_ancestor_piq_plate_name' }      = try{ $ancestor_well->plate->name }; # plate name e.g. MOHSAQ60001_C_1
+        $stored_values->{ 'stored_ancestor_piq_well_created_ts' } = try{ $ancestor_well->created_at->iso8601 }; # well created timestamp
+        $stored_values->{ 'stored_ancestor_piq_well_accepted' }   = try{ $ancestor_well->is_accepted }; # well accepted (with override)
+
+        $stored_values->{ 'stored_piq_sponsor' }                  = try{ $curr_well->plate->sponsor_id }; # sponsor
     }
 
-    $summary_row_values->{ 'piq_well_id' }               = $stored_values->{ stored_piq_well_id };
-    $summary_row_values->{ 'piq_well_name' }             = $stored_values->{ stored_piq_well_name };
-    $summary_row_values->{ 'piq_plate_id' }              = $stored_values->{ stored_piq_plate_id };
-    $summary_row_values->{ 'piq_plate_name' }            = $stored_values->{ stored_piq_plate_name };
-    $summary_row_values->{ 'piq_well_assay_complete' }   = $stored_values->{ stored_piq_well_assay_complete };
-    $summary_row_values->{ 'piq_well_created_ts' }       = $stored_values->{ stored_piq_well_created_ts };
-    $summary_row_values->{ 'piq_well_accepted' }         = $stored_values->{ stored_piq_well_accepted };
+    $summary_row_values->{ 'piq_well_id' }                  = $stored_values->{ stored_piq_well_id };
+    $summary_row_values->{ 'piq_well_name' }                = $stored_values->{ stored_piq_well_name };
+    $summary_row_values->{ 'piq_plate_id' }                 = $stored_values->{ stored_piq_plate_id };
+    $summary_row_values->{ 'piq_plate_name' }               = $stored_values->{ stored_piq_plate_name };
+    $summary_row_values->{ 'piq_well_assay_complete' }      = $stored_values->{ stored_piq_well_assay_complete };
+    $summary_row_values->{ 'piq_well_created_ts' }          = $stored_values->{ stored_piq_well_created_ts };
+    $summary_row_values->{ 'piq_well_accepted' }            = $stored_values->{ stored_piq_well_accepted };
+
+    $summary_row_values->{ 'ancestor_piq_well_id' }         = $stored_values->{ stored_ancestor_piq_well_id };
+    $summary_row_values->{ 'ancestor_piq_well_name' }       = $stored_values->{ stored_ancestor_piq_well_name };
+    $summary_row_values->{ 'ancestor_piq_plate_id' }        = $stored_values->{ stored_ancestor_piq_plate_id };
+    $summary_row_values->{ 'ancestor_piq_plate_name' }      = $stored_values->{ stored_ancestor_piq_plate_name };
+    $summary_row_values->{ 'ancestor_piq_well_created_ts' } = $stored_values->{ stored_ancestor_piq_well_created_ts };
+    $summary_row_values->{ 'ancestor_piq_well_accepted' }   = $stored_values->{ stored_ancestor_piq_well_accepted };
+
     if ($stored_values->{ 'stored_piq_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_piq_sponsor } };
 
     return;

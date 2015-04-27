@@ -1,7 +1,7 @@
 package LIMS2::Report::PIQPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PIQPlate::VERSION = '0.307';
+    $LIMS2::Report::PIQPlate::VERSION = '0.309';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ use namespace::autoclean;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
 override plate_types => sub {
-    return [ 'PIQ' ];
+    return [ 'PIQ','CGAP_QC','MS_QC' ];
 };
 
 override _build_name => sub {

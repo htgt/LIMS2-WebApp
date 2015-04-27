@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.307';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.309';
 }
 ## use critic
 
@@ -443,7 +443,6 @@ sub generate_sub_report {
                                             # 'colonies_picked',
                                             # 'targeted_clones',
                                             # 'recovery_class',
-                                            # 'priority',
                                             # 'effort_concluded',
 
                                             'total_colonies',
@@ -456,6 +455,9 @@ sub generate_sub_report {
                                             'wt_count',
                                             'ms_count',
 
+                                            'distrib_clones',
+
+                                            'priority',
                                             'recovery_class',
 
                                             'ep_data',
@@ -480,7 +482,6 @@ sub generate_sub_report {
                                             # 'iPSCs colonies picked',
                                             # 'homozygous targeted clones',
                                             # 'recovery_class',
-                                            # 'priority',
                                             # 'effort concluded',
 
                                             '# colonies',
@@ -494,6 +495,9 @@ sub generate_sub_report {
                                             '# wt clones',
                                             '# mosaic clones',
 
+                                            'distributable clones',
+
+                                            'priority',
                                             'info',
                                         ],
         },
@@ -907,22 +911,17 @@ sub genes {
             { %search },
         );
 
-        my ($sponsors_str, $effort);
-        my ($recovery_class, $priority, $effort_concluded);
+        my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => $gene_id, targeting_type => $self->targeting_type })->all;
 
-        my @gene_projects = $self->model->schema->resultset('Project')->search({
-                        gene_id => $gene_id,
-                    })->all;
-        my @all_sponsors = uniq map { $_->sponsors } @gene_projects;
-        my @sponsors;
-        foreach my $sponsor (@sponsors){
-            next if $sponsor eq 'All';
-            next if $sponsor eq 'Transfacs';
-            push @sponsors, $sponsor;
-        }
+        my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
-        $sponsors_str = join  ( '; ', @sponsors );
+        try {
+            my $index = 0;
+            $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+            splice(@sponsors, $index, 1);
+        };
 
+        my $sponsors_str = join  ( '; ', @sponsors );
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Pathogen Group 3/PG3/;
@@ -933,45 +932,33 @@ sub genes {
         $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
 
-        if (scalar @sponsors == 1 && $sponsor_id ne 'All') {
-            $effort = $self->model->retrieve_project({
-                        sponsor_id => $sponsor_id,
-                        gene_id => $gene_id,
-                        targeting_type => $self->targeting_type,
-                        species_id => $self->species,
-            });
+        my ($priority, $recovery_class, $effort_concluded);
+        try {
+            my @priority_array = map { $_->priority } @gene_projects;
 
-            $recovery_class = $effort->recovery_class_name;
-            $priority = $effort->priority;
-            $effort_concluded = $effort->effort_concluded ? 'yes' : '';
-        } else {
+            my $index = 0;
+            $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
+            splice(@priority_array, $index, 1);
 
-            my (@recovery_class, @priority, @effort_concluded);
+            $priority = join ( '; ', @priority_array );
+        };
+        if (! $priority) {$priority = '-'}
 
-            foreach my $sponsor (@sponsors) {
-                try {
-                    my $sponsor_effort = $self->model->retrieve_project({
-                            sponsor_id => $sponsor,
-                            gene_id => $gene_id,
-                            targeting_type => $self->targeting_type,
-                            species_id => $self->species,
-                    });
-
-                    push (@recovery_class, $sponsor_effort->recovery_class_name) unless (!$sponsor_effort->recovery_class_name);
-                    push (@priority, $sponsor_effort->priority) unless (!$sponsor_effort->priority);
-                    push (@effort_concluded, $sponsor_effort->effort_concluded) unless (!$sponsor_effort->effort_concluded);
-                }
-            }
-            $recovery_class = join ( '; ', @recovery_class );
-            $priority = join ( '; ', @priority );
-            $effort_concluded = join ( '; ', @effort_concluded );
-        }
+        try {
+            my @recovery_class_array = uniq map { $_->recovery_class->name } @gene_projects;
+            $recovery_class = join ( '; ', @recovery_class_array );
+        };
         if (! $recovery_class) {$recovery_class = '-'}
+
+        try {
+            my @effort_concluded_array = uniq map { $_->effort_concluded } @gene_projects;
+            $effort_concluded = join ( '; ', @effort_concluded_array );
+        };
+
 
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
-
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1195,13 +1182,38 @@ sub genes {
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
+
+
+        # PIQ wells
+        my @piq = $summary_rs->search(
+            {   piq_plate_name => { '!=', undef },
+                piq_well_accepted=> 't',
+                to_report => 't' },
+            {
+                columns => [ qw/piq_plate_name piq_well_name/ ],
+                distinct => 1
+            }
+        );
+
+        my @ancestor_piq = $summary_rs->search(
+            {   ancestor_piq_plate_name => { '!=', undef },
+                ancestor_piq_well_accepted=> 't',
+                to_report => 't' },
+            {
+                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                distinct => 1
+            }
+        );
+        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
+
+
+
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
             'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
-            'priority'               => $priority ? $priority : '0',
 
             # 'vector_wells'           => scalar @design_ids,
 
@@ -1209,7 +1221,6 @@ sub genes {
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
             'electroporations'       => $ep_count,
-
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
@@ -1219,6 +1230,9 @@ sub genes {
             'wt_count'               => $total_wt_count,
             'ms_count'               => $total_ms_count,
 
+            'distrib_clones'         => $piq_pass_count,
+
+            'priority'               => $priority,
             'recovery_class'         => $recovery_class,
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,
@@ -1240,13 +1254,15 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'distrib_clones' }        cmp $a->{ 'distrib_clones' }        ||
+            $b->{ 'fs_count' }              cmp $a->{ 'fs_count' }              ||
+            $b->{ 'targeted_clones' }       cmp $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       cmp $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      cmp $a->{ 'electroporations' }      ||
+            $b->{ 'passing_vector_wells' }  cmp $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'vector_wells' }          cmp $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'accepted_crispr_vector' } cmp $a->{ 'accepted_crispr_vector' } ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
@@ -2905,7 +2921,12 @@ AND p.species_id = '$species_id'
 SELECT count(distinct(s.design_gene_id))
 FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+INNER JOIN crispr_es_qc_wells cw ON cw.well_id = s.ep_pick_well_id
+INNER JOIN crispr_es_qc_runs cr ON cw.crispr_es_qc_run_id = cr.id
 WHERE s.ep_pick_well_accepted = true
+AND cw.crispr_damage_type_id = 'frameshift'
+AND cw.accepted = true
+AND cr.validated = true
 $condition
 SQL_END
 

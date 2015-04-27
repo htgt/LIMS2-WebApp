@@ -28,7 +28,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 
     $(".crispr_qc_accepted").each(function () {
@@ -999,6 +999,7 @@ function toggle_btn(btn, show_or_hide) {
               <th>Assigned genes</th>
               <th>Crispr Count</th>
               <th>Crispr Pair Count</th>
+              <th>Crispr Group Count</th>
             </tr>
           </thead>
           <tbody>
@@ -1019,6 +1020,7 @@ function toggle_btn(btn, show_or_hide) {
                 %]</td>
               <td>[% designs.item(skey).design_details.crispr_count %]</td>
               <td>[% designs.item(skey).design_details.crispr_pair_count %]</td>
+              <td>[% designs.item(skey).design_details.crispr_group_count %]</td>
             </tr>
             [%- END %]
           </tbody>
