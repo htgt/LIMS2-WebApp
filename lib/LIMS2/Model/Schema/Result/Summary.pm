@@ -850,6 +850,37 @@ __PACKAGE__->table("summaries");
 =head2 to_report
 
   data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 ancestor_piq_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_accepted
+
+  data_type: 'boolean'
   is_nullable: 1
 
 =cut
@@ -1183,6 +1214,18 @@ __PACKAGE__->add_columns(
   "sponsor_id",
   { data_type => "text", is_nullable => 1 },
   "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "ancestor_piq_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "ancestor_piq_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
 );
 
@@ -1199,8 +1242,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 16:37:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vnqx4wJzHo+TyOAojg+FbQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-23 15:25:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ApmRu1wU0ZbyjmzGjYEM6g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -23,3 +23,5 @@
 "crispr_ep","Crispr electroporation"
 "global_arm_shortening","Shorten the global arms of a intermediate vector using new G oligos"
 "oligo_assembly", 'Put a nonsense design with a crispr'
+"cgap_qc","QC of samples returned from CGAP"
+"ms_qc","QC of samples during Mutation Signatures workflow"
