@@ -129,7 +129,7 @@ function toggle_btn(btn, show_or_hide) {
       <td class="accepted"> [% well.accepted %] </td>
       <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.id ) %]"><i class="icon-file"></i></a></td>
       <td>
-        [% IF well.crispr_qc_data && well.accepted %]
+        [% IF well.crispr_qc_data %]
         <a href="#" class="crispr_qc_accepted">
         <!-- insert alignments but hidden -->
         <div style="display:none">
@@ -142,7 +142,11 @@ function toggle_btn(btn, show_or_hide) {
         [% IF well.crispr_qc_data %]</a>[% END %]
       </td>
       <td>[% well.crispr_qc_data.variant_size %]</td>
-      <td><a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a></td>
+      <td>
+        [% IF well.crispr_qc_data %]
+        <a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a>
+        [% END %]
+      </td>
     </tr>
     [%- END %]
   </tbody>
