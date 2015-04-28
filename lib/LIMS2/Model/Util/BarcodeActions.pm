@@ -261,20 +261,7 @@ sub freeze_back_piq_barcode{
 
     # Find the incomplete doubling process, get the oxygen condition
     # then delete the process
-    my $incomplete_doubling;
-    foreach my $process ($bc->well->child_processes){
-        next unless $process->type_id eq 'doubling';
-
-        my @output_wells = $process->output_wells;
-        next if @output_wells;
-
-        if($incomplete_doubling){
-            die "More than one incomplete doubling process found for barcode $barcode";
-        }
-        $incomplete_doubling = $process;
-    }
-
-    die "Could not find incomplete doubling process for barcode $barcode" unless $incomplete_doubling;
+    my $incomplete_doubling = _get_incomplete_doubling_process($bc);
 
     my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
     DEBUG "Deleting incomplete doubling process with oxygen condition $oxygen_condition";
@@ -347,6 +334,27 @@ sub _fetch_qc_piq_for_freeze_back{
     return $qc_plate;
 }
 
+sub _get_incomplete_doubling_process{
+    my ($bc) = @_;
+
+    my $barcode = $bc->barcode;
+    my $incomplete_doubling;
+    foreach my $process ($bc->well->child_processes){
+        next unless $process->type_id eq 'doubling';
+
+        my @output_wells = $process->output_wells;
+        next if @output_wells;
+
+        if($incomplete_doubling){
+            die "More than one incomplete doubling process found for barcode $barcode";
+        }
+        $incomplete_doubling = $process;
+    }
+
+    die "Could not find incomplete doubling process for barcode $barcode" unless $incomplete_doubling;
+
+    return $incomplete_doubling;
+}
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
 
@@ -926,6 +934,7 @@ sub pspec_upload_qc_plate{
         csv_fh              => { validate => 'file_handle'},
         plate_type          => { validate => 'existing_plate_type' },
         process_type        => { validate => 'existing_process_type' },
+        doublings           => { validate => 'integer', optional => 1 },
     }
 }
 
@@ -973,6 +982,17 @@ sub upload_qc_plate{
             parent_well  => $well_barcode->well->name,
             process_type => $validated_params->{process_type},
         };
+
+        if($validated_params->{process_type} eq 'ms_qc'){
+            # find the oxygen condition of doubling process
+            # linked to barcoded well
+            my $incomplete_doubling = _get_incomplete_doubling_process($well_barcode);
+            my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
+
+            # Add this along with the doubling number to well_data hash
+            $well_data->{oxygen_condition} = $oxygen_condition;
+            $well_data->{doublings} = $validated_params->{doublings};
+        }
 
         DEBUG "Well $well_name has parent well ".$well_barcode->well->as_string;
         push @wells, $well_data;

@@ -411,8 +411,10 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
         }
 
-        if($qc_piq_well->well_barcode){
-            $c->stash->{qc_piq_well_barcode} = $qc_piq_well->well_barcode->barcode;
+        if($qc_piq_well){
+            if($qc_piq_well->well_barcode){
+                $c->stash->{qc_piq_well_barcode} = $qc_piq_well->well_barcode->barcode;
+            }
         }
     }
     elsif($c->request->param('submit_piq_barcodes')){
@@ -698,6 +700,11 @@ sub create_qc_plate : Path( '/user/create_qc_plate' ) : Args(0){
                         user                => $c->user->name,
                         csv_fh              => $data_file->fh,
                     };
+
+                    if(my $doublings = $c->req->param('number_of_doublings')){
+                        $upload_params->{doublings} = $doublings;
+                    }
+
                     $plate = upload_qc_plate($c->model('Golgi'), $upload_params);
                 }
                 catch($e){

@@ -1297,9 +1297,27 @@ sub _create_process_aux_data_cgap_qc {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_ms_qc{
+    return {
+        oxygen_condition => { validate => 'oxygen_condition' },
+        doublings        => { validate => 'integer' }
+    };
+}
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_ms_qc {
-    # FIXME: Need to implement this
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_ms_qc );
+    $process->create_related( process_parameters => {
+        parameter_name  => 'oxygen_condition',
+        parameter_value => $validated_params->{oxygen_condition}
+    });
+
+    $process->create_related( process_parameters => {
+            parameter_name  => 'doublings',
+            parameter_value => $validated_params->{doublings},
+    });
     return;
 }
 ## use critic
@@ -1315,7 +1333,7 @@ sub pspec__create_process_aux_data_doubling {
 sub _create_process_aux_data_doubling {
     my ($model, $params, $process) = @_;
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_doubling );
+        = $model->check_params( $params, pspec__create_process_aux_data_doubling, ignore_unknown => 1 );
     $process->create_related( process_parameters => {
         parameter_name  => 'oxygen_condition',
         parameter_value => $validated_params->{oxygen_condition}
