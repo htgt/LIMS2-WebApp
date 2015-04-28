@@ -196,7 +196,8 @@ sub do_picklist_checkout{
 
 ### TODO: factor out common bits and add freeze_back_piq_barcode method
 # for mutation signatures project
-sub pspec_freeze_back_fp_barcode{
+sub pspec_freeze_back_barcode_common{
+    # params common to both fp and piq freeze back
     return {
         barcode           => { validate => 'well_barcode' },
         number_of_wells   => { validate => 'integer' },
@@ -204,6 +205,19 @@ sub pspec_freeze_back_fp_barcode{
         qc_piq_plate_name => { validate => 'plate_name' },
         qc_piq_well_name  => { validate => 'well_name' },
         user              => { validate => 'existing_user' },
+    }
+}
+
+sub pspec_freeze_back_fp_barcode{
+    return pspec_freeze_back_barcode_common;
+}
+
+sub pspec_freeze_back_piq_barcode{
+    my $common_params = pspec_freeze_back_barcode_common;
+    return {
+        %$common_params,
+        qc_piq_well_barcode => { validate => 'non_empty_string' },
+        number_of_doublings => { validate => 'integer' },
     }
 }
 
@@ -215,19 +229,101 @@ sub freeze_back_fp_barcode{
     my $barcode = $validated_params->{barcode};
 
     # Fetch FP well_barcode
+    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+
+    # Fetch QC PIQ plate or create it if not found
+    my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+    # Create the QC PIQ well
+    my $process_data = {
+        type        => 'dist_qc',
+        input_wells => [ { id => $bc->well->id } ],
+    };
+    if($validated_params->{lab_number}){
+        $process_data->{lab_number} = $validated_params->{lab_number};
+    }
+
+    my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+
+    return ($qc_well,$tmp_piq_plate);
+}
+
+sub freeze_back_piq_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_freeze_back_piq_barcode, ignore_unknown => 1);
+
+    my $barcode = $validated_params->{barcode};
+
+    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'doubling_in_progress');
+
+    my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+    # Find the incomplete doubling process, get the oxygen condition
+    # then delete the process
+    my $incomplete_doubling;
+    foreach my $process ($bc->well->child_processes){
+        next unless $process->type_id eq 'doubling';
+
+        my @output_wells = $process->output_wells;
+        next if @output_wells;
+
+        if($incomplete_doubling){
+            die "More than one incomplete doubling process found for barcode $barcode";
+        }
+        $incomplete_doubling = $process;
+    }
+
+    die "Could not find incomplete doubling process for barcode $barcode" unless $incomplete_doubling;
+
+    my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
+    DEBUG "Deleting incomplete doubling process with oxygen condition $oxygen_condition";
+    $model->delete_process({ id => $incomplete_doubling->id });
+
+    # Create the QC PIQ well as output of a new doubling process
+    my $process_data = {
+        type             => 'doubling',
+        input_wells      => [ { id => $bc->well->id } ],
+        oxygen_condition => $oxygen_condition,
+        doublings        => $validated_params->{number_of_doublings},
+    };
+    if($validated_params->{lab_number}){
+        $process_data->{lab_number} = $validated_params->{lab_number};
+    }
+
+    my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+
+    # Add barcode to the QC PIQ well
+    # FIXME: what should the barcode state be for the QC PIQ pellet
+    $model->create_well_barcode({
+        barcode => $validated_params->{qc_piq_well_barcode},
+        well_id => $qc_well->id,
+        state   => 'in_freezer',
+    });
+
+    return ($qc_well,$tmp_piq_plate);
+}
+
+sub _fetch_barcode_for_freeze_back{
+    my ($model, $barcode, $expected_state) = @_;
+
     my $bc = $model->retrieve_well_barcode({
         barcode => $barcode,
     });
-    my $fp_plate = $bc->well->plate;
 
     die "Barcode $barcode not found\n" unless $bc;
 
     my $state = $bc->barcode_state->id;
-    unless ($state eq 'checked_out'){
-        die "Cannot freeze back barcode $barcode as it is not checked_out (state: $state)\n"
+    unless ($state eq $expected_state){
+        die "Cannot freeze back barcode $barcode as it is not $expected_state (state: $state)\n"
     }
 
-    # Fetch QC PIQ plate or create it if not found
+    return $bc;
+}
+
+sub _fetch_qc_piq_for_freeze_back{
+    my ($model, $bc, $validated_params) = @_;
+
     my $qc_plate = $model->schema->resultset('Plate')->search({
         name => $validated_params->{qc_piq_plate_name},
     })->first;
@@ -248,14 +344,11 @@ sub freeze_back_fp_barcode{
         });
     }
 
-    # Create the QC PIQ well
-    my $process_data = {
-        type        => 'dist_qc',
-        input_wells => [ { id => $bc->well->id } ],
-    };
-    if($validated_params->{lab_number}){
-        $process_data->{lab_number} = $validated_params->{lab_number};
-    }
+    return $qc_plate;
+}
+
+sub _create_qc_piq_and_child_wells{
+    my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
 
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
@@ -282,8 +375,9 @@ sub freeze_back_fp_barcode{
         push @child_well_data, $well_data;
     }
 
+    my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
     my $tmp_piq_plate = $model->create_plate({
-        name       => 'PIQ_'.$bc->well->as_string,
+        name       => $random_name,
         species    => $bc->well->plate->species_id,
         type       => 'PIQ',
         created_by => $validated_params->{user},
@@ -291,29 +385,25 @@ sub freeze_back_fp_barcode{
         is_virtual => 1,
     });
 
-    # Set FP well_status to 'frozen_back'
+    # Set original barcode's status to 'frozen_back'
     $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'frozen_back',
         user      => $validated_params->{user},
     });
 
-    # remove frozen_back barcode from FP plate (by creating new version)
+    # remove frozen_back barcode from original plate (by creating new version)
     # unless well was already on a virtual plate
-    unless($fp_plate->is_virtual){
+    unless($bc->well->plate->is_virtual){
         remove_well_barcodes_from_plate(
             $model,
-            [ $barcode ],
-            $fp_plate,
+            [ $validated_params->{barcode} ],
+            $bc->well->plate,
             $validated_params->{user}
         );
     }
 
-    return $tmp_piq_plate;
-}
-
-sub freeze_back_piq_barcode{
-    return;
+    return ($qc_well, $tmp_piq_plate);
 }
 
 sub pspec_discard_well_barcode{

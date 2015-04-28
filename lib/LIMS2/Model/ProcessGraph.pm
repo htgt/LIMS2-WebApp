@@ -375,6 +375,9 @@ sub process_data_for {
         if ( $p->process_global_arm_shortening_design ) {
             push @data, 'Global Arm Shorten Design: ' . $p->process_global_arm_shortening_design->design_id;
         }
+        foreach my $param ($p->process_parameters){
+            push @data, $param->parameter_name.': '.$param->parameter_value;
+        }
     }
 
     return @data;
@@ -398,6 +401,7 @@ sub render {
         my @labels = ( $well->as_string, 'Plate Type: ' . $well->plate->type_id );
         if($well->well_barcode){
             push @labels, 'Barcode: '.$well->well_barcode->barcode;
+            push @labels, 'State: '.$well->well_barcode->barcode_state->id;
         }
         push @labels, process_data_for($well);
         $graph->add_node(

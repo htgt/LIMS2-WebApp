@@ -1322,7 +1322,7 @@ sub _create_process_aux_data_doubling {
     });
 
     if(defined(my $doublings = $validated_params->{doublings})){
-        $process->create_related( process_parameter => {
+        $process->create_related( process_parameters => {
             parameter_name  => 'doublings',
             parameter_value => $doublings,
         });

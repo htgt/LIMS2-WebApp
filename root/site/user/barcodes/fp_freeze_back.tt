@@ -33,7 +33,7 @@
     </button>
   </fieldset>
 </form>
-[% ELSE %]
+[% ELSIF !barcode_state_error %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>

@@ -335,11 +335,14 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     $c->stash->{barcode} = $barcode;
 
     my $type = $c->req->param('freeze_back_type');
+    my $redirect_on_completion;
     if($type eq 'FP'){
         $c->stash->{template} = 'user/barcodes/fp_freeze_back.tt';
+        $redirect_on_completion = $c->uri_for('/user/scan_barcode');
     }
     elsif($type eq 'PIQ'){
         $c->stash->{template} = 'user/barcodes/piq_freeze_back.tt';
+        $redirect_on_completion = $c->uri_for('/user/scan_barcode');
     }
 
     my $well;
@@ -385,12 +388,12 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
         # Requires: orig FP or PIQ barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
-        my $tmp_piq_plate;
+        my ($qc_piq_well, $tmp_piq_plate);
         $c->model('Golgi')->txn_do( sub {
             try{
                 my $params = $c->request->parameters;
                 $params->{user} = $c->user->name;
-                $tmp_piq_plate = $freeze_back_method->( $c->model('Golgi'), $params );
+                ($qc_piq_well, $tmp_piq_plate) = $freeze_back_method->( $c->model('Golgi'), $params );
             }
             catch($e){
                 $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
@@ -406,6 +409,10 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         if($tmp_piq_plate){
             $c->stash->{piq_plate_name} = $tmp_piq_plate->name;
             $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+        }
+
+        if($qc_piq_well->well_barcode){
+            $c->stash->{qc_piq_well_barcode} = $qc_piq_well->well_barcode->barcode;
         }
     }
     elsif($c->request->param('submit_piq_barcodes')){
@@ -445,7 +452,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
         # Redirect user to checked_out FP page
         $c->flash->{success_msg} = join "<br>", @$messages;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/FP") );
+        $c->res->redirect( $redirect_on_completion );
     }
 
     return;

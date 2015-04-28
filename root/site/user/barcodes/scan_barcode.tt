@@ -17,12 +17,19 @@
     </button>
   </fieldset>
 </form>
+    [% ELSIF well_details.barcode_state == 'doubling_in_progress' %]
+<form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
+Actions:
+  <fieldset>
+    <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'PIQ' ) %]" class="btn btn-primary">
+    Freeze Back
+    </a>
     [% ELSIF well_details.barcode_state == 'checked_out' %]
 <form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
 Actions:
   <fieldset>
       [% IF well_details.plate_type == 'FP' %]
-    <a href="[% c.uri_for('/user/fp_freeze_back', barcode => well_details.barcode) %]" class="btn btn-primary">
+    <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'FP' ) %]" class="btn btn-primary">
     Freeze Back
     </a>
     <br><br>
@@ -45,9 +52,8 @@ Actions:
     </button>
   </fieldset>
 </form>
-    [% END %]
   [% END %]
-
+ [% END %]
 [% ELSE %]
 <form method="POST" action="[% c.uri_for( '/user/scan_barcode' ) %]" class="well">
   <fieldset>

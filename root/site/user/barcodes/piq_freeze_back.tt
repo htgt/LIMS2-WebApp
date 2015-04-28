@@ -22,7 +22,12 @@
     <input type="hidden" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
     <input type="hidden" name="piq_plate_name" value="[% piq_plate_name %]"/>
     [% FOREACH well IN piq_wells %]
-      Barcode for [% well.well_lab_number.lab_number %]
+      Barcode for
+      [% IF well.well_lab_number %]
+        [% well.well_lab_number.lab_number %]
+      [% ELSE %]
+        [% well.name %]
+      [% END %]
       [% barcode = 'barcode_' _ well.id %]
       <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]" class="barcode_input">
       <br>
@@ -33,7 +38,7 @@
     </button>
   </fieldset>
 </form>
-[% ELSE %]
+[% ELSIF !barcode_state_error %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
@@ -43,16 +48,6 @@
      <td>
       <label>Number of Doublings</label>
       <input type="number" name="number_of_doublings" value="[% number_of_doublings %]"/>
-     </td>
-    </tr>
-    <tr>
-     <td>
-      <label>Number of PIQ wells to create</label>
-      <input type="number" name="number_of_wells" min="1" max="10" value="[% number_of_wells %]"/>
-     </td>
-     <td>
-      <label>Lab Number</label>
-      <input type="text" name="lab_number" value="[% lab_number %]"/>
      </td>
     </tr>
     <tr>
@@ -67,6 +62,16 @@
      <td>
       <label>Barcode of PIQ QC well</label>
       <input type="text" name="qc_piq_well_barcode" value="[% qc_piq_well_barcode %]"/>
+     </td>
+    </tr>
+    <tr>
+     <td>
+      <label>Number of PIQ wells to create</label>
+      <input type="number" name="number_of_wells" min="1" max="10" value="[% number_of_wells %]"/>
+     </td>
+     <td>
+      <label>Lab Number</label>
+      <input type="text" name="lab_number" value="[% lab_number %]"/>
      </td>
     </tr>
     <tr>
