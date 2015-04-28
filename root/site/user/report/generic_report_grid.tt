@@ -305,7 +305,93 @@
                 simpleSelect: true,
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
-                ]
+                ],
+                tools:[
+
+                    {
+                        id        : 'download_csv_file_btn',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            DownloadCsvFile(grid);
+                        }
+                    },
+
+                    ],
             });
+
+            var tooltips = [{
+                target   : 'download_csv_file_btn',
+                html     : 'Click to download the grid data<br>as a CSV spreadsheet file'
+            }];
+
+            Ext.each(tooltips, function(config) {
+                Ext.create('Ext.tip.ToolTip', config);
+            });
+
+
+            function DownloadCsvFile(grid) {
+                var cols    = grid.columns;
+                var store   = grid.store;
+                var data    = '';
+
+                var that = this;
+                Ext.Array.each(cols, function(col, index) {
+                    if (col.hidden != true) {
+
+                        var text1;
+
+                        if (col.text == null || col.text == undefined) {
+                            text1 = '';
+                        } else {
+                            text1 = col.text;
+                        }
+                        if (text1.match(/,/)) {
+                            if (!text1.match(/"/)) {
+                                text1 = '"' + text1 + '"';
+                            } else {
+                                text1 = text1.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                            }
+                        }
+                        data += text1 + ',';
+                    }
+                });
+                data += "\n";
+
+                store.each(function(record) {
+                    var entry       = record.getData();
+                    Ext.Array.each(cols, function(col, index) {
+                        if (col.hidden != true) {
+                            var fieldName   = col.dataIndex;
+                            var text        = entry[fieldName];
+
+                            var text2;
+
+                            if (text == null || text == undefined) {
+                                text2 = '';
+                            } else if (!text.match) { // a checkcolumn object
+                                text2 = text;
+                            } else {
+                                text2 = text;
+                                if (text2.match(/,/)) {
+                                    if (!text2.match(/"/)) {
+                                        text2 = '"' + text2 + '"';
+                                    } else {
+                                        text2 = text2.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                                    }
+                                }
+                            }
+
+                            data += text2 + ',';
+                        }
+                    });
+                    data += "\n";
+                });
+
+                window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
+
+            };
+
     });
 </script>
