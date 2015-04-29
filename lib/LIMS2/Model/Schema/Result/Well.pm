@@ -1587,6 +1587,16 @@ sub ms_qc_data{
         push @mutation_signatures_qc, $qc_info;
     }
 
+    # Add any QC info linked to the well produced by the doubling process
+    my ($final_qc_well) = $doubling->output_wells;
+    my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
+    if($crispr_qc_well){
+        my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{final_ms_qc_result} = 1;
+        push @mutation_signatures_qc, $final_qc_info;
+    }
+
     return \@mutation_signatures_qc;
 }
 
