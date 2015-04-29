@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.308';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.310';
 }
 ## use critic
 
@@ -571,92 +571,134 @@ Public gene report, only show targeted clone details:
 ## no critic (Subroutines::ProhibitExcessComplexity)
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
-    $c->log->info( "Generate public gene report page for gene: $gene_id" );
+
+    # by default type is Targeted, Distributable as an option
+    my $type = 'Targeted';
+    if ($c->request->param('type') eq 'distributable') {
+        $type = 'Distributable';
+    }
+
+    $c->log->info( "Generate public $type clone report page for gene: $gene_id" );
     my $model = $c->model('Golgi');
     my $species = $c->session->{selected_species} || 'Human';
 
-    my $designs = $model->c_list_assigned_designs_for_gene(
-        { gene_id => $gene_id, species => $species } );
-    my @design_ids = map { $_->id } @{ $designs };
-
-    # grab all summary rows for the designs which have ep_pick wells
-    my $design_summaries_rs = $model->schema->resultset('Summary')->search(
-       {
-           'me.design_id'       => { 'IN' => \@design_ids },
-           'me.ep_pick_well_id' => { '!=' => undef },
-       },
-    );
-
-    my $gene_symbol;
-    my %targeted_clones;
-    while ( my $sr = $design_summaries_rs->next ) {
-        $gene_symbol = $model->find_gene({
+    # get the gene name/symbol
+    my $gene = $model->find_gene({
                     species => $species,
                     search_term => $gene_id
-                })->{'gene_symbol'};
-        next if exists $targeted_clones{ $sr->ep_pick_well_id };
+                });
 
-        my %data;
-        $data{id}         = $sr->ep_pick_well_id;
-        $data{name}       = $sr->ep_pick_plate_name . '_' . $sr->ep_pick_well_name;
-        $data{plate_name} = $sr->ep_pick_plate_name;
-        $data{well_name}  = $sr->ep_pick_well_name;
-        $data{accepted}   = $sr->ep_pick_well_accepted ? 'yes' : 'no';
-        $data{created_at} = $sr->ep_pick_well_created_ts->ymd;
+    my $gene_symbol = $gene->{'gene_symbol'};
+    $gene_id = $gene->{'gene_id'};
+
+    # get the summary rows
+    my $design_summaries_rs = $model->schema->resultset('Summary')->search(
+       {
+            design_gene_id     => $gene_id,
+            ep_pick_plate_name => { '!=', undef },
+            to_report          => 't',
+       },
+       { distinct => 1 }
+    );
+
+    # start colecting the clones data, starting by the targeted clones
+    my %clones;
+    while ( my $sr = $design_summaries_rs->next ) {
+        next if (!defined $sr->ep_pick_well_id || exists $clones{ $sr->ep_pick_well_id } );
+        my %ep_pick_data;
+        $ep_pick_data{id}         = $sr->ep_pick_well_id;
+        $ep_pick_data{name}       = $sr->ep_pick_plate_name . '_' . $sr->ep_pick_well_name;
+        $ep_pick_data{plate_name} = $sr->ep_pick_plate_name;
+        $ep_pick_data{well_name}  = $sr->ep_pick_well_name;
+        $ep_pick_data{accepted}   = $sr->ep_pick_well_accepted ? 'yes' : 'no';
+        $ep_pick_data{created_at} = $sr->ep_pick_well_created_ts->ymd;
 
         # get crispr es qc data if available
-        if ( $sr->ep_pick_well_accepted && $sr->crispr_ep_well_name ) {
-            my $well = $model->schema->resultset('Well')->find( { id => $sr->ep_pick_well_id } );
-            my $gene_finder = sub { $model->find_genes( @_ ) };
-            # grab data for alignment popup
-            try { $data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
+        my $well = $model->schema->resultset('Well')->find( { id => $sr->ep_pick_well_id } );
+        my $gene_finder = sub { $model->find_genes( @_ ) };
+        # grab data for alignment popup
+        try { $ep_pick_data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
 
-            # grab data for crispr damage type
-            # only on validated runs...
-            my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
-                {
-                    well_id  => $sr->ep_pick_well_id,
-                    'crispr_es_qc_run.validated' => 1,
-                },
-                {
-                    join => 'crispr_es_qc_run'
+        # grab data for crispr damage type
+        # only on validated runs...
+        my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+            {
+                well_id  => $sr->ep_pick_well_id,
+                'crispr_es_qc_run.validated' => 1,
+            },
+            {
+                join => 'crispr_es_qc_run'
 
-                }
-            );
-
-            my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-            if ( scalar( @crispr_damage_types ) == 1 ) {
-                $data{crispr_damage} = $crispr_damage_types[0];
             }
-            elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                # remove any non accepted results
-                @crispr_damage_types = uniq grep {$_}
-                    map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+        );
 
-                if ( scalar( @crispr_damage_types ) > 1 ) {
-                    $c->log->warn( $data{name}
-                            . ' ep_pick well has multiple crispr damage types associated with it: '
-                            . join( ', ', @crispr_damage_types ) );
-                    $data{crispr_damage} = '-';
-                }
-                else {
-                    $data{crispr_damage} = $crispr_damage_types[0];
-                }
+        my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
+
+        if ( scalar( @crispr_damage_types ) == 1 ) {
+            $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
+        }
+        elsif ( scalar( @crispr_damage_types ) > 1 ) {
+            # remove any non accepted results
+            @crispr_damage_types = uniq grep {$_}
+                map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+
+            if ( scalar( @crispr_damage_types ) > 1 ) {
+                $c->log->warn( $ep_pick_data{name}
+                        . ' ep_pick well has multiple crispr damage types associated with it: '
+                        . join( ', ', @crispr_damage_types ) );
+                $ep_pick_data{crispr_damage} = '-';
             }
             else {
-                $c->log->warn( $data{name}
-                    . ' ep_pick well has no crispr damage type associated with it' );
-                $data{crispr_damage} = '-';
+                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
             }
         }
-        $targeted_clones{ $sr->ep_pick_well_id } = \%data;
+        else {
+            $c->log->warn( $ep_pick_data{name}
+                . ' ep_pick well has no crispr damage type associated with it' );
+            $ep_pick_data{crispr_damage} = '-';
+        }
+
+        # save the clone if targeted clones, keep qc data for distributable clones
+        $clones{ $sr->ep_pick_well_id } = \%ep_pick_data unless ( $type eq 'Distributable' );
+
+        # no need to the distributable clones unless we want them
+        next unless ( $type eq 'Distributable' );
+
+        # get the PIQ clones
+        if ( defined $sr->piq_well_id && !exists $clones{ $sr->piq_well_id } ) {
+            my %data;
+            $data{id}         = $sr->piq_well_id;
+            $data{name}       = $sr->piq_plate_name . '_' . $sr->piq_well_name;
+            $data{plate_name} = $sr->piq_plate_name;
+            $data{well_name}  = $sr->piq_well_name;
+            $data{accepted}   = $sr->piq_well_accepted ? 'yes' : 'no';
+            $data{created_at} = $sr->piq_well_created_ts->ymd;
+            $data{crispr_damage} = $ep_pick_data{crispr_damage};
+            $data{crispr_qc_data} = $ep_pick_data{crispr_qc_data};
+
+            $clones{ $sr->piq_well_id } = \%data;
+        }
+
+        # get the ancestor PIQ clones
+        if ( defined $sr->ancestor_piq_well_id && !exists $clones{ $sr->ancestor_piq_well_id } ) {
+            my %data;
+            $data{id}         = $sr->ancestor_piq_well_id;
+            $data{name}       = $sr->ancestor_piq_plate_name . '_' . $sr->ancestor_piq_well_name;
+            $data{plate_name} = $sr->ancestor_piq_plate_name;
+            $data{well_name}  = $sr->ancestor_piq_well_name;
+            $data{accepted}   = $sr->ancestor_piq_well_accepted ? 'yes' : 'no';
+            $data{created_at} = $sr->ancestor_piq_well_created_ts->ymd;
+            $data{crispr_damage} = $ep_pick_data{crispr_damage};
+            $data{crispr_qc_data} = $ep_pick_data{crispr_qc_data};
+
+            $clones{ $sr->ancestor_piq_well_id } = \%data;
+        }
     }
 
-    my @targeted_clones = sort _sort_by_damage_type values %targeted_clones;
+    my @clones = sort _sort_by_damage_type values %clones;
 
     my %summaries;
-    for my $tc ( @targeted_clones ) {
+    for my $tc ( @clones ) {
         $summaries{genotyped}++ if ($tc->{crispr_damage} && ($tc->{crispr_damage} eq 'frameshift' ||
             $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic') );
         $summaries{ $tc->{crispr_damage} }++ if ($tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified');
@@ -666,7 +708,8 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
         'gene_id'         => $gene_id,
         'gene_symbol'     => $gene_symbol,
         'summary'         => \%summaries,
-        'targeted_clones' => \@targeted_clones,
+        'clones'          => \@clones,
+        'type'            => $type,
     );
     return;
 }

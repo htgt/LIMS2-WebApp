@@ -1,7 +1,7 @@
 package LIMS2::Report::RecoveryOverview;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::RecoveryOverview::VERSION = '0.308';
+    $LIMS2::Report::RecoveryOverview::VERSION = '0.310';
 }
 ## use critic
 
@@ -355,7 +355,7 @@ sub _build_crispr_stage_data {
         }
         elsif(@crispr_well_ids){
             # We found crispr wells but no DNA or vector result sets
-            $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date;
+            $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date->dmy('/');
             my @crispr_wells = $self->model->schema->resultset('Well')->search({
                 id => { '-in', \@crispr_well_ids }
             });

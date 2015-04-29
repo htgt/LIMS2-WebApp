@@ -999,6 +999,7 @@ function toggle_btn(btn, show_or_hide) {
               <th>Assigned genes</th>
               <th>Crispr Count</th>
               <th>Crispr Pair Count</th>
+              <th>Crispr Group Count</th>
             </tr>
           </thead>
           <tbody>
@@ -1019,6 +1020,7 @@ function toggle_btn(btn, show_or_hide) {
                 %]</td>
               <td>[% designs.item(skey).design_details.crispr_count %]</td>
               <td>[% designs.item(skey).design_details.crispr_pair_count %]</td>
+              <td>[% designs.item(skey).design_details.crispr_group_count %]</td>
             </tr>
             [%- END %]
           </tbody>

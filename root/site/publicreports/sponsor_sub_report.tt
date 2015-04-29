@@ -185,11 +185,11 @@ document.title = "[%- sponsor_id %]";
 
         [%- ELSIF col == 'targeted_clones' %]
           [%- IF row.item('targeted_clones') && row.item('chromosome') == "X" %]
-            <td style="background:#FFA500">[%- colval %]</td>
+            <td style="background:#FFA500"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [% ELSIF row.item('targeted_clones') && row.item('fs_count') %]
-            <td style="background:#8AD95A">[%- colval %]</td>
+            <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [% ELSIF row.item('targeted_clones') %]
-            <td style="background:#FF4646">[%- colval %]</td>
+            <td style="background:#FF4646"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [% ELSE %]
             <td></td>
           [% END %]
@@ -199,7 +199,7 @@ document.title = "[%- sponsor_id %]";
                || col == 'ms_count' %]
 
             [% IF row.item('targeted_clones') %]
-              <td style="background:#E5E4E2" ><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[% colval %]</a></td>
+              <td style="background:#E5E4E2" >[% colval %]</td>
             [% ELSE %]
               <td></td>
             [% END %]
@@ -207,9 +207,10 @@ document.title = "[%- sponsor_id %]";
             <td></td>
         [%- ELSIF col == 'passing_vector_wells'
                || col == 'accepted_crispr_vector'
-               || col == 'distrib_clones'
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
+        [%- ELSIF col == 'distrib_clones' %]
+          <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'
                || col == 'vector_wells'
@@ -256,7 +257,9 @@ document.title = "[%- sponsor_id %]";
                   <td>[%- ep_data.item('wt_count') %]</td>
                   <td>[%- ep_data.item('ms_count') %]</td>
                 [% IF c.user %]
-                  <td colspan=1></td>
+                  <td colspan=3></td>
+                [%- ELSE %]
+                  <td colspan=2></td>
                 [%- END %]
                 </tr>
 
