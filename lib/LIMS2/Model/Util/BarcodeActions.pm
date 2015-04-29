@@ -35,7 +35,7 @@ sub add_barcodes_to_wells{
     my ($model, $params, $state) = @_;
 
     my @messages;
-    my @well_ids = grep { $_ } map { $_ =~ /barcode_([0-9]+)$/ } keys %{$params};
+    my @well_ids = grep { $_ } map { $_ =~ /^barcode_([0-9]+)$/ } keys %{$params};
 
     foreach my $well_id (@well_ids){
         DEBUG "Adding barcode to well $well_id";

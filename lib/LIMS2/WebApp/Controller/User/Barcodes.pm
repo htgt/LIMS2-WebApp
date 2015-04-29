@@ -376,7 +376,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             $freeze_back_method = \&freeze_back_piq_barcode;
             foreach my $item ( qw(number_of_doublings) ){
                 $c->stash->{$item} = $c->req->param($item);
-                $freeze_back_params->{$item} = $c->req->params($item);
+                $freeze_back_params->{$item} = $c->req->param($item);
             }
         }
         elsif($c->req->param('freeze_back_type') eq 'FP'){
@@ -455,7 +455,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             # Recreate stash for barcode upload form
 
             # Stash scanned barcodes
-            my @barcode_fields = grep { $_ =~ /barcode_([0-9]+)$/ } keys %{$c->request->parameters};
+            my @barcode_fields = grep { $_ =~ /^barcode_([0-9]+)$/ } keys %{$c->request->parameters};
             foreach my $field_name (@barcode_fields){
                 $c->log->debug("Stashing $field_name");
                 $c->stash->{$field_name} = $c->req->param($field_name);
@@ -463,7 +463,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
             my $number_of_qc_wells = $c->req->param('number_of_qc_wells');
             foreach my $num (1..$number_of_qc_wells){
-                foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
+                foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name qc_piq_well_barcode piq_plate_name) ){
                     my $form_param = $item."_$num";
                     $c->stash->{$form_param} = $c->req->param($form_param);
                 }

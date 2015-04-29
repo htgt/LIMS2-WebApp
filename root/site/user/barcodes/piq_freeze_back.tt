@@ -9,19 +9,24 @@
 
 [% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
 
-[% IF piq_plate_name %]
+[% IF piq_plate_name_1 %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
-  QC PIQ well has been added to plate [% qc_piq_plate_name %] at well [% qc_piq_well_name %] with barcode [% qc_piq_well_barcode %]<br><br>
-  PIQ wells with the following lab numbers have been created on temporary plate [% piq_plate_name %]. Please enter barcodes.
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="hidden" name="freeze_back_type" value="PIQ"/>
-    <input type="hidden" name="number_of_wells" value="[% number_of_wells %]"/>
-    <input type="hidden" name="lab_number" value="[% lab_number %]"/>
-    <input type="hidden" name="qc_piq_plate_name" value="[% qc_piq_plate_name %]"/>
-    <input type="hidden" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
-    <input type="hidden" name="piq_plate_name" value="[% piq_plate_name %]"/>
-    [% FOREACH well IN piq_wells %]
+    <input type="hidden" name="number_of_qc_wells" value="2"/>
+    [% FOREACH num IN [1,2] %]
+    <h4>Freeze Back [% num %]</h4>
+  QC PIQ well has been added to plate [% ${"qc_piq_plate_name_$num"} %] at well [% ${"qc_piq_well_name_$num"} %] with barcode [% ${"qc_piq_well_barcode_$num"} %]<br><br>
+  PIQ wells with the following lab numbers have been created on temporary plate [% ${"piq_plate_name_$num"} %]. Please enter barcodes.
+  <br>
+    <input type="hidden" name="number_of_wells_[% num %]" value="[% ${"number_of_wells_$num"} %]"/>
+    <input type="hidden" name="lab_number_[% num %]" value="[% ${"lab_number_$num"} %]"/>
+    <input type="hidden" name="qc_piq_plate_name_[% num %]" value="[% ${"qc_piq_plate_name_$num"} %]"/>
+    <input type="hidden" name="qc_piq_well_name_[% num %]" value="[% ${"qc_piq_well_name_$num"} %]"/>
+    <input type="hidden" name="qc_piq_well_barcode_[% num %]" value="[% ${"qc_piq_well_barcode_$num"} %]"/>
+    <input type="hidden" name="piq_plate_name_[% num %]" value="[% ${"piq_plate_name_$num"} %]"/>
+    [% FOREACH well IN ${"piq_wells_$num"} %]
       Barcode for
       [% IF well.well_lab_number %]
         [% well.well_lab_number.lab_number %]
@@ -31,6 +36,7 @@
       [% barcode = 'barcode_' _ well.id %]
       <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]" class="barcode_input">
       <br>
+    [% END %]
     [% END %]
     <button type="submit" name="submit_piq_barcodes" class="btn btn-danger" value="submit_piq_barcodes">
       Submit PIQ Barcodes
@@ -43,6 +49,7 @@
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="hidden" name="freeze_back_type" value="PIQ"/>
+    <input type="hidden" name="number_of_qc_wells" value="2"/>
     <table>
     <tr>
      <td>
@@ -50,30 +57,39 @@
       <input type="number" name="number_of_doublings" value="[% number_of_doublings %]"/>
      </td>
     </tr>
+    </table>
+    [% FOREACH num IN [1,2] %]
+    <table>
+    <tr>
+      <td><h4>Freeze Back [% num %]</h4></td>
+    </tr>
     <tr>
      <td>
       <label>Name of PIQ QC plate</label>
-      <input type="text" name="qc_piq_plate_name" value="[% qc_piq_plate_name %]"/>
+      <input type="text" name="qc_piq_plate_name_[% num %]" value="[% ${"qc_piq_plate_name_$num"} %]"/>
      </td>
      <td>
       <label>Name of PIQ QC well</label>
-      <input type="text" name="qc_piq_well_name" value="[% qc_piq_well_name %]"/>
+      <input type="text" name="qc_piq_well_name_[% num %]" value="[% ${"qc_piq_well_name_$num"} %]"/>
      </td>
      <td>
       <label>Barcode of PIQ QC well</label>
-      <input type="text" name="qc_piq_well_barcode" value="[% qc_piq_well_barcode %]"/>
+      <input type="text" name="qc_piq_well_barcode_[% num %]" value="[% ${"qc_piq_well_barcode_$num"} %]"/>
      </td>
     </tr>
     <tr>
      <td>
       <label>Number of PIQ wells to create</label>
-      <input type="number" name="number_of_wells" min="1" max="10" value="[% number_of_wells %]"/>
+      <input type="number" name="number_of_wells_[% num %]" min="1" max="10" value="[% ${"number_of_wells_$num"} %]"/>
      </td>
      <td>
       <label>Lab Number</label>
-      <input type="text" name="lab_number" value="[% lab_number %]"/>
+      <input type="text" name="lab_number_[% num %]" value="[% ${"lab_number_$num"} %]"/>
      </td>
     </tr>
+    </table>
+    [% END %]
+    <table>
     <tr>
      <td>
       <button type="submit" name="create_piq_wells" class="btn btn-danger" value="create_piq_wells">
