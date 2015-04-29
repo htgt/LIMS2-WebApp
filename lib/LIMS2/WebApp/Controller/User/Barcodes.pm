@@ -367,16 +367,16 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     }
 
     if($c->request->param('create_piq_wells')){
-        foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name) ){
-            $c->stash->{$item} = $c->req->param($item);
-        }
-
         my $freeze_back_method;
+        my $freeze_back_params = {
+            barcode => $barcode,
+        };
 
         if($c->req->param('freeze_back_type') eq 'PIQ'){
             $freeze_back_method = \&freeze_back_piq_barcode;
-            foreach my $item ( qw(number_of_doublings qc_piq_well_barcode) ){
+            foreach my $item ( qw(number_of_doublings) ){
                 $c->stash->{$item} = $c->req->param($item);
+                $freeze_back_params->{$item} = $c->req->params($item);
             }
         }
         elsif($c->req->param('freeze_back_type') eq 'FP'){
@@ -386,14 +386,33 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             die "Freeze back type not specified in form";
         }
 
+        # For each QC well stash the form parameters
+        # and generate hash of params to send to freeze back method
+        my $number_of_qc_wells = $c->req->param('number_of_qc_wells');
+        my @qc_well_params;
+        foreach my $num (1..$number_of_qc_wells){
+            my $params = {
+                barcode => $barcode,
+                user    => $c->user->name,
+            };
+            foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name qc_piq_well_barcode) ){
+                my $form_param = $item."_$num";
+
+                next unless defined ($c->req->param($form_param));
+
+                $c->stash->{$form_param} = $c->req->param($form_param);
+                $params->{$item} = $c->req->param($form_param);
+            }
+            push @qc_well_params, $params;
+        }
+
         # Requires: orig FP or PIQ barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
-        my ($qc_piq_well, $tmp_piq_plate);
+        my @freeze_back_outputs;
+        $freeze_back_params->{qc_well_params} = \@qc_well_params;
         $c->model('Golgi')->txn_do( sub {
             try{
-                my $params = $c->request->parameters;
-                $params->{user} = $c->user->name;
-                ($qc_piq_well, $tmp_piq_plate) = $freeze_back_method->( $c->model('Golgi'), $params );
+                @freeze_back_outputs = $freeze_back_method->($c->model('Golgi'), $freeze_back_params);
             }
             catch($e){
                 $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
@@ -406,14 +425,14 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         $well = $c->model('Golgi')->retrieve_well({ barcode => $barcode });
         $c->stash->{well_details} = $self->_well_display_details($c, $well);
 
-        if($tmp_piq_plate){
-            $c->stash->{piq_plate_name} = $tmp_piq_plate->name;
-            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
-        }
+        my $num = 0;
+        foreach my $output (@freeze_back_outputs){
+            $num++;
+            $c->stash->{"piq_plate_name_$num"} = $output->{tmp_piq_plate}->name;
+            $c->stash->{"piq_wells_$num"} = [ $output->{tmp_piq_plate}->wells ];
 
-        if($qc_piq_well){
-            if($qc_piq_well->well_barcode){
-                $c->stash->{qc_piq_well_barcode} = $qc_piq_well->well_barcode->barcode;
+            if($output->{qc_well}->well_barcode){
+                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->well_barcode->barcode;
             }
         }
     }
@@ -434,9 +453,6 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
         if($c->stash->{error_msg}){
             # Recreate stash for barcode upload form
-            foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
-                $c->stash->{$item} = $c->req->param($item);
-            }
 
             # Stash scanned barcodes
             my @barcode_fields = grep { $_ =~ /barcode_([0-9]+)$/ } keys %{$c->request->parameters};
@@ -445,14 +461,21 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
                 $c->stash->{$field_name} = $c->req->param($field_name);
             }
 
-            my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
-                name => $c->req->param('piq_plate_name')
-            });
-            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+            my $number_of_qc_wells = $c->req->param('number_of_qc_wells');
+            foreach my $num (1..$number_of_qc_wells){
+                foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
+                    my $form_param = $item."_$num";
+                    $c->stash->{$form_param} = $c->req->param($form_param);
+                }
+
+                my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
+                    name => $c->req->param("piq_plate_name_$num")
+                });
+                $c->stash->{"piq_wells_$num"} = [ $tmp_piq_plate->wells ];
+            }
             return;
         }
 
-        # Redirect user to checked_out FP page
         $c->flash->{success_msg} = join "<br>", @$messages;
         $c->res->redirect( $redirect_on_completion );
     }

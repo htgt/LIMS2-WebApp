@@ -204,6 +204,8 @@ sub well_genotyping_crispr_qc_GET {
     try {
         #needs to be given a method for finding genes
         $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
+        $data->{parameters} = $well->input_process_parameters;
     }
     catch {
         #get string representation if its a lims2::exception

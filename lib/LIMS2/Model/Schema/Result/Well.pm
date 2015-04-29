@@ -894,6 +894,14 @@ sub child_processes{
 	return @child_processes;
 }
 
+sub child_wells {
+    my $self = shift;
+
+    my @child_processes = $self->child_processes;
+
+    return map{ $_->output_wells } @child_processes;
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',
@@ -1463,6 +1471,19 @@ sub distributable_child_barcodes{
         push @barcodes, $well->well_barcode->barcode;
     }
     return \@barcodes;
+}
+
+sub input_process_parameters{
+    my ( $self ) = @_;
+    my $parameters;
+    foreach my $process ($self->parent_processes){
+        foreach my $param ($process->process_parameters){
+            # FIXME: will overwrite if we have multiple input protocols with
+            # same parameter names
+            $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
 }
 
 #gene finder should be a method that accepts a species id and some gene ids,

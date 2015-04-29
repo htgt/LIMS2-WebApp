@@ -26,6 +26,7 @@ use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
+use Data::Dumper;
 
 # Input: model, params from web form, state to create new barcodes with
 # Where form sends params named "barcode_<well_id>"
@@ -194,8 +195,24 @@ sub do_picklist_checkout{
     return $messages;
 }
 
-### TODO: factor out common bits and add freeze_back_piq_barcode method
-# for mutation signatures project
+# We may freeze back into multiple qc_wells so we need parent barcode
+# and array of params for each qc well
+sub pspec_freeze_back_piq_barcode{
+    return {
+        barcode             => { validate => 'well_barcode' },
+        number_of_doublings => { validate => 'integer' },
+        qc_well_params      => { },
+    }
+}
+
+sub pspec_freeze_back_fp_barcode{
+    return {
+        barcode         => { validate => 'well_barcode' },
+        qc_well_params  => { },
+    }
+}
+
+# Each set of qc well params is validated as per this spec
 sub pspec_freeze_back_barcode_common{
     # params common to both fp and piq freeze back
     return {
@@ -208,19 +225,17 @@ sub pspec_freeze_back_barcode_common{
     }
 }
 
-sub pspec_freeze_back_fp_barcode{
-    return pspec_freeze_back_barcode_common;
-}
-
-sub pspec_freeze_back_piq_barcode{
+sub pspec_freeze_back_piq_barcode_qc_well{
     my $common_params = pspec_freeze_back_barcode_common;
     return {
         %$common_params,
         qc_piq_well_barcode => { validate => 'non_empty_string' },
-        number_of_doublings => { validate => 'integer' },
     }
 }
 
+sub pspec_freeze_back_fp_barcode_qc_well{
+    return pspec_freeze_back_barcode_common;
+}
 sub freeze_back_fp_barcode{
     my ($model, $params) = @_;
 
@@ -231,21 +246,30 @@ sub freeze_back_fp_barcode{
     # Fetch FP well_barcode
     my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
 
-    # Fetch QC PIQ plate or create it if not found
-    my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_fp_barcode_qc_well);
 
-    # Create the QC PIQ well
-    my $process_data = {
-        type        => 'dist_qc',
-        input_wells => [ { id => $bc->well->id } ],
-    };
-    if($validated_params->{lab_number}){
-        $process_data->{lab_number} = $validated_params->{lab_number};
+        # Fetch QC PIQ plate or create it if not found
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+        # Create the QC PIQ well
+        my $process_data = {
+            type        => 'dist_qc',
+            input_wells => [ { id => $bc->well->id } ],
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
     }
 
-    my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
-
-    return ($qc_well,$tmp_piq_plate);
+    return @freeze_back_outputs;
 }
 
 sub freeze_back_piq_barcode{
@@ -257,8 +281,6 @@ sub freeze_back_piq_barcode{
 
     my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'doubling_in_progress');
 
-    my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
-
     # Find the incomplete doubling process, get the oxygen condition
     # then delete the process
     my $incomplete_doubling = _get_incomplete_doubling_process($bc);
@@ -267,28 +289,41 @@ sub freeze_back_piq_barcode{
     DEBUG "Deleting incomplete doubling process with oxygen condition $oxygen_condition";
     $model->delete_process({ id => $incomplete_doubling->id });
 
-    # Create the QC PIQ well as output of a new doubling process
-    my $process_data = {
-        type             => 'doubling',
-        input_wells      => [ { id => $bc->well->id } ],
-        oxygen_condition => $oxygen_condition,
-        doublings        => $validated_params->{number_of_doublings},
-    };
-    if($validated_params->{lab_number}){
-        $process_data->{lab_number} = $validated_params->{lab_number};
+    my $number_of_doublings = $validated_params->{number_of_doublings};
+
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_piq_barcode_qc_well);
+
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+        # Create the QC PIQ well as output of a new doubling process
+        my $process_data = {
+            type             => 'doubling',
+            input_wells      => [ { id => $bc->well->id } ],
+            oxygen_condition => $oxygen_condition,
+            doublings        => $number_of_doublings,
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+
+        # Add barcode to the QC PIQ well
+        # FIXME: what should the barcode state be for the QC PIQ pellet
+        $model->create_well_barcode({
+            barcode => $validated_params->{qc_piq_well_barcode},
+            well_id => $qc_well->id,
+            state   => 'in_freezer',
+        });
+
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
     }
-
-    my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
-
-    # Add barcode to the QC PIQ well
-    # FIXME: what should the barcode state be for the QC PIQ pellet
-    $model->create_well_barcode({
-        barcode => $validated_params->{qc_piq_well_barcode},
-        well_id => $qc_well->id,
-        state   => 'in_freezer',
-    });
-
-    return ($qc_well,$tmp_piq_plate);
+    return @freeze_back_outputs;
 }
 
 sub _fetch_barcode_for_freeze_back{
@@ -357,7 +392,7 @@ sub _get_incomplete_doubling_process{
 }
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
-
+DEBUG Dumper($validated_params);
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
