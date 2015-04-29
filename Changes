@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.308     2015-04-23 16:45:05 Europe/London
+
+    Sponsor report count of Targeted Genes now only counts genes with frameshift mutations
+    Sponsor sub report updated to include distributable clones and priority, fixed donor vectors constructed count
+    API authentication is now fixed, PublicAPI must be used for non-authenticated users
+    Update to create cgap qc plate
+
 0.307     2015-04-21 13:35:45 Europe/London
 
    Restored report: /public_reports/cre_knockin_project_status
