@@ -1308,7 +1308,7 @@ sub pspec__create_process_aux_data_ms_qc{
 sub _create_process_aux_data_ms_qc {
     my ($model, $params, $process) = @_;
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_ms_qc );
+        = $model->check_params( $params, pspec__create_process_aux_data_ms_qc, ignore_unknown => 1 );
     $process->create_related( process_parameters => {
         parameter_name  => 'oxygen_condition',
         parameter_value => $validated_params->{oxygen_condition}
