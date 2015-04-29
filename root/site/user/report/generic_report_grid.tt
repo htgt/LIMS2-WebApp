@@ -323,7 +323,7 @@
 
             var tooltips = [{
                 target   : 'download_csv_file_btn',
-                html     : 'Click to download the grid data<br>as a CSV spreadsheet file'
+                html     : 'Click to download the grid data as a CSV spreadsheet file'
             }];
 
             Ext.each(tooltips, function(config) {
@@ -389,7 +389,15 @@
                     data += "\n";
                 });
 
-                window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
+                // window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
+
+                var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
+                var downloadLink = document.createElement("a");
+                downloadLink.href = uri;
+                downloadLink.download = "grid.csv";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
 
             };
 
