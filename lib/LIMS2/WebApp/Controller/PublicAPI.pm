@@ -228,6 +228,17 @@ sub well_genotyping_crispr_qc_GET {
                   : $self->status_ok( $c, entity => $data );
 }
 
+sub mutation_signatures_info :Path('/public_api/mutation_signatures_info') :Args(0) :ActionClass('REST') {
+}
+
+sub mutation_signatures_info_GET{
+    my ($self, $c) = @_;
+
+    my ($error, $data);
+
+    return $error ? $self->status_bad_request( $c, message => $error )
+                  : $self->status_ok( $c, entity => $data );
+}
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify

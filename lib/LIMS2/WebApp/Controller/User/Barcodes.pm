@@ -981,15 +981,22 @@ sub _well_display_details{
 
     my $well_details = $self->_basic_well_display_details($well);
 
-    if(my $epd = $well->first_ep_pick){
+    my $epd;
+    try{
+        $epd = $well->first_ep_pick;
+    };
+
+    if($epd){
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
     }
 
-    my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-        design_id => $well->design->id,
-    });
+    if($well->design){
+        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+            design_id => $well->design->id,
+        });
 
-    $well_details->{design_gene_symbol} = $gene_symbols->[0];
+        $well_details->{design_gene_symbol} = $gene_symbols->[0];
+    }
 
 
     return $well_details;
@@ -1125,7 +1132,10 @@ sub _pick_list_display_data{
 
             # and get parent EP pick through process graph
             $gene_symbols = $design_summaries->design_gene_symbol;
-            my $ep_pick = $bc->well->first_ep_pick;
+            my $ep_pick;
+            try{
+               $ep_pick = $bc->well->first_ep_pick;
+            };
             $parent_epd = ($ep_pick ? $ep_pick->as_string : "");
         }
 

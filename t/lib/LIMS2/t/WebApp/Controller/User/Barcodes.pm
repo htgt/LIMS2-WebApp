@@ -11,8 +11,67 @@ use strict;
 BEGIN
 {
     use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
+    Log::Log4perl->easy_init( $DEBUG);
 };
+
+sub mutation_signatures_workflow_test : Test(10){
+    my $mech = mech();
+    my $model = model();
+
+    my $plate = "PIQ0002";
+    my $barcode ="BC1234";
+
+    note("Add a barcode to a PIQ well");
+
+    ok my $well = $model->retrieve_well({ plate_name => $plate, well_name => "A01" }),
+        "can retrieve well";
+    ok my $well_barcode = $model->create_well_barcode({ well_id => $well->id, barcode => $barcode, state => 'in_freezer' }),
+        "can add barcode to well";
+
+    note("Checkout barcode");
+    $mech->get_ok('/user/well_checkout');
+
+    $mech->set_fields(
+        barcode => $barcode,
+    );
+    $mech->click_button(name => 'submit_barcode');
+    $mech->base_like(qr{/user/well_checkout});
+    $mech->click_button(name => 'confirm_checkout');
+
+    note("Start barcode doubling under normoxic conditions");
+    $mech->get_ok('/user/scan_barcode');
+
+    $mech->set_fields(
+        barcode => $barcode,
+    );
+    $mech->click_button(name => 'submit_barcode');
+    $mech->base_like(qr{/user/scan_barcode});
+    $mech->follow_link(url_regex => qr/piq_start_doubling/);
+    $mech->base_like(qr{/user/piq_start_doubling});
+    $mech->set_fields(
+        oxygen_condition => 'normoxic',
+    );
+    $mech->click_button(name => 'confirm_start_doubling');
+    DEBUG $mech->content;
+    $mech->base_like(qr{/user/scan_barcode});
+    $mech->set_fields(
+        barcode => $barcode,
+    );
+    $mech->click_button(name => 'submit_barcode');
+    $mech->base_like(qr{/user/scan_barcode});
+    $mech->content_contains('doubling_in_progress');
+
+    note("Create an MS_QC plate at 12 doublings");
+
+    note("Create an MS_QC plate at 24 doublings");
+
+    note("Freeze back at 24 doublings");
+
+    note("Use API to retrieve original barcode");
+
+    note("Use API to retrieve child barcode");
+
+}
 
 sub all_tests  : Test(24)
 {
