@@ -636,14 +636,21 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
             @crispr_damage_types = uniq grep {$_}
                 map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
 
-            if ( scalar( @crispr_damage_types ) > 1 ) {
-                $c->log->warn( $ep_pick_data{name}
-                        . ' ep_pick well has multiple crispr damage types associated with it: '
-                        . join( ', ', @crispr_damage_types ) );
-                $ep_pick_data{crispr_damage} = '-';
+            if ( scalar( @crispr_damage_types ) == 1 ) {
+                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
             }
             else {
-                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
+                if (scalar( @crispr_damage_types ) > 1 ) {
+                    $c->log->warn( $ep_pick_data{name}
+                            . ' ep_pick well has multiple crispr damage types associated with it: '
+                            . join( ', ', @crispr_damage_types ) );
+                    $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
+                } else {
+                    $c->log->warn( $ep_pick_data{name}
+                        . ' ep_pick well has no crispr damage type associated with it' );
+                    $ep_pick_data{crispr_damage} = '-';
+                }
+
             }
         }
         else {
