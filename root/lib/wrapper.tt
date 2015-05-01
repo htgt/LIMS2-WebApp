@@ -54,6 +54,22 @@
                 $('#display_type_default').hide();
                 $('#display_type_wide').show();
             }
+
+            $.ajax({
+                type: "POST",
+                url: '[% c.uri_for("/api/update_user_display_type") %]',
+                data: {
+                    "display_type": element.attr('data-display-type')
+                },
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function(data) {
+                    console.log(data);
+                    alert( 'Error with ajax' );
+                },
+                dataType: 'json'
+            });
         });
     });
     </script>
