@@ -1,3 +1,13 @@
+0.311     2015-05-05 08:24:41 Europe/London
+
+    Damage type of clones accessed same way on sponsor sub report and clones gene summary
+    Bugfix crispr es qc, crispr groups does not have direct crisprs relationship
+
+0.310     2015-04-29 10:06:30 Europe/London
+
+    Added distributable clones gene summary based on PIQ plates and linked sponsor sub report to it
+    Added CSV download support for generic extjs grid
+
 0.309     2015-04-27 12:55:29 Europe/London
 
     Various bugfixes:

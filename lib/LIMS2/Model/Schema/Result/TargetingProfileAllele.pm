@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::TargetingProfileAllele;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::TargetingProfileAllele::VERSION = '0.309';
+    $LIMS2::Model::Schema::Result::TargetingProfileAllele::VERSION = '0.311';
 }
 ## use critic
 
