@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.311     2015-05-05 08:24:41 Europe/London
+
+    Damage type of clones accessed same way on sponsor sub report and clones gene summary
+    Bugfix crispr es qc, crispr groups does not have direct crisprs relationship
+
 0.310     2015-04-29 10:06:30 Europe/London
 
     Added distributable clones gene summary based on PIQ plates and linked sponsor sub report to it
