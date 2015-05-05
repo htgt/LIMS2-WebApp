@@ -1125,6 +1125,7 @@ sub genes {
 
 
 
+            ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
 
                 # grab data for crispr damage type
@@ -1168,6 +1169,7 @@ sub genes {
                 }
 
             }
+            ## use critic
 
 
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
