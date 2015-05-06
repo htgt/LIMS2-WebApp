@@ -56,6 +56,7 @@ const our %PROCESS_PLATE_TYPES => (
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
     'cgap_qc'                => [qw( CGAP_QC )],
     'ms_qc'                  => [qw( MS_QC )],
+    'doubling'               => [qw( PIQ )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -72,6 +73,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'crispr_ep'              => [qw( cell_line nuclease )],
     'crispr_vector'          => [qw( backbone )],
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
+    'doubling'               => [qw( oxygen_condition doublings )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -201,6 +203,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( PIQ )],
         number => 1,
     },
+    'doubling' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    }
 );
 
 const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (

@@ -45,6 +45,10 @@ sub chromosome_fail_text {
     return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
 }
 
+sub oxygen_condition {
+    return shift->in_set( 'normoxic', 'hypoxic' );
+}
+
 sub dna_seq {
     return shift->regexp_matches(qr/^[ATGCN]+$/);
 }

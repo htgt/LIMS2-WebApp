@@ -66,6 +66,10 @@
       <th>Cell Line</th>
         <td>[% data.cell_line %]</td>
     </tr>
+    <tr>
+      <th>Child Barcodes</th>
+        <td>[% data.child_barcodes.join(", ") %]</td>
+    </tr>
 </table>
 
 <h3>Crispr Information ([% IF crispr_data.size == 1 %]1 crispr[% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>

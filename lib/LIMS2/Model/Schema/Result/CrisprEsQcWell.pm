@@ -413,7 +413,7 @@ sub crispr {
   }
   elsif ( $json->{is_group} ) {
       $rs = 'CrisprGroup';
-      $prefetch = [ 'crisprs', 'crispr_designs' ];
+      $prefetch = [ 'crispr_designs' ];
   }
   else {
       $rs = 'Crispr';
