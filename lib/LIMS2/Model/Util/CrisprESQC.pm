@@ -41,8 +41,6 @@ const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
 const my %BWA_REF_GENOMES => (
     human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
     mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
-    #human => '/lustre/scratch110/sanger/sp12/temp_ref_files/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
-    #mouse => '/lustre/scratch110/sanger/sp12/temp_ref_files/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
 );
 
 has model => (
