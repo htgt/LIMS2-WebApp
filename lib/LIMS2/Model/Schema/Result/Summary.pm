@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.311';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.312';
 }
 ## use critic
 
@@ -858,6 +858,8 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   default_value: true
   is_nullable: 0
+<<<<<<< HEAD
+=======
 
 =head2 ancestor_piq_plate_name
 
@@ -888,6 +890,7 @@ __PACKAGE__->table("summaries");
 
   data_type: 'boolean'
   is_nullable: 1
+>>>>>>> devel
 
 =cut
 
@@ -1263,7 +1266,7 @@ sub satisfies_cassette_function {
   ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
       or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
 
-  # If property, e.g. conditional, is specified true/false by CassetteFunction 
+  # If property, e.g. conditional, is specified true/false by CassetteFunction
   # then it must match the value of final_pick_cassette_<property>
   foreach my $property (qw(conditional promoter cre)){
     my $required_value = $function->$property;
@@ -1297,7 +1300,7 @@ sub satisfies_cassette_function {
     }
   }
 
-  # If we haven't returned 0 yet then the well satisfies 
+  # If we haven't returned 0 yet then the well satisfies
   # the cassette function rules
   return 1;
 }

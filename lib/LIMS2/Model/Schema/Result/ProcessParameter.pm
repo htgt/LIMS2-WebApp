@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::ProcessElectroporation;
+package LIMS2::Model::Schema::Result::ProcessParameter;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProcessElectroporation::VERSION = '0.312';
+    $LIMS2::Model::Schema::Result::ProcessParameter::VERSION = '0.312';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::ProcessElectroporation;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::ProcessElectroporation
+LIMS2::Model::Schema::Result::ProcessParameter
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<process_electroporation>
+=head1 TABLE: C<process_parameters>
 
 =cut
 
-__PACKAGE__->table("process_electroporation");
+__PACKAGE__->table("process_parameters");
 
 =head1 ACCESSORS
 
@@ -50,31 +50,45 @@ __PACKAGE__->table("process_electroporation");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 cell_line
+=head2 parameter_name
 
   data_type: 'text'
   is_nullable: 0
+
+=head2 parameter_value
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "process_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "cell_line",
+  "parameter_name",
   { data_type => "text", is_nullable => 0 },
+  "parameter_value",
+  { data_type => "text", is_nullable => 1 },
 );
 
-=head1 PRIMARY KEY
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<process_parameters_process_id_parameter_name_key>
 
 =over 4
 
 =item * L</process_id>
 
+=item * L</parameter_name>
+
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("process_id");
+__PACKAGE__->add_unique_constraint(
+  "process_parameters_process_id_parameter_name_key",
+  ["process_id", "parameter_name"],
+);
 
 =head1 RELATIONS
 
@@ -94,8 +108,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u4Br9SZrM+gC5PV+b5es5w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-27 13:02:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mwO8xSplHxY3Vhip/qUO9Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

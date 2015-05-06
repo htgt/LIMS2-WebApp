@@ -25,12 +25,16 @@
   <td>[% bc.lab_number %]</td>
   <td>
   [% IF plate_type == 'FP' %]
-    <a href="[% c.uri_for('/user/fp_freeze_back', barcode => bc.barcode) %]" class="btn btn-primary">
+    <a href="[% c.uri_for('/user/freeze_back', barcode => bc.barcode, freeze_back_type => 'FP' ) %]" class="btn btn-primary">
     Freeze Back
     </a>
   [% ELSIF plate_type == 'PIQ' %]
-    <a  href="[% c.uri_for('/user/piq_send_out', barcode => bc.barcode) %]" class="btn btn-primary">
+    <a  href="[% c.uri_for('/user/piq_send_out', barcode => bc.barcode ) %]" class="btn btn-primary">
     Send Out
+    </a>
+    <br><br>
+    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => bc.barcode) %]" class="btn btn-primary btn-mini">
+    Start Doubling
     </a>
   [% END %]
   </td>

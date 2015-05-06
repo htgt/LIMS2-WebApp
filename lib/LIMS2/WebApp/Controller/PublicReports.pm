@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.311';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.312';
 }
 ## use critic
 
@@ -533,7 +533,12 @@ sub _stash_well_genotyping_info {
 
     try {
         #needs to be given a method for finding genes
-        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+        my $data = $well->genotyping_info( $gene_finder );
+        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+            $data->{ms_qc_data} = $ms_qc_data;
+        }
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
 
         my @crisprs = $well->parent_crispr_wells;

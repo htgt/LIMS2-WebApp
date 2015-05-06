@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.311';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.312';
 }
 ## use critic
 
@@ -599,6 +599,7 @@ sub well_genotyping_crispr_qc_GET {
     try {
         #needs to be given a method for finding genes
         $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
     }
     catch {
         #get string representation if its a lims2::exception

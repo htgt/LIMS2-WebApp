@@ -131,6 +131,7 @@ lib/LIMS2/Model/Schema/Result/ProcessGlobalArmShorteningDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessInputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessNuclease.pm
 lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
+lib/LIMS2/Model/Schema/Result/ProcessParameter.pm
 lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
@@ -344,7 +345,9 @@ root/site/user/barcodes/discard_barcode.tt
 root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
 root/site/user/barcodes/picklist_grid.tt
+root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
+root/site/user/barcodes/piq_start_doubling.tt
 root/site/user/barcodes/plate_well_barcode_history.tt
 root/site/user/barcodes/rescan_barcoded_plate.tt
 root/site/user/barcodes/scan_barcode.tt

@@ -51,6 +51,7 @@ sub process_types : Tests() {
         oligo_assembly
         cgap_qc
         ms_qc
+        doubling
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };

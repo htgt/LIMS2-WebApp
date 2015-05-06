@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.311';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.312';
 }
 ## use critic
 
@@ -391,6 +391,7 @@ has 'info' => (
 );
 
 use Log::Log4perl qw(:easy);
+use List::MoreUtils qw( uniq );
 BEGIN {
     #try not to override the lims2 logger
     unless ( Log::Log4perl->initialized ) {
@@ -587,5 +588,22 @@ sub current_primer{
     return $current_primer;
 }
 
+sub gene_ids{
+    my ($self) = @_;
+
+    my @ids = uniq map { $_->gene_id } $self->genes;
+    return @ids;
+}
+
+# requires a method to find gene, e.g.
+# my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+sub gene_symbols{
+    my ($self, $gene_finder) = @_;
+
+    my @ids = $self->gene_ids;
+    my @symbols = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->species_id, \@ids ) };
+    return @symbols;
+}
 __PACKAGE__->meta->make_immutable;
 1;

@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.311';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.312';
 }
 ## use critic
 
@@ -49,6 +49,10 @@ sub genotyping_result_text {
 
 sub chromosome_fail_text {
     return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
+}
+
+sub oxygen_condition {
+    return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
 sub dna_seq {

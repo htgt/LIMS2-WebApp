@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.311';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.312';
 }
 ## use critic
 
@@ -174,6 +174,7 @@ my %process_check_well = (
     'oligo_assembly'         => \&_check_wells_oligo_assembly,
     'cgap_qc'                => \&_check_wells_cgap_qc,
     'ms_qc'                  => \&_check_wells_ms_qc,
+    'doubling'               => \&_check_wells_doubling,
 );
 
 sub check_process_wells {
@@ -752,6 +753,23 @@ sub _check_wells_ms_qc {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_doubling {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process );
+
+    # process can be created initially with no output wells
+    # as it takes weeks to complete
+    my @output_wells = $process->output_wells;
+    if(scalar @output_wells){
+        check_output_wells( $model, $process);
+    }
+
+    return;
+}
+## use critic
+
 my %process_aux_data = (
     'create_di'              => \&_create_process_aux_data_create_di,
     'create_crispr'          => \&_create_process_aux_data_create_crispr,
@@ -780,6 +798,7 @@ my %process_aux_data = (
     'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
     'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
+    'doubling'               => \&_create_process_aux_data_doubling,
 );
 
 sub create_process_aux_data {
@@ -1284,9 +1303,54 @@ sub _create_process_aux_data_cgap_qc {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_ms_qc{
+    return {
+        oxygen_condition => { validate => 'oxygen_condition' },
+        doublings        => { validate => 'integer' }
+    };
+}
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_ms_qc {
-    # FIXME: Need to implement this
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_ms_qc, ignore_unknown => 1 );
+    $process->create_related( process_parameters => {
+        parameter_name  => 'oxygen_condition',
+        parameter_value => $validated_params->{oxygen_condition}
+    });
+
+    $process->create_related( process_parameters => {
+            parameter_name  => 'doublings',
+            parameter_value => $validated_params->{doublings},
+    });
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_doubling {
+    return {
+        oxygen_condition => { validate => 'oxygen_condition' },
+        doublings        => { validate => 'integer', optional => 1 }
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_doubling {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_doubling, ignore_unknown => 1 );
+    $process->create_related( process_parameters => {
+        parameter_name  => 'oxygen_condition',
+        parameter_value => $validated_params->{oxygen_condition}
+    });
+
+    if(defined(my $doublings = $validated_params->{doublings})){
+        $process->create_related( process_parameters => {
+            parameter_name  => 'doublings',
+            parameter_value => $doublings,
+        });
+    }
     return;
 }
 ## use critic

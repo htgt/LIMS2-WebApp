@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.311';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.312';
 }
 ## use critic
 
@@ -573,6 +573,33 @@ sub set_plate_barcode {
         if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
 
     return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_random_plate_name{
+    return {
+        prefix => { validate => 'non_empty_string' },
+    }
+}
+
+sub random_plate_name{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_random_plate_name);
+    my @chars=('a'..'z','A'..'Z','0'..'9');
+    my $random_name;
+    for(1..6){
+        # rand @chars will generate a random
+        # number between 0 and scalar @chars
+        $random_name.=$chars[rand @chars];
+    }
+
+    $random_name = $validated_params->{prefix}.$random_name;
+
+    if( try { $self->retrieve_plate({ name => $random_name }) }){
+        $random_name = $self->random_plate_name($validated_params);
+    }
+
+    return $random_name;
 }
 
 1;

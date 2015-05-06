@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.311';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.312';
 }
 ## use critic
 
@@ -14,12 +14,15 @@ use Sub::Exporter -setup => {
         qw(
               checkout_well_barcode
               discard_well_barcode
-              freeze_back_barcode
+              freeze_back_fp_barcode
+              freeze_back_piq_barcode
               add_barcodes_to_wells
               upload_plate_scan
               send_out_well_barcode
               do_picklist_checkout
+              start_doubling_well_barcode
               upload_qc_plate
+
           )
     ]
 };
@@ -29,6 +32,7 @@ use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
+use Data::Dumper;
 
 # Input: model, params from web form, state to create new barcodes with
 # Where form sends params named "barcode_<well_id>"
@@ -37,7 +41,7 @@ sub add_barcodes_to_wells{
     my ($model, $params, $state) = @_;
 
     my @messages;
-    my @well_ids = grep { $_ } map { $_ =~ /barcode_([0-9]+)$/ } keys %{$params};
+    my @well_ids = grep { $_ } map { $_ =~ /^barcode_([0-9]+)$/ } keys %{$params};
 
     foreach my $well_id (@well_ids){
         DEBUG "Adding barcode to well $well_id";
@@ -197,7 +201,26 @@ sub do_picklist_checkout{
     return $messages;
 }
 
-sub pspec_freeze_back_barcode{
+# We may freeze back into multiple qc_wells so we need parent barcode
+# and array of params for each qc well
+sub pspec_freeze_back_piq_barcode{
+    return {
+        barcode             => { validate => 'well_barcode' },
+        number_of_doublings => { validate => 'integer' },
+        qc_well_params      => { },
+    }
+}
+
+sub pspec_freeze_back_fp_barcode{
+    return {
+        barcode         => { validate => 'well_barcode' },
+        qc_well_params  => { },
+    }
+}
+
+# Each set of qc well params is validated as per this spec
+sub pspec_freeze_back_barcode_common{
+    # params common to both fp and piq freeze back
     return {
         barcode           => { validate => 'well_barcode' },
         number_of_wells   => { validate => 'integer' },
@@ -208,27 +231,127 @@ sub pspec_freeze_back_barcode{
     }
 }
 
-sub freeze_back_barcode{
+sub pspec_freeze_back_piq_barcode_qc_well{
+    my $common_params = pspec_freeze_back_barcode_common;
+    return {
+        %$common_params,
+        qc_piq_well_barcode => { validate => 'non_empty_string' },
+    }
+}
+
+sub pspec_freeze_back_fp_barcode_qc_well{
+    return pspec_freeze_back_barcode_common;
+}
+sub freeze_back_fp_barcode{
     my ($model, $params) = @_;
 
-    my $validated_params = $model->check_params($params, pspec_freeze_back_barcode, ignore_unknown => 1);
+    my $validated_params = $model->check_params($params, pspec_freeze_back_fp_barcode, ignore_unknown => 1);
 
     my $barcode = $validated_params->{barcode};
 
     # Fetch FP well_barcode
+    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_fp_barcode_qc_well);
+
+        # Fetch QC PIQ plate or create it if not found
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+        # Create the QC PIQ well
+        my $process_data = {
+            type        => 'dist_qc',
+            input_wells => [ { id => $bc->well->id } ],
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
+    }
+
+    return @freeze_back_outputs;
+}
+
+sub freeze_back_piq_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_freeze_back_piq_barcode, ignore_unknown => 1);
+
+    my $barcode = $validated_params->{barcode};
+
+    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'doubling_in_progress');
+
+    # Find the incomplete doubling process, get the oxygen condition
+    # then delete the process
+    my $incomplete_doubling = _get_incomplete_doubling_process($bc);
+
+    my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
+    DEBUG "Deleting incomplete doubling process with oxygen condition $oxygen_condition";
+    $model->delete_process({ id => $incomplete_doubling->id });
+
+    my $number_of_doublings = $validated_params->{number_of_doublings};
+
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_piq_barcode_qc_well);
+
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+        # Create the QC PIQ well as output of a new doubling process
+        my $process_data = {
+            type             => 'doubling',
+            input_wells      => [ { id => $bc->well->id } ],
+            oxygen_condition => $oxygen_condition,
+            doublings        => $number_of_doublings,
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+
+        # Add barcode to the QC PIQ well
+        # FIXME: what should the barcode state be for the QC PIQ pellet
+        $model->create_well_barcode({
+            barcode => $validated_params->{qc_piq_well_barcode},
+            well_id => $qc_well->id,
+            state   => 'in_freezer',
+        });
+
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
+    }
+    return @freeze_back_outputs;
+}
+
+sub _fetch_barcode_for_freeze_back{
+    my ($model, $barcode, $expected_state) = @_;
+
     my $bc = $model->retrieve_well_barcode({
         barcode => $barcode,
     });
-    my $fp_plate = $bc->well->plate;
 
     die "Barcode $barcode not found\n" unless $bc;
 
     my $state = $bc->barcode_state->id;
-    unless ($state eq 'checked_out'){
-        die "Cannot freeze back barcode $barcode as it is not checked_out (state: $state)\n"
+    unless ($state eq $expected_state){
+        die "Cannot freeze back barcode $barcode as it is not $expected_state (state: $state)\n"
     }
 
-    # Fetch QC PIQ plate or create it if not found
+    return $bc;
+}
+
+sub _fetch_qc_piq_for_freeze_back{
+    my ($model, $bc, $validated_params) = @_;
+
     my $qc_plate = $model->schema->resultset('Plate')->search({
         name => $validated_params->{qc_piq_plate_name},
     })->first;
@@ -249,15 +372,33 @@ sub freeze_back_barcode{
         });
     }
 
-    # Create the QC PIQ well
-    my $process_data = {
-        type        => 'dist_qc',
-        input_wells => [ { id => $bc->well->id } ],
-    };
-    if($validated_params->{lab_number}){
-        $process_data->{lab_number} = $validated_params->{lab_number};
+    return $qc_plate;
+}
+
+sub _get_incomplete_doubling_process{
+    my ($bc) = @_;
+
+    my $barcode = $bc->barcode;
+    my $incomplete_doubling;
+    foreach my $process ($bc->well->child_processes){
+        next unless $process->type_id eq 'doubling';
+
+        my @output_wells = $process->output_wells;
+        next if @output_wells;
+
+        if($incomplete_doubling){
+            die "More than one incomplete doubling process found for barcode $barcode";
+        }
+        $incomplete_doubling = $process;
     }
 
+    die "Could not find incomplete doubling process for barcode $barcode" unless $incomplete_doubling;
+
+    return $incomplete_doubling;
+}
+sub _create_qc_piq_and_child_wells{
+    my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
+DEBUG Dumper($validated_params);
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
@@ -283,8 +424,9 @@ sub freeze_back_barcode{
         push @child_well_data, $well_data;
     }
 
+    my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
     my $tmp_piq_plate = $model->create_plate({
-        name       => 'PIQ_'.$bc->well->as_string,
+        name       => $random_name,
         species    => $bc->well->plate->species_id,
         type       => 'PIQ',
         created_by => $validated_params->{user},
@@ -292,25 +434,25 @@ sub freeze_back_barcode{
         is_virtual => 1,
     });
 
-    # Set FP well_status to 'frozen_back'
+    # Set original barcode's status to 'frozen_back'
     $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'frozen_back',
         user      => $validated_params->{user},
     });
 
-    # remove frozen_back barcode from FP plate (by creating new version)
+    # remove frozen_back barcode from original plate (by creating new version)
     # unless well was already on a virtual plate
-    unless($fp_plate->is_virtual){
+    unless($bc->well->plate->is_virtual){
         remove_well_barcodes_from_plate(
             $model,
-            [ $barcode ],
-            $fp_plate,
+            [ $validated_params->{barcode} ],
+            $bc->well->plate,
             $validated_params->{user}
         );
     }
 
-    return $tmp_piq_plate;
+    return ($qc_well, $tmp_piq_plate);
 }
 
 sub pspec_discard_well_barcode{
@@ -376,6 +518,55 @@ sub send_out_well_barcode{
         new_state => 'sent_out',
         user      => $validated_params->{user},
         comment   => $validated_params->{comment},
+    });
+
+    my $plate = $bc->well->plate;
+
+    # remove_well_barcodes_from_plate(wells,plate,comment,user)
+    # unless it was already on virtual plate
+    my $new_plate = $plate;
+    unless($plate->is_virtual){
+        $new_plate = remove_well_barcodes_from_plate(
+            $model,
+            [ $validated_params->{barcode} ],
+            $plate,
+            $validated_params->{user}
+        );
+    }
+
+    return $new_plate;
+}
+
+sub pspec_start_doubling_well_barcode{
+    return {
+        barcode  => { validate => 'well_barcode' },
+        user     => { validate => 'existing_user' },
+        oxygen_condition => { validate => 'oxygen_condition' },
+    };
+}
+
+sub start_doubling_well_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_start_doubling_well_barcode);
+
+    my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
+    my $plate_type = $well_barcode->well->plate->type_id;
+
+    die "Cannot start doubling well from $plate_type plate (must be PIQ)\n" unless $plate_type eq "PIQ";
+
+    my $bc = $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'doubling_in_progress',
+        user      => $validated_params->{user},
+    });
+
+    # Start new output process from well
+    # process will not have any output wells yet - will this cause problems?
+    my $process = $model->create_process({
+        input_wells => [ { id => $bc->well->id }],
+        type        => 'doubling',
+        oxygen_condition => $validated_params->{oxygen_condition},
     });
 
     my $plate = $bc->well->plate;
@@ -784,6 +975,7 @@ sub pspec_upload_qc_plate{
         csv_fh              => { validate => 'file_handle'},
         plate_type          => { validate => 'existing_plate_type' },
         process_type        => { validate => 'existing_process_type' },
+        doublings           => { validate => 'integer', optional => 1 },
     }
 }
 
@@ -831,6 +1023,17 @@ sub upload_qc_plate{
             parent_well  => $well_barcode->well->name,
             process_type => $validated_params->{process_type},
         };
+
+        if($validated_params->{process_type} eq 'ms_qc'){
+            # find the oxygen condition of doubling process
+            # linked to barcoded well
+            my $incomplete_doubling = _get_incomplete_doubling_process($well_barcode);
+            my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
+
+            # Add this along with the doubling number to well_data hash
+            $well_data->{oxygen_condition} = $oxygen_condition;
+            $well_data->{doublings} = $validated_params->{doublings};
+        }
 
         DEBUG "Well $well_name has parent well ".$well_barcode->well->as_string;
         push @wells, $well_data;

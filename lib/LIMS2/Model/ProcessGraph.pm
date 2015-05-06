@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.311';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.312';
 }
 ## use critic
 
@@ -343,6 +343,26 @@ sub find_process {
     return;
 }
 
+# Similar to find_process but looks for process type instead of process relation
+sub find_process_of_type{
+    my ($self, $start_well, $type ) = @_;
+
+    TRACE( "find_process_of_type searching for type $type" );
+
+    my $it = $self->breadth_first_traversal( $start_well, 'in' );
+
+    while( my $well = $it->next ) {
+        TRACE( "find_process_of_type examining $well" );
+        for my $process ( $self->input_processes( $well ) ) {
+            if ( $process->type_id eq $type ) {
+                TRACE( "Found $type at $well (process ".$process->id.")" );
+                return $process;
+            }
+        }
+    }
+    return;
+}
+
 sub process_data_for {
     my ( $well ) = shift;
 
@@ -381,6 +401,9 @@ sub process_data_for {
         if ( $p->process_global_arm_shortening_design ) {
             push @data, 'Global Arm Shorten Design: ' . $p->process_global_arm_shortening_design->design_id;
         }
+        foreach my $param ($p->process_parameters){
+            push @data, $param->parameter_name.': '.$param->parameter_value;
+        }
     }
 
     return @data;
@@ -401,9 +424,15 @@ sub render {
     # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
+        my @labels = ( $well->as_string, 'Plate Type: ' . $well->plate->type_id );
+        if($well->well_barcode){
+            push @labels, 'Barcode: '.$well->well_barcode->barcode;
+            push @labels, 'State: '.$well->well_barcode->barcode_state->id;
+        }
+        push @labels, process_data_for($well);
         $graph->add_node(
             name   => $well->as_string,
-            label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ],
+            label  => \@labels,
             URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
             target => '_blank',
         );
