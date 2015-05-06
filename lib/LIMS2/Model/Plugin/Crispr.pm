@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use Data::Dump 'pp';
 use TryCatch;
 use LIMS2::Exception;
 use LIMS2::Util::WGE;
@@ -118,23 +119,25 @@ If no off target data exists for the algorithm then insert data.
 sub update_or_create_crispr_off_targets {
     my ( $self, $crispr, $validated_params ) = @_;
 
+    # If we have existing off target data for this algorithm throw error
+    if ( $crispr->off_targets->count ) {
+        $self->throw(
+            InvalidState => 'Crispr ' . $crispr->id . ' has off targets stored in database, can not update' );
+    }
+
     my $existing_off_targets = $crispr->off_target_summaries->find(
         {
             algorithm => $validated_params->{off_target_algorithm}
         }
     );
 
-    # If we have existing off target data for this algorithm delete current data
+    # if we just have off target summary data replace it
     if ( $existing_off_targets ) {
         $existing_off_targets->delete;
-        $crispr->off_targets->search_rs(
-            { algorithm => $validated_params->{off_target_algorithm} } )->delete;
     }
-
     $self->add_crispr_off_target_data( $crispr, $validated_params );
 
     return $crispr;
-
 }
 
 =head2 add_crispr_off_target_data
@@ -147,7 +150,6 @@ sub add_crispr_off_target_data {
 
     for my $o ( @{ $validated_params->{off_targets} || [] } ) {
         $o->{crispr_id} = $crispr->id;
-        $o->{algorithm} = $validated_params->{off_target_algorithm};
         $self->create_crispr_off_target( $o, $crispr );
     }
 
@@ -196,15 +198,11 @@ sub create_crispr_locus {
 
 sub pspec_create_crispr_off_target {
     return {
-        assembly   => { validate => 'existing_assembly' },
-        build      => { validate => 'integer' },
-        chr_name   => { validate => 'non_empty_string' },
-        chr_start  => { validate => 'integer' },
-        chr_end    => { validate => 'integer' },
-        chr_strand => { validate => 'strand' },
-        crispr_id  => { validate => 'integer' },
-        type       => { validate => 'existing_crispr_loci_type' },
-        algorithm  => { validate => 'non_empty_string' },
+        crispr_id        => { validate => 'integer' },
+        ot_crispr_id     => { validate => 'integer', optional => 1 },
+        ot_wge_crispr_id => { validate => 'integer', optional => 1 },
+        mismatches       => { validate => 'integer' },
+        REQUIRE_SOME     => { id_or_wge_ot_crispr_id => [ 1, qw( id ot_crispr_id ot_wge_crispr_id ) ] },
     };
 }
 
@@ -217,7 +215,7 @@ sub create_crispr_off_target {
     my ( $self, $params, $crispr ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_off_target );
-    $self->trace( "Create crispr off target", $validated_params );
+    $self->log->debug( 'Create crispr off target: ' . pp $validated_params );
 
     $crispr ||= $self->retrieve_crispr(
         {
@@ -225,18 +223,29 @@ sub create_crispr_off_target {
         }
     );
 
-    $crispr->species->check_assembly_belongs( $validated_params->{assembly} );
+    # if lims2 crispr_id used then retrieve that crispr
+    # if wge crispr_id used then find or import that crispr
+    my $ot_crispr;
+    if ( $validated_params->{ot_crispr_id} ) {
+        $ot_crispr = $self->retrieve_crispr( { id => $validated_params->{ot_crispr_id} } );
+    }
+    else {
+        $ot_crispr = $self->schema->resultset('Crispr')->find(
+            { wge_crispr_id => $validated_params->{ot_wge_crispr_id}, } );
+
+        unless ( $ot_crispr ) {
+            ($ot_crispr) = $self->import_wge_crisprs(
+                [ $validated_params->{ot_wge_crispr_id} ],
+                $crispr->species_id,
+                $crispr->species->default_assembly,
+            );
+        }
+    }
 
     my $crispr_off_target = $crispr->create_related(
         off_targets => {
-            assembly_id         => $validated_params->{assembly},
-            build_id            => $validated_params->{build},
-            chromosome          => $validated_params->{chr_name},
-            chr_start           => $validated_params->{chr_start},
-            chr_end             => $validated_params->{chr_end},
-            chr_strand          => $validated_params->{chr_strand},
-            crispr_loci_type_id => $validated_params->{type},
-            algorithm           => $validated_params->{algorithm},
+            off_target_crispr_id => $ot_crispr->id,
+            mismatches           => $validated_params->{mismatches},
         }
     );
 

@@ -40,6 +40,23 @@ sub single_crispr_POST{
     );
 }
 
+sub crispr_off_target : Path( '/api/crispr_off_target' ) : Args(0) : ActionClass( 'REST') {
+}
+
+sub crispr_off_target_POST{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $ot = $c->model( 'Golgi' )->txn_do(
+        sub{
+            shift->create_crispr_off_target( $c->request->data );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $ot );
+}
+
 sub crispr_off_target_summary : Path( '/api/crispr_off_target_summary' ) : Args(0) : ActionClass( 'REST') {
 }
 
