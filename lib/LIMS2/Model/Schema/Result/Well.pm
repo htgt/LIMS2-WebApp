@@ -1467,7 +1467,7 @@ sub distributable_child_barcodes{
     # Find all child wells which have a barcode and are distributable (accepted)
     foreach my $well ( $self->child_wells ){
         next unless $well->well_barcode;
-        #next unless $well->is_accepted;
+        next unless $well->is_accepted;
         push @barcodes, $well->well_barcode->barcode;
     }
     return \@barcodes;
