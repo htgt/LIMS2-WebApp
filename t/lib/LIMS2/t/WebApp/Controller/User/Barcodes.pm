@@ -11,7 +11,7 @@ use strict;
 BEGIN
 {
     use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $DEBUG);
+    Log::Log4perl->easy_init( $FATAL );
 };
 
 sub mutation_signatures_workflow_test : Test(10){
@@ -52,7 +52,6 @@ sub mutation_signatures_workflow_test : Test(10){
         oxygen_condition => 'normoxic',
     );
     $mech->click_button(name => 'confirm_start_doubling');
-    DEBUG $mech->content;
     $mech->base_like(qr{/user/scan_barcode});
     $mech->set_fields(
         barcode => $barcode,

@@ -326,6 +326,8 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     return;
 }
 
+## no critic(ProhibitExcessComplexity)
+# FIXME: factor out processing and stashing of form params
 sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     my ($self, $c) = @_;
 
@@ -482,6 +484,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
     return;
 }
+## use critic
 
 sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     # Page should ask user to confirm and then update the barcode state
