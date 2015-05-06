@@ -213,11 +213,8 @@ sub well_genotyping_crispr_qc_GET {
         #needs to be given a method for finding genes
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
         $data = $well->genotyping_info( $gene_finder );
-        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
-            $data->{ms_qc_data} = $ms_qc_data;
-        }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
-        $data->{parameters} = $well->input_process_parameters;
+
     }
     catch {
         #get string representation if its a lims2::exception
@@ -228,16 +225,43 @@ sub well_genotyping_crispr_qc_GET {
                   : $self->status_ok( $c, entity => $data );
 }
 
-sub mutation_signatures_info :Path('/public_api/mutation_signatures_info') :Args(0) :ActionClass('REST') {
+sub mutation_signatures_info :Path('/public_api/mutation_signatures_info') :Args(1) :ActionClass('REST') {
 }
 
 sub mutation_signatures_info_GET{
-    my ($self, $c) = @_;
+    my ($self, $c, $barcode) = @_;
 
-    my ($error, $data);
+    my $error;
 
-    return $error ? $self->status_bad_request( $c, message => $error )
-                  : $self->status_ok( $c, entity => $data );
+    try{
+        my $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
+        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+
+        my $data = {
+            well_id    => $well->id,
+            well_name  => $well->name,
+            plate_name => $well->plate->name,
+            parameters => $well->input_process_parameters,
+            child_barcodes => $well->distributable_child_barcodes,
+            ms_qc_data => $well->ms_qc_data($gene_finder),
+        };
+        my $design = try{ $well->design };
+        if($design){
+            my @gene_ids = $design->gene_ids;
+            my @genes = $design->gene_symbols($gene_finder);
+            $data->{gene_id} = (@gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ]);
+            $data->{gene} = (@genes == 1 ? $genes[0] : [ @genes ]);
+        }
+        $c->stash->{json_data} = $data;
+    }
+    catch {
+        #get string representation if its a lims2::exception
+        $error = ref $_ && $_->can('as_string') ? $_->as_string : $_;
+        $c->stash->{json_data} = { error => $error };
+    };
+
+    $c->forward('View::JSON');
+    return;
 }
 =head1 LICENSE
 

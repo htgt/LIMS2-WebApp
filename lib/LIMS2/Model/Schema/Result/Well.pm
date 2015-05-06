@@ -1538,11 +1538,10 @@ sub genotyping_info {
     push @{ $primers{design_primers}{$key} }, $val;
   }
 
-  my @gene_ids = uniq map { $_->gene_id } $design->genes;
+  my @gene_ids = $design->gene_ids;
 
   #get gene symbol from the solr
-  my @genes = map { $_->{gene_symbol} }
-                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+  my @genes = $design->gene_symbols($gene_finder);
 
   return {
       %$qc_info,
