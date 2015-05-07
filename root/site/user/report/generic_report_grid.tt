@@ -285,7 +285,6 @@
                 forceFit : true,
                 [% END %]
                 height: 750,
-                width: 1170,
                 store: store,
                 columnLines: true,
                 columns: columns,
