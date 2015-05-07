@@ -20,7 +20,7 @@ ALTER TABLE crispr_off_targets ADD CONSTRAINT unique_crispr_off_target UNIQUE ( 
 
 -- change algorithm from bwa to exhastive in crispr_off_target_summaries table
 -- if the crispr has a wge_crispr_id
-UPDATE crispr_off_target_summaries SET algorithm = 'exhastive'
+UPDATE crispr_off_target_summaries SET algorithm = 'exhaustive'
 WHERE id IN
 (
     SELECT cs.id
