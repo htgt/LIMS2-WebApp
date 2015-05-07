@@ -200,9 +200,7 @@ sub pspec_create_crispr_off_target {
     return {
         crispr_id        => { validate => 'integer' },
         ot_crispr_id     => { validate => 'integer', optional => 1 },
-        ot_wge_crispr_id => { validate => 'integer', optional => 1 },
         mismatches       => { validate => 'integer' },
-        REQUIRE_SOME     => { id_or_wge_ot_crispr_id => [ 1, qw( id ot_crispr_id ot_wge_crispr_id ) ] },
     };
 }
 
@@ -217,30 +215,26 @@ sub create_crispr_off_target {
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_off_target );
     $self->log->debug( 'Create crispr off target: ' . pp $validated_params );
 
+    if ( $validated_params->{crispr_id} == $validated_params->{ot_crispr_id} ) {
+        $self->throw(
+            InvalidState => 'Crispr can not be its own off target');
+    }
+
     $crispr ||= $self->retrieve_crispr(
         {
             id => $validated_params->{crispr_id},
         }
     );
 
-    # if lims2 crispr_id used then retrieve that crispr
-    # if wge crispr_id used then find or import that crispr
-    my $ot_crispr;
-    if ( $validated_params->{ot_crispr_id} ) {
-        $ot_crispr = $self->retrieve_crispr( { id => $validated_params->{ot_crispr_id} } );
+    if ( $crispr->off_targets->find( { off_target_crispr_id => $validated_params->{ot_crispr_id} } )
+        )
+    {
+        $self->throw(
+            Validation => 'Crispr already has off target: ' . $validated_params->{ot_crispr_id} );
     }
-    else {
-        $ot_crispr = $self->schema->resultset('Crispr')->find(
-            { wge_crispr_id => $validated_params->{ot_wge_crispr_id}, } );
 
-        unless ( $ot_crispr ) {
-            ($ot_crispr) = $self->import_wge_crisprs(
-                [ $validated_params->{ot_wge_crispr_id} ],
-                $crispr->species_id,
-                $crispr->species->default_assembly,
-            );
-        }
-    }
+
+    my $ot_crispr = $self->retrieve_crispr( { id => $validated_params->{ot_crispr_id} } );
 
     my $crispr_off_target = $crispr->create_related(
         off_targets => {
