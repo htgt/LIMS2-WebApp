@@ -244,6 +244,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_parameters
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessParameter>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_parameters",
+  "LIMS2::Model::Schema::Result::ProcessParameter",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_recombinases
 
 Type: has_many
@@ -295,8 +310,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 09:04:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:umPiQonfJC/hHuEEJrjpBg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-27 13:02:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1zcz5+TATfgl/qXftTzhbg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -305,6 +320,14 @@ sub as_string {
     my $self = shift;
 
     return $self->type->description || $self->type_id;
+}
+
+sub get_parameter_value{
+    my ($self,$name) = @_;
+    my $parameter = $self->process_parameters->find({ parameter_name => $name });
+
+    my $value = $parameter ? $parameter->parameter_value : undef;
+    return $value;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -894,6 +894,14 @@ sub child_processes{
 	return @child_processes;
 }
 
+sub child_wells {
+    my $self = shift;
+
+    my @child_processes = $self->child_processes;
+
+    return map{ $_->output_wells } @child_processes;
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',
@@ -1451,6 +1459,33 @@ sub crispr_primer_for{
     return $crispr_primer_seq;
 }
 
+sub distributable_child_barcodes{
+    my ( $self ) = @_;
+
+    my @barcodes;
+
+    # Find all child wells which have a barcode and are distributable (accepted)
+    foreach my $well ( $self->child_wells ){
+        next unless $well->well_barcode;
+        next unless $well->is_accepted;
+        push @barcodes, $well->well_barcode->barcode;
+    }
+    return \@barcodes;
+}
+
+sub input_process_parameters{
+    my ( $self ) = @_;
+    my $parameters;
+    foreach my $process ($self->parent_processes){
+        foreach my $param ($process->process_parameters){
+            # FIXME: will overwrite if we have multiple input protocols with
+            # same parameter names
+            $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
+}
+
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref
 #see code in WellData for an example
@@ -1470,27 +1505,14 @@ sub genotyping_info {
   LIMS2::Exception->throw( "EPD well is not accepted" )
      unless $epd->accepted;
 
-  my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
-    { well_id => $epd->id }
-  );
-
-  LIMS2::Exception->throw( "No QC Wells found" )
-    unless @qc_wells;
-
-  my $accepted_qc_well;
-  for my $qc_well ( @qc_wells ) {
-    if ( $qc_well->accepted ) {
-      $accepted_qc_well = $qc_well;
-      last;
-    }
-  }
-
-  LIMS2::Exception->throw( "No QC wells are accepted" )
+  my $accepted_qc_well = $self->accepted_crispr_es_qc_well;
+  LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
      unless $accepted_qc_well;
 
   if ( $only_qc_data ) {
     return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
   }
+  my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
   # store primers in a hash of primer name -> seq
   my %primers;
@@ -1516,32 +1538,92 @@ sub genotyping_info {
     push @{ $primers{design_primers}{$key} }, $val;
   }
 
-  my @gene_ids = uniq map { $_->gene_id } $design->genes;
+  my @gene_ids = $design->gene_ids;
 
   #get gene symbol from the solr
-  my @genes = map { $_->{gene_symbol} }
-                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+  my @genes = $design->gene_symbols($gene_finder);
 
   return {
+      %$qc_info,
       gene             => @genes == 1 ? $genes[0] : [ @genes ],
       gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
       design_id        => $design->id,
       well_id          => $self->id,
       well_name        => $self->name,
       plate_name       => $self->plate->name,
-      fwd_read         => $accepted_qc_well->fwd_read,
-      rev_read         => $accepted_qc_well->rev_read,
       epd_plate_name   => $epd->plate->name,
       accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
-      qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
-      vcf_file         => $accepted_qc_well->vcf_file,
-      qc_data          => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
       species          => $design->species_id,
       cell_line        => $self->first_cell_line->name,
   };
+}
+
+# Get QC results for related MS_QC plates (mutation signatures workflow)
+sub ms_qc_data{
+    my ($self, $gene_finder) = @_;
+
+    my @mutation_signatures_qc;
+
+    # Find parent doubling process/well
+    my $doubling = $self->ancestors->find_process_of_type($self,'doubling');
+    return unless $doubling;
+    my ($ms_parent) = $doubling->input_wells;
+
+    DEBUG "Looking for MS_QC wells with parent $ms_parent";
+
+    # Get QC results for MS_QC plates produced from the parent well
+    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells;
+    foreach my $qc_well (@ms_qc_wells){
+        DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
+        my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
+        next unless $crispr_qc_well;
+        DEBUG "Storing MS_QC info for $qc_well";
+        my $qc_info = _qc_info($crispr_qc_well,$gene_finder);
+        $qc_info->{parameters} = $qc_well->input_process_parameters;
+        push @mutation_signatures_qc, $qc_info;
+    }
+
+    # Add any QC info linked to the well produced by the doubling process
+    my ($final_qc_well) = $doubling->output_wells;
+    my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
+    if($crispr_qc_well){
+        my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{final_ms_qc_result} = 1;
+        push @mutation_signatures_qc, $final_qc_info;
+    }
+
+    return \@mutation_signatures_qc;
+}
+
+sub accepted_crispr_es_qc_well{
+    my ($self) = @_;
+    my @qc_wells = $self->crispr_es_qc_wells;
+
+    my $accepted_qc_well;
+    for my $qc_well ( @qc_wells ) {
+        if ( $qc_well->accepted ) {
+            $accepted_qc_well = $qc_well;
+            last;
+        }
+    }
+
+    return $accepted_qc_well;
+}
+
+sub _qc_info{
+    my ($accepted_qc_well, $gene_finder) = @_;
+    my $qc_info = {
+        fwd_read  => $accepted_qc_well->fwd_read,
+        rev_read  => $accepted_qc_well->rev_read,
+        qc_run_id => $accepted_qc_well->crispr_es_qc_run_id,
+        vcf_file  => $accepted_qc_well->vcf_file,
+        qc_data   => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+    };
+    return $qc_info;
 }
 
 sub _group_primers {

@@ -15,6 +15,7 @@ DELETE FROM process_cell_line;
 DELETE FROM process_nuclease;
 DELETE FROM process_global_arm_shortening_design;
 DELETE FROM process_crispr_tracker_rna;
+DELETE FROM process_parameters;
 DELETE FROM processes;
 DELETE FROM genotyping_primers;
 DELETE FROM design_comments;
