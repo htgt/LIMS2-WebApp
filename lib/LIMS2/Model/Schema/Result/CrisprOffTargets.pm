@@ -151,10 +151,10 @@ sub as_hash {
     my $self = shift;
 
     return {
-        assembly => $self->assembly_id,
-        type     => $self->crispr_loci_type_id,
-        build    => $self->build_id,
-        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand chromosome algorithm )
+        id                   => $self->id,
+        crispr_id            => $self->crispr_id,
+        off_target_crispr_id => $self->off_target_crispr_id,
+        mismatches           => $self->mismatches,
     };
 }
 
