@@ -182,21 +182,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_off_targets_off_target_crispr
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_off_targets_off_target_crispr",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.off_target_crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_pairs_left_crisprs
 
 Type: has_many
@@ -238,21 +223,6 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprPrimer>
 __PACKAGE__->has_many(
   "crispr_primers",
   "LIMS2::Model::Schema::Result::CrisprPrimer",
-  { "foreign.crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 crisprs_off_targets_crispr
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crisprs_off_targets_crispr",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -337,6 +307,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 off_target_crispr_for
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
+
+=cut
+
+__PACKAGE__->has_many(
+  "off_target_crispr_for",
+  "LIMS2::Model::Schema::Result::CrisprOffTargets",
+  { "foreign.off_target_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 off_target_summaries
 
 Type: has_many
@@ -348,6 +333,21 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargetSummary>
 __PACKAGE__->has_many(
   "off_target_summaries",
   "LIMS2::Model::Schema::Result::CrisprOffTargetSummary",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 off_targets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
+
+=cut
+
+__PACKAGE__->has_many(
+  "off_targets",
+  "LIMS2::Model::Schema::Result::CrisprOffTargets",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -383,8 +383,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ek6ENXBXJz5r11WAQOckSg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:29:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IfC3Vc0Dr8FWuYmFn4XUlw
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 
