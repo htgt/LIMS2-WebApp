@@ -16,65 +16,7 @@ LIMS2/t/Model/Schema/Result/CrisprOffTargets.pm - test class for LIMS2::Model::S
 
 Test module structured for running under Test::Class
 
-=head1 METHODS
-
 =cut
-
-=head2 BEGIN
-
-Loading other test classes at compile time
-
-=cut
-
-BEGIN {
-
-    # compile time requirements
-    #{REQUIRE_PARENT}
-}
-
-=head2 before
-
-Code to run before every test
-
-=cut
-
-sub before : Test(setup) {
-
-    #diag("running before test");
-}
-
-=head2 after
-
-Code to run after every test
-
-=cut
-
-sub after : Test(teardown) {
-
-    #diag("running after test");
-}
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup) {
-
-    #diag("running before all tests");
-}
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown : Test(shutdown) {
-
-    #diag("running after all tests");
-}
 
 =head2 all_tests
 
@@ -85,12 +27,9 @@ Code to execute all tests
 sub all_tests : Tests {
     my $user                 = 'lims2';
     my $connect_entry        = 'LIMS2_DB';
-    my $rs_assembly          = 'Assembly';
     my $rs_species           = 'Species';
     my $rs_crisprs           = 'Crispr';
-    my $rs_crisprs_loci_type = 'CrisprLociType';
     my $rs                   = 'CrisprOffTargets';
-    my (%crisprs_loci_type_record) = ( 'id' => 'Alionic', );
     my (%crisprs_record) = (
         'id'                  => 9999,
         'seq'                 => 'GCCCATTGACTCGGGACTTCTGG',
@@ -99,21 +38,11 @@ sub all_tests : Tests {
         'comment'             => 'comment',
     );
     my (%species_record) = ( 'id' => 'Alien', );
-    my (%assembly_record) = (
-        'id'         => 'NZB999',
-        'species_id' => 'Alien',
-    );
     my %record = (
-        'id'                  => 9999,
-        'crispr_id'           => 9999,
-        'crispr_loci_type_id' => 'Alionic',
-        'assembly_id'         => 'NZB999',
-        'build_id'            => 999,
-        'chr_start'           => 99999990,
-        'chr_end'             => 99999999,
-        'chr_strand'          => 1,
-        'chromosome'          => 'Test',
-        'algorithm'           => 'lax',
+        'id'                   => 9999,
+        'crispr_id'            => 9999,
+        'off_target_crispr_id' => 200,
+        'mismatches'           => 2,
     );
 
     note("Accessing the schema");
@@ -126,44 +55,17 @@ sub all_tests : Tests {
     ok( $resultset, 'LIMS2::Model::DBConnect obtained result set' );
     my $species_resultset = $schema->resultset($rs_species);
     ok( $species_resultset, 'LIMS2::Model::DBConnect obtained result set' );
-    my $assembly_resultset = $schema->resultset($rs_assembly);
-    ok( $assembly_resultset, 'LIMS2::Model::DBConnect obtained result set' );
     my $crisprs_resultset = $schema->resultset($rs_crisprs);
     ok( $crisprs_resultset, 'LIMS2::Model::DBConnect obtained result set' );
-    my $crisprs_loci_type_resultset = $schema->resultset($rs_crisprs_loci_type);
-    ok( $crisprs_loci_type_resultset, 'LIMS2::Model::DBConnect obtained result set' );
 
     note("Cleanup before the tests");
     lives_ok { $resultset->search( \%record )->delete() } 'Deleting the existing test records';
-    lives_ok { $assembly_resultset->search( \%assembly_record )->delete() }
-    'Deleting the existing test records';
-    lives_ok { $crisprs_resultset->search( \%crisprs_record )->delete() }
-    'Deleting the existing test records';
-    lives_ok { $species_resultset->search( \%species_record )->delete() }
-    'Deleting the existing test records';
-    lives_ok { $crisprs_loci_type_resultset->search( \%crisprs_loci_type_record )->delete() }
-    'Deleting the existing test records';
-
-    note("Generating reference data CrisprLociType record");
-    lives_ok { $crisprs_loci_type_resultset->search( \%crisprs_loci_type_record )->delete() }
-    'Deleting any existing test records';
-    lives_ok { $crisprs_loci_type_resultset->create( \%crisprs_loci_type_record ) }
-    'Inserting new record';
 
     note("Generating reference data Species record");
-    lives_ok { $species_resultset->search( \%species_record )->delete() }
-    'Deleting any existing test records';
-    lives_ok { $species_resultset->create( \%species_record ) } 'Inserting new record';
-
-    note("Generating reference data Assembly record");
-    lives_ok { $assembly_resultset->search( \%assembly_record )->delete() }
-    'Deleting any existing test records';
-    lives_ok { $assembly_resultset->create( \%assembly_record ) } 'Inserting new record';
+    lives_ok { $species_resultset->find_or_create( \%species_record ) } 'Inserting new record';
 
     note("Generating reference data Crispr record");
-    lives_ok { $crisprs_resultset->search( \%crisprs_record )->delete() }
-    'Deleting any existing test records';
-    lives_ok { $crisprs_resultset->create( \%crisprs_record ) } 'Inserting new record';
+    lives_ok { $crisprs_resultset->find_or_create( \%crisprs_record ) } 'Inserting new record';
 
     note("CRUD tests");
     lives_ok { $resultset->search( \%record )->delete() } 'Deleting any existing test records';
@@ -176,15 +78,8 @@ sub all_tests : Tests {
 
     note("Teardown after the tests");
     lives_ok { $resultset->search( \%record )->delete() } 'Deleting the existing test records';
-    lives_ok { $assembly_resultset->search( \%assembly_record )->delete() }
-    'Deleting the existing test records';
     lives_ok { $crisprs_resultset->search( \%crisprs_record )->delete() }
     'Deleting the existing test records';
-    lives_ok { $species_resultset->search( \%species_record )->delete() }
-    'Deleting the existing test records';
-    lives_ok { $crisprs_loci_type_resultset->search( \%crisprs_loci_type_record )->delete() }
-    'Deleting the existing test records';
-
 }
 
 ## use critic
