@@ -368,7 +368,7 @@ sub analyse_well {
         }
 
         my $sam_file = $self->build_sam_file_for_well( $well->name, $work_dir );
-        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $sam_file, $work_dir, $design );
+        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $sam_file, $work_dir );
     }
     else {
         $self->log->warn( "No primer reads for well " . $well->name );
@@ -396,7 +396,7 @@ module.
 
 =cut
 sub align_and_analyse_well_reads {
-    my ( $self, $well, $crispr, $sam_file, $work_dir, $design ) = @_;
+    my ( $self, $well, $crispr, $sam_file, $work_dir ) = @_;
     $self->log->debug( "Aligning reads for well: $well" );
 
     my %params = (
@@ -591,7 +591,7 @@ sub parse_analysis_data {
     my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
     $analysis_data->{crispr_id}  = $crispr->id if $crispr;
-    $analysis_data->{design_id}  = $design->id;
+    $analysis_data->{design_id}  = $design->id if $design;
     $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
     $analysis_data->{is_group}   = $crispr->is_group if $crispr;
     $analysis_data->{assembly}   = $self->assembly;
@@ -620,7 +620,7 @@ sub parse_analysis_data {
             }
         }
 
-        $analysis_data->{design_strand}         = $design->chr_strand;
+        $analysis_data->{design_strand}         = $design->chr_strand if $design;
         $analysis_data->{target_sequence_start} = $analyser->pileup_parser->genome_start;
         $analysis_data->{target_sequence_end}   = $analyser->pileup_parser->genome_end;
         $analysis_data->{insertions}            = $analyser->pileup_parser->insertions;
