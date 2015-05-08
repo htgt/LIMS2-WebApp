@@ -154,6 +154,7 @@ sub as_hash {
         id                   => $self->id,
         crispr_id            => $self->crispr_id,
         off_target_crispr_id => $self->off_target_crispr_id,
+        ot_crispr            => $self->off_target_crispr->as_hash,
         mismatches           => $self->mismatches,
     };
 }
