@@ -47,7 +47,8 @@ sub all_tests  : Test(21)
     ok $res = $mech->submit_form(
             fields => {
                 genes        => 'MGI:1917722',
-                crispr_types => 'group'
+                crispr_types => 'group',
+                off_target_algorithm => 'exhaustive',
             },
             button => 'action',
         );
