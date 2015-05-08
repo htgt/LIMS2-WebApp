@@ -28,6 +28,8 @@ sub update_user_display_type_POST {
 
     $c->session->{display_type} = $c->request->params->{display_type} || 'default';
     $self->status_ok( $c, entity => { success => 1 } );
+
+    return;
 }
 
 sub auto : Private {
