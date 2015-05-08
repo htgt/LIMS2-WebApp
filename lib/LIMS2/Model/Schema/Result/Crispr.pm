@@ -403,11 +403,13 @@ sub as_hash {
     if ( my $default_assembly = $self->species->default_assembly ) {
         $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
+    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
 
     my %h = (
         id             => $self->id,
         type           => $self->crispr_loci_type_id,
         seq            => $self->seq,
+        fwd_seq        => $fwd_seq,
         species        => $self->species_id,
         comment        => $self->comment,
         locus          => $locus ? $locus->as_hash : undef,
@@ -417,7 +419,7 @@ sub as_hash {
         nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
     );
 
-    $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
+    $h{off_targets} = [ sort { $a->{mismatches} <=> $b->{mismatches} } map { $_->as_hash } $self->off_targets ];
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
