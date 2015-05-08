@@ -15,7 +15,7 @@ sub single_crispr_GET{
 
     my $crispr = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_crispr( { id => $c->request->param( 'id' ) } );
+            shift->retrieve_crispr( { slice_def $c->request->params, qw( id wge_crispr_id ) });
         }
     );
 
