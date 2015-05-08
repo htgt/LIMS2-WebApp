@@ -206,7 +206,7 @@ sub create_crispr_off_target : Tests() {
         ot_crispr_id => 113,
         mismatches   => 1,
     );
-    ok my $off_target = model->create_crispr_off_target( \%new_off_target_data, $crispr ),
+    ok $off_target = model->create_crispr_off_target( \%new_off_target_data, $crispr ),
         'can create new off target';
     is $off_target->off_target_crispr_id, 113, 'new off target record has correct ot crispr id';
 
@@ -221,7 +221,6 @@ sub create_crispr_off_target : Tests() {
     }
     qr/Crispr can not be its own off target/, 'does not allow crispr to be its own off target';
 }
-
 
 sub crispr_importer : Test(8) {
     my $species = 'Human';
