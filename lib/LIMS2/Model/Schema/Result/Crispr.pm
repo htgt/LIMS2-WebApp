@@ -397,7 +397,7 @@ sub as_string {
 }
 
 sub as_hash {
-    my ( $self ) = @_;
+    my ( $self, $options ) = @_;
 
     my $locus;
     if ( my $default_assembly = $self->species->default_assembly ) {
@@ -419,7 +419,9 @@ sub as_hash {
         nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
     );
 
-    $h{off_targets} = [ sort { $a->{mismatches} <=> $b->{mismatches} } map { $_->as_hash } $self->off_targets ];
+    if ( !$options->{no_off_targets} ) {
+        $h{off_targets} = [ sort { $a->{mismatches} <=> $b->{mismatches} } map { $_->as_hash } $self->off_targets ];
+    }
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
