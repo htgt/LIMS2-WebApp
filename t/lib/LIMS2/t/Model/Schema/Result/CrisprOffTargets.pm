@@ -37,11 +37,18 @@ sub all_tests : Tests {
         'crispr_loci_type_id' => 'Exonic',
         'comment'             => 'comment',
     );
+    my %ot_crisprs_record = (
+        'id'                  => 113,
+        'seq'                 => 'GCTCATTAACTCGGGACTTCTGG',
+        'species_id'          => 'Alien',
+        'crispr_loci_type_id' => 'Exonic',
+        'comment'             => 'comment',
+    );
     my (%species_record) = ( 'id' => 'Alien', );
     my %record = (
         'id'                   => 9999,
         'crispr_id'            => 9999,
-        'off_target_crispr_id' => 200,
+        'off_target_crispr_id' => 113,
         'mismatches'           => 2,
     );
 
@@ -66,6 +73,7 @@ sub all_tests : Tests {
 
     note("Generating reference data Crispr record");
     lives_ok { $crisprs_resultset->find_or_create( \%crisprs_record ) } 'Inserting new record';
+    lives_ok { $crisprs_resultset->find_or_create( \%ot_crisprs_record ) } 'Inserting new record';
 
     note("CRUD tests");
     lives_ok { $resultset->search( \%record )->delete() } 'Deleting any existing test records';
@@ -78,7 +86,9 @@ sub all_tests : Tests {
 
     note("Teardown after the tests");
     lives_ok { $resultset->search( \%record )->delete() } 'Deleting the existing test records';
-    lives_ok { $crisprs_resultset->search( \%crisprs_record )->delete() }
+    lives_ok { $crisprs_resultset->search( \%crisprs_record )->delete() };
+    lives_ok { $crisprs_resultset->search( \%ot_crisprs_record )->delete() };
+    lives_ok { $species_resultset->search( \%species_record )->delete() };
     'Deleting the existing test records';
 }
 
