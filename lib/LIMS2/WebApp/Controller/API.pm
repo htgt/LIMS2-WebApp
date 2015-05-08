@@ -20,6 +20,16 @@ Catalyst Controller.
 
 =cut
 
+sub update_user_display_type : Path( '/api/update_user_display_type' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+sub update_user_display_type_POST {
+    my ( $self, $c ) = @_;
+
+    $c->session->{display_type} = $c->request->params->{display_type} || 'default';
+    $self->status_ok( $c, entity => { success => 1 } );
+}
+
 sub auto : Private {
     my ( $self, $c ) = @_;
 
