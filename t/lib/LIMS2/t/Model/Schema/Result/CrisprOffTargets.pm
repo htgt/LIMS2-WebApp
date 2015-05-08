@@ -34,7 +34,7 @@ sub all_tests : Tests {
         'id'                  => 9999,
         'seq'                 => 'GCCCATTGACTCGGGACTTCTGG',
         'species_id'          => 'Alien',
-        'crispr_loci_type_id' => 'Alionic',
+        'crispr_loci_type_id' => 'Exonic',
         'comment'             => 'comment',
     );
     my (%species_record) = ( 'id' => 'Alien', );
