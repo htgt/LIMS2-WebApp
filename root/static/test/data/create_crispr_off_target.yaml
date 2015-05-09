@@ -1,0 +1,18 @@
+---
+valid_crispr_and_off_target:
+    type: Exonic
+    species: Mouse
+    seq: ATCGTTACACAGAGGG
+    comment: Test_crispr
+    pam_right: 0
+    off_target_algorithm: exhaustive
+    off_target_summary: "{Exons: 5, Introns:10, Intergenic: 15}"
+    locus:
+       assembly: GRCm38
+       chr_name: 11
+       chr_start: 143456
+       chr_end: 143468
+       chr_strand: 1
+    off_targets:
+        - ot_crispr_id: 200
+          mismatches: 2

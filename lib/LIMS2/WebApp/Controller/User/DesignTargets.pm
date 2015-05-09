@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.312';
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.313';
 }
 ## use critic
 
@@ -63,7 +63,7 @@ sub gene_report : Path('/user/design_target_report') {
 
     my %report_parameters = (
         type                 => $c->request->param('report_type') || 'standard',
-        off_target_algorithm => $c->request->param('off_target_algorithm') || 'bwa',
+        off_target_algorithm => $c->request->param('off_target_algorithm') || 'exhaustive',
         crispr_types         => $c->request->param('crispr_types') || 'pair',
         filter               => $c->request->param('filter') || 0,
     );

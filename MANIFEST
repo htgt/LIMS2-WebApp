@@ -2325,6 +2325,7 @@ root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
 root/static/js/crispr-es-qc-well-update.js
 root/static/js/crispr-qc.js
+root/static/js/crisprs.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.flot.min.js
@@ -2346,6 +2347,7 @@ root/static/test/data/clone_pick_process.yaml
 root/static/test/data/clone_pool_process.yaml
 root/static/test/data/cre_bac_recom_process.yaml
 root/static/test/data/create_crispr.yaml
+root/static/test/data/create_crispr_off_target.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
 root/static/test/data/create_design_targets_atad2.yaml

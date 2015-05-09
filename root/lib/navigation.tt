@@ -257,6 +257,26 @@
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
+
+        [% IF c.session.display_type %]
+            <li><a id="display_type_default" data-display-type="default"
+                [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="icon-resize-small"></i>
+                [% ELSE %]
+                    <i class="icon-resize-small icon-white"></i>
+                [% END %]
+                </a></li>
+            <li><a id="display_type_wide" data-display-type="wide"
+                [% IF c.session.display_type == 'wide' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="icon-fullscreen"></i>
+                [% ELSE %]
+                    <i class="icon-fullscreen icon-white"></i>
+                [% END %]
+                </a></li>
+        [% END %]
+
         [% IF c.session.selected_species %]
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -277,6 +297,7 @@
           </li>
         [% END %]
 
+
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
@@ -290,6 +311,7 @@
         </li>
       </ul>
 
+      <!-- Non Logged in User -->
       [% ELSE %]
         <li class="dropdown active">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>

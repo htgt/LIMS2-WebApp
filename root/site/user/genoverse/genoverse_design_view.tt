@@ -55,6 +55,7 @@ function build_uri_params( params_to_build ) {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
+        width: $( document ).width(),
         [% USE String(extent.assembly) %]
         genome    : '[% String.lower() %]', // see js/genomes/
         chr       : '[% extent.chr_name %]',
