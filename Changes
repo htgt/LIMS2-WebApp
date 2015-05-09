@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.312     2015-05-06 13:10:19 Europe/London
+
+   Added mutation signatures workflow and related interface changes
+
 0.311     2015-05-05 08:24:41 Europe/London
 
     Damage type of clones accessed same way on sponsor sub report and clones gene summary
