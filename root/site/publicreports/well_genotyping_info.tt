@@ -140,6 +140,14 @@
 <h3>NHEJ Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
+      <th>QC Type</th>
+      <td>[% data.qc_type %]</td>
+    </tr>
+    <tr>
+      <th>QC Source</th>
+      <td>Plate: [% data.qc_plate_name %]<br>Well: [% data.qc_well_name %]</td>
+    </tr>
+    <tr>
       <th>Allele Type</th>
       <td>[% data.qc_data.damage_type %]</td>
     </tr>
