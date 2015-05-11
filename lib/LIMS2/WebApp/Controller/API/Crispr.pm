@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Crispr::VERSION = '0.313';
+    $LIMS2::WebApp::Controller::API::Crispr::VERSION = '0.314';
 }
 ## use critic
 
@@ -47,6 +47,21 @@ sub single_crispr_POST{
 }
 
 sub crispr_off_target : Path( '/api/crispr_off_target' ) : Args(0) : ActionClass( 'REST') {
+}
+
+sub crispr_off_target_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $crispr = $c->model('Golgi')->txn_do(
+        sub {
+            shift->retrieve_crispr_off_target(
+                { slice_def $c->request->params, qw( id crispr_id off_target_crispr_id ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr );
 }
 
 sub crispr_off_target_POST{

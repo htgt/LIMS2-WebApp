@@ -1,0 +1,9 @@
+[% META title="Crispr Search"; META tab_name = 'Crisprs' %]
+
+<form method="POST" action="[% c.uri_for( '/user/search_crisprs' ) %]" class="well form-inline" >
+    <legend>Search by LIMS2 ID</legend>
+    <textarea name="wge_crispr_id" placeholder="WGE crispr id"></textarea>
+
+    <br />
+    <input type="submit" name="search_by_lims2_id" class="btn btn-primary" value="search_by_lims2_id" />
+</form>

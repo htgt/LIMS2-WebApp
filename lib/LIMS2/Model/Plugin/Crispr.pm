@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.313';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.314';
 }
 ## use critic
 
@@ -200,6 +200,33 @@ sub create_crispr_locus {
     );
 
     return $crispr_locus;
+}
+
+sub pspec_retrieve_crispr_off_target {
+    return {
+        crispr_id            => { validate => 'integer', optional => 1 },
+        off_target_crispr_id => { validate => 'integer', optional => 1 },
+        id                   => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME         => { id_or_crispr_id => [ 1, qw( id crispr_id ) ] },
+        DEPENDENCY_GROUPS    => { crispr_ids => [ qw( crispr_id off_target_crispr_id ) ] },
+    };
+}
+
+=head2 retrieve_crispr_off_target
+
+Create a off target hit for a given crispr.
+
+=cut
+sub retrieve_crispr_off_target {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_off_target );
+    $self->log->debug( 'Retrieve crispr off target: ' . pp $validated_params );
+
+    my $crispr_off_target = $self->retrieve(
+        CrisprOffTargets => { slice_def $validated_params, qw( id crispr_id off_target_crispr_id ) } );
+
+    return $crispr_off_target;
 }
 
 sub pspec_create_crispr_off_target {

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.313';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.314';
 }
 ## use critic
 
@@ -15,6 +15,7 @@ use Path::Class;
 use JSON;
 use List::MoreUtils qw( uniq );
 use Data::Dumper;
+use Hash::MoreUtils qw( slice_def );
 
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
@@ -41,12 +42,57 @@ Catalyst Controller.
 
 =cut
 
-sub index : Path( '/user/browse_crisprs' ) : Args(0) {
+sub index : Path( '/user/search_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
-    # TODO, add crispr search page here?
+    $c->assert_user_roles('read');
 
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    foreach my $item ( qw(crispr_id crispr_pair_id crispr_group_id wge_crispr_id) ){
+        if(my $value = $c->req->param($item)){
+            $c->stash->{$item} = $value;
+        }
+    }
+
+    my $crispr_entity;
+    if($c->req->param('search_by_lims2_id')){
+        my $params = {
+            slice_def($c->req->params, qw(crispr_id crispr_pair_id crispr_group_id))
+        };
+        try{
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr_collection($params);
+        }
+        catch($e){
+            $c->stash->{error_msg} = "Failed to find crisprs in LIMS2: $e";
+        };
+    }
+    elsif($c->req->param('search_by_wge_id')){
+        try{
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr({
+                wge_crispr_id => $c->req->param('wge_crispr_id')
+            });
+        }
+        catch($e){
+            $c->stash->{error_msg} = "Failed to find WGE crispr in LIMS2: $e";
+        }
+    }
+
+    if($crispr_entity){
+        my $redirect_path = _path_for_crispr_entity($crispr_entity);
+        $c->res->redirect( $c->uri_for($redirect_path) );
+    }
     return;
+}
+
+sub _path_for_crispr_entity{
+    my ($crispr_entity) = @_;
+
+    my $entity_type = $crispr_entity->id_column_name;
+    $entity_type =~ s/_id//;
+
+    my $path = "/user/$entity_type/".$crispr_entity->id."/view";
+    return $path;
 }
 
 =head2 crispr

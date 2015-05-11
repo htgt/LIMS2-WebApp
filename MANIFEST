@@ -383,6 +383,7 @@ root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/get_crisprs.tt
+root/site/user/crisprs/search_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_group.tt
 root/site/user/crisprs/view_crispr_pair.tt

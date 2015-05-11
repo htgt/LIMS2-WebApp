@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.313';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.314';
 }
 ## use critic
 
@@ -57,10 +57,12 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
     my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
 
-    my $plate_type  = $run->crispr_es_qc_wells->first->well->plate->type_id;
     my $can_accept_wells = 0;
-    if ( $plate_type eq 'PIQ' || $plate_type eq 'EP_PICK' ) {
-        $can_accept_wells = 1;
+    if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
+        my $plate_type  = $qc_well->well->plate->type_id;
+        if ( $plate_type eq 'PIQ' || $plate_type eq 'EP_PICK' ) {
+            $can_accept_wells = 1;
+        }
     }
 
     $c->stash(

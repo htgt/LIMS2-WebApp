@@ -1,3 +1,8 @@
+0.314     2015-05-11 11:49:54 Europe/London
+
+    Added REST API to get crispr off-targets
+    Bugfix: can now checkout last barcode from a plate
+
 0.313     2015-05-09 08:55:15 Europe/London
 
    Re-work crispr off targets table, these are now links between crisprs.
