@@ -35,6 +35,10 @@ sub auto : Private {
         $c->session->{selected_species} = $prefs->default_species_id;
     }
 
+    if ( ! $c->session->{display_type} ) {
+        $c->session->{display_type} = 'default';
+    }
+
     if ( ! $c->session->{species} ) {
         $c->session->{species} = $c->model('Golgi')->list_species;
     }

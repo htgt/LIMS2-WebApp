@@ -15,7 +15,7 @@ sub single_crispr_GET{
 
     my $crispr = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_crispr( { id => $c->request->param( 'id' ) } );
+            shift->retrieve_crispr( { slice_def $c->request->params, qw( id wge_crispr_id ) });
         }
     );
 
@@ -38,6 +38,23 @@ sub single_crispr_POST{
         location => $c->uri_for( '/api/single_crispr', { id => $crispr->id } ),
         entity   => $crispr
     );
+}
+
+sub crispr_off_target : Path( '/api/crispr_off_target' ) : Args(0) : ActionClass( 'REST') {
+}
+
+sub crispr_off_target_POST{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $ot = $c->model( 'Golgi' )->txn_do(
+        sub{
+            shift->create_crispr_off_target( $c->request->data );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $ot );
 }
 
 sub crispr_off_target_summary : Path( '/api/crispr_off_target_summary' ) : Args(0) : ActionClass( 'REST') {

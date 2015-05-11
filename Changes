@@ -1,5 +1,17 @@
 {{$NEXT}}
 
+0.313     2015-05-09 08:55:15 Europe/London
+
+   Re-work crispr off targets table, these are now links between crisprs.
+   - crispr may have many off target crisprs, a mismatch score is also stored
+   - updated display of crispr off targets on crispr view page
+   - added REST API method to allow crispr off targets to be created
+   Added a wide-screen toggle button, state is saved for a session.
+
+0.312     2015-05-06 13:10:19 Europe/London
+
+   Added mutation signatures workflow and related interface changes
+
 0.311     2015-05-05 08:24:41 Europe/London
 
     Damage type of clones accessed same way on sponsor sub report and clones gene summary
