@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.314';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.315';
 }
 ## use critic
 
@@ -1074,6 +1074,19 @@ sub is_epd_or_later {
   return;
 }
 
+# return the first parent well that has crispr es QC linked to it
+sub first_parent_with_crispr_qc{
+    my $self = shift;
+
+    return $self if $self->crispr_es_qc_wells->count;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while ( my $ancestor = $ancestors->next ) {
+        return $ancestor if $ancestor->crispr_es_qc_wells->count;
+    }
+    return;
+}
+
 ## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
@@ -1511,7 +1524,11 @@ sub genotyping_info {
   LIMS2::Exception->throw( "EPD well is not accepted" )
      unless $epd->accepted;
 
-  my $accepted_qc_well = $self->accepted_crispr_es_qc_well;
+  my $parent_qc_well = $self->first_parent_with_crispr_qc;
+
+  DEBUG "First parent with crispr QC is $parent_qc_well";
+
+  my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
   LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
      unless $accepted_qc_well;
 
@@ -1519,6 +1536,17 @@ sub genotyping_info {
     return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
   }
   my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
+
+  # Add some extra info about which well the reported QC comes from
+  $qc_info->{qc_plate_name} = $parent_qc_well->plate->name;
+  $qc_info->{qc_well_name} = $parent_qc_well->name;
+  $qc_info->{qc_plate_type} = $parent_qc_well->plate->type_id;
+  if($qc_info->{qc_plate_type} eq 'EP_PICK'){
+      $qc_info->{qc_type} = 'Primary QC';
+  }
+  elsif($qc_info->{qc_plate_type} eq 'PIQ'){
+      $qc_info->{qc_type} = 'Secondary QC';
+  }
 
   # store primers in a hash of primer name -> seq
   my %primers;

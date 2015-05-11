@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.314';
+    $LIMS2::Report::DNAPlate::VERSION = '0.315';
 }
 ## use critic
 
