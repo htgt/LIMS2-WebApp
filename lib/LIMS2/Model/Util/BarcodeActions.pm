@@ -657,6 +657,8 @@ sub pspec_create_barcoded_plate_copy{
     }
 }
 
+## no critic (ProhibitExcessComplexity)
+
 # Generic method to create a new plate with barcodes at specified positions
 # Each barcode's current well location will be identified
 # New wells will be parented off them
@@ -829,6 +831,7 @@ sub create_barcoded_plate_copy{
 
     return wantarray ? ($new_plate, \@list_messages) : $new_plate;
 }
+## use critic
 
 sub _check_consistent_type{
     my ($plate_type, $well) = @_;
