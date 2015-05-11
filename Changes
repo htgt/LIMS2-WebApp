@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.315     2015-05-11 16:01:08 Europe/London
+
+   Bugfix: public clone genotyping page now shows ancestor PIQ or EP_PICK QC
+
 0.314     2015-05-11 11:49:54 Europe/London
 
     Added REST API to get crispr off-targets
