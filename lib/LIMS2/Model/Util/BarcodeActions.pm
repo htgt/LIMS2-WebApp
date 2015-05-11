@@ -754,6 +754,25 @@ sub create_barcoded_plate_copy{
         ]
     }
 
+    # Special case. When the last barcode is removed from a plate this method will create
+    # an empty plate so we can't get to the previous plate's type and species via the wells
+    # We need to find the previous plate by name to get type and species.
+    unless(@wells){
+        my $new_plate_name = $validated_params->{new_plate_name};
+
+        DEBUG "Plate $new_plate_name has no wells. Getting species and type from old plate version.";
+
+        my $previous_plate = $model->schema->resultset('Plate')->search({
+            name => $new_plate_name,
+        })->first;
+
+        die "Cannot find parent wells or parent plate for plate $new_plate_name"
+            unless $previous_plate;
+
+        $create_params->{species} = $previous_plate->species_id;
+        $create_params->{type} = $previous_plate->type_id;
+    }
+
     my $new_plate = $model->create_plate($create_params);
 
     # If tubes have been transferred from other (non virtual) plates then
