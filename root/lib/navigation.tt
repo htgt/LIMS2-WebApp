@@ -80,6 +80,10 @@
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs by ID</a>
+            </li>
           </ul>
         </li>
 
