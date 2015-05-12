@@ -13,12 +13,14 @@ If a database name is defined in ARGV[0], check whether it is in the list of nam
 if it is, print the name as confirmation.
 
 =cut
-my $dbname_option = ''; # False value is default
-my $help_option = '';
+my $dbname_option = 0;
+my $uri_option = 0;
+my $help_option = 0;
 
 GetOptions(
     'dbname'       => \$dbname_option,
-    'help|?'     => \$help_option,
+    'uri'          => \$uri_option,
+    'help|?'       => \$help_option,
 )
 or die usage_message();
 
@@ -43,6 +45,7 @@ return << "END_DIE";
 Usage: list_db_names.pl
     database_profile
     [--dbname]
+    [--uri]
 
 Optional parameters in square brackets
 Database profile is from dbconnect.yaml
@@ -53,6 +56,8 @@ Returns the list of database profiles from dbconnect.yaml
 
 If the dbname option is specified, returns the database name listed in the postgresql
 connection string from dbconnect.yaml.
+
+If the uri option is specified, returns the uri string used to connect using psql
 
 END_DIE
 }
@@ -98,22 +103,28 @@ sub check_db_name {
 
     }
 
-    if ( ! $dbname_option ) {
+    if ( (! $dbname_option ) and (! $uri_option ) ) {
         return ($match);
     }
     # Process the full database name information
     my $dbname;
+    my $host;
+    my $port;
     # check the dsn line and parse out the database name
     # dsn: 'dbi:Pg:host=mcs16;port=5527;dbname=lims2_local_dp10'
     if ( $config->{$match}->{'dsn'} ) {
-        if ( $config->{$match}->{'dsn'} =~ m/ dbname=(\w+) /xms ) {
-            $dbname = $1;
+        if ( $config->{$match}->{'dsn'} =~ m/ host=([^\s]+);port=(\d+);dbname=([^\s]+) /xms ) {
+            $host = $1;
+            $port = $2;
+            $dbname = $3;
         }
     }
     if (! $dbname) {
         $dbname = 'not found';
     }
 
+    if ( $uri_option ) {
+        return 'postgresql' . '://' . $host . ':' . $port . '/' . $dbname;
+    }
     return $dbname;
 }
-

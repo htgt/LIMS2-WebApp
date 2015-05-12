@@ -42,6 +42,9 @@ case $1 in
     'pg9.3')
         lims2_pg9.3
         ;;
+    psql)
+        lims2_psql
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -116,6 +119,10 @@ function lims2_replicate {
             lims2_load_generic $1
             ;; 
     esac
+}
+
+function lims2_psql {
+    psql `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --uri`
 }
 
 function lims2_load_test {
@@ -231,6 +238,7 @@ LIMS2 useful environment variables:
 \$PG_DUMP_EXE                  : $PG_DUMP_EXE
 \$PG_RESTORE_EXE               : $PG_RESTORE_EXE
 \$PSQL_EXE                     : $PSQL_EXE
+\$PGUSER                       : $PGUSER
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
@@ -250,7 +258,7 @@ LIMS2 useful environment variables:
 
 END
 
-lims2_local_environment
+lims2_local_environment  # This is defined in your ~/.lims2_local
 }
 
 function lims2_help {
@@ -297,3 +305,6 @@ if [[ -f $HOME/.lims2_local ]] ; then
     source $HOME/.lims2_local
 fi
 
+if [[ !"$PGUSER" ]]; then
+    export PGUSER=lims2
+fi
