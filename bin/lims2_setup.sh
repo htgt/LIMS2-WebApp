@@ -101,6 +101,7 @@ function lims2_setdb {
         # List the databases available
         printf "$L2I_STRING: Available database names from LIMS2_DBCONNECT_CONFIG\n\n"
         $LIMS2_MIGRATION_ROOT/bin/list_db_names.pl
+        printf "Use 'lims2 psql' command to open a psql command line for this db\n"
     fi
 }
 
@@ -292,6 +293,7 @@ Commands avaiable:
     setdb        - lists the available database profiles, highlighting the profile currently in use
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
+    psql         - opens psql command prompt using the currently selected database
     help         - displays this help message
 Files:
 ~/.lims2_local     - sourced near the end of the setup phase for you own mods
