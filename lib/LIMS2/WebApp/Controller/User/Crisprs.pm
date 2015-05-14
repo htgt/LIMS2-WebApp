@@ -36,7 +36,7 @@ Catalyst Controller.
 
 =cut
 
-sub index : Path( '/user/search_crisprs' ) : Args(0) {
+sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
@@ -62,6 +62,8 @@ sub index : Path( '/user/search_crisprs' ) : Args(0) {
         };
     }
     elsif($c->req->param('search_by_wge_id')){
+        # NB: cannot search by WGE crispr pair ID because, although we use this
+        # when importing, we only store the individual WGE crispr IDs in lims2
         try{
             $crispr_entity = $c->model('Golgi')->retrieve_crispr({
                 wge_crispr_id => $c->req->param('wge_crispr_id')

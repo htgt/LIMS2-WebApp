@@ -83,6 +83,9 @@ override iterator => sub {
             my @data;
             for my $column ( @{ $self->columns } ) {
                 my $datum = defined $qc_result->{$column} ? $qc_result->{$column} : '';
+                if($column eq "pass"){
+                    $datum = $self->boolean_str($datum);
+                }
                 push @data, $datum;
             }
 
