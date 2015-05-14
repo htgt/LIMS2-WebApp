@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.315';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.316';
 }
 ## use critic
 
@@ -1261,6 +1261,16 @@ sub _parse_plate_well_barcodes_csv_file {
         }
         my $curr_well = $line->[0];
         my $curr_barcode = $line->[1];
+
+        # Skip if no data on line
+        next unless ($curr_well or $curr_barcode);
+
+        # Error if barcode but no well specified
+        die "No well name provided for barcode $curr_barcode at line $line_num"
+            unless $curr_well;
+        # If well specified but no barcode we store this. It could be an error or could
+        # be ignored so let the calling method handle this.
+
         $csv_data->{ $curr_well } = $curr_barcode;
     }
 

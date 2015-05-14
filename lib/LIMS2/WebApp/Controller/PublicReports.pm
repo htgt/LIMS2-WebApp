@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.315';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.316';
 }
 ## use critic
 
@@ -524,7 +524,17 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = $c->model('Golgi')->retrieve_well( $search );
+    my $well;
+    try { $well = $c->model('Golgi')->retrieve_well( $search ) };
+
+    unless($well){
+        try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( $search ) };
+        if($well){
+            $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
+                $well->plate->name.". Reporting info for this well on version ".$well->plate->version
+                ." of the plate.");
+        }
+    }
 
     unless ( $well ) {
         $c->stash( error_msg => "Well doesn't exist" );

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.315';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.316';
 }
 ## use critic
 
@@ -644,7 +644,12 @@ sub retrieve_crispr_collection{
     };
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_collection );
-    my ($id_type) = keys %$params;
+    my @defined = grep { $params->{$_} } keys %$params;
+    if(@defined > 1){
+        die "Multiple crispr collection IDs provided to retrieve_crispr_collection: ".
+        (join " and ", @defined);
+    }
+    my ($id_type) = @defined;
     my $method_name = $method_for_type->{$id_type} or die "No method to retrieve $id_type";
 
     return $self->$method_name($validated_params);

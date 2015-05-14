@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.315';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.316';
 }
 ## use critic
 
@@ -62,6 +62,39 @@ sub retrieve_well {
     }
 
     return $self->retrieve( Well => \%search, \%joins );
+}
+
+sub pspec_retrieve_well_from_old_plate_version{
+    return {
+        plate_name        => { validate => 'plate_name' },
+        well_name         => { validate => 'well_name' },
+    };
+}
+
+# Search for a well which exists on an old version of the plate
+# Return the well on the latest version of the plate that can be found
+sub retrieve_well_from_old_plate_version{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_from_old_plate_version);
+
+    my $search = {
+        'me.name'    => $validated_params->{well_name},
+        'plate.name' => $validated_params->{plate_name},
+        'plate.version' => { '!=', undef },
+    };
+
+    my $attrs = {
+        join     => 'plate',
+        prefetch => 'plate',
+        order_by => { -desc => 'plate.version' },
+    };
+
+    my $well = $self->schema->resultset('Well')->search($search, $attrs)->first
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $search } );
+
+    $self->log->debug("Found well on version ".$well->plate->version." of plate");
+    return $well;
 }
 
 sub pspec_create_well {
