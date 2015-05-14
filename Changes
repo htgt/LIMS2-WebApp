@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.316     2015-05-14 11:26:03 Europe/London
+
+   Added crispr search page
+   Improved clone genotyping search page
+   Changed section names in gene summary page 
+
 0.315     2015-05-11 16:01:08 Europe/London
 
    Bugfix: public clone genotyping page now shows ancestor PIQ or EP_PICK QC
