@@ -283,6 +283,13 @@ sub delete_plate {
     }
 
     $plate->search_related_rs('plate_comments')->delete;
+
+    if ($plate->type_id eq 'CRISPR') {
+        $self->schema->resultset('CrisprPlateAppend')->find({
+                plate_id  => $plate->id,
+        })->delete;
+    }
+
     $plate->delete;
     return;
 }
