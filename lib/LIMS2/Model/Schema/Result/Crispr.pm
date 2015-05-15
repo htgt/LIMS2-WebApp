@@ -493,86 +493,89 @@ sub target_slice {
 # Methods for U6 specific order sequences
 #
 sub guide_rna {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    if ( ! defined $self->pam_right ) {
-        return substr( $self->seq, 1, 19 );
-    }
-    elsif ( $self->pam_right == 1 ) {
-        return substr( $self->seq, 1, 19 );
-    }
-    elsif ( $self->pam_right == 0 ) {
-        #its pam left, so strip first three characters and the very last one,
-        #we revcom so that the grna is always relative to the NGG sequence
-        return revcom( substr( $self->seq, 3, 19 ) )->seq;
-    }
-    else {
-        die "Unexpected value in pam_right: " . $self->pam_right;
+    WARN ( "No appends type provided for guide_rna, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry') {
+
+        if ( ! defined $self->pam_right ) {
+            return substr( $self->seq, 0, 20 );
+        }
+        elsif ( $self->pam_right == 1 ) {
+            return substr( $self->seq, 0, 20 );
+        }
+        elsif ( $self->pam_right == 0 ) {
+            #its pam left, so strip first three characters
+            #we revcom so that the grna is always relative to the NGG sequence
+            return revcom( substr( $self->seq, 3, 20 ) )->seq;
+        }
+        else {
+            die "Unexpected value in pam_right: " . $self->pam_right;
+        }
+
+    } else {
+
+        if ( ! defined $self->pam_right ) {
+            return substr( $self->seq, 1, 19 );
+        }
+        elsif ( $self->pam_right == 1 ) {
+            return substr( $self->seq, 1, 19 );
+        }
+        elsif ( $self->pam_right == 0 ) {
+            #its pam left, so strip first three characters and the very last one,
+            #we revcom so that the grna is always relative to the NGG sequence
+            return revcom( substr( $self->seq, 3, 19 ) )->seq;
+        }
+        else {
+            die "Unexpected value in pam_right: " . $self->pam_right;
+        }
+
     }
 
 }
 
 sub forward_order_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    return  "ACCG" . $self->guide_rna;
+    WARN ( "No appends type provided for forward_order_seq, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry' || $appends eq 't7-wendy' ) {
+
+        return "ATAGG" . $self->guide_rna($appends);
+
+    } else {
+
+        return  "ACCG" . $self->guide_rna($appends);
+    }
+
 }
 
 sub reverse_order_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    #require Bio::Seq;
-    #my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->guide_rna );
-    #my $revcomp_seq = $bio_seq->revcom->seq;
-    return "AAAC" . revcom( $self->guide_rna )->seq;
+    WARN ( "No appends type provided for reverse_order_seq, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry' || $appends eq 't7-wendy' ) {
+
+        return "AAAC" . revcom( $self->guide_rna($appends) )->seq . "C";
+
+    } else {
+
+        return "AAAC" . revcom( $self->guide_rna($appends) )->seq;
+    }
+
 }
 
 #we need to add the G here so its the full forward grna
 sub vector_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    return  "G" . $self->guide_rna;
+    WARN ( "No appends type provided for vector_seq, defaulting to u6" ) unless $appends;
+
+    return  "G" . $self->guide_rna($appends);
 }
 
-#
-#Methods for T7 specific order sequences
-#
-sub t7_vector_seq {
-    my ( $self ) = @_;
-
-    return "G" . $self->t7_guide_rna;
-}
-
-sub t7_guide_rna {
-    my ( $self ) = @_;
-
-    if ( ! defined $self->pam_right ) {
-        return substr( $self->seq, 0, 20 );
-    }
-    elsif ( $self->pam_right == 1 ) {
-        return substr( $self->seq, 0, 20 );
-    }
-    elsif ( $self->pam_right == 0 ) {
-        #its pam left, so strip first three characters
-        #we revcom so that the grna is always relative to the NGG sequence
-        return revcom( substr( $self->seq, 3, 20 ) )->seq;
-    }
-    else {
-        die "Unexpected value in pam_right: " . $self->pam_right;
-    }
-}
-
-sub t7_forward_order_seq {
-  my ( $self ) = @_;
-
-  return "ATAGG" . $self->t7_guide_rna;
-}
-
-sub t7_reverse_order_seq {
-  my ( $self ) = @_;
-
-  return "AAAC" . revcom( $self->t7_guide_rna )->seq . "C";
-}
 
 sub pairs {
   my $self = shift;
