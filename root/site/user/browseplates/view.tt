@@ -337,7 +337,7 @@
 [% END %]
 </div>
 
-[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' AND !plate.is_virtual %]
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
   <div class="span6">
   <div class="well">
     <h4>Tube Barcodes</h4>
