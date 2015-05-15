@@ -36,6 +36,43 @@
     <script src="[% c.uri_for( '/js/poller.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.8.21.custom.min.js' ) %]"></script>
 
+    <!-- Wide Screen
+    ================================================== -->
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // click display type button
+        $("#display_type_default, #display_type_wide").click(function(e) {
+            var element = $(this);
+            var display_type = element.attr('data-display-type');
+            if ( display_type == 'wide' ) {
+                $('#main').removeClass('container').addClass('container-fluid');
+                $('#display_type_default').show();
+                $('#display_type_wide').hide();
+            }
+            else {
+                $('#main').removeClass('container-fluid').addClass('container');
+                $('#display_type_default').hide();
+                $('#display_type_wide').show();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '[% c.uri_for("/api/update_user_display_type") %]',
+                data: {
+                    "display_type": element.attr('data-display-type')
+                },
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function(data) {
+                    console.log(data);
+                    alert( 'Error with ajax' );
+                },
+                dataType: 'json'
+            });
+        });
+    });
+    </script>
 
   </head>
 
@@ -43,7 +80,7 @@
 
     [% INCLUDE 'navigation.tt' %]
 
-    <div id="main" class="container">
+    <div id="main" class="[% IF c.session.display_type && c.session.display_type == 'wide' %]container-fluid[% ELSE %]container[% END %]">
       [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
       <div class="alert alert-error">
         <button class="close" data-dismiss="alert" href="#">&times;</button>

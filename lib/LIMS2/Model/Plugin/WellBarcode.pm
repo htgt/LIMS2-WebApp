@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.310';
+    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.317';
 }
 ## use critic
 
@@ -69,7 +69,7 @@ sub create_well_barcode {
         # parent well is probably the QC piq made by freeze_back so use this as root
         # but if the parent is not a piq then set current well as the root piq
         my ($parent) = $well->parent_wells;
-        if($parent->plate->type->id eq 'PIQ'){
+        if($parent and $parent->plate->type->id eq 'PIQ'){
             $create_params->{root_piq_well_id} = $parent->id;
         }
         else{

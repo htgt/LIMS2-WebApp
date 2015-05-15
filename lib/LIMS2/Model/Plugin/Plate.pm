@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.310';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.317';
 }
 ## use critic
 
@@ -100,6 +100,7 @@ sub pspec_create_plate {
             rename      => 'created_by_id'
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        appends    => { optional => 1, validate => 'existing_crispr_plate_appends_type' },
         comments   => { optional => 1 },
         wells      => { optional => 1 },
         is_virtual => { validate => 'boolean', optional => 1 },
@@ -150,6 +151,10 @@ sub create_plate {
         $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
     }
 
+    if ($validated_params->{type_id} eq 'CRISPR' && !$validated_params->{appends} ) {
+        $self->throw( Validation => 'No appends provided for CRISPR plate ' . $validated_params->{name} );
+    }
+
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
                 $validated_params,
@@ -157,6 +162,13 @@ sub create_plate {
             )
         }
     );
+
+    if ($validated_params->{type_id} eq 'CRISPR' && $validated_params->{appends} ) {
+        $self->schema->resultset('CrisprPlateAppend')->create({
+                plate_id  => $plate->id,
+                append_id => $validated_params->{appends},
+        });
+    }
 
     # refresh object data from database, sets created_by value if it was set by database
     $plate->discard_changes;
@@ -573,6 +585,59 @@ sub set_plate_barcode {
         if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
 
     return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_set_crispr_plate_appends {
+    return {
+        name              => { validate => 'plate_name', optional => 1  },
+        id                => { validate => 'integer',  optional => 1 },
+        species           => { validate => 'existing_species', optional => 1 },
+        new_plate_barcode => { validate => 'plate_barcode' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub set_crispr_plate_appends {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Setting plate barcode: $plate to" . $validated_params->{new_plate_barcode} );
+
+    $self->throw( Validation => 'Plate barcode '
+            . $validated_params->{new_plate_barcode}
+            . ' already exists for another plate, can not use this new plate barcode' )
+        if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
+
+    return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_random_plate_name{
+    return {
+        prefix => { validate => 'non_empty_string' },
+    }
+}
+
+sub random_plate_name{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_random_plate_name);
+    my @chars=('a'..'z','A'..'Z','0'..'9');
+    my $random_name;
+    for(1..6){
+        # rand @chars will generate a random
+        # number between 0 and scalar @chars
+        $random_name.=$chars[rand @chars];
+    }
+
+    $random_name = $validated_params->{prefix}.$random_name;
+
+    if( try { $self->retrieve_plate({ name => $random_name }) }){
+        $random_name = $self->random_plate_name($validated_params);
+    }
+
+    return $random_name;
 }
 
 1;

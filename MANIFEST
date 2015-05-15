@@ -81,6 +81,8 @@ lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummary.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargets.pm
 lib/LIMS2/Model/Schema/Result/CrisprPair.pm
+lib/LIMS2/Model/Schema/Result/CrisprPlateAppend.pm
+lib/LIMS2/Model/Schema/Result/CrisprPlateAppendsType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
@@ -131,6 +133,7 @@ lib/LIMS2/Model/Schema/Result/ProcessGlobalArmShorteningDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessInputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessNuclease.pm
 lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
+lib/LIMS2/Model/Schema/Result/ProcessParameter.pm
 lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
@@ -344,7 +347,9 @@ root/site/user/barcodes/discard_barcode.tt
 root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
 root/site/user/barcodes/picklist_grid.tt
+root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
+root/site/user/barcodes/piq_start_doubling.tt
 root/site/user/barcodes/plate_well_barcode_history.tt
 root/site/user/barcodes/rescan_barcoded_plate.tt
 root/site/user/barcodes/scan_barcode.tt
@@ -380,6 +385,7 @@ root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
 root/site/user/crisprs/crispr_ucsc_blat.tt
 root/site/user/crisprs/get_crisprs.tt
+root/site/user/crisprs/search_crisprs.tt
 root/site/user/crisprs/view_crispr.tt
 root/site/user/crisprs/view_crispr_group.tt
 root/site/user/crisprs/view_crispr_pair.tt
@@ -2322,6 +2328,7 @@ root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
 root/static/js/crispr-es-qc-well-update.js
 root/static/js/crispr-qc.js
+root/static/js/crisprs.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
 root/static/js/jquery.flot.min.js
@@ -2343,6 +2350,7 @@ root/static/test/data/clone_pick_process.yaml
 root/static/test/data/clone_pool_process.yaml
 root/static/test/data/cre_bac_recom_process.yaml
 root/static/test/data/create_crispr.yaml
+root/static/test/data/create_crispr_off_target.yaml
 root/static/test/data/create_crispr_process.yaml
 root/static/test/data/create_design_targets.yaml
 root/static/test/data/create_design_targets_atad2.yaml

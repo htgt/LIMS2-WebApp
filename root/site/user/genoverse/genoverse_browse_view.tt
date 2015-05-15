@@ -70,6 +70,7 @@
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
         [% USE String(genome) %]
+        width: $( document ).width(),
         genome    : '[% String.lower() %]', // see js/genomes/
         chr       : '[% chromosome %]',
         start     : [% exon_start %] - 2000,  // 2Kb context

@@ -5,7 +5,9 @@
 #
 # PL_linestr not long enough, was Devel::Declare loaded soon enough in (eval 1152)
 #
+
 # Solution is to use Try::Tiny instead
+
 
 use strict;
 use warnings FATAL => 'all';
@@ -50,6 +52,8 @@ my %REL_NAME_MAP = (
         crisprs_off_target_summaries => 'off_target_summaries',
         designs                      => 'nonsense_designs',
         crisprs                      => 'nonsense_crisprs',
+        crisprs_off_targets_crispr   => 'off_targets',
+        crispr_off_targets_off_target_crispr => 'off_target_crispr_for'
     },
     CrisprLociType => {
         crisprs_off_targets => 'crispr_off_targets',

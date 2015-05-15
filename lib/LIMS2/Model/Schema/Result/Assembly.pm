@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Assembly;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Assembly::VERSION = '0.310';
+    $LIMS2::Model::Schema::Result::Assembly::VERSION = '0.317';
 }
 ## use critic
 
@@ -108,21 +108,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crispr_off_targets
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_off_targets",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.assembly_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_primers_locis
 
 Type: has_many
@@ -214,8 +199,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w6AXpcHDohAOZ7MWQzza7g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pM2cAk8U27xZR625VGpBOA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

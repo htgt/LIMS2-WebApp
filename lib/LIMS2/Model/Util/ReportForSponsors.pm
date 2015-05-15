@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.310';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.317';
 }
 ## use critic
 
@@ -1018,11 +1018,22 @@ sub genes {
             { final_pick_well_accepted => 't',
               to_report => 't' },
             {
-                columns => [ qw/final_pick_plate_name final_pick_well_name/ ],
+                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_well_accepted/ ],
                 distinct => 1
             }
         );
         my $final_pick_pass_count = scalar @final_pick;
+
+        my @final_pick_qc = $summary_rs->search(
+            { final_pick_qc_seq_pass => 't',
+              to_report => 't' },
+            {
+                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
+                distinct => 1
+            }
+        );
+        my $final_pick_qc_pass_count = scalar @final_pick_qc;
+
 
 
         # # DNA wells
@@ -1059,10 +1070,10 @@ sub genes {
         my $total_total_colonies = 0;
         my $total_ep_pick_count = 0;
         my $total_ep_pick_pass_count = 0;
-        my $total_fs_count = 0;
-        my $total_if_count = 0;
-        my $total_wt_count = 0;
-        my $total_ms_count = 0;
+        my $total_frameshift = 0;
+        my $total_in_frame = 0;
+        my $total_wild_type = 0;
+        my $total_mosaic = 0;
 
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
@@ -1113,52 +1124,73 @@ sub genes {
             # $curr_ep_data{'ep_pick_pass_count'} = 0;
 
 
-            $curr_ep_data{'fs_count'} = 0;
-            $curr_ep_data{'if_count'} = 0;
-            $curr_ep_data{'wt_count'} = 0;
-            $curr_ep_data{'ms_count'} = 0;
+            $curr_ep_data{'frameshift'} = 0;
+            $curr_ep_data{'in-frame'} = 0;
+            $curr_ep_data{'wild_type'} = 0;
+            $curr_ep_data{'mosaic'} = 0;
 
 
+
+            ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
 
-                # if ( $ep_pick->ep_pick_well_accepted ) {
-                #     $curr_ep_data{'ep_pick_pass_count'}++;
-                # }
-
-                try {
-                    my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
-                        well_id => $ep_pick->ep_pick_well_id,
-                        # accepted => 1,
+                # grab data for crispr damage type
+                # only on validated runs...
+                my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
+                    {
+                        well_id  => $ep_pick->ep_pick_well_id,
                         'crispr_es_qc_run.validated' => 1,
-                    },{
-                        join    => 'crispr_es_qc_run',
-                    } );
-                    foreach my $damage (@damage) {
-                        for ($damage->crispr_damage_type_id) {
-                            when ('frameshift') { $curr_ep_data{'fs_count'}++ }
-                            when ('in-frame')   { $curr_ep_data{'if_count'}++ }
-                            when ('wild_type')  { $curr_ep_data{'wt_count'}++ }
-                            when ('mosaic')     { $curr_ep_data{'ms_count'}++ }
-                            # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                    },
+                    {
+                        join => 'crispr_es_qc_run'
+
+                    }
+                );
+
+                my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
+
+                if ( scalar( @crispr_damage_types ) == 1 ) {
+                    $curr_ep_data{$crispr_damage_types[0]}++;
+                }
+                elsif ( scalar( @crispr_damage_types ) > 1 ) {
+                    # remove any non accepted results
+                    @crispr_damage_types = uniq grep {$_}
+                        map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+
+                    if ( scalar( @crispr_damage_types ) == 1 ) {
+                        $curr_ep_data{$crispr_damage_types[0]}++;
+                    }
+                    else {
+                        if (scalar( @crispr_damage_types ) > 1 ) {
+                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has multiple crispr damage types associated with it: "
+                                    . join( ', ', @crispr_damage_types );
+                            $curr_ep_data{$crispr_damage_types[0]}++;
+                        } else {
+                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
                         }
                     }
-                };
+                }
+                else {
+                    DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
+                }
 
             }
+            ## use critic
 
-            $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wt_count'} + $curr_ep_data{'if_count'} + $curr_ep_data{'fs_count'} + $curr_ep_data{'ms_count'};
+
+            $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
-            $total_fs_count += $curr_ep_data{'fs_count'};
-            $total_if_count += $curr_ep_data{'if_count'};
-            $total_wt_count += $curr_ep_data{'wt_count'};
-            $total_ms_count += $curr_ep_data{'ms_count'};
+            $total_frameshift += $curr_ep_data{'frameshift'};
+            $total_in_frame += $curr_ep_data{'in-frame'};
+            $total_wild_type += $curr_ep_data{'wild_type'};
+            $total_mosaic += $curr_ep_data{'mosaic'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
-                if ( $curr_ep_data{'fs_count'} == 0 ) { $curr_ep_data{'fs_count'} = '' };
-                if ( $curr_ep_data{'if_count'} == 0 ) { $curr_ep_data{'if_count'} = '' };
-                if ( $curr_ep_data{'wt_count'} == 0 ) { $curr_ep_data{'wt_count'} = '' };
-                if ( $curr_ep_data{'ms_count'} == 0 ) { $curr_ep_data{'ms_count'} = '' };
+                if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
+                if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '' };
+                if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
+                if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
@@ -1170,10 +1202,10 @@ sub genes {
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
-            $total_fs_count = '';
-            $total_if_count = '';
-            $total_wt_count = '';
-            $total_ms_count = '';
+            $total_frameshift = '';
+            $total_in_frame = '';
+            $total_wild_type = '';
+            $total_mosaic = '';
         }
 
 
@@ -1220,15 +1252,16 @@ sub genes {
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
+            'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
             'total_colonies'         => $total_total_colonies,
-            'fs_count'               => $total_fs_count,
-            'if_count'               => $total_if_count,
-            'wt_count'               => $total_wt_count,
-            'ms_count'               => $total_ms_count,
+            'fs_count'               => $total_frameshift,
+            'if_count'               => $total_in_frame,
+            'wt_count'               => $total_wild_type,
+            'ms_count'                => $total_mosaic,
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1254,15 +1287,16 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        cmp $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              cmp $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       cmp $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       cmp $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      cmp $a->{ 'electroporations' }      ||
-            $b->{ 'passing_vector_wells' }  cmp $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          cmp $a->{ 'vector_wells' }          ||
+            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
+            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
+            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
+            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } cmp $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
             $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 

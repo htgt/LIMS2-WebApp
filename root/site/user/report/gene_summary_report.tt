@@ -166,7 +166,7 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Crispr QC <small>Accepted EP_PICK & PIQ</small></a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
       </h3>
     </div>
     <div id="collapseCrisprQC" class="accordion-body collapse" style="overflow-x:auto">
@@ -274,7 +274,7 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Secondary QC</a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Distribution QC</a>
       </h3>
     </div>
     <div id="collapsePIQ" class="accordion-body collapse">
@@ -493,7 +493,7 @@ function toggle_btn(btn, show_or_hide) {
   <div class="accordion-group">
     <div class="accordion-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">Electroporation Picks</a>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">Primary QC</a>
       </h3>
     </div>
     <div id="collapseEpPick" class="accordion-body collapse">

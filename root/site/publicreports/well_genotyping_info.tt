@@ -66,6 +66,10 @@
       <th>Cell Line</th>
         <td>[% data.cell_line %]</td>
     </tr>
+    <tr>
+      <th>Child Barcodes</th>
+        <td>[% data.child_barcodes.join(", ") %]</td>
+    </tr>
 </table>
 
 <h3>Crispr Information ([% IF crispr_data.size == 1 %]1 crispr[% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
@@ -135,6 +139,14 @@
 
 <h3>NHEJ Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>QC Type</th>
+      <td>[% data.qc_type %]</td>
+    </tr>
+    <tr>
+      <th>QC Source</th>
+      <td>Plate: [% data.qc_plate_name %]<br>Well: [% data.qc_well_name %]</td>
+    </tr>
     <tr>
       <th>Allele Type</th>
       <td>[% data.qc_data.damage_type %]</td>

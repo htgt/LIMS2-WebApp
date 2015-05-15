@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.310';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.317';
 }
 ## use critic
 
@@ -524,7 +524,17 @@ sub _stash_well_genotyping_info {
     my ( $self, $c, $search ) = @_;
 
     #well_id will become barcode
-    my $well = $c->model('Golgi')->retrieve_well( $search );
+    my $well;
+    try { $well = $c->model('Golgi')->retrieve_well( $search ) };
+
+    unless($well){
+        try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( $search ) };
+        if($well){
+            $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
+                $well->plate->name.". Reporting info for this well on version ".$well->plate->version
+                ." of the plate.");
+        }
+    }
 
     unless ( $well ) {
         $c->stash( error_msg => "Well doesn't exist" );
@@ -533,7 +543,12 @@ sub _stash_well_genotyping_info {
 
     try {
         #needs to be given a method for finding genes
-        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+        my $data = $well->genotyping_info( $gene_finder );
+        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+            $data->{ms_qc_data} = $ms_qc_data;
+        }
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
 
         my @crisprs = $well->parent_crispr_wells;
@@ -642,14 +657,21 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
             @crispr_damage_types = uniq grep {$_}
                 map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
 
-            if ( scalar( @crispr_damage_types ) > 1 ) {
-                $c->log->warn( $ep_pick_data{name}
-                        . ' ep_pick well has multiple crispr damage types associated with it: '
-                        . join( ', ', @crispr_damage_types ) );
-                $ep_pick_data{crispr_damage} = '-';
+            if ( scalar( @crispr_damage_types ) == 1 ) {
+                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
             }
             else {
-                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
+                if (scalar( @crispr_damage_types ) > 1 ) {
+                    $c->log->warn( $ep_pick_data{name}
+                            . ' ep_pick well has multiple crispr damage types associated with it: '
+                            . join( ', ', @crispr_damage_types ) );
+                    $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
+                } else {
+                    $c->log->warn( $ep_pick_data{name}
+                        . ' ep_pick well has no crispr damage type associated with it' );
+                    $ep_pick_data{crispr_damage} = '-';
+                }
+
             }
         }
         else {

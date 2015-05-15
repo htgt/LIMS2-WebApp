@@ -19,7 +19,11 @@
 
     <label><strong>Off Target Algorithm Type</strong></label>
     <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="bwa" checked>
+      <input type="radio" name="off_target_algorithm" value="exhaustive" checked>
+      Exhaustive
+    </label>
+    <label class="radio">
+      <input type="radio" name="off_target_algorithm" value="bwa">
       BWA
     </label>
     <label class="radio">

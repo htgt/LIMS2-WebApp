@@ -1,0 +1,36 @@
+[% META title = "PIQ Start Doubling", tab_name = 'Barcodes' -%]
+
+<h1>PIQ Well Start Doubling Process</h1>
+[% barcode_state_error = (well_details.barcode_state != 'checked_out') %]
+
+[% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
+
+[% IF barcode_state_error %]
+<div class="well">
+Only barcodes which are currently checked out can be used to start doubling (FIXME: is it necessary to checkout first??)<br>
+  <a href="[% c.uri_for('/user/well_checkout') %]" class="btn btn-primary">
+    <i class="icon-arrow-left icon-white"></i>
+    Back to barcode search
+  </a>
+</div>
+ [% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/piq_start_doubling' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <select name="oxygen_condition" id="oxygen_condition">
+      <option value="" selected>select oxygen condition</option>
+      [% FOREACH ox_condition IN oxygen_condition_list %]
+      <option value="[% ox_condition %]">[% ox_condition %]</option>
+      [% END %]
+    </select>
+    <br>
+    <button type="submit" name="cancel_start_doubling" class="btn" value="cancel_start_doubling">
+      Cancel Start Doubling
+    </button>
+    <button type="submit" name="confirm_start_doubling" class="btn btn-primary" value="confirm_start_doubling">
+      Confirm Start Doubling
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+ [% END %]

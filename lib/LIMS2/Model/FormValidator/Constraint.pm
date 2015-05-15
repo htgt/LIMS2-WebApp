@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.310';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.317';
 }
 ## use critic
 
@@ -49,6 +49,10 @@ sub genotyping_result_text {
 
 sub chromosome_fail_text {
     return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
+}
+
+sub oxygen_condition {
+    return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
 sub dna_seq {
@@ -285,6 +289,10 @@ sub existing_crispr_pair_id {
 
 sub existing_crispr_group_id {
     return shift->in_resultset( 'CrisprGroup', 'id' );
+}
+
+sub existing_crispr_plate_appends_type {
+    return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;
