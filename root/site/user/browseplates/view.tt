@@ -73,6 +73,22 @@
           <td></td>
         </tr>
 
+[% IF plate.type_id == 'CRISPR' %]
+        <tr>
+          <td>
+            <strong>Appends</strong>
+          </td>
+          <td>
+            [% IF plate.crispr_plate_append.append_id %]
+              [% plate.crispr_plate_append.append_id %]
+            [% ELSE %]
+              not set
+            [% END %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
+
         <tr>
           <td>
             <strong>Description</strong>
