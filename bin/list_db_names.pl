@@ -15,12 +15,16 @@ if it is, print the name as confirmation.
 =cut
 my $dbname_option = 0;
 my $uri_option = 0;
+my $host_option = 0;
+my $port_option = 0;
 my $help_option = 0;
 
 GetOptions(
-    'dbname'       => \$dbname_option,
-    'uri'          => \$uri_option,
-    'help|?'       => \$help_option,
+    'dbname'        => \$dbname_option,
+    'uri'           => \$uri_option,
+    'host'          => \$host_option,
+    'port'          => \$port_option,
+    'help|?'        => \$help_option,
 )
 or die usage_message();
 
@@ -45,6 +49,8 @@ return << "END_DIE";
 Usage: list_db_names.pl
     database_profile
     [--dbname]
+    [--host]
+    [--port]
     [--uri]
 
 Optional parameters in square brackets
@@ -58,6 +64,7 @@ If the dbname option is specified, returns the database name listed in the postg
 connection string from dbconnect.yaml.
 
 If the uri option is specified, returns the uri string used to connect using psql
+ The --host and --port options return those portions of the connect string
 
 END_DIE
 }
@@ -103,7 +110,7 @@ sub check_db_name {
 
     }
 
-    if ( (! $dbname_option ) and (! $uri_option ) ) {
+    if ( (! $dbname_option ) and (! $uri_option ) and (! $host_option) and (! $port_option) ) {
         return ($match);
     }
     # Process the full database name information
@@ -123,8 +130,16 @@ sub check_db_name {
         $dbname = 'not found';
     }
 
+    my $ret_val = $dbname;
+
     if ( $uri_option ) {
-        return 'postgresql' . '://' . $host . ':' . $port . '/' . $dbname;
+        $ret_val = 'postgresql' . '://' . $host . ':' . $port . '/' . $dbname;
     }
-    return $dbname;
+    elsif ( $host_option ) {
+        $ret_val = $host;
+    }
+    elsif ( $port_option ) {
+        $ret_val = $port;
+    }
+    return $ret_val;
 }
