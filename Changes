@@ -1,5 +1,24 @@
 {{$NEXT}}
 
+0.317     2015-05-15 14:28:55 Europe/London
+
+    Added append types for CRISPR plates
+
+0.316     2015-05-14 11:26:03 Europe/London
+
+   Added crispr search page
+   Improved clone genotyping search page
+   Changed section names in gene summary page 
+
+0.315     2015-05-11 16:01:08 Europe/London
+
+   Bugfix: public clone genotyping page now shows ancestor PIQ or EP_PICK QC
+
+0.314     2015-05-11 11:49:54 Europe/London
+
+    Added REST API to get crispr off-targets
+    Bugfix: can now checkout last barcode from a plate
+
 0.313     2015-05-09 08:55:15 Europe/London
 
    Re-work crispr off targets table, these are now links between crisprs.
