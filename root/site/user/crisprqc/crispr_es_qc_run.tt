@@ -68,6 +68,33 @@ $(document).ready(function() {
 
     });
 
+    $(".validate_crispr_checkbox").change(function() {
+
+        var state = this.checked;
+        var crispr_id = $(this).attr('data-crispr_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_crispr" ) %]',
+            data: {
+                "crispr_id": crispr_id,
+                "validated": state
+            },
+            success: function(data) {
+                console.log(data);
+                // checkbox true all other same crisprs
+                $(".validate_crispr_checkbox").filter('[data-crispr_id="' + crispr_id + '"]').each( function(i) {
+                    $(this).attr( 'checked', state );
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error validating crispr change not saved' );
+            },
+            dataType: 'json'
+        });
+    });
+
 });
 </script>
 
