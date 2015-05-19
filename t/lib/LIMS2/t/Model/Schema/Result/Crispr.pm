@@ -30,6 +30,7 @@ sub all_tests : Tests {
         'pam_right'           => 1,
         'wge_crispr_id'       => undef,
         'nonsense_crispr_original_crispr_id' => undef,
+        'validated'           => 0,
     );
 
     note("Accessing the schema");
