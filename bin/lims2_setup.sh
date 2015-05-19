@@ -42,6 +42,15 @@ case $1 in
     'pg9.3')
         lims2_pg9.3
         ;;
+    psql)
+        lims2_psql
+        ;;
+    audit)
+        lims2_audit
+        ;;
+    regenerate_schema)
+        lims2_regenerate_schema
+        ;;
     *) 
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -98,6 +107,7 @@ function lims2_setdb {
         # List the databases available
         printf "$L2I_STRING: Available database names from LIMS2_DBCONNECT_CONFIG\n\n"
         $LIMS2_MIGRATION_ROOT/bin/list_db_names.pl
+        printf "Use 'lims2 psql' command to open a psql command line for this db\n"
     fi
 }
 
@@ -116,6 +126,30 @@ function lims2_replicate {
             lims2_load_generic $1
             ;; 
     esac
+}
+
+function lims2_psql {
+    printf "Opening psql shell with database: $LIMS2_DB\n"
+    psql `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --uri`
+}
+
+function lims2_audit {
+    export LIMS2_DB_HOST=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --host`
+    export LIMS2_DB_PORT=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --port`
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Audit command: generate-pg-audit-ddl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2 > ./audit-up.sql\n"
+
+    $LIMS2_MIGRATION_ROOT/script/generate-pg-audit-ddl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2 > ./audit-up.sql
+
+}
+
+function lims2_regenerate_schema {
+    export LIMS2_DB_HOST=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --host`
+    export LIMS2_DB_PORT=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --port`
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Regenerating schema for the currently select database: $LIMS2_DB_NAME\n"
+    printf "Regenerate command: lims2_model_dump_schema.pl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2\n"
+    $LIMS2_MIGRATION_ROOT/bin/lims2_model_dump_schema.pl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2
 }
 
 function lims2_load_test {
@@ -231,6 +265,7 @@ LIMS2 useful environment variables:
 \$PG_DUMP_EXE                  : $PG_DUMP_EXE
 \$PG_RESTORE_EXE               : $PG_RESTORE_EXE
 \$PSQL_EXE                     : $PSQL_EXE
+\$PGUSER                       : $PGUSER
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
@@ -250,7 +285,7 @@ LIMS2 useful environment variables:
 
 END
 
-lims2_local_environment
+lims2_local_environment  # This is defined in your ~/.lims2_local
 }
 
 function lims2_help {
@@ -284,6 +319,10 @@ Commands avaiable:
     setdb        - lists the available database profiles, highlighting the profile currently in use
     setdb <db_name> - sets the LIMS2_DB (*) environment variable 
 
+    psql         - opens psql command prompt using the currently selected database
+    audit        - generate audit.up in the current directory for the selected database
+    regenerate_schema
+                 - generate new schema files for the currently selected database
     help         - displays this help message
 Files:
 ~/.lims2_local     - sourced near the end of the setup phase for you own mods
@@ -297,3 +336,6 @@ if [[ -f $HOME/.lims2_local ]] ; then
     source $HOME/.lims2_local
 fi
 
+if [[ !"$PGUSER" ]]; then
+    export PGUSER=lims2
+fi
