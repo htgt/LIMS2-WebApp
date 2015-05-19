@@ -83,6 +83,12 @@ __PACKAGE__->table("crisprs");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 validated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -107,6 +113,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "nonsense_crispr_original_crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "validated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -383,8 +391,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:29:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IfC3Vc0Dr8FWuYmFn4XUlw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 09:49:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3PwYDcsn2bCl1E4r8O5GVg
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 
@@ -417,6 +425,7 @@ sub as_hash {
         wge_crispr_id  => $self->wge_crispr_id,
         crispr_primers => [ map { $_->as_hash } $self->crispr_primers ],
         nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
+        validated      => $self->validated,
     );
 
     if ( !$options->{no_off_targets} ) {
