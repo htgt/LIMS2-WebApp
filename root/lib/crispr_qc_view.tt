@@ -39,6 +39,8 @@
 
     [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
 
+    [% INCLUDE 'crispr_validation.tt' row = row %]
+
     [% IF row.fwd_read or row.rev_read %]
         <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
     [% END %]
