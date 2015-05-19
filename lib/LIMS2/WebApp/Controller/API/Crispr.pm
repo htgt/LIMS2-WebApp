@@ -154,4 +154,21 @@ sub crispr_group_GET {
     return $self->status_ok( $c, entity => $pair );
 }
 
+sub validate_crispr : Path( '/api/validate_crispr' ) : Args(0) : ActionClass('REST'){
+}
+
+sub validate_crispr_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->update_crispr_validation_status( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr );
+}
+
 1;
