@@ -367,6 +367,7 @@ sub format_well_data {
         crispr_id               => $json->{crispr_id} || "",
         is_crispr_pair          => $json->{is_pair} || "",
         is_crispr_group         => $json->{is_group} || "",
+        ranked_crisprs          => $self->ranked_crisprs( $crispr ),
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
@@ -413,7 +414,7 @@ sub crispr {
   }
   elsif ( $json->{is_group} ) {
       $rs = 'CrisprGroup';
-      $prefetch = [ 'crispr_designs' ];
+      $prefetch = [ ];
   }
   else {
       $rs = 'Crispr';
@@ -428,18 +429,57 @@ sub crispr {
   return $crispr;
 }
 
+=head2 ranked_crisprs
+
+Return array of crisprs ranked from left to right.
+
+=cut
+sub ranked_crisprs {
+    my ( $self, $crispr ) = @_;
+
+    my @ranked_crisprs;
+    if ( $crispr->is_group ) {
+        @ranked_crisprs = map{ _ranked_crispr_data( $_ ) } $crispr->ranked_crisprs;
+    }
+    elsif ( $crispr->is_pair ) {
+        @ranked_crisprs = (
+            _ranked_crispr_data( $crispr->left_crispr ),
+            _ranked_crispr_data( $crispr->right_crispr ),
+        );
+    }
+    else {
+        push @ranked_crisprs, _ranked_crispr_data( $crispr );
+    }
+
+    return \@ranked_crisprs;
+}
+
+=head2 _ranked_crispr_data
+
+Get crispr data we need for ranked crisprs ( used in validate crispr interface )
+
+=cut
+sub _ranked_crispr_data {
+    my ( $crispr ) = @_;
+
+    return {
+        id        => $crispr->id,
+        validated => $crispr->validated,
+    };
+}
+
 ## no critic(ProhibitExcessComplexity)
 sub format_alignment_strings {
     my ( $self, $params, $json ) = @_;
 
-    return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
-    return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
+    return { forward => 'No Read', reverse => 'No Read', no_reverse_read => 1, no_forward_read => 1 } if $json->{no_reads};
+    return { forward => 'No valid crispr', reverse => 'No valid crispr' } if $json->{no_crispr};
     if ( $json->{forward_no_alignment} && $json->{reverse_no_alignment} ) {
         if ( !$self->fwd_read ) {
-            return { forward => 'No Read', no_reverse_alignment => 1 };
+            return { forward => 'No Read', no_forward_read => 1, no_reverse_alignment => 1 };
         }
         elsif ( !$self->rev_read ) {
-            return { reverse => 'No Read', no_forward_alignment => 1 };
+            return { reverse => 'No Read', no_reverse_read => 1, no_forward_alignment => 1 };
         }
         else {
             return { no_forward_alignment => 1, no_reverse_alignment => 1 };
