@@ -18,6 +18,8 @@ use LIMS2::Model::Util::BarcodeActions qw(
 use namespace::autoclean;
 use JSON;
 
+use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+
 BEGIN { extends 'Catalyst::Controller'; }
 
 sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
@@ -975,6 +977,20 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
 
     $c->stash->{barcode_data} = \@sorted_barcode_data;
     $c->stash->{plate} = $plate;
+
+    return;
+}
+
+sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) : Args(0){
+    my ($self, $c) = @_;
+
+    try{
+        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
+        $c->stash->{data} = $ms_barcode_data;
+    }
+    catch($e){
+        $c->stash->{error_msg} = $e;
+    }
 
     return;
 }

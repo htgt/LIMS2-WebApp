@@ -7,6 +7,7 @@ use LIMS2::Util::TraceServer;
 use Bio::SCF;
 use Bio::Perl qw( revcom );
 use namespace::autoclean;
+use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 
 with "MooseX::Log::Log4perl";
 
@@ -223,6 +224,24 @@ sub well_genotyping_crispr_qc_GET {
 
     return $error ? $self->status_bad_request( $c, message => $error )
                   : $self->status_ok( $c, entity => $data );
+}
+
+sub mutation_signatures_barcodes :Path( '/public_api/mutation_signatures_barcodes' ) :Args(0) :ActionClass('REST'){
+}
+
+sub mutation_signatures_barcodes_GET{
+    my ($self, $c) = @_;
+
+    try{
+        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
+        $c->stash->{json_data} = $ms_barcode_data;
+    }
+    catch{
+        $c->stash->{json_data} = { error => $_ };
+    };
+
+    $c->forward('View::JSON');
+    return;
 }
 
 sub mutation_signatures_info :Path('/public_api/mutation_signatures_info') :Args(1) :ActionClass('REST') {
