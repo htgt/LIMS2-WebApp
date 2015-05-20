@@ -197,7 +197,7 @@ function toggle_btn(btn, show_or_hide) {
             </tr>
 
             <tr>
-            [% IF qc.piq_qc %]
+              [% IF qc.piq_qc %]
                 <td>
                     <strong>[% qc.piq_well %]</strong>
                     <br>
@@ -212,13 +212,13 @@ function toggle_btn(btn, show_or_hide) {
                     hide_well_name      = 1
                     hide_gene           = 1
                 %]
-                [% ELSE %]
-                  <td colspan="7">
-                    <span class="label">No Accepted PIQ Crispr QC</span>
-                  </td>
-                [% END %]
-            [%- END %]
+              [% ELSE %]
+                <td colspan="7">
+                  <span class="label">No Accepted PIQ Crispr QC</span>
+                </td>
+              [% END %]
             </tr>
+            [%- END %]
 
           </tbody>
         </table>
@@ -288,6 +288,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>Freezer Instance</th>
             <th>Accepted?</th>
+            <th>Call</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -308,6 +309,10 @@ function toggle_btn(btn, show_or_hide) {
                 [% END %]
                 [% well.is_accepted %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
+              <td>
+                [% SET piq_well = well.well_id_string %]
+                [% wells.piq.$piq_well.crispr_qc_data.damage_type %]
               </td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
@@ -507,6 +512,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>Electroporation Well</th>
             <th>Accepted?</th>
+            <th>Call</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -529,6 +535,10 @@ function toggle_btn(btn, show_or_hide) {
                 [% well.is_accepted %]
 
                 [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
+              <td>
+                [% SET ep_pick_well = well.well_id_string %]
+                [% wells.ep_pick.$ep_pick_well.crispr_qc_data.damage_type %]
               </td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
