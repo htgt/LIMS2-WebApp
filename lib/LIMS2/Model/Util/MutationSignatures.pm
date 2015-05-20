@@ -46,12 +46,19 @@ sub get_mutation_signatures_barcode_data{
 			oxygen_condition  => $process->get_parameter_value('oxygen_condition'),
 		};
 
+        # There should always be a doubling start event
+		my $doubling_start = $parent_well->well_barcode->most_recent_event("doubling_in_progress");
+		if($doubling_start){
+            $data->{doubling_start} = $doubling_start->created_at;
+		}
+
 		if($child_well){
 			$data->{number_of_doublings} = $process->get_parameter_value('doublings');
-			$data->{child_barcode}       = $child_well->well_barcode->barcode;
+			$data->{child_barcode}       = ( $child_well->well_barcode ? $child_well->well_barcode->barcode : undef );
 			$data->{child_plate_name}    = $child_well->plate->name;
             $data->{child_well_name}     = $child_well->name;
-            $data->{child_well_accetped} = $child_well->is_accepted;
+            $data->{child_well_accepted} = $child_well->is_accepted;
+            $data->{child_well_accepted_str} = ($child_well->is_accepted ? 'Yes' : 'No' );
 		}
 
 		push @all_data, $data;

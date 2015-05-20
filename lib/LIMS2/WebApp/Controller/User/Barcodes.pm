@@ -211,7 +211,7 @@ sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
     $c->assert_user_roles( 'read' );
 
     # User Scans a barcode
-    if($c->request->param('submit_barcode')){
+    if($c->request->param('submit_barcode') or $c->request->param('barcode')){
         # Fetches info about the well
         my $bc = $c->request->param('barcode');
         unless ($bc){
@@ -986,7 +986,13 @@ sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) 
 
     try{
         my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
-        $c->stash->{data} = $ms_barcode_data;
+        my $barcodes_by_state = {};
+        foreach my $barcode (@$ms_barcode_data){
+            my $state = $barcode->{state};
+            $barcodes_by_state->{$state} ||= [];
+            push @{ $barcodes_by_state->{$state} }, $barcode;
+        }
+        $c->stash->{data} = $barcodes_by_state;
     }
     catch($e){
         $c->stash->{error_msg} = $e;
