@@ -436,6 +436,7 @@ Return array of crisprs ranked from left to right.
 =cut
 sub ranked_crisprs {
     my ( $self, $crispr ) = @_;
+    return [  ] unless $crispr;
 
     my @ranked_crisprs;
     if ( $crispr->is_group ) {
@@ -473,7 +474,8 @@ sub format_alignment_strings {
     my ( $self, $params, $json ) = @_;
 
     return { forward => 'No Read', reverse => 'No Read', no_reverse_read => 1, no_forward_read => 1 } if $json->{no_reads};
-    return { forward => 'No valid crispr', reverse => 'No valid crispr' } if $json->{no_crispr};
+    return { forward => 'No valid crispr', reverse => 'No valid crispr' , no_reverse_read => 1, no_forward_read => 1} if $json->{no_crispr};
+
     if ( $json->{forward_no_alignment} && $json->{reverse_no_alignment} ) {
         if ( !$self->fwd_read ) {
             return { forward => 'No Read', no_forward_read => 1, no_reverse_alignment => 1 };
