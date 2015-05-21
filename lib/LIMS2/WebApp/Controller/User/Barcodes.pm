@@ -19,6 +19,7 @@ use namespace::autoclean;
 use JSON;
 
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+use LIMS2::Model::Util::CGAP;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -996,6 +997,31 @@ sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) 
     }
     catch($e){
         $c->stash->{error_msg} = $e;
+    }
+
+    return;
+}
+
+sub search_cgap_friendly_name : Path( '/user/search_cgap_friendly_name' ) : Args(0){
+    my ($self, $c) = @_;
+
+    if($c->req->param('search') or $c->req->param('cgap_name')){
+        my $name = $c->req->param('cgap_name');
+        if($name){
+            $c->stash->{name} = $name;
+            try{
+                my $cgap = LIMS2::Model::Util::CGAP->new;
+                my $barcode = $cgap->get_barcode_for_cgap_name($name);
+                $c->flash->{success_msg} = "Found barcode $barcode for CGAP name $name";
+                $c->res->redirect( $c->uri_for('/user/scan_barcode', { barcode => $barcode }) );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Error searching for cgap name $name: $e";
+            }
+        }
+        else{
+            $c->stash->{error_msg} = "You must provide a name";
+        }
     }
 
     return;
