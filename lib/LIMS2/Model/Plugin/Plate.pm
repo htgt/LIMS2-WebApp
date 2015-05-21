@@ -70,7 +70,8 @@ sub list_plates {
     if($validated_params->{hide_virtual_fp_piq}){
         $resultset = $resultset->search({
             -or => {
-                'me.is_virtual' => undef ,
+                'me.is_virtual' => undef,
+                -not_bool => 'me.is_virtual',
                 -and  => {
                     -bool => 'me.is_virtual',
                     'me.type_id' => { -not_in => [qw(FP PIQ)]}
