@@ -73,7 +73,7 @@ function check_and_set_dir {
 
 function lims2_webapp {
     if [[  "$1"   ]] ; then
-        LIMS2_PORT=$1 
+        LIMS2_PORT=$1
     elif [[ "$LIMS2_WEBAPP_SERVER_PORT"  ]] ; then
         LIMS2_PORT=$LIMS2_WEBAPP_SERVER_PORT
     else
@@ -100,7 +100,7 @@ function lims2_setdb {
         if [[ `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $1` == $1 ]] ; then
         export LIMS2_DB=$1
         printf "$L2I_STRING: database is now $LIMS2_DB\n"
-        else 
+        else
             printf "$L2E_STRING: database '$1' does not exist in $LIMS2_DBCONNECT_CONFIG\n"
         fi
     else
@@ -124,7 +124,7 @@ function lims2_replicate {
             ;;
         *)
             lims2_load_generic $1
-            ;; 
+            ;;
     esac
 }
 
@@ -199,15 +199,15 @@ function lims2_replicate_generic {
             --destination_db $dbname \
             --overwrite 1 \
             --with_data 1 \
-            --create_test_role 0 
-    else 
+            --create_test_role 0
+    else
         printf "$L2E_STRING: cannot replicate because database '$1' does not exist in $LIMS2_DBCONNECT_CONFIG\n"
     fi
 
 }
 
 function lims2_load_staging {
-    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
+    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone
 }
 
 function lims2_wge_rest_client {
@@ -251,7 +251,7 @@ cat << END
 LIMS2 useful environment variables:
 
 \$LIMS2_DEV_ROOT               : $LIMS2_DEV_ROOT
-\$SAVED_LIMS2_DEV_ROOT         : $SAVED_LIMS2_DEV_ROOT 
+\$SAVED_LIMS2_DEV_ROOT         : $SAVED_LIMS2_DEV_ROOT
 \$LIMS2_WEBAPP_SERVER_PORT     : $LIMS2_WEBAPP_SERVER_PORT
 \$LIMS2_WEBAPP_SERVER_OPTIONS  : $LIMS2_WEBAPP_SERVER_OPTIONS
 \$LIMS2_DEBUG_DEFINITION       : $LIMS2_DEBUG_DEFINITION
@@ -275,6 +275,7 @@ LIMS2 useful environment variables:
 \$LIMS2_REPORT_DIR             : $LIMS2_REPORT_DIR
 \$LIMS2_WEBAPP_CONFIG          : $LIMS2_WEBAPP_CONFIG
 \$LIMS2_DBCONNECT_CONFIG       : $LIMS2_DBCONNECT_CONFIG
+\$LIMS2_URL_CONFIG             : $LIMS2_URL_CONFIG
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
@@ -317,7 +318,7 @@ Commands avaiable:
     devel        - sets the environment to use entirely local checkouts (no production code)
 
     setdb        - lists the available database profiles, highlighting the profile currently in use
-    setdb <db_name> - sets the LIMS2_DB (*) environment variable 
+    setdb <db_name> - sets the LIMS2_DB (*) environment variable
 
     psql         - opens psql command prompt using the currently selected database
     audit        - generate audit.up in the current directory for the selected database
