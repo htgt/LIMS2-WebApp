@@ -258,6 +258,10 @@
             <li>
               <a href="[% c.uri_for( '/user/mutation_signatures_barcodes' ) %]">Mutation Signatures Barcodes</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_cgap_friendly_name' ) %]">Search by CGAP Name</a>
+            </li>
           </ul>
         </li>
 
