@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.316';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.318';
 }
 ## use critic
 
@@ -23,6 +23,9 @@ use LIMS2::Model::Util::BarcodeActions qw(
 );
 use namespace::autoclean;
 use JSON;
+
+use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+use LIMS2::Model::Util::CGAP;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -215,7 +218,7 @@ sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
     $c->assert_user_roles( 'read' );
 
     # User Scans a barcode
-    if($c->request->param('submit_barcode')){
+    if($c->request->param('submit_barcode') or $c->request->param('barcode')){
         # Fetches info about the well
         my $bc = $c->request->param('barcode');
         unless ($bc){
@@ -981,6 +984,53 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
 
     $c->stash->{barcode_data} = \@sorted_barcode_data;
     $c->stash->{plate} = $plate;
+
+    return;
+}
+
+## no critic(RequireFinalReturn)
+sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) : Args(0){
+    my ($self, $c) = @_;
+
+    try{
+        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
+        my $barcodes_by_state = {};
+        foreach my $barcode (@$ms_barcode_data){
+            my $state = $barcode->{state};
+            $barcodes_by_state->{$state} ||= [];
+            push @{ $barcodes_by_state->{$state} }, $barcode;
+        }
+        $c->stash->{data} = $barcodes_by_state;
+    }
+    catch($e){
+        $c->stash->{error_msg} = $e;
+    }
+
+    return;
+}
+## use critic
+
+sub search_cgap_friendly_name : Path( '/user/search_cgap_friendly_name' ) : Args(0){
+    my ($self, $c) = @_;
+
+    if($c->req->param('search') or $c->req->param('cgap_name')){
+        my $name = $c->req->param('cgap_name');
+        if($name){
+            $c->stash->{name} = $name;
+            try{
+                my $cgap = LIMS2::Model::Util::CGAP->new;
+                my $barcode = $cgap->get_barcode_for_cgap_name($name);
+                $c->flash->{success_msg} = "Found barcode $barcode for CGAP name $name";
+                $c->res->redirect( $c->uri_for('/user/scan_barcode', { barcode => $barcode }) );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Error searching for cgap name $name: $e";
+            }
+        }
+        else{
+            $c->stash->{error_msg} = "You must provide a name";
+        }
+    }
 
     return;
 }

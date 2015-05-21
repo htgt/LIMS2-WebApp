@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.316';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.318';
 }
 ## use critic
 
@@ -380,9 +380,7 @@ sub _get_incomplete_doubling_process{
 
     my $barcode = $bc->barcode;
     my $incomplete_doubling;
-    foreach my $process ($bc->well->child_processes){
-        next unless $process->type_id eq 'doubling';
-
+    foreach my $process (_get_doubling_processes($bc)){
         my @output_wells = $process->output_wells;
         next if @output_wells;
 
@@ -396,6 +394,17 @@ sub _get_incomplete_doubling_process{
 
     return $incomplete_doubling;
 }
+
+sub _get_doubling_processes{
+    my ($bc) = @_;
+    my @doubling_processes;
+    foreach my $process ($bc->well->child_processes){
+        next unless $process->type_id eq 'doubling';
+        push @doubling_processes, $process;
+    }
+    return @doubling_processes;
+}
+
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
 DEBUG Dumper($validated_params);
@@ -1049,8 +1058,16 @@ sub upload_qc_plate{
         if($validated_params->{process_type} eq 'ms_qc'){
             # find the oxygen condition of doubling process
             # linked to barcoded well
-            my $incomplete_doubling = _get_incomplete_doubling_process($well_barcode);
-            my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
+            my @processes = _get_doubling_processes($well_barcode);
+            my $oxygen_condition;
+            foreach my $process (@processes){
+                my $this_ox_condition = $process->get_parameter_value('oxygen_condition');
+                if($oxygen_condition and $oxygen_condition ne $this_ox_condition){
+                    my $well = $well_barcode->well;
+                    die "Inconsistent oxygen conditions on doubling processes for input well $well";
+                }
+                $oxygen_condition = $this_ox_condition;
+            }
 
             # Add this along with the doubling number to well_data hash
             $well_data->{oxygen_condition} = $oxygen_condition;

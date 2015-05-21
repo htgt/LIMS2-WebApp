@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.316';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.318';
 }
 ## use critic
 
@@ -289,6 +289,10 @@ sub existing_crispr_pair_id {
 
 sub existing_crispr_group_id {
     return shift->in_resultset( 'CrisprGroup', 'id' );
+}
+
+sub existing_crispr_plate_appends_type {
+    return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

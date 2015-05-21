@@ -81,6 +81,8 @@ lib/LIMS2/Model/Schema/Result/CrisprLocus.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargetSummary.pm
 lib/LIMS2/Model/Schema/Result/CrisprOffTargets.pm
 lib/LIMS2/Model/Schema/Result/CrisprPair.pm
+lib/LIMS2/Model/Schema/Result/CrisprPlateAppend.pm
+lib/LIMS2/Model/Schema/Result/CrisprPlateAppendsType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
@@ -170,6 +172,7 @@ lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm
+lib/LIMS2/Model/Schema/Result/WellAssemblyQc.pm
 lib/LIMS2/Model/Schema/Result/WellBarcode.pm
 lib/LIMS2/Model/Schema/Result/WellChromosomeFail.pm
 lib/LIMS2/Model/Schema/Result/WellColonyCount.pm
@@ -191,6 +194,7 @@ lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
 lib/LIMS2/Model/Util/BarcodeActions.pm
+lib/LIMS2/Model/Util/CGAP.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreKiESDistribution.pm
 lib/LIMS2/Model/Util/CreateDesign.pm
@@ -209,6 +213,7 @@ lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
+lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
@@ -344,6 +349,7 @@ root/site/user/barcodes/create_qc_plate.tt
 root/site/user/barcodes/discard_barcode.tt
 root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
+root/site/user/barcodes/mutation_signatures_barcodes.tt
 root/site/user/barcodes/picklist_grid.tt
 root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
@@ -351,6 +357,7 @@ root/site/user/barcodes/piq_start_doubling.tt
 root/site/user/barcodes/plate_well_barcode_history.tt
 root/site/user/barcodes/rescan_barcoded_plate.tt
 root/site/user/barcodes/scan_barcode.tt
+root/site/user/barcodes/search_cgap_friendly_name.tt
 root/site/user/barcodes/view_checked_out_barcodes.tt
 root/site/user/barcodes/well_barcode_history.tt
 root/site/user/barcodes/well_checkout.tt

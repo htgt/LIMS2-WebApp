@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.316';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.318';
 }
 ## use critic
 
@@ -302,6 +302,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_assembly_qcs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellAssemblyQc>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_assembly_qcs",
+  "LIMS2::Model::Schema::Result::WellAssemblyQc",
+  { "foreign.assembly_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_barcode
 
 Type: might_have
@@ -548,8 +563,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 16:41:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YiWRvSPiOvAhXla608AoMw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:23:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vONvzPb/EJls8J7tIbF/Dg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1508,8 +1523,7 @@ sub input_process_parameters{
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref
 #see code in WellData for an example
-# NOTE this will always return the epd wells qc data, even if there is qc
-#      data on the current well ( e.g. with a PIQ well )
+# NOTE this will return the QC data for the first parent well with crispr QC attached
 sub genotyping_info {
   my ( $self, $gene_finder, $only_qc_data ) = @_;
 

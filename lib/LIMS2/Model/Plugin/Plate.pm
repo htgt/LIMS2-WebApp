@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.316';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.318';
 }
 ## use critic
 
@@ -76,7 +76,8 @@ sub list_plates {
     if($validated_params->{hide_virtual_fp_piq}){
         $resultset = $resultset->search({
             -or => {
-                'me.is_virtual' => undef ,
+                'me.is_virtual' => undef,
+                -not_bool => 'me.is_virtual',
                 -and  => {
                     -bool => 'me.is_virtual',
                     'me.type_id' => { -not_in => [qw(FP PIQ)]}
@@ -100,6 +101,7 @@ sub pspec_create_plate {
             rename      => 'created_by_id'
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        appends    => { optional => 1, validate => 'existing_crispr_plate_appends_type' },
         comments   => { optional => 1 },
         wells      => { optional => 1 },
         is_virtual => { validate => 'boolean', optional => 1 },
@@ -150,6 +152,10 @@ sub create_plate {
         $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
     }
 
+    if ($validated_params->{type_id} eq 'CRISPR' && !$validated_params->{appends} ) {
+        $self->throw( Validation => 'No appends provided for CRISPR plate ' . $validated_params->{name} );
+    }
+
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
                 $validated_params,
@@ -157,6 +163,13 @@ sub create_plate {
             )
         }
     );
+
+    if ($validated_params->{type_id} eq 'CRISPR' && $validated_params->{appends} ) {
+        $self->schema->resultset('CrisprPlateAppend')->create({
+                plate_id  => $plate->id,
+                append_id => $validated_params->{appends},
+        });
+    }
 
     # refresh object data from database, sets created_by value if it was set by database
     $plate->discard_changes;
@@ -277,6 +290,13 @@ sub delete_plate {
     }
 
     $plate->search_related_rs('plate_comments')->delete;
+
+    if ($plate->type_id eq 'CRISPR') {
+        $self->schema->resultset('CrisprPlateAppend')->find({
+                plate_id  => $plate->id,
+        })->delete;
+    }
+
     $plate->delete;
     return;
 }
@@ -560,6 +580,32 @@ sub pspec_set_plate_barcode {
 }
 
 sub set_plate_barcode {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Setting plate barcode: $plate to" . $validated_params->{new_plate_barcode} );
+
+    $self->throw( Validation => 'Plate barcode '
+            . $validated_params->{new_plate_barcode}
+            . ' already exists for another plate, can not use this new plate barcode' )
+        if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
+
+    return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_set_crispr_plate_appends {
+    return {
+        name              => { validate => 'plate_name', optional => 1  },
+        id                => { validate => 'integer',  optional => 1 },
+        species           => { validate => 'existing_species', optional => 1 },
+        new_plate_barcode => { validate => 'plate_barcode' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub set_crispr_plate_appends {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
