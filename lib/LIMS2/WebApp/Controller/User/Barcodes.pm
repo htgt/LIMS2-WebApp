@@ -982,6 +982,7 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
     return;
 }
 
+## no critic(RequireFinalReturn)
 sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) : Args(0){
     my ($self, $c) = @_;
 
@@ -1001,6 +1002,7 @@ sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) 
 
     return;
 }
+## use critic
 
 sub search_cgap_friendly_name : Path( '/user/search_cgap_friendly_name' ) : Args(0){
     my ($self, $c) = @_;
