@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use DDP;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -260,6 +261,38 @@ sub update_crispr_es_qc_well{
 
 
     return $qc_well;
+}
+
+sub pspec_update_crispr_validation_status {
+    return {
+        crispr_es_qc_well_id => { validate => 'integer' },
+        crispr_id            => { validate => 'integer' },
+        validated            => { validate => 'boolean_string' },
+    };
+}
+
+=head2 update_crispr_validation_status
+
+Update the validated status of a crispr linked to crispr es qc well record.
+
+=cut
+sub update_crispr_validation_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_validation_status );
+
+    my $crispr_validation = $self->schema->resultset( 'CrisprValidation' )->find_or_create(
+         { slice_def $validated_params, qw( crispr_es_qc_well_id crispr_id ) }
+    );
+
+    $crispr_validation->update(
+        {
+            validated => $validated_params->{validated},
+        }
+    );
+    $self->log->info( "Updated validated crispr: " . p( $validated_params ) );
+
+    return $crispr_validation;
 }
 
 1;

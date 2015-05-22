@@ -196,34 +196,6 @@ sub create_crispr_locus {
     return $crispr_locus;
 }
 
-sub pspec_update_crispr_validation_status {
-    return {
-        crispr_id => { validate => 'integer' },
-        validated => { validate => 'boolean_string' },
-    };
-}
-
-=head2 update_crispr_validation_status
-
-Update the validated status of a crispr.
-
-=cut
-# TODO change
-sub update_crispr_validation_status {
-    my ( $self, $params ) = @_;
-
-    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_validation_status );
-    my $crispr = $self->retrieve_crispr( { id => $validated_params->{crispr_id} } );
-
-    $crispr->update(
-        {
-            validated => $validated_params->{validated},
-        }
-    );
-
-    return $crispr;
-}
-
 sub pspec_retrieve_crispr_off_target {
     return {
         crispr_id            => { validate => 'integer', optional => 1 },

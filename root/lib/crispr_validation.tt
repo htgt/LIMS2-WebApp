@@ -12,6 +12,7 @@
                id="crispr_validate_[% row.es_qc_well_id %]"
                class="validate_crispr_checkbox"
                data-crispr_id="[% crispr.id %]"
+               data-crispr_es_qc_well_id="[% row.es_qc_well_id %]"
                [% IF crispr.validated %] checked='checked' [% END %]
         />
     [% END %]
