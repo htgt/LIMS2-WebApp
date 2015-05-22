@@ -223,6 +223,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_validations
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprValidation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_validations",
+  "LIMS2::Model::Schema::Result::CrisprValidation",
+  { "foreign.crispr_es_qc_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well
 
 Type: belongs_to
@@ -239,8 +254,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 11:52:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HLxWkhqfpzrHco4xOT7tdQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YCe585FTaxThOQPMxvnUdw
 
 use JSON;
 use List::Util qw ( min max );
