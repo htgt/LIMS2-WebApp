@@ -453,18 +453,20 @@ sub ranked_crisprs {
     my ( $self, $crispr ) = @_;
     return [  ] unless $crispr;
 
+    my %crispr_validations = map{ $_->crispr_id => $_->validated } $self->crispr_validations->all;
+
     my @ranked_crisprs;
     if ( $crispr->is_group ) {
-        @ranked_crisprs = map{ _ranked_crispr_data( $_ ) } $crispr->ranked_crisprs;
+        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } $crispr->ranked_crisprs;
     }
     elsif ( $crispr->is_pair ) {
         @ranked_crisprs = (
-            _ranked_crispr_data( $crispr->left_crispr ),
-            _ranked_crispr_data( $crispr->right_crispr ),
+            _ranked_crispr_data( $crispr->left_crispr, \%crispr_validations ),
+            _ranked_crispr_data( $crispr->right_crispr, \%crispr_validations ),
         );
     }
     else {
-        push @ranked_crisprs, _ranked_crispr_data( $crispr );
+        push @ranked_crisprs, _ranked_crispr_data( $crispr, \%crispr_validations );
     }
 
     return \@ranked_crisprs;
@@ -476,11 +478,11 @@ Get crispr data we need for ranked crisprs ( used in validate crispr interface )
 
 =cut
 sub _ranked_crispr_data {
-    my ( $crispr ) = @_;
+    my ( $crispr, $crispr_validations ) = @_;
 
     return {
         id        => $crispr->id,
-        validated => $crispr->validated,
+        validated => exists $crispr_validations->{ $crispr->id } ? $crispr_validations->{ $crispr->id }  : 0,
     };
 }
 
