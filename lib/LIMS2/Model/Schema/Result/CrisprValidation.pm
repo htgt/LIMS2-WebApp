@@ -93,6 +93,25 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<crispr_es_qc_well_crispr_key>
+
+=over 4
+
+=item * L</crispr_id>
+
+=item * L</crispr_es_qc_well_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "crispr_es_qc_well_crispr_key",
+  ["crispr_id", "crispr_es_qc_well_id"],
+);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -126,8 +145,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XD0E8/ySppVR5QxTZ2m50w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 08:27:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAR81deOJV1B8vtGG2YAFw
 
 sub as_hash {
     my $self = shift;
