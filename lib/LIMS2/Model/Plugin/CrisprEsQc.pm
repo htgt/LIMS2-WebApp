@@ -87,6 +87,7 @@ sub pspec_create_crispr_es_qc_well {
         crispr_damage_type  => { validate => 'existing_crispr_damage_type', optional => 1, rename => 'crispr_damage_type_id' },
         variant_size        => { validate => 'integer', optional => 1 },
         accepted            => { validate => 'boolean', optional => 1 },
+        crisprs_to_validate => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -125,7 +126,24 @@ sub create_crispr_es_qc_well {
         $validated_params->{crispr_chr_id} = $chr->id;
     }
 
-    return $self->schema->resultset('CrisprEsQcWell')->create( $validated_params );
+    my @crisprs_to_validate;
+    if ( $validated_params->{crisprs_to_validate} ) {
+        @crisprs_to_validate = @{ delete $validated_params->{crisprs_to_validate} };
+    }
+
+    my $crispr_es_qc_well = $self->schema->resultset('CrisprEsQcWell')->create( $validated_params );
+
+    for my $crispr_id ( @crisprs_to_validate ) {
+        $self->schema->resultset( 'CrisprValidation' )->create(
+            {
+                crispr_es_qc_well_id => $crispr_es_qc_well->id,
+                crispr_id => $crispr_id,
+                validated => 0, # default to false, in future we may try to automatically set this value
+            }
+        );
+    }
+
+    return $crispr_es_qc_well;
 }
 
 sub pspec_retrieve_crispr_es_qc_well {
