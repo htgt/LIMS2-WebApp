@@ -185,11 +185,12 @@ $(document).ready(function() {
             <tr>
 
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = row
-                    accept              = can_accept_wells
-                    edit                = 1
-                    complete_info       = 1
-                    hide_crispr_well_id = 0
+                    row                    = row
+                    accept                 = can_accept_wells
+                    edit                   = 1
+                    complete_info          = 1
+                    hide_crispr_well_id    = 0
+                    hide_crispr_validation = hide_crispr_validation
                 %]
 
             </tr>
