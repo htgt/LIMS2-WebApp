@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.318';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.319';
 }
 ## use critic
 
@@ -233,6 +233,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_validations
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprValidation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_validations",
+  "LIMS2::Model::Schema::Result::CrisprValidation",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 experiments
 
 Type: has_many
@@ -389,8 +404,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:29:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IfC3Vc0Dr8FWuYmFn4XUlw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hPnkSJo9fDmtCBDVnkJDyg
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 

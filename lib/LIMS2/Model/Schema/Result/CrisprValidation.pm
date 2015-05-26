@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::CrisprOffTargetSummary;
+package LIMS2::Model::Schema::Result::CrisprValidation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprOffTargetSummary::VERSION = '0.319';
+    $LIMS2::Model::Schema::Result::CrisprValidation::VERSION = '0.319';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::CrisprOffTargetSummary;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::CrisprOffTargetSummary
+LIMS2::Model::Schema::Result::CrisprValidation
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<crispr_off_target_summaries>
+=head1 TABLE: C<crispr_validation>
 
 =cut
 
-__PACKAGE__->table("crispr_off_target_summaries");
+__PACKAGE__->table("crispr_validation");
 
 =head1 ACCESSORS
 
@@ -49,7 +49,7 @@ __PACKAGE__->table("crispr_off_target_summaries");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'crispr_off_target_summaries_id_seq'
+  sequence: 'crispr_validation_id_seq'
 
 =head2 crispr_id
 
@@ -57,20 +57,17 @@ __PACKAGE__->table("crispr_off_target_summaries");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 outlier
+=head2 crispr_es_qc_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 validated
 
   data_type: 'boolean'
+  default_value: false
   is_nullable: 0
-
-=head2 algorithm
-
-  data_type: 'text'
-  is_nullable: 0
-
-=head2 summary
-
-  data_type: 'text'
-  is_nullable: 1
 
 =cut
 
@@ -80,16 +77,14 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "crispr_off_target_summaries_id_seq",
+    sequence          => "crispr_validation_id_seq",
   },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "outlier",
-  { data_type => "boolean", is_nullable => 0 },
-  "algorithm",
-  { data_type => "text", is_nullable => 0 },
-  "summary",
-  { data_type => "text", is_nullable => 1 },
+  "crispr_es_qc_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "validated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -103,6 +98,25 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<crispr_es_qc_well_crispr_key>
+
+=over 4
+
+=item * L</crispr_id>
+
+=item * L</crispr_es_qc_well_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "crispr_es_qc_well_crispr_key",
+  ["crispr_id", "crispr_es_qc_well_id"],
+);
 
 =head1 RELATIONS
 
@@ -121,18 +135,29 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_es_qc_well
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vZbfH0m3KP+U3dPsbfg7WQ
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcWell>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "crispr_es_qc_well",
+  "LIMS2::Model::Schema::Result::CrisprEsQcWell",
+  { id => "crispr_es_qc_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 08:27:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAR81deOJV1B8vtGG2YAFw
 
 sub as_hash {
     my $self = shift;
 
-    return {
-        outlier   => $self->outlier,
-        algorithm => $self->algorithm,
-        summary   => $self->summary,
-    };
+    return { map { $_ => $self->$_ } $self->columns };
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

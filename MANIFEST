@@ -87,6 +87,7 @@ lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
+lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
@@ -322,6 +323,7 @@ root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
 root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
+root/lib/crispr_validation.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
