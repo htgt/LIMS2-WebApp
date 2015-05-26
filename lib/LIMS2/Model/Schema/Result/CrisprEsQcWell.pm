@@ -457,7 +457,7 @@ sub ranked_crisprs {
 
     my @ranked_crisprs;
     if ( $crispr->is_group ) {
-        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } $crispr->ranked_crisprs;
+        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } @{ $crispr->ranked_crisprs };
     }
     elsif ( $crispr->is_pair ) {
         @ranked_crisprs = (
