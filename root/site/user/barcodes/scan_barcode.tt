@@ -24,6 +24,8 @@ Actions:
     <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'PIQ' ) %]" class="btn btn-primary">
     Freeze Back
     </a>
+    <br><br>
+    [% INCLUDE discard_options %]
     [% ELSIF well_details.barcode_state == 'checked_out' %]
 <form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
 Actions:
@@ -43,16 +45,10 @@ Actions:
     </a>
     <br><br>
       [% END %]
-    <input type="hidden" name="barcode" value="[% barcode %]"/>
-    <input type="text" name="reason" value="[% reason %]" placeholder="reason for discard"/>
-    <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
-    <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
-      Discard
-      <i class="icon-arrow-right icon-white"></i>
-    </button>
+    [% INCLUDE discard_options %]
+  [% END %]
   </fieldset>
 </form>
-  [% END %]
  [% END %]
 [% ELSE %]
 <form method="POST" action="[% c.uri_for( '/user/scan_barcode' ) %]" class="well">
@@ -63,4 +59,14 @@ Actions:
   </fieldset>
 </form>
 
+[% END %]
+
+[% BLOCK discard_options %]
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="text" name="reason" value="[% reason %]" placeholder="reason for discard"/>
+    <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
+    <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
+      Discard
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
 [% END %]
