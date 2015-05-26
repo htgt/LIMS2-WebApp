@@ -186,13 +186,14 @@ function toggle_btn(btn, show_or_hide) {
             <tr>
                 <td><strong>[% qc.epd_well %]</strong></td>
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = qc.epd_qc
-                    accept              = 0
-                    edit                = 0
-                    hide_crispr_well_id = 1
-                    complete_info       = 0
-                    hide_well_name      = 1
-                    hide_gene           = 1
+                    row                    = qc.epd_qc
+                    accept                 = 0
+                    edit                   = 0
+                    hide_crispr_well_id    = 1
+                    complete_info          = 0
+                    hide_well_name         = 1
+                    hide_gene              = 1
+                    hide_crispr_validation = 1
                 %]
             </tr>
 
@@ -204,13 +205,14 @@ function toggle_btn(btn, show_or_hide) {
                     <span class="label label-info">PIQ</span>
                 </td>
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = qc.piq_qc
-                    accept              = 0
-                    edit                = 0
-                    hide_crispr_well_id = 1
-                    complete_info       = 0
-                    hide_well_name      = 1
-                    hide_gene           = 1
+                    row                    = qc.piq_qc
+                    accept                 = 0
+                    edit                   = 0
+                    hide_crispr_well_id    = 1
+                    complete_info          = 0
+                    hide_well_name         = 1
+                    hide_gene              = 1
+                    hide_crispr_validation = 1
                 %]
               [% ELSE %]
                 <td colspan="7">

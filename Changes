@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.319     2015-05-26 07:16:07 Europe/London
+
+    Add crispr validation framework and interface.
+
 0.318     2015-05-21 15:58:26 Europe/London
 
     Added well assembly QC support

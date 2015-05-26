@@ -52,23 +52,30 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my @crispr_damage_types = $c->model('Golgi')->schema->resultset( 'CrisprDamageType' )->all;
 
     my $can_accept_wells = 0;
+    my $hide_crispr_validation = 1;
     if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
         my $plate_type  = $qc_well->well->plate->type_id;
-        if ( $plate_type eq 'PIQ' || $plate_type eq 'EP_PICK' ) {
+        if ( $plate_type eq 'EP_PICK' ) {
+            # only do crispr validation of ES cells in EP_PICK plates
+            $hide_crispr_validation = 0;
+            $can_accept_wells = 1;
+        }
+        elsif ( $plate_type eq 'PIQ' ) {
             $can_accept_wells = 1;
         }
     }
 
     $c->stash(
-        qc_run_id         => $run->id,
-        seq_project       => $run->sequencing_project,
-        sub_project       => $run->sub_project,
-        species           => $run->species_id,
-        wells             => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
-        damage_types      => [ map{ $_->id } @crispr_damage_types ],
-        run_validated     => $run->validated,
-        can_accept_wells  => $can_accept_wells,
-        truncate          => $params->{truncate},
+        qc_run_id              => $run->id,
+        seq_project            => $run->sequencing_project,
+        sub_project            => $run->sub_project,
+        species                => $run->species_id,
+        wells                  => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
+        damage_types           => [ map{ $_->id } @crispr_damage_types ],
+        run_validated          => $run->validated,
+        can_accept_wells       => $can_accept_wells,
+        truncate               => $params->{truncate},
+        hide_crispr_validation => $hide_crispr_validation,
     );
 
     return;

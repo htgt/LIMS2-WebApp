@@ -163,6 +163,23 @@ sub update_crispr_es_qc_run_POST {
     return
 }
 
+sub validate_crispr : Path( '/api/validate_crispr' ) : Args(0) : ActionClass('REST'){
+}
+
+sub validate_crispr_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->update_crispr_validation_status( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr );
+}
+
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
