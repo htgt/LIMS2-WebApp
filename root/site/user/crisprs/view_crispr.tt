@@ -58,6 +58,13 @@
 <table class="table table-bordered">
   <tr><th>ID</th> <td>[% crispr_data.id %]</td></tr>
   <tr><th>Sequence</th> <td>[% crispr_data.seq %]</td></tr>
+  <tr><th>Validated</th> <td>
+    [% IF crispr_data.validated %]
+        <span class="label label-success">Validated</span>
+    [% ELSE %]
+        <span class="label">Not Validated</span>
+    [% END %]
+  </td></tr>
   <tr><th>Species</th> <td>[% crispr_data.species %]</td></tr>
   <tr><th>Chromosome</th> <td>[% crispr_data.locus.chr_name %]</td></tr>
   <tr><th>Start</th> <td>[% crispr_data.locus.chr_start %]</td></tr>

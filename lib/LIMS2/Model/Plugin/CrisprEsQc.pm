@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use DDP;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 
 requires qw( schema check_params throw retrieve log trace );
@@ -86,6 +87,7 @@ sub pspec_create_crispr_es_qc_well {
         crispr_damage_type  => { validate => 'existing_crispr_damage_type', optional => 1, rename => 'crispr_damage_type_id' },
         variant_size        => { validate => 'integer', optional => 1 },
         accepted            => { validate => 'boolean', optional => 1 },
+        crisprs_to_validate => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -124,7 +126,24 @@ sub create_crispr_es_qc_well {
         $validated_params->{crispr_chr_id} = $chr->id;
     }
 
-    return $self->schema->resultset('CrisprEsQcWell')->create( $validated_params );
+    my @crisprs_to_validate;
+    if ( $validated_params->{crisprs_to_validate} ) {
+        @crisprs_to_validate = @{ delete $validated_params->{crisprs_to_validate} };
+    }
+
+    my $crispr_es_qc_well = $self->schema->resultset('CrisprEsQcWell')->create( $validated_params );
+
+    for my $crispr_id ( @crisprs_to_validate ) {
+        $self->schema->resultset( 'CrisprValidation' )->create(
+            {
+                crispr_es_qc_well_id => $crispr_es_qc_well->id,
+                crispr_id => $crispr_id,
+                validated => 0, # default to false, in future we may try to automatically set this value
+            }
+        );
+    }
+
+    return $crispr_es_qc_well;
 }
 
 sub pspec_retrieve_crispr_es_qc_well {
@@ -260,6 +279,38 @@ sub update_crispr_es_qc_well{
 
 
     return $qc_well;
+}
+
+sub pspec_update_crispr_validation_status {
+    return {
+        crispr_es_qc_well_id => { validate => 'integer' },
+        crispr_id            => { validate => 'integer' },
+        validated            => { validate => 'boolean_string' },
+    };
+}
+
+=head2 update_crispr_validation_status
+
+Update the validated status of a crispr linked to crispr es qc well record.
+
+=cut
+sub update_crispr_validation_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_update_crispr_validation_status );
+
+    my $crispr_validation = $self->schema->resultset( 'CrisprValidation' )->find_or_create(
+         { slice_def $validated_params, qw( crispr_es_qc_well_id crispr_id ) }
+    );
+
+    $crispr_validation->update(
+        {
+            validated => $validated_params->{validated},
+        }
+    );
+    $self->log->info( "Updated validated crispr: " . p( $validated_params ) );
+
+    return $crispr_validation;
 }
 
 1;
