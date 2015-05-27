@@ -77,6 +77,7 @@
         <div class="control-group">
           <div class="controls">
            <select id="crispr_damage_[% row.es_qc_well_id %]" class="update_crispr_es_qc_well input-medium" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="damage_type">
+                <option value="" [% IF !row.damage_type %]'selected="selected"'[% END %]>-</option>
               [%- FOR type IN damage_types %]
                 <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
               [% END %]
