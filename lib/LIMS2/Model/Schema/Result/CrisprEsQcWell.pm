@@ -223,6 +223,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_validations
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprValidation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_validations",
+  "LIMS2::Model::Schema::Result::CrisprValidation",
+  { "foreign.crispr_es_qc_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well
 
 Type: belongs_to
@@ -239,8 +254,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 11:52:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HLxWkhqfpzrHco4xOT7tdQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YCe585FTaxThOQPMxvnUdw
 
 use JSON;
 use List::Util qw ( min max );
@@ -367,6 +382,7 @@ sub format_well_data {
         crispr_id               => $json->{crispr_id} || "",
         is_crispr_pair          => $json->{is_pair} || "",
         is_crispr_group         => $json->{is_group} || "",
+        ranked_crisprs          => $self->ranked_crisprs( $crispr ),
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
@@ -413,7 +429,7 @@ sub crispr {
   }
   elsif ( $json->{is_group} ) {
       $rs = 'CrisprGroup';
-      $prefetch = [ 'crispr_designs' ];
+      $prefetch = [ ];
   }
   else {
       $rs = 'Crispr';
@@ -428,18 +444,61 @@ sub crispr {
   return $crispr;
 }
 
+=head2 ranked_crisprs
+
+Return array of crisprs ranked from left to right.
+
+=cut
+sub ranked_crisprs {
+    my ( $self, $crispr ) = @_;
+    return [  ] unless $crispr;
+
+    my %crispr_validations = map{ $_->crispr_id => $_->validated } $self->crispr_validations->all;
+
+    my @ranked_crisprs;
+    if ( $crispr->is_group ) {
+        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } @{ $crispr->ranked_crisprs };
+    }
+    elsif ( $crispr->is_pair ) {
+        @ranked_crisprs = (
+            _ranked_crispr_data( $crispr->left_crispr, \%crispr_validations ),
+            _ranked_crispr_data( $crispr->right_crispr, \%crispr_validations ),
+        );
+    }
+    else {
+        push @ranked_crisprs, _ranked_crispr_data( $crispr, \%crispr_validations );
+    }
+
+    return \@ranked_crisprs;
+}
+
+=head2 _ranked_crispr_data
+
+Get crispr data we need for ranked crisprs ( used in validate crispr interface )
+
+=cut
+sub _ranked_crispr_data {
+    my ( $crispr, $crispr_validations ) = @_;
+
+    return {
+        id        => $crispr->id,
+        validated => exists $crispr_validations->{ $crispr->id } ? $crispr_validations->{ $crispr->id }  : 0,
+    };
+}
+
 ## no critic(ProhibitExcessComplexity)
 sub format_alignment_strings {
     my ( $self, $params, $json ) = @_;
 
-    return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
-    return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
+    return { forward => 'No Read', reverse => 'No Read', no_reverse_read => 1, no_forward_read => 1 } if $json->{no_reads};
+    return { forward => 'No valid crispr', reverse => 'No valid crispr' , no_reverse_read => 1, no_forward_read => 1} if $json->{no_crispr};
+
     if ( $json->{forward_no_alignment} && $json->{reverse_no_alignment} ) {
         if ( !$self->fwd_read ) {
-            return { forward => 'No Read', no_reverse_alignment => 1 };
+            return { forward => 'No Read', no_forward_read => 1, no_reverse_alignment => 1 };
         }
         elsif ( !$self->rev_read ) {
-            return { reverse => 'No Read', no_forward_alignment => 1 };
+            return { reverse => 'No Read', no_reverse_read => 1, no_forward_alignment => 1 };
         }
         else {
             return { no_forward_alignment => 1, no_reverse_alignment => 1 };
