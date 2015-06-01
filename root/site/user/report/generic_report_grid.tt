@@ -93,6 +93,35 @@
                 "id" = 1
                 "well id" = 1
                 } %]
+                
+                var assembly_qc_store = Ext.create('Ext.data.store',{
+                    fields: ['call_type'],
+                    data: [
+                        {"call_type":"-"}
+                        [%- FOREACH call_type IN call_types %]
+                        ,{"call_type":"[% call_type %]"}
+                        [%- END %]
+                    ]
+                });
+                
+                var assembly_qc_combo = Ext.create('Ext.form.ComboBox', {
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    editable: true,
+                    store: assembly_qc_store,
+                    displayField: 'assembly_qc',
+                    listeners: {
+                        change: function (field, newValue, oldValue) {
+                            console.log('assembly qc listener');
+                            var record = grid.getSelectionMode().getSelection()[0];
+                            
+                            console.log("Updating " + record.data.id + " with value " + field.getValue());
+                            var newRecord = field.findRecordByValue(newValue);
+                            
+                            $.getJSON( "[% c.iri_for('/api/assembly_well_qc') %]", {id:record.data.id, assembly_qc:field.getValue()}, function(){record.commit();});
+                        }
+                    } 
+                });
 
             var recovery_class_store = Ext.create('Ext.data.Store',{
                 fields: ['recovery_class'],
@@ -224,6 +253,16 @@
                             $.getJSON( "[% c.uri_for('/api/well/toggle_to_report') %]", {id:record.get('Well ID'), to_report:checked}, function(data){record.commit()})
                         }
                     },
+                    [%- END %]
+                    
+                    [%- IF col.match( 'Crispr_.*_qc' ) %]
+                    width: 120,
+                    editor: assembly_qc_combo,
+                    [%- END %]
+                    
+                    [%- IF col.match( 'Vector_qc') %]
+                    width: 120,
+                    editor: assembly_qc_combo,
                     [%- END %]
 
 

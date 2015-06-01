@@ -560,6 +560,14 @@ sub create_button_json {
     return $json_text;
 }
 
+sub create_combo_json {
+    my $self = shift;
+    my $params = shift;
+
+    my $json_text = 'Placeholder text';
+    return $json_text;
+}
+
 sub well_primer_bands_data {
     my ( $self, $well ) = @_;
 
