@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.319';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.320';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Hash::MoreUtils qw( slice slice_def slice_exists);
 use TryCatch;
 use LIMS2::Exception;
 use namespace::autoclean;
+use List::MoreUtils qw(uniq);
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -175,6 +176,7 @@ sub create_project {
     my $validated_params = $self->check_params( $params, $self->_pspec_create_project);
 
     my $sponsors = delete $validated_params->{sponsors};
+    $sponsors = $self->_add_sponsor_all_if_appropriate($sponsors,$validated_params->{species_id});
 
     my $project = $self->schema->resultset('Project')->create($validated_params);
 
@@ -218,7 +220,8 @@ sub add_project_sponsor{
 sub _pspec_update_project_sponsors{
     return {
         project_id => { validate => 'integer' },
-        sponsor_list => { validate => 'existing_sponsor' },
+        sponsor_list => { validate => 'existing_sponsor', optional => 1 },
+        MISSING_OPTIONAL_VALID => 1,
     };
 }
 
@@ -233,7 +236,8 @@ sub update_project_sponsors{
 
     $project->delete_related('project_sponsors');
 
-    foreach my $sponsor (@{ $validated_params->{sponsor_list} }){
+    my $sponsors = $self->_add_sponsor_all_if_appropriate( $validated_params->{sponsor_list}, $project->species_id );
+    foreach my $sponsor (@{ $sponsors }){
         $self->schema->resultset('ProjectSponsor')->create({
             project_id => $project->id,
             sponsor_id => $sponsor,
@@ -282,6 +286,29 @@ sub delete_experiment{
     my $experiment = $self->retrieve_experiment($params);
     $experiment->delete;
     return;
+}
+
+sub _add_sponsor_all_if_appropriate{
+    my ($self, $sponsor_list, $species) = @_;
+
+    return unless $sponsor_list;
+
+    # Only do this for Human
+    return $sponsor_list unless $species eq 'Human';
+
+    my @sponsors = @{ $sponsor_list  };
+    return [] unless(@sponsors);
+
+    if (@sponsors == 1 and $sponsors[0] eq 'Transfacs'){
+        # We don't add the All sponsor
+        # All == All except Transfacs
+    }
+    else{
+        push @sponsors, "All";
+    }
+
+    # Unique it before return in case "All" was already on list
+    return [ uniq @sponsors ];
 }
 
 1;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.319';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.320';
 }
 ## use critic
 
@@ -463,7 +463,7 @@ sub ranked_crisprs {
 
     my @ranked_crisprs;
     if ( $crispr->is_group ) {
-        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } $crispr->ranked_crisprs;
+        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } @{ $crispr->ranked_crisprs };
     }
     elsif ( $crispr->is_pair ) {
         @ranked_crisprs = (

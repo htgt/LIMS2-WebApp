@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.319';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.320';
 }
 ## use critic
 
@@ -190,7 +190,9 @@ sub view_project :Path('/user/view_project'){
         };
     }
 
-    my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->search({
+                       id => { '!=' => 'All' }
+                   })->all;
     my @design_suggest = map { $_->design_id }
                              $c->model('Golgi')->schema->resultset('GeneDesign')->search({ gene_id => $project->gene_id });
     my @group_suggest = map { $_->id }

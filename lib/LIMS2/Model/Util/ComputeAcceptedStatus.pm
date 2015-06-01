@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ComputeAcceptedStatus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ComputeAcceptedStatus::VERSION = '0.319';
+    $LIMS2::Model::Util::ComputeAcceptedStatus::VERSION = '0.320';
 }
 ## use critic
 

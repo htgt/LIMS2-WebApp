@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.319';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.320';
 }
 ## use critic
 
@@ -683,6 +683,10 @@ sub build_qc_data {
             # if a variant type other can no-call has been made then mark well accepted
             $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
         }
+    }
+
+    if ( $analysis_data->{no_reads} ) {
+        $qc_data{crispr_damage_type} = 'no-call';
     }
 
     if ( exists $well_reads->{forward} ) {

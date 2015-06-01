@@ -3,7 +3,7 @@ use utf8;
 package LIMS2::Model::AuthDB;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::AuthDB::VERSION = '0.319';
+    $LIMS2::Model::AuthDB::VERSION = '0.320';
 }
 ## use critic
 

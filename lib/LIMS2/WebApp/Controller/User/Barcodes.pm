@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.319';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.320';
 }
 ## use critic
 
@@ -511,7 +511,7 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
 
     if($c->request->param('cancel_discard')){
         $c->flash->{info_msg} = "Cancelled discard of barcode $barcode";
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
         return;
     }
     elsif($c->request->param('confirm_discard')){
@@ -537,7 +537,7 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
         });
 
         $c->flash->{success_msg} = "Barcode $barcode has been discarded" unless $failed;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     }
     elsif($barcode){
         # return well details
@@ -572,7 +572,7 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
 
     if($c->request->param('cancel_send_out')){
         $c->flash->{info_msg} = "Cancelled send out of barcode $barcode";
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
         return;
     }
     elsif($c->request->param('confirm_send_out')){
@@ -598,7 +598,7 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
         });
 
         $c->flash->{success_msg} = "Barcode $barcode has been sent out" unless $failed;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     }
     elsif($barcode){
         # return well details

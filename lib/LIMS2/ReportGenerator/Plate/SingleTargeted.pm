@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SingleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.319';
+    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.320';
 }
 ## use critic
 
@@ -115,7 +115,7 @@ sub well_eng_seq_link {
     return 'N/A' if $well_data->{design_type} eq 'nonsense';
 
     if ( $self->catalyst ) {
-        $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} );
+        return $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} );
     }
 
     return '-';
