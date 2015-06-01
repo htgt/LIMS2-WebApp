@@ -15,7 +15,8 @@ BEGIN {
 
 my $mech = LIMS2::Test::mech();
 
-sub manage_projects_tests : Test(20) {
+sub manage_projects_tests : Test(21) {
+    $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/manage_projects');
     $mech->content_lacks('Project ID');
@@ -92,7 +93,8 @@ sub manage_projects_tests : Test(20) {
 
 }
 
-sub view_edit_project_tests : Test(14){
+sub view_edit_project_tests : Test(17){
+    $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
     $mech->content_contains('MGI:109393');
@@ -104,6 +106,8 @@ sub view_edit_project_tests : Test(14){
     $mech->tick('sponsors','Core');
     $mech->click_button( name => 'update_sponsors' );
     $mech->content_contains('Project sponsor list updated');
+    $mech->content_contains('Core/Syboss');
+    $mech->content_lacks('All/Core/Syboss','Sponsor All not added for mouse');
     is_deeply(_selected_sponsors($mech), [ 'Core', 'Syboss' ], 'correct sponsors selected');
 
     $mech->untick('sponsors','Syboss');
@@ -144,6 +148,28 @@ sub view_edit_project_tests : Test(14){
 
     @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 1, '1 experiment listed');
+
+}
+
+sub edit_human_sponsor_list : Test(10){
+    $mech->get_ok('/user/select_species?species=Human');
+
+    $mech->get_ok('/user/view_project?project_id=13');
+    $mech->content_contains('HGNC:19417');
+    $mech->content_contains('ZNF404');
+
+    $mech->tick('sponsors','Pathogen');
+    $mech->click_button( name => 'update_sponsors' );
+    $mech->content_contains('Project sponsor list updated');
+    $mech->content_contains('All/Pathogen', 'Sponsor All has been automatically added');
+    is_deeply(_selected_sponsors($mech), [ 'Pathogen' ], 'correct sponsors selected');
+
+    $mech->untick('sponsors','Pathogen');
+    $mech->tick('sponsors','Transfacs');
+    $mech->click_button( name => 'update_sponsors' );
+    $mech->content_contains('Project sponsor list updated');
+    $mech->content_lacks('All/Transfacs', 'Sponsor All has not been automatically added for Transfacs project');
+    is_deeply(_selected_sponsors($mech), [ 'Transfacs' ], 'correct sponsors selected');
 
 }
 
