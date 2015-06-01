@@ -1,3 +1,4 @@
 id,gene_id,targeting_type,species_id
 11,MGI:1914632,double_targeted,Mouse
 12,MGI:109393,double_targeted,Mouse
+13,HGNC:19417,single_targeted,Human

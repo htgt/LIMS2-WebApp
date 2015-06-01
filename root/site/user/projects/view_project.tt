@@ -71,9 +71,7 @@
 		  <input type="hidden" name="project_id" value="[% project.id %]">
 		  [% FOREACH sponsor IN all_sponsors %]
       <label class="checkbox">
-		    <input type="checkbox" name="sponsors" value="[% sponsor %]"
-		    [% IF project_sponsors.defined(sponsor) %]checked[% END %]
-		    > [% sponsor %]
+		    <input type="checkbox" name="sponsors" value="[% sponsor %]" [% IF project_sponsors.defined(sponsor) %]checked[% END %]> [% sponsor %]
       </label>
 		  [% END %]
 		  <br>
