@@ -305,6 +305,11 @@
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
                 ],
+                listeners: {
+                    'afterlayout' : function(grid){
+                        grid.syncRowHeights();
+                    }
+                },
                 tools:[
 
                     {
