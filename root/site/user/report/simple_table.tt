@@ -64,15 +64,12 @@
   $(document).ready(function() {
     // Add functionality to comboboxes
     $(".lims2_combo").on("click focus keydown", function (){
-      console.log("storing previous value " + $(this).val());
       $(this).data("previous",$(this).val());
     });
     $(".lims2_combo").change(function (){
       var combo = $(this);
       var new_value = combo.val();
       var old_value = combo.data("previous");
-      console.log("new value: " + new_value);
-      console.log("previous value: " + old_value);
       var params_string = combo.data("params");
       if( new_value != '-'){
         params_string = params_string + '&value=' + new_value;
@@ -81,7 +78,6 @@
       $.getJSON( uri ).fail(function (data){
         console.log(data.responseText);
         console.log("Update failed. Returning value to " + old_value);
-        console.log(combo);
         combo.val(old_value);
         combo.data("previous", old_value);
       });

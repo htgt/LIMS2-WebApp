@@ -184,7 +184,8 @@ override iterator => sub {
                 api_params => {
                     well_id => $well_data->{well_id},
                     type    => 'CRISPR_LEFT_QC',
-                }
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_LEFT_QC') || '-' ),
             });
 
             $crispr_right_qc_combo = $self->create_combo_json({
@@ -193,7 +194,8 @@ override iterator => sub {
                 api_params => {
                     well_id => $well_data->{well_id},
                     type    => 'CRISPR_RIGHT_QC',
-                }
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_RIGHT_QC') || '-' ),
             });
 
             $vector_qc_combo = $self->create_combo_json({
@@ -202,7 +204,8 @@ override iterator => sub {
                 api_params => {
                     well_id => $well_data->{well_id},
                     type    => 'VECTOR_QC',
-                }
+                },
+                selected => ( $well->assembly_qc_value('VECTOR_QC') || '-' ),
             });
         }
 

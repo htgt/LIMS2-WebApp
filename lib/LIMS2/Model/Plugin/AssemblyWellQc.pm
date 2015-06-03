@@ -28,7 +28,19 @@ sub update_assembly_qc_well{
 
     my $validated_params = $self->check_params($params, $self->_pspec_update_assembly_qc_well);
 
-    return;
+    my $well = $self->retrieve_well({ id => $validated_params->{well_id} });
+
+    my $plate_type = $well->plate->type_id;
+    unless($plate_type eq 'ASSEMBLY'){
+    	die "Cannot add assembly well QC to well $well on $plate_type plate";
+    }
+
+    my $qc = $well->well_assembly_qcs->update_or_create({
+        qc_type => $validated_params->{type},
+        value   => $validated_params->{value},
+    });
+
+    return $qc;
 }
 
 1;

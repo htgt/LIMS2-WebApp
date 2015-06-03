@@ -271,9 +271,6 @@
                       store: options,
                       listeners: {
                         change: function (field, newValue, oldValue) {
-                            console.log('combo listener');
-                            console.log("new value: " + newValue + ", old value: " + oldValue);
-                            console.log("last value: " + field.lastValue );
                             var record = grid.getSelectionModel().getSelection()[0];
 
                             console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());

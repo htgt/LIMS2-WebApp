@@ -567,11 +567,18 @@ sub create_combo_json {
     my $self = shift;
     my $params = shift;
 
+    # "-" represents the unset option
+    # When a user selects this option in the combobox the request is sent
+    # with no "value" parameter added to the url
     my @options = (["-","-"]);
+
+    # When an option is selected it is added to the url as value=<option>
     foreach my $item (@{ $params->{options} }){
         push @options, [$item,$item];
     }
 
+    # api_params are key value pairs which are always added
+    # in the request URL, e.g. well_id=12345&qc_type=CRISPR_LEFT_QC
     my @api_params;
     foreach my $key (keys %{ $params->{api_params} }){
         my $param_string = $key."=".$params->{api_params}->{$key};
@@ -580,6 +587,8 @@ sub create_combo_json {
     }
     my $api_params_string = join "&", @api_params;
 
+    # api_base is the path added after c.uri_for(/)
+    # selected is the currently selected option from the database
     my $combo = {
         'lims2_combo' => {
             options => \@options,
