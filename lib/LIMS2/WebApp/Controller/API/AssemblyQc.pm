@@ -15,10 +15,10 @@ API methods dealing with assembly well qc
 
 =cut
 
-sub update_assembly_qc_well :Path('/api/update_qc_well') :Args(0) :ActionClass('REST') {
+sub update_assembly_qc_well :Path('/api/update_assembly_qc') :Args(0) :ActionClass('REST') {
 }
 
-sub update_assembly_qc_well_POST {
+sub update_assembly_qc_well_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');

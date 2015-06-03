@@ -146,6 +146,12 @@ override iterator => sub {
 
     my $well_data = shift @wells_data;
 
+    my $combo_options = ['Good','Bad','Wrong','Other'];
+    my %combo_common = (
+        options => $combo_options,
+        api_base => 'api/update_assembly_qc',
+    );
+
     return Iterator::Simple::iter sub {
         return unless $well_data;
 
@@ -171,9 +177,33 @@ override iterator => sub {
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
-            $crispr_left_qc_combo = $self->create_combo_json();
-            $crispr_right_qc_combo = $self->create_combo_json();
-            $vector_qc_combo = $self->create_combo_json();
+
+            $crispr_left_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_LEFT_QC',
+                }
+            });
+
+            $crispr_right_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_RIGHT_QC',
+                }
+            });
+
+            $vector_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'VECTOR_QC',
+                }
+            });
         }
 
         # build string reporting individual crispr details

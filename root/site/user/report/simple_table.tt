@@ -20,6 +20,17 @@
 <a class="btn btn-info btn-small"
         <a href="[% c.uri_for( api_url, v_json.lims2_custom )
                  %]" target="[% tab_target %]">[% button_label %]</a>
+    [% ELSIF v.match( 'lims2_combo' ) %]
+        [%- USE JSON %]
+        [%- v_json = JSON.json_decode( v ) %]
+        [%- api_base = v_json.lims2_combo.api_base %]
+        [%- api_params = v_json.lims2_combo.api_params %]
+        [%- selected = v_json.lims2_combo.selected %]
+        <select class="lims2_combo span2" data-url="[% api_base %]" data-params="[% api_params %]">
+          [% FOREACH option IN v_json.lims2_combo.options %]
+            <option value="[% option.0 %]" [% IF option.0 == selected %]selected[% END %]>[% option.1 %]</option>
+          [% END %]
+        </select>
     [% ELSE %]
         [% v %]
     [% END %]
@@ -36,7 +47,7 @@
   </thead>
   <tbody>
     [%- FOR datum IN data %]
-    <tr>
+    <tr title="[% datum.0 %]">
       [%- FOR val IN datum %]
       <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% linkify( val ) | none %]</td>
       [%- END %]
@@ -51,6 +62,32 @@
 <script type="text/javascript">
 
   $(document).ready(function() {
+    // Add functionality to comboboxes
+    $(".lims2_combo").on("click focus keydown", function (){
+      console.log("storing previous value " + $(this).val());
+      $(this).data("previous",$(this).val());
+    });
+    $(".lims2_combo").change(function (){
+      var combo = $(this);
+      var new_value = combo.val();
+      var old_value = combo.data("previous");
+      console.log("new value: " + new_value);
+      console.log("previous value: " + old_value);
+      var params_string = combo.data("params");
+      if( new_value != '-'){
+        params_string = params_string + '&value=' + new_value;
+      }
+      var uri = "[% c.uri_for('/') %]" + combo.data("url") + '?' + params_string;
+      $.getJSON( uri ).fail(function (data){
+        console.log(data.responseText);
+        console.log("Update failed. Returning value to " + old_value);
+        console.log(combo);
+        combo.val(old_value);
+        combo.data("previous", old_value);
+      });
+    });
+
+    // Add primer validation buttons and labels to Assembly plate
     [%IF extra_data.plate_type == 'ASSEMBLY' %]
       console.log('adding assembly plate functionality');
 

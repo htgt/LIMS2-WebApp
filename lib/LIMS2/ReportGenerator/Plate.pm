@@ -560,11 +560,35 @@ sub create_button_json {
     return $json_text;
 }
 
+# Create a JSON string which will be rendered as a combo box
+# in generic_report_grid.tt and simple_table.tt
+# See LIMS2::Report::AssemblyPlate for an example
 sub create_combo_json {
     my $self = shift;
     my $params = shift;
 
-    my $json_text = 'Placeholder text';
+    my @options = (["-","-"]);
+    foreach my $item (@{ $params->{options} }){
+        push @options, [$item,$item];
+    }
+
+    my @api_params;
+    foreach my $key (keys %{ $params->{api_params} }){
+        my $param_string = $key."=".$params->{api_params}->{$key};
+        DEBUG("param string: $param_string");
+        push @api_params, $param_string;
+    }
+    my $api_params_string = join "&", @api_params;
+
+    my $combo = {
+        'lims2_combo' => {
+            options => \@options,
+            selected => $params->{selected},
+            api_base => $params->{api_base},
+            api_params => $api_params_string,
+        },
+    };
+    my $json_text = encode_json( $combo );
     return $json_text;
 }
 
