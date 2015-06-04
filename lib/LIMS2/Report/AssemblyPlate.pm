@@ -146,7 +146,7 @@ override iterator => sub {
 
     my $well_data = shift @wells_data;
 
-    my $combo_options = ['Good','Bad','Wrong','Other'];
+    my $combo_options = ['Good','Bad','Wrong'];
     my %combo_common = (
         options => $combo_options,
         api_base => 'api/update_assembly_qc',
@@ -178,6 +178,7 @@ override iterator => sub {
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
 
+## no critic(ProhibitCommaSeparatedStatements)
             $crispr_left_qc_combo = $self->create_combo_json({
                 %combo_common,
                 selected => '-',
@@ -208,6 +209,7 @@ override iterator => sub {
                 selected => ( $well->assembly_qc_value('VECTOR_QC') || '-' ),
             });
         }
+## use critic
 
         # build string reporting individual crispr details
         my @crispr_report_details;

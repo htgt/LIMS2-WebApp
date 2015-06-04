@@ -35,10 +35,17 @@ sub update_assembly_qc_well{
     	die "Cannot add assembly well QC to well $well on $plate_type plate";
     }
 
-    my $qc = $well->well_assembly_qcs->update_or_create({
-        qc_type => $validated_params->{type},
-        value   => $validated_params->{value},
-    });
+    my $qc;
+    if($validated_params->{value}){
+        $qc = $well->well_assembly_qcs->update_or_create({
+            qc_type => $validated_params->{type},
+            value   => $validated_params->{value},
+        });
+    }
+    else{
+        # No value so we unset the QC result
+        $well->delete_related('well_assembly_qcs',{ qc_type => $validated_params->{type} });
+    }
 
     return $qc;
 }
