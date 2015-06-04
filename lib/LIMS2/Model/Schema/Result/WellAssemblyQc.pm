@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellAssemblyQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellAssemblyQc::VERSION = '0.320';
+    $LIMS2::Model::Schema::Result::WellAssemblyQc::VERSION = '0.321';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ __PACKAGE__->table("well_assembly_qc");
 =head2 value
 
   data_type: 'enum'
-  extra: {custom_type_name => "assembly_well_qc_type",list => ["CRISPR_LEFT_QC","CRISPR_RIGHT_QC","VECTOR_QC"]}
+  extra: {custom_type_name => "qc_element_type",list => ["Good","Bad","Wrong"]}
   is_nullable: 0
 
 =cut
@@ -94,8 +94,8 @@ __PACKAGE__->add_columns(
   {
     data_type => "enum",
     extra => {
-      custom_type_name => "assembly_well_qc_type",
-      list => ["CRISPR_LEFT_QC", "CRISPR_RIGHT_QC", "VECTOR_QC"],
+      custom_type_name => "qc_element_type",
+      list => ["Good", "Bad", "Wrong"],
     },
     is_nullable => 0,
   },
@@ -112,6 +112,25 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<well_assembly_qc_assembly_well_id_qc_type_key>
+
+=over 4
+
+=item * L</assembly_well_id>
+
+=item * L</qc_type>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "well_assembly_qc_assembly_well_id_qc_type_key",
+  ["assembly_well_id", "qc_type"],
+);
 
 =head1 RELATIONS
 
@@ -131,8 +150,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:23:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fz6WGzrjSBPC45djFZW62A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-06-03 17:01:43
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T2cmMmTMKpawAMvIXgpffg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

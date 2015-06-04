@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.320';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.321';
 }
 ## use critic
 
@@ -131,6 +131,7 @@ override _build_columns => sub {
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
+        'Crispr Left QC', 'Crispr Right QC', 'Vector QC',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'Crispr Vector Well(s)', 'Final Pick Well',
         'DNA Quality EGel Pass?','Sequencing QC Pass',
@@ -151,6 +152,12 @@ override iterator => sub {
 
     my $well_data = shift @wells_data;
 
+    my $combo_options = ['Good','Bad','Wrong'];
+    my %combo_common = (
+        options => $combo_options,
+        api_base => 'api/update_assembly_qc',
+    );
+
     return Iterator::Simple::iter sub {
         return unless $well_data;
 
@@ -160,6 +167,7 @@ override iterator => sub {
         my $crispr_primers = $self->get_primers( $crispr, $genotyping_primers->{ $well_data->{design_id} } );
         my @crispr_vectors = map{ $_->{plate_name} . '_' . $_->{well_name} } @{ $well_data->{crispr_wells}{crispr_vectors} };
         my ( $genoverse_button, $crispr_designs );
+        my ( $crispr_left_qc_combo, $crispr_right_qc_combo, $vector_qc_combo );
         if ( $crispr ) {
             $genoverse_button = $self->create_button_json(
                 {   'design_id'      => $well_data->{design_id},
@@ -175,7 +183,39 @@ override iterator => sub {
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
+
+## no critic(ProhibitCommaSeparatedStatements)
+            $crispr_left_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_LEFT_QC',
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_LEFT_QC') || '-' ),
+            });
+
+            $crispr_right_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_RIGHT_QC',
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_RIGHT_QC') || '-' ),
+            });
+
+            $vector_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'VECTOR_QC',
+                },
+                selected => ( $well->assembly_qc_value('VECTOR_QC') || '-' ),
+            });
         }
+## use critic
 
         # build string reporting individual crispr details
         my @crispr_report_details;
@@ -197,6 +237,9 @@ override iterator => sub {
             $crispr_designs,
             $genoverse_button,
             $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '-',
+            $crispr_left_qc_combo,
+            $crispr_right_qc_combo,
+            $vector_qc_combo,
             $well_data->{cassette},
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},

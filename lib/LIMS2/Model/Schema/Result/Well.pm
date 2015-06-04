@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.320';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.321';
 }
 ## use critic
 
@@ -1755,5 +1755,22 @@ sub compute_final_pick_dna_well_accepted {
 
     return;
 }
+
+sub assembly_qc_value{
+    my ($self, $qc_type) = @_;
+
+    die "No assembly QC type specified" unless $qc_type;
+
+    my $qc = $self->search_related('well_assembly_qcs',{
+        qc_type => $qc_type,
+    })->first;
+
+    if ($qc){
+        return $qc->value;
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

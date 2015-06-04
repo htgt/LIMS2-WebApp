@@ -33,6 +33,7 @@ lib/LIMS2/Model/DBConnect.pm
 lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
 lib/LIMS2/Model/Plugin/Assembly.pm
+lib/LIMS2/Model/Plugin/AssemblyWellQc.pm
 lib/LIMS2/Model/Plugin/BAC.pm
 lib/LIMS2/Model/Plugin/Chromosome.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
@@ -273,6 +274,7 @@ lib/LIMS2/SummaryGeneration/SummariesWellDescend.pm
 lib/LIMS2/Test.pm
 lib/LIMS2/WebApp.pm
 lib/LIMS2/WebApp/Controller/API.pm
+lib/LIMS2/WebApp/Controller/API/AssemblyQc.pm
 lib/LIMS2/WebApp/Controller/API/AutoComplete.pm
 lib/LIMS2/WebApp/Controller/API/Browser.pm
 lib/LIMS2/WebApp/Controller/API/Crispr.pm
@@ -2793,6 +2795,7 @@ t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Admin.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Auth.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Root.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_User.t
+t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AssemblyQc.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AutoComplete.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Crispr.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Design.t
@@ -3011,6 +3014,7 @@ t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm
 t/lib/LIMS2/t/Test.pm
 t/lib/LIMS2/t/WebApp.pm
 t/lib/LIMS2/t/WebApp/Controller/API.pm
+t/lib/LIMS2/t/WebApp/Controller/API/AssemblyQc.pm
 t/lib/LIMS2/t/WebApp/Controller/API/AutoComplete.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Browser.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Crispr.pm

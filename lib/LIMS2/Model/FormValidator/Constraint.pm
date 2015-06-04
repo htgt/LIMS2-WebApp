@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.320';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.321';
 }
 ## use critic
 
@@ -293,6 +293,14 @@ sub existing_crispr_group_id {
 
 sub existing_crispr_plate_appends_type {
     return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
+}
+
+sub assembly_qc_type{
+    return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
+}
+
+sub assembly_qc_value{
+    return shift->in_set('Good','Bad','Wrong');
 }
 
 __PACKAGE__->meta->make_immutable;
