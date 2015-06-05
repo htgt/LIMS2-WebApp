@@ -129,7 +129,8 @@ function lims2_replicate {
 }
 
 function lims2_psql {
-    printf "Opening psql shell with database: $LIMS2_DB\n"
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Opening psql shell with database: $LIMS2_DB_NAME (profile: $LIMS2_DB)\n"
     psql `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --uri`
 }
 

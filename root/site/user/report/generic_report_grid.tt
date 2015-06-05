@@ -59,6 +59,8 @@
                                         [%- alt_render.${columns.$index} = 1 %]
                                     [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
                                         [%- alt_render_link.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match('lims2_combo')) %]
+                                        [%- alt_render_combo.${columns.$index} = 1 %]
                                     [%- END %]
                                     ,"[%- columns.$index %]": "[%- val.dquote | none%]"
                                     [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
@@ -93,6 +95,10 @@
                 "id" = 1
                 "well id" = 1
                 } %]
+
+
+
+
 
             var recovery_class_store = Ext.create('Ext.data.Store',{
                 fields: ['recovery_class'],
@@ -147,6 +153,8 @@
                     renderer: lims2_action_button_json,
                     [% ELSIF alt_render_link.$col == 1 %]
                     renderer: lims2_action_link,
+                    [% ELSIF alt_render_combo.$col == 1 %]
+                    renderer: lims2_action_combo,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
@@ -226,12 +234,68 @@
                     },
                     [%- END %]
 
+                    [%- IF col.match( 'Crispr_.*_qc' ) %]
+                    width: 120,
+                    editor: assembly_qc_combo,
+                    [%- END %]
+
+                    [%- IF col.match( 'Vector_qc') %]
+                    width: 120,
+                    editor: assembly_qc_combo,
+                    [%- END %]
+
 
                     dataIndex: '[%- col %]'
                 }
                 [%- END %]
             ];
 
+
+            function lims2_action_combo(val){
+                var id = Ext.id();
+                Ext.defer(function(){
+                    console.log(val);
+                    var j_val = JSON.parse(val);
+                    var options = j_val.lims2_combo.options;
+                    var selected = j_val.lims2_combo.selected;
+                    var api_base = j_val.lims2_combo.api_base;
+
+                    console.log('combo options: ' + options);
+
+                    var combo = Ext.widget('combo', {
+                      renderTo: id,
+                      grow: true,
+                      typeAhead: true,
+                      triggerAction: 'all',
+                      editable: true,
+                      store: options,
+                      listeners: {
+                        change: function (field, newValue, oldValue) {
+                            var record = grid.getSelectionModel().getSelection()[0];
+
+                            console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());
+
+                            var params_string = j_val.lims2_combo.api_params;
+                            if(field.getValue() != '-'){
+                              params_string = params_string + '&value=' + field.getValue();
+                            }
+                            var uri = "[% c.uri_for('/') %]" + api_base + '?' + params_string;
+                            $.getJSON( uri ).fail(function (data){
+                                console.log(data.responseText);
+                                console.log("Update failed. Returning value to " + oldValue);
+                                field.setRawValue(oldValue);
+                                // For some reason lastValue does not get updated by setRawValue
+                                // so we do it here to avoid wrong oldValue being sent to next change
+                                field.lastValue = oldValue;
+                            });
+                        }
+                      }
+                    });
+                    console.log('selecting value ' + selected);
+                    combo.setValue(selected);
+                },50);
+                return Ext.String.format('<div id="{0}"></div>', id);
+            }
 
             function lims2_action_button_json(val) {
                     var id = Ext.id();
@@ -305,6 +369,11 @@
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
                 ],
+                listeners: {
+                    'afterlayout' : function(grid){
+                        grid.syncRowHeights();
+                    }
+                },
                 tools:[
 
                     {

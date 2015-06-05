@@ -679,6 +679,10 @@ sub build_qc_data {
         }
     }
 
+    if ( $analysis_data->{no_reads} ) {
+        $qc_data{crispr_damage_type} = 'no-call';
+    }
+
     if ( exists $well_reads->{forward} ) {
         my $bioseq = $well_reads->{forward};
         $qc_data{fwd_read} = '>' . $bioseq->display_id . "\n" . $bioseq->seq;
