@@ -289,6 +289,14 @@ sub existing_crispr_plate_appends_type {
     return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
 }
 
+sub assembly_qc_type{
+    return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
+}
+
+sub assembly_qc_value{
+    return shift->in_set('Good','Bad','Wrong');
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
