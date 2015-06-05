@@ -431,6 +431,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_het_status
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellHetStatus>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_het_status",
+  "LIMS2::Model::Schema::Result::WellHetStatus",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_lab_number
 
 Type: might_have
@@ -557,8 +572,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:23:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vONvzPb/EJls8J7tIbF/Dg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mydeTrbl+IRZGKndI3lQtw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

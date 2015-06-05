@@ -313,6 +313,69 @@ sub update_crispr_validation_status {
     return $crispr_validation;
 }
 
+
+sub pspec_set_unset_het_validation {
+    return {
+        well_id => { validate => 'integer' },
+        set => {validate => 'non_empty_string', optional => 1 },
+    };
+}
+
+=head2 retrieve_crispr_es_qc_run
+
+Return a crispr_es_qc_run result for a given id
+
+=cut
+sub set_unset_het_validation {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_unset_het_validation );
+
+    my $het;
+
+    if ( $validated_params->{'set'} eq 'false' ) {
+        $het = $self->schema->resultset('WellHetStatus')->find( { well_id => $validated_params->{'well_id'} } )->delete;
+    } elsif ($validated_params->{'set'} eq 'true') {
+        $het = $self->schema->resultset('WellHetStatus')->create( { well_id => $validated_params->{'well_id'} } );
+    }
+
+    return $het;
+}
+
+
+sub pspec_set_het_status {
+    return {
+        well_id => { validate => 'integer' },
+        five_prime => {validate => 'non_empty_string', optional => 1 },
+        three_prime => {validate => 'non_empty_string', optional => 1 },
+    };
+}
+
+=head2 retrieve_crispr_es_qc_run
+
+Return a crispr_es_qc_run result for a given id
+
+=cut
+sub set_het_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_het_status );
+
+    if ( $validated_params->{'five_prime'} ) {
+        my $het_validation = $self->schema->resultset( 'WellHetStatus' )->update_or_create(
+            { slice_def $validated_params, qw( well_id five_prime ) }
+        );
+    }
+    if ( $validated_params->{'three_prime'} ) {
+        my $het_validation = $self->schema->resultset( 'WellHetStatus' )->update_or_create(
+            { slice_def $validated_params, qw( well_id three_prime ) }
+        );
+    }
+
+    return $self->retrieve( WellHetStatus => $validated_params );
+}
+
+
 1;
 
 __END__

@@ -92,6 +92,75 @@ $(document).ready(function() {
         });
     });
 
+    $(".validate_het_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/set_unset_het" ) %]',
+            data: {
+                "well_id": well_id,
+                "set": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                // alert( 'Error setting Het validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_five_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "well_id": well_id,
+                "five_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_three_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "well_id": well_id,
+                "three_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
 });
 </script>
 
@@ -188,6 +257,7 @@ $(document).ready(function() {
                     complete_info          = 1
                     hide_crispr_well_id    = 0
                     hide_crispr_validation = hide_crispr_validation
+                    hide_het_validation    = hide_het_validation
                 %]
 
             </tr>
