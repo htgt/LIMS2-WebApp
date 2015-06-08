@@ -323,9 +323,9 @@ sub pspec_set_unset_het_validation {
     };
 }
 
-=head2 retrieve_crispr_es_qc_run
+=head2 set_unset_het_validation
 
-Return a crispr_es_qc_run result for a given id
+Either removes existing Het validation data on a well, or creates blank one.
 
 =cut
 sub set_unset_het_validation {
@@ -362,9 +362,9 @@ sub pspec_set_het_status {
     };
 }
 
-=head2 retrieve_crispr_es_qc_run
+=head2 set_het_status
 
-Return a crispr_es_qc_run result for a given id
+Sets a Het result for a well on either 5' or 3'. If both are set to true, well gets accepted as an override.
 
 =cut
 sub set_het_status {
