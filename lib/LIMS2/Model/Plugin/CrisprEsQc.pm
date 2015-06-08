@@ -7,6 +7,7 @@ use Moose::Role;
 use DDP;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use Try::Tiny;
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -318,6 +319,7 @@ sub pspec_set_unset_het_validation {
     return {
         well_id => { validate => 'integer' },
         set => {validate => 'non_empty_string', optional => 1 },
+        user => { validate => 'existing_user' },
     };
 }
 
@@ -330,11 +332,19 @@ sub set_unset_het_validation {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_set_unset_het_validation );
-
     my $het;
+
+    my $user = $validated_params->{'user'};
+    delete $validated_params->{'user'};
 
     if ( $validated_params->{'set'} eq 'false' ) {
         $het = $self->schema->resultset('WellHetStatus')->find( { well_id => $validated_params->{'well_id'} } )->delete;
+        try {
+            my $override = $self->delete_well_accepted_override({
+                created_by  => $user,
+                well_id     => $validated_params->{'well_id'},
+            });
+        };
     } elsif ($validated_params->{'set'} eq 'true') {
         $het = $self->schema->resultset('WellHetStatus')->create( { well_id => $validated_params->{'well_id'} } );
     }
@@ -348,6 +358,7 @@ sub pspec_set_het_status {
         well_id => { validate => 'integer' },
         five_prime => {validate => 'non_empty_string', optional => 1 },
         three_prime => {validate => 'non_empty_string', optional => 1 },
+        user => { validate => 'existing_user' },
     };
 }
 
@@ -361,6 +372,9 @@ sub set_het_status {
 
     my $validated_params = $self->check_params( $params, $self->pspec_set_het_status );
 
+    my $user = $validated_params->{'user'};
+    delete $validated_params->{'user'};
+
     if ( $validated_params->{'five_prime'} ) {
         my $het_validation = $self->schema->resultset( 'WellHetStatus' )->update_or_create(
             { slice_def $validated_params, qw( well_id five_prime ) }
@@ -372,7 +386,25 @@ sub set_het_status {
         );
     }
 
-    return $self->retrieve( WellHetStatus => $validated_params );
+    my $het = $self->schema->resultset( 'WellHetStatus' )->find(
+            { well_id => $validated_params->{'well_id'} } );
+
+    if ( $het->five_prime && $het->three_prime ) {
+        my $override = $self->update_or_create_well_accepted_override({
+            created_by  => $user,
+            well_id     => $validated_params->{'well_id'},
+            accepted    => 1,
+        });
+    } else {
+        try {
+            my $override = $self->delete_well_accepted_override({
+                created_by  => $user,
+                well_id     => $validated_params->{'well_id'},
+            });
+        };
+    }
+
+    return $het;
 }
 
 

@@ -101,6 +101,7 @@ $(document).ready(function() {
             type: "POST",
             url: '[% c.uri_for( "/api/set_unset_het" ) %]',
             data: {
+                "user": '[% c.user.name %]',
                 "well_id": well_id,
                 "set": state
             },
@@ -124,6 +125,7 @@ $(document).ready(function() {
             type: "POST",
             url: '[% c.uri_for( "/api/validate_het" ) %]',
             data: {
+                "user": '[% c.user.name %]',
                 "well_id": well_id,
                 "five_prime": state
             },
@@ -147,6 +149,7 @@ $(document).ready(function() {
             type: "POST",
             url: '[% c.uri_for( "/api/validate_het" ) %]',
             data: {
+                "user": '[% c.user.name %]',
                 "well_id": well_id,
                 "three_prime": state
             },
