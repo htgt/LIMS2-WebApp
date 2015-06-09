@@ -25,7 +25,7 @@
                     [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
                         [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                             { name: '[%- col %]', type: 'int' },
-                        [%- ELSIF col.match( 'concluded\?' ) %]
+                        [%- ELSIF col.match( 'concluded\?' ) OR  col.match( 'Report\?' ) %]
                             { name: '[%- col %]', type: 'boolean' },
                         [%- ELSE %]
                             { name: '[%- col %]', type: 'string' },
@@ -59,6 +59,8 @@
                                         [%- alt_render.${columns.$index} = 1 %]
                                     [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
                                         [%- alt_render_link.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match('lims2_combo')) %]
+                                        [%- alt_render_combo.${columns.$index} = 1 %]
                                     [%- END %]
                                     ,"[%- columns.$index %]": "[%- val.dquote | none%]"
                                     [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
@@ -91,11 +93,54 @@
                 "gene id" = 1
                 "row id" = 1
                 "id" = 1
+                "well id" = 1
                 } %]
 
+
+
+
+
+            var recovery_class_store = Ext.create('Ext.data.Store',{
+                fields: ['recovery_class'],
+                data: [
+                    {"recovery_class":"-"}
+                    [%- FOREACH recovery_class IN recovery_classes %]
+                        ,{"recovery_class":"[% recovery_class %]"}
+                    [%- END %]
+
+                ]
+            });
+
+            var recovery_class_combo = Ext.create('Ext.form.ComboBox', {
+                typeAhead: true,
+                triggerAction: 'all',
+                editable: false,
+                store: recovery_class_store,
+                displayField: 'recovery_class',
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        console.log('recovery class listener' );
+                        var record = grid.getSelectionModel().getSelection()[0];
+
+                        console.log("Updating " + record.data.id + " with value " + field.getValue());
+                        var newRecord = field.findRecordByValue(newValue);
+
+                        $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(){record.commit();});
+                    }
+                }
+            });
+
             var columns = [
+                [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
+
+                [% IF first_column == 1 %]
                 {
+                [% first_column = 0 %]
+                [% ELSE %]
+                ,{
+                [% END %]
+
                     header: "[%- col %]",
                     [%- IF locked.${col.lower} == 1 %]
                     locked: true,
@@ -108,6 +153,8 @@
                     renderer: lims2_action_button_json,
                     [% ELSIF alt_render_link.$col == 1 %]
                     renderer: lims2_action_link,
+                    [% ELSIF alt_render_combo.$col == 1 %]
+                    renderer: lims2_action_combo,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
@@ -118,36 +165,13 @@
                         checkchange: function (column, recordIndex, checked) {
                             console.log('checkbox class listener');
                             var record = grid.store.getAt(recordIndex);
-                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(data){record.commit()})
+                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(){record.commit();});
                         }
                     },
                     [%- END %]
                     [%- IF col.match( 'recovery class' ) %]
                     width: 120,
-                    editor: Ext.create('Ext.form.ComboBox', {
-                        typeAhead: true,
-                        triggerAction: 'all',
-                        editable: false,
-
-                        store: [
-                            [%- FOREACH recovery_class IN recovery_classes %]
-                            ['[% recovery_class %]','[% recovery_class %]'],
-                            [%- END %]
-                        ],
-                        listeners: {
-                            change: function (field, newValue, oldValue) {
-                                console.log('recovery class listener' );
-                                var record = grid.getSelectionModel().getSelection()[0];
-
-                                console.log("Updating " + record.data.id + " with value " + field.getValue());
-                                var newRecord = field.findRecordByValue(newValue);
-
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(data){record.commit()})
-                            }
-                        },
-
-                    }),
-
+                    editor: recovery_class_combo,
                     [%- END %]
 
                     [%- IF col.match( 'recovery comment' ) %]
@@ -162,9 +186,9 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){record.commit()})
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(){record.commit();});
                             }
-                        },
+                        }
                     }),
                     [%- END %]
 
@@ -175,8 +199,9 @@
                         triggerAction: 'all',
                         editable: false,
                         store: [
+                             ['-','-']
                             [%- FOREACH priority_class IN priority_classes %]
-                            ['[% priority_class %]','[% priority_class %]'],
+                            ,['[% priority_class %]','[% priority_class %]']
                             [%- END %]
                         ],
                         listeners: {
@@ -186,19 +211,91 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(data){record.commit()})
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(){record.commit();});
                             }
-                        },
+                        }
 
                     }),
 
                     [%- END %]
 
+
+                    [%- IF col.match( 'Report\?' ) %]
+                    xtype: 'checkcolumn',
+                    width: 65,
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
+                            var record = grid.store.getAt(recordIndex);
+                            console.log(record.get('Well ID'));
+                            console.log(checked);
+                            $.getJSON( "[% c.uri_for('/api/well/toggle_to_report') %]", {id:record.get('Well ID'), to_report:checked}, function(data){record.commit()})
+                        }
+                    },
+                    [%- END %]
+
+                    [%- IF col.match( 'Crispr_.*_qc' ) %]
+                    width: 120,
+                    editor: assembly_qc_combo,
+                    [%- END %]
+
+                    [%- IF col.match( 'Vector_qc') %]
+                    width: 120,
+                    editor: assembly_qc_combo,
+                    [%- END %]
+
+
                     dataIndex: '[%- col %]'
-                },
+                }
                 [%- END %]
             ];
 
+
+            function lims2_action_combo(val){
+                var id = Ext.id();
+                Ext.defer(function(){
+                    console.log(val);
+                    var j_val = JSON.parse(val);
+                    var options = j_val.lims2_combo.options;
+                    var selected = j_val.lims2_combo.selected;
+                    var api_base = j_val.lims2_combo.api_base;
+
+                    console.log('combo options: ' + options);
+
+                    var combo = Ext.widget('combo', {
+                      renderTo: id,
+                      grow: true,
+                      typeAhead: true,
+                      triggerAction: 'all',
+                      editable: true,
+                      store: options,
+                      listeners: {
+                        change: function (field, newValue, oldValue) {
+                            var record = grid.getSelectionModel().getSelection()[0];
+
+                            console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());
+
+                            var params_string = j_val.lims2_combo.api_params;
+                            if(field.getValue() != '-'){
+                              params_string = params_string + '&value=' + field.getValue();
+                            }
+                            var uri = "[% c.uri_for('/') %]" + api_base + '?' + params_string;
+                            $.getJSON( uri ).fail(function (data){
+                                console.log(data.responseText);
+                                console.log("Update failed. Returning value to " + oldValue);
+                                field.setRawValue(oldValue);
+                                // For some reason lastValue does not get updated by setRawValue
+                                // so we do it here to avoid wrong oldValue being sent to next change
+                                field.lastValue = oldValue;
+                            });
+                        }
+                      }
+                    });
+                    console.log('selecting value ' + selected);
+                    combo.setValue(selected);
+                },50);
+                return Ext.String.format('<div id="{0}"></div>', id);
+            }
 
             function lims2_action_button_json(val) {
                     var id = Ext.id();
@@ -252,7 +349,6 @@
                 forceFit : true,
                 [% END %]
                 height: 750,
-                width: 1170,
                 store: store,
                 columnLines: true,
                 columns: columns,
@@ -272,7 +368,106 @@
                 simpleSelect: true,
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
-                ]
+                ],
+                listeners: {
+                    'afterlayout' : function(grid){
+                        grid.syncRowHeights();
+                    }
+                },
+                tools:[
+
+                    {
+                        id        : 'download_csv_file_btn',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            DownloadCsvFile(grid);
+                        }
+                    },
+
+                    ],
             });
+
+            var tooltips = [{
+                target   : 'download_csv_file_btn',
+                html     : 'Click to download the grid data as a CSV spreadsheet file'
+            }];
+
+            Ext.each(tooltips, function(config) {
+                Ext.create('Ext.tip.ToolTip', config);
+            });
+
+
+            function DownloadCsvFile(grid) {
+                var cols    = grid.columns;
+                var store   = grid.store;
+                var data    = '';
+
+                var that = this;
+                Ext.Array.each(cols, function(col, index) {
+                    if (col.hidden != true) {
+
+                        var text1;
+
+                        if (col.text == null || col.text == undefined) {
+                            text1 = '';
+                        } else {
+                            text1 = col.text;
+                        }
+                        if (text1.match(/,/)) {
+                            if (!text1.match(/"/)) {
+                                text1 = '"' + text1 + '"';
+                            } else {
+                                text1 = text1.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                            }
+                        }
+                        data += text1 + ',';
+                    }
+                });
+                data += "\n";
+
+                store.each(function(record) {
+                    var entry       = record.getData();
+                    Ext.Array.each(cols, function(col, index) {
+                        if (col.hidden != true) {
+                            var fieldName   = col.dataIndex;
+                            var text        = entry[fieldName];
+
+                            var text2;
+
+                            if (text == null || text == undefined) {
+                                text2 = '';
+                            } else if (!text.match) { // a checkcolumn object
+                                text2 = text;
+                            } else {
+                                text2 = text;
+                                if (text2.match(/,/)) {
+                                    if (!text2.match(/"/)) {
+                                        text2 = '"' + text2 + '"';
+                                    } else {
+                                        text2 = text2.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                                    }
+                                }
+                            }
+
+                            data += text2 + ',';
+                        }
+                    });
+                    data += "\n";
+                });
+
+                // window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
+
+                var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
+                var downloadLink = document.createElement("a");
+                downloadLink.href = uri;
+                downloadLink.download = "grid.csv";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+            };
+
     });
 </script>

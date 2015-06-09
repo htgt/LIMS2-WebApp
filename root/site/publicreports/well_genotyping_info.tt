@@ -1,7 +1,23 @@
-[% META title="Well Genotyping Information"; META tab_name = "Cells" %]
+[% META title="Clone Genotyping"; META tab_name = "Cells" %]
 
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
 <script language="javascript" type="text/javascript">
+  $(document).ready(function() {
+
+      $(".traces").click(function(e) {
+          e.preventDefault();
+
+          //the code for this is inside jquery.flot.traceviewer.js
+          var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+      });
+  });
+
   function toggle_id(id) {
     if ($(id).attr('style') == "display:none") {
       $(id).attr("style", "display:block");
@@ -11,6 +27,7 @@
     }
   }
 </script>
+
 <style type="text/css">
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
@@ -21,7 +38,7 @@
 </style>
 
 <div class="page-header">
-  <h1>Well Genotyping Information</h1>
+  <h1>Clone Genotyping</h1>
 </div>
 
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
@@ -34,8 +51,12 @@
       <td>[% data.well_name %]</td>
     </tr>
     <tr>
-      <th>Gene</th>
+      <th>Gene Symbol</th>
       <td>[% data.gene %]</td>
+    </tr>
+    <tr>
+      <th>Gene ID</th>
+      <td>[% data.gene_id %]</td>
     </tr>
     <tr>
       <th>Species</th>
@@ -45,9 +66,39 @@
       <th>Cell Line</th>
         <td>[% data.cell_line %]</td>
     </tr>
+    <tr>
+      <th>Child Barcodes</th>
+        <td>[% data.child_barcodes.join(", ") %]</td>
+    </tr>
 </table>
 
-<h3>First Allele</h3>
+<h3>Crispr Information ([% IF crispr_data.size == 1 %]1 crispr[% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
+[% FOR crispr IN crispr_data %]
+  <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Crispr ID</th>
+      <td>[% crispr.id %]</td>
+    </tr>
+    <tr>
+      <th>CRISPR Well</th>
+      <td>[% crispr.crispr_well %]</td>
+    </tr>
+    <tr>
+      <th>Sequence</th>
+      <td class="alignment">[% crispr.seq %]</td>
+    </tr>
+    <tr>
+      <th>Locus</th>
+      <td>[% crispr.locus.chr_name %]:[% crispr.locus.chr_start %]-[% crispr.locus.chr_end %]</td>
+    </tr>
+    <tr>
+      <th>PAM Right</th>
+      <td>[% crispr.pam_right %]</td>
+    </tr>
+  </table>
+[% END %]
+
+<h3>Targeted Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Design ID</th>
@@ -86,8 +137,16 @@
     [% END %]
 </table>
 
-<h3>Second Allele</h3>
+<h3>NHEJ Allele</h3>
 <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>QC Type</th>
+      <td>[% data.qc_type %]</td>
+    </tr>
+    <tr>
+      <th>QC Source</th>
+      <td>Plate: [% data.qc_plate_name %]<br>Well: [% data.qc_well_name %]</td>
+    </tr>
     <tr>
       <th>Allele Type</th>
       <td>[% data.qc_data.damage_type %]</td>
@@ -132,6 +191,9 @@
             </span>
           </div>
         </div>
+        [% IF data.qc_data.fwd_read AND data.qc_data.rev_read %]
+            <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+        [% END %]
       </td>
     </tr>
     <tr>

@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.284';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.322';
 }
 ## use critic
 
@@ -153,9 +153,9 @@ sub assembly_wells {
     };
 
     my $other_conditions = {
-        columns => [ qw/assembly_plate_name assembly_well_name assembly_well_left_crispr_well_id assembly_well_right_crispr_well_id/ ],
+        columns => [ qw/assembly_well_id assembly_plate_name assembly_well_name/ ],
         distinct => 1,
-        order_by => 'assembly_plate_name, assembly_well_name, assembly_well_left_crispr_well_id, assembly_well_right_crispr_well_id',
+        order_by => 'assembly_well_id, assembly_plate_name, assembly_well_name',
     };
 
     my $assembly_data = $source_rs->search(
@@ -165,22 +165,12 @@ sub assembly_wells {
 
     my $assembly_wells;
     my @assembly_wells_list;
-    while ( my $assembly_well = $assembly_data->next ) {
-        if ( $assembly_well->assembly_plate_name && $assembly_well->assembly_well_name ) {
-            my $left_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_left_crispr_well_id });
-            my $left_crispr_well_string = 'ND';
-            if ( $left_crispr_res ) {
-                $left_crispr_well_string = $left_crispr_res->plate->name . '[' . $left_crispr_res->name . ']';
-            }
-            my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->assembly_well_right_crispr_well_id });
-            my $right_crispr_well_string = 'ND';
-            if ( $right_crispr_res ) {
-                $right_crispr_well_string = $right_crispr_res->plate->name . '[' . $right_crispr_res->name . ']';
-            }
-            push @assembly_wells_list, ($assembly_well->assembly_plate_name . '[' . $assembly_well->assembly_well_name . ']'
-                . ':' . $left_crispr_well_string
-                . ':' . $right_crispr_well_string
-            );
+    while ( my $assembly_well_data = $assembly_data->next ) {
+        if ( $assembly_well_data->assembly_well_id ) {
+            my $assembly_well = $self->model->schema->resultset('Well')->find({ id => $assembly_well_data->assembly_well_id });
+            my @crispr_wells = $assembly_well->parent_crispr_wells;
+            my $assembly_details = $assembly_well_data->assembly_plate_name . '[' . $assembly_well_data->assembly_well_name . ']' . ':' . join( ':', map{ $_->as_string } @crispr_wells );
+            push @assembly_wells_list, $assembly_details;
         }
     }
     if ( scalar(@assembly_wells_list) > 0 ) {
@@ -202,9 +192,9 @@ sub assembly_wells_as_hash {
     };
 
     my $other_conditions = {
-        columns => [ qw/assembly_plate_name assembly_well_name assembly_well_left_crispr_well_id assembly_well_right_crispr_well_id/ ],
+        columns => [ qw/assembly_well_id assembly_plate_name assembly_well_name/ ],
         distinct => 1,
-        order_by => 'assembly_plate_name, assembly_well_name, assembly_well_left_crispr_well_id, assembly_well_right_crispr_well_id',
+        order_by => 'assembly_well_id, assembly_plate_name, assembly_well_name',
         'result_class' => 'DBIx::Class::ResultClass::HashRefInflator',
     };
 
@@ -215,18 +205,12 @@ sub assembly_wells_as_hash {
 
     my $assembly_wells;
     my @assembly_wells_list;
-    while ( my $assembly_well = $assembly_data->next ) {
-        if ( $assembly_well->{assembly_plate_name} && $assembly_well->{assembly_well_name} ) {
-            my $left_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->{assembly_well_left_crispr_well_id} },
-                {'result_class' => 'DBIx::Class::ResultClass::HashRefInflator'});
-            my $left_crispr_well_string = $left_crispr_res->{plate}->{name} . '[' . $left_crispr_res->{name} . ']';
-            my $right_crispr_res = $self->model->schema->resultset('Well')->find({ id => $assembly_well->{assembly_well_right_crispr_well_id} },
-                {'result_class' => 'DBIx::Class::ResultClass::HashRefInflator'});
-            my $right_crispr_well_string = $right_crispr_res->{plate}->{name} . '[' . $right_crispr_res->{name} . ']';
-            push @assembly_wells_list, ($assembly_well->{assembly_plate_name} . '[' . $assembly_well->{assembly_well_name} . ']'
-                . ':' . $left_crispr_well_string
-                . ':' . $right_crispr_well_string
-            );
+    while ( my $assembly_well_data = $assembly_data->next ) {
+        if ( $assembly_well_data->{assembly_well_id} ) {
+            my $assembly_well =  $self->model->schema->resultset('Well')->find({ id => $assembly_well_data->{assembly_well_id} });
+            my @crispr_wells = $assembly_well->parent_crispr_wells;
+            my $assembly_details = $assembly_well_data->{assembly_plate_name} . '[' . $assembly_well_data->{assembly_well_name} . ']' . ':' . join( ':', map{ $_->as_string } @crispr_wells );
+            push @assembly_wells_list, $assembly_details;
         }
     }
     if ( scalar(@assembly_wells_list) > 0 ) {
@@ -372,16 +356,19 @@ override iterator => sub {
         }
     }
 
+    INFO( 'Sponsors: ' . (join ", ", @sponsors) );
     my $project_rs = $self->model->schema->resultset('Project')->search({
-        sponsor_id     => { -in => [@sponsors] },
+        'project_sponsors.sponsor_id' => { -in => [@sponsors] },
     },{
-        select => [ 'gene_id', 'sponsor_id'],
+        prefetch => ['project_sponsors'],
     });
+    INFO ( 'Project count: ' . $project_rs->count );
+
     my %gene_sponsor_hash;
 
     while (my $project = $project_rs->next) {
     # create list of genes
-       push @{$gene_sponsor_hash{$project->gene_id}}, $project->sponsor_id;
+       push @{$gene_sponsor_hash{$project->gene_id}}, $project->sponsor_ids;
     }
     my @gene_list = keys %gene_sponsor_hash;
     my $gene_designs_rs = $self->model->schema->resultset('GeneDesign')->search({

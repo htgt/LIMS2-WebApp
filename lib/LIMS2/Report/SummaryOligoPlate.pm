@@ -1,7 +1,7 @@
 package LIMS2::Report::SummaryOligoPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.284';
+    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ use strict;
 use Moose;
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq all );
 use Try::Tiny;
 
 extends qw( LIMS2::ReportGenerator );
@@ -56,6 +56,7 @@ override _build_columns => sub {
             'DNA crispr vectors',
             'DNA QC-passing crispr vectors',
             'DNA QC-passing crispr pairs',
+            'DNA QC-passing crispr groups',
             'design oligos',
             "5'-PCR",
             "3'-PCR",
@@ -75,6 +76,7 @@ override _build_columns => sub {
             'Genes with DNA crispr vectors',
             'Genes with DNA QC-passing crispr vectors',
             'Genes with DNA QC-passing crispr pairs',
+            'Genes with DNA QC-passing crispr groups',
             'Genes with design oligos',
             "Genes with 5' and 3'-PCR passes",
             'Genes with final vector clones',
@@ -162,7 +164,7 @@ SQL_END
     my $results = $self->run_select_query( $sql );
 
     my ($gene_count, $gene_design_count, $pcr_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
-    my ($gene_crispr_count, $gene_crispr_vector_count, $gene_crispr_dna_count, $gene_crispr_dna_accepted_count, $gene_crispr_pair_accepted_count) = (0, 0, 0, 0, 0);
+    my ($gene_crispr_count, $gene_crispr_vector_count, $gene_crispr_dna_count, $gene_crispr_dna_accepted_count, $gene_crispr_pair_accepted_count, $gene_crispr_group_accepted_count) = (0, 0, 0, 0, 0, 0);
 
     # get the plates into arrays
 
@@ -269,12 +271,13 @@ SQL_END
 
             # CRISPR PLATES
             @design_ids = uniq @design_ids;
-            my ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count) = $self->crispr_counts(\@design_ids);
+            my ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count, $crispr_group_accepted_count) = $self->crispr_counts(\@design_ids);
             if ($crispr_count) {$gene_crispr_count++};
             if ($crispr_vector_count) {$gene_crispr_vector_count++};
             if ($crispr_dna_count) {$gene_crispr_dna_count++};
             if ($crispr_dna_accepted_count) {$gene_crispr_dna_accepted_count++};
             if ($crispr_pair_accepted_count) {$gene_crispr_pair_accepted_count++};
+            if ($crispr_group_accepted_count) {$gene_crispr_group_accepted_count++};
 
             (@design_ids, @design, @final_info, @dna_info, @ep, @ep_pick_info) = ();
         }
@@ -320,12 +323,13 @@ SQL_END
 
     # CRISPR PLATES
     @design_ids = uniq @design_ids;
-    my ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count) = $self->crispr_counts(\@design_ids);
+    my ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count, $crispr_group_accepted_count) = $self->crispr_counts(\@design_ids);
     if ($crispr_count) {$gene_crispr_count++};
     if ($crispr_vector_count) {$gene_crispr_vector_count++};
     if ($crispr_dna_count) {$gene_crispr_dna_count++};
     if ($crispr_dna_accepted_count) {$gene_crispr_dna_accepted_count++};
     if ($crispr_pair_accepted_count) {$gene_crispr_pair_accepted_count++};
+    if ($crispr_group_accepted_count) {$gene_crispr_group_accepted_count++};
 
 
     # report the row of the genes with plates count
@@ -337,6 +341,7 @@ SQL_END
         $gene_crispr_dna_count,
         $gene_crispr_dna_accepted_count,
         $gene_crispr_pair_accepted_count,
+        $gene_crispr_group_accepted_count,
         $gene_design_count,
         $pcr_count,
         $gene_final_count,
@@ -363,6 +368,7 @@ sub crispr_counts {
     my $crispr_dna_count = 0;
     my $crispr_dna_accepted_count = 0;
     my $crispr_pair_accepted_count = 0;
+    my $crispr_group_accepted_count = 0;
 
     my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => $design_ids });
 
@@ -389,6 +395,7 @@ sub crispr_counts {
                 }
             }
         }
+
         # Count pairs for this design which have accepted DNA for both left and right crisprs
         my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
         foreach my $pair_id (keys %$crispr_pairs){
@@ -399,11 +406,19 @@ sub crispr_counts {
                 $crispr_pair_accepted_count++;
             }
         }
+
+        # Count groups for this design which have accepted DNA for all crisprs in group 
+        my $crispr_groups = $design_crispr_summary->{$design_id}{plated_groups} || {};
+        foreach my $group_id (keys %$crispr_groups){
+            if ( all { $has_accepted_dna{$_} } @{ $crispr_groups->{$group_id} } ) {
+                DEBUG "Crispr group $group_id accepted";
+                $crispr_group_accepted_count++;
+            }
+        }
         DEBUG "crispr counts done";
     }
 
-    return ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count);
-
+    return ($crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count, $crispr_pair_accepted_count, $crispr_group_accepted_count);
 }
 
 
@@ -544,52 +559,9 @@ SQL_END
     # EP_PICK
     my ($ep_pick_count, $ep_pick_pass_count) = get_well_counts(\@ep_pick_info);
 
-    # Get the crispr summary information for all designs found in previous gene loop
-    # We do this after the main loop so we do not have to search for the designs for each gene again
-    DEBUG "Fetching crispr summary info for report";
-    my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => $design_list });
-    DEBUG "Adding crispr counts to gene data";
-
-
-    my $crispr_count = 0;
-    my $crispr_vector_count = 0;
-    my $crispr_dna_count = 0;
-    my $crispr_dna_accepted_count = 0;
-    my $crispr_pair_accepted_count = 0;
-    foreach my $design_id (@{$design_list}) {
-        my $plated_crispr_summary = $design_crispr_summary->{$design_id}->{plated_crisprs};
-        my %has_accepted_dna;
-        foreach my $crispr_id (keys %$plated_crispr_summary){
-            my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
-            $crispr_count += scalar( @crispr_well_ids );
-            foreach my $crispr_well_id (@crispr_well_ids){
-
-                # CRISPR_V well count
-                my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
-                $crispr_vector_count += $vector_rs->count;
-
-                # DNA well counts
-                my $dna_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{DNA};
-                $crispr_dna_count += $dna_rs->count;
-                my @accepted = grep { $_->is_accepted } $dna_rs->all;
-                $crispr_dna_accepted_count += scalar(@accepted);
-
-                if(@accepted){
-                    $has_accepted_dna{$crispr_id} = 1;
-                }
-            }
-        }
-        # Count pairs for this design which have accepted DNA for both left and right crisprs
-        my $crispr_pairs = $design_crispr_summary->{$design_id}->{plated_pairs} || {};
-        foreach my $pair_id (keys %$crispr_pairs){
-            my $left_id = $crispr_pairs->{$pair_id}->{left_id};
-            my $right_id = $crispr_pairs->{$pair_id}->{right_id};
-            if ($has_accepted_dna{$left_id} and $has_accepted_dna{$right_id}){
-                DEBUG "Crispr pair $pair_id accepted";
-                $crispr_pair_accepted_count++;
-            }
-        }
-    }
+    my ( $crispr_count, $crispr_vector_count, $crispr_dna_count, $crispr_dna_accepted_count,
+        $crispr_pair_accepted_count, $crispr_group_accepted_count )
+        = $self->crispr_counts($design_list);
 
     DEBUG "crispr counts done";
 
@@ -601,6 +573,7 @@ SQL_END
         $crispr_dna_count,
         $crispr_dna_accepted_count,
         $crispr_pair_accepted_count,
+        $crispr_group_accepted_count,
         scalar @design,
         $l_pcr,
         $r_pcr,

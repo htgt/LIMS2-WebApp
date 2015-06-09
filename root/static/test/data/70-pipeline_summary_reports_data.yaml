@@ -1,14 +1,10 @@
 ---
 projects:
   - id: 11
-    sponsor_id: 'Syboss'
-    allele_request: '{"gene_id":"MGI:1914632","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}'
     gene_id: 'MGI:1914632'
     targeting_type: 'double_targeted'
     species_id: 'Mouse'
   - id: 2
-    sponsor_id: 'Cre Knockin'
-    allele_request: '{"gene_id":"MGI:96600","first_allele_mutation_type":"cre_knock_in","first_allele_cassette_function":"cre_knock_in","targeting_type":"single_targeted"}'
     gene_id: 'MGI:1095419'
     targeting_type: 'single_targeted'
     species_id: 'Mouse'
@@ -374,7 +370,7 @@ summaries:
     fp_well_name: 'A01'
     fp_well_id: '1570'
     fp_well_created_ts: '2012-06-28 00:00:00'
-#    fp_well_assay_complete: 
+#    fp_well_assay_complete:
     fp_well_accepted: 't'
 #    sfp_plate_name:
 #    sfp_plate_id:

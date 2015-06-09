@@ -1,0 +1,168 @@
+[%- META title = 'View Project' %]
+
+<div class="page-header">
+  <h1>View Project [% project.id %]
+  [% IF project.effort_concluded %]
+  <span class="label label-info">Effort Concluded</span>
+  [% END %]
+  </h1>
+</div>
+<p>
+  <a href="[% c.uri_for('/user/manage_projects') %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to project search
+  </a>
+</p>
+<h2>Project Details</h2>
+
+<table class="table well">
+  <tr>
+    <th>ID</th>
+    <td>[% project.id %]</td>
+  </tr>
+  <tr>
+    <th>Gene</th>
+    <td>[% project.gene_id %]</td>
+  </tr>
+  <tr>
+    <th>Gene Symbol</th>
+    <td>[% gene_symbol %]</td>
+  </tr>
+  <tr>
+    <th>Species</th>
+    <td>[% project.species_id %]</td>
+  </tr>
+  <tr>
+    <th>Targeting Type</th>
+    <td>[% project.targeting_type %]</td>
+  </tr>
+  [% IF project.targeting_profile_id %]
+  <tr>
+    <th>Targeting Profile</th>
+    <td>[% project.targeting_profile_id %]</td>
+  </tr>
+  [% END %]
+  <tr>
+    <th>Recovery Class</th>
+    <td>[% project.recovery_class %]</td>
+  </tr>
+  <tr>
+    <th>Recovery Comment</th>
+    <td>[% project.recovery_comment %]</td>
+  </tr>
+  <tr>
+    <th>Sponsors</th>
+    <td>[% project.sponsors %]</td>
+  </tr>
+</table>
+
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="update_sponsors_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#update_sponsors_dev" href="#update_sponsors_form">
+        <strong>Edit Sponsors <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="update_sponsors_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form">
+		  <input type="hidden" name="project_id" value="[% project.id %]">
+		  [% FOREACH sponsor IN all_sponsors %]
+      <label class="checkbox">
+		    <input type="checkbox" name="sponsors" value="[% sponsor %]" [% IF project_sponsors.defined(sponsor) %]checked[% END %]> [% sponsor %]
+      </label>
+		  [% END %]
+		  <br>
+		  <button type="submit" class="btn" name="update_sponsors" value="1">Update Project Sponsors</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+[% END %]
+
+<h2>Project Experiments</h2>
+[% IF experiments.size %]
+<table class="table well">
+  <tr>
+    <th>Experiment ID</th>
+    <th>Design ID</th>
+    <th>Crisprs</th>
+    <th>Delete</th>
+  </tr>
+  [% FOREACH exp IN experiments %]
+  <tr>
+    <td>[% exp.id %]</td>
+    <td>
+      <a href="[% c.uri_for('/user/view_design/', { design_id => exp.design_id }) %]">
+        [% exp.design_id %]
+      </a>
+    </td>
+    <td>[% exp.crispr_description %]</td>
+    <td>
+      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form">
+        <button type="submit" class="btn btn-danger" name="delete_experiment" value="[% exp.id %]">
+          <i class="icon-remove icon-white"></i>
+        </button>
+      </form>
+    </td>
+  </tr>
+  [% END %]
+</table>
+[% ELSE %]
+No experiments for this project
+[% END %]
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="add_experiment_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#add_experiment_dev" href="#add_experiment_form">
+        <strong>Add Experiment <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="add_experiment_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well" name="add_experiment_form">
+          <input type="text" name="design_id" placeholder="Design ID">
+          <input type="text" name="crispr_id" placeholder="Crispr ID">
+          <input type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">
+          <input type="text" name="crispr_group_id" placeholder="Crispr Group ID">
+		  <button type="submit" class="btn" name="add_experiment" value="1">Add Experiment</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+[% END %]
+
+<script type="text/javascript">
+
+$( document ).ready(function() {
+    $("#update_sponsors_form").collapse('hide');
+});
+
+var designs = [
+[% FOREACH id IN design_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+var groups = [
+[% FOREACH id IN group_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+$("input[name='design_id']").autocomplete({
+  source: designs,
+  minLength: 0,
+});
+
+$("input[name='crispr_group_id']").autocomplete({
+  source: groups,
+  minLength: 0,
+});
+</script>

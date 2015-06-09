@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.284';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.322';
 }
 ## use critic
 
@@ -62,16 +62,8 @@ has chr_name => (
 );
 
 has [
-    qw( cassette_start cassette_end homology_arm_start homology_arm_end )
-] => (
-    is         => 'ro',
-    isa        => 'Int',
-    init_arg   => undef,
-    lazy_build => 1,
-);
-
-has [
-    qw( loxp_start loxp_end target_region_start target_region_end )
+    qw( loxp_start loxp_end target_region_start target_region_end
+        cassette_start cassette_end homology_arm_start homology_arm_end )
 ] => (
     is         => 'ro',
     isa        => 'Maybe[Int]',
@@ -124,6 +116,7 @@ has floxed_exons => (
         num_floxed_exons  => 'count',
     },
 );
+
 #TODO We are assuming that gibson designs are being treated as conditionals
 #     If the design is being used as a deletion the coordinates will be different
 #     Normal gibson designs can be conditional or deletion
@@ -169,6 +162,13 @@ sub _build_target_region_start {
         }
     }
 
+    # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
+    # target region, not a ideal solution but the least painful one I can think of
+    if ( $self->type eq 'nonsense' ) {
+        return $self->oligos->{'N'}{start};
+    }
+
+    return;
 }
 
 sub _build_target_region_end {
@@ -211,15 +211,17 @@ sub _build_target_region_end {
         }
     }
 
+    # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
+    # target region, not a ideal solution but the least painful one I can think of
+    if ( $self->type eq 'nonsense' ) {
+        return $self->oligos->{'N'}{end};
+    }
+
+    return;
 }
 
 sub _build_loxp_start {
     my $self = shift;
-
-    return
-        if $self->type eq 'deletion'
-            || $self->type eq 'insertion'
-            || $self->type eq 'gibson-deletion';
 
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
@@ -239,15 +241,12 @@ sub _build_loxp_start {
             return $self->oligos->{EF}{end} + 1;
         }
     }
+
+    return;
 }
 
 sub _build_loxp_end {
     my $self = shift;
-
-    return
-        if $self->type eq 'deletion'
-            || $self->type eq 'insertion'
-            || $self->type eq 'gibson-deletion';
 
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
@@ -267,6 +266,8 @@ sub _build_loxp_end {
             return $self->oligos->{'5R'}{start} - 1;
         }
     }
+
+    return;
 }
 
 sub _build_cassette_start {
@@ -308,6 +309,8 @@ sub _build_cassette_start {
             return $self->oligos->{'3F'}{end} + 1;
         }
     }
+
+    return;
 }
 
 sub _build_cassette_end {
@@ -349,6 +352,8 @@ sub _build_cassette_end {
             return $self->oligos->{'5R'}{start} - 1;
         }
     }
+
+    return;
 }
 
 sub _build_homology_arm_start {
@@ -361,6 +366,9 @@ sub _build_homology_arm_start {
         else {
             return $self->oligos->{'3R'}{start};
         }
+    }
+    elsif ( $self->type eq 'nonsense' ) {
+        return;
     }
     else {
         if ( $self->chr_strand == 1 ) {
@@ -382,6 +390,9 @@ sub _build_homology_arm_end {
         else {
             return $self->oligos->{'5F'}{end};
         }
+    }
+    elsif ( $self->type eq 'nonsense' ) {
+        return;
     }
     else {
         if ( $self->chr_strand == 1 ) {

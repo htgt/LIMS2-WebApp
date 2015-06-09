@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CassetteFunction;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CassetteFunction::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::CassetteFunction::VERSION = '0.322';
 }
 ## use critic
 
@@ -105,24 +105,39 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 project_alleles
+=head2 old_project_alleles
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
+Related object: L<LIMS2::Model::Schema::Result::OldProjectAllele>
 
 =cut
 
 __PACKAGE__->has_many(
-  "project_alleles",
-  "LIMS2::Model::Schema::Result::ProjectAllele",
+  "old_project_alleles",
+  "LIMS2::Model::Schema::Result::OldProjectAllele",
+  { "foreign.cassette_function" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 targeting_profile_alleles
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::TargetingProfileAllele>
+
+=cut
+
+__PACKAGE__->has_many(
+  "targeting_profile_alleles",
+  "LIMS2::Model::Schema::Result::TargetingProfileAllele",
   { "foreign.cassette_function" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:te8aUWICOWKdUnwxgl7FEg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6EP3AcwlJlnq/rNsik7ZxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

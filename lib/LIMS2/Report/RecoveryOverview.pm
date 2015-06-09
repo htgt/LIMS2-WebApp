@@ -1,7 +1,7 @@
 package LIMS2::Report::RecoveryOverview;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::RecoveryOverview::VERSION = '0.284';
+    $LIMS2::Report::RecoveryOverview::VERSION = '0.322';
 }
 ## use critic
 
@@ -220,8 +220,11 @@ sub _build_projects {
 
     my $project_rs = $self->model->schema->resultset('Project')->search(
         {
-            sponsor_id => { -in => \@sponsors }
+            'project_sponsors.sponsor_id' => { -in => \@sponsors }
         },
+        {
+            join => ['project_sponsors']
+        }
     );
 
     return [ $project_rs->all ];
@@ -352,7 +355,7 @@ sub _build_crispr_stage_data {
         }
         elsif(@crispr_well_ids){
             # We found crispr wells but no DNA or vector result sets
-            $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date;
+            $crispr_stage_data->{crispr_well_created}->{$gene} = $first_crispr_well_date->dmy('/');
             my @crispr_wells = $self->model->schema->resultset('Well')->search({
                 id => { '-in', \@crispr_well_ids }
             });

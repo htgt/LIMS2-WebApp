@@ -113,23 +113,24 @@ sub all_tests  : Tests
 	# insert each project row
 	for my $project ( @$projects ) {
         if ($project->{gene_id} eq 'MGI:1914632') {
-            ok my $project_allele_deleted = model('Golgi')->schema->resultset( 'ProjectAllele' )->search({ project_id => $project->{id} })->delete, 'project_allele should be deleted from DB';
-            ok my $project_deleted = $project_rs->find({ gene_id => $project->{gene_id} })->delete, 'project should be deleted from DB';
+            my $project = $project_rs->find({ gene_id => $project->{gene_id} });
+            ok my $project_deleted = model('Golgi')->delete_project({ id => $project->id }), 'project should be deleted from DB';
         }
 	    ok my $project_inserted = $project_rs->create( $project ), 'project should be inserted into DB';
-	}
+        ok model('Golgi')->add_project_sponsor({
+                project_id => $project_inserted->id,
+                sponsor_id => 'Syboss',
+            }), 'sponsor added to project';
+        ok my ($sponsor) = $project_inserted->sponsor_ids, 'project sponsor found';
+        is $sponsor, 'Syboss', 'project sponsor correct';
 
-	# fetch project_alleles data from yaml
-	ok my $project_allele_rs = model('Golgi')->schema->resultset( 'ProjectAllele' ),
-	    'fetching resultset for table project_alleles should succeed';
-
-	isa_ok $project_allele_rs, 'DBIx::Class::ResultSet';
-
-	ok my $project_alleles = $test_data->{ 'project_alleles' }, 'fetching project alleles test data from yaml should succeed';
-
-	# insert each project_alleles row
-	for my $project_allele ( @$project_alleles ) {
-	    ok my $project_allele_inserted = $project_allele_rs->create( $project_allele ), 'project allele should be inserted into DB';
+        ok model('Golgi')->update_project_sponsors({
+                project_id => $project_inserted->id,
+                sponsor_list => ['Mutation'],
+            }), 'project sponsors updated';
+        ok my @new_sponsors = $project_inserted->sponsor_ids, 'project sponsor found';
+        is scalar(@new_sponsors), 1, 'project has correct number of sponsors';
+        is $new_sponsors[0],'Mutation', 'project sponsor is correct';
 	}
 
 	# fetch summaries data from yaml

@@ -28,6 +28,18 @@ $(document).ready(function () {
       create_alert("Please provide a plate and well");
   });
 
+  $("#plate_well_search_button").click(function (event) {
+    if ( $("#plate_well_name").val() ){
+      var plate_well = $("#plate_well_name").val();
+      var split_names = plate_well.match(/^(.*)_(.{3})$/);
+      console.log(split_names);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_names[1], split_names[2] ] );
+    }
+    else{
+      create_alert("Please provide a plate_well name");
+    }
+  });
+
   //allow pressing enter to submit
   $("#well_id").enterKey(function(ev) {
     $("#id_button").click();
@@ -65,7 +77,7 @@ function create_alert(text, alert_class) {
     <legend>Barcode Search</legend>
       <div class="control-group">
         <div class="form-inline">
-          <input type="text" name="well_id" id="well_id" placeholder="Well ID" />
+          <input type="text" name="well_id" id="well_id" placeholder="Barcode" />
           <input type="button" id="id_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
       </div>
@@ -75,6 +87,14 @@ function create_alert(text, alert_class) {
 <div class="well">
   <fieldset>
     <legend>Plate/Well Search</legend>
+      <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="plate_well_name" id="plate_well_name" placeholder="Plate_Well Name" />
+          <input type="button" id="plate_well_search_button" name="action" class="btn btn-primary" value="Get data" />
+        </div>
+      </div>
+      <label>OR plate name and well name separately</label>
       <div class="control-group">
         <div class="form-inline">
           <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />

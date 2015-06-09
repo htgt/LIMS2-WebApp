@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprGroup;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.322';
 }
 ## use critic
 
@@ -137,6 +137,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_type
 
 Type: belongs_to
@@ -158,8 +173,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-20 10:31:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SkMuB4XI9ZdjyfoF28i6GA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tpGPAq8zyIjiS8FmJzwMYw
 #
 =head2 crisprs
 
@@ -275,6 +290,23 @@ sub species {
     return shift->right_most_crispr->species_id;
 }
 
+# Added species_id method to CrisprPair and CrisprGroup to fetch
+# the species_id (name string) so it is equivalent to Crispr->species_id
+# (Crispr->species returns the Species object)
+sub species_id {
+    return shift->right_most_crispr->species_id;
+}
+
+sub default_assembly{
+    return shift->right_most_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_group
+sub id_column_name{
+    return 'crispr_group_id';
+}
+
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
 
@@ -296,6 +328,21 @@ sub target_slice {
 sub is_pair { return; }
 
 sub is_group { return 1; }
+
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('crispr_primers', { primer_name => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.284';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.322';
 }
 ## use critic
 
@@ -12,14 +12,20 @@ use List::MoreUtils qw (uniq);
 use LIMS2::Model::Util::BarcodeActions qw(
     checkout_well_barcode
     discard_well_barcode
-    freeze_back_barcode
+    freeze_back_fp_barcode
+    freeze_back_piq_barcode
     add_barcodes_to_wells
     upload_plate_scan
     send_out_well_barcode
     do_picklist_checkout
+    start_doubling_well_barcode
+    upload_qc_plate
 );
 use namespace::autoclean;
 use JSON;
+
+use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+use LIMS2::Model::Util::CGAP;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -212,7 +218,7 @@ sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
     $c->assert_user_roles( 'read' );
 
     # User Scans a barcode
-    if($c->request->param('submit_barcode')){
+    if($c->request->param('submit_barcode') or $c->request->param('barcode')){
         # Fetches info about the well
         my $bc = $c->request->param('barcode');
         unless ($bc){
@@ -329,13 +335,26 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     return;
 }
 
-sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
+## no critic(ProhibitExcessComplexity)
+# FIXME: factor out processing and stashing of form params
+sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     my ($self, $c) = @_;
 
     $c->assert_user_roles( 'edit' );
 
     my $barcode = $c->request->param('barcode');
     $c->stash->{barcode} = $barcode;
+
+    my $type = $c->req->param('freeze_back_type');
+    my $redirect_on_completion;
+    if($type eq 'FP'){
+        $c->stash->{template} = 'user/barcodes/fp_freeze_back.tt';
+        $redirect_on_completion = $c->uri_for('/user/scan_barcode');
+    }
+    elsif($type eq 'PIQ'){
+        $c->stash->{template} = 'user/barcodes/piq_freeze_back.tt';
+        $redirect_on_completion = $c->uri_for('/user/scan_barcode');
+    }
 
     my $well;
     if($barcode){
@@ -359,18 +378,52 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
     }
 
     if($c->request->param('create_piq_wells')){
-        foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name) ){
-            $c->stash->{$item} = $c->req->param($item);
+        my $freeze_back_method;
+        my $freeze_back_params = {
+            barcode => $barcode,
+        };
+
+        if($c->req->param('freeze_back_type') eq 'PIQ'){
+            $freeze_back_method = \&freeze_back_piq_barcode;
+            foreach my $item ( qw(number_of_doublings) ){
+                $c->stash->{$item} = $c->req->param($item);
+                $freeze_back_params->{$item} = $c->req->param($item);
+            }
+        }
+        elsif($c->req->param('freeze_back_type') eq 'FP'){
+            $freeze_back_method = \&freeze_back_fp_barcode;
+        }
+        else{
+            die "Freeze back type not specified in form";
         }
 
-        # Requires: FP barcode, number of PIQ wells, lab number,
+        # For each QC well stash the form parameters
+        # and generate hash of params to send to freeze back method
+        my $number_of_qc_wells = $c->req->param('number_of_qc_wells');
+        my @qc_well_params;
+        foreach my $num (1..$number_of_qc_wells){
+            my $params = {
+                barcode => $barcode,
+                user    => $c->user->name,
+            };
+            foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name qc_piq_well_barcode) ){
+                my $form_param = $item."_$num";
+
+                next unless defined ($c->req->param($form_param));
+
+                $c->stash->{$form_param} = $c->req->param($form_param);
+                $params->{$item} = $c->req->param($form_param);
+            }
+            push @qc_well_params, $params;
+        }
+
+        # Requires: orig FP or PIQ barcode, number of PIQ wells, lab number,
         # PIQ sequencing plate name, PIQ seq well
-        my $tmp_piq_plate;
+        my @freeze_back_outputs;
+        $freeze_back_params->{qc_well_params} = \@qc_well_params;
         $c->model('Golgi')->txn_do( sub {
             try{
-                my $params = $c->request->parameters;
-                $params->{user} = $c->user->name;
-                $tmp_piq_plate = freeze_back_barcode( $c->model('Golgi'), $params );
+                @freeze_back_outputs = $freeze_back_method->($c->model('Golgi'), $freeze_back_params);
             }
             catch($e){
                 $c->stash->{error_msg} = "Attempt to freeze back $barcode failed with error $e";
@@ -383,9 +436,15 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
         $well = $c->model('Golgi')->retrieve_well({ barcode => $barcode });
         $c->stash->{well_details} = $self->_well_display_details($c, $well);
 
-        if($tmp_piq_plate){
-            $c->stash->{piq_plate_name} = $tmp_piq_plate->name;
-            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+        my $num = 0;
+        foreach my $output (@freeze_back_outputs){
+            $num++;
+            $c->stash->{"piq_plate_name_$num"} = $output->{tmp_piq_plate}->name;
+            $c->stash->{"piq_wells_$num"} = [ $output->{tmp_piq_plate}->wells ];
+
+            if($output->{qc_well}->well_barcode){
+                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->well_barcode->barcode;
+            }
         }
     }
     elsif($c->request->param('submit_piq_barcodes')){
@@ -405,31 +464,36 @@ sub fp_freeze_back : Path( '/user/fp_freeze_back' ) : Args(0){
 
         if($c->stash->{error_msg}){
             # Recreate stash for barcode upload form
-            foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name piq_plate_name) ){
-                $c->stash->{$item} = $c->req->param($item);
-            }
 
             # Stash scanned barcodes
-            my @barcode_fields = grep { $_ =~ /barcode_([0-9]+)$/ } keys %{$c->request->parameters};
+            my @barcode_fields = grep { $_ =~ /^barcode_([0-9]+)$/ } keys %{$c->request->parameters};
             foreach my $field_name (@barcode_fields){
                 $c->log->debug("Stashing $field_name");
                 $c->stash->{$field_name} = $c->req->param($field_name);
             }
 
-            my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
-                name => $c->req->param('piq_plate_name')
-            });
-            $c->stash->{piq_wells} = [ $tmp_piq_plate->wells ];
+            my $number_of_qc_wells = $c->req->param('number_of_qc_wells');
+            foreach my $num (1..$number_of_qc_wells){
+                foreach my $item ( qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name qc_piq_well_barcode piq_plate_name) ){
+                    my $form_param = $item."_$num";
+                    $c->stash->{$form_param} = $c->req->param($form_param);
+                }
+
+                my $tmp_piq_plate = $c->model('Golgi')->retrieve_plate({
+                    name => $c->req->param("piq_plate_name_$num")
+                });
+                $c->stash->{"piq_wells_$num"} = [ $tmp_piq_plate->wells ];
+            }
             return;
         }
 
-        # Redirect user to checked_out FP page
         $c->flash->{success_msg} = join "<br>", @$messages;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/FP") );
+        $c->res->redirect( $redirect_on_completion );
     }
 
     return;
 }
+## use critic
 
 sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     # Page should ask user to confirm and then update the barcode state
@@ -447,7 +511,7 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
 
     if($c->request->param('cancel_discard')){
         $c->flash->{info_msg} = "Cancelled discard of barcode $barcode";
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
         return;
     }
     elsif($c->request->param('confirm_discard')){
@@ -473,7 +537,7 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
         });
 
         $c->flash->{success_msg} = "Barcode $barcode has been discarded" unless $failed;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/$plate_type") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     }
     elsif($barcode){
         # return well details
@@ -508,7 +572,7 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
 
     if($c->request->param('cancel_send_out')){
         $c->flash->{info_msg} = "Cancelled send out of barcode $barcode";
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
         return;
     }
     elsif($c->request->param('confirm_send_out')){
@@ -534,7 +598,7 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
         });
 
         $c->flash->{success_msg} = "Barcode $barcode has been sent out" unless $failed;
-        $c->res->redirect( $c->uri_for("/user/view_checked_out_barcodes/PIQ") );
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     }
     elsif($barcode){
         # return well details
@@ -558,6 +622,143 @@ sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
     return;
 }
 
+sub piq_start_doubling : Path( '/user/piq_start_doubling' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    $c->stash->{oxygen_condition_list} = [ qw(normoxic hypoxic) ];
+
+    my $barcode = $c->request->param('barcode');
+
+    $c->stash->{barcode} = $barcode;
+
+    my $well;
+    if($barcode){
+        # get well details
+        try{
+            $well = $c->model('Golgi')->retrieve_well({
+                barcode => $barcode,
+            });
+        };
+        if($well){
+            $c->stash->{well_details} = $self->_well_display_details($c, $well);
+        }
+        else{
+            $c->stash->{error_msg} = "Barcode $barcode not found";
+            return;
+        }
+    }
+    else{
+        $c->stash->{error_msg} = "No barcode provided";
+        return;
+    }
+
+    if($c->request->param('cancel_start_doubling')){
+        $c->flash->{info_msg} = "Cancelled start doubling of barcode $barcode";
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
+        return;
+    }
+    elsif($c->request->param('confirm_start_doubling')){
+
+        my $failed;
+        $c->model('Golgi')->txn_do( sub {
+            try{
+                start_doubling_well_barcode(
+                    $c->model('Golgi'),
+                    {
+                        barcode => $barcode,
+                        user    => $c->user->name,
+                        oxygen_condition => $c->request->param('oxygen_condition'),
+                    }
+                );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Start doubling of barcode $barcode failed with error $e";
+                $c->log->debug("rolling back barcode start doubling actions");
+                $c->model('Golgi')->txn_rollback;
+                $failed = 1;
+            };
+        });
+
+        return if $failed;
+
+        $c->flash->{success_msg} = "Barcode $barcode has begun doubling";
+        $c->res->redirect( $c->uri_for("/user/scan_barcode") );
+    }
+    return;
+}
+
+sub create_qc_plate : Path( '/user/create_qc_plate' ) : Args(0){
+    my ($self, $c) = @_;
+
+    # Store mapping so user does not have to select both plate and process type
+    my $process_type_for_plate = {
+        CGAP_QC => 'cgap_qc',
+        MS_QC   => 'ms_qc',
+        PIQ     => 'rearray',
+    };
+
+    $c->assert_user_roles('edit');
+
+    $c->stash->{plate_type_list} = [ keys %{ $process_type_for_plate } ];
+    $c->stash->{plate_type} = $c->req->param('plate_type');
+
+    if($c->request->param('create_plate')){
+        my ($plate_name,$data_file) = $self->_plate_upload_checks($c);
+        return unless $data_file;
+
+        my $plate_type = $c->req->param('plate_type');
+
+        unless($plate_type){
+            $c->stash->{'error_msg'} = "No plate type provided";
+            return;
+        }
+
+        my $process_type = $process_type_for_plate->{$plate_type};
+
+        unless($process_type){
+            $c->stash->{'error_msg'} = "No default process type found for plate type $plate_type";
+            return;
+        }
+
+        my $plate;
+
+        $c->model('Golgi')->txn_do(
+            sub {
+                try{
+                    my $upload_params = {
+                        new_plate_name      => $plate_name,
+                        plate_type          => $plate_type,
+                        process_type        => $process_type,
+                        species             => $c->session->{selected_species},
+                        user                => $c->user->name,
+                        csv_fh              => $data_file->fh,
+                    };
+
+                    if(my $doublings = $c->req->param('number_of_doublings')){
+                        $upload_params->{doublings} = $doublings;
+                    }
+
+                    $plate = upload_qc_plate($c->model('Golgi'), $upload_params);
+                }
+                catch($e){
+                    $c->stash->{ 'error_msg' } = 'Error encountered while uploading qc plate: ' . $e;
+                    $c->log->debug('rolling back qc plate upload actions');
+                    $c->model('Golgi')->txn_rollback;
+                };
+            }
+        );
+
+        if($plate){
+            $c->flash->{'success_msg'} = "Plate $plate_name was created";
+            $c->res->redirect( $c->uri_for("/user/view_plate", {id => $plate->id }) );
+        }
+    }
+
+    return;
+}
+
 sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     # Upload a barcode scan file to create a new plate
     # which contains tubes that have already been registered in LIMS2
@@ -567,29 +768,8 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     $c->assert_user_roles( 'edit' );
 
     if($c->request->param('create_plate')){
-        my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
-
-        unless ( $csv_barcodes_data_file ) {
-            $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
-            return;
-        }
-
-        my $plate_name = $c->request->param('plate_name');
-
-        unless($plate_name){
-            $c->flash->{ 'error_msg' } = "No plate name provided";
-            return;
-        }
-        $c->stash->{plate_name} = $plate_name;
-
-        my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
-            name => $plate_name,
-        })->first;
-
-        if($plate_exists){
-            $c->flash->{ 'error_msg' } = "Plate $plate_name already exists. Please use a different name.";
-            return;
-        }
+        my ($plate_name,$csv_barcodes_data_file) = $self->_plate_upload_checks($c);
+        return unless $csv_barcodes_data_file;
 
         my $list_messages = [];
         my $plate;
@@ -621,6 +801,40 @@ sub create_barcoded_plate : Path( '/user/create_barcoded_plate' ) : Args(0){
     }
 
     return;
+}
+
+# Check we have an upload file and a new plate name
+sub _plate_upload_checks{
+    my ($self, $c) = @_;
+
+    $c->log->debug("Checking plate upload params");
+
+    my $plate_name = $c->request->param('plate_name');
+
+    unless($plate_name){
+        $c->log->debug("plate name missing");
+        $c->flash->{ 'error_msg' } = "No plate name provided";
+        return;
+    }
+    $c->stash->{plate_name} = $plate_name;
+
+    my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+    unless ( $csv_barcodes_data_file ) {
+        $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+        return;
+    }
+
+    my $plate_exists = $c->model('Golgi')->schema->resultset('Plate')->search({
+        name => $plate_name,
+    })->first;
+
+    if($plate_exists){
+        $c->flash->{ 'error_msg' } = "Plate $plate_name already exists. Please use a different name.";
+        return;
+    }
+
+    return ($plate_name,$csv_barcodes_data_file);
 }
 
 sub rescan_barcoded_plate : Path( '/user/rescan_barcoded_plate' ) : Args(0){
@@ -774,20 +988,74 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
     return;
 }
 
+## no critic(RequireFinalReturn)
+sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) : Args(0){
+    my ($self, $c) = @_;
+
+    try{
+        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
+        my $barcodes_by_state = {};
+        foreach my $barcode (@$ms_barcode_data){
+            my $state = $barcode->{state};
+            $barcodes_by_state->{$state} ||= [];
+            push @{ $barcodes_by_state->{$state} }, $barcode;
+        }
+        $c->stash->{data} = $barcodes_by_state;
+    }
+    catch($e){
+        $c->stash->{error_msg} = $e;
+    }
+
+    return;
+}
+## use critic
+
+sub search_cgap_friendly_name : Path( '/user/search_cgap_friendly_name' ) : Args(0){
+    my ($self, $c) = @_;
+
+    if($c->req->param('search') or $c->req->param('cgap_name')){
+        my $name = $c->req->param('cgap_name');
+        if($name){
+            $c->stash->{name} = $name;
+            try{
+                my $cgap = LIMS2::Model::Util::CGAP->new;
+                my $barcode = $cgap->get_barcode_for_cgap_name($name);
+                $c->flash->{success_msg} = "Found barcode $barcode for CGAP name $name";
+                $c->res->redirect( $c->uri_for('/user/scan_barcode', { barcode => $barcode }) );
+            }
+            catch($e){
+                $c->stash->{error_msg} = "Error searching for cgap name $name: $e";
+            }
+        }
+        else{
+            $c->stash->{error_msg} = "You must provide a name";
+        }
+    }
+
+    return;
+}
+
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 
     my $well_details = $self->_basic_well_display_details($well);
 
-    if(my $epd = $well->first_ep_pick){
+    my $epd;
+    try{
+        $epd = $well->first_ep_pick;
+    };
+
+    if($epd){
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
     }
 
-    my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-        design_id => $well->design->id,
-    });
+    if($well->design){
+        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+            design_id => $well->design->id,
+        });
 
-    $well_details->{design_gene_symbol} = $gene_symbols->[0];
+        $well_details->{design_gene_symbol} = $gene_symbols->[0];
+    }
 
 
     return $well_details;
@@ -923,7 +1191,10 @@ sub _pick_list_display_data{
 
             # and get parent EP pick through process graph
             $gene_symbols = $design_summaries->design_gene_symbol;
-            my $ep_pick = $bc->well->first_ep_pick;
+            my $ep_pick;
+            try{
+               $ep_pick = $bc->well->first_ep_pick;
+            };
             $parent_epd = ($ep_pick ? $ep_pick->as_string : "");
         }
 

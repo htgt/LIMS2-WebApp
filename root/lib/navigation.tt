@@ -22,6 +22,9 @@
               <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/manage_projects' ) %]">Manage Projects</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
             </li>
             <li>
@@ -55,6 +58,13 @@
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/generate_primers' ) %]">Generate Primers</a>
+            </li>
+
           </ul>
         </li>
 
@@ -69,6 +79,10 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs by ID</a>
             </li>
           </ul>
         </li>
@@ -135,7 +149,9 @@
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
             </li>
-
+            <li>
+              <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
+            </li>
             [% END %]
           </ul>
         </li>
@@ -204,7 +220,7 @@
 
             <li>
               <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
-                Well Genotyping Info
+                Clone Genotyping Search
               </a>
             </li>
 
@@ -238,6 +254,14 @@
             <li>
               <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/mutation_signatures_barcodes' ) %]">Mutation Signatures Barcodes</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_cgap_friendly_name' ) %]">Search by CGAP Name</a>
+            </li>
           </ul>
         </li>
 
@@ -245,6 +269,26 @@
 
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
+
+        [% IF c.session.display_type %]
+            <li><a id="display_type_default" data-display-type="default"
+                [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="icon-resize-small"></i>
+                [% ELSE %]
+                    <i class="icon-resize-small icon-white"></i>
+                [% END %]
+                </a></li>
+            <li><a id="display_type_wide" data-display-type="wide"
+                [% IF c.session.display_type == 'wide' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="icon-fullscreen"></i>
+                [% ELSE %]
+                    <i class="icon-fullscreen icon-white"></i>
+                [% END %]
+                </a></li>
+        [% END %]
+
         [% IF c.session.selected_species %]
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -265,6 +309,7 @@
           </li>
         [% END %]
 
+
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
@@ -278,12 +323,13 @@
         </li>
       </ul>
 
+      <!-- Non Logged in User -->
       [% ELSE %]
         <li class="dropdown active">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Well Genotyping Info</a>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
             </li>
           </ul>
         </li>

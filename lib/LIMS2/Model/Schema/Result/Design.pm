@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.322';
 }
 ## use critic
 
@@ -112,6 +112,12 @@ __PACKAGE__->table("designs");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 nonsense_design_crispr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -149,6 +155,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "global_arm_shortened",
   { data_type => "integer", is_nullable => 1 },
+  "nonsense_design_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -210,6 +218,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 genes
 
 Type: has_many
@@ -238,6 +261,26 @@ __PACKAGE__->has_many(
   "LIMS2::Model::Schema::Result::GenotypingPrimer",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 nonsense_design_crispr
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "nonsense_design_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "nonsense_design_crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 oligos
@@ -316,8 +359,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y003qJa2tDYf+S/ExLwtUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wzzQdVF7ohmrYFtsQapVUw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -348,6 +391,7 @@ has 'info' => (
 );
 
 use Log::Log4perl qw(:easy);
+use List::MoreUtils qw( uniq );
 BEGIN {
     #try not to override the lims2 logger
     unless ( Log::Log4perl->initialized ) {
@@ -371,18 +415,19 @@ sub as_hash {
     $self->discard_changes;
 
     my %h = (
-        id                      => $self->id,
-        name                    => $self->name,
-        type                    => $self->design_type_id,
-        created_at              => $self->created_at->iso8601,
-        created_by              => $self->created_by->name,
-        phase                   => $self->phase,
-        validated_by_annotation => $self->validated_by_annotation,
-        target_transcript       => $self->target_transcript,
-        species                 => $self->species_id,
-        assigned_genes          => [ map { $_->gene_id } $self->genes ],
-        cassette_first          => $self->cassette_first,
-        global_arm_shortened    => $self->global_arm_shortened,
+        id                        => $self->id,
+        name                      => $self->name,
+        type                      => $self->design_type_id,
+        created_at                => $self->created_at->iso8601,
+        created_by                => $self->created_by->name,
+        phase                     => $self->phase,
+        validated_by_annotation   => $self->validated_by_annotation,
+        target_transcript         => $self->target_transcript,
+        species                   => $self->species_id,
+        assigned_genes            => [ map { $_->gene_id } $self->genes ],
+        cassette_first            => $self->cassette_first,
+        global_arm_shortened      => $self->global_arm_shortened,
+        nonsense_design_crispr_id => $self->nonsense_design_crispr_id,
     );
 
     if ( ! $suppress_relations ) {
@@ -400,6 +445,10 @@ use overload '""' => \&as_string;
 
 sub as_string {
     return shift->id;
+}
+
+sub oligos_sorted{
+    return shift->_sort_oligos;
 }
 
 sub _sort_oligos {
@@ -524,5 +573,37 @@ sub design_wells {
     return \@design_wells;
 }
 
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('genotyping_primers', { genotyping_primer_type_id => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
+
+sub gene_ids{
+    my ($self) = @_;
+
+    my @ids = uniq map { $_->gene_id } $self->genes;
+    return @ids;
+}
+
+# requires a method to find gene, e.g.
+# my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+sub gene_symbols{
+    my ($self, $gene_finder) = @_;
+
+    my @ids = $self->gene_ids;
+    my @symbols = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->species_id, \@ids ) };
+    return @symbols;
+}
 __PACKAGE__->meta->make_immutable;
 1;

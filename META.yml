@@ -8,6 +8,15 @@ build_requires:
   HTTP::Request: 0
   HTTP::Request::Common: 0
   IO::Scalar: 0
+  LIMS2::Report::EPSummary: 0
+  LIMS2::Report::ElectroporationProductionSummary: 0
+  LIMS2::Report::FirstElectroporationProductionDetail: 0
+  LIMS2::Report::GenesToElectroporate: 0
+  LIMS2::Report::SecondElectroporationProductionDetail: 0
+  LIMS2::Report::SponsorProgress: 0
+  LIMS2::Report::VectorProductionDetail: 0
+  LIMS2::Report::VectorProductionSummary: 0
+  LIMS2::ReportGenerator::ProductionDetail: 0
   LIMS2::WebApp::Controller::User::SummaryReports: 0
   Test::Class: 0
   Test::More: 0.88
@@ -63,11 +72,11 @@ requires:
   Data::Printer: 0
   Data::UUID: 0
   Date::Calc: 0
+  Date::Parse: 0
   DateTime: 0
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
-  DateTime::Format::Strptime: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
@@ -110,6 +119,7 @@ requires:
   LIMS2::Util::ESQCUpdateWellAccepted: 0
   LIMS2::Util::EnsEMBL: 0
   LIMS2::Util::Errbit: 0
+  LIMS2::Util::QcPrimers: 0
   LIMS2::Util::Solr: 0
   LIMS2::Util::Tarmits: 0
   LIMS2::Util::TraceServer: 0
@@ -155,6 +165,7 @@ requires:
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
+  WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
   YAML::Any: 0
   YAML::XS: 0
@@ -165,4 +176,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.284
+version: 0.322

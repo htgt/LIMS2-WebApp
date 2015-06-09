@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::CrisprQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.284';
+    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.322';
 }
 ## use critic
 
@@ -26,6 +26,8 @@ sub update_crispr_es_qc_well :Path('/api/update_crispr_es_qc_well') :Args(0) :Ac
 
 sub update_crispr_es_qc_well_POST {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
 
     try{
         my $qc_well = $c->model('Golgi')->txn_do(
@@ -165,6 +167,58 @@ sub update_crispr_es_qc_run_POST {
     };
 
     return
+}
+
+sub validate_crispr : Path( '/api/validate_crispr' ) : Args(0) : ActionClass('REST'){
+}
+
+sub validate_crispr_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $crispr = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->update_crispr_validation_status( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $crispr );
+}
+
+sub set_unset_het : Path( '/api/set_unset_het' ) : Args(0) : ActionClass('REST'){
+}
+
+sub set_unset_het_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $het = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->set_unset_het_validation( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $het );
+}
+
+
+sub validate_het : Path( '/api/validate_het' ) : Args(0) : ActionClass('REST'){
+}
+
+sub validate_het_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $het = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->set_het_status( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $het );
 }
 
 =head1 LICENSE

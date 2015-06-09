@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.284';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.322';
 }
 ## use critic
 
@@ -62,6 +62,39 @@ sub retrieve_well {
     }
 
     return $self->retrieve( Well => \%search, \%joins );
+}
+
+sub pspec_retrieve_well_from_old_plate_version{
+    return {
+        plate_name        => { validate => 'plate_name' },
+        well_name         => { validate => 'well_name' },
+    };
+}
+
+# Search for a well which exists on an old version of the plate
+# Return the well on the latest version of the plate that can be found
+sub retrieve_well_from_old_plate_version{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_from_old_plate_version);
+
+    my $search = {
+        'me.name'    => $validated_params->{well_name},
+        'plate.name' => $validated_params->{plate_name},
+        'plate.version' => { '!=', undef },
+    };
+
+    my $attrs = {
+        join     => 'plate',
+        prefetch => 'plate',
+        order_by => { -desc => 'plate.version' },
+    };
+
+    my $well = $self->schema->resultset('Well')->search($search, $attrs)->first
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $search } );
+
+    $self->log->debug("Found well on version ".$well->plate->version." of plate");
+    return $well;
 }
 
 sub pspec_create_well {
@@ -133,6 +166,11 @@ sub delete_well {
         if ( $p->output_wells == 1 ) {
             $self->delete_process( { id => $p->id } );
         }
+    }
+
+    # Delete any related barcode events
+    if (my $barcode = $well->well_barcode){
+        $barcode->search_related_rs('barcode_events')->delete;
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
@@ -459,6 +497,38 @@ sub update_or_create_well_dna_quality {
     $well->compute_final_pick_dna_well_accepted();
 
     return $dna_quality;
+}
+
+sub toggle_to_report {
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well({ id => $params->{'id'} });
+
+    my $to_report = $params->{'to_report'};
+
+    propagate_to_report($self, $well, $to_report);
+
+    return $well;
+}
+
+sub propagate_to_report {
+    my ( $self, $well, $to_report, $seen) = @_;
+
+    $self->log->info( "Setting to_report to $to_report on well " . $well->as_string  );
+    $well->update( { to_report => $to_report });
+
+    $seen ||= {};
+
+    return if $seen->{$well->as_string};
+
+    $seen->{$well->as_string}++;
+
+    foreach my $process ($well->child_processes){
+        foreach my $child ($process->output_wells){
+            propagate_to_report( $self, $child, $to_report, $seen);
+        }
+    }
+    return;
 }
 
 sub retrieve_well_dna_quality {

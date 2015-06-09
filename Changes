@@ -1,3 +1,184 @@
+0.322     2015-06-09 09:25:14 Europe/London
+
+   Added Het validation status framework and interface
+
+0.321     2015-06-04 15:41:33 Europe/London
+
+   Added assembly well qc dropdowns to plate reports
+
+0.320     2015-06-01 13:11:52 Europe/London
+
+   Barcode can be discarded during doubling
+   "All" sponsor selected automatically
+
+0.319     2015-05-26 07:16:07 Europe/London
+
+    Add crispr validation framework and interface.
+
+0.318     2015-05-21 15:58:26 Europe/London
+
+    Added well assembly QC support
+    Added mutation signatures barcode list
+    Added CGAP friendly name lookup page
+
+0.317     2015-05-15 14:28:55 Europe/London
+
+    Added append types for CRISPR plates
+
+0.316     2015-05-14 11:26:03 Europe/London
+
+   Added crispr search page
+   Improved clone genotyping search page
+   Changed section names in gene summary page 
+
+0.315     2015-05-11 16:01:08 Europe/London
+
+   Bugfix: public clone genotyping page now shows ancestor PIQ or EP_PICK QC
+
+0.314     2015-05-11 11:49:54 Europe/London
+
+    Added REST API to get crispr off-targets
+    Bugfix: can now checkout last barcode from a plate
+
+0.313     2015-05-09 08:55:15 Europe/London
+
+   Re-work crispr off targets table, these are now links between crisprs.
+   - crispr may have many off target crisprs, a mismatch score is also stored
+   - updated display of crispr off targets on crispr view page
+   - added REST API method to allow crispr off targets to be created
+   Added a wide-screen toggle button, state is saved for a session.
+
+0.312     2015-05-06 13:10:19 Europe/London
+
+   Added mutation signatures workflow and related interface changes
+
+0.311     2015-05-05 08:24:41 Europe/London
+
+    Damage type of clones accessed same way on sponsor sub report and clones gene summary
+    Bugfix crispr es qc, crispr groups does not have direct crisprs relationship
+
+0.310     2015-04-29 10:06:30 Europe/London
+
+    Added distributable clones gene summary based on PIQ plates and linked sponsor sub report to it
+    Added CSV download support for generic extjs grid
+
+0.309     2015-04-27 12:55:29 Europe/London
+
+    Various bugfixes:
+    - deal with crispr groups better when reporting
+    - Don't throw error in gene summary page when no crispr entity for assembly well
+    - public API for experiment now returns in JSON instead of YAML
+
+0.308     2015-04-23 16:45:05 Europe/London
+
+    Sponsor report count of Targeted Genes now only counts genes with frameshift mutations
+    Sponsor sub report updated to include distributable clones and priority, fixed donor vectors constructed count
+    API authentication is now fixed, PublicAPI must be used for non-authenticated users
+    Update to create cgap qc plate
+
+0.307     2015-04-21 13:35:45 Europe/London
+
+   Restored report: /public_reports/cre_knockin_project_status
+
+0.306     2015-04-16 15:52:47 Europe/London
+
+    Added view toggle button for alignment context in CRISPR QC
+    Updated Experiments API
+
+0.305     2015-04-16 07:21:54 Europe/London
+
+   Refactor many crispr methods that did not take into account crispr groups.
+   - Added crispr_entity method to Well resultset, returns any crispr entity for that well
+   - Adde gene_ids_for_crispr that takes a crispr entity and returns any linked gene ids
+   Allow Crispr ES QC to be run on any plate that has crisprs linked to its wells.
+   Added link to crispr on Assembly wells in the gene summary page.
+
+0.303     2015-04-15 10:01:44 Europe/London
+
+   Added project and experiment management pages
+
+0.302     2015-04-08 15:54:18 Europe/London
+
+   Added targeting_profile_id to project table
+   Added targeting_profile_alleles to replace project_alleles
+
+0.301     2015-04-07 14:15:05 Europe/London
+
+   Restructure of project-sponsor relationship - now many-to-many
+
+0.300     2015-04-07 07:24:03 Europe/London
+
+    Add oligo assembly plates to LIMS2.
+
+0.299     2015-03-27 16:36:35 Europe/London
+
+    Well genotyping info renamed to cloe genotyping plus minor changes in the page.
+    added column at the crisprEPdetail report
+
+0.298     2015-03-26 10:42:37 Europe/London
+
+    minor changes to sponsor report/clone page
+
+0.297     2015-03-19 10:37:12 Europe/London
+
+   bugfix to project efforts grid
+   traces added to well_genotyping_info
+
+0.296     2015-03-17 09:47:14 Europe/London
+
+    bugfix on gene summary page concerning missed parent piq existence check
+
+0.295     2015-03-13 10:07:10 Europe/London
+
+    Added parent PIQ on Secondary QC and Crispr QC under the gene summary page
+    Fix in well to_report flag summaries caching
+
+0.294     2015-03-11 10:13:29 Europe/London
+
+   Primer validation state added to view crispr and design
+   bugfix: can now delete plate with barcoded wells
+   Report changes
+
+0.293     2015-03-04 11:19:57 Europe/London
+
+   Report changes and some bug fixes
+
+0.292     2015-02-26 11:08:00 Europe/London
+
+   Add primer generation interface
+
+0.291     2015-02-24 07:19:12 Europe/London
+
+    Add nonsense designs and crisprs to LIMS2
+
+0.290     2015-02-23 10:28:20 Europe/London
+
+    Sponsor sub report colonu_counts fix
+    Mouse project Pathogen Group 3 added
+
+0.289     2015-02-20 11:33:41 Europe/London
+
+    chromossome shown always at the simple sponsor sub report
+
+0.288     2015-02-20 10:18:54 Europe/London
+
+    Added chromosome to front page sponsor sub report
+    Added frameshift clones count to CrisprEPDetail report
+
+0.287     2015-02-18 12:15:04 Europe/London
+
+    front page cached report defaulted to full report, fixed bug in csv download
+    atempted to fix browser cache to provide html instead of text file sometimes
+
+0.286     2015-02-09 11:51:58 Europe/London
+
+    Added reporting filter to the EP/CRISPR_EP wells
+    Added Genoverse button to Intermediate plates
+
+0.285     2015-02-05 15:43:10 Europe/London
+
+   Added group_crispr_assembly process
+
 0.284     2015-01-29 10:39:04 Europe/London
 
     Changes to the clones page and well genotyping info page

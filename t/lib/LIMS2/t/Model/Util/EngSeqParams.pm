@@ -8,7 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw(
     generate_custom_eng_seq_params
 );
 
-use LIMS2::Test;
+use LIMS2::Test ( 'test_data', model => { classname => __PACKAGE__ } );
 
 use strict;
 
@@ -268,11 +268,16 @@ sub fetch_eng_seq_params_test : Tests(14) {
 
 }
 
-sub generate_well_eng_seq_params_test : Test(10) {
+sub generate_well_eng_seq_params_test : Test(11) {
     throws_ok {
         generate_well_eng_seq_params( model, { well_id => 850 } );
     }
     qr/No cassette found for well/;
+
+    throws_ok {
+        generate_well_eng_seq_params( model, { well_id => 3032 } );
+    }
+    qr/well that has a nonsense type design/;
 
     ok my ( $method, $well_id, $params )
         = generate_well_eng_seq_params( model, { well_id => 1522 } ),
@@ -307,7 +312,7 @@ sub generate_well_eng_seq_params_test : Test(10) {
 
 sub generate_crispr_eng_seq_params_test : Test(8) {
 
-    ok my $crispr = model->retrieve_crispr( { id => 113 } ), 'can grab a crispr';
+    ok my $crispr = model->retrieve_crispr( { id => 886 } ), 'can grab a crispr';
     ok my $well = model->retrieve_well( { plate_name => 'CRISPR_1', well_name => 'A01' } ),
         'can grab crispr well';
 
@@ -319,9 +324,9 @@ sub generate_crispr_eng_seq_params_test : Test(8) {
     is $well_id, $well->id, 'correct well_id';
     is_deeply $eng_seq_params,
         {
-        crispr_seq => 'GTCTGTGGCTGTTTGCTCTG',
+        crispr_seq => 'GGGGATATCGGCCCCAAGTT',
         backbone   => { name => 'blah' },
-        display_id => 'blah#113',
+        display_id => 'blah#886',
         crispr_id  => $crispr->id,
         species    => 'mouse',
         },

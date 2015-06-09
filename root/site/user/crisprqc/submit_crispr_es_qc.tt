@@ -14,7 +14,7 @@
       <div class="controls">
         <input name="plate_name" id="plate_name" type="text"
           [% IF plate_name %]value="[% plate_name %]"[% END %] />
-          <span class="help-block">EP_PICK or PIQ plates only</span>
+          <span class="help-block">EP_PICK, PIQ, CGAP_QC or MS_QC plates only</span>
       </div>
     </div>
 
@@ -22,7 +22,7 @@
       <label class="control-label" for="sequencing_project">Sequencing Project</label>
       <div class="controls">
           <input name="sequencing_project" id="sequencing_project" type="text"
-            [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] /> 
+            [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] />
       </div>
     </div>
 
@@ -49,7 +49,7 @@
       <label class="control-label" for="forward_primer_name">Forward Primer Name</label>
       <div class="controls">
           <input name="forward_primer_name" id="forward_primer_name" type="text"
-              value=[% IF reverse_primer_name %]"[% forward_primer_name %]"[% ELSE %]"SF1"[% END %] /> 
+              value=[% IF reverse_primer_name %]"[% forward_primer_name %]"[% ELSE %]"SF1"[% END %] />
       </div>
     </div>
 
@@ -57,11 +57,11 @@
       <label class="control-label" for="reverse_primer_name">Reverse Primer Name</label>
       <div class="controls">
           <input name="reverse_primer_name" id="reverse_primer_name" type="text"
-              value=[% IF reverse_primer_name %]"[% reverse_primer_name %]"[% ELSE %]"SR1"[% END %] /> 
+              value=[% IF reverse_primer_name %]"[% reverse_primer_name %]"[% ELSE %]"SR1"[% END %] />
       </div>
     </div>
-              
-        
+
+
     <div class="control-group">
       <div class="controls">
       <button name="submit_crispr_es_qc" id="submit_crispr_es_qc" type="submit" value="submit_crispr_es_qc" class="btn">
@@ -72,17 +72,17 @@
 
     </form>
   </div>
-  
+
 </div>
 
 <script type="text/javascript" charset="utf-8">
 //Object.keys support for IE6/7/8
-if ( ! Object.keys ) { 
-  Object.keys = function (obj) { 
-    var op, result = []; 
+if ( ! Object.keys ) {
+  Object.keys = function (obj) {
+    var op, result = [];
     for (op in obj)
-      if ( obj.hasOwnProperty(op) ) result.push(op) 
-    
+      if ( obj.hasOwnProperty(op) ) result.push(op)
+
     return result;
   }
 }
@@ -98,8 +98,8 @@ $(document).ready(function() {
     source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
     minLength: 5,
     select: function (event, ui) {
-     $.getJSON( 
-       '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]', 
+     $.getJSON(
+       '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
        { term: ui.item.value },
        function (data) {
          console.log(data);
@@ -148,5 +148,5 @@ $(document).ready(function() {
     }
   });
 });
-   
+
 </script>

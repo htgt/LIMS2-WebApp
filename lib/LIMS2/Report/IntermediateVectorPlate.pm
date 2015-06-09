@@ -1,7 +1,7 @@
 package LIMS2::Report::IntermediateVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.284';
+    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        "Browser",
         "Cassette", "Cassette Resistance", "Backbone",
         "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?",
     ];
@@ -57,6 +58,7 @@ override iterator => sub {
 
         my @data = (
             $self->base_data_quick( $well_data ),
+            $self->genoverse_button( $well_data ),
             $well_data->{cassette},
             $well_data->{cassette_resistance},
             $well_data->{backbone},

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.284';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.322';
 }
 ## use critic
 
@@ -59,13 +59,18 @@ sub project_recovery_class_GET{
         }
     );
 
-    my $recovery_class = $c->model('Golgi')->txn_do(
-        sub {
-            shift->retrieve_recovery_class({ name => $c->request->param( 'recovery_class' ) } );
-        }
-    );
-
-    $project->update( { recovery_class_id => $recovery_class->id } );
+    if($c->request->param('recovery_class') eq '-'){
+        # Unset recovery class if user has selected '-' from drop-down
+        $project->update({ recovery_class_id => undef });
+    }
+    else{
+        my $recovery_class = $c->model('Golgi')->txn_do(
+            sub {
+                shift->retrieve_recovery_class({ name => $c->request->param( 'recovery_class' ) } );
+            }
+        );
+        $project->update( { recovery_class_id => $recovery_class->id } );
+    }
 
     return $self->status_ok( $c, entity => $project->as_hash );
 }
@@ -102,10 +107,15 @@ sub project_priority_GET{
             shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
         }
     );
-    $project->update( { priority => $c->request->param( 'priority' ) } );
+    my $priority = $c->request->param( 'priority' );
+    if($priority eq '-'){
+        $project->update( { priority => undef });
+    }
+    else{
+        $project->update( { priority =>  $priority } );
+    }
 
     return $self->status_ok( $c, entity => $project->as_hash );
 }
-
 
 1;

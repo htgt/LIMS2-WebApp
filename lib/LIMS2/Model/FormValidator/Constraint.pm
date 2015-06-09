@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.284';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.322';
 }
 ## use critic
 
@@ -49,6 +49,10 @@ sub genotyping_result_text {
 
 sub chromosome_fail_text {
     return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
+}
+
+sub oxygen_condition {
+    return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
 sub dna_seq {
@@ -168,6 +172,10 @@ sub existing_genotyping_result_type {
     return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
+sub existing_sponsor {
+    return shift->in_resultset( 'Sponsor', 'id' );
+}
+
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
 }
@@ -235,6 +243,10 @@ sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
 }
 
+sub existing_crispr_tracker_rna {
+    return shift->existing_row( 'CrisprTrackerRna', 'name');
+}
+
 sub existing_crispr_primer_type {
 	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
@@ -265,6 +277,30 @@ sub pass_or_fail {
 
 sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
+}
+
+sub existing_design_id {
+    return shift->in_resultset( 'Design', 'id' );
+}
+
+sub existing_crispr_pair_id {
+    return shift->in_resultset( 'CrisprPair', 'id' );
+}
+
+sub existing_crispr_group_id {
+    return shift->in_resultset( 'CrisprGroup', 'id' );
+}
+
+sub existing_crispr_plate_appends_type {
+    return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
+}
+
+sub assembly_qc_type{
+    return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
+}
+
+sub assembly_qc_value{
+    return shift->in_set('Good','Bad','Wrong');
 }
 
 __PACKAGE__->meta->make_immutable;

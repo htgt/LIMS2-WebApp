@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::ResultSet::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.284';
+    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.322';
 }
 ## use critic
 
@@ -91,7 +91,7 @@ in hash keyed on the gene id's.
         my $schema = $self->result_source->schema;
         my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
         for my $gp ( @gene_projects ) {
-            push @{ $projects_by_gene_id{ $gp->gene_id } }, $gp->sponsor_id;
+            push @{ $projects_by_gene_id{ $gp->gene_id } }, $gp->sponsor_ids;
         }
 
         return;
@@ -129,6 +129,7 @@ sub _consolidate_well_data {
         created_at     => $well->created_at->ymd,
         assay_pending  => $well->assay_pending ? $well->assay_pending->ymd : '',
         assay_complete => $well->assay_complete ? $well->assay_complete->ymd : '',
+        to_report      => $well->to_report,
     );
 
     # call as_hash method on row objects to grab data
@@ -145,7 +146,11 @@ sub _consolidate_well_data {
     $well_data{crispr_ids} = _get_all_process_data( \@rows, 'crispr_id' );
     if ( $well_data{crispr_ids} ) {
         $well_data{crispr_wells} = _crispr_wells_data( \@rows );
-        if ( my $assembly_process = first{ $_->{process_type} =~ /crispr_assembly$/  } @rows ) {
+        my $assembly_process;
+        if ( $assembly_process = first{ $_->{process_type} =~ /crispr_assembly$/  } @rows ) {
+            $well_data{crispr_assembly_process} = $assembly_process->{process_type};
+        }
+        elsif ( $assembly_process = first{ $_->{process_type} =~ /oligo_assembly$/  } @rows ) {
             $well_data{crispr_assembly_process} = $assembly_process->{process_type};
         }
     }
@@ -163,7 +168,8 @@ sub _consolidate_well_data {
     $well_data{cassette} = _get_first_process_data( \@rows, 'cassette' );
     $well_data{cassette_resistance} = _get_first_process_data( \@rows, 'cassette_resistance' );
     my $cassette_promoter = _get_first_process_data( \@rows, 'cassette_promoter' );
-    $well_data{cassette_promoter} = $cassette_promoter ? 'promoter' : 'promoterless';
+    $well_data{cassette_promoter}
+        = $cassette_promoter ? 'promoter' : defined $cassette_promoter ? 'promoterless' : '';
     $well_data{cell_line} = _get_first_process_data( \@rows, 'cell_line' );
     $well_data{nuclease} = _get_first_process_data( \@rows, 'nuclease' );
 
@@ -268,6 +274,7 @@ sub _design_gene_data {
     return unless $create_di_process_row; # crispr well
 
     $well_data->{design_id} = $create_di_process_row->{design_id};
+    $well_data->{design_type} = $create_di_process_row->{design_type};
     my $gene_id = $create_di_process_row->{gene_id};
     my $gene_symbol = $create_di_process_row->{gene_symbol};
 
@@ -297,7 +304,7 @@ sub _design_gene_data {
         $well_data->{gene_symbols} = $gene ? $gene->{gene_symbol} : 'unknown';
 
         my @gene_projects = $schema->resultset('Project')->search( { gene_id => { -in => \@gene_ids } } )->all;
-        my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+        my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
         $well_data->{sponsors} = join( '/', @sponsors );
     }
 
@@ -312,18 +319,26 @@ Grab crispr ids and crispr wells.
 sub _crispr_wells_data {
     my ( $rows ) = @_;
 
-    my @crispr_wells;
+    my %crispr_wells;
     my @create_crispr_rows = grep { $_->{process_type} eq 'create_crispr' } @{ $rows };
 
     for my $row ( @create_crispr_rows ) {
-        push @crispr_wells, {
+        push @{ $crispr_wells{crisprs} }, {
             plate_name => $row->{output_plate_name},
             well_name  => $row->{output_well_name},
             crispr_id  => $row->{crispr_id},
         }
     }
 
-    return \@crispr_wells;
+    my @crispr_vector_rows = grep { $_->{process_type} eq 'crispr_vector' } @{ $rows };
+    for my $row ( @crispr_vector_rows ) {
+        push @{ $crispr_wells{crispr_vectors} }, {
+            plate_name => $row->{output_plate_name},
+            well_name  => $row->{output_well_name},
+        }
+    }
+
+    return \%crispr_wells;
 }
 
 1;

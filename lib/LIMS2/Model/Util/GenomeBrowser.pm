@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.284';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.322';
 }
 ## use critic
 
@@ -819,6 +819,7 @@ sub generic_colour {
         'G5' => '#589BDD',
         'U3' => '#BF249B',
         'U5' => '#BF249B',
+        'N' => '#18D6CD',
     );
     return $colours{ $oligo_type_id };
 }
@@ -946,18 +947,33 @@ sub group_primers_by_pair {
 
     my %primer_groups;
 
-    foreach my $tag ( qw/ G P S / ) {
+    foreach my $tag ( qw/ G P S D/ ) {
         for my $num ( 1..2 ){
+
+            my $forward = $tag . 'F' . $num;
+            my $reverse = $tag . 'R' . $num;
+            next unless ($crispr_primers->{$forward} and $crispr_primers->{$reverse});
+
             $primer_groups{$tag . '_' . $num} = {
-                $tag . 'F' . $num => $crispr_primers->{ $tag . 'F' . $num},
-                $tag . 'R' . $num => $crispr_primers->{ $tag . 'R' . $num},
+                $forward => $crispr_primers->{ $forward },
+                $reverse => $crispr_primers->{ $reverse },
                 # Add the start and end coords
-                'chr_start' => $crispr_primers->{ $tag . 'F' . $num}->{'chr_start'},
-                'chr_end'   => $crispr_primers->{ $tag . 'R' . $num}->{'chr_end'},
+                'chr_start' => $crispr_primers->{ $forward }->{'chr_start'},
+                'chr_end'   => $crispr_primers->{ $reverse }->{'chr_end'},
             }
         }
     }
-    delete $primer_groups{'S_2'}; # only one set of sequencing primers
+
+    # special case for crispr group primer ER1 which pairs with DF1
+    # (DR1 also pairs with DF1 but this is handled in loop above)
+    if($crispr_primers->{'DF1'} and $crispr_primers->{'ER1'}){
+        $primer_groups{'DE_1'} = {
+            'DF1' => $crispr_primers->{'DF1'},
+            'ER1' => $crispr_primers->{'ER1'},
+            'chr_start' => $crispr_primers->{'DF1'}->{'chr_start'},
+            'chr_end'   => $crispr_primers->{'ER1'}->{'chr_end'},
+        }
+    }
 
     return \%primer_groups;
 }
@@ -1002,6 +1018,10 @@ sub unique_crispr_data_to_gff {
         . '-'
         . $params->{'end'} ;
 
+        # Use this array to store a single crispr
+        # or list of crisprs from crispr group
+        my @single_crisprs;
+
         if ( $crispr_type eq 'crispr_pair') {
             my $pair = $crispr_data->{$crispr_type}->{$crispr_id};
             my %crispr_format_hash = (
@@ -1035,7 +1055,15 @@ sub unique_crispr_data_to_gff {
 
         }
         elsif ($crispr_type eq 'crispr_single') {
-            my $crispr = $crispr_data->{$crispr_type}->{$crispr_id}->{'left_crispr'};
+            push @single_crisprs, $crispr_data->{$crispr_type}->{$crispr_id}->{'left_crispr'};
+        }
+        elsif ($crispr_type eq 'crispr_group'){
+            @single_crisprs = @{ $crispr_data->{$crispr_type}->{$crispr_id} || [] };
+        }
+
+        # Now generate the single crispr GFF for single or group
+        foreach my $crispr (@single_crisprs){
+            my $this_crispr_id = $crispr->{'id'};
             my %crispr_format_hash = (
                 'seqid' => $params->{'chr'},
                 'source' => 'LIMS2',
@@ -1046,14 +1074,14 @@ sub unique_crispr_data_to_gff {
                 'strand' => '+' ,
                 'phase' => '.',
                 'attributes' => 'ID='
-                    . 'C_' . $crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_id
+                    . 'C_' . $this_crispr_id . ';'
+                    . 'Name=' . 'LIMS2' . '-' . $this_crispr_id
                 );
             my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
             push @crispr_data_gff, $crispr_parent_datum;
 
             $crispr->{colour} = crispr_colour('single');
-            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$crispr_id);
+            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$this_crispr_id);
         }
 
     return \@crispr_data_gff;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.322';
 }
 ## use critic
 
@@ -229,6 +229,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_validations
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprValidation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_validations",
+  "LIMS2::Model::Schema::Result::CrisprValidation",
+  { "foreign.crispr_es_qc_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well
 
 Type: belongs_to
@@ -245,12 +260,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-03 11:52:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HLxWkhqfpzrHco4xOT7tdQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YCe585FTaxThOQPMxvnUdw
 
 use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -268,17 +284,26 @@ sub get_crispr_primers {
   my $analysis_data = decode_json( $self->analysis_data );
 
   #see whether we're searching for crispr pair or crispr primers
-  my $field = $analysis_data->{is_pair} ? 'crispr_pair_id' : 'crispr_id';
+  my $field = $analysis_data->{is_pair}  ? 'crispr_pair_id'
+            : $analysis_data->{is_group} ? 'crispr_group_id'
+            :                              'crispr_id';
 
   #return a resultset of all the relevant crispr primers
   return $self->result_source->schema->resultset('CrisprPrimer')->search(
-    { $field => $analysis_data->{crispr_id} },
+    { $field => $analysis_data->{crispr_id}, is_rejected => [0, undef] },
     { order_by => { -asc => 'me.primer_name' } }
   );
 }
 
-#gene finder should be a coderef pointing to a method that finds genes.
-#usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
+=head2 format_well_data
+
+Gather and format data to be displayed for this crispr qc well.
+
+gene finder should be a coderef pointing to a method that finds genes.
+usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
+
+=cut
+## no critic(ProhibitExcessComplexity)
 sub format_well_data {
     my ( $self, $gene_finder, $params, $run, $gene_ids ) = @_;
 
@@ -289,8 +314,8 @@ sub format_well_data {
       $run = $self->crispr_es_qc_run;
     }
 
-    #get the crispr/pair linked to this es qc well
-    my $pair = $self->crispr;
+    #get the crispr entity to this es qc well
+    my $crispr = $self->crispr;
 
     #get HGNC/MGI ids
     my @gene_ids;
@@ -298,10 +323,8 @@ sub format_well_data {
         @gene_ids = @{ $gene_ids };
     }
     else {
-        if ( $pair ) {
-            @gene_ids = uniq map { $_->gene_id }
-                                map { $_->genes }
-                                    $pair->related_designs;
+        if ( $crispr ) {
+            @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
         }
         else {
             @gene_ids = uniq map { $_->gene_id } $self->well->design->genes;
@@ -364,6 +387,8 @@ sub format_well_data {
         well_name               => $self->well->name, #fetch the well and get name
         crispr_id               => $json->{crispr_id} || "",
         is_crispr_pair          => $json->{is_pair} || "",
+        is_crispr_group         => $json->{is_group} || "",
+        ranked_crisprs          => $self->ranked_crisprs( $crispr ),
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
@@ -383,8 +408,14 @@ sub format_well_data {
         variant_size            => $self->variant_size,
     };
 }
+## use critic
 
-#will actually return a crispr OR a pair, but it doesn't really matter
+=head2 crispr
+
+Return the crispr entity linked to the well.
+Could be a crispr, crispr pair or crispr group.
+
+=cut
 sub crispr {
   my ( $self, $json ) = @_;
 
@@ -402,6 +433,10 @@ sub crispr {
       $rs = 'CrisprPair';
       $prefetch = [ 'left_crispr', 'right_crispr', 'crispr_designs' ];
   }
+  elsif ( $json->{is_group} ) {
+      $rs = 'CrisprGroup';
+      $prefetch = [ ];
+  }
   else {
       $rs = 'Crispr';
       $prefetch = [ 'crispr_designs' ];
@@ -415,18 +450,61 @@ sub crispr {
   return $crispr;
 }
 
+=head2 ranked_crisprs
+
+Return array of crisprs ranked from left to right.
+
+=cut
+sub ranked_crisprs {
+    my ( $self, $crispr ) = @_;
+    return [  ] unless $crispr;
+
+    my %crispr_validations = map{ $_->crispr_id => $_->validated } $self->crispr_validations->all;
+
+    my @ranked_crisprs;
+    if ( $crispr->is_group ) {
+        @ranked_crisprs = map{ _ranked_crispr_data( $_, \%crispr_validations ) } @{ $crispr->ranked_crisprs };
+    }
+    elsif ( $crispr->is_pair ) {
+        @ranked_crisprs = (
+            _ranked_crispr_data( $crispr->left_crispr, \%crispr_validations ),
+            _ranked_crispr_data( $crispr->right_crispr, \%crispr_validations ),
+        );
+    }
+    else {
+        push @ranked_crisprs, _ranked_crispr_data( $crispr, \%crispr_validations );
+    }
+
+    return \@ranked_crisprs;
+}
+
+=head2 _ranked_crispr_data
+
+Get crispr data we need for ranked crisprs ( used in validate crispr interface )
+
+=cut
+sub _ranked_crispr_data {
+    my ( $crispr, $crispr_validations ) = @_;
+
+    return {
+        id        => $crispr->id,
+        validated => exists $crispr_validations->{ $crispr->id } ? $crispr_validations->{ $crispr->id }  : 0,
+    };
+}
+
 ## no critic(ProhibitExcessComplexity)
 sub format_alignment_strings {
     my ( $self, $params, $json ) = @_;
 
-    return { forward => 'No Read', reverse => 'No Read' } if $json->{no_reads};
-    return { forward => 'No valid crispr pair', reverse => 'No valid crispr pair' } if $json->{no_crispr};
-    if ( $json->{forward_no_alignment} && $json->{forward_no_alignment} ) {
+    return { forward => 'No Read', reverse => 'No Read', no_reverse_read => 1, no_forward_read => 1 } if $json->{no_reads};
+    return { forward => 'No valid crispr', reverse => 'No valid crispr' , no_reverse_read => 1, no_forward_read => 1} if $json->{no_crispr};
+
+    if ( $json->{forward_no_alignment} && $json->{reverse_no_alignment} ) {
         if ( !$self->fwd_read ) {
-            return { forward => 'No Read', no_reverse_alignment => 1 };
+            return { forward => 'No Read', no_forward_read => 1, no_reverse_alignment => 1 };
         }
         elsif ( !$self->rev_read ) {
-            return { reverse => 'No Read', no_forward_alignment => 1 };
+            return { reverse => 'No Read', no_reverse_read => 1, no_forward_alignment => 1 };
         }
         else {
             return { no_forward_alignment => 1, no_reverse_alignment => 1 };

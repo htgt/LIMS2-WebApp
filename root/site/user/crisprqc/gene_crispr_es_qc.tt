@@ -18,7 +18,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/api/trace_data') %]", $(this) );
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 });
 </script>
@@ -58,11 +58,13 @@ $(document).ready(function() {
     [% FOR qc IN crispr_qc %]
         <tr>
             [% INCLUDE 'crispr_qc_view.tt'
-                row                 = qc.ep_pick_qc
-                accept              = 0
-                edit                = 1
-                hide_crispr_well_id = 1
-                complete_info       = 1
+                row                    = qc.ep_pick_qc
+                accept                 = 0
+                edit                   = 1
+                hide_crispr_well_id    = 1
+                complete_info          = 1
+                hide_crispr_validation = 1
+                hide_het_validation    = 1
             %]
             <td>
             [% IF qc.accepted %]

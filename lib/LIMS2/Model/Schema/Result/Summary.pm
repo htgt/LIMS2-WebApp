@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.322';
 }
 ## use critic
 
@@ -853,6 +853,42 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 to_report
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 ancestor_piq_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1183,6 +1219,20 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sponsor_id",
   { data_type => "text", is_nullable => 1 },
+  "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "ancestor_piq_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "ancestor_piq_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1198,8 +1248,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L6Q+AwfNoA7QuMB/boNm/Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:14:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pX0rZsB9Zk1Px+VlxWRODw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1213,7 +1263,7 @@ sub satisfies_cassette_function {
   ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
       or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
 
-  # If property, e.g. conditional, is specified true/false by CassetteFunction 
+  # If property, e.g. conditional, is specified true/false by CassetteFunction
   # then it must match the value of final_pick_cassette_<property>
   foreach my $property (qw(conditional promoter cre)){
     my $required_value = $function->$property;
@@ -1247,7 +1297,7 @@ sub satisfies_cassette_function {
     }
   }
 
-  # If we haven't returned 0 yet then the well satisfies 
+  # If we haven't returned 0 yet then the well satisfies
   # the cassette function rules
   return 1;
 }

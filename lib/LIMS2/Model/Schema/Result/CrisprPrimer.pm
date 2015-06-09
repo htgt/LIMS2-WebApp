@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.322';
 }
 ## use critic
 
@@ -144,59 +144,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("crispr_oligo_id");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<crispr_group_id and and primer_name must be unique>
-
-=over 4
-
-=item * L</crispr_group_id>
-
-=item * L</primer_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "crispr_group_id and and primer_name must be unique",
-  ["crispr_group_id", "primer_name"],
-);
-
-=head2 C<crispr_id and primer name must be unique>
-
-=over 4
-
-=item * L</crispr_id>
-
-=item * L</primer_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "crispr_id and primer name must be unique",
-  ["crispr_id", "primer_name"],
-);
-
-=head2 C<crispr_pair_id and primer name must be unique>
-
-=over 4
-
-=item * L</crispr_pair_id>
-
-=item * L</primer_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "crispr_pair_id and primer name must be unique",
-  ["crispr_pair_id", "primer_name"],
-);
-
 =head1 RELATIONS
 
 =head2 crispr
@@ -290,8 +237,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y8HdQM+ZiP6ldUv/KbyTRA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 12:08:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G+Y4JJM59Dy+9mc1CNIDoA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -348,6 +295,8 @@ sub as_hash {
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_id       => $self->crispr_id,
         crispr_group_id => $self->crispr_group_id,
+        is_validated    => $self->is_validated,
+        is_rejected     => $self->is_rejected,
     };
 }
 

@@ -5,6 +5,8 @@ document.title = "[%- context.well_name _ ':' _ context.crispr_type_id %]";
 </SCRIPT>
   <h1>Crispr [%- IF context.crispr_type == 'crispr_pair_id' %]
     Pair
+    [%- ELSIF context.crispr_type == 'crispr_group_id' %]
+    Group
     [%- ELSE %]
     Singlet
     [%- END %]
@@ -56,6 +58,7 @@ function build_uri_params( params_to_build ) {
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
         [% USE String(extent.assembly) %]
+        width: $( document ).width(),
         genome    : '[% String.lower() %]', // see js/genomes/
         chr       : '[% extent.chr_name %]',
         start     : [% extent.chr_start %] - 2000,  // 2Kb context

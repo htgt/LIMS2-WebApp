@@ -21,3 +21,6 @@
 "CRISPR_V","Crispr Vectors","allele"
 "ASSEMBLY","Crispr assembly","allele"
 "CRISPR_EP","Crispr Electroporation","allele"
+"OLIGO_ASSEMBLY","assembly oligo and crispr"
+"CGAP_QC","QC of samples returned from CGAP","allele"
+"MS_QC","QC of samples during Mutation Signatures workflow","allele"

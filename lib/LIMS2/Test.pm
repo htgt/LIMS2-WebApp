@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.284';
+    $LIMS2::Test::VERSION = '0.322';
 }
 ## use critic
 
@@ -291,6 +291,7 @@ sub load_static_files {
             SpeciesDefaultAssembly
             Sponsor
             BarcodeState
+            CrisprTrackerRna
             )
     );
 
@@ -312,15 +313,15 @@ sub load_dynamic_files {
         qw(
             User
             UserRole
-            Design
-            DesignOligo
-            DesignOligoLocus
-            GeneDesign
             Crispr
             CrisprOffTargets
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
             CrisprDesign
             BacClone
             BacCloneLocus
@@ -334,6 +335,7 @@ sub load_dynamic_files {
             ProcessCrispr
             ProcessNuclease
             ProcessGlobalArmShorteningDesign
+            ProcessCrisprTrackerRna
             Plate
             Well
             ProcessInputWell
@@ -341,6 +343,7 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            ProjectSponsor
             Summary
             WellBarcode
             CrisprEsQcRuns

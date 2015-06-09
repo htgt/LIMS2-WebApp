@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.284';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.322';
 }
 ## use critic
 
@@ -125,26 +125,28 @@ sub check_for_local_symbol {
     return \@not_genes;
 }
 
-sub pspec_retrieve_gene {
-    return {
-        species     => { validate => 'existing_species' },
-        search_term => { validate => 'non_empty_string' },
-        show_all    => { optional => 1 }
-    }
-}
-
 ## no critic(RequireFinalReturn)
 sub retrieve_gene {
 
     # Keep retrieve gene for compatibility but call the new solr find_gene method
     my $ret_val =find_gene( @_ );
-    # Delete the ensembl_id key/value pair because retrieve gene is not expected to include that
+    # Delete the ensembl_id and chromosome key/value pair because retrieve gene is not expected to include that
     if ( defined $ret_val->{'ensembl_id'} ) {
         delete $ret_val->{'ensembl_id'};
+    }
+    if ( defined $ret_val->{'chromosome'} ) {
+        delete $ret_val->{'chromosome'};
     }
     return $ret_val;
 }
 ## use critic
+
+sub pspec_find_gene {
+    return {
+        species     => { validate => 'existing_species' },
+        search_term => { validate => 'non_empty_string' },
+    }
+}
 
 ## no critic(RequireFinalReturn)
 # argument is an hash with species and search term
@@ -154,7 +156,7 @@ sub retrieve_gene {
 sub find_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+    my $validated_params = $self->check_params( $params, $self->pspec_find_gene );
 
     $self->log->trace( "retrieve_gene: " . pp $validated_params );
 
@@ -210,7 +212,7 @@ sub find_genes {
 sub autocomplete_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+    my $validated_params = $self->check_params( $params, $self->pspec_find_gene );
 
     $self->log->trace( "retrieve_gene: " . pp $validated_params );
 

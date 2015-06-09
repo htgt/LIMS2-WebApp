@@ -1,7 +1,7 @@
 package LIMS2::Report::DesignVectors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DesignVectors::VERSION = '0.284';
+    $LIMS2::Report::DesignVectors::VERSION = '0.322';
 }
 ## use critic
 
@@ -54,7 +54,12 @@ sub _build_design_vectors_list {
 
     my $project_rs;
     if ( $self->has_sponsor ) {
-        $project_rs = $self->model->schema->resultset('Project')->search( { sponsor_id => $self->sponsor } );
+        $project_rs = $self->model->schema->resultset('Project')->search( {
+            'project_sponsors.sponsor_id' => $self->sponsor
+        },
+        {
+            join => 'project_sponsors',
+        } );
     }
     else {
         $project_rs = $self->model->schema->resultset('Project')->search( {} );

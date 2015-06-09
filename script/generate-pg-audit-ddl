@@ -201,7 +201,10 @@ sub get_column_info {
     while ( my $r = $sth->fetchrow_hashref ) {
         my $type = $r->{TYPE_NAME};
         if ( exists $NEEDS_SIZE{$type} ) {
-            $type = $type . '(' . $r->{COLUMN_SIZE} . ')';
+            # HACK for bpchar type columns in qc_template_well_genotyping_primers and
+            # qc_template_well_crispr_primers tables ( qc_run_id column )
+            my $col_size = $r->{COLUMN_SIZE} ? $r->{COLUMN_SIZE} : '36';
+            $type = $type . '(' . $col_size . ')';
         }
         push @column_info, [ $r->{COLUMN_NAME}, $type ];
     }

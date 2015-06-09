@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.322';
 }
 ## use critic
 
@@ -160,6 +160,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_crispr_tracker_rna
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprTrackerRna>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_crispr_tracker_rna",
+  "LIMS2::Model::Schema::Result::ProcessCrisprTrackerRna",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_design
 
 Type: might_have
@@ -235,6 +250,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_parameters
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessParameter>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_parameters",
+  "LIMS2::Model::Schema::Result::ProcessParameter",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_recombinases
 
 Type: has_many
@@ -286,8 +316,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-28 15:28:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hW7RnTKw29lsZSnZqM66xw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-27 13:02:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1zcz5+TATfgl/qXftTzhbg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -296,6 +326,14 @@ sub as_string {
     my $self = shift;
 
     return $self->type->description || $self->type_id;
+}
+
+sub get_parameter_value{
+    my ($self,$name) = @_;
+    my $parameter = $self->process_parameters->find({ parameter_name => $name });
+
+    my $value = $parameter ? $parameter->parameter_value : undef;
+    return $value;
 }
 
 __PACKAGE__->meta->make_immutable;

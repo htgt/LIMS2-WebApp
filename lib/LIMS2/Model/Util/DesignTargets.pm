@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.284';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.322';
 }
 ## use critic
 
@@ -893,9 +893,8 @@ sub get_design_targets_data {
     my $species = shift;
 
     my $project = "Core";
-    my @genes_list_results = $schema->resultset('Project')->search({
-            sponsor_id        => "$project",
-    });
+    my $sponsor = $schema->retrieve_sponsor({ id => $project });
+    my @genes_list_results = $sponsor->projects;
 
     my @genes_list;
     foreach my $row (@genes_list_results) {

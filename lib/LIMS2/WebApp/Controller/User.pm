@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.284';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.322';
 }
 ## use critic
 
@@ -39,6 +39,10 @@ sub auto : Private {
     if ( ! $c->session->{selected_species} ) {
         my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
         $c->session->{selected_species} = $prefs->default_species_id;
+    }
+
+    if ( ! $c->session->{display_type} ) {
+        $c->session->{display_type} = 'default';
     }
 
     if ( ! $c->session->{species} ) {

@@ -19,7 +19,7 @@
            </a>
            </td>
         </tr>
-[% ELSIF plate.type_id == 'INT' %]
+[% ELSIF plate.type_id == 'INT' || plate.type_id == 'POSTINT' %]
         <tr>
             <td>
             <a class="btn btn-primary" role="button" href="#FlagPlateVirtual" data-toggle="modal">
@@ -72,6 +72,22 @@
           </td>
           <td></td>
         </tr>
+
+[% IF plate.type_id == 'CRISPR' %]
+        <tr>
+          <td>
+            <strong>Appends</strong>
+          </td>
+          <td>
+            [% IF plate.crispr_plate_append.append_id %]
+              [% plate.crispr_plate_append.append_id %]
+            [% ELSE %]
+              not set
+            [% END %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
 
         <tr>
           <td>
@@ -291,6 +307,9 @@
       <div class="modal-body" align="center">
         <input type="hidden" name="id" value="[% plate.id %]" />
         <input type="hidden" name="name" value="[% plate.name %]" />
+        [% IF plate.number_of_wells_with_barcodes > 0 %]
+        This plate contains barcoded tubes. Deleting the plate will also delete the tube barcodes and their history.<br>
+        [% END %]
         Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
       </div>
 
@@ -318,7 +337,7 @@
 [% END %]
 </div>
 
-[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' AND !plate.is_virtual %]
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
   <div class="span6">
   <div class="well">
     <h4>Tube Barcodes</h4>

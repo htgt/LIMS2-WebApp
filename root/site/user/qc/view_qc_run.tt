@@ -35,7 +35,7 @@
 
 <div class="row">
   <div class="span10">
-    <a class="btn btn-info" href="[% c.uri_for( '/user/report/sync/QcRun', { 'qc_run_id' => qc_run.id } ) %]">
+    <a class="btn btn-info" href="[% c.uri_for( '/user/report/cache/QcRun', { 'qc_run_id' => qc_run.id } ) %]">
       <i class="icon-download-alt icon-white"></i> View Full Results
     </a>
     <a class="btn btn-info" href="[% c.uri_for( '/user/report/sync/QcRunSummary', { 'qc_run_id' => qc_run.id } ) %]">

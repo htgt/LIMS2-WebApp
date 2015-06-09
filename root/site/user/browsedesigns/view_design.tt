@@ -34,6 +34,14 @@
     </td>
   </tr>
   [% END %]
+  [% IF design.nonsense_design_crispr_id %]
+  <tr>
+    <th>Nonsense Design Crispr</th>
+    <td>
+    <a href="[% c.uri_for( '/user/crispr', design.nonsense_design_crispr_id, 'view' ) %]">[% design.nonsense_design_crispr_id %]</a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>
@@ -121,12 +129,21 @@
     <thead>
       <th>Type</th>
       <th>Sequence</th>
+      <th class="pull-right">Validation State</th>
     </thead>
     <tbody>
       [%- FOR primer IN design.genotyping_primers %]
       <tr>
         <td>[% primer.type %]</td>
         <td>[% primer.seq  %]</td>
+        [% IF primer.is_rejected %]
+        <td> <span class="label label-important pull-right">Rejected</span> </td>
+        [% ELSE %]
+        <td class="validation-state-cell"
+            data-validated="[% primer.is_validated %]"
+            data-primer-name="[% primer.type %]">
+        </td>
+        [% END %]
       </tr>
       [%- END %]
     </tbody>
@@ -136,7 +153,7 @@
 [% END %]
 
 <h2>Crisprs</h2>
-[% IF crisprs %]
+[% IF crisprs.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
@@ -166,7 +183,7 @@
 [% END %]
 
 <h2>Crispr Pairs</h2>
-[% IF crispr_pairs %]
+[% IF crispr_pairs.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
@@ -190,7 +207,7 @@
 [% END %]
 
 <h2>Crispr Groups</h2>
-[% IF crispr_groups %]
+[% IF crispr_groups.size %]
   <table class="table table-striped">
     <thead>
       <th>ID</th>
@@ -212,3 +229,22 @@
 [% ELSE %]
   <p><em>No crispr pairs linked to this design</em></p>
 [% END %]
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    $(".validation-state-cell").each(function(){
+      //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
+      addPrimerValidationState(
+        $(this),
+        "[% c.uri_for('/user/toggle_genotyping_primer_validation_state') %]",
+        'design_id',
+        '[% design.id %]',
+        $(this).data('primer-name'),
+        $(this).data('validated')
+      );
+    });
+  })
+
+</script>

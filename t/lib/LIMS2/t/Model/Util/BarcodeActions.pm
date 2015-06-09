@@ -6,7 +6,7 @@ use base qw( Test::Class );
 use Test::Most;
 use LIMS2::Model::Util::BarcodeActions qw/
             discard_well_barcode
-            freeze_back_barcode
+            freeze_back_fp_barcode
             add_barcodes_to_wells
             checkout_well_barcode
             upload_plate_scan
@@ -50,21 +50,26 @@ sub discard_tests : Tests(13){
 
 }
 
-sub freeze_back_tests : Tests(37){
+sub freeze_back_fp_tests : Tests(37){
 	my $bc = 10;
 	my $unchanged_well = 'B01';
 
+    my $qc_well_params = {
+                barcode => $bc,
+                number_of_wells => 3,
+                lab_number => 'TEST',
+                qc_piq_plate_name => 'QC_TEST',
+                qc_piq_well_name => 'A01',
+                user => 'test_user@example.org',
+            };
+
     my $params = {
         barcode => $bc,
-        number_of_wells => 3,
-        lab_number => 'TEST',
-        qc_piq_plate_name => 'QC_TEST',
-        qc_piq_well_name => 'A01',
-        user => 'test_user@example.org',
+        qc_well_params => [ $qc_well_params ],
     };
 
     $params->{barcode} = 11;
-    throws_ok( sub { freeze_back_barcode(model,$params) },
+    throws_ok( sub { freeze_back_fp_barcode(model,$params) },
     	       qr/not checked_out/,
     	       "cannot freeze back without checkout");
 
@@ -78,16 +83,17 @@ sub freeze_back_tests : Tests(37){
     ok my $orig_unchanged = $well_bc->well->plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
 
     # Do the freeze back and check everything is created as expected
-    ok my $tmp_piq_plate = freeze_back_barcode(model, $params), "barcode $bc frozen back";
+    ok my ($freeze_back_output) = freeze_back_fp_barcode(model, $params), "barcode $bc frozen back";
+    my $tmp_piq_plate = $freeze_back_output->{tmp_piq_plate};
 
-    is scalar($tmp_piq_plate->wells), $params->{number_of_wells}, "Correct number of child PIQ wells on tmp plate";
+    is scalar($tmp_piq_plate->wells), $qc_well_params->{number_of_wells}, "Correct number of child PIQ wells on tmp plate";
     my ($tmp_well) = $tmp_piq_plate->wells;
-    like $tmp_well->well_lab_number->lab_number, qr/$params->{lab_number}/, "Child PIQ well lab number correct";
+    like $tmp_well->well_lab_number->lab_number, qr/$qc_well_params->{lab_number}/, "Child PIQ well lab number correct";
 
     my ($qc_well) = $tmp_well->parent_wells;
-    is $qc_well->name, $params->{qc_piq_well_name}, "QC PIQ well name correct";
-    is $qc_well->plate->name, $params->{qc_piq_plate_name}, "QC PIQ plate name correct";
-    is $qc_well->well_lab_number->lab_number, $params->{lab_number}, "QC PIQ lab number correct";
+    is $qc_well->name, $qc_well_params->{qc_piq_well_name}, "QC PIQ well name correct";
+    is $qc_well->plate->name, $qc_well_params->{qc_piq_plate_name}, "QC PIQ plate name correct";
+    is $qc_well->well_lab_number->lab_number, $qc_well_params->{lab_number}, "QC PIQ lab number correct";
 
     my ($qc_parent) = $qc_well->parent_wells;
     is $qc_parent->name, $well_name, "QC well parented by correct well";
@@ -135,7 +141,7 @@ sub freeze_back_tests : Tests(37){
     ok my $a01 = $new_piq_plate->search_related('wells',{ name => 'A01' })->first, "A01 found on new plate";
     is $a01->well_barcode->barcode, $a01_bc, "A01 barcode is correct";
     is $a01->well_barcode->barcode_state->id, "in_freezer", "A01 barcode state correct";
-    like $a01->well_lab_number->lab_number, qr/$params->{lab_number}/, "A01 well lab number correct";
+    like $a01->well_lab_number->lab_number, qr/$qc_well_params->{lab_number}/, "A01 well lab number correct";
     is $a01->well_barcode->root_piq_well_id, $qc_well->id, "A01 barcode linked to root piq well ID";
     my ($a01_parent) = $a01->parent_wells;
     is $a01_parent->id, $piq_wells[0]->id, "A01 has correct parent well";

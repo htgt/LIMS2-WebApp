@@ -1,0 +1,62 @@
+---
+valid_input:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: A01
+        - plate_name: CRISPR_1
+          well_name: A01
+    crispr_tracker_rna: standard
+missing_input_well:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    crispr_tracker_rna: standard
+invalid_input_well:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: A01
+        - plate_name: MOHFAQ0001_A_2
+          well_name: C08
+    crispr_tracker_rna: standard
+invalid_output_well:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: FEP0006
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: A01
+        - plate_name: CRISPR_1
+          well_name: A01
+    crispr_tracker_rna: standard
+not_nonsense_design:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: C04
+        - plate_name: CRISPR_1
+          well_name: A01
+    crispr_tracker_rna: standard
+wrong_nonsense_design_crispr:
+    type: oligo_assembly
+    output_wells:
+        - plate_name: OLIGO_ASSEMBLY_TEST
+          well_name: A01
+    input_wells:
+        - plate_name: 35
+          well_name: A01
+        - plate_name: CRISPR_1
+          well_name: A04
+    crispr_tracker_rna: standard

@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.284';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.322';
 }
 ## use critic
 
@@ -12,6 +12,7 @@ use warnings;
 use Moose;
 use MooseX::ClassAttribute;
 use LIMS2::Exception::Implementation;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids gene_ids_for_crispr );
 use Module::Pluggable::Object;
 use List::MoreUtils qw( uniq any );
 use Try::Tiny;
@@ -437,9 +438,9 @@ sub design_and_gene_cols {
     };
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
-    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
+    return ( $design->id, $design->design_type_id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
 
 sub ancestor_cols {
@@ -514,42 +515,29 @@ sub crispr_marker_symbols{
 sub crispr_design_and_gene_cols{
     my ($self, $crispr) = @_;
 
-    my %symbols;
-    my (@design_ids, @gene_ids);
+    my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
+    my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
 
-    foreach my $design ($crispr->related_designs){
-        $self->_symbols_from_design($design, \%symbols);
-        push @design_ids, $design->id;
-        push @gene_ids,  map { $_->gene_id } $design->genes;
+    my @symbols;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $self->model->find_gene( { species => $self->species, search_term => $gene_id } );
+            push @symbols, $gene->{gene_symbol};
+        };
     }
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return (
-        join( q{/}, uniq @design_ids ),
-        join( q{/}, uniq @gene_ids ),
-        join( q{/}, keys %symbols ),
+        join( q{/}, keys %designs ),
+        join( q{/}, values %designs ),
+        join( q{/}, @gene_ids ),
+        join( q{/}, uniq @symbols ),
         join( q{/}, @sponsors )
     );
-}
 
-sub _symbols_from_design{
-    my ($self, $design, $symbols) = @_;
-
-    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols;
-    try {
-        @gene_symbols  = uniq map {
-            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
-        } @gene_ids;
-    };
-
-    # Add any symbols we found to the hash
-    foreach my $symbol (@gene_symbols){
-        $symbols->{$symbol} = 1;
-    }
-    return;
 }
 
 =head create_button_json
@@ -575,6 +563,47 @@ sub create_button_json {
     };
     my $json_text = encode_json( $custom_value );
 
+    return $json_text;
+}
+
+# Create a JSON string which will be rendered as a combo box
+# in generic_report_grid.tt and simple_table.tt
+# See LIMS2::Report::AssemblyPlate for an example
+sub create_combo_json {
+    my $self = shift;
+    my $params = shift;
+
+    # "-" represents the unset option
+    # When a user selects this option in the combobox the request is sent
+    # with no "value" parameter added to the url
+    my @options = (["-","-"]);
+
+    # When an option is selected it is added to the url as value=<option>
+    foreach my $item (@{ $params->{options} }){
+        push @options, [$item,$item];
+    }
+
+    # api_params are key value pairs which are always added
+    # in the request URL, e.g. well_id=12345&qc_type=CRISPR_LEFT_QC
+    my @api_params;
+    foreach my $key (keys %{ $params->{api_params} }){
+        my $param_string = $key."=".$params->{api_params}->{$key};
+        DEBUG("param string: $param_string");
+        push @api_params, $param_string;
+    }
+    my $api_params_string = join "&", @api_params;
+
+    # api_base is the path added after c.uri_for(/)
+    # selected is the currently selected option from the database
+    my $combo = {
+        'lims2_combo' => {
+            options => \@options,
+            selected => $params->{selected},
+            api_base => $params->{api_base},
+            api_params => $api_params_string,
+        },
+    };
+    my $json_text = encode_json( $combo );
     return $json_text;
 }
 
@@ -618,6 +647,7 @@ sub get_crispr_data {
 
     my $crispr_data_method;
     # We have to assume all the assemblies on the plate are of same type
+    ## no critic (ProhibitCascadingIfElse)
     if ( any { $_->{crispr_assembly_process} eq 'single_crispr_assembly' } @{ $wells_data } ) {
         $crispr_data_method = 'single_crispr_data';
     }
@@ -628,9 +658,13 @@ sub get_crispr_data {
     elsif ( any { $_->{crispr_assembly_process} eq 'group_crispr_assembly' } @{ $wells_data } ) {
         $crispr_data_method = 'crispr_group_data';
     }
+    elsif ( any { $_->{crispr_assembly_process} eq 'oligo_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'single_crispr_data';
+    }
     else {
         die( 'Can not find a crispr_assembly process, unable to work out crispr type' );
     }
+    ## use critic
 
     my %well_crisprs;
     for my $well_data ( @{ $wells_data } ) {
@@ -662,7 +696,7 @@ sub prefetch_crisprs {
 
     for my $wd ( @{ $wells_data } ) {
         next unless $wd->{crispr_wells};
-        for my $cw ( @{ $wd->{crispr_wells} } ) {
+        for my $cw ( @{ $wd->{crispr_wells}{crisprs} } ) {
             next if exists $crisprs{ $cw->{crispr_id} };
 
             my $crispr = $self->model->schema->resultset('Crispr')->find( { id => $cw->{crispr_id} } );
@@ -737,15 +771,7 @@ retrieve crispr group given list of crispr ids
 sub crispr_group_data {
     my ( $self, $crispr_ids ) = @_;
 
-    my $crispr_group = $self->model->schema->resultset('CrisprGroup')->search(
-        {
-            'crispr_group_crisprs.crispr_id' => { 'IN' => $crispr_ids },
-        },
-        {
-            join     => 'crispr_group_crisprs',
-            distinct => 1,
-        }
-    )->first;
+    my $crispr_group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => $crispr_ids } );
 
     return ( 'crispr_group', $crispr_group );
 }

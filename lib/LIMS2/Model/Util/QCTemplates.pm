@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.284';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.322';
 }
 ## use critic
 
@@ -165,6 +165,7 @@ sub design_data {
     my ( $model, $info, $design, $species ) = @_;
 
     $info->{design_id} = $design->id;
+    $info->{design_phase} = $design->phase;
     my @gene_ids = uniq map { $_->gene_id } $design->genes;
 
     my @gene_symbols;
@@ -220,9 +221,22 @@ sub eng_seq_data {
     if (my $backbone = $well->qc_template_well_backbone) {
         $info->{backbone_new} = $backbone->backbone->name;
     }
-    if (my @recombinases = $well->qc_template_well_recombinases->all) {
-        # FIXME: what if some recombinases from source and some from template?
-        $info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
+    if (my @template_recombinases = $well->qc_template_well_recombinases->all) {
+        # eng_seq_params recombinase is a list of well recombinases + template recmobinase
+        # remove the template recombinases to generate the list of original well recombinases
+        if($es_params->{recombinase}){
+            my @eng_seq_recombinases = @{ $es_params->{recombinase} };
+            my @orig_recombinases;
+            foreach my $recombinase (@eng_seq_recombinases){
+                push @orig_recombinases, $recombinase unless grep { $recombinase eq lc($_) }
+                                                             map { $_->id }
+                                                             @template_recombinases ;
+            }
+            # Store list of orig recombinases
+            $info->{recombinase} = @orig_recombinases ? join ", ", @orig_recombinases : undef;
+        }
+        # Store list of template recombinases
+        $info->{recombinase_new} = join ", ", map { $_->recombinase_id } @template_recombinases;
     }
 
     return;

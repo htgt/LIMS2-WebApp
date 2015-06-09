@@ -1,4 +1,55 @@
 [% META title="View Crispr"; META tab_name = 'Designs' %]
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crisprs.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+
+<!--  split seq into grna and pam -->
+[% crispr_grna = crispr_data.fwd_seq.substr(0, 20) %]
+[% crispr_pam =  crispr_data.fwd_seq.substr(20, 3) %]
+
+<script type="text/javascript">
+  //we use this for doing the mismatch counts
+  // all taken WGE
+  var crispr_grna = "[% crispr_grna %]";
+  var crispr_pam  = "[% crispr_pam %]";
+
+  $(document).ready( function() {
+
+    $("#offtarget_table .ots").each(function() {
+      var tr = $(this);
+
+      //find sequence and get match data
+      var seq = tr.children(".seq");
+      var match = crispr_grna.match_str( seq.text().substr(0, 20) );
+
+      //update the rows
+      seq.html(match.str + " " + seq.text().substr(20, 3));
+    });
+
+    $(".validation-state-cell").each(function(){
+      //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
+      addPrimerValidationState(
+        $(this),
+        "[% c.uri_for('/user/toggle_crispr_primer_validation_state') %]",
+        'crispr_key',
+        '[% crispr_data.id %]' + '(crispr)',
+        $(this).data('primer-name'),
+        $(this).data('validated')
+      );
+    });
+
+  });
+</script>
+
+<style type="text/css">
+.seq {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  font-size:15px;
+}
+.mismatch {
+    font-weight: bold;
+    color: #FF0000;
+}
+</style>
 
 <div class="page-header">
   <h1>Crispr <small> [% crispr_data.id %]</small></h1>
@@ -16,6 +67,20 @@
   <tr><th>PAM Right</th> <td>[% crispr_data.pam_right %]</td></tr>
   <tr><th>WGE ID</th> <td>[% crispr_data.wge_crispr_id %]</td></tr>
   <tr><th>Comment</th> <td>[% crispr_data.comment %]</td></tr>
+  [% IF crispr_data.nonsense_crispr_original_crispr_id %]
+      <tr><th>Nonsense Crispr ( Linked with crispr )</th>
+      <td> <a href="[% c.uri_for( '/user/crispr', crispr_data.nonsense_crispr_original_crispr_id , 'view' ) %]">[% crispr_data.nonsense_crispr_original_crispr_id %]</a></td>
+    </tr>
+  [% END %]
+  [% IF linked_nonsense_crisprs.size > 0 %]
+      <tr><th>Linked Nonsense Crisprs</th>
+      <td>
+      [% FOR crispr IN linked_nonsense_crisprs %]
+        <a href="[% c.uri_for( '/user/crispr', crispr.id, 'view' ) %]">[% crispr.id %]</a>
+      [% END %]
+      </td>
+      </tr>
+  [% END %]
 </table>
 
 <a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-primary">UCSC BLAT</a>
@@ -56,36 +121,6 @@
   <p><em>No off target summaries for this crispr</em></p>
 [% END %]
 
-<h2>Off Targets</h2>
-[% IF crispr_data.off_targets.size > 0 %]
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Chromosome</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Strand</th>
-        <th>Algorithm</th>
-      </tr>
-    </thead>
-    <tbody>
-      [%- FOR datum IN crispr_data.off_targets %]
-      <tr>
-        <td>[% datum.type %]</td>
-        <td>[% datum.chromosome %]</td>
-        <td>[% datum.chr_start %]</td>
-        <td>[% datum.chr_end %]</td>
-        <td>[% datum.chr_strand %]</td>
-        <td>[% datum.algorithm %]</td>
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
-[% ELSE %]
-  <p><em>No off targets for this crispr</em></p>
-[% END %]
-
 <h2>Linked Designs</h2>
 [% IF designs.size > 0 %]
   <table class="table">
@@ -121,6 +156,8 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
+        <th>Rejected</th>
+        <th>Validation State</th>
       </tr>
     </thead>
     <tbody>
@@ -132,10 +169,58 @@
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>
         <td>[% datum.gc_content %]</td>
+        [% IF datum.is_rejected %]
+            <td> <span class="label label-important pull-right">Rejected</span> </td>
+            <td></td>
+        [% ELSE %]
+            <td></td>
+            <td class="validation-state-cell"
+                data-validated="[% datum.is_validated %]"
+                data-primer-name="[% datum.primer_name %]">
+            </td>
+        [% END %]
       </tr>
       [%- END %]
     </tbody>
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr</em></p>
+[% END %]
+
+[% IF crispr_data.off_targets.size > 0 %]
+<h2>Crispr Off Targets</h2>
+<p class="text-warning">We only show off targets loaded in LIMS2, which may not be all the off targets.
+Typically only off targets with 3 or less mismatches are stored</p>
+  <table class='table' id='offtarget_table'>
+    <thead>
+      <tr>
+        <th>Off Target Crispr ID</th>
+        <th>Number of Mismatches</th>
+        <th>Sequence</th>
+        <th>Type</th>
+        <th>Location</th>
+        <th>BLAT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class = "info ots">
+        <td>Original Crispr</td>
+        <td>0</td>
+        <td class="seq">[% crispr_data.fwd_seq %]</td>
+        <td>[% crispr_data.type %]</td>
+        <td> [% crispr_data.locus.chr_name %]:[% crispr_data.locus.chr_start %]-[% crispr_data.locus.chr_end %] </td>
+        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+      </tr>
+      [%- FOR datum IN crispr_data.off_targets %]
+      <tr class="ots">
+        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id, 'view' ) %]" target="_blank">[% datum.off_target_crispr_id %]</a></td>
+        <td>[% datum.mismatches %]</td>
+        <td class="seq">[% datum.ot_crispr.fwd_seq %]</td>
+        <td>[% datum.ot_crispr.type %]</td>
+        <td> [% datum.ot_crispr.locus.chr_name %]:[% datum.ot_crispr.locus.chr_start %]-[% datum.ot_crispr.locus.chr_end %] </td>
+        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
 [% END %]

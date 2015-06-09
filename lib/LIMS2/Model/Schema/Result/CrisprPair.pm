@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.322';
 }
 ## use critic
 
@@ -153,6 +153,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 left_crispr
 
 Type: belongs_to
@@ -184,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bQqPDhB8jeHZ6KrzPo+pjg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MBXpihnogswuzG3K/d08fQ
 
 sub as_hash {
     my ( $self ) = @_;
@@ -236,6 +251,10 @@ sub target_slice {
     return $slice;
 }
 
+sub species_id {
+    return shift->right_crispr->species_id;
+}
+
 sub start {
     return shift->left_crispr_locus->chr_start;
 }
@@ -250,6 +269,16 @@ sub chr_id {
 
 sub chr_name {
     return shift->right_crispr_locus->chr->name;
+}
+
+sub default_assembly {
+    return shift->left_crispr->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr_pair
+sub id_column_name{
+    return 'crispr_pair_id';
 }
 
 sub is_pair { return 1; }
@@ -268,5 +297,19 @@ sub related_designs {
   return map { $_->design } @crispr_designs;
 }
 
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('crispr_primers', { primer_name => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
 __PACKAGE__->meta->make_immutable;
 1;

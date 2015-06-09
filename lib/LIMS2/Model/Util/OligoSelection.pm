@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.284';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.322';
 }
 ## use critic
 
@@ -593,7 +593,8 @@ sub get_crispr_PCR_EnsEmbl_region{
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
     my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'};
-
+INFO("PCR start target: $start_target");
+INFO("PCR end target: $end_target");
     my $start_coord =  $start_target - ($dead_field_width + $search_field_width);
     my $end_coord =  $end_target + ($dead_field_width + $search_field_width);
     $slice_region = $slice_adaptor->fetch_by_region(
@@ -922,6 +923,21 @@ sub single_crispr_primer_calculate {
     return ($primer_data, $chr_strand, $chr_seq_start);
 }
 
+# Use oligo_for_single_crispr to generate hash for each of the crisprs in the group
+# return these hashes in an arrayref
+sub oligos_for_crispr_group{
+    my ($schema, $group_id)  = @_;
+    my @oligos;
+
+    my $group = $schema->resultset('CrisprGroup')->find({ id => $group_id });
+
+    foreach my $crispr_group_crispr ($group->crispr_group_crisprs){
+        my $crispr_oligo_hash = oligo_for_single_crispr($schema, $crispr_group_crispr->crispr_id);
+        push @oligos, $crispr_oligo_hash->{'left_crispr'};
+    }
+    return \@oligos;
+}
+
 =head2 oligos_for_crispr_pair
 
 Generate sequencing primer oligos for a crispr pair
@@ -990,19 +1006,30 @@ Everything else is done wrt crispr pairs, so it is easier to use the same data s
 sub oligo_for_single_crispr {
     my $schema = shift;
     my $crispr_id = shift;
-
-    # TODO: should we be checking assembly, chromosome and species here?
+    my $assembly_id = shift;
 
     my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
     my $crispr = $crispr_rs->first;
 
+    # If no assembly has been specified use species default
+    unless($assembly_id){
+        $assembly_id = $crispr->species->default_assembly->assembly_id;
+    }
+
     my %crispr_pairs;
     $crispr_pairs{'left_crispr'}->{'id'} = $crispr->id;
-    my $locus_count = $crispr->loci->count;
-    if ($locus_count != 1 ) {
+    my @loci = $crispr->loci->search({ assembly_id => $assembly_id });
+
+    my $locus_count = scalar @loci;
+    if ($locus_count > 1 ) {
         INFO ('Found multiple loci for ' . $crispr_id);
     }
-    my $locus = $crispr->loci->first;
+    elsif($locus_count == 0){
+        INFO ("No locus on assembly $assembly_id for crispr ".$crispr_id);
+        return {};
+    }
+    my $locus = $loci[0];
+
     $crispr_pairs{'left_crispr'}->{'chr_start'} = $locus->chr_start;
     $crispr_pairs{'left_crispr'}->{'chr_end'} = $locus->chr_end;
     $crispr_pairs{'left_crispr'}->{'chr_strand'} = $locus->chr_strand;
@@ -1223,8 +1250,10 @@ sub retrieve_crispr_primers {
 
     my %crispr_primers_hash;
 
+    # I am assuming we do not want to return rejected primers af11 2015-02-05
     my $crispr_primers_rs = $schema->resultset('CrisprPrimer')->search({
         $crispr_id_ref => $crispr_id,
+        is_rejected => [0,undef],
     });
 
     my $crispr_type_string;
@@ -1234,6 +1263,9 @@ sub retrieve_crispr_primers {
     }
     elsif ( $crispr_id_ref eq 'crispr_pair_id' ) {
        $crispr_type_string = 'crispr_pair';
+    }
+    elsif ( $crispr_id_ref eq 'crispr_group_id'){
+        $crispr_type_string = 'crispr_group';
     }
 
     if ($crispr_primers_rs) {
@@ -1270,6 +1302,9 @@ sub retrieve_crispr_primers {
 sub get_db_genotyping_primers_as_hash {
     my $schema = shift;
     my $params = shift;
+
+    # Skip this id we have no design ID
+    return {} unless $params->{'design_id'};
 
     my $genotyping_primer_rs = $schema->resultset('GenotypingPrimer')->search({
             'design_id' => $params->{'design_id'},
@@ -1321,6 +1356,10 @@ sub retrieve_crispr_data_for_id {
     }
     elsif ($crispr_id_ref eq 'crispr_id' ) {
         $crispr_data_hash{'crispr_single'}->{$crispr_id} = oligo_for_single_crispr( $schema, $crispr_id );
+    }
+    elsif ($crispr_id_ref eq 'crispr_group_id'){
+        # For each crispr group we get an array ref of single crispr oligo details
+        $crispr_data_hash{'crispr_group'}->{$crispr_id} = oligos_for_crispr_group( $schema, $crispr_id );
     }
     else {
         ERROR ('crispr identifier: ' . $crispr_id . ' was not found in the database');

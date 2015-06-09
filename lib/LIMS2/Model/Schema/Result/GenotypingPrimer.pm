@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.322';
 }
 ## use critic
 
@@ -210,9 +210,22 @@ sub as_hash {
         id      => $self->id,
         type    => $self->genotyping_primer_type_id,
         seq     => $self->seq,
+        primer_seq => $self->seq,
+        primer_name => $self->genotyping_primer_type_id,
         species => $self->design->species_id,
         locus   => $locus ? $locus->as_hash : undef,
+        is_validated => $self->is_validated,
+        is_rejected => $self->is_rejected,
     };
+}
+
+# Method aliases so we can use it like a CrisprPrimer
+sub primer_name{
+    return shift->genotyping_primer_type_id;
+}
+
+sub primer_seq{
+    return shift->seq;
 }
 
 __PACKAGE__->meta->make_immutable;

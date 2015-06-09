@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.284';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -27,11 +27,11 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
+        'Well ID', 'Well Name', 'Design ID', 'Design Type', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         $self->colony_count_column_names,
         'Crispr Wells',
-        'Created By','Created At',
+        'Created By','Created At', 'Report?'
     ];
 };
 
@@ -58,15 +58,19 @@ override iterator => sub {
         return unless $well_data;
 
         my $well = $well_data->{well};
-        my @crispr_wells = map{ $_->{plate_name} . '[' . $_->{well_name} . ']' } @{ $well_data->{crispr_wells} };
+        # list of CRISPR plate wells
+        my @crispr_wells = map { $_->{plate_name} . '[' . $_->{well_name} . ']' }
+            @{ $well_data->{crispr_wells}{crisprs} };
 
         my @data = (
+            $well_data->{well_id},
             $well_data->{well_name},
             $well_data->{design_id},
+            $well_data->{design_type},
             $well_data->{gene_ids},
             $well_data->{gene_symbols},
             $well_data->{sponsors},
-            $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '',
+            $self->well_eng_seq_link( $well_data ),
             $well_data->{cassette},
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},
@@ -77,8 +81,10 @@ override iterator => sub {
             join( ', ', @crispr_wells ),
             $well_data->{created_by},
             $well_data->{created_at},
+            $well_data->{to_report} ? 'true' : 'false',
         );
         $well_data = shift @wells_data;
+
         return \@data;
     };
 };

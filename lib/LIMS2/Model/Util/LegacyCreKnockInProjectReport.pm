@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::LegacyCreKnockInProjectReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.284';
+    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.322';
 }
 ## use critic
 
@@ -58,18 +58,17 @@ sub _build_projects {
     my $self = shift;
     my @projects;
 
+    my $sponsor = $self->model->retrieve_sponsor({
+        id => 'Cre Knockin',
+    });
+
     if ( $self->project_id ) {
-        my $project = $self->model->schema->resultset('Project')->find(
-            {
-                sponsor_id => 'Cre Knockin',
-                id => $self->project_id,
-            }
-        );
+        my $project = $sponsor->projects->find({ id => $self->project_id });
         push @projects, $project;
 
     }
     else {
-        @projects = $self->model->schema->resultset('Project')->search( { sponsor_id => 'Cre Knockin' } );
+        @projects = $sponsor->projects->all;
     }
 
     return \@projects;
@@ -436,10 +435,11 @@ SELECT
  cf.cre,
  cf.well_has_cre,
  cf.well_has_no_recombinase
-FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+FROM project_sponsors ps, projects p
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id   = 'Cre Knockin'
+WHERE ps.sponsor_id   = 'Cre Knockin'
+AND ps.project_id = p.id
 AND p.species_id     = 'Mouse'
 )
 SELECT

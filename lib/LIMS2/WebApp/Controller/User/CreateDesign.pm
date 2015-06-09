@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.284';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.322';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Path::Class;
 
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
+use WebAppCommon::Util::FarmJobRunner;
 
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
@@ -58,7 +59,7 @@ sub index : Path( '/user/create_design' ) : Args(0) {
         $params->{ output_dir } = $DEFAULT_DESIGNS_DIR->subdir( $uuid );
 
         #all the parameters are in order so bsub a design creation job
-        my $runner = LIMS2::Util::FarmJobRunner->new;
+        my $runner = WebAppCommon::Util::FarmJobRunner->new;
 
         try {
             my $job_id = $runner->submit(

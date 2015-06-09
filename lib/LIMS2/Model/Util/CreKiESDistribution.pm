@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreKiESDistribution;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.284';
+    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.322';
 }
 ## use critic
 
@@ -1213,7 +1213,7 @@ sub _test_basket_logic_string {
         my $method  = $self->dispatches->{ $operand };
         my $operand_result = $method->();
 
-        # if ( $operand_result ) { print "OPERAND RESULT: True \n"; } 
+        # if ( $operand_result ) { print "OPERAND RESULT: True \n"; }
         # else { print "OPERAND RESULT: False \n"; }
 
         return $operand_result;
@@ -1221,7 +1221,7 @@ sub _test_basket_logic_string {
 
     my $result = $parser->solve( $tree, $callback, $self );
 
-    # if ( $result ) { print "LOGIC RESULT: True \n"; } 
+    # if ( $result ) { print "LOGIC RESULT: True \n"; }
     # else { print "LOGIC RESULT: False \n"; }
 
     return $result;
@@ -1885,8 +1885,9 @@ sub _sql_select_lims2_cre_project_genes {
 
 my $sql_query =  <<"SQL_END";
 SELECT projects.gene_id AS mgi_gene_id, projects.id AS lims2_project_db_id
-FROM projects
-WHERE projects.sponsor_id = '$sponsor_id'
+FROM projects, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = projects.id
 AND projects.species_id = '$species'
 ORDER BY projects.gene_id
 SQL_END
@@ -1909,7 +1910,7 @@ my $sql_query =  <<"SQL_END";
 WITH cre_project_requests AS (
 SELECT p.id AS project_id,
  p.htgt_project_id,
- p.sponsor_id,
+ ps.sponsor_id,
  p.gene_id,
  p.targeting_type,
  pa.allele_type,
@@ -1922,9 +1923,10 @@ SELECT p.id AS project_id,
  cf.well_has_cre,
  cf.well_has_no_recombinase
 FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id   = '$sponsor_id'
+JOIN project_sponsors ps
+WHERE ps.sponsor_id   = '$sponsor_id'
 AND p.targeting_type = 'single_targeted'
 AND p.species_id     = '$species_id'
 )
@@ -2064,9 +2066,9 @@ LEFT OUTER JOIN mi_attempt_statuses on mi_attempt_statuses.id = mi_attempts.stat
 LEFT OUTER JOIN targ_rep_es_cells on targ_rep_es_cells.id = mi_attempts.es_cell_id
 LEFT OUTER JOIN targ_rep_pipelines on targ_rep_pipelines.id = targ_rep_es_cells.pipeline_id
 WHERE consortia.name = '$pipelines_name'
-AND ( CASE 
-WHEN targ_rep_es_cells.name IS NOT NULL THEN targ_rep_pipelines.name = '$pipelines_name' 
-ELSE targ_rep_es_cells.name IS NULL 
+AND ( CASE
+WHEN targ_rep_es_cells.name IS NOT NULL THEN targ_rep_pipelines.name = '$pipelines_name'
+ELSE targ_rep_es_cells.name IS NULL
 END )
 GROUP BY consortia.name
 , centres.name

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.284';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.322';
 }
 ## use critic
 
@@ -190,6 +190,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 crispr_plate_append
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPlateAppend>
+
+=cut
+
+__PACKAGE__->might_have(
+  "crispr_plate_append",
+  "LIMS2::Model::Schema::Result::CrisprPlateAppend",
+  { "foreign.plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate_comments
 
 Type: has_many
@@ -271,13 +286,14 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-22 11:59:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:faFXuKQ7q7JWfU+wnEbYJQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-12 11:46:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nzreu9hhRtZYe5kJAXGjfw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw(any);
 
 sub as_string {
     my $self = shift;
@@ -376,5 +392,9 @@ sub number_of_wells_with_barcodes {
     return $count;
 }
 
+sub has_global_arm_shortened_designs{
+    my $self = shift;
+    return any { $_->global_arm_shortened_design } $self->wells;
+}
 __PACKAGE__->meta->make_immutable;
 1;

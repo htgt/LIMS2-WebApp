@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.284';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.322';
 }
 ## use critic
 
@@ -42,13 +42,11 @@ with 'MooseX::Log::Log4perl';
 
 const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
-const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
-    // '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
+const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD} //
+                                    '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my %BWA_REF_GENOMES => (
     human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
     mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
-    #human => '/lustre/scratch110/sanger/sp12/temp_ref_files/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
-    #mouse => '/lustre/scratch110/sanger/sp12/temp_ref_files/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
 );
 
 has model => (
@@ -57,7 +55,6 @@ has model => (
     required => 1,
 );
 
-# EP_PICK or PIQ plate name
 has plate_name => (
     is  => 'ro',
     isa => 'Str',
@@ -283,8 +280,6 @@ sub analyse_plate {
 
     # check plate is or right type
     my $plate = $self->plate;
-    LIMS2::Exception->throw( "Plate $plate is not type EP_PICK or PIQ, is: " . $plate->type_id )
-        if $plate->type_id ne 'EP_PICK' && $plate->type_id ne 'PIQ';
 
     #initialise lazy build
     $self->qc_run;
@@ -361,7 +356,7 @@ sub analyse_well {
     my $work_dir = $self->base_dir->subdir( $well->as_string );
     $work_dir->mkpath;
 
-    my $crispr = $self->crispr_for_well( $well );
+    my $crispr = $well->crispr_entity;
     my $design = $well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
@@ -378,7 +373,7 @@ sub analyse_well {
         }
 
         my $sam_file = $self->build_sam_file_for_well( $well->name, $work_dir );
-        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $sam_file, $work_dir, $design );
+        $analyser = $self->align_and_analyse_well_reads( $well, $crispr, $sam_file, $work_dir );
     }
     else {
         $self->log->warn( "No primer reads for well " . $well->name );
@@ -399,14 +394,14 @@ sub analyse_well {
 
 =head2 align_and_analyse_well_reads
 
-Gather the primer reads and align against the target region the crispr pair
+Gather the primer reads and align against the target region the crispr entity
 will hit.
 The alignment and analysis work is done by the HTGT::QC::Util::CrisprDamageVEP
 module.
 
 =cut
 sub align_and_analyse_well_reads {
-    my ( $self, $well, $crispr, $sam_file, $work_dir, $design ) = @_;
+    my ( $self, $well, $crispr, $sam_file, $work_dir ) = @_;
     $self->log->debug( "Aligning reads for well: $well" );
 
     my %params = (
@@ -428,48 +423,6 @@ sub align_and_analyse_well_reads {
     };
 
     return $crispr_damage_analyser;
-}
-
-=head2 crispr_for_well
-
-Return the crispr pair or crispr linked to the well.
-
-=cut
-sub crispr_for_well {
-    my ( $self, $well ) = @_;
-
-    my ( $left_crispr_well, $right_crispr_well ) = $well->left_and_right_crispr_wells;
-
-    if ( $left_crispr_well && $right_crispr_well ) {
-        my $left_crispr  = $left_crispr_well->crispr;
-        my $right_crispr = $right_crispr_well->crispr;
-
-        my $crispr_pair = $self->model->schema->resultset('CrisprPair')->find(
-            {
-                left_crispr_id  => $left_crispr->id,
-                right_crispr_id => $right_crispr->id,
-            }
-        );
-
-        unless ( $crispr_pair ) {
-            $self->log->error(
-                "Unable to find crispr pair: left crispr $left_crispr, right crispr $right_crispr" );
-            return;
-        }
-        $self->log->debug("Crispr pair for well $well: $crispr_pair" );
-
-        return $crispr_pair;
-    }
-    elsif ( $left_crispr_well ) {
-        my $crispr = $left_crispr_well->crispr;
-        $self->log->debug("Crispr pair for $well: $crispr" );
-        return $crispr;
-    }
-    else {
-        $self->log->error( "Unable to determine crispr pair or crispr for well $well" );
-    }
-
-    return;
 }
 
 =head2 align_primer_reads
@@ -642,9 +595,25 @@ Combine all the qc analysis data we want to store and return it in a hash.
 sub parse_analysis_data {
     my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
-    $analysis_data->{crispr_id}  = $crispr->id if $crispr;
-    $analysis_data->{design_id}  = $design->id;
-    $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
+    # Also might as well store crispr ids here, for createing crispr validation records
+    # for qc done on EP_PICK plates
+    # In a future we will try to auto call crispr validation
+    if ( $crispr ) {
+        $analysis_data->{crispr_id}  = $crispr->id;
+        if ( $crispr->is_pair ) {
+            $analysis_data->{is_pair}    = $crispr->is_pair;
+            $analysis_data->{crispr_ids} = [ $crispr->left_crispr_id, $crispr->right_crispr_id ];
+        }
+        elsif ( $crispr->is_group ) {
+            $analysis_data->{is_group}   = $crispr->is_group;
+            $analysis_data->{crispr_ids} = [ map { $_->crispr_id } $crispr->crispr_group_crisprs->all ];
+        }
+        else {
+            $analysis_data->{crispr_ids} = [ $crispr->id ];
+        }
+    }
+
+    $analysis_data->{design_id}  = $design->id if $design;
     $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;
@@ -671,7 +640,7 @@ sub parse_analysis_data {
             }
         }
 
-        $analysis_data->{design_strand}         = $design->chr_strand;
+        $analysis_data->{design_strand}         = $design->chr_strand if $design;
         $analysis_data->{target_sequence_start} = $analyser->pileup_parser->genome_start;
         $analysis_data->{target_sequence_end}   = $analyser->pileup_parser->genome_end;
         $analysis_data->{insertions}            = $analyser->pileup_parser->insertions;
@@ -691,6 +660,7 @@ be converted to json just before we persist the data.
 sub build_qc_data {
     my ( $self, $well, $analyser, $analysis_data, $well_reads, $crispr ) = @_;
 
+    my $crispr_ids = exists $analysis_data->{crispr_ids} ? $analysis_data->{crispr_ids} : undef;
     my %qc_data = (
         well_id       => $well->id,
         analysis_data => $analysis_data,
@@ -700,6 +670,9 @@ sub build_qc_data {
         $qc_data{crispr_start}    = $crispr->start;
         $qc_data{crispr_end}      = $crispr->end;
         $qc_data{crispr_chr_name} = $crispr->chr_name;
+        if ( $self->plate->type_id eq 'EP_PICK' && $crispr_ids ) {
+            $qc_data{crisprs_to_validate} = $crispr_ids;
+        }
     }
 
     if ( $analyser ) {
@@ -710,6 +683,10 @@ sub build_qc_data {
             # if a variant type other can no-call has been made then mark well accepted
             $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
         }
+    }
+
+    if ( $analysis_data->{no_reads} ) {
+        $qc_data{crispr_damage_type} = 'no-call';
     }
 
     if ( exists $well_reads->{forward} ) {

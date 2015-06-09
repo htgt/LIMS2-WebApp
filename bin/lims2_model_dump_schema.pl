@@ -1,5 +1,14 @@
 #!/usr/bin/env perl
 
+# NB: TryCatch blocks in the Schema/Result modules cause schema dump
+# to fail with an error like this:
+#
+# PL_linestr not long enough, was Devel::Declare loaded soon enough in (eval 1152)
+#
+
+# Solution is to use Try::Tiny instead
+
+
 use strict;
 use warnings FATAL => 'all';
 
@@ -41,6 +50,10 @@ my %REL_NAME_MAP = (
         crispr_locis                 => 'loci',
         crisprs_off_targets          => 'off_targets',
         crisprs_off_target_summaries => 'off_target_summaries',
+        designs                      => 'nonsense_designs',
+        crisprs                      => 'nonsense_crisprs',
+        crisprs_off_targets_crispr   => 'off_targets',
+        crispr_off_targets_off_target_crispr => 'off_target_crispr_for'
     },
     CrisprLociType => {
         crisprs_off_targets => 'crispr_off_targets',

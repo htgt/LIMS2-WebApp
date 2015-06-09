@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPDetail::VERSION = '0.284';
+    $LIMS2::Report::CrisprEPDetail::VERSION = '0.322';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+use feature "switch";
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -53,6 +54,8 @@ override _build_columns => sub {
         'EPD List',
         'Accepted EPD Count',
         'Accepted EPD List',
+        'Frameshift Clones Count',
+        'Frameshift Clones List'
     ];
 };
 
@@ -63,6 +66,7 @@ override iterator => sub {
 
 };
 
+## no critic(ProhibitDeepNests)
 sub build_ep_detail {
     my ( $self ) = @_;
 
@@ -124,13 +128,17 @@ sub build_ep_detail {
             }
 
             # get EPD wells
-            my ($ep_pick_list, $ep_pick_pass_list);
+            my ($ep_pick_list, $ep_pick_pass_list, $fs_list);
             my ($ep_pick_count, $ep_pick_pass_count) = (0, 0);
+            my $fs_count = 0;
+            my $if_count = 0;
+            my $wt_count = 0;
+            my $ms_count = 0;
+
             foreach my $process ($crispr_ep_well->child_processes){
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
                     my $plate_name = $output->plate->name;
-
                     my $well_name = $output->name;
                     my $specification = $plate_name . '[' . $well_name . ']';
                     $ep_pick_list = !$ep_pick_list ? $specification : join q{ }, ( $ep_pick_list, $specification );
@@ -138,6 +146,29 @@ sub build_ep_detail {
                     if ( $output->is_accepted ) {
                         $ep_pick_pass_count++;
                         $ep_pick_pass_list = !$ep_pick_pass_list ? $specification : join q{ }, ( $ep_pick_pass_list, $specification );
+
+                        try {
+                            my @damage = $self->model->schema->resultset('CrisprEsQcWell')->search({
+                                well_id => $output->id,
+                                # accepted => 1,
+                                'crispr_es_qc_run.validated' => 1,
+                            },{
+                                join    => 'crispr_es_qc_run',
+                            } );
+                            foreach my $damage (@damage) {
+                                for ($damage->crispr_damage_type_id) {
+                                    when ('frameshift') {
+                                        $fs_count++;
+                                        $fs_list = !$fs_list ? $specification : join q{ }, ( $fs_list, $specification );
+                                    }
+                                    when ('in-frame')   { $if_count++ }
+                                    when ('wild_type')  { $wt_count++ }
+                                    when ('mosaic')     { $ms_count++ }
+                                    # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                                }
+                            }
+                        };
+
                     }
                 }
             }
@@ -159,6 +190,8 @@ sub build_ep_detail {
                 $ep_pick_list,
                 $ep_pick_pass_count,
                 $ep_pick_pass_list,
+                $fs_count,
+                $fs_list,
             ];
         }
     }
@@ -166,6 +199,7 @@ sub build_ep_detail {
     return \@data;
 
 }
+## use critic
 
 __PACKAGE__->meta->make_immutable;
 
