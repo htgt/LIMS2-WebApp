@@ -194,6 +194,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_well_name         = 1
                     hide_gene              = 1
                     hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
             </tr>
 
@@ -213,6 +214,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_well_name         = 1
                     hide_gene              = 1
                     hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
               [% ELSE %]
                 <td colspan="7">

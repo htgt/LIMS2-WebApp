@@ -46,6 +46,13 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
             $params,
             $run
         );
+
+        my $het_status = $c->model('Golgi')->schema->resultset( 'WellHetStatus' )->find({ well_id => $well_data->{well_id} });
+
+        if ($het_status) {
+            $well_data->{het_status} = { five_prime => $het_status->five_prime, three_prime => $het_status->three_prime };
+        }
+
         push @qc_wells, $well_data;
     }
 
@@ -53,6 +60,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
     my $can_accept_wells = 0;
     my $hide_crispr_validation = 1;
+    my $hide_het_validation = 0;
     if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
         my $plate_type  = $qc_well->well->plate->type_id;
         if ( $plate_type eq 'EP_PICK' ) {
@@ -76,6 +84,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         can_accept_wells       => $can_accept_wells,
         truncate               => $params->{truncate},
         hide_crispr_validation => $hide_crispr_validation,
+        hide_het_validation    => $hide_het_validation,
     );
 
     return;

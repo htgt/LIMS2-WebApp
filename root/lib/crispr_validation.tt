@@ -4,7 +4,7 @@
     [% RETURN %]
 [% END %]
 
-<div class="validate_crisprs well well-small">
+<div class="validate_crisprs" style="float:left;width:500px;">
     <strong>Crispr Validation : </strong>
     [% FOR crispr IN row.ranked_crisprs %]
         <a href=[% c.uri_for( '/user/crispr', crispr.id, 'view' ) %] target="_blank">[% crispr.id %]</a>

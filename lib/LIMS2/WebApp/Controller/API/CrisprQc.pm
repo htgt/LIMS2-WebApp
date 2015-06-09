@@ -180,6 +180,41 @@ sub validate_crispr_POST{
     return $self->status_ok( $c, entity => $crispr );
 }
 
+sub set_unset_het : Path( '/api/set_unset_het' ) : Args(0) : ActionClass('REST'){
+}
+
+sub set_unset_het_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $het = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->set_unset_het_validation( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $het );
+}
+
+
+sub validate_het : Path( '/api/validate_het' ) : Args(0) : ActionClass('REST'){
+}
+
+sub validate_het_POST{
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $het = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->set_het_status( $c->request->params );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $het );
+}
+
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
