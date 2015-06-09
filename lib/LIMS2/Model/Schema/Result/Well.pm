@@ -1383,6 +1383,43 @@ sub crispr_entity {
    return $crispr_entity;
 }
 
+=head experiments
+
+Returns all experiment specifications matching this well
+
+Note: only works for assembly well or later at the moment
+
+=cut
+use Time::HiRes qw(gettimeofday tv_interval);
+sub experiments {
+    my $self = shift;
+
+    my $assembly = $self->parent_assembly_well;
+    unless($assembly){
+        die "No assembly well parent found for $self. Cannot identify related experiments";
+    }
+
+    my $t0 = [gettimeofday];
+    my $crispr_entity = $self->crispr_entity;
+    DEBUG "Time taken to get crispr_entity: ".tv_interval($t0);
+    my $design = $self->design;
+
+    unless($crispr_entity or $design){
+        # This should never happen but just in case
+        die "No crispr entity or design found for $self. Cannot identify related experiments";
+    }
+
+    my $search = {};
+    if($crispr_entity){
+        $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
+    }
+    if($design){
+        $search->{design_id} = $design->id;
+    }
+
+    return $self->result_source->schema->resultset('Experiment')->search($search)->all;
+}
+
 =head2 crisprs
 
 Return array of all crispr(s) linked to this well.

@@ -177,10 +177,7 @@ use LIMS2::Model::Constants qw(
 sub as_hash {
     my $self = shift;
 
-    my $locus;
-    if ( my $default_assembly = $self->design->species->default_assembly ) {
-        $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
-    }
+    my $locus = $self->current_locus;
 
     return {
         id    => $self->id,
@@ -188,6 +185,16 @@ sub as_hash {
         seq   => $self->seq,
         locus => $locus ? $locus->as_hash : undef
     };
+}
+
+sub current_locus{
+    my $self;
+
+    if ( my $default_assembly = $self->design->species->default_assembly ) {
+        return $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+
+    return undef;
 }
 
 =head2 oligo_strand_vs_design_strand
