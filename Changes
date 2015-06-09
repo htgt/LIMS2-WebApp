@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.322     2015-06-09 09:25:14 Europe/London
+
+   Added Het validation status framework and interface
+
 0.321     2015-06-04 15:41:33 Europe/London
 
    Added assembly well qc dropdowns to plate reports
