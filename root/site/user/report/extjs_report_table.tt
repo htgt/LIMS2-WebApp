@@ -12,4 +12,4 @@
 <script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
 
 [% PROCESS 'user/report/generic_report_grid.tt' %]
-   
+
