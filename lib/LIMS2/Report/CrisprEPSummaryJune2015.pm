@@ -8,6 +8,8 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+use Data::Dumper;
+use Math::Round;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -94,15 +96,14 @@ sub _build_column_map {
         { crispr_ep_well_cell_line => "Human iPS Cell Line" },
         { crispr_ep_well_nuclease  => "Nuclease" },
         { crispr_ep_plate_well_name => "HUEP Plate_Well" },
-        { ep_colonies_picked       => "EP Colonies Picked" },
-        { ep_colonies_accepted     => "EP Colonies Accepted" },
-        { clones_screened          => "Clones Screened" },
+        { colony_numbers           => "Colony Numbers" },
+        { ep_colonies_picked       => "Clones Screened" }, # number of EP pick wells
         { nhej_of_second_allele    => "NHEJ of Second Allele" },
-        { nhej_frame_shift         => "NHEJ Frame Shift" },
-        { nhej_in_frame            => "In-Frame NHEJ" },
-        { wild_type                => "Wild Type" },
-        { mosiac                   => "Mosiac" },
-        { no_calls                 => "No Calls" },
+        { frameshift               => "NHEJ Frame Shift" },
+        { 'in-frame'               => "In-Frame NHEJ" },
+        { wild_type                => "Wild Type - no NHEJ" },
+        { mosaic                   => "Mosaic" },
+        { 'no-call'                => "No Calls" },
         { targeting_efficiency     => "Biallelic Targeting Efficiency" },
         { recovery_comment         => "Recovery Comment" },
         #{ ep_colonies_picked       => "EP Colonies Picked" },
@@ -164,7 +165,7 @@ sub build_ep_detail {
         type_id => 'CRISPR_EP',
         species_id => $self->species,
         #sponsor_id => 'EUCOMMTools Recovery',
-        name => 'HUEP0055', ## FIXME: single plate for testing
+        name => 'HUEP0036', ## FIXME: single plate for testing
     });
 
     DEBUG "Creating summary for ".scalar(@crispr_ep_plates)." CRISPR_EP plates";
@@ -240,6 +241,36 @@ sub build_ep_detail {
 
             $data{ep_colonies_picked} = scalar( keys %num_wells );
             $data{ep_colonies_accepted} = $num_accepted;
+
+            DEBUG "Finding colonly counts for crispr_ep_well_id ".$summary->crispr_ep_well_id;
+            my $crispr_ep_well = $self->model->schema->resultset('Well')->find({
+                id => $summary->crispr_ep_well_id
+            });
+            my $colony_count = $crispr_ep_well->search_related('well_colony_counts',{
+                colony_count_type_id => 'remaining_unstained_colonies'
+            })->first;
+            $data{colony_numbers} = $colony_count ? $colony_count->colony_count : undef;
+
+            my %ep_pick_damage;
+            foreach my $ep_pick_well_id (keys %num_wells){
+                my $ep_pick_well = $self->model->schema->resultset('Well')->find({
+                    id => $ep_pick_well_id,
+                });
+                #my $qc_well = $ep_pick_well->accepted_crispr_es_qc_well;
+                #next unless $qc_well;
+                foreach my $qc_well($ep_pick_well->crispr_es_qc_wells){
+                    $ep_pick_damage{ $qc_well->crispr_damage_type_id }++;
+                }
+            }
+            DEBUG Dumper(%ep_pick_damage);
+            foreach my $damage_type (keys %ep_pick_damage){
+                $data{$damage_type} = $ep_pick_damage{$damage_type};
+            }
+
+            if(exists $data{frameshift}){
+                my $efficiency = ($data{frameshift}/$data{ep_colonies_picked}) * 100;
+                $data{targeting_efficiency} = round($efficiency)."%";
+            }
 
             #use hash slice to get all the values we want out in order
             push @row, [ map { $_ } @data{ map { keys %{$_} } @{$self->column_map} } ];
