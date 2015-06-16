@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.322';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.323';
 }
 ## use critic
 

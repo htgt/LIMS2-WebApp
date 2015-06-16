@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.322';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.323';
 }
 ## use critic
 
@@ -155,14 +155,8 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     else {
         # not logged in - always use cached reports for top level and sub-reports
-        if ( !$c->request->params->{'cache_param'} ) {
-            $sub_cache_param = 'with_cache';
-            $top_cache_param = 'with_cache';
-        }
-        else {
-            $sub_cache_param = 'without_cache';
-            $top_cache_param = 'without_cache';
-        }
+        $sub_cache_param = 'with_cache';
+        $top_cache_param = 'with_cache';
     }
 
     if (!$c->request->params->{'species'}) {
