@@ -10,6 +10,7 @@ use TryCatch;
 use LIMS2::Exception;
 use LIMS2::Util::WGE;
 use namespace::autoclean;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -588,6 +589,19 @@ sub create_crispr_group {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    # check if there is a group with those crisprs already. if so, return it
+    try{
+        my @crisprs;
+        foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                push @crisprs, $crispr->{'crispr_id'};
+        }
+        my $existing_crispr_group = get_crispr_group_by_crispr_ids(
+                    $self->schema,
+                    { crispr_ids => \@crisprs },
+                );
+        return $existing_crispr_group;
+    };
 
     my $crispr_group;
     $self->schema->txn_do( sub {
