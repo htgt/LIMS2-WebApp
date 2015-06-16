@@ -1,7 +1,7 @@
 package LIMS2::Report::QcRun;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::QcRun::VERSION = '0.231';
+    $LIMS2::Report::QcRun::VERSION = '0.322';
 }
 ## use critic
 
@@ -94,7 +94,7 @@ override _build_columns => sub {
 override iterator => sub {
     my ( $self ) = @_;
 
-    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model->schema, $self->is_crispr_run );
+    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model, $self->is_crispr_run );
 
     my $qc_result = shift @{ $qc_results };
 

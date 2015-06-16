@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprLociType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprLociType::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::CrisprLociType::VERSION = '0.322';
 }
 ## use critic
 
@@ -67,21 +67,6 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 crispr_off_targets
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_off_targets",
-  "LIMS2::Model::Schema::Result::CrisprOffTargets",
-  { "foreign.crispr_loci_type_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crisprs
 
 Type: has_many
@@ -98,8 +83,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zpk8Cmlf+Z/bZfa0aBFttw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r6TaPctTS2ybmL4ZulwKUQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

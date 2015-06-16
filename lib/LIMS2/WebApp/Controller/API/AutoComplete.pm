@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.322';
 }
 ## use critic
 
@@ -210,6 +210,12 @@ sub _entity_column_search {
             $search{species_id} = $species;
         }
     }
+
+    # only list current plates, i.e. those with no version number
+    if($entity_class eq 'Plate'){
+        $search{version} = undef;
+    }
+
     my @objects = $resultset->search(
         \%search,
         {

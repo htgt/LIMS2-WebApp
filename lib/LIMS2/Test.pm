@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.231';
+    $LIMS2::Test::VERSION = '0.322';
 }
 ## use critic
 
@@ -193,7 +193,6 @@ sub _build_fixture_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ( $fixture_directory, $new );
-
     # Fixture data processing
     if ( $args->{classname} ) {
         # Fixture data is derived from the caller's classname, i.e
@@ -228,7 +227,6 @@ sub _build_model {
 
         # Reference data (part of every test)
         load_static_files( $model, $mech );
-
         # Finally load the test data
         if ( $new ) {
             # A complete set of csv files, to be loaded in a specific order
@@ -271,6 +269,7 @@ sub load_static_files {
             ColonyCountType
             CrisprPrimerType
             CrisprLociType
+            CrisprDamageType
             DesignCommentCategory
             DesignOligoType
             DesignType
@@ -291,6 +290,8 @@ sub load_static_files {
             BacLibrary
             SpeciesDefaultAssembly
             Sponsor
+            BarcodeState
+            CrisprTrackerRna
             )
     );
 
@@ -303,7 +304,6 @@ sub load_static_files {
 
 sub load_dynamic_files {
     my ( $model, $mech, $path ) = @_;
-
     # Default path
     $path ||= '/static/test/fixtures';
 
@@ -313,15 +313,15 @@ sub load_dynamic_files {
         qw(
             User
             UserRole
-            Design
-            DesignOligo
-            DesignOligoLocus
-            GeneDesign
             Crispr
             CrisprOffTargets
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
             CrisprDesign
             BacClone
             BacCloneLocus
@@ -335,6 +335,7 @@ sub load_dynamic_files {
             ProcessCrispr
             ProcessNuclease
             ProcessGlobalArmShorteningDesign
+            ProcessCrisprTrackerRna
             Plate
             Well
             ProcessInputWell
@@ -342,6 +343,11 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            ProjectSponsor
+            Summary
+            WellBarcode
+            CrisprEsQcRuns
+            CrisprEsQcWell
         )
     );
 

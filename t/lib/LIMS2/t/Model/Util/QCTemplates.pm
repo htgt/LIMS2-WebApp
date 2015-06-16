@@ -106,6 +106,7 @@ sub qc_template_display_data_test : Test(4) {
             source_well  => 'F02',
             well_name    => 'A01',
             design_id    => '372441',
+            design_phase => '-1',
             gene_ids     => '',
             gene_symbols => '',
         },
@@ -118,6 +119,7 @@ sub qc_template_display_data_test : Test(4) {
             source_well  => 'D04',
             well_name    => 'A02',
             design_id    => '372441',
+            design_phase => '-1',
             gene_ids     => '',
             gene_symbols => '',
         }

@@ -8,6 +8,15 @@
       <li>
         <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre KnockIn Project Status</a>
       </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
+      </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Progress Report</a>
+      </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/allele_dump' ) %]">Allele Dump</a>
+      </li>
     </ul>
   </div>
 </div>

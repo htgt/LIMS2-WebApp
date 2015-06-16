@@ -1,0 +1,111 @@
+<div class="page-header">
+  <h1>[% title %]</h1>
+</div>
+
+[%- MACRO linkify(v) BLOCK %]
+    [% IF v.match( '^https?:' ) %]
+<a href="[% v %]">Link</a>
+    [% ELSE %]
+        [% v %]
+    [% END %]
+[% END %]
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Gene</th>
+      [%- FOR col IN extra_data.detail_columns %]
+      <th>[% col %]</th>
+      [%- END %]
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOR gene IN extra_data.genes %]
+    <tr>
+      <td rowspan="[% gene.summary_count %]">
+        [% gene.gene_symbol %]
+        <a href="[% c.uri_for('/user/report/gene', { gene_id => gene.gene_symbol}) %]" class="btn btn-default btn-mini" target="_blank">Gene Summary</a>
+        <br>
+        [% FOR project IN gene.projects %]
+          <br>Project [% project.id %] recovery class: [% project.recovery_class %]
+          [% IF project.concluded %](concluded)[% END %]
+          <button class="btn btn-primary btn-mini show-modal" data-id="[% project.id %]" data-recovery-class="[% project.recovery_class_id %]" data-concluded="[% project.concluded %]" data-priority="[% project.priority %]" data-comment="[% project.comment %]">Edit</button>
+          <br>
+        [% END %]
+      </td>
+      [%- FOR val IN gene.summaries.0 %]
+      <td>[% linkify( val ) | none %]</td>
+      [%- END %]
+    </tr>
+      [% FOR summary IN gene.summaries.slice(1,-1) %]
+      <tr>
+        [% FOR val IN summary %]
+        <td>[% linkify( val ) | none %]</td>
+        [% END %]
+      </tr>
+      [% END %]
+    [%- END %]
+  </tbody>
+</table>
+
+<div class="modal hide fade" id="EditModal">
+  <form method="POST" id="update_project_form" action="[% c.uri_for( '/user/update_project' ) %]" class="modal-form"  enctype="multipart/form-data" >
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Edit Project Efforts</h3>
+    </div>
+
+    <div class="modal-body">
+      <div id="modal-text"></div>
+
+      [% IF extra_data.gene_id %]
+        <input type="hidden" name="gene_id" value="[% extra_data.gene_id %]"/>
+      [% END %]
+
+      <input type="hidden" name="stage" value="[% extra_data.stage %]"/>
+      <input type="hidden" name="sponsor" value="[% extra_data.sponsor %]"/>
+
+      <input type="hidden" name="id" value="" id="project_id_input" />
+
+      Recovery class:<br>
+      <select id="class_select" name="recovery_class_id">
+        <option value=""></option>
+        [% FOR class IN extra_data.recovery_classes %]
+          <option value="[% class.id %]">[% class.name %]</option>
+        [% END %]
+      </select>
+      <br>Priority:<br>
+      <input type="text" id="priority" name="priority" value="">
+      <br>Comment:<br>
+      <textarea id="comment" name="comment"></textarea>
+      <br>Concluded?<br>
+      <input type="checkbox" id="concluded" name="concluded" value="true">
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <button name="update_project" id="update_project" type="submit" value="update_project" class="btn btn-primary">
+          <i class="icon-pencil icon-white"></i> Update Project
+      </button>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript">
+$('.show-modal').on('click', function (event) {
+  var button = $(this);
+  console.log(button);
+  var project_id = button.data('id'); // Extract info from data-* attributes
+
+  var modal = $('#EditModal');
+  modal.find('#modal-text').text('Edit project ' + project_id);
+  modal.find('#project_id_input').val(project_id);
+  modal.find('#class_select').val(button.data('recovery-class'));
+  modal.find('#priority').val(button.data('priority'));
+  modal.find('#concluded').prop('checked', button.data('concluded'));
+  modal.find('#comment').val( button.data('comment') );
+
+  modal.modal('show');
+});
+
+</script>

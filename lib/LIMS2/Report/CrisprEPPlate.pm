@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.231';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -26,53 +26,67 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
-        'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
+        'Well ID', 'Well Name', 'Design ID', 'Design Type', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         $self->colony_count_column_names,
-        'Left Crispr', 'Right Crispr',
-        'Created By','Created At',
+        'Crispr Wells',
+        'Created By','Created At', 'Report?'
     ];
 };
 
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result', 'well_colony_counts'
-            ],
-            order_by => { -asc => 'me.name' }
+            bind => [ $self->plate->id ],
         }
     );
 
-    return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+    my @wells_data = @{ $rs->consolidate( $self->plate_id,
+            [ 'well_qc_sequencing_result', 'well_colony_counts' ] ) };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
 
-        my $final_vector = $well->final_vector;
-        my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
-        return [
-            $well->name,
-            $self->design_and_gene_cols($well),
-            $final_vector->cassette ? $final_vector->cassette->name       : '-',
-            $final_vector->cassette ? $final_vector->cassette->resistance : '-',
-            ( $final_vector->cassette->promoter ? 'promoter' : 'promoterless' ),
-            $final_vector->backbone ? $final_vector->backbone->name       : '-',
-            $well->nuclease         ? $well->nuclease->name               : '-',
-            $well->first_cell_line  ? $well->first_cell_line->name        : '-',
+    my $well_data = shift @wells_data;
+
+    return Iterator::Simple::iter sub {
+        return unless $well_data;
+
+        my $well = $well_data->{well};
+        # list of CRISPR plate wells
+        my @crispr_wells = map { $_->{plate_name} . '[' . $_->{well_name} . ']' }
+            @{ $well_data->{crispr_wells}{crisprs} };
+
+        my @data = (
+            $well_data->{well_id},
+            $well_data->{well_name},
+            $well_data->{design_id},
+            $well_data->{design_type},
+            $well_data->{gene_ids},
+            $well_data->{gene_symbols},
+            $well_data->{sponsors},
+            $self->well_eng_seq_link( $well_data ),
+            $well_data->{cassette},
+            $well_data->{cassette_resistance},
+            $well_data->{cassette_promoter},
+            $well_data->{backbone},
+            $well_data->{nuclease},
+            $well_data->{cell_line},
             $self->colony_counts( $well ),
-            $left_crispr            ? $left_crispr->plate . '[' . $left_crispr->name . ']' : '-',
-            $right_crispr           ? $right_crispr->plate . '[' . $right_crispr->name . ']' : '-',
-            # join( q{/}, @{ $final_vector->recombinases } ),
-            $well->created_by->name,
-            $well->created_at->ymd,
-        ];
-    }
+            join( ', ', @crispr_wells ),
+            $well_data->{created_by},
+            $well_data->{created_at},
+            $well_data->{to_report} ? 'true' : 'false',
+        );
+        $well_data = shift @wells_data;
+
+        return \@data;
+    };
 };
 
 __PACKAGE__->meta->make_immutable;

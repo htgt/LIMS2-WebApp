@@ -1,0 +1,73 @@
+[% META title = "Create Plate for QC", tab_name = 'Barcodes' -%]
+
+
+<div class="page-header">
+  <h1>Create Plate for QC</h1>
+</div>
+
+<div class="row">
+  <div class="span6 offset3">
+
+    <form method="POST" id="plate_create" action="[% c.uri_for( '/user/create_qc_plate' ) %]" class="form well"  enctype="multipart/form-data" >
+        Use this form to create a QC plate for barcodes which are no longer in the freezer, e.g. when samples have been sent out to an external resource and then returned to us for QC.
+        <br>
+        <strong>The wells on the new plate will NOT have barcodes</strong>
+        <br>
+        <br>
+        Upload a csv file where the first column contains the new well names and the second column
+        contains the LIMS2 barcodes.
+        <br>
+        <br>
+        <label>New Plate Name</label>
+        <input name="plate_name" id="plate_name" type="text"
+          [% IF plate_name %]value="[% plate_name %]"[% END %]
+         />
+
+        <label>New Plate Type</label>
+        <select name="plate_type" id="plate_type_select">
+          <option value=""></option>
+          [% FOREACH type IN plate_type_list %]
+          <option value="[% type %]" [% IF type == plate_type %]selected[% END %]>[% type %]</option>
+          [% END %]
+        </select>
+
+        <div id="ms_qc_params" [% UNLESS plate_type == 'MS_QC' %]class="hidden"[% END %]>
+          <label>Number of Doublings</label>
+          <input type="number" name="number_of_doublings" value="[% number_of_doublings %]"/>
+        </div>
+
+        <label>Well Barcode File</label>
+        <input name="wellbarcodesfile" type="file">
+
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
+            <i class="icon-upload"></i> Create Plate
+        </button>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+
+$("#plate_name").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+  minLength: 2,
+});
+
+$(document).ready(function(){
+  $('#plate_type_select').change(function(){
+      //remove initial hidden status
+      console.log('changing plate type selection');
+      $('#ms_qc_params').removeClass('hidden');
+      //show/hide as appropriate
+      if( $('#plate_type_select').val() == 'MS_QC'){
+        console.log('showing MS QC options');
+        $('#ms_qc_params').show();
+      }
+      else{
+        console.log('hiding MS QC options');
+        $('#ms_qc_params').hide();
+      }
+   });
+});
+
+</script>

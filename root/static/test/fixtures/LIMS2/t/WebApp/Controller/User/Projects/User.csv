@@ -1,0 +1,4 @@
+id,name,password,active
+1134,system,,t
+1135,unknown,,t
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,true

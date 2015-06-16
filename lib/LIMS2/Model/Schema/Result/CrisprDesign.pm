@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprDesign::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::CrisprDesign::VERSION = '0.322';
 }
 ## use critic
 
@@ -75,6 +75,12 @@ __PACKAGE__->table("crispr_designs");
   default_value: false
   is_nullable: 0
 
+=head2 crispr_group_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -93,6 +99,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "plated",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "crispr_group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -159,6 +167,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 crispr_group
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroup>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "crispr_group",
+  "LIMS2::Model::Schema::Result::CrisprGroup",
+  { id => "crispr_group_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 crispr_pair
 
 Type: belongs_to
@@ -195,8 +223,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wv8x5NGVFGkoJosPqJzRuw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-20 10:31:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TcMt+ED7VsmJZ0bjhkMt2g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

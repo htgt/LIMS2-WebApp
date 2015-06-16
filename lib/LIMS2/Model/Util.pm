@@ -1,7 +1,7 @@
 package LIMS2::Model::Util;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::VERSION = '0.231';
+    $LIMS2::Model::Util::VERSION = '0.322';
 }
 ## use critic
 
@@ -38,8 +38,13 @@ sub well_id_for {
 
     my $well = try { $model->retrieve_well($data) }
     catch {
-        LIMS2::Exception::Validation->throw(
-            'Can not find parent well ' . $data->{plate_name} . '[' . $data->{well_name} . ']' );
+        my $message = 'Can not find parent well ' . $data->{plate_name} . '[' . $data->{well_name} . ']' ;
+        if($data->{plate_version}){
+            $message = 'Can not find parent well ' . $data->{plate_name}
+                       . '(version: '.$data->{plate_version}.')'
+                       .'[' . $data->{well_name} . ']' ;
+        }
+        LIMS2::Exception::Validation->throw( $message );
     };
 
     return $well->id;

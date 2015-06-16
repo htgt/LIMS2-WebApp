@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.231';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.322';
 }
 ## use critic
 
@@ -198,6 +198,7 @@ sub fetch_existing_design_crispr_links {
 
     # there is nothing stopping a record having a link to both a crispr_id and
     # a crispr_pair_id so check for both
+    # and now check for crispr_group_id too
     for my $crispr_design ( @crispr_designs ) {
         # if we have a single crispr linked to a design store that id
         if ( $crispr_design->crispr_id ) {
@@ -213,6 +214,11 @@ sub fetch_existing_design_crispr_links {
                 #$crispr_pair->left_crispr_id,
                 #$crispr_pair->right_crispr_id,
             #);
+        }
+
+        if ( $crispr_design->crispr_group_id ) {
+            push @{ $design_crispr_links{ $crispr_design->design_id }{group} },
+                $crispr_design->crispr_group_id;
         }
     }
 
@@ -301,6 +307,7 @@ sub bulk_crisprs_for_design_targets {
     }
 
     my %crispr_pairs;
+    my %crispr_groups;
     for my $dt_id ( keys %crisprs ) {
         my @left_crisprs  = map{ $_->id } grep{ !$_->pam_right } values %{ $crisprs{ $dt_id } };
         my @right_crisprs = map { $_->id } grep{ $_->pam_right } values %{ $crisprs{ $dt_id } };
@@ -312,9 +319,24 @@ sub bulk_crisprs_for_design_targets {
             }
         );
         $crispr_pairs{ $dt_id } = { map{ $_->id => $_ } @crispr_pairs };
+
+        my @crisprs = map { $_->id } values %{ $crisprs{ $dt_id } };
+        # Find any groups containing a crispr for the design target
+        # Should we check all the crisprs in the group are for this design target??
+        my @groups = $schema->resultset( 'CrisprGroup' )->search(
+            {
+                'crispr_group_crisprs.crispr_id' => { 'IN' => \@crisprs },
+            },
+            {
+                join => 'crispr_group_crisprs',
+                distinct => 1,
+            }
+        );
+        $crispr_groups{ $dt_id } = { map{ $_->id => $_ } @groups };
+        DEBUG("Crispr groups for $dt_id:".join ",", map{ $_->id } @groups );
     }
 
-    return ( \%crisprs, \%crispr_pairs );
+    return ( \%crisprs, \%crispr_pairs, \%crispr_groups );
 }
 
 =head2 find_design_targets
@@ -364,7 +386,7 @@ sub design_target_report_for_genes {
     my $design_targets = find_design_targets( $schema, $sorted_genes, $species_id, $assembly, $build );
     my ( $design_data, $design_crispr_links )
         = bulk_designs_for_design_targets( $schema, $design_targets, $species_id, $assembly );
-    my ( $crispr_data, $crispr_pair_data ) = bulk_crisprs_for_design_targets(
+    my ( $crispr_data, $crispr_pair_data, $crispr_group_data ) = bulk_crisprs_for_design_targets(
         $schema,
         $design_targets,
         $report_parameters->{off_target_algorithm},
@@ -380,6 +402,7 @@ sub design_target_report_for_genes {
         $data{'designs'} = $design_data->{ $dt->id };
         $data{'crisprs'} = $crispr_data->{ $dt->id };
         $data{'crispr_pairs'} = $crispr_pair_data->{ $dt->id };
+        $data{'crispr_groups'} = $crispr_group_data->{ $dt->id };
 
         push @report_data, \%data;
     }
@@ -409,6 +432,7 @@ sub format_report_data {
             $design_target_data->{designs} = scalar( @{ $datum->{designs} } );
             $design_target_data->{crisprs} = scalar( keys %{ $datum->{crisprs} } );
             $design_target_data->{crispr_pairs} = scalar( keys %{ $datum->{crispr_pairs} } );
+            $design_target_data->{crispr_groups} = scalar( keys %{ $datum->{crispr_groups} } );
         }
         else {
             my ( $crispr_data, $display_crispr_num )
@@ -489,6 +513,14 @@ sub format_crispr_data {
             $report_parameters->{filter}
         );
     }
+    elsif ( $report_parameters->{crispr_types} eq 'group' ){
+        $crispr_data = _format_crispr_group_data(
+            $datum->{crispr_groups},
+            $datum->{crisprs},
+            $report_parameters->{off_target_algorithm},
+            $default_assembly,
+        );
+    }
     else {
         LIMS2::Exception->throw( 'Unknown crispr type: ' . $report_parameters->{crispr_type} );
     }
@@ -528,6 +560,7 @@ sub _format_crispr_data {
         }
         my %data = (
             crispr_id => $c->id,
+            wge_id    => $c->wge_crispr_id,
             seq       => $c->seq,
             blat_seq  => '>' . $c->id . "\n" . $c->seq,
             direction => $crispr_direction,
@@ -589,9 +622,11 @@ sub _format_crispr_pair_data {
         my %data = (
             crispr_pair_id     => $c->id,
             left_crispr_id     => $left_crispr->id,
+            left_crispr_wge_id => $left_crispr->wge_crispr_id,
             left_crispr_seq    => $left_crispr->seq,
             left_crispr_locus  => _formated_crispr_locus( $left_crispr, $default_assembly ),
             right_crispr_id    => $right_crispr->id,
+            right_crispr_wge_id => $right_crispr->wge_crispr_id,
             right_crispr_seq   => $right_crispr->seq,
             right_crispr_locus => _formated_crispr_locus( $right_crispr, $default_assembly ),
             spacer             => $c->spacer,
@@ -602,6 +637,44 @@ sub _format_crispr_pair_data {
 
         #TODO crispr well data??
         push @crispr_data, \%data;
+    }
+
+    return \@crispr_data;
+}
+
+=head2 _format_crispr_group_data
+
+Format the crispr group data for report.
+
+=cut
+sub _format_crispr_group_data {
+    my ( $crispr_groups, $crisprs, $off_target_algorithm, $default_assembly) = @_;
+    my @crispr_data;
+    $off_target_algorithm ||= 'strict';
+
+    my @crispr_groups = grep { $_ } values %{$crispr_groups};
+
+    for my $group ( @crispr_groups ) {
+        my $h = $group->as_hash;
+        my @crispr_details;
+
+        for my $crispr ($group->crisprs){
+            DEBUG("Getting details for group crispr ".$crispr->id);
+            my $details = {
+                crispr_id  => $crispr->id,
+                wge_id     => $crispr->wge_crispr_id,
+                seq        => $crispr->seq,
+                locus      => _formated_crispr_locus($crispr, $default_assembly),
+                off_target => _format_crispr_off_target_summary($crispr, $off_target_algorithm),
+            };
+            push @crispr_details, $details;
+        }
+=head
+
+                off_target => _format_crispr_off_target_summary($crispr, $off_target_algorithm),
+=cut
+        $h->{crispr_details} = [ sort { $a->{crispr_id} <=> $b->{crispr_id} } @crispr_details ];
+        push @crispr_data, $h;
     }
 
     return \@crispr_data;
@@ -820,9 +893,8 @@ sub get_design_targets_data {
     my $species = shift;
 
     my $project = "Core";
-    my @genes_list_results = $schema->resultset('Project')->search({
-            sponsor_id        => "$project",
-    });
+    my $sponsor = $schema->retrieve_sponsor({ id => $project });
+    my @genes_list_results = $sponsor->projects;
 
     my @genes_list;
     foreach my $row (@genes_list_results) {

@@ -84,6 +84,7 @@ in bold </p>
       <th>Source Plate</th>
       <th>Source Well</th>
       <th>Design ID</th>
+      <th>Design Phase</th>
       <th>Gene ID</th>
       <th>Gene Name</th>
       [% IF crispr %]
@@ -103,6 +104,7 @@ in bold </p>
       <td>[% well.source_plate %]</td>
       <td>[% well.source_well %]</td>
       <td>[% well.design_id %]</td>
+      <td>[% well.design_phase %]</td>
       <td>[% well.gene_ids %]</td>
       <td>[% well.gene_symbols %]</td>
 
@@ -123,11 +125,12 @@ in bold </p>
       <td>[% well.backbone %]</td>
       [% END %]
 
-      [% IF well.recombinase_new %]
-      <td><strong>[% well.recombinase_new %]</strong></td>
-      [% ELSE %]
-      <td>[% well.recombinase %]</td>
-      [% END %]
+
+      <td>
+      [% well.recombinase %]
+      [% IF well.recombinase AND well.recombinase_new %]<br>[% END %]
+      <strong>[% well.recombinase_new %]</strong>
+      </td>
 
       <td>  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
             <i class="icon-download-alt icon-white"></i>Download</a> </td>

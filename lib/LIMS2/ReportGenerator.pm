@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::VERSION = '0.231';
+    $LIMS2::ReportGenerator::VERSION = '0.322';
 }
 ## use critic
 
@@ -14,6 +14,12 @@ use Iterator::Simple;
 use JSON;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+
+has custom_template => (
+    is         => 'ro',
+    isa        => 'Str',
+    required   => 0
+);
 
 has name => (
     is         => 'ro',
@@ -33,6 +39,11 @@ has model => (
     is         => 'ro',
     isa        => 'LIMS2::Model',
     required   => 1,
+);
+
+has catalyst => (
+    is  => 'ro',
+    isa => 'Maybe[Catalyst]',
 );
 
 has cache_ttl => (
@@ -58,6 +69,12 @@ sub _build_columns {
 
 sub iterator {
     confess( "iterator() must be implemented by a subclass" );
+}
+
+sub structured_data {
+    # optionally override to create a data structure to pass to the report view
+    # data structure will be cached on disk using json so must not contain objects
+    return;
 }
 
 sub boolean_str {
@@ -138,7 +155,7 @@ sub vectors{
     DEBUG "finding $allele allele vectors";
 
     # Find the cassette function specification for this allele
-    my $project_allele = $project->project_alleles->find({ allele_type => $allele });
+    my $project_allele = $project->targeting_profile->targeting_profile_alleles->find({ allele_type => $allele });
     return 0 unless $project_allele;
     my $function = $project_allele->cassette_function;
 
@@ -203,6 +220,43 @@ sub design_types_for {
 
     return;
 }
+
+sub qc_result_cols {
+    my ( $self, $well ) = @_;
+
+    my $result = $well->well_qc_sequencing_result;
+
+    if ( $result ) {
+        return (
+            $result->test_result_url,
+            $result->valid_primers,
+            $self->boolean_str( $result->mixed_reads ),
+            $self->boolean_str( $result->pass )
+        );
+    }
+
+    return ('')x4;
+}
+
+sub genoverse_button {
+    my ( $self, $well_data ) = @_;
+    # Enable provision of a generic Genoverse button from whichever plate view we are on
+    # Currently only supports the genoverse_design_view template
+    #
+    my $genoverse_button = $self->create_button_json(
+        {   'design_id'      => $well_data->{design_id},
+            'plate_name'     => $self->plate_name,
+            'well_name'      => $well_data->{well_name},
+            'gene_symbol'    => $well_data->{gene_symbols},
+            'gene_ids'       => $well_data->{gene_ids},
+            'button_label'   => 'Genoverse',
+            'browser_target' => $self->plate_name . $well_data->{well_name},
+            'api_url'        => '/user/genoverse_design_view',
+        }
+    );
+    return $genoverse_button;
+}
+
 __PACKAGE__->meta->make_immutable();
 
 1;

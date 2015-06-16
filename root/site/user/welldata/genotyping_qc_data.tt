@@ -1,10 +1,10 @@
 [%- META title = 'Genotyping QC Results'; META tab_name = 'QC'  %]
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
-<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js', {id=>1}) %]"></script>
 
 [% PROCESS 'user/welldata/grid.tt' %]
-   
+
 <div class="page-header">
   <h1>Plate Genotyping QC Results <small>[% plate_type %] Plate View</small></h1>
   <div id="my_results"></div>

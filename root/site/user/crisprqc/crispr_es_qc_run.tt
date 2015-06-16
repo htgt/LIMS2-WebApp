@@ -1,325 +1,170 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
-<style type="text/css">
-.alignment {
-    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
-    font-size: 11px;
-    display: block;
-    font-weight: bold
-}
-.indel_sequence {
-    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
-    font-size: 11px;
-    font-weight: bold;
-}
-.demo-container {
-    box-sizing: border-box;
-    width: 600px;
-    height: 300px;
-    padding: 20px 15px 15px 15px;
-    margin: 15px auto 30px auto;
-    border: 1px solid #ddd;
-    background: #fff;
-    background: linear-gradient(#f6f6f6 0, #fff 50px);
-    background: -o-linear-gradient(#f6f6f6 0, #fff 50px);
-    background: -ms-linear-gradient(#f6f6f6 0, #fff 50px);
-    background: -moz-linear-gradient(#f6f6f6 0, #fff 50px);
-    background: -webkit-linear-gradient(#f6f6f6 0, #fff 50px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-    -o-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    -ms-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    -moz-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    -webkit-box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-}
-
-.demo-placeholder {
-    width: 100%;
-    height: 100%;
-    font-size: 14px;
-    line-height: 1.2em;
-}
-
-.demo-placeholder .button {
-    position: absolute;
-    cursor: pointer;
-}
-
-.demo-placeholder div.button {
-    font-size: smaller;
-    color: #999;
-    background-color: #eee;
-    padding: 2px;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
 
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
+
 <script type="text/javascript">
 $(document).ready(function() {
+
+    if ( [% run_validated %] ) {
+        $("#validate_run").hide();
+    }
+    else {
+        $("#invalidate_run").hide();
+        $("#validate_label").hide();
+    }
+
     $(".traces").click(function(e) {
         e.preventDefault();
 
-        //need to find and strip text here, pass along
-        //for rev read should send in reverse complemented sequence, and reverse the data that comes back.
-        show_traces( $(this) );
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
     });
 
-    $(".alignment_inner").each(function() {
-        var parent = $( this );
+    // validate or invalidate run
+    $("#validate_run, #invalidate_run").click(function(e) {
+        e.preventDefault();
 
-        var seq_a = parent.find(".seq_a").text();
-        var c_a = seq_a.colour_alignment();
-        c_a.append( $("<span>", {text: "(F)"}) );
+        var element = $(this);
+        //set button state to loading, shows data-loading-text value
+        element.button('loading');
 
-        var seq_b = parent.find(".seq_b").text();
-        var c_b = seq_b.colour_alignment();
-        c_b.append( $("<span>", {text: "(R)"}) );
-
-        parent.empty().append(c_a).append(c_b);
-    });
-
-    $(".accepted").click(function() {
-        //console.log( this.value );
-        //console.log( $("#qc_run_id").text() );
-
-        //fade element out until its saved, waiting at least 500ms
-        var element = $(this).parent().parent();
-        element.fadeTo( "slow", 0.5 ).delay(500);
-
-        $.post(
-            '[% c.uri_for("/api/update_well_accepted") %]',
-            { "well_id": this.value, "qc_run_id": $("#qc_run_id").text(), "accepted": this.checked },
-
-            function (data) {
-                console.log(data);
-                //fade back in
-                element.fadeTo( "slow", 1 );
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for("/api/update_crispr_es_qc_run") %]',
+            data: {
+                "id": '[% qc_run_id %]',
+                "validated": element.attr('data-validate')
             },
-            'json'
-        );
+            success: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).button('reset').dequeue();// resets button to original text
+                    // toggle both buttons plus validate label
+                    $('#invalidate_run').toggle();
+                    $('#validate_run').toggle();
+                    $("#validate_label").toggle();
+                });
+            },
+            error: function(data) {
+                console.log(data);
+                element.delay(500).queue(function(){
+                    $(this).removeClass('btn-primary').removeClass('btn-warning').addClass('disabled').addClass('btn-danger').dequeue();
+                    element.text('error updating qc run');
+                });
+                alert( 'Error updating crispr es qc run' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_crispr_checkbox").change(function() {
+
+        var state = this.checked;
+        var crispr_id = $(this).attr('data-crispr_id');
+        var crispr_es_qc_well_id = $(this).attr('data-crispr_es_qc_well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_crispr" ) %]',
+            data: {
+                "crispr_es_qc_well_id": crispr_es_qc_well_id,
+                "crispr_id": crispr_id,
+                "validated": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error validating crispr change not saved' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/set_unset_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "set": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                // alert( 'Error setting Het validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_five_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "five_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_three_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "three_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
     });
 
 });
-
-function colour_string(seq) {
-    seq.replaceWith( seq.colour_alignment() );
-}
-
-String.prototype.colour_alignment = function colour_string() {
-    //a span to hold all the other spans
-    var base = $("<span>", {style: "white-space: nowrap; display: block;", class: "coloured_seq"});
-
-    var match_no_read = /No/;
-    if ( this.match(match_no_read) ) {
-      return base.text(this);
-    }
-
-    //generates a coloured span
-    function make_span(buf, colour) {
-        //write our buffer out into a span
-        attrs = { text: buf };
-        if (colour) attrs.style =  "background-color:" + colour + "; color:#FFFFFF";
-
-        return $("<span>", attrs);
-    }
-
-    var match_char    = /[ACTGN]/;
-    var mismatch_char = /[actgn]/;
-    var delete_char   = /-/;
-    var insert_char   = /[JLPYZ]/;
-
-    //get colour of read base
-    function calculate_base_colour(base) {
-      var base_colour = "";
-      if ( match_char.test(base) ) {
-        base_colour = '#468847';
-      }
-      else if ( mismatch_char.test(base) ) {
-        base_colour = '#FE9A2E';
-      }
-      else if ( delete_char.test(base) ) {
-        base_colour = '#b94A48';
-      }
-      else if ( insert_char.test(base) ) {
-        base_colour = '#0000FF';
-      }
-
-      return base_colour;
-    }
-
-    var base_map = {
-      'A': 'A',
-      'T': 'T',
-      'C': 'C',
-      'G': 'G',
-      'N': 'N',
-      'J': 'N',
-      'L': 'A',
-      'P': 'T',
-      'Y': 'C',
-      'Z': 'G',
-      'X': 'X',
-    };
-
-    var current_colour = "";
-    var buf = "";
-
-    for ( var i = 0; i < this.length; i++ ) {
-        var nuc = this.charAt(i);
-        var colour = calculate_base_colour( nuc );
-
-        //if the colours don't match or we're at the end of the string
-        //we need to flush the buffer
-        if ( colour != current_colour ) {
-            //add to our base span (assuming it has something in)
-            if ( buf )
-                base.append( make_span(buf, current_colour) );
-
-            //reset colour and restart buffer with the new char
-            current_colour = colour;
-            buf = base_map[nuc] || nuc;
-        }
-        else {
-            buf += base_map[nuc] || nuc;
-        }
-    }
-
-    //add anything remaining on the buffer (there will always be at least 1 base)
-    base.append( make_span(buf, current_colour) );
-
-    return base;
-}
-
-function extract_sequence(elem) {
-    if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
-
-    var m = elem.text().match(/([ACGTacgt]+)/g);
-    if ( ! m ) return "";
-
-    return m.join("").toUpperCase();
-}
-
-
-function show_traces(button) {
-    var fwd_placeholder = $("<div>", {"class":"demo-placeholder"});
-    var fwd_container   = $("<div>", {"class":"demo-container"} ).append( fwd_placeholder );
-
-    var rev_placeholder = $("<div>", {"class":"demo-placeholder"});
-    var rev_container   = $("<div>", {"class":"demo-container"} ).append( rev_placeholder );
-
-    //console.log(button.data("fwd") + ", " + button.data("rev"));
-
-    var seqs = button.parent().find(".coloured_seq");
-
-    //should maybe just do this in perl and always take forward/rev_full
-    var fwd_seq = button.closest("td").find(".forward_full").text() || extract_sequence( seqs.first() );
-    var rev_seq = button.closest("td").find(".reverse_full").text() || extract_sequence( seqs.last() );
-
-    //console.log("fwd: " + fwd_seq);
-    //console.log("rev: " + rev_seq);
-
-    create_plot(fwd_placeholder, button.data("fwd"), fwd_seq);
-    create_plot(rev_placeholder, button.data("rev"), rev_seq, 1);
-
-    //add both the graphs into a single div and replace the button
-    button.replaceWith( $("<div>").append(fwd_container).append(rev_container) );
-}
-
-//wait for data then give it to the real plot creation method
-function create_plot(placeholder, name, search_seq, reverse) {
-    if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
-    //var placeholder = $("#placeholder");
-
-    //var name = "HUEPD0007_1_G_6_1a05.p1kaSF1";
-    //var search_seq = "ATCAGTTCTCCAATCTTGAGGCTCTCCTCATCGACCAAAGGAATGTGTTTTACCCGGAGGAGAGAC";
-
-    //fetch the users data and add a new graph when the data comes back
-    $.getJSON("[% c.uri_for('/api/trace_data') %]", {name: name, search_seq: search_seq, reverse: reverse }, function(data) { _create_plot(placeholder, data); });
-
-}
-
-//function that actually creates the plot
-function _create_plot(placeholder, graph_data) {
-    var set = graph_data.series[0]["data"];
-    var left_boundary = parseInt(set[0][0]);
-    var right_boundary = set[set.length - 1][0];
-
-    //console.log("x boundaries: " + left_boundary + "-" + right_boundary);
-
-    var plot = $.plot(placeholder, graph_data.series, {
-        labels: graph_data.labels,
-        series: {
-            lines: {
-                show: true
-            },
-            shadowSize: 0
-        },
-        xaxis: {
-            zoomRange: [50, set.length],
-            panRange: [left_boundary, right_boundary],
-            min: left_boundary,
-            max: left_boundary+250,
-            show: false,
-            reserveSpace: true
-        },
-        yaxis: {
-            zoomRange: [100, 10000],
-            panRange: false,
-            reserveSpace: true,
-            show: false
-        },
-        zoom: {
-            interactive: false
-        },
-        pan: {
-            interactive: true
-        },
-        legend: {
-            show: false,
-            position: "nw"
-        }
-    });
-
-    function addZoom(text, left, top, args) {
-        $("<div class='button' style='left:" + left + "px;top:" + top + "px;width:7px;text-align:center'>" + text + "</div>")
-        .appendTo(placeholder)
-        .click(function (e) {
-            e.preventDefault();
-            plot.zoom( args );
-        });
-    }
-
-    //todo: add a loop to do this rubbish
-    $("<div style='left:2px;top:7px;width:7px;text-align:center;position:absolute;'>X</div>")
-    .appendTo(placeholder);
-    addZoom("+", 0, 25, {
-        axis: "xaxis",
-        center: { left: plot.width() / 2, top: plot.height() },
-        amount: 1.2
-    });
-    addZoom("-", 0, 47, {
-        axis: "xaxis",
-        center: { left: plot.width() / 2, top: plot.height() },
-        amount: 1/1.2
-    });
-
-    $("<div style='left:14px;top:7px;width:7px;text-align:center;position: absolute;'>Y</div>")
-    .appendTo(placeholder);
-    addZoom("+", 14, 25, {
-        axis: "yaxis",
-        center: { left: plot.width() / 2, top: plot.height() },
-        amount: 1.2
-    });
-    addZoom("-", 14, 47, {
-        axis: "yaxis",
-        center: { left: plot.width() / 2, top: plot.height() },
-        amount: 1/1.2
-    });
-
-    return plot;
-}
 </script>
 
 <div class="well">
@@ -336,10 +181,36 @@ function _create_plot(placeholder, graph_data) {
             <th>Sub Project</th>
             <td>[% sub_project %]</td>
         </tr>
+        <tr>
+            <th>Validated</th>
+            <td>
+                <span id="validate_label" class="label label-success">Validated</span>
+            </td>
+        </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
         <i class="icon-remove icon-white"></i> Delete QC Run
     </a>
+
+    [% IF truncate %]
+        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
+            <i class="icon-resize-full"></i> Show Full Reads
+        </a>
+    [% ELSE %]
+        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
+            <i class="icon-resize-small"></i> Truncate Reads
+        </a>
+    [% END %]
+
+    [% IF wells.size > 0 %]
+        <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
+            <i class="icon-gift icon-white"></i> Validate QC Run
+        </a>
+
+        <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
+            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
+        </a>
+    [% END %]
 </div>
 
 <div class="modal hide fade" id="DeleteRunModal">
@@ -366,143 +237,35 @@ function _create_plot(placeholder, graph_data) {
             <th>Well</th>
             <th>ES QC Well ID</th>
             <th>Gene</th>
-            <th>Pair ID</th>
+            <th>Crispr ID</th>
             <th>Alignment</th>
+            <th>Accept</th>
+            <th>Damage Type</th>
+            <th>Variant Size</th>
             <th>Variant Files</th>
             <th>Protein Sequences</th>
             <th>Reads</th>
             <th>Deletions</th>
             <th>Inserts</th>
-            <th>Accept</th>
-            <!-- <th>View trace</th> -->
         </tr>
     </thead>
     <tbody>
         [% FOR row IN wells %]
-        <tr>
-            <td>[% row.well_name %]</td>
-            <td>[% row.es_qc_well_id %]</td>
-            <td>[% row.gene %]</td>
+            <tr>
 
-            <td>
-              [% IF row.is_crispr_pair %]
-                <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
-                  [% row.crispr_id %]
-                </a>
-              [% ELSE %]
-                <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
-                  [% row.crispr_id %]
-                </a>
-              [% END %]
-            </td>
+                [% INCLUDE 'crispr_qc_view.tt'
+                    row                    = row
+                    accept                 = can_accept_wells
+                    edit                   = 1
+                    complete_info          = 1
+                    hide_crispr_well_id    = 0
+                    hide_crispr_validation = hide_crispr_validation
+                    hide_het_validation    = hide_het_validation
+                %]
 
-            <td>
-                [% IF row.alignment.forward_full %]
-                    <div class="forward_full" style="display:none">[% row.alignment.forward_full %]</div>
-                [% END %]
-                [% IF row.alignment.reverse_full %]
-                    <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
-                [% END %]
-                <div class="alignment">
-                  <div class="alignment_reference">
-                    <span>
-                        [% row.alignment.ref_start %]<span style="color:#FF0000">[% row.alignment.crispr_seq %]</span>[% row.alignment.ref_end %]
-                    </span><br/>
-                  </div>
-                  <div class="alignment_inner">
-                    <span style="display: block">
-                       <span class="seq seq_a">
-                          [% IF row.alignment.no_forward_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_forward_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.forward %]
-                          [% END %]
-                       </span>(F)
-                    </span>
-                    <span style="display: block">
-                        <span class="seq seq_b">
-                          [% IF row.alignment.no_reverse_read %]
-                            No Read
-                          [% ELSIF row.alignment.no_reverse_alignment %]
-                            No alignment to target region
-                          [% ELSE %]
-                            [% row.alignment.reverse %]
-                          [% END %]
-                        </span>(R)
-                    </span>
-                  </div>
-                </div>
-                [% IF row.fwd_read or row.rev_read %]
-                    <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
-                [% END %]
-            </td>
-
-            <td>
-              [% IF row.has_vcf_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
-              [% END %]
-              <br>
-              [% IF row.has_vep_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
-              [% END %]
-              [% IF row.has_non_merged_vcf_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
-              [% END %]
-            </td>
-
-            <td>
-              [% IF row.has_ref_aa_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
-              [% END %]
-              <br>
-              [% IF row.has_mut_aa_file %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
-              [% END %]
-
-            </td>
-
-            <td>
-              [% IF row.fwd_read %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
-              [% END %]
-              <br>
-              [% IF row.rev_read %]
-                <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
-              [% END %]
-            </td>
-
-            <td>
-                [% FOR dir IN row.deletions.keys %]
-                    [% NEXT UNLESS row.deletions.$dir.keys.size > 0 %]
-                    [% dir %] deletion:<br/>
-                        [% FOR loc IN row.deletions.$dir.keys.sort %]
-                            [% loc %]: <span class="indel_sequence"> [% row.deletions.$dir.$loc.seq %]([% row.deletions.$dir.$loc.length %])</span> <br/>
-                        [% END %]
-                [% END %]
-            </td>
-
-            <td>
-                [% FOR dir IN row.insertions.keys %]
-                    [% NEXT UNLESS row.insertions.$dir.keys.size > 0 %]
-                    [% dir %] insertion:<br/>
-                        [% FOR loc IN row.insertions.$dir.keys.sort %]
-                            [% loc %]: <span class="indel_sequence"> [% row.insertions.$dir.$loc.seq %]([% row.insertions.$dir.$loc.length %])</span> <br/>
-                        [% END %]
-                [% END %]
-            </td>
-
-            <td>
-                [% IF row.show_checkbox %]
-                <input type="checkbox" name="accepted_[% row.well_id %]" class="accepted" value="[% row.well_id %]" [% row.well_accepted ? "checked='checked'" : "" %] />
-                [% ELSE %]
-                Accepted in another run
-                [% END %]
-            </td>
-            <!-- <td>trace</td> -->
-        </tr>
+            </tr>
         [% END %]
+
         [% IF wells.size == 0 %]
         <tr>
             <td colspan="8" style="text-align: center">Well data is pending, please come back later</td>

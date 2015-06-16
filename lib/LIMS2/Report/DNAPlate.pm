@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.231';
+    $LIMS2::Report::DNAPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -9,7 +9,6 @@ package LIMS2::Report::DNAPlate;
 use Moose;
 use namespace::autoclean;
 use List::MoreUtils qw(uniq);
-use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -26,9 +25,9 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
+        'Crispr ID',
         $self->accepted_crispr_columns,
         "Cassette", "Cassette Resistance", "Backbone", "Recombinases",
         "Final Pick Vector Well", "Final Pick Vector QC Test Result", "Final Pick Vector Valid Primers", "Final Pick Vector Mixed Reads?", "Final Pick Vector Sequencing QC Pass?",
@@ -39,52 +38,58 @@ override _build_columns => sub {
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    #prefetch plate child wells
+    my $child_wells_rs = $self->model->schema->resultset( 'PlateChildWells' )->search(
+        {}, { bind => [ $self->plate->id ] } );
+    my $plate_child_wells = $child_wells_rs->child_well_hash;
+
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
+            bind => [ $self->plate->id ],
         }
     );
 
+    my @wells_data = @{
+        $rs->consolidate( $self->plate_id,
+            [ 'well_qc_sequencing_result', 'well_dna_status', 'well_dna_quality' ] )
+        };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
+
+    # Set well_design_ids hash in LIMS2::Report::Plate, see method for details
+    $self->set_well_designs( \@wells_data );
+
+    my $well_data = shift @wells_data;
+
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+        return unless $well_data;
+
+        my $well = $well_data->{well};
 
         # See if we have a crispr for this well, i.e. if created from crispr_v
-        my $crispr = undef;
-        try{
-            my $crispr_well = $well->parent_crispr;
-            $crispr = $crispr_well->crispr;
+        my ( $crispr, @base_data );
+        if ( $well_data->{crispr_ids} ) {
+            $crispr = $self->model->schema->resultset( 'Crispr' )->find(
+                {
+                    id => $well_data->{crispr_ids}[0],
+                },
+                {
+                    prefetch => { 'crispr_designs' => { 'design' => 'genes' } },
+                }
+            );
+            @base_data = $self->base_data_crispr_quick( $well_data, $crispr );
         }
-
-        my @design_gene = $self->design_and_gene_cols( $well, $crispr );
-        my $gene_id = $design_gene[1];
-
-        my @ep_sep = $self->model->schema->resultset('Summary')->search({
-                design_gene_id     => $gene_id,
-            },
-             {
-                 select   => [qw/ ep_plate_name ep_well_name sep_plate_name sep_well_name/],
-             },
-        );
-
-        # get the already electroporated plate_wells
-        my @already_ep;
-        foreach my $ep_sep_row (@ep_sep) {
-            my $ep_plate = $ep_sep_row->ep_plate_name // '';
-            my $ep_well = $ep_sep_row->ep_well_name // '';
-            push(@already_ep, $ep_plate.'_'.$ep_well);
-
-            my $sep_plate = $ep_sep_row->sep_plate_name // '';
-            my $sep_well = $ep_sep_row->sep_well_name // '';
-            push(@already_ep, $sep_plate.'_'.$sep_well);
+        else {
+            @base_data = $self->base_data_quick( $well_data );
         }
-        # remove duplicates and empty one
-        @already_ep = uniq @already_ep;
-        @already_ep = grep {$_ ne '_'} @already_ep;
+        # gene_id is a list of gene_ids joined by a slash, though in reality
+        # 99.9% of the designs only have one gene_id associated with them
+        my $gene_id = ( split( /\//, $base_data[2] ) )[0];
+
+        my $electroporated_wells = $self->electroporated_wells( $gene_id );
 
         my $dna_status = $well->well_dna_status;
         my $dna_quality = $well->well_dna_quality;
@@ -98,28 +103,67 @@ override iterator => sub {
             }
         }
         else{
-            # Find accepted crispr DNA wells
+            # Find accepted crispr DNA wells, method in LIMS2::ReportGenerator::Plate
             @accepted_crispr_data = $self->accepted_crispr_data( $well, 'DNA' );
         }
+        my $child_wells = $plate_child_wells->{ $well_data->{well_id} } || [];
 
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
-        return [
-            $self->base_data( $well, $crispr ),
+        my @data = (
+            @base_data,
+            $crispr ? $crispr->id : '',
             @accepted_crispr_data,
-            ( $well->cassette ? $well->cassette->name : '-' ),
-            ( $well->cassette ? $well->cassette->resistance : '-' ),
-            ( $well->backbone ? $well->backbone->name : '-' ),
-            join( q{/}, @{ $well->vector_recombinases } ),
-            $self->ancestor_cols( $well, 'FINAL_PICK' ),
+            $well_data->{cassette},
+            $well_data->{cassette_resistance},
+            $well_data->{backbone},
+            $well_data->{recombinases},
+            $self->ancestor_cols_quick( $well_data, 'FINAL_PICK' ),
             ( $dna_quality ? ( $dna_quality->quality, $self->boolean_str($dna_quality->egel_pass), $dna_quality->comment_text ) : ('')x3 ),
             ( $dna_status  ? $self->boolean_str( $dna_status->pass ) : '' ),
             ( $dna_status  ? (sprintf "%.2f", $dna_status->concentration_ng_ul) : '' ),
-            join (' ', @already_ep),
-            $well->get_output_wells_as_string,
-            $well->name,
-        ];
+            join (' ', @{ $electroporated_wells }),
+            join (' ', @{ $child_wells } ),
+            $well_data->{well_name},
+        );
+
+        $well_data = shift @wells_data;
+        return \@data;
     };
+
 };
+
+=head2 electroporated_wells
+
+get the already electroporated wells linked to gene_id
+
+=cut
+sub electroporated_wells {
+    my ( $self, $gene_id  ) = @_;
+
+    # work out already electroporated wells
+    my @ep_sep = $self->model->schema->resultset('Summary')->search({
+            design_gene_id => $gene_id,
+        },
+         {
+             select   => [qw/ ep_plate_name ep_well_name sep_plate_name sep_well_name/],
+         },
+    );
+
+    my @already_ep;
+    foreach my $ep_sep_row (@ep_sep) {
+        my $ep_plate = $ep_sep_row->ep_plate_name // '';
+        my $ep_well = $ep_sep_row->ep_well_name // '';
+        push(@already_ep, $ep_plate.'_'.$ep_well);
+
+        my $sep_plate = $ep_sep_row->sep_plate_name // '';
+        my $sep_well = $ep_sep_row->sep_well_name // '';
+        push(@already_ep, $sep_plate.'_'.$sep_well);
+    }
+    # remove duplicates and empty one
+    @already_ep = uniq @already_ep;
+    @already_ep = grep {$_ ne '_'} @already_ep;
+
+    return \@already_ep;
+}
 
 __PACKAGE__->meta->make_immutable;
 

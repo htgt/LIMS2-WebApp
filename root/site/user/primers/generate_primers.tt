@@ -1,0 +1,141 @@
+[%- META title = 'Generate Primers'; META tab_name = 'Designs' %]
+
+<div class="page-header">
+  <h1>Generate Primers</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="get_primer_options" action="[% c.uri_for( '/user/generate_primers' ) %]" class="form well"  enctype="multipart/form-data" >
+
+
+
+        <label>Plate Name</label>
+        <input [% IF step2 %]disabled[% END %] name="plate_name" id="plate_name" type="text"
+          [%- IF plate_name  %]value="[% plate_name %]"[% END -%]
+        />[% IF step2 %]Plate type: [% plate_type %][% END %]
+
+        <label>Well List</label>
+        <textarea [% IF step2 %]disabled[% END %] class="input-xxlarge" name="wells" id="wells">[% IF wells %][% wells %][% END %]</textarea>
+         <span class="help-block">leave blank to generate primers for all wells on plate</span>
+
+        <button [% IF step2 %]disabled[% END %] name="submit" id="get_options" type="submit" value="get_options" class="btn">
+            Get Primer Generation Options <i class="icon-download"></i>
+        </button>
+
+    </form>
+  </div>
+</div>
+
+[% IF step2 %]
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="generate_primers" action="[% c.uri_for( '/user/generate_primers' ) %]" class="form well"  enctype="multipart/form-data" >
+
+    <input type="hidden" name="crispr_type" value="[% crispr_type %]">
+    <input type="hidden" name="plate_name" value="[% plate_name %]">
+    <input type="hidden" name="wells" value="[% wells %]">
+
+    Select types of primers to generate:
+    [% IF crispr_type %]
+    <div class="well">
+    <label class="checkbox">
+      <input type="checkbox" id="crispr_primer_checkbox" name="crispr_primer_checkbox" value="1">
+      Crispr sequencing primers ([% crispr_type %])
+    </label>
+    <label class="checkbox hidden" id="crispr_pcr_checkbox_label">
+      <input type="checkbox" id="crispr_pcr_checkbox" name="crispr_pcr_checkbox" value="1">
+      Crispr PCR primers
+    </label>
+    </div>
+    [% END %]
+    [% IF genotyping %]
+    <div class="well">
+    <label class="checkbox">
+      <input type="checkbox" id="genotyping_primer_checkbox" name="genotyping_primer_checkbox" value="1">
+      Genotyping primers
+    </label>
+      [% IF has_short_arm_designs %]
+    <label class="checkbox hidden" id="short_arm_checkbox_label">
+    Use global arm shortened designs?
+      <input type="checkbox" id="short_arm_designs_checkbox" name="short_arm_designs_checkbox" value="1">
+    </label>
+      [% END %]
+    </div>
+    [% END %]
+
+    <br>
+
+    Write primers to:
+    <div class="well">
+    <label class="checkbox">
+      <input type="checkbox" id="persist_file" name="persist_file" value="1">
+      File for download
+    </label>
+    <label class="checkbox">
+      <input type="checkbox" id="persist_db" name="persist_db" value="1">
+      LIMS2 database
+    </label>
+    <label class="checkbox hidden" id="overwrite_checkbox_label">
+      Overwrite existing primers in database?
+      <input type="checkbox" id="overwrite_checkbox" name="overwrite_checkbox" value="1">
+    </label>
+    </div>
+
+    <button name="submit" id="generate_primers" type="submit" value="generate_primers" class="btn">
+            Run Primer Generation <i class="icon-play"></i>
+    </button>
+
+    </form>
+  </div>
+</div>
+[% END %]
+
+<script type="text/javascript">
+  $("#plate_name").autocomplete({
+    source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
+    minLength: 2,
+  });
+
+[% IF step2 %]
+ $(document).ready(function(){
+   $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+   $('#crispr_primer_checkbox').change(function(){
+      //remove initial hidden status
+      $('#crispr_pcr_checkbox_label').removeClass('hidden');
+      //show/hide as appropriate
+      if(this.checked){
+        $('#crispr_pcr_checkbox_label').show();
+      }
+      else{
+        $('#crispr_pcr_checkbox_label').hide();
+      }
+   });
+   $('#genotyping_primer_checkbox').change(function(){
+      //remove initial hidden status
+      $('#short_arm_checkbox_label').removeClass('hidden');
+      //show/hide as appropriate
+      if(this.checked){
+        $('#short_arm_checkbox_label').show();
+      }
+      else{
+        $('#short_arm_checkbox_label').hide();
+      }
+   });
+   $('#persist_db').change(function(){
+      //remove initial hidden status
+      $('#overwrite_checkbox_label').removeClass('hidden');
+      //show/hide as appropriate
+      if(this.checked){
+        $('#overwrite_checkbox_label').show();
+      }
+      else{
+        $('#overwrite_checkbox_label').hide();
+      }
+   });
+ });
+ [% END %]
+
+</script>

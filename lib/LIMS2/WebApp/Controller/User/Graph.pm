@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.322';
 }
 ## use critic
 
@@ -90,6 +90,16 @@ sub index :Path :Args(0) {
     		return;
     	}
 
+        my $plate;
+        try{
+            $plate = $c->model('Golgi')->retrieve_plate({ name => $pr_plate_name });
+        };
+
+        unless($plate){
+            $c->stash( error_msg => "Plate $pr_plate_name not found" );
+            return;
+        }
+
     	try{
     	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
     	    $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
@@ -112,12 +122,40 @@ sub index :Path :Args(0) {
         return;
     }
 
-    my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+    my $plate;
+    try{
+        $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
+    };
+
+    unless($plate){
+        $c->stash( error_msg => "Plate $plate_name not found" );
+        return;
+    }
+
+    my $well;
+    try{
+        $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+    };
+
+    unless($well){
+        $c->stash( error_msg => "Well $well_name not found on plate $plate_name");
+        return;
+    }
+
+    # If the well has no design, it means its a crispr already, so no need to include crisprs
+    my $has_design;
+    try{
+        $well->design->id;
+        $has_design = 1;
+    }
+    catch{
+        $has_design = 0;
+    };
 
     my $uuid;
 
     # include crispr plates?
-    if ( $crisprs ) {
+    if ( $crisprs && $has_design) {
         $uuid = $self->_write_crispr_graph( $c, $well, $graph_type );
     } else {
         $uuid = $self->_write_graph( $c, $well, $graph_type );

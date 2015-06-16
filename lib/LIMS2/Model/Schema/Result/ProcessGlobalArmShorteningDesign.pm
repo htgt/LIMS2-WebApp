@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::ProcessGlobalArmShorteningDesign::VERSION = '0.322';
 }
 ## use critic
 

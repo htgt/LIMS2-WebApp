@@ -51,7 +51,7 @@
         <div class="well">
           <h6>Plate Name</h6>
           <p>
-            A valid DNA plate name must be typed in.
+            A valid DNA or Assembly plate name must be typed in.
           </p>
           <h6>DNA EGel Status File</h6>
           <p>

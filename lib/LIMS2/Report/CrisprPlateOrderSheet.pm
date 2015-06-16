@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprPlateOrderSheet;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprPlateOrderSheet::VERSION = '0.231';
+    $LIMS2::Report::CrisprPlateOrderSheet::VERSION = '0.322';
 }
 ## use critic
 
@@ -92,10 +92,11 @@ sub build_base_report_data{
         my ( $parent_process ) = $well->parent_processes;
         my $crispr = $parent_process->process_crispr->crispr;
 
+        # Profile for the crispr order sheet can be changed here...
         push @{ $self->crispr_data }, {
             well_name => $well->name,
-            forward   => $crispr->forward_order_seq,
-            reverse   => $crispr->reverse_order_seq,
+            forward   => $crispr->forward_order_seq($well->plate->crispr_plate_append->append_id),
+            reverse   => $crispr->reverse_order_seq($well->plate->crispr_plate_append->append_id),
             crispr_id => $crispr->id,
         };
     }

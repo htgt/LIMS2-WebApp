@@ -1,7 +1,7 @@
 package LIMS2::Report::IntermediateVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.231';
+    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.322';
 }
 ## use critic
 
@@ -24,39 +24,51 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
-        "Cassette", "Cassette Resistance", "Backbone", "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?"
+        "Browser",
+        "Cassette", "Cassette Resistance", "Backbone",
+        "QC Test Result", "Valid Primers", "Mixed Reads?", "Sequencing QC Pass?",
     ];
 };
 
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
+            prefetch => 'well',
+            bind => [ $self->plate->id ],
         }
     );
 
-    return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+    my @wells_data = @{ $rs->consolidate( $self->plate_id, [ 'well_qc_sequencing_result' ] ) };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
 
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
-        return [
-            $self->base_data( $well ),
-            $well->cassette->name,
-            $well->cassette->resistance,
-            $well->backbone->name,
+    my $well_data = shift @wells_data;
+
+    return Iterator::Simple::iter sub {
+        return unless $well_data;
+
+        my $well = $well_data->{well};
+
+        my @data = (
+            $self->base_data_quick( $well_data ),
+            $self->genoverse_button( $well_data ),
+            $well_data->{cassette},
+            $well_data->{cassette_resistance},
+            $well_data->{backbone},
             $self->qc_result_cols( $well ),
-        ];
+        );
+
+        $well_data = shift @wells_data;
+        return \@data;
     };
+
 };
 
 __PACKAGE__->meta->make_immutable;

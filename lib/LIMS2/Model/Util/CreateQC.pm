@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateQC::VERSION = '0.231';
+    $LIMS2::Model::Util::CreateQC::VERSION = '0.322';
 }
 ## use critic
 
@@ -19,6 +19,7 @@ use Sub::Exporter -setup => {
             create_qc_test_result_alignment
             get_qc_run_seq_well_from_alignments
             htgt_api_call
+            link_primers_to_qc_run_template
             )
     ]
 };
@@ -197,6 +198,7 @@ sub htgt_api_call {
 
     #do everythign in a try because if it fails there's no template and you get a useless error
     try {
+
         die "No URI specified." unless $conf_uri_key;
 
         my $ua = LWP::UserAgent->new();
@@ -217,7 +219,7 @@ sub htgt_api_call {
         $req->content_type( 'application/json' );
         $req->content( encode_json( $params ) );
 
-        #make the actual request 
+        #make the actual request
         my $response = $ua->request( $req );
 
         die "Request to $uri was not successful. Response: ".$response->status_line."<br/>".$response->as_string
@@ -256,14 +258,64 @@ sub get_qc_run_seq_well_from_alignments {
         }
     );
 
+
     LIMS2::Exception::Validation->throw(
         {
-            message => 'Alignments must belong to exactly one well',
+            message => 'Alignments must belong to exactly one well, have '. scalar (@wells),
             params  => { alignments => $alignments }
         }
     ) unless @wells == 1;
 
     return shift @wells;
+}
+
+sub link_primers_to_qc_run_template{
+    my ( $qc_run ) = @_;
+
+    my $primer_filter = { is_validated => 1, is_rejected => [ 0, undef ] };
+    foreach my $template_well ($qc_run->qc_template->qc_template_wells){
+        if(my $source_well = $template_well->source_well){
+            next unless $source_well->plate->type_id eq 'ASSEMBLY';
+            my $design = $source_well->design;
+            # Find validated genotyping primers for this design and add qc_template_well_genotyping_primers
+            foreach my $gt_primer ($design->genotyping_primers($primer_filter)){
+                $template_well->create_related(
+                    'qc_template_well_genotyping_primers',
+                    {
+                        qc_run_id => $qc_run->id,
+                        genotyping_primer_id => $gt_primer->id,
+                    }
+                );
+            }
+            my ($assembly_process) = $source_well->parent_processes;
+            my @validated_crispr_primers;
+
+            if($assembly_process->type_id eq 'single_crispr_assembly'){
+                my $crispr = $source_well->crispr;
+                @validated_crispr_primers = $crispr->crispr_primers->search($primer_filter);
+            }
+            elsif($assembly_process->type_id eq 'paired_crispr_assembly'){
+                my $pair = $source_well->crispr_pair;
+                if($pair){
+                    @validated_crispr_primers = $pair->crispr_primers->search($primer_filter);
+                }
+            }
+
+            # FIXME: what about crispr group primers??
+
+            foreach my $primer (@validated_crispr_primers){
+                $template_well->create_related(
+                    'qc_template_well_crispr_primers',
+                    {
+                        qc_run_id => $qc_run->id,
+                        crispr_primer_id => $primer->id,
+                    }
+                );
+            }
+        }
+    }
+
+    return;
 }
 
 sub _encode_eng_seq_params {

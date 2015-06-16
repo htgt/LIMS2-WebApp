@@ -7,6 +7,10 @@ use LIMS2::Test;
 use Test::Most;
 use Try::Tiny;
 use DateTime;
+use Data::Dumper;
+use JSON;
+
+use LIMS2::Model::Util::QCTemplates qw( qc_template_display_data );
 
 use strict;
 
@@ -85,7 +89,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(89) {
+sub all_tests  : Test(99) {
 
     note "Testing creation of plate from QC results";
 
@@ -376,6 +380,33 @@ sub all_tests  : Test(89) {
 
     note ( "Testing creation of qc template plate from another plate");
     {
+
+    	ok my $template_982 = model->create_qc_template_from_plate({ id => 982, template_name => 'template_982' }),
+    	   'can create qc template from plate 982';
+        ok my ($well) = $template_982->search_related('qc_template_wells',{ name => 'A01' }),
+	       'can find well A01 on template';
+	    my $params = decode_json($well->qc_eng_seq->params);
+	    is_deeply $params->{recombinase}, ["flp"], 'qc template recombinase list is correct';
+	    my ($template_display) = qc_template_display_data(model, $template_982, 'Mouse') ;
+	    my ($well_data) = @{ $template_display };
+	    is $well_data->{recombinase}, "flp", 'qc_template displays flp as existing recombinase';
+	    is $well_data->{recombinase_new}, undef, 'qc_template displays no template specific recombinase';
+
+    	ok my $template_982_cre = model->create_qc_template_from_plate({
+    		id => 982,
+    		template_name => 'template_982_cre',
+    		recombinase => 'Cre'
+    	}),
+    	   'can create qc template from plate 982 with Cre';
+        ok my ($well_cre) = $template_982_cre->search_related('qc_template_wells',{ name => 'A01' }),
+	       'can find well A01 on template';
+	    my $params_cre = decode_json($well_cre->qc_eng_seq->params);
+	    is_deeply $params_cre->{recombinase}, ["flp","cre"], 'qc template recombinase list is correct';
+	    my ($template_display_cre) = qc_template_display_data(model, $template_982_cre, 'Mouse');
+	    my ($well_data_cre) = @{ $template_display_cre };
+	    is $well_data_cre->{recombinase}, "flp", 'qc_template displays flp as existing recombinase';
+	    is $well_data_cre->{recombinase_new}, "Cre", 'qc_template displays Cre template specific recombinase';
+
 	    ok my $template = model->create_qc_template_from_plate({ id => 864, template_name => 'template_864' }),
 	       'create_qc_template_from_plate should succeed';
     }

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.322';
 }
 ## use critic
 
@@ -57,13 +57,10 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
 
     # fetch projects for this gene
-    my @sponsors = $c->model('Golgi')->schema->resultset('Project')->search({
+    my @projects = $c->model('Golgi')->schema->resultset('Project')->search({
         gene_id  => $gene_id,
-    },{
-        select   => [ 'sponsor_id' ],
-        order_by => 'sponsor_id',
     });
-    my $sponsor = join (', ', (map {$_->sponsor_id} @sponsors) );
+    my $sponsor = join (', ', (map {$_->sponsor_ids} @projects) );
 
     # fetch designs for this gene
     # Uses WebAppCommon::Plugin::Design
@@ -166,7 +163,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sep'        => 'Second Electroporations',
         'sep_pick'   => 'Second Electroporation Picks',
         'fp'         => 'First Electroporation Freezer Instances',
-        'piq'        => 'Pre-Injection QCs',
+        'piq'        => 'Secondary QC',
         'sfp'        => 'Second Electroporation Freezes',
     };
 
@@ -188,6 +185,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     push @timeline, [@product, Delta_Days(@start_array, @end_array) ];
     my $curr = POSIX::strftime( "%Y-%m-%d", localtime());
 
+    my $crispr_qc = $self->crispr_qc_data( \%wells_hash );
+
     $c->stash(
         'info'         => $gene_info,
         'designs'      => \%designs_hash,
@@ -195,6 +194,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sorted_wells' => \%sorted_wells,
         'timeline'     => \@timeline,
         'sponsor'      => $sponsor,
+        'crispr_qc'    => $crispr_qc,
     );
 
     return;
@@ -211,6 +211,8 @@ sub _add_crispr_well_values {
             = scalar(@{ $design_summary->{ all_crisprs } });
         $designs_hash->{$design_id}->{ design_details }->{ crispr_pair_count }
             = scalar(@{ $design_summary->{ all_pairs } });
+        $designs_hash->{$design_id}->{ design_details }->{ crispr_group_count }
+            = scalar(@{ $design_summary->{ all_groups } });
 
         foreach my $crispr_id (keys %{ $design_summary->{plated_crisprs} }){
 
@@ -234,6 +236,7 @@ sub _add_crispr_well_values {
 
                 while (my $vector_well = $crispr_vector_rs->next){
                     my $vector_well_info = {
+                        well_id        => $vector_well->id,
                         well_id_string => $vector_well->as_string,
                         well_name      => $vector_well->name,
                         plate_id       => $vector_well->plate->id,
@@ -248,6 +251,7 @@ sub _add_crispr_well_values {
 
                 while (my $dna_well = $crispr_dna_rs->next){
                     my $dna_well_info = {
+                        well_id        => $dna_well->id,
                         well_id_string => $dna_well->as_string,
                         well_name      => $dna_well->name,
                         plate_id       => $dna_well->plate->id,
@@ -459,7 +463,7 @@ sub fetch_values_for_type_final_pick {
         my $well_name      = $summary_row->final_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
         my $well_is_accepted;
-        if ( $summary_row->final_well_accepted ) {
+        if ( $summary_row->final_pick_well_accepted ) {
             $well_is_accepted = 'yes';
         }
         else {
@@ -567,28 +571,26 @@ sub fetch_values_for_type_assembly {
 
             my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
 
-            my ($left_crispr,$right_crispr) = $well->left_and_right_crispr_wells;
-            my $crispr_pair = $well->crispr_pair;
-            my $crispr_pair_id = 'Invalid';
-            if ( $crispr_pair ) { # would be an invalid crispr pair (left and right crisprs but not linked into valid pair)
-                $crispr_pair_id = $right_crispr ? $well->crispr_pair->id : $left_crispr->crispr->id;
-            }
-            my $crispr_id = $left_crispr->crispr->id;
+            my $crispr_entity = $well->crispr_entity;
+            my $crispr_type = !$crispr_entity          ? 'NA'
+                            : $crispr_entity->is_pair  ? 'crispr_pair'
+                            : $crispr_entity->is_group ? 'crispr_group'
+                            :                            'crispr';
 
             my $well_hash = {
-                'well_id'           => $summary_row->assembly_well_id,
-                'well_id_string'    => $well_id_string,
-                'plate_id'          => $summary_row->assembly_plate_id,
-                'plate_name'        => $summary_row->assembly_plate_name,
-                'well_name'         => $summary_row->assembly_well_name,
-                'created_at'        => $summary_row->assembly_well_created_ts->ymd,
-                'is_accepted'       => $well_is_accepted,
-                'design_id'        => $well->design->id,
-                'crispr_type'      => $right_crispr ? 'crispr_pair_id' : 'crispr_id',
-                'crispr_type_id'   => $right_crispr ? $crispr_pair_id : $crispr_id,
-                'gene_symbol'      => $summary_row->design_gene_symbol,
-                'gene_ids'         => $summary_row->design_gene_id,
-                'browser_target'   => $plate_name . $well_name,
+                'well_id'        => $summary_row->assembly_well_id,
+                'well_id_string' => $well_id_string,
+                'plate_id'       => $summary_row->assembly_plate_id,
+                'plate_name'     => $summary_row->assembly_plate_name,
+                'well_name'      => $summary_row->assembly_well_name,
+                'created_at'     => $summary_row->assembly_well_created_ts->ymd,
+                'is_accepted'    => $well_is_accepted,
+                'design_id'      => $well->design->id,
+                'crispr_type'    => $crispr_type,
+                'crispr_type_id' => $crispr_entity ? $crispr_entity->id : '',
+                'gene_symbol'    => $summary_row->design_gene_symbol,
+                'gene_ids'       => $summary_row->design_gene_id,
+                'browser_target' => $plate_name . $well_name,
 
             };
 
@@ -673,7 +675,7 @@ sub fetch_values_for_type_ep {
 }
 
 sub fetch_values_for_type_ep_pick {
-    my ( $self, $summary_row, $wells_hash ) = @_;
+    my ( $self, $summary_row, $wells_hash, $model ) = @_;
 
     if ( defined $summary_row->ep_pick_well_id && $summary_row->ep_pick_well_id > 0 ) {
 
@@ -703,6 +705,17 @@ sub fetch_values_for_type_ep_pick {
                 'ep_well'           => $ep_well,
                 'is_accepted'       => $well_is_accepted,
             };
+
+            if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
+                my $well = $model->schema->resultset('Well')->find( $summary_row->ep_pick_well_id );
+                #its an accepted crispr well, so try and get the qc data
+                my $gene_finder = sub { $model->find_genes( @_ ) };
+                try {
+                    $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
+                };
+            }
+
+            #die Dumper( $well_hash ) if $well_id_string eq "HUEPD0011_1_C07";
 
             $wells_hash->{ 'ep_pick' }->{ $well_id_string } = $well_hash;
         }
@@ -894,7 +907,7 @@ sub fetch_values_for_type_fp {
 }
 
 sub fetch_values_for_type_piq {
-    my ( $self, $summary_row, $wells_hash ) = @_;
+    my ( $self, $summary_row, $wells_hash, $model ) = @_;
 
     if ( defined $summary_row->piq_well_id && $summary_row->piq_well_id > 0 ) {
 
@@ -923,10 +936,77 @@ sub fetch_values_for_type_piq {
                 'created_at'        => $summary_row->piq_well_created_ts->ymd,
                 'fp_well'           => $fp_well,
                 'is_accepted'       => $well_is_accepted,
+                'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
             };
+
+            if ( $summary_row->crispr_ep_well_name ) {
+                my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                    {
+                        well_id  => $summary_row->piq_well_id,
+                        accepted => 1,
+                    },
+                );
+
+                if ( my $accepted_qc_well = shift @qc_wells ) {
+                    my $gene_finder = sub { $model->find_genes(@_) };
+                    try {
+                        $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+                    };
+                }
+            }
 
             $wells_hash->{ 'piq' }->{ $well_id_string } = $well_hash;
         }
+
+        # Ancestor PIQ is required for reporting
+        if ( defined $summary_row->ancestor_piq_well_id && $summary_row->ancestor_piq_well_id > 0 ) {
+
+            my $ancestor_plate_name = $summary_row->ancestor_piq_plate_name;
+            my $ancestor_well_name = $summary_row->ancestor_piq_well_name;
+            my $ancestor_well_id_string = $ancestor_plate_name . '_' . $ancestor_well_name;
+
+            my $ancestor_well_is_accepted;
+            if ( $summary_row->ancestor_piq_well_accepted ) {
+                $ancestor_well_is_accepted = 'yes';
+            }
+            else {
+                $ancestor_well_is_accepted = 'no';
+            }
+
+            unless ( exists $wells_hash->{ 'piq' }->{ $ancestor_well_id_string } ) {
+                my $well_hash = {
+                    'well_id'           => $summary_row->ancestor_piq_well_id,
+                    'well_id_string'    => $ancestor_well_id_string,
+                    'plate_id'          => $summary_row->ancestor_piq_plate_id,
+                    'plate_name'        => $summary_row->ancestor_piq_plate_name,
+                    'well_name'         => $summary_row->ancestor_piq_well_name,
+                    'created_at'        => $summary_row->ancestor_piq_well_created_ts->ymd,
+                    'fp_well'           => $fp_well,
+                    'is_accepted'       => $ancestor_well_is_accepted,
+                    'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
+                };
+
+                if ( $summary_row->crispr_ep_well_name ) {
+                    my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+                        {
+                            well_id  => $summary_row->ancestor_piq_well_id,
+                            accepted => 1,
+                        },
+                    );
+
+                    if ( my $accepted_qc_well = shift @qc_wells ) {
+                        my $gene_finder = sub { $model->find_genes(@_) };
+                        try {
+                            $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+                        };
+                    }
+                }
+
+                $wells_hash->{ 'piq' }->{ $ancestor_well_id_string } = $well_hash;
+            }
+
+        }
+
     }
     return;
 }
@@ -988,6 +1068,60 @@ sub fetch_values_for_type_sfp {
         }
     }
     return;
+}
+
+sub crispr_qc_data {
+    my ( $self, $wells_hash ) = @_;
+    my @crispr_qc;
+
+    return unless exists $wells_hash->{ep_pick};
+    my $ep_picks = $wells_hash->{ep_pick};
+
+    # build piq crispr qc
+    my %piq_crispr_qc;
+    if ( my $piq_wells = $wells_hash->{piq} ) {
+        for my $piq_well ( keys %{ $piq_wells } ) {
+            my $well_data = $piq_wells->{ $piq_well };
+            next unless $well_data->{is_accepted} eq 'yes';
+            push @{ $piq_crispr_qc{ $well_data->{ep_pick_well_id} } }, {
+                qc       => $well_data->{crispr_qc_data},
+                piq_well => $piq_well,
+                accepted => $well_data->{is_accepted},
+            };
+        }
+    }
+
+    for my $ep_pick ( keys %{ $ep_picks } ) {
+        my $well_data = $ep_picks->{ $ep_pick };
+        next unless $well_data->{is_accepted} eq 'yes';
+
+        # ep_pick crispr qc
+        my $well_id = $well_data->{well_id};
+        my $crispr_qc_data = $well_data->{crispr_qc_data};
+        next unless $crispr_qc_data;
+
+        # piq_crispr_qc
+        if ( exists $piq_crispr_qc{ $well_id } ) {
+            for my $piq_qc ( @{ $piq_crispr_qc{ $well_id } } ) {
+                push @crispr_qc, {
+                    epd_well     => $ep_pick,
+                    epd_qc       => $crispr_qc_data,
+                    piq_qc       => $piq_qc->{qc},
+                    piq_well     => $piq_qc->{piq_well},
+                    piq_accepted => $piq_qc->{accepted},
+                };
+            }
+        }
+        else {
+            push @crispr_qc, {
+                epd_well => $ep_pick,
+                epd_qc   => $crispr_qc_data,
+            };
+        }
+
+    }
+
+    return \@crispr_qc;
 }
 
 =head1 AUTHOR

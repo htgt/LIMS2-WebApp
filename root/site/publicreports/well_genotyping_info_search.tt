@@ -1,0 +1,106 @@
+[% META title = "Design Target Report"; META tab_name = "Designs" %]
+
+<script type="text/javascript">
+//allow easy binding of enter key to a field
+$.fn.enterKey = function (fnc) {
+    return this.each(function () {
+        $(this).keypress(function (ev) {
+            var keycode = (ev.keyCode ? ev.keyCode : ev.which);
+            if (keycode == '13') {
+                fnc.call(this, ev);
+            }
+        })
+    })
+}
+
+$(document).ready(function () {
+  $("#id_button").click(function (event) {
+    if ( $("#well_id").val() )
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", $("#well_id").val() );
+    else
+      create_alert("Please provide a barcode");
+  });
+
+  $("#search_button").click(function (event) {
+    if ( $("#plate_name").val() && $("#well_name").val() )
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [$("#plate_name").val(), $("#well_name").val()] );
+    else
+      create_alert("Please provide a plate and well");
+  });
+
+  $("#plate_well_search_button").click(function (event) {
+    if ( $("#plate_well_name").val() ){
+      var plate_well = $("#plate_well_name").val();
+      var split_names = plate_well.match(/^(.*)_(.{3})$/);
+      console.log(split_names);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_names[1], split_names[2] ] );
+    }
+    else{
+      create_alert("Please provide a plate_well name");
+    }
+  });
+
+  //allow pressing enter to submit
+  $("#well_id").enterKey(function(ev) {
+    $("#id_button").click();
+  });
+
+  $("#well_name, #plate_name").enterKey(function(ev) {
+    $("#search_button").click();
+  });
+});
+
+function go_to_url(url, params) {
+  if ( params ) {
+    params = [].concat( params ).join("/");
+    window.location.href = url + "/" + params;
+  }
+  else {
+    window.location.href = url;
+  }
+}
+
+function create_alert(text, alert_class) {
+  alert_class = alert_class || "alert-error"; //default is error box
+  //create an error alert,
+  //should make it so we can actually change he class
+  $("#barcode_group").before(
+      $("<div>", { "class": "alert alert-dismissable " + alert_class })
+          .append( $("<button>", { "class": "close", type: "button", 'aria-hidden': "true", html: "&times;", 'data-dismiss': "alert" }) )
+          .append( $("<span>", { html: text }) )
+  );
+}
+</script>
+
+<div class="well" id="barcode_group">
+  <fieldset>
+    <legend>Barcode Search</legend>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="well_id" id="well_id" placeholder="Barcode" />
+          <input type="button" id="id_button" name="action" class="btn btn-primary" value="Get data" />
+        </div>
+      </div>
+  </fieldset>
+</div>
+
+<div class="well">
+  <fieldset>
+    <legend>Plate/Well Search</legend>
+      <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="plate_well_name" id="plate_well_name" placeholder="Plate_Well Name" />
+          <input type="button" id="plate_well_search_button" name="action" class="btn btn-primary" value="Get data" />
+        </div>
+      </div>
+      <label>OR plate name and well name separately</label>
+      <div class="control-group">
+        <div class="form-inline">
+          <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />
+          <input type="text" name="well_name" id="well_name" placeholder="Well Name" />
+          <input type="button" id="search_button" name="action" class="btn btn-primary" value="Get data" />
+        </div>
+      </div>
+  </fieldset>
+</div>

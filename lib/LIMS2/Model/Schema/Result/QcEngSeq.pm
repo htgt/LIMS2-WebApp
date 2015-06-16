@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcEngSeq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcEngSeq::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::QcEngSeq::VERSION = '0.322';
 }
 ## use critic
 
@@ -174,6 +174,14 @@ sub design_id {
     my $eng_seq_params = decode_json( $self->params );
 
     return $eng_seq_params->{design_id};
+}
+
+sub crispr_id {
+    my $self = shift;
+
+    my $eng_seq_params = decode_json( $self->params );
+
+    return $eng_seq_params->{crispr_id};
 }
 
 __PACKAGE__->meta->make_immutable;

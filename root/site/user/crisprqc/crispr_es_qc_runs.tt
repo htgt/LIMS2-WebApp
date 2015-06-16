@@ -6,6 +6,7 @@
             <th>QC Run ID</th>
             <th>Plate Name</th>
             <th>Sequencing Project</th>
+            <th>Validated</th>
             <th>Created By</th>
             <th>Created At</th>
             <th>Sub Project</th>
@@ -17,6 +18,11 @@
             <td><a href="[% c.uri_for('es_qc_run', run.id) %]">[% run.id.substr(0, 8) %]</a></td>
             <td>[% run.plate_name %]</dt>
             <td>[% run.sequencing_project %]</td>
+            <td>
+                [% IF run.validated %]
+                     <span class="badge badge-success"><i class="icon-ok icon-white"></i></span>
+                [% END %]
+            </td>
             <td>[% run.created_by %]</td>
             <td>[% run.created_at %]</td>
             <td>[% run.sub_project %]</td>

@@ -1,10 +1,8 @@
 package LIMS2::t::WebApp::Controller::User::BrowsePlates;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::WebApp::Controller::User::BrowsePlates;
 
 use LIMS2::Test;
-use File::Temp ':seekable';
 
 use strict;
 
@@ -28,84 +26,21 @@ Loading other test classes at compile time
 
 =cut
 
-BEGIN
-{
-    # compile time requirements
-    #{REQUIRE_PARENT}
+BEGIN {
     use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
-};
-
-=head2 before
-
-Code to run before every test
-
-=cut
-
-sub before : Test(setup)
-{
-    #diag("running before test");
-};
-
-=head2 after
-
-Code to run after every test
-
-=cut
-
-sub after  : Test(teardown)
-{
-    #diag("running after test");
-};
-
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup)
-{
-    #diag("running before all tests");
-};
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown  : Test(shutdown)
-{
-    #diag("running after all tests");
-};
-
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests  : Test(3)
-{
-    my $mech = mech();
-
-    {   
-	note('Can view plate report');
-
-	$mech->get_ok( '/user/report/sync/DesignPlate?plate_id=939' );
-	$mech->content_contains('Design Plate 187');
-	$mech->content_contains('Baz2b');
-    }
-
+    Log::Log4perl->easy_init($FATAL);
 }
 
-=head1 AUTHOR
+sub all_tests : Test(3) {
+    my $mech = mech();
 
-Lars G. Erlandsen
+    note('Can view plate report');
 
-=cut
+    $mech->get_ok('/user/report/sync/DesignPlate?plate_id=939');
+    $mech->content_contains('Design Plate 187');
+    $mech->content_contains('Baz2b');
+
+}
 
 ## use critic
 

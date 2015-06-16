@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::CrisprBrowserPairs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::CrisprBrowserPairs::VERSION = '0.322';
 }
 ## use critic
 
@@ -52,6 +52,7 @@ select b.id "pair_id"
 	where a.chr_start >= ? and a.chr_end <= ?
         and a.chr_id = ?
 		and a.assembly_id = ?
+        and c.assembly_id = ?
     order by a.crispr_id desc
 EOT
 

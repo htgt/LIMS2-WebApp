@@ -1,0 +1,193 @@
+[% UNLESS hide_well_name %]
+    <td>[% row.well_name %]</td>
+[% END %]
+
+[% UNLESS hide_crispr_well_id %]
+    <td>[% row.es_qc_well_id %]</td>
+[% END %]
+
+[% UNLESS hide_gene %]
+    <td>[% row.gene %]</td>
+[% END %]
+
+<td>
+  [% IF row.is_crispr_pair %]
+    <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+    <span class="label">Crispr Pair</span>
+  [% ELSIF row.is_crispr_group %]
+    <a href="[% c.uri_for( '/user/crispr_group' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+    <span class="label">Crispr Group</span>
+  [% ELSE %]
+    <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
+      [% row.crispr_id %]
+    </a>
+    <span class="label">Single Crispr</span>
+  [% END %]
+</td>
+
+<td>
+    [% IF row.alignment.forward_full %]
+        <div class="forward_full" style="display:none">[% row.alignment.forward_full %]</div>
+    [% END %]
+    [% IF row.alignment.reverse_full %]
+        <div class="reverse_full" style="display:none">[% row.alignment.reverse_full %]</div>
+    [% END %]
+
+    [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
+
+    [% UNLESS hide_crispr_validation AND hide_het_validation %]
+    <div class="validation_well well well-small" style="min-width:250px">
+        [% INCLUDE 'crispr_validation.tt' row = row %]
+
+      <div class="validate_het" style="float:left;width:250px;">
+
+        <input type="checkbox"
+               id="het_validate_[% row.well_id %]"
+               class="validate_het_checkbox"
+               well_id="[% row.well_id %]"
+               [% IF row.het_status %] checked='checked' [% END %]
+        />
+        <strong>PCR Done : </strong>  &nbsp;
+
+        5' band
+        <input type="checkbox"
+               id="het_five_[% row.well_id %]"
+               class="validate_het_five_checkbox"
+               well_id="[% row.well_id %]"
+               [% IF row.het_status.five_prime %] checked='checked' [% END %]
+        />
+
+        3' band
+        <input type="checkbox"
+               id="het_three_[% row.well_id %]"
+               class="validate_het_three_checkbox"
+               well_id="[% row.well_id %]"
+               [% IF row.het_status.three_prime %] checked='checked' [% END %]
+        />
+
+     </div>
+    </div>
+    [% END %]
+
+    [% IF row.fwd_read or row.rev_read %]
+        <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+    [% END %]
+</td>
+
+<!-- If edit flag is true allow setting on crispr damage type and variant size info, otherwise just display info -->
+[% IF edit %]
+
+    <!--Add accepted checkbox, only want to show this on the main crispr es qc page -->
+    [% IF accept %]
+      <td>
+        <div class="control-group">
+          <div class="controls">
+            [% IF row.show_checkbox %]
+                <input type="checkbox"
+                       id="accepted_[% row.es_qc_well_id %]"
+                       class="update_crispr_es_qc_well"
+                       data-crispr_well_id="[% row.es_qc_well_id %]"
+                       data-crispr_data_type="accepted"
+                       [% row.well_accepted ? "checked='checked'" : "" %]
+                       [% IF row.damage_type == 'mosaic' || row.damage_type == 'no-call' %] disabled [% END %]
+                />
+            [% ELSE %]
+                Accepted in another run
+            [% END %]
+          </div>
+        </div>
+      </td>
+    [% END %]
+
+    <td>
+        <div class="control-group">
+          <div class="controls">
+           <select id="crispr_damage_[% row.es_qc_well_id %]" class="update_crispr_es_qc_well input-medium" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="damage_type">
+                <option value="" [% IF !row.damage_type %]'selected="selected"'[% END %]>-</option>
+              [%- FOR type IN damage_types %]
+                <option value="[% type %]" [% row.damage_type == type ? 'selected="selected"' : '' %]>[% type %]</option>
+              [% END %]
+           </select>
+         </div>
+       </div>
+    </td>
+
+    <td>
+        <div class="control-group">
+          <div class="controls">
+           <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-mini" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
+         </div>
+       </div>
+    </td>
+[% ELSE %]
+
+    <td>
+        [% row.damage_type %]
+    </td>
+
+    <td>
+        [% row.variant_size %]
+    </td>
+
+[% END %]
+
+[% IF complete_info %]
+    <td>
+      [% IF row.has_vcf_file %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vcf_file' ) %]" target="_blank" >vcf_file</a>
+      [% END %]
+      <br>
+      [% IF row.has_vep_file %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'vep_file' ) %]" target="_blank" >vep_file</a>
+      [% END %]
+      [% IF row.has_non_merged_vcf_file %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'non_merged_vcf_file' ) %]" target="_blank" >non_merged_vcf_file</a>
+      [% END %]
+    </td>
+
+    <td>
+      [% IF row.has_ref_aa_file %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'ref' ) %]" target="_blank" >reference</a>
+      [% END %]
+      <br>
+      [% IF row.has_mut_aa_file %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'aa_file', 'mut' ) %]" target="_blank" >mutated</a>
+      [% END %]
+
+    </td>
+
+    <td>
+      [% IF row.fwd_read %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
+      [% END %]
+      <br>
+      [% IF row.rev_read %]
+        <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'rev' ) %]" target="_blank" >rev_read</a>
+      [% END %]
+    </td>
+
+    <td>
+        [% FOR dir IN row.deletions.keys %]
+            [% NEXT UNLESS row.deletions.$dir.keys.size > 0 %]
+            [% dir %] deletion:<br/>
+                [% FOR loc IN row.deletions.$dir.keys.sort %]
+                    [% loc %]: <span class="indel_sequence"> [% row.deletions.$dir.$loc.seq %]([% row.deletions.$dir.$loc.length %])</span> <br/>
+                [% END %]
+        [% END %]
+    </td>
+
+    <td>
+        [% FOR dir IN row.insertions.keys %]
+            [% NEXT UNLESS row.insertions.$dir.keys.size > 0 %]
+            [% dir %] insertion:<br/>
+                [% FOR loc IN row.insertions.$dir.keys.sort %]
+                    [% loc %]: <span class="indel_sequence"> [% row.insertions.$dir.$loc.seq %]([% row.insertions.$dir.$loc.length %])</span> <br/>
+                [% END %]
+        [% END %]
+    </td>
+[% END %]
+

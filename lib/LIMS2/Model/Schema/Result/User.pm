@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.322';
 }
 ## use critic
 
@@ -113,6 +113,21 @@ __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
+=head2 barcode_events
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_es_qcs_runs
 
 Type: has_many
@@ -169,6 +184,21 @@ Related object: L<LIMS2::Model::Schema::Result::Design>
 __PACKAGE__->has_many(
   "designs",
   "LIMS2::Model::Schema::Result::Design",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 fp_picking_lists
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingList>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_lists",
+  "LIMS2::Model::Schema::Result::FpPickingList",
   { "foreign.created_by" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -484,8 +514,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VUTNwLMb/+caQrbZ6FT+DQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e1T/UQEVDzGErLcVxFl3fQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

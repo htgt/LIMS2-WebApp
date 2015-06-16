@@ -37,6 +37,8 @@ sub all_tests : Tests {
         ok $h1->{genotyping_primers}, '...has genotyping primers';
         ok my $h2 = $design->as_hash(1), 'as_hash, suppress relations';
         ok !$h2->{genotyping_primers}, '...no genotyping primers';
+        ok my $lf1 = $design->current_primer('LF1'), 'has LF1 primer';
+        is $lf1->genotyping_primer_type_id, 'LF1', 'LF1 primer has correct type';
     }
 
     {
@@ -312,7 +314,8 @@ sub all_tests : Tests {
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
         $design_data->{genotyping_primers}
-            = [ map { delete $_->{id}; $_ } @{ delete $design_data->{genotyping_primers} } ];
+            = [ map { delete $_->{id}; delete $_->{species}; delete $_->{locus}; delete $_->{primer_name}; delete $_->{primer_seq}; $_ }
+                @{ delete $design_data->{genotyping_primers} } ];
 
         delete $design_data->{comments};
         $design_data->{comments} = [

@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.231';
+    $LIMS2::Model::Constants::VERSION = '0.322';
 }
 ## use critic
 
@@ -28,6 +28,8 @@ BEGIN {
         %DEFAULT_SPECIES_BUILD
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
+        $MAX_CRISPR_GROUP_SIZE
     );
     our %EXPORT_TAGS = ();
 }
@@ -55,7 +57,12 @@ const our %PROCESS_PLATE_TYPES => (
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
+    'cgap_qc'                => [qw( CGAP_QC )],
+    'ms_qc'                  => [qw( MS_QC )],
+    'doubling'               => [qw( PIQ )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -71,7 +78,8 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
     'crispr_vector'          => [qw( backbone )],
-#    'xep_pool'              => [qw( recombinase )],
+    'oligo_assembly'         => [qw( crispr_tracker_rna )],
+    'doubling'               => [qw( oxygen_condition doublings )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -93,7 +101,9 @@ const our %PROCESS_TEMPLATE => (
     'dist_qc'                => 'piq_template',
     'single_crispr_assembly' => 'single_crispr_assembly_template',
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
+    'oligo_assembly'         => 'oligo_assembly',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -179,10 +189,30 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( DNA )],
         number => 3,
     },
+    'group_crispr_assembly' => {
+        type   => [qw( DNA )],
+        number => 'MULTIPLE',
+    },
     'crispr_ep' => {
-        type   => [qw( ASSEMBLY )],
+        type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
         number => 1,
     },
+    'oligo_assembly' => {
+        type   => [qw( DESIGN CRISPR )],
+        number => 2,
+    },
+    'cgap_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'ms_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'doubling' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    }
 );
 
 const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (
@@ -256,12 +286,12 @@ const our %ADDITIONAL_PLATE_REPORTS => (
 
 const our %UCSC_BLAT_DB => (
     mouse => 'mm10',
-    human => 'hg19',
+    human => 'hg38',
 );
 
 const our %DEFAULT_SPECIES_BUILD => (
     mouse => 73,
-    human => 73,
+    human => 76,
 );
 
 # Minimun required DNA concentrations for different species and vector types
@@ -275,6 +305,17 @@ const our %VECTOR_DNA_CONCENTRATION => (
         'CRISPR_V'   => 40,
     },
 );
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
+);
+
+# Maximum number of crisprs we can have in a group
+const our $MAX_CRISPR_GROUP_SIZE => 4;
+
 1;
 
 __END__

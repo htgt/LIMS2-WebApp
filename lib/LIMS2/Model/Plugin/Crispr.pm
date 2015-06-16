@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.231';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.322';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
+use Data::Dump 'pp';
 use TryCatch;
 use LIMS2::Exception;
 use LIMS2::Util::WGE;
@@ -31,6 +32,7 @@ sub pspec_create_crispr {
         pam_right            => { validate => 'boolean' },
         off_targets          => { optional => 1 },
         wge_crispr_id        => { validate => 'integer', optional => 1 },
+        nonsense_crispr_original_crispr_id => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -87,6 +89,7 @@ sub _create_crispr {
                 $validated_params,
                 qw( id species_id crispr_loci_type_id
                     seq comment pam_right wge_crispr_id
+                    nonsense_crispr_original_crispr_id
                     )
             )
         }
@@ -122,23 +125,25 @@ If no off target data exists for the algorithm then insert data.
 sub update_or_create_crispr_off_targets {
     my ( $self, $crispr, $validated_params ) = @_;
 
+    # If we have existing off target data for this algorithm throw error
+    if ( $crispr->off_targets->count ) {
+        $self->throw(
+            InvalidState => 'Crispr ' . $crispr->id . ' has off targets stored in database, can not update' );
+    }
+
     my $existing_off_targets = $crispr->off_target_summaries->find(
         {
             algorithm => $validated_params->{off_target_algorithm}
         }
     );
 
-    # If we have existing off target data for this algorithm delete current data
+    # if we just have off target summary data replace it
     if ( $existing_off_targets ) {
         $existing_off_targets->delete;
-        $crispr->off_targets->search_rs(
-            { algorithm => $validated_params->{off_target_algorithm} } )->delete;
     }
-
     $self->add_crispr_off_target_data( $crispr, $validated_params );
 
     return $crispr;
-
 }
 
 =head2 add_crispr_off_target_data
@@ -151,7 +156,6 @@ sub add_crispr_off_target_data {
 
     for my $o ( @{ $validated_params->{off_targets} || [] } ) {
         $o->{crispr_id} = $crispr->id;
-        $o->{algorithm} = $validated_params->{off_target_algorithm};
         $self->create_crispr_off_target( $o, $crispr );
     }
 
@@ -198,17 +202,38 @@ sub create_crispr_locus {
     return $crispr_locus;
 }
 
+sub pspec_retrieve_crispr_off_target {
+    return {
+        crispr_id            => { validate => 'integer', optional => 1 },
+        off_target_crispr_id => { validate => 'integer', optional => 1 },
+        id                   => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME         => { id_or_crispr_id => [ 1, qw( id crispr_id ) ] },
+        DEPENDENCY_GROUPS    => { crispr_ids => [ qw( crispr_id off_target_crispr_id ) ] },
+    };
+}
+
+=head2 retrieve_crispr_off_target
+
+Create a off target hit for a given crispr.
+
+=cut
+sub retrieve_crispr_off_target {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_off_target );
+    $self->log->debug( 'Retrieve crispr off target: ' . pp $validated_params );
+
+    my $crispr_off_target = $self->retrieve(
+        CrisprOffTargets => { slice_def $validated_params, qw( id crispr_id off_target_crispr_id ) } );
+
+    return $crispr_off_target;
+}
+
 sub pspec_create_crispr_off_target {
     return {
-        assembly   => { validate => 'existing_assembly' },
-        build      => { validate => 'integer' },
-        chr_name   => { validate => 'non_empty_string' },
-        chr_start  => { validate => 'integer' },
-        chr_end    => { validate => 'integer' },
-        chr_strand => { validate => 'strand' },
-        crispr_id  => { validate => 'integer' },
-        type       => { validate => 'existing_crispr_loci_type' },
-        algorithm  => { validate => 'non_empty_string' },
+        crispr_id        => { validate => 'integer' },
+        ot_crispr_id     => { validate => 'integer', optional => 1 },
+        mismatches       => { validate => 'integer' },
     };
 }
 
@@ -221,7 +246,12 @@ sub create_crispr_off_target {
     my ( $self, $params, $crispr ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_off_target );
-    $self->trace( "Create crispr off target", $validated_params );
+    $self->log->debug( 'Create crispr off target: ' . pp $validated_params );
+
+    if ( $validated_params->{crispr_id} == $validated_params->{ot_crispr_id} ) {
+        $self->throw(
+            InvalidState => 'Crispr can not be its own off target');
+    }
 
     $crispr ||= $self->retrieve_crispr(
         {
@@ -229,18 +259,20 @@ sub create_crispr_off_target {
         }
     );
 
-    $crispr->species->check_assembly_belongs( $validated_params->{assembly} );
+    if ( $crispr->off_targets->find( { off_target_crispr_id => $validated_params->{ot_crispr_id} } )
+        )
+    {
+        $self->throw(
+            Validation => 'Crispr already has off target: ' . $validated_params->{ot_crispr_id} );
+    }
+
+
+    my $ot_crispr = $self->retrieve_crispr( { id => $validated_params->{ot_crispr_id} } );
 
     my $crispr_off_target = $crispr->create_related(
         off_targets => {
-            assembly_id         => $validated_params->{assembly},
-            build_id            => $validated_params->{build},
-            chromosome          => $validated_params->{chr_name},
-            chr_start           => $validated_params->{chr_start},
-            chr_end             => $validated_params->{chr_end},
-            chr_strand          => $validated_params->{chr_strand},
-            crispr_loci_type_id => $validated_params->{type},
-            algorithm           => $validated_params->{algorithm},
+            off_target_crispr_id => $ot_crispr->id,
+            mismatches           => $validated_params->{mismatches},
         }
     );
 
@@ -283,8 +315,10 @@ sub delete_crispr {
 
 sub pspec_retrieve_crispr {
     return {
-        id      => { validate => 'integer' },
-        species => { validate => 'existing_species', rename => 'species_id', optional => 1 }
+        id      => { validate => 'integer', optional => 1},
+        wge_crispr_id  => { validate => 'integer', optional => 1 },
+        REQUIRE_SOME => { id_or_wge_crispr_id => [ 1, qw( id wge_crispr_id ) ] },
+        species => { validate => 'existing_species', rename => 'species_id', optional => 1 },
     };
 }
 
@@ -293,7 +327,7 @@ sub retrieve_crispr {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr );
 
-    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id species_id ) } );
+    my $crispr = $self->retrieve( Crispr => { slice_def $validated_params, qw( id wge_crispr_id species_id ) } );
 
     return $crispr;
 }
@@ -454,24 +488,16 @@ sub update_or_create_crispr_pair{
 }
 
 sub import_wge_crisprs {
-    my ( $self, $ids, $species, $assembly ) = @_;
+    my ( $self, $ids, $species, $assembly, $wge ) = @_;
 
-    my $wge = LIMS2::Util::WGE->new;
+    $wge ||= LIMS2::Util::WGE->new;
 
     my @output;
     for my $crispr_id ( @{ $ids } ) {
         next unless $crispr_id; #skip blank lines
 
         try {
-            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly );
-
-            if ( $species ne $crispr_data->{species} ) {
-                LIMS2::Exception->throw(
-                    "LIMS2 is set to '$species' and crispr is '" . $crispr_data->{species} . "'\n"
-                  . "Please switch to the correct species"
-                );
-            }
-
+            my $crispr_data = $wge->get_crispr( $crispr_id, $assembly, $species );
             my $crispr = $self->create_crispr( $crispr_data );
             push @output, { wge_id => $crispr_id, lims2_id => $crispr->id, db_crispr => $crispr };
         }
@@ -499,7 +525,7 @@ sub import_wge_pairs {
         }
 
         try {
-            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species );
+            my $crispr_pair_data = $wge->get_crispr_pair( @ids, $species, $assembly );
             if ( $species ne $crispr_pair_data->{species} ) {
                 LIMS2::Exception->throw(
                     "LIMS2 is set to '$species' and pair is '" . $crispr_pair_data->{species} . "'\n"
@@ -537,6 +563,97 @@ sub import_wge_pairs {
     return @output;
 }
 
+sub pspec_retrieve_crispr_group {
+    return {
+        id => { validate => 'integer' },
+    };
+}
+
+sub retrieve_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_group );
+
+    my $crispr_group = $self->retrieve(
+        CrisprGroup => {  'me.id' => $validated_params->{id} },
+    );
+
+    return $crispr_group;
+}
+
+sub pspec_create_crispr_group {
+    return {
+        crisprs      => { validate => 'hashref' },
+        gene_id      => { validate => 'non_empty_string' },
+        gene_type_id => { validate => 'non_empty_string' },
+    };
+}
+
+# needs as params the gene_id and gene_type_id, and an array of hashes containing the crispr_id and the left_of_target boolean
+sub create_crispr_group {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    my $crispr_group;
+    $self->schema->txn_do( sub {
+        try {
+            # create the group for the given gene
+            $crispr_group = $self->schema->resultset('CrisprGroup')->create({
+                gene_id      => $validated_params->{'gene_id'},
+                gene_type_id => $validated_params->{'gene_type_id'},
+            });
+            $self->log->debug( 'Create crispr group ' . $crispr_group->id );
+
+            # add the given crisprs to that group
+            foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                $crispr_group->crispr_group_crisprs->create( {
+                    crispr_id  => $crispr->{'crispr_id'},
+                    left_of_target => $crispr->{'left_of_target'},
+                } );
+            }
+
+        }
+        catch ($err) {
+            $self->schema->txn_rollback;
+            LIMS2::Exception->throw( "Error creating crispr group: $err" );
+        }
+
+    });
+
+    return $crispr_group;
+}
+
+sub pspec_retrieve_crispr_collection{
+    return{
+        crispr_id       => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_pair_id  => { validate => 'integer', optional => 1, rename => 'id' },
+        crispr_group_id => { validate => 'integer', optional => 1, rename => 'id' },
+        REQUIRE_SOME    => { crispr_pair_or_group_id => [ 1, qw( crispr_id crispr_pair_id crispr_group_id ) ] }
+    };
+}
+
+# Retrieves a crispr, crispr_pair or crispr_group depending on params it is given
+sub retrieve_crispr_collection{
+    my ($self, $params) = @_;
+
+    my $method_for_type = {
+        crispr_id       => 'retrieve_crispr',
+        crispr_pair_id  => 'retrieve_crispr_pair',
+        crispr_group_id => 'retrieve_crispr_group',
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_crispr_collection );
+    my @defined = grep { $params->{$_} } keys %$params;
+    if(@defined > 1){
+        die "Multiple crispr collection IDs provided to retrieve_crispr_collection: ".
+        (join " and ", @defined);
+    }
+    my ($id_type) = @defined;
+    my $method_name = $method_for_type->{$id_type} or die "No method to retrieve $id_type";
+
+    return $self->$method_name($validated_params);
+}
 
 1;
 

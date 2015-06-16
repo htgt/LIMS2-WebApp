@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.322';
 }
 ## use critic
 
@@ -79,6 +79,12 @@ __PACKAGE__->table("crispr_es_qc_runs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 validated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -99,6 +105,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "sub_project",
   { data_type => "text", is_nullable => 1 },
+  "validated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -161,8 +169,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-16 16:43:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KStXhk631rbpalREDS3uoA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-01 11:39:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A7ZSinww6G/DqZs50j+0+w
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -171,6 +179,7 @@ sub as_hash {
     created_by => $self->created_by->name,
     map { $_ => $self->$_ } $self->columns
   };
+  $data->{created_at} = $self->created_at->iso8601;
 
   #if you enable this you should do a prefetch with:
   #{'crispr_es_qc_wells' => { well => 'plate' }

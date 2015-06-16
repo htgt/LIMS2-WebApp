@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.231';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.322';
 }
 ## use critic
 
@@ -18,7 +18,9 @@ use LIMS2::Model::Util::CreateQC qw(
     create_qc_run_seq_proj
     create_qc_test_result_alignment
     get_qc_run_seq_well_from_alignments
+    link_primers_to_qc_run_template
 );
+
 use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_run_results
     retrieve_qc_run_results_fast
@@ -401,6 +403,8 @@ sub create_qc_run {
         );
     }
 
+    link_primers_to_qc_run_template($qc_run);
+
     return $qc_run;
 }
 
@@ -558,40 +562,8 @@ sub qc_run_results {
     my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
     my $crispr_run = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
 
-    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
+    my $results = retrieve_qc_run_results_fast($qc_run, $self, $crispr_run);
 
-    # retrieve_qc_run_results_fast looks up MGI accessions in the solr index 
-    # but for human qc runs we need to fetch gene symbols from ensembl
-    # TODO: When the human solr index is implemented we should search this in the
-    # retrieve_qc_run_results_fast method instead of doing ensembl query here
-    if($qc_run->qc_template->species_id eq 'Human'){
-        DEBUG "Human QC run - fetching gene symbols from ensembl";
-        foreach my $result (@{ $results || [] }){
-            my @designs;
-            if($crispr_run){
-                # get symbol for crispr
-                try{
-                    my $crispr = $self->retrieve( 'Crispr' => { id => $result->{crispr_id} });
-                    @designs = $crispr->related_designs;
-                }
-            }
-            else{
-                # get symbol for design
-                try{
-                    @designs = $self->retrieve( 'Design' => { id => $result->{design_id} });
-                }
-            }
-            my @genes = map { $_->genes } @designs;
-            my @gene_ids = uniq map { $_->gene_id } @genes;
-            my @symbols;
-            foreach my $gene (@gene_ids){
-                try{
-                    push @symbols, $self->retrieve_gene( { species => 'Human', search_term => $gene } )->{gene_symbol};
-                }
-            }
-            $result->{gene_symbol} = join( q{/}, uniq @symbols );
-        }
-    }
     return ( $qc_run, $results );
 }
 
@@ -620,6 +592,7 @@ sub qc_run_seq_well_results {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
+
     my $qc_seq_well = $self->retrieve_qc_run_seq_well($validated_params);
 
     my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($params->{qc_run_id}, $qc_seq_well);
@@ -928,7 +901,7 @@ sub create_plate_from_qc{
                 accepted     => $best->{pass},
             );
 
-            # Identify reagent overrides from QC wells            
+            # Identify reagent overrides from QC wells
             if ( my $cassette = $template_well->qc_template_well_cassette){
                 $well_params{cassette} = $cassette->cassette->name;
             }

@@ -1,13 +1,16 @@
 package LIMS2::WebApp::Controller::User::PlateEdit;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.322';
 }
 ## use critic
 
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use JSON;
+use LIMS2::Model::Util::BarcodeActions qw(upload_plate_scan);
+
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -206,6 +209,100 @@ sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
     $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
     return;
 }
+
+sub update_plate_barcode :Path( '/user/update_plate_barcode' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    unless ( $params->{new_plate_barcode} ) {
+        $c->flash->{error_msg} = 'You must specify a new plate barcode';
+        $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+        return;
+    }
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->set_plate_barcode(
+                    {   id                => $params->{id},
+                        new_plate_barcode => $params->{new_plate_barcode}
+                    }
+                );
+
+                if ( $params->{curr_barcode} ) {
+                    $c->flash->{success_msg} = 'Updated plate barcode from ' . $params->{curr_barcode}
+                                         . ' to ' . $params->{new_plate_barcode};
+                }
+                else {
+                    $c->flash->{success_msg} = 'Set plate barcode to ' . $params->{new_plate_barcode};
+                }
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while updating plate barcode: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
+sub update_plate_well_barcodes :Path( '/user/update_plate_well_barcodes' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+    my $csv_barcodes_data_file = $c->request->upload('wellbarcodesfile');
+
+    unless ( $csv_barcodes_data_file ) {
+        $c->flash->{ 'error_msg' } = 'You must select a barcode csv file to upload';
+        $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $params->{ 'id' } }) );
+        return;
+    }
+
+    my $list_messages = [];
+    my $plate;
+    my $plate_name;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $plate = $c->model('Golgi')->retrieve_plate({ id => $params->{ 'id' } });
+                $plate_name = $plate->name;
+                my $upload_params = {
+                    existing_plate_name => $plate->name,
+                    species             => $c->session->{selected_species},
+                    user                => $c->user->name,
+                    csv_fh              => $csv_barcodes_data_file->fh,
+                };
+                ($plate, $list_messages) = upload_plate_scan($c->model('Golgi'), $upload_params);
+            }
+            catch {
+                $c->flash->{ 'error_msg' } = 'Error encountered while updating plate tube barcodes: ' . $_;
+                $c->log->debug('rolling back barcode upload actions');
+                $c->model('Golgi')->txn_rollback;
+                $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $params->{ 'id' } }) );
+            };
+        }
+    );
+
+    # encode messages as json string to send to well results view
+    my $json_text = encode_json( $list_messages );
+
+    # find plate by name rather than ID so we get current version
+    my $updated_plate = $c->model('Golgi')->retrieve_plate( { name => $plate_name } );
+
+    $c->stash(
+        template            => 'user/browseplates/view_well_barcode_results.tt',
+        plate               => $updated_plate,
+        well_results_list   => $json_text,
+        username            => $c->user->name,
+    );
+
+    return;
+}
+
 =head1 AUTHOR
 
 Sajith Perera

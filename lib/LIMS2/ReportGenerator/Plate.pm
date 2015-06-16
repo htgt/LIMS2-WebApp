@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.231';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.322';
 }
 ## use critic
 
@@ -12,13 +12,15 @@ use warnings;
 use Moose;
 use MooseX::ClassAttribute;
 use LIMS2::Exception::Implementation;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids gene_ids_for_crispr );
 use Module::Pluggable::Object;
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq any );
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use Time::HiRes qw(time);
 use Data::Dumper;
+use JSON;
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -104,12 +106,21 @@ sub _build_crispr_wells {
     foreach my $well ($self->plate->wells){
         $crispr_wells->{ $well->id } = {};
         my $well_ref = $crispr_wells->{ $well->id };
-        if (my $design = $well->design){
+
+        my $design;
+        if ( $self->well_designs->{ $well->id } ) {
+            $design = $self->well_designs->{ $well->id };
+        }
+        else {
+            $design = $well->design;
+        }
+
+        if ( $design ){
             foreach my $crispr_design ($design->crispr_designs){
                 $well_ref->{ $crispr_design->id } = {};
                 my $crispr_design_ref = $well_ref->{ $crispr_design->id };
                 if(my $crispr = $crispr_design->crispr){
-                    $crispr_design_ref->{sinlge} = [ $crispr->crispr_wells ];
+                    $crispr_design_ref->{single} = [ $crispr->crispr_wells ];
                 }
                 elsif(my $crispr_pair = $crispr_design->crispr_pair){
                     $crispr_design_ref->{left} = [ $crispr_pair->left_crispr->crispr_wells ];
@@ -174,6 +185,37 @@ sub _build_crispr_well_descendants {
     }
 
     return $child_well_ids;
+}
+
+# key = well_id, value = design_id, can only set when using PlateReport custom resultset
+has well_designs => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    default => sub{ {} },
+);
+
+=head2 set_well_designs
+
+If the PlateReport custom resultset has been used to gather data for the plate report
+then we already have the design id for each well
+
+=cut
+sub set_well_designs {
+    my ( $self, $wells_data ) = @_;
+    my ( %well_designs, %designs );
+
+    for my $well_data ( @{ $wells_data } ) {
+        my $well_id = $well_data->{well_id};
+        my $design_id = $well_data->{design_id};
+        next unless $design_id; # crispr well
+        unless ( exists $designs{ $design_id } ) {
+            $designs{ $design_id } = $self->model->c_retrieve_design( { id => $design_id } );
+        }
+        $well_designs{ $well_id } = $designs{ $design_id };
+    }
+    $self->well_designs( \%well_designs );
+
+    return;
 }
 
 # Needed way of having multiple plate type reports but having only one of these
@@ -396,26 +438,9 @@ sub design_and_gene_cols {
     };
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
-    return ( $design->id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
-}
-
-sub qc_result_cols {
-    my ( $self, $well ) = @_;
-
-    my $result = $well->well_qc_sequencing_result;
-
-    if ( $result ) {
-        return (
-            $result->test_result_url,
-            $result->valid_primers,
-            $self->boolean_str( $result->mixed_reads ),
-            $self->boolean_str( $result->pass )
-        );
-    }
-
-    return ('')x4;
+    return ( $design->id, $design->design_type_id, join( q{/}, @gene_ids ), join( q{/}, @gene_symbols ), join( q{/}, @sponsors ) );
 }
 
 sub ancestor_cols {
@@ -430,6 +455,33 @@ sub ancestor_cols {
                 $self->qc_result_cols( $ancestor )
             );
         }
+    }
+
+    return ('')x5;
+}
+
+=head2 ancestor_cols_quick
+
+If we are using the PlateReport custom resultset to gather the plate report
+data we can use this method to quickly grab ancestor wells.
+
+=cut
+sub ancestor_cols_quick {
+    my ( $self, $result, $plate_type ) = @_;
+
+    my $well_name = $result->{well_ancestors}{$plate_type}{well_name};
+    my $well_id = $result->{well_ancestors}{$plate_type}{well_id};
+
+    if ( $well_id ) {
+        my $well = $self->model->schema->resultset('Well')->find(
+            { id => $well_id },
+            { prefetch => 'well_qc_sequencing_result' }
+        );
+
+        return (
+            $well_name,
+            $self->qc_result_cols( $well ),
+        );
     }
 
     return ('')x5;
@@ -463,78 +515,265 @@ sub crispr_marker_symbols{
 sub crispr_design_and_gene_cols{
     my ($self, $crispr) = @_;
 
-    my %symbols;
-    my (@design_ids, @gene_ids);
+    my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
+    my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
 
-    foreach my $design ($crispr->related_designs){
-        $self->_symbols_from_design($design, \%symbols);
-        push @design_ids, $design->id;
-        push @gene_ids,  map { $_->gene_id } $design->genes;
+    my @symbols;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $self->model->find_gene( { species => $self->species, search_term => $gene_id } );
+            push @symbols, $gene->{gene_symbol};
+        };
     }
 
     my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => { -in => \@gene_ids }})->all;
-    my @sponsors = uniq map { $_->sponsor_id } @gene_projects;
+    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
 
     return (
-        join( q{/}, uniq @design_ids ),
-        join( q{/}, uniq @gene_ids ),
-        join( q{/}, keys %symbols ),
+        join( q{/}, keys %designs ),
+        join( q{/}, values %designs ),
+        join( q{/}, @gene_ids ),
+        join( q{/}, uniq @symbols ),
         join( q{/}, @sponsors )
     );
+
 }
 
-sub _symbols_from_design{
-    my ($self, $design, $symbols) = @_;
-
-    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
-    my @gene_symbols;
-    try {
-        @gene_symbols  = uniq map {
-            $self->model->retrieve_gene( { species => $self->species, search_term => $_ } )->{gene_symbol}
-        } @gene_ids;
-    };
-
-    # Add any symbols we found to the hash
-    foreach my $symbol (@gene_symbols){
-        $symbols->{$symbol} = 1;
-    }
-    return;
-}
-
-=head create_button
-Returns a custom string for interpretation by the view (template toolkit).
-
-The string format is:
-
-custom:key1=val1;key2=val2;...;
-
-The order of keys is irrelevant.
-
-NB. We cannot simply send back a hashref as the reporting framework writes out the csv file and it is this that
-gets laid out in the table. All we end up with is a HASHxOOOOO string, which is meaningless and cannot
-be interpreted properly by TT. Thus, we have to create a custom string to pass key=value pairs to the view.
+=head create_button_json
+Returns a custom json string ( lims2_custom ) for interpretation by the view (template toolkit).
 
 Note that you must provide key/value pairs for:
 api_url - the view will use a c.uri_for call using this as the api method used to render the view
 button_label - text to be used to label the button for this cell
 browser_target - an html keyword or arbitrary string to indicate whether the button will create a new tab or window, or render in the curent window
 
-These key/value pairs are not passed on as parameters in the c.uri_for call, any other parameters you define will be passed through.
+All key value pairs are passed by the uri_for call to render the action/view.
 
 =cut
 
-sub create_button {
+sub create_button_json {
     my $self = shift;
     my $params = shift;
 
-    my $custom_value = 'custom:';
-    foreach my $custom_key ( keys %$params ) {
-        $custom_value .= $custom_key
-            . '='
-            . $params->{$custom_key}
-            . ';';
+    my $custom_value = {
+        'lims2_custom' => {
+            %{$params}
+        },
+    };
+    my $json_text = encode_json( $custom_value );
+
+    return $json_text;
+}
+
+# Create a JSON string which will be rendered as a combo box
+# in generic_report_grid.tt and simple_table.tt
+# See LIMS2::Report::AssemblyPlate for an example
+sub create_combo_json {
+    my $self = shift;
+    my $params = shift;
+
+    # "-" represents the unset option
+    # When a user selects this option in the combobox the request is sent
+    # with no "value" parameter added to the url
+    my @options = (["-","-"]);
+
+    # When an option is selected it is added to the url as value=<option>
+    foreach my $item (@{ $params->{options} }){
+        push @options, [$item,$item];
     }
-    return $custom_value;
+
+    # api_params are key value pairs which are always added
+    # in the request URL, e.g. well_id=12345&qc_type=CRISPR_LEFT_QC
+    my @api_params;
+    foreach my $key (keys %{ $params->{api_params} }){
+        my $param_string = $key."=".$params->{api_params}->{$key};
+        DEBUG("param string: $param_string");
+        push @api_params, $param_string;
+    }
+    my $api_params_string = join "&", @api_params;
+
+    # api_base is the path added after c.uri_for(/)
+    # selected is the currently selected option from the database
+    my $combo = {
+        'lims2_combo' => {
+            options => \@options,
+            selected => $params->{selected},
+            api_base => $params->{api_base},
+            api_params => $api_params_string,
+        },
+    };
+    my $json_text = encode_json( $combo );
+    return $json_text;
+}
+
+sub well_primer_bands_data {
+    my ( $self, $well ) = @_;
+
+    my @primer_bands_data;
+    for my $primer_band ( $well->well_primer_bands->all ) {
+        push @primer_bands_data, $primer_band->primer_band_type_id . '(' . $primer_band->pass . ')';
+    }
+
+    return join( ', ', @primer_bands_data );
+}
+
+sub well_qc_sequencing_result_data {
+    my ( $self, $well ) = @_;
+
+    my @qc_data = ( '', '', '' );
+    if ( my $well_qc_sequencing_result = $well->well_qc_sequencing_result ) {
+        @qc_data = (
+            $self->boolean_str( $well_qc_sequencing_result->pass ),
+            $well_qc_sequencing_result->valid_primers,
+            $well_qc_sequencing_result->test_result_url,
+        );
+    }
+
+    return @qc_data;
+}
+
+=head2 get_crispr_data
+
+Gather crispr data for all the wells on plate.
+Only works for ASSEMBLY plates or its child plates.
+Works out if crisprs linked to well form a group, pair or single crispr entity.
+
+=cut
+sub get_crispr_data {
+    my ( $self, $wells_data ) = @_;
+
+    my $crisprs = $self->prefetch_crisprs( $wells_data );
+
+    my $crispr_data_method;
+    # We have to assume all the assemblies on the plate are of same type
+    ## no critic (ProhibitCascadingIfElse)
+    if ( any { $_->{crispr_assembly_process} eq 'single_crispr_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'single_crispr_data';
+    }
+    elsif ( any { $_->{crispr_assembly_process} eq 'paired_crispr_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'crispr_pair_data';
+    }
+    # this process type does not exist yet but should in the future
+    elsif ( any { $_->{crispr_assembly_process} eq 'group_crispr_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'crispr_group_data';
+    }
+    elsif ( any { $_->{crispr_assembly_process} eq 'oligo_assembly' } @{ $wells_data } ) {
+        $crispr_data_method = 'single_crispr_data';
+    }
+    else {
+        die( 'Can not find a crispr_assembly process, unable to work out crispr type' );
+    }
+    ## use critic
+
+    my %well_crisprs;
+    for my $well_data ( @{ $wells_data } ) {
+        my $crispr_ids = $well_data->{crispr_ids};
+        next unless $crispr_ids;
+
+        my ( $crispr_type, $crispr_obj ) = $self->$crispr_data_method( $crispr_ids );
+
+        my %crispr_data;
+        $crispr_data{type} = $crispr_type;
+        $crispr_data{obj}  = $crispr_obj;
+        # use crispr ids array for well to take a hash slice of the pre_fetched crispr data
+        $crispr_data{crisprs} =[ @{ $crisprs }{ @{ $crispr_ids } } ];
+
+        $well_crisprs{ $well_data->{well_id} } = \%crispr_data;
+    }
+
+    return \%well_crisprs;
+}
+
+=head2 prefetch_crisprs
+
+Gather all crisprs that are linked to the plate into a hash for easy lookup later
+
+=cut
+sub prefetch_crisprs {
+    my ( $self, $wells_data ) = @_;
+    my %crisprs;
+
+    for my $wd ( @{ $wells_data } ) {
+        next unless $wd->{crispr_wells};
+        for my $cw ( @{ $wd->{crispr_wells}{crisprs} } ) {
+            next if exists $crisprs{ $cw->{crispr_id} };
+
+            my $crispr = $self->model->schema->resultset('Crispr')->find( { id => $cw->{crispr_id} } );
+            $crisprs{ $cw->{crispr_id} } = {
+                crispr      => $crispr,
+                crispr_well => $cw->{plate_name} . '_' . $cw->{well_name},
+            };
+        }
+    }
+
+    return \%crisprs;
+}
+
+=head2 single_crispr_data
+
+Retrieve single crispr
+
+=cut
+sub single_crispr_data {
+    my ( $self, $crispr_ids ) = @_;
+
+    my $crispr = $self->model->schema->resultset( 'Crispr' )->find(
+        {
+            id => $crispr_ids->[0],
+        },
+        {
+            prefetch => 'crispr_primers',
+        }
+    );
+
+    return ( 'crispr', $crispr );
+}
+
+=head2 crispr_pair_data
+
+Retrieve crispr pair given 2 crispr ids
+
+=cut
+sub crispr_pair_data {
+    my ( $self, $crispr_ids ) = @_;
+
+    my $crispr_pair = $self->model->schema->resultset('CrisprPair')->search(
+        {
+            -or => [
+                -and => [
+                    left_crispr_id  => $crispr_ids->[0],
+                    right_crispr_id => $crispr_ids->[1],
+                ],
+                -and => [
+                    left_crispr_id  => $crispr_ids->[1],
+                    right_crispr_id => $crispr_ids->[0],
+                ],
+            ]
+        },
+        {
+            prefetch => [ 'crispr_primers' ]
+        }
+    )->first;
+
+    unless ( $crispr_pair ) {
+        ERROR( 'No pairs with ids: ' . join( ', ', @$crispr_ids ) );
+    }
+
+    return ( 'crispr_pair', $crispr_pair );
+}
+
+=head2 crispr_group_data
+
+retrieve crispr group given list of crispr ids
+
+=cut
+sub crispr_group_data {
+    my ( $self, $crispr_ids ) = @_;
+
+    my $crispr_group = get_crispr_group_by_crispr_ids( $self->model->schema, { crispr_ids => $crispr_ids } );
+
+    return ( 'crispr_group', $crispr_group );
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellBarcode::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::WellBarcode::VERSION = '0.322';
 }
 ## use critic
 
@@ -56,6 +56,18 @@ __PACKAGE__->table("well_barcodes");
   is_nullable: 0
   size: 40
 
+=head2 barcode_state
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 root_piq_well_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +75,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "barcode",
   { data_type => "varchar", is_nullable => 0, size => 40 },
+  "barcode_state",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "root_piq_well_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -93,6 +109,76 @@ __PACKAGE__->add_unique_constraint("well_barcodes_barcode_key", ["barcode"]);
 
 =head1 RELATIONS
 
+=head2 barcode_events
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.barcode" => "self.barcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_state
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeState>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "barcode_state",
+  "LIMS2::Model::Schema::Result::BarcodeState",
+  { id => "barcode_state" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 fp_picking_list_well_barcodes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingListWellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_list_well_barcodes",
+  "LIMS2::Model::Schema::Result::FpPickingListWellBarcode",
+  { "foreign.well_barcode" => "self.barcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 root_piq_well
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Well>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "root_piq_well",
+  "LIMS2::Model::Schema::Result::Well",
+  { id => "root_piq_well_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 well
 
 Type: belongs_to
@@ -109,10 +195,35 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HC3fcJCpSyorvqRbzSpbqA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yturBr4xEPgf+sCdt1wRZw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+# Find most recent event for the barcode.
+# If state is provided find the most recent event which *changed* the state to the one specified
+sub most_recent_event{
+    my ($self, $state) = @_;
+
+    my $search_criteria = {};
+
+    if($state){
+        $search_criteria = {
+            new_state => $state,
+            old_state => {'!=' => $state }
+        };
+    }
+
+    my $event = $self->search_related('barcode_events',
+        $search_criteria,
+        {
+            order_by => { -desc => [qw/created_at/] }
+        }
+    )->first;
+
+    return $event;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

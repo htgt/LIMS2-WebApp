@@ -1,0 +1,45 @@
+[% META title = "Individual Barcode Checkout", tab_name = 'Barcodes' -%]
+
+<h1>Barcode Checkout</h1>
+
+[% IF well_details %]
+
+[% barcode_state_error  = (well_details.barcode_state != 'in_freezer') %]
+
+[% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
+
+ [% IF barcode_state_error %]
+<div class="well">
+Only barcodes which are currently in the freezer can be checked out<br>
+  <a href="[% c.uri_for('/user/well_checkout') %]" class="btn btn-primary">
+    <i class="icon-arrow-left icon-white"></i>
+    Back to barcode search
+  </a>
+</div>
+ [% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <button type="submit" name="cancel_checkout" class="btn" value="cancel_checkout">
+      Cancel Checkout
+    </button>
+    <button type="submit" name="confirm_checkout" class="btn btn-primary" value="confirm_checkout">
+      Confirm Checkout
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+ [% END %]
+
+[% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
+  <fieldset>
+    <legend>Checkout Barcode</legend>
+    <input type="text" name="barcode" placeholder="scan barcode here" value="[% barcode %]" />
+    <input type="submit" name="submit_barcode" class="btn btn-primary" value="Checkout" />
+  </fieldset>
+</form>
+<a href="[% c.uri_for('/user/view_checked_out_barcodes/FP') %]">Go to list of all checked out FP wells</a>
+<br>
+<a href="[% c.uri_for('/user/view_checked_out_barcodes/PIQ') %]">Go to list of all checked out PIQ wells</a>
+[% END %]

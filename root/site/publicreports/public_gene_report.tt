@@ -1,0 +1,153 @@
+[%- META title = "Gene Summary"; META tab_name = 'Public Reports' %]
+
+<style type="text/css">
+.popover {
+  max-width: 1100px;
+  width: auto;
+}
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+</style>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+
+$(document).ready(function() {
+    $(".crispr_qc_accepted").each(function () {
+        $(this).click(function(e) {
+            e.preventDefault();
+        });
+
+        $(this).popover({
+            content: $(this).parent().find(".alignment"),
+            container: 'body',
+            html: true,
+            placement: 'left'
+        })
+    });
+
+  show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
+  $("#epd_accepted_show_toggle").click(function(){
+    var show_or_hide = $(this).attr('data');
+    toggle_btn( $(this), show_or_hide )
+    show_or_hide_non_accepted_rows( $( '#epd_well_table' ), show_or_hide );
+  });
+
+});
+
+function show_or_hide_non_accepted_rows(table, show_or_hide) {
+    table.children('tbody').children('tr').each(function() {
+        var accepted_value = $(this).find('.accepted').text().trim();
+        if ( accepted_value == 'no' ) {
+            if ( show_or_hide == 'hide' ) {
+                $(this).hide();
+            }
+            else {
+                $(this).show();
+            }
+        }
+    });
+}
+
+function toggle_btn(btn, show_or_hide) {
+    if ( show_or_hide == 'show' ) {
+        btn.text( 'Hide Non Accepted Wells' );
+        btn.attr('data', 'hide')
+    }
+    else {
+        btn.text( 'Show Non Accepted Wells' );
+        btn.attr('data', 'show')
+    }
+}
+
+</script>
+
+<div class="page-header">
+  <h1>[% template.title %]</h1>
+</div>
+
+[% MACRO plate_link(well) BLOCK -%]
+<a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate.name %]</a>
+[%- END -%]
+
+<h2>Showing details for [% gene_id %] ([% gene_symbol %])</h2>
+
+<div class="row">
+  <div class="span6 offset3">
+<div class="well">
+    <h4 align="center">[% type %] Clones Summary</h4>
+    <dl class="dl-horizontal">
+        <dt>Genotyped</dt>
+        <dd>[% summary.genotyped %]</dd>
+
+        <dt>Frameshift</dt>
+        <dd>[% summary.exists( 'frameshift' ) ? summary.item( 'frameshift' ) : 0 %]</dd>
+
+        <dt>In-frame</dt>
+        <dd>[% summary.exists( 'in-frame' ) ? summary.item( 'in-frame' ) : 0 %]</dd>
+
+        <dt>Wild Type</dt>
+        <dd>[% summary.exists( 'wild_type' ) ? summary.item( 'wild_type' ) : 0 %]</dd>
+
+        <dt>Mosaic</dt>
+        <dd>[% summary.exists( 'mosaic' ) ? summary.item( 'mosaic' ) : 0 %]</dd>
+
+        <dt>No Call</dt>
+        <dd>[% summary.exists( 'no-call' ) ? summary.item( 'no-call' ) : 0 %]</dd>
+    </dl>
+</div>
+</div>
+</div>
+
+<h3>[% type %] Clones</h3>
+
+<button type="button" class="btn btn-info" data-toggle="button" id="epd_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
+
+<table class="table table-striped" id="epd_well_table">
+  <thead>
+    <th>Well name</td>
+    <th>Plate</td>
+    <th>Well</th>
+    <th>Created on</th>
+    <th>Accepted?</th>
+    <th>First Allele Genbank File</th>
+    <th>Second Allele Description</th>
+    <th>Variant Size</th>
+    <th>Detailed Description</th>
+  </thead>
+  <tbody>
+    [% FOREACH well IN clones %]
+    <tr>
+      <td>[% well.name %]</td>
+      <td>[% well.plate_name %]</td>
+      <td>[% well.well_name %]</td>
+      <td>[% well.created_at %]</td>
+      <td class="accepted"> [% well.accepted %] </td>
+      <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.id ) %]"><i class="icon-file"></i></a></td>
+      <td>
+        [% IF well.crispr_qc_data %]
+        <a href="#" class="crispr_qc_accepted">
+        <!-- insert alignments but hidden -->
+        <div style="display:none">
+        [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
+        </div>
+        [% END %]
+
+        [% well.crispr_damage %]
+
+        [% IF well.crispr_qc_data %]</a>[% END %]
+      </td>
+      <td>[% well.crispr_qc_data.variant_size %]</td>
+      <td>
+        [% IF well.crispr_qc_data %]
+        <a href="[% c.uri_for( '/public_reports/well_genotyping_info', well.plate_name, well.well_name ) %]" target="_blank" ><i class="icon-info-sign"></i></a>
+        [% END %]
+      </td>
+    </tr>
+    [%- END %]
+  </tbody>
+</table>

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.322';
 }
 ## use critic
 
@@ -174,6 +174,24 @@ sub well_accepted_override_PUT {
         $c,
         entity => $override
     );
+}
+
+sub well_toggle_to_report : Path( '/api/well/toggle_to_report' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub well_toggle_to_report_GET{
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->toggle_to_report( { id => $c->request->param( 'id' ),
+                to_report => $c->request->param( 'to_report' ) } );
+        }
+    );
+
+    return $self->status_ok( $c, entity => $project->as_hash );
 }
 
 sub well_recombineering_result :Path('/api/well/recombineering_result') :Args(0) :ActionClass('REST') {
@@ -464,7 +482,6 @@ sub well_primer_bands_POST {
     );
 }
 
-
 sub plate_assay_complete :Path('/api/plate/assay_complete') :Args(0) :ActionClass('REST') {
 }
 
@@ -564,40 +581,6 @@ sub genotyping_qc_save_distribute_changes_GET {
     return $self->status_ok( $c, entity => \@plate_data );
 }
 
-sub update_well_accepted :Path('/api/update_well_accepted') :Args(0) :ActionClass('REST') {
-}
-
-sub update_well_accepted_POST {
-    my ( $self, $c ) = @_;
-
-    my $params = $c->request->params;
-
-    my $qc_well = $c->model('Golgi')->schema->resultset('CrisprEsQcWell')->find(
-        {
-            well_id             => $params->{well_id},
-            crispr_es_qc_run_id => $params->{qc_run_id},
-        },
-        { prefetch => 'well' }
-    );
-
-    #TODO: validate params
-
-    #set both the qc well and the actual well to accepted
-    try {
-        $c->model('Golgi')->txn_do(
-            sub {
-                $qc_well->update( { accepted => $params->{accepted} } );
-                $qc_well->well->update( { accepted => $params->{accepted} } );
-            }
-        );
-    }
-    catch {
-        $self->status_bad_request( $c, message => "Error: $_" );
-    };
-
-    return $self->status_ok( $c, entity => { success => 1 } );
-}
-
 sub well_genotyping_crispr_qc :Path('/api/fetch_genotyping_info_for_well') :Args(1) :ActionClass('REST') {
 }
 
@@ -605,9 +588,7 @@ sub well_genotyping_crispr_qc_GET {
     my ( $self, $c, $barcode ) = @_;
 
     #if this is slow we should use processgraph instead of 1 million traversals
-
-    #well_id will become barcode
-    #my $well = $c->model('Golgi')->schema->resultset('Well')->find( $well_id );
+    $c->assert_user_roles('read');
 
     my $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
 
@@ -618,6 +599,7 @@ sub well_genotyping_crispr_qc_GET {
     try {
         #needs to be given a method for finding genes
         $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
     }
     catch {
         #get string representation if its a lims2::exception

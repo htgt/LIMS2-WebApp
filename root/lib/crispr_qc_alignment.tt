@@ -1,0 +1,31 @@
+<div class="alignment">
+  <div class="alignment_reference">
+    <span>
+        [% qc.alignment.ref_start %]<span style="color:#FF0000">[% qc.alignment.crispr_seq %]</span>[% qc.alignment.ref_end %]
+    </span><br/>
+  </div>
+  <div class="alignment_inner">
+    <span style="display: block">
+       <span class="seq seq_a">
+          [% IF qc.alignment.no_forward_read %]
+            No Read
+          [% ELSIF qc.alignment.no_forward_alignment %]
+            No alignment to target region
+          [% ELSE %]
+            [% qc.alignment.forward %]
+          [% END %]
+       </span>(F)
+    </span>
+    <span style="display: block">
+        <span class="seq seq_b">
+          [% IF qc.alignment.no_reverse_read %]
+            No Read
+          [% ELSIF qc.alignment.no_reverse_alignment %]
+            No alignment to target region
+          [% ELSE %]
+            [% qc.alignment.reverse %]
+          [% END %]
+        </span>(R)
+    </span>
+  </div>
+</div>

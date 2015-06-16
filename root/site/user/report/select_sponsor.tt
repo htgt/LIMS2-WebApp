@@ -7,18 +7,9 @@
   <fieldset>
     <label for="sponsor_field">Please select which sponsor you would like to view results for:</label>
     <select name="sponsor" id="sponsor_field">
-    [% IF species == 'Mouse' %]
-      <option value="All">All Homozygous</option>
-      <option value="Core">Core</option>
-      <option value="Cre Knockin">Cre Knockin</option>
-      <option value="Pathogens">Pathogens</option>
-      <option value="Syboss">Syboss</option>
-    [% ELSE %]
-      <option value="All">All</option>
       [% FOR sponsor IN sponsors %]
       <option value="[% sponsor %]">[% sponsor %]</option>
       [% END %]
-    [% END %]
     </select>
     <br />
     <input type="submit" name="list_assigned_designs" class="btn btn-primary" value="View report" />

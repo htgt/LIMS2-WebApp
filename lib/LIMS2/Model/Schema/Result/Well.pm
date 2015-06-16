@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.322';
 }
 ## use critic
 
@@ -96,6 +96,12 @@ __PACKAGE__->table("wells");
   data_type: 'text'
   is_nullable: 1
 
+=head2 to_report
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -127,6 +133,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "accepted_rules_version",
   { data_type => "text", is_nullable => 1 },
+  "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -158,6 +166,36 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name"]);
 
 =head1 RELATIONS
+
+=head2 barcode_events_new_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_new_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_events_old_wells
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_old_wells",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 created_by
 
@@ -264,6 +302,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_assembly_qcs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellAssemblyQc>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_assembly_qcs",
+  "LIMS2::Model::Schema::Result::WellAssemblyQc",
+  { "foreign.assembly_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_barcode
 
 Type: might_have
@@ -276,6 +329,21 @@ __PACKAGE__->might_have(
   "well_barcode",
   "LIMS2::Model::Schema::Result::WellBarcode",
   { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_barcodes_root_piqs_well
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "well_barcodes_root_piqs_well",
+  "LIMS2::Model::Schema::Result::WellBarcode",
+  { "foreign.root_piq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -365,6 +433,21 @@ Related object: L<LIMS2::Model::Schema::Result::WellGenotypingResult>
 __PACKAGE__->has_many(
   "well_genotyping_results",
   "LIMS2::Model::Schema::Result::WellGenotypingResult",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 well_het_status
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellHetStatus>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_het_status",
+  "LIMS2::Model::Schema::Result::WellHetStatus",
   { "foreign.well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -495,8 +578,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-08 07:55:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iz4NYMMseKHv6Mu5W0EJpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mydeTrbl+IRZGKndI3lQtw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -530,7 +613,12 @@ use List::MoreUtils qw( uniq );
 sub as_string {
     my $self = shift;
 
-    return sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+
+    if($self->plate->version){
+        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+    }
+    return $name;
 }
 
 sub as_hash {
@@ -547,6 +635,11 @@ sub as_hash {
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
         accepted       => $self->is_accepted
     };
+}
+
+sub plate_name {
+    my $self = shift;
+    return $self->plate->name;
 }
 
 has ancestors => (
@@ -639,6 +732,20 @@ sub recombineering_result {
     return $rec_result;
 }
 
+sub recombineering_results_string{
+    my ( $self ) = @_;
+
+    my @results = $self->well_recombineering_results_rs->search(
+        undef,
+        { order_by => { '-asc', 'result_type_id '} }
+    )->all;
+
+    my @strings = map { $_->result_type_id.":".$_->result } @results;
+    my $string = join ", ",@strings;
+    DEBUG("recombineering results string: $string");
+    return $string;
+}
+
 sub cassette {
     my $self = shift;
 
@@ -650,11 +757,11 @@ sub cassette {
 }
 
 sub backbone {
-    my $self = shift;
+    my ( $self, $args ) = @_;
 
     $self->assert_not_double_targeted;
 
-    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone' );
+    my $process_backbone = $self->ancestors->find_process( $self, 'process_backbone', $args );
 
     return $process_backbone ? $process_backbone->backbone : undef;
 }
@@ -773,16 +880,6 @@ sub design {
     return $process_design ? $process_design->design : undef;
 }
 
-sub crispr {
-    my $self = shift;
-
-    #TODO what if we have 2 crisprs applied? sp12 Tue 01 Oct 2013 09:26:47 BST
-
-    my $process_crispr = $self->ancestors->find_process( $self, 'process_crispr' );
-
-    return $process_crispr ? $process_crispr->crispr : undef;
-}
-
 sub nuclease {
     my $self = shift;
 
@@ -831,6 +928,14 @@ sub child_processes{
 	my @child_processes = map { $_->process } $self->process_input_wells->all;
 
 	return @child_processes;
+}
+
+sub child_wells {
+    my $self = shift;
+
+    my @child_processes = $self->child_processes;
+
+    return map{ $_->output_wells } @child_processes;
 }
 
 has second_electroporation_process => (
@@ -999,6 +1104,19 @@ sub is_epd_or_later {
   return;
 }
 
+# return the first parent well that has crispr es QC linked to it
+sub first_parent_with_crispr_qc{
+    my $self = shift;
+
+    return $self if $self->crispr_es_qc_wells->count;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while ( my $ancestor = $ancestors->next ) {
+        return $ancestor if $ancestor->crispr_es_qc_wells->count;
+    }
+    return;
+}
+
 ## no critic(RequireFinalReturn)
 sub second_ep {
     my $self = shift;
@@ -1095,6 +1213,37 @@ sub descendant_piq {
 }
 ## use critic
 
+## no critic(RequireFinalReturn)
+sub ancestor_piq {
+    my $self = shift;
+
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    if ( defined $ancestors ) {
+      $ancestors->next;
+      while( my $ancestor = $ancestors->next ) {
+        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+          return $ancestor;
+        }
+      }
+    }
+    return;
+}
+## use critic
+
+sub barcoded_descendant_of_type{
+    my ($self, $type) = @_;
+
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+          return $descendant;
+        }
+      }
+    }
+    return;
+}
+
 sub descendant_crispr_vectors {
     my $self = shift;
 
@@ -1110,27 +1259,35 @@ sub descendant_crispr_vectors {
     return @crispr_vectors;
 }
 
-## no critic(RequireFinalReturn)
-sub parent_crispr {
+=head2 parent_crispr_wells
+
+Return array of all the parent CRISPR wells.
+
+=cut
+sub parent_crispr_wells {
     my $self = shift;
 
+    my @crisprs;
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
-    while( my $ancestor = $ancestors->next ) {
+    if ( defined $ancestors ) {
+      while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR' ) {
-            return $ancestor;
+          push @crisprs, $ancestor;
         }
+      }
     }
-
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw( "Failed to determine crispr plate/well for $self" );
+    return @crisprs;
 }
-## use critic
 
+=head2 parent_crispr_vectors
+
+This returns the final set of CRISPR_V parent wells
+It will stop traversing if it hits a CRISPR_V grandparent,
+i.e. if CRISPR_V plates have been rearrayed
+
+=cut
 ## no critic(RequireFinalReturn)
-## This returns the final set (single or paired) of CRISPR_V parents
-## It will stop traversing if it hits a CRISPR_V grandparent,
-## i.e. if CRISPR_V plates have been rearrayed
-sub parent_crispr_v {
+sub parent_crispr_vectors {
     my $self = shift;
 
     my @parents;
@@ -1138,10 +1295,10 @@ sub parent_crispr_v {
     while( my $ancestor = $ancestors->next ) {
         if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
 
-            # Exit loop when we start seeing CRIPSR_V grandparents
-            last if grep { $_->plate->type_id eq 'CRISPR_V' } $self->ancestors->output_wells($ancestor);
-
-            push ( @parents, $ancestor );
+            # Ignore CRISPR_V well if it does not have any DNA child wells..
+            if ( grep { $_->plate->type_id eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
+                push ( @parents, $ancestor );
+            }
         }
     }
 
@@ -1154,45 +1311,156 @@ sub parent_crispr_v {
 }
 ## use critic
 
-## no critic(RequireFinalReturn)
-sub left_and_right_crispr_wells {
+sub parent_assembly_well{
+    my $self = shift;
+    if ( $self->plate->type_id eq 'ASSEMBLY' || $self->plate->type_id eq 'OLIGO_ASSEMBLY' ) {
+        return $self;
+    }
+    else{
+        my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
+        while( my $ancestor = $ancestors->next ) {
+            if (   $ancestor->plate->type_id eq 'ASSEMBLY'
+                || $ancestor->plate->type_id eq 'OLIGO_ASSEMBLY' )
+            {
+                return $ancestor;
+            }
+        }
+    }
+    return;
+}
+
+sub parent_assembly_process_type{
     my $self = shift;
 
-    my ($crispr_v_1, $crispr_v_2) = $self->parent_crispr_v;
+    if (my $assembly_well = $self->parent_assembly_well){
+        my ($process) = $assembly_well->parent_processes;
+        return $process->type_id;
+    }
+    return;
+}
 
-    my ($right_crispr, $left_crispr);
-    if (defined $crispr_v_2) {
-        if ($crispr_v_2->crispr->pam_right) {
-            $right_crispr = $crispr_v_2->parent_crispr;
-            $left_crispr = $crispr_v_1->parent_crispr;
-        } else {
-            $right_crispr = $crispr_v_1->parent_crispr;
-            $left_crispr = $crispr_v_2->parent_crispr;
+=head2 crispr_entity
+
+Return any crispr entity ( crispr, crispr pair or crispr group ) linked to the well.
+Method takes a list of crisprs linked to the well and trys to work out what type of
+crispr entity we have.
+
+NOTE: There is a small chance we can have a crispr group and crispr pair that are identical,
+in these cases the crispr pair will be returned.
+
+=cut
+sub crispr_entity {
+    my ( $self ) = @_;
+    use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+    use Try::Tiny;
+
+    my @crisprs = $self->crisprs;
+    my $num_crisprs = scalar( @crisprs );
+
+    my $crispr_entity;
+    if ( $num_crisprs == 1 ) {
+        $crispr_entity = $crisprs[0];
+    }
+    elsif ( $num_crisprs > 2 ) {
+        try{
+            $crispr_entity = get_crispr_group_by_crispr_ids(
+                $self->result_source->schema,
+                { crispr_ids => [ map{ $_->id } @crisprs ] },
+            );
         }
-        return ($left_crispr, $right_crispr);
-    } elsif (defined $crispr_v_1) {
-        $right_crispr = undef;
-        $left_crispr = $crispr_v_1->parent_crispr;
-        return ($left_crispr, $right_crispr);
+        catch{
+            ERROR( "Unable to find crispr group: $_" );
+        };
+    }
+    elsif ( $num_crisprs == 2 ) {
+        # if one crispr left and the other right then search for crispr pair
+        my ( $right_crispr ) = grep { $_->pam_right } @crisprs;
+        my ( $left_crispr ) = grep { !$_->pam_right } @crisprs;
+        if ( $left_crispr && $right_crispr ) {
+            $crispr_entity = $self->result_source->schema->resultset('CrisprPair')->find(
+                {   left_crispr_id  => $left_crispr->id,
+                    right_crispr_id => $right_crispr->id,
+                }
+            );
+        }
+
+        # its not a pair, maybe its a group
+        unless ( $crispr_entity ) {
+            try{
+                $crispr_entity = get_crispr_group_by_crispr_ids(
+                    $self->result_source->schema,
+                    { crispr_ids => [ map{ $_->id } @crisprs ] },
+                );
+            }
+            catch{
+                ERROR( "Unable to find crispr group: $_" );
+            };
+        }
+    }
+    else {
+        ERROR( "No crisprs linked to well $self" );
     }
 
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw( "Failed to determine left and right crispr for $self" );
+   return $crispr_entity;
 }
-## use critic
+
+=head2 crisprs
+
+Return array of all crispr(s) linked to this well.
+
+=cut
+sub crisprs {
+    my $self = shift;
+    return map { $_->process_output_wells->first->process->process_crispr->crispr } $self->parent_crispr_wells;
+}
+
+=head2 crispr_pair
+
+Legacy method, returns a crispr pair object if the well is linked to one
+
+=cut
 sub crispr_pair {
     my $self = shift;
 
-    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-    my $crispr_pair;
-    # Now lookup left and right crispr in the crispr_pair table and return the object to the caller
-    if ( $left_crispr && $right_crispr ) {
-        $crispr_pair = $self->result_source->schema->resultset( 'CrisprPair' )->find({
-               'left_crispr_id' => $left_crispr->crispr->id,
-               'right_crispr_id' => $right_crispr->crispr->id,
-            });
+    my $crispr_entity = $self->crispr_entity;
+    if ( $crispr_entity->is_pair ) {
+        return $crispr_entity;
     }
-    return $crispr_pair; # There were left and right crisprs but the pair is not in the CrisprPrimers table
+    ERROR( "Well is not linked to a crispr pair" );
+    return;
+}
+
+=head2 crispr
+
+Legacy method, returns a crispr object if the well is linked to one.
+
+=cut
+sub crispr {
+    my $self = shift;
+
+    my $crispr_entity = $self->crispr_entity;
+    if ( !$crispr_entity->is_pair && !$crispr_entity->is_group ) {
+        return $crispr_entity;
+    }
+    ERROR( "Well is not linked to a single crispr" );
+    return;
+}
+
+=head2 crispr_group
+
+Returns a crispr_group object if the well is linked to one.
+Added because we have a crispr and crispr_pair method.
+
+=cut
+sub crispr_group {
+    my $self = shift;
+
+    my $crispr_entity = $self->crispr_entity;
+    if ( $crispr_entity->is_group ) {
+        return $crispr_entity;
+    }
+    ERROR( "Well is not linked to a crispr group" );
+    return;
 }
 
 sub crispr_primer_for{
@@ -1202,27 +1470,16 @@ sub crispr_primer_for{
     my $crispr_primer_seq = '-'; # default sequence is hyphen - no sequence available
     return $crispr_primer_seq if $params->{'crispr_pair_id'} eq 'Invalid';
 
-    # Decide if well relates to a pair or a single crispr
-    my ($left_crispr, $right_crispr) = $self->left_and_right_crispr_wells;
-
     my $primer_type = $params->{'primer_label'} =~ m/\A [SP] /xms ? 'crispr_primer' : 'genotyping_primer';
-
-    my $crispr_col_label;
-    my $crispr_id_value;
-    if (! $right_crispr ) {
-       $crispr_col_label = 'crispr_id';
-       $crispr_id_value = $left_crispr->crispr->id;
-    }
-    else {
-        $crispr_col_label = 'crispr_pair_id';
-        $crispr_id_value = $self->crispr_pair->id;
-    }
+    my $crispr_entity = $self->crispr_entity;
 
     if ( $primer_type eq 'crispr_primer' ){
-        my $result = $self->result_source->schema->resultset('CrisprPrimer')->find({
-            $crispr_col_label => $crispr_id_value,
-            'primer_name' => $params->{'primer_label'},
-        });
+        my $result = $crispr_entity->crispr_primers->find(
+            {
+                'primer_name' => $params->{'primer_label'},
+                is_rejected => [0, undef],
+            }
+        );
         if ($result) {
             $crispr_primer_seq = $result->primer_seq;
         }
@@ -1251,12 +1508,39 @@ sub crispr_primer_for{
     return $crispr_primer_seq;
 }
 
+sub distributable_child_barcodes{
+    my ( $self ) = @_;
+
+    my @barcodes;
+
+    # Find all child wells which have a barcode and are distributable (accepted)
+    foreach my $well ( $self->child_wells ){
+        next unless $well->well_barcode;
+        next unless $well->is_accepted;
+        push @barcodes, $well->well_barcode->barcode;
+    }
+    return \@barcodes;
+}
+
+sub input_process_parameters{
+    my ( $self ) = @_;
+    my $parameters;
+    foreach my $process ($self->parent_processes){
+        foreach my $param ($process->process_parameters){
+            # FIXME: will overwrite if we have multiple input protocols with
+            # same parameter names
+            $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
+}
+
 #gene finder should be a method that accepts a species id and some gene ids,
 #returning a hashref
 #see code in WellData for an example
-
+# NOTE this will return the QC data for the first parent well with crispr QC attached
 sub genotyping_info {
-  my ( $self, $gene_finder ) = @_;
+  my ( $self, $gene_finder, $only_qc_data ) = @_;
 
   require LIMS2::Exception;
 
@@ -1269,23 +1553,29 @@ sub genotyping_info {
   LIMS2::Exception->throw( "EPD well is not accepted" )
      unless $epd->accepted;
 
-  my @qc_wells = $self->result_source->schema->resultset('CrisprEsQcWell')->search(
-    { well_id => $epd->id }
-  );
+  my $parent_qc_well = $self->first_parent_with_crispr_qc;
 
-  LIMS2::Exception->throw( "No QC Wells found" )
-    unless @qc_wells;
+  DEBUG "First parent with crispr QC is $parent_qc_well";
 
-  my $accepted_qc_well;
-  for my $qc_well ( @qc_wells ) {
-    if ( $qc_well->accepted ) {
-      $accepted_qc_well = $qc_well;
-      last;
-    }
-  }
-
-  LIMS2::Exception->throw( "No QC wells are accepted" )
+  my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
+  LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
      unless $accepted_qc_well;
+
+  if ( $only_qc_data ) {
+    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+  }
+  my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
+
+  # Add some extra info about which well the reported QC comes from
+  $qc_info->{qc_plate_name} = $parent_qc_well->plate->name;
+  $qc_info->{qc_well_name} = $parent_qc_well->name;
+  $qc_info->{qc_plate_type} = $parent_qc_well->plate->type_id;
+  if($qc_info->{qc_plate_type} eq 'EP_PICK'){
+      $qc_info->{qc_type} = 'Primary QC';
+  }
+  elsif($qc_info->{qc_plate_type} eq 'PIQ'){
+      $qc_info->{qc_type} = 'Secondary QC';
+  }
 
   # store primers in a hash of primer name -> seq
   my %primers;
@@ -1293,7 +1583,7 @@ sub genotyping_info {
     #val is hash with name + seq
     my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{crispr_primers}{$key} }, $val;
   }
 
   my $vector_well = $self->final_vector;
@@ -1308,31 +1598,95 @@ sub genotyping_info {
   for my $primer ( @design_primers ) {
     my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
 
-    push @{ $primers{$key} }, $val;
+    push @{ $primers{design_primers}{$key} }, $val;
   }
 
-  my @gene_ids = uniq map { $_->gene_id } $design->genes;
+  my @gene_ids = $design->gene_ids;
 
   #get gene symbol from the solr
-  my @genes = map { $_->{gene_symbol} }
-                  values %{ $gene_finder->( $self->plate->species_id, \@gene_ids ) };
+  my @genes = $design->gene_symbols($gene_finder);
 
   return {
+      %$qc_info,
       gene             => @genes == 1 ? $genes[0] : [ @genes ],
+      gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
       design_id        => $design->id,
       well_id          => $self->id,
       well_name        => $self->name,
       plate_name       => $self->plate->name,
-      fwd_read         => $accepted_qc_well->fwd_read,
-      rev_read         => $accepted_qc_well->rev_read,
       epd_plate_name   => $epd->plate->name,
       accepted         => $epd->accepted,
       targeting_vector => $vector_well->plate->name,
       vector_cassette  => $vector_well->cassette->name,
-      qc_run_id        => $accepted_qc_well->crispr_es_qc_run_id,
       primers          => \%primers,
-      vcf_file         => $accepted_qc_well->vcf_file,
+      species          => $design->species_id,
+      cell_line        => $self->first_cell_line->name,
   };
+}
+
+# Get QC results for related MS_QC plates (mutation signatures workflow)
+sub ms_qc_data{
+    my ($self, $gene_finder) = @_;
+
+    my @mutation_signatures_qc;
+
+    # Find parent doubling process/well
+    my $doubling = $self->ancestors->find_process_of_type($self,'doubling');
+    return unless $doubling;
+    my ($ms_parent) = $doubling->input_wells;
+
+    DEBUG "Looking for MS_QC wells with parent $ms_parent";
+
+    # Get QC results for MS_QC plates produced from the parent well
+    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells;
+    foreach my $qc_well (@ms_qc_wells){
+        DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
+        my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
+        next unless $crispr_qc_well;
+        DEBUG "Storing MS_QC info for $qc_well";
+        my $qc_info = _qc_info($crispr_qc_well,$gene_finder);
+        $qc_info->{parameters} = $qc_well->input_process_parameters;
+        push @mutation_signatures_qc, $qc_info;
+    }
+
+    # Add any QC info linked to the well produced by the doubling process
+    my ($final_qc_well) = $doubling->output_wells;
+    my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
+    if($crispr_qc_well){
+        my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{final_ms_qc_result} = 1;
+        push @mutation_signatures_qc, $final_qc_info;
+    }
+
+    return \@mutation_signatures_qc;
+}
+
+sub accepted_crispr_es_qc_well{
+    my ($self) = @_;
+    my @qc_wells = $self->crispr_es_qc_wells;
+
+    my $accepted_qc_well;
+    for my $qc_well ( @qc_wells ) {
+        if ( $qc_well->accepted ) {
+            $accepted_qc_well = $qc_well;
+            last;
+        }
+    }
+
+    return $accepted_qc_well;
+}
+
+sub _qc_info{
+    my ($accepted_qc_well, $gene_finder) = @_;
+    my $qc_info = {
+        fwd_read  => $accepted_qc_well->fwd_read,
+        rev_read  => $accepted_qc_well->rev_read,
+        qc_run_id => $accepted_qc_well->crispr_es_qc_run_id,
+        vcf_file  => $accepted_qc_well->vcf_file,
+        qc_data   => $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } ),
+    };
+    return $qc_info;
 }
 
 sub _group_primers {
@@ -1346,6 +1700,16 @@ sub _group_primers {
   return $key, { name => $name, seq => $seq };
 }
 
+sub egel_pass_string {
+    my ($self) = @_;
+
+    my $string = "-";
+
+    if(my $quality = $self->well_dna_quality){
+        $string = $quality->egel_pass ? "pass" : "fail";
+    }
+    return $string;
+}
 # Compute accepted flag for DNA created from FINAL_PICK
 # accepted = true if:
 # FINAL_PICK qc_sequencing_result pass == true AND
@@ -1406,5 +1770,22 @@ sub compute_final_pick_dna_well_accepted {
 
     return;
 }
+
+sub assembly_qc_value{
+    my ($self, $qc_type) = @_;
+
+    die "No assembly QC type specified" unless $qc_type;
+
+    my $qc = $self->search_related('well_assembly_qcs',{
+        qc_type => $qc_type,
+    })->first;
+
+    if ($qc){
+        return $qc->value;
+    }
+
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

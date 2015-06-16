@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::LegacyCreKnockInProjectReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.231';
+    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.322';
 }
 ## use critic
 
@@ -22,7 +22,7 @@ Cre KnockIn projects.
 use Moose;
 use Try::Tiny;
 use LIMS2::Util::Tarmits;
-use List::MoreUtils qw( any part );
+use List::MoreUtils qw( any part uniq );
 use namespace::autoclean;
 
 with qw( MooseX::Log::Log4perl );
@@ -50,7 +50,7 @@ has projects => (
 );
 
 has project_id => (
-    is => 'ro',
+    is  => 'ro',
     isa => 'Int',
 );
 
@@ -58,18 +58,17 @@ sub _build_projects {
     my $self = shift;
     my @projects;
 
+    my $sponsor = $self->model->retrieve_sponsor({
+        id => 'Cre Knockin',
+    });
+
     if ( $self->project_id ) {
-        my $project = $self->model->schema->resultset('Project')->find(
-            {
-                sponsor_id => 'Cre Knockin',
-                id => $self->project_id,
-            }
-        );
+        my $project = $sponsor->projects->find({ id => $self->project_id });
         push @projects, $project;
 
     }
     else {
-        @projects = $self->model->schema->resultset('Project')->search( { sponsor_id => 'Cre Knockin' } );
+        @projects = $sponsor->projects->all;
     }
 
     return \@projects;
@@ -82,7 +81,7 @@ has project_well_summary_data => (
     lazy_build => 1,
     handles    => {
         have_project_data => 'exists',
-        get_project_data => 'get',
+        get_project_data  => 'get',
     }
 );
 
@@ -125,18 +124,35 @@ sub generate_report_data {
             };
             $marker_symbol = $gene ? $gene->{gene_symbol} : undef;
         }
-        my $htgt_project_id = $project->htgt_project_id ? $project->htgt_project_id : '';
 
-        my $project_status
-            = $project_data ? $self->find_project_status( $project, $project_data ) : '';
+        my $project_status = '';
+        my $allele_details = {};
+        if ( $project_data ) {
+            my @es_cell_names = map { $_->{clone_plate_name} . '_' . $_->{clone_well_name} }
+                grep { $_->{clone_well_id} } @{ $project_data->{ws} };
+            my @emi_attempts  = @{ $self->emi_attempts( \@es_cell_names ) };
+
+            $project_status = $self->find_project_status( $project, $project_data, \@emi_attempts );
+
+            # Can only get allele details for projects with the following statuses
+            # Mice - genotype confirmed
+            # Mice - Microinjection in progress
+            # ES Cells - Targeting Confirmed
+            if ( $project_status =~ /^Mice|Targeting Confirmed/ ) {
+                $allele_details = $self->find_allele_names( \@es_cell_names, \@emi_attempts );
+            }
+        }
         $self->log->info( "Status: $project_status" );
 
         push @report_data, [
-             $htgt_project_id,
-             $project->id,
              $marker_symbol,
              $project->gene_id,
              $project_status,
+             join( ' | ', keys %{ $allele_details } ),
+             join( ' | ', values %{ $allele_details } ),
+             scalar( keys %{ $allele_details } ),
+             $project_data->{cassette},
+             $project_data->{design_id},
         ]
     };
     Log::Log4perl::NDC->remove;
@@ -152,21 +168,19 @@ work out status of project
 
 =cut
 sub find_project_status {
-    my ( $self, $project, $project_data ) = @_;
+    my ( $self, $project, $project_data, $emi_attempts ) = @_;
 
     my $ws_rows = $project_data->{ws};
 
     $self->log->debug( 'Project has ' . scalar(@{ $ws_rows }) . ' summary row(s)' );
 
-    my @dist_es_cells      = @{ $self->distributable_es_cells( $ws_rows ) };
-
-    my @emi_attempts = @{ $self->emi_attempts( $ws_rows ) };
+    my @dist_es_cells = @{ $self->distributable_es_cells( $ws_rows ) };
 
     $self->log->debug('Considering status: Mice - genotype confirmed');
 
     # Status is 'Mice - genotype confirmed' if there are any EMI attempts
     # with status 'Genotype confirmed'
-    if ( any { $_->{status_name} eq 'Genotype confirmed' } @emi_attempts ) {
+    if ( any { $_->{status_name} eq 'Genotype confirmed' } @{ $emi_attempts } ) {
         return 'Mice - genotype confirmed';
     }
 
@@ -174,7 +188,7 @@ sub find_project_status {
 
     # Status is 'Mice - Microinjection in progress' if there ane any
     # EMI attempts
-    if (@emi_attempts) {
+    if (@{ $emi_attempts }) {
         return 'Mice - Microinjection in progress';
     }
 
@@ -270,13 +284,9 @@ Retrieve any EMI attempts for the ES cells from Tarmits.
 
 =cut
 sub emi_attempts {
-    my ( $self, $ws_rows ) = @_;
-    my $status = 'foo';
+    my ( $self, $es_cell_names ) = @_;
 
-    my @es_cell_names = map { $_->{clone_plate_name} . '_' . $_->{clone_well_name} }
-        grep { $_->{clone_well_id} } @{$ws_rows};
-
-    my @es_cell_name_arrays = $self->chunk_array( \@es_cell_names );
+    my @es_cell_name_arrays = $self->chunk_array( $es_cell_names );
 
     my @emi_attempts;
     for my $name_array ( @es_cell_name_arrays ) {
@@ -295,7 +305,64 @@ sub emi_attempts {
         push @emi_attempts, @{ $emi_attempts };
     }
 
+    # Ignore attempts where MI has been aborted
+    @emi_attempts = grep { $_->{status_name} ne 'Micro-injection aborted' } @emi_attempts;
+
     return \@emi_attempts;
+}
+
+=head2 find_allele_names
+
+Retrieve allele names for the ES cells from Tarmits.
+
+=cut
+sub find_allele_names {
+    my ( $self, $es_cell_names, $emi_attempts ) = @_;
+
+    my @es_cell_name_arrays = $self->chunk_array( $es_cell_names );
+
+    my @es_cells;
+    for my $name_array ( @es_cell_name_arrays ) {
+        my @query;
+        for my $es_cell_name ( @{ $name_array } ) {
+            push @query, ( 'name_in[]' => $es_cell_name );
+        }
+
+        my $es_cells = try{
+            $self->tarmits_client->find_es_cell( \@query );
+        }
+        catch {
+            $self->log->error( "Error querying tarmits: $_" );
+            return [];
+        };
+        push @es_cells, @{ $es_cells };
+    }
+    # Grab allele information from Tarmits
+    my @allele_names = uniq grep{ $_ } map { $_->{mgi_allele_symbol_superscript} } @es_cells;
+    my $allele_products = $self->allele_products( $emi_attempts );
+
+    return { map { $_ => exists $allele_products->{$_} ? 'Mice' : 'ES Cells' } @allele_names };
+}
+
+=head2 allele_products
+
+Work out if allele has Mice or ES Cell products.
+Mice will be available if a MI attempt status is set to Genotyping Confirmed
+
+=cut
+sub allele_products {
+    my ( $self, $emi_attempts ) = @_;
+
+    my @mice = grep{ $_->{status_name} eq 'Genotype confirmed' } @{ $emi_attempts };
+
+    my %allele_mice;
+    for my $e ( @mice ) {
+        if ( $e->{allele_symbol} =~ /<sup>(.*)<\/sup>/ ) {
+            $allele_mice{$1} = $e->{status_name};
+        };
+    }
+
+    return \%allele_mice;
 }
 
 =head2 chunk_array
@@ -359,7 +426,6 @@ my $sql_query =  <<"SQL";
 WITH project_requests AS (
 SELECT
  p.id AS project_id,
- p.htgt_project_id,
  p.gene_id,
  p.targeting_type,
  pa.mutation_type,
@@ -369,21 +435,23 @@ SELECT
  cf.cre,
  cf.well_has_cre,
  cf.well_has_no_recombinase
-FROM projects p
-INNER JOIN project_alleles pa ON pa.project_id = p.id
+FROM project_sponsors ps, projects p
+INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
-WHERE p.sponsor_id   = 'Cre Knockin'
+WHERE ps.sponsor_id   = 'Cre Knockin'
+AND ps.project_id = p.id
 AND p.species_id     = 'Mouse'
 )
 SELECT
  pr.project_id,
- pr.htgt_project_id,
+ s.design_id AS design_id,
  s.design_gene_id AS gene_id,
  s.design_gene_symbol AS gene_symbol,
  s.final_pick_plate_name AS tv_plate_name,
  s.final_pick_well_name AS tv_well_name,
  s.final_pick_well_id AS tv_well_id,
  s.final_pick_well_accepted AS tv_accepted,
+ s.final_pick_cassette_name AS cassette,
  s.ep_plate_name AS ep_plate_name,
  s.ep_well_name AS ep_well_name,
  s.ep_well_id AS ep_well_id,
@@ -432,13 +500,14 @@ AND (
 AND s.final_pick_well_id > 0
 GROUP BY
  pr.project_id,
- pr.htgt_project_id,
+ s.design_id,
  s.design_gene_id,
  s.design_gene_symbol,
  s.final_pick_plate_name,
  s.final_pick_well_name,
  s.final_pick_well_id,
  s.final_pick_well_accepted,
+ s.final_pick_cassette_name,
  s.ep_plate_name,
  s.ep_well_name,
  s.ep_well_id,
@@ -477,17 +546,20 @@ sub parse_project_well_summary_results {
     my %project_well_data;
 
     for my $datum ( @{ $query_results } ) {
-        my $project_id = $datum->{project_id };
+        my $project_id = $datum->{project_id};
         push @{ $project_well_data{$project_id}{ws} }, $datum;
-
-        if ( $datum->{htgt_project_id} && !exists $project_well_data{$project_id}{htgt_project_id} ) {
-            $project_well_data{$project_id}{htgt_project_id} = $datum->{htgt_project_id};
-        }
 
         if ( $datum->{gene_symbol} && !exists $project_well_data{$project_id}{gene} ) {
             $project_well_data{$project_id}{gene} = $datum->{gene_symbol};
         }
 
+        if ( $datum->{cassette} && !exists $project_well_data{$project_id}{cassette} ) {
+            $project_well_data{$project_id}{cassette} = $datum->{cassette};
+        }
+
+        if ( $datum->{design_id} && !exists $project_well_data{$project_id}{design_id} ) {
+            $project_well_data{$project_id}{design_id} = $datum->{design_id};
+        }
     }
 
     return \%project_well_data;

@@ -1,0 +1,64 @@
+[% META title = "Plate Well Barcode History", tab_name = 'Barcodes' -%]
+
+<h2>Barcodes No Longer on Plate [% plate.name %]</h2>
+[% FOREACH barcode IN barcode_data %]
+<table class="table table-bordered">
+<tr><th>Barcode</th><th>[% barcode.barcode %]</th></tr>
+<tr><th>Current Plate</th><td>[% barcode.current_plate %]</td></tr>
+<tr><th>Current Well</th><td>[% barcode.current_well %]</td></tr>
+<tr><th>Current State</th><td>[% barcode.state %]</td></tr>
+<tr><th>Latest Change</th><td>[% barcode.most_recent_change %]</td></tr>
+<tr><th>Comment</th><td>[% barcode.most_recent_comment %]</td></tr>
+<tr><th>Date</th><td>[% barcode.most_recent_event_date %]</td></tr>
+<tr><th>User</th><td>[% barcode.most_recent_event_user %]</td></tr>
+</table>
+[% END %]
+
+<div class="accordion" id="accordion">
+  <div class="accordion-group well">
+    <div class="accordion-heading">
+      <p><strong>Full barcode histories</strong></p>
+      <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class='icon-list'></i> Show Full History
+      </a>
+    </div>
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+<table class='table table-striped'>
+<tr>
+<th>Barcode</th>
+<th>Date</th>
+<th>User</th>
+<th>Old Plate</th>
+<th>New Plate</th>
+<th>Old Well</th>
+<th>New Well</th>
+<th>Old State</th>
+<th>New State</th>
+<th>Comment</th>
+</tr>
+[% FOREACH barcode IN barcode_data %]
+ [% first_row = 1 %]
+ [% FOREACH event IN barcode.events %]
+<tr>
+ [% IF first_row %]
+<td rowspan="[% barcode.events.size %]">[% barcode.barcode %]</td>
+  [% first_row = 0 %]
+ [% END %]
+<td>[% event.created_at %]</td>
+<td>[% event.created_by.name %]</td>
+<td>[% event.old_well.plate.as_string %]</td>
+<td>[% event.new_well.plate.as_string %]</td>
+<td>[% event.old_well.name %]</td>
+<td>[% event.new_well.name %]</td>
+<td>[% event.old_state.id %]</td>
+<td>[% event.new_state.id %]</td>
+<td>[% event.comment %]</td>
+</tr>
+ [% END %]
+[% END %]
+</table>
+      </div>
+    </div>
+  </div>
+</div>

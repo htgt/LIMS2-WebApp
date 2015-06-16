@@ -1,0 +1,33 @@
+[% META title = "Mutation Signatures Barcodes", tab_name = 'Barcodes' -%]
+
+<h1>Barcodes used for Mutation Signatures Doubling</h1>
+
+<table class="table table-striped">
+<tr>
+  <th>Parent Barcode</th>
+  <th>Start Date</th>
+  <th>Oxygen Condition</th>
+  <th>Doublings</th>
+  <th>Child Barcode</th>
+  <th>Child Plate Name</th>
+  <th>Child Well Name</th>
+  <th>Child Well Accepted?</th>
+</tr>
+[% FOREACH state IN ['frozen_back', 'doubling_in_progress', 'discarded'] %]
+<tr>
+  <th colspan="8">Barcodes with state [% state %]:</th>
+</tr>
+  [% FOREACH bc IN data.$state %]
+<tr>
+  <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.parent_barcode }) %]">[% bc.parent_barcode %]</a></td>
+  <td>[% bc.doubling_start %]</td>
+  <td>[% bc.oxygen_condition %]</td>
+  <td>[% bc.number_of_doublings %]</td>
+  <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.child_barcode }) %]">[% bc.child_barcode %]</a></td>
+  <td>[% bc.child_plate_name %]</td>
+  <td>[% bc.child_well_name %]</td>
+  <td>[% bc.child_well_accepted_str %]</td>
+</tr>
+  [% END %]
+[% END %]
+</table>

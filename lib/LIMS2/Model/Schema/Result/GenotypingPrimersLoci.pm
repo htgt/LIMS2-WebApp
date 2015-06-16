@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimersLoci;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimersLoci::VERSION = '0.231';
+    $LIMS2::Model::Schema::Result::GenotypingPrimersLoci::VERSION = '0.322';
 }
 ## use critic
 
@@ -160,6 +160,17 @@ __PACKAGE__->belongs_to(
   { id => "genotyping_primer_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        assembly => $self->assembly_id,
+        chr_name => $self->chr->name,
+        chr_id   => $self->chr_id,
+        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand )
+    };
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

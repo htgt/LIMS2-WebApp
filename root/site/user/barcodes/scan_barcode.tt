@@ -1,0 +1,72 @@
+[% META title = "Individual Barcode Scan", tab_name = 'Barcodes' -%]
+
+<h1>Get Barcode Details</h1>
+
+[% IF well_details %]
+<a class="btn btn-default pull-right" href="[% c.uri_for('/user/scan_barcode')%]"><i class="icon-arrow-left"></i> Back to Scan Page</a><br>
+  [% INCLUDE 'barcode_well_details.tt' %]
+<a href="[% c.uri_for('/user/well_barcode_history/') _ well_details.barcode %]">View Barcode Action History</a>
+  [% IF can_edit %]
+   [% IF well_details.barcode_state == 'in_freezer' %]
+<form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <button type="submit" name="confirm_checkout" class="btn btn-primary" value="confirm_checkout">
+      Checkout
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+    [% ELSIF well_details.barcode_state == 'doubling_in_progress' %]
+<form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
+Actions:
+  <fieldset>
+    <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'PIQ' ) %]" class="btn btn-primary">
+    Freeze Back
+    </a>
+    <br><br>
+    [% INCLUDE discard_options %]
+    [% ELSIF well_details.barcode_state == 'checked_out' %]
+<form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
+Actions:
+  <fieldset>
+      [% IF well_details.plate_type == 'FP' %]
+    <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'FP' ) %]" class="btn btn-primary">
+    Freeze Back
+    </a>
+    <br><br>
+      [% ELSIF well_details.plate_type == 'PIQ' %]
+    <a href="[% c.uri_for('/user/piq_send_out', barcode => well_details.barcode) %]" class="btn btn-primary">
+    Send Out
+    </a>
+    <br><br>
+    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => well_details.barcode) %]" class="btn btn-primary">
+    Start Doubling
+    </a>
+    <br><br>
+      [% END %]
+    [% INCLUDE discard_options %]
+  [% END %]
+  </fieldset>
+</form>
+ [% END %]
+[% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/scan_barcode' ) %]" class="well">
+  <fieldset>
+    <legend>Scan Barcode</legend>
+    <input type="text" name="barcode" placeholder="scan barcode here" value="[% barcode %]" />
+    <input type="submit" name="submit_barcode" class="btn btn-primary" value="Get Details" />
+  </fieldset>
+</form>
+
+[% END %]
+
+[% BLOCK discard_options %]
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="text" name="reason" value="[% reason %]" placeholder="reason for discard"/>
+    <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
+    <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
+      Discard
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+[% END %]

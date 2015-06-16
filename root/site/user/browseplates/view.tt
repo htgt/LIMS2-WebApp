@@ -19,7 +19,7 @@
            </a>
            </td>
         </tr>
-[% ELSIF plate.type_id == 'INT' %]
+[% ELSIF plate.type_id == 'INT' || plate.type_id == 'POSTINT' %]
         <tr>
             <td>
             <a class="btn btn-primary" role="button" href="#FlagPlateVirtual" data-toggle="modal">
@@ -42,6 +42,27 @@
           </td>
         </tr>
 
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
+        <tr>
+          <td>
+            <strong>Plate Barcode</strong>
+          </td>
+          [% IF plate.barcode %]
+          <td>
+            [% plate.barcode %]
+          </td>
+          [% ELSE %]
+          <td>
+          </td>
+          [% END %]
+          <td>
+            <a class="btn btn-primary" role="button" href="#UpdatePlateBarcodeModal" data-toggle="modal">
+              <i class="icon-pencil icon-white"></i> Update
+            </a>
+          </td>
+        </tr>
+[% END %]
+
         <tr>
           <td>
             <strong>Type</strong>
@@ -51,6 +72,22 @@
           </td>
           <td></td>
         </tr>
+
+[% IF plate.type_id == 'CRISPR' %]
+        <tr>
+          <td>
+            <strong>Appends</strong>
+          </td>
+          <td>
+            [% IF plate.crispr_plate_append.append_id %]
+              [% plate.crispr_plate_append.append_id %]
+            [% ELSE %]
+              not set
+            [% END %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
 
         <tr>
           <td>
@@ -131,6 +168,32 @@
       <button class="btn" data-dismiss="modal">Cancel</button>
       <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
           <i class="icon-pencil icon-white"></i> Rename Plate
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="modal hide fade" id="UpdatePlateBarcodeModal">
+  <form method="POST" id="update_plate_barcode" action="[% c.uri_for( '/user/update_plate_barcode' ) %]" class="modal-form"  enctype="multipart/form-data" >
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal">×</button>
+      <h3 id="myModalLabel">Update Plate Barcode</h3>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="curr_barcode" value="[% plate.barcode %]" />
+      [% IF plate.barcode %]
+        Update plate barcode from <strong>[% plate.barcode %]</strong> to <input name="new_plate_barcode" id="new_plate_barcode" type="text" autofocus="autofocus" />
+      [% ELSE %]
+        Set plate barcode to <input name="new_plate_barcode" id="new_plate_barcode" type="text" autofocus="autofocus" />
+      [% END %]
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal">Cancel</button>
+      <button name="update_plate_barcode" id="update_plate_barcode" type="submit" value="update_plate_barcode" class="btn btn-primary">
+          <i class="icon-pencil icon-white"></i> Update Plate Barcode
       </button>
     </div>
   </form>
@@ -223,6 +286,7 @@
     </form>
   </div>
 
+
 [% UNLESS plate.has_child_wells %]
   <div class="row">
     <div class="span2">
@@ -243,6 +307,9 @@
       <div class="modal-body" align="center">
         <input type="hidden" name="id" value="[% plate.id %]" />
         <input type="hidden" name="name" value="[% plate.name %]" />
+        [% IF plate.number_of_wells_with_barcodes > 0 %]
+        This plate contains barcoded tubes. Deleting the plate will also delete the tube barcodes and their history.<br>
+        [% END %]
         Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
       </div>
 
@@ -256,12 +323,47 @@
   </div>
 [% END %]
 
+<div class="row">
+<div class="span6">
 <h2>Wells</h2>
 <a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
 <a class="btn btn-primary" href="[% grid_report_uri %]"><i class="icon-list icon-white"></i> Well Grid</a>
+
 [% IF additional_plate_reports %]
 <h3>Additional Reports</h3>
   [% FOREACH report IN additional_plate_reports %]
 <a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a><br /><br />
   [% END %]
+[% END %]
+</div>
+
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
+  <div class="span6">
+  <div class="well">
+    <h4>Tube Barcodes</h4>
+    <b>[% plate.number_of_wells_with_barcodes %]</b> tubes out of <b>[% plate.number_of_wells %]</b> in this plate currently have barcodes.
+    <br>
+    <a href="[% c.uri_for('/user/plate_well_barcode_history/') _ plate.id %]">Show fate of barcodes no longer on plate</a>
+    <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/update_plate_well_barcodes' ) %]" enctype="multipart/form-data" >
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
+      <table class="table">
+        <tr>
+          <td>
+            <label>Upload the barcode scanner file for the tubes rack (just as created by the scanner, no changes needed) : </label>
+          </td>
+          <td>
+              <input name="wellbarcodesfile" type="file">
+              <br>
+              <button class="btn btn-primary" name="btn_update_plate_well_barcodes" id="btn_update_plate_well_barcodes" type="submit" value="update_plate_well_barcodes" class="btn">
+                <i class="icon-upload"></i> Upload Tube Barcodes
+              </button>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+  </div>
+</div>
+
 [% END %]

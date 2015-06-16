@@ -1,0 +1,32 @@
+[% META title = "PIQ Send Out", tab_name = 'Barcodes' -%]
+
+<h1>PIQ Well Send Out</h1>
+[% barcode_state_error = (well_details.barcode_state != 'checked_out') %]
+
+[% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
+
+ [% IF barcode_state_error %]
+<div class="well">
+Only barcodes which are currently checked out can be sent out<br>
+  <a href="[% c.uri_for('/user/well_checkout') %]" class="btn btn-primary">
+    <i class="icon-arrow-left icon-white"></i>
+    Back to barcode search
+  </a>
+</div>
+ [% ELSE %]
+<form method="POST" action="[% c.uri_for( '/user/piq_send_out' ) %]" class="well">
+  <fieldset>
+    <input type="hidden" name="barcode" value="[% barcode %]"/>
+    <input type="text" name="comment" placeholder="send out comment" class="span6"/>
+    <br>
+    <button type="submit" name="cancel_send_out" class="btn" value="cancel_send_out">
+      Cancel Send Out
+    </button>
+    <button type="submit" name="confirm_send_out" class="btn btn-primary" value="confirm_send_out">
+      Confirm Send Out
+      <i class="icon-arrow-right icon-white"></i>
+    </button>
+  </fieldset>
+</form>
+ [% END %]
+

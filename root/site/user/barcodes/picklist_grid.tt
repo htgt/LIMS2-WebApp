@@ -1,0 +1,282 @@
+<script type="text/javascript" charset="utf-8">
+
+    var grid;
+
+        Ext.onReady( function() {
+
+            [% IF printable %]
+            Ext.Loader.setConfig({
+                enabled: true,
+                paths: {
+                    'Ext.ux': '../../../../static/extjs/src/ux'
+                }
+            });
+
+            Ext.require([
+                'Ext.ux.grid.Printer'
+            ]);
+            [% END %]
+
+            Ext.define('Report', {
+                extend: 'Ext.data.Model',
+                fields: [
+                    [%- FOREACH col IN columns %]
+                    [%#- we need some metadata to tell us the data type of the column so that it sorts properly %]
+                    [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
+                        [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                            { name: '[%- col %]', type: 'int' },
+                        [%- ELSIF col.match( 'concluded\?' ) %]
+                            { name: '[%- col %]', type: 'boolean' },
+                        [%- ELSE %]
+                            { name: '[%- col %]', type: 'string' },
+                        [%- END %]
+                    [%- END %]
+                ]
+            });
+
+[%# first_time_outer is all about where to put the comma to avoid trailing commas that confuse some browsers %]
+            var arrayData = [
+                    [%- first_time_outer = 1 %]
+                    [%- FOREACH datum IN data %]
+                        [%- IF first_time_outer == 1 %]
+                            {
+                        [%- ELSE %]
+                            ,{
+                        [%- END %]
+
+                            [%- first_time_inner = 1 %]
+                            [%- index = 0 %]
+                            [%- FOREACH val IN datum %]
+                                [%- IF first_time_inner == 1 %]
+                                    [%- first_time_inner = 0 %]
+                                    "[%- columns.$index %]": "[%- val %]"
+                                [%- ELSE %]
+                                    [%#- first time, check whether there is a 'custom:' flag
+                                        this will be rendered as a button so save it to the alt_render array
+                                    %]
+                                    [%- IF (first_time_outer == 1) && (val.match('lims2_custom')) %]
+                                    // string matched 'custom' specifier
+                                        [%- alt_render.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
+                                        [%- alt_render_link.${columns.$index} = 1 %]
+                                    [%- END %]
+                                    ,"[%- columns.$index %]": "[%- val.dquote | none%]"
+                                    [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
+                                         undocumented. It prevents TT from the &quote quoting of strings
+                                         which confuses JSON.parse %]
+                                [%- END %]
+                                [%- index = index + 1 %]
+                            [%- END %]
+                        }
+                    [% first_time_outer = 0 %]
+                    [%- END %]
+                    ];
+
+            // Save plateName for later use
+            var plateName= '[%- title _ ' (' _ data.size _ ' rows)'%]';
+
+            var store = Ext.create('Ext.data.Store', {
+                model: Report,
+                data: arrayData
+            });
+
+            [% locked = {
+                "row id" = 1
+                "well name" = 1
+                "design id" = 1
+                "gene id" = 1
+                "gene symbol" = 1
+                } %]
+            [% hidden = {
+                "gene id" = 1
+                "row id" = 1
+                "id" = 1
+                } %]
+
+            [% IF hide_to_pick %]
+            [% hidden.to_pick = 1 %]
+            [% END %]
+
+            var columns = [
+                [%- FOREACH col IN columns %]
+                {
+                    header: "[%- col %]",
+                    [%- IF locked.${col.lower} == 1 %]
+                    locked: true,
+                    [%- END %]
+                    [%- IF hidden.${col.lower} == 1 %]
+                    hidden: true,
+                    [%- END %]
+                    [%# alt_render values are case sensitive %]
+                    [%- IF alt_render.$col == 1%]
+                    renderer: lims2_action_button_json,
+                    [% ELSIF alt_render_link.$col == 1 %]
+                    renderer: lims2_action_link,
+                    [%- ELSE %]
+                    sortable: true,
+                    [%- END %]
+                    [%- IF col.match( 'concluded\?' ) %]
+                    xtype: 'checkcolumn',
+                    width: 65,
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
+                            var record = grid.store.getAt(recordIndex);
+                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(data){record.commit()})
+                        }
+                    },
+                    [%- END %]
+                    [%- IF col.match( 'recovery class' ) %]
+                    width: 120,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        editable: false,
+
+                        store: [
+                            [%- FOREACH recovery_class IN recovery_classes %]
+                            ['[% recovery_class %]','[% recovery_class %]'],
+                            [%- END %]
+                        ],
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery class listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+                                var newRecord = field.findRecordByValue(newValue);
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+
+                    }),
+
+                    [%- END %]
+
+                    [%- IF col.match( 'recovery comment' ) %]
+                    width: 400,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery comment listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+                    }),
+                    [%- END %]
+
+                    [%- IF col.match( 'priority' ) %]
+                    width: 120,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        editable: false,
+                        store: [
+                            [%- FOREACH priority_class IN priority_classes %]
+                            ['[% priority_class %]','[% priority_class %]'],
+                            [%- END %]
+                        ],
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('priority listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(data){record.commit()})
+                            }
+                        },
+
+                    }),
+
+                    [%- END %]
+
+                    dataIndex: '[%- col %]'
+                },
+                [%- END %]
+            ];
+
+
+            function lims2_action_button_json(val) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        console.log(val);
+                        var j_val = JSON.parse(val);
+                        var button_label = j_val.lims2_custom.button_label;
+                        var api_base = j_val.lims2_custom.api_url.substr(1); // remove the opening slash as c.uri_for provides it
+                        var api_params_array = [];
+                        for (var key in j_val.lims2_custom) {
+                          if (j_val.lims2_custom.hasOwnProperty(key)) {
+                                api_params_array.push( key + '=' + j_val.lims2_custom[key]);
+                            }
+                        }
+                        var api_params_string = api_params_array.join( '&' );
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: button_label,
+                            width: 75,
+                            handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_params_string ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
+            function lims2_action_link(val) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        console.log(val);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Link',
+                            width: 65,
+                            handler: function () { window.open( val ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
+
+            grid = Ext.create('Ext.grid.Panel', {
+                [% IF printable %]
+                tbar: [{
+                    text: 'Printer Friendly View',
+                    iconCls: 'icon-ext-print',
+                    handler : function(){
+                        Ext.ux.grid.Printer.printAutomatically = false;
+                        Ext.ux.grid.Printer.print(grid);
+                    }
+                }],
+                forceFit : true,
+                [% END %]
+                height: 750,
+                width: 1170,
+                store: store,
+                columnLines: true,
+                columns: columns,
+                title: plateName,
+                invalidateScrollerOnRefresh: false,
+                renderTo: 'my_results',
+                viewConfig: {
+                    stripeRows: true,
+                    getRowClass: function(record, index, rowParams, store){
+                        if(record.get('Picked')){
+                            return "lims2-picked";
+                        }
+                        return "";
+                    },
+                    firstCls: 'lims2-first-cell-format',
+                    enableTextSelection: true,
+                    markDirty: false,
+                },
+                selType: 'cellmodel',
+                simpleSelect: true,
+            });
+    });
+</script>

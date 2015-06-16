@@ -1,0 +1,110 @@
+[% META title = "Gene Crispr ES QC"; META tab_name = 'QC' %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $(".traces").click(function(e) {
+        e.preventDefault();
+
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+    });
+});
+</script>
+
+<div class="page-header">
+  <h1>[% template.title %]</h1>
+</div>
+
+<form id="gene_crispr_es_qc_form" class="well form-horizontal">
+  <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
+  <button type="submit" class="btn">Show Crispr ES QC</button>
+</form>
+
+[% IF gene.defined %]
+    <h2>Showing details for [% gene.gene_symbol %] ([% gene.gene_id %])</h2>
+[% END %]
+
+[% IF crispr_qc.size %]
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Well</th>
+            <th>Crispr ID</th>
+            <th>Alignment</th>
+            <th>Damage Type</th>
+            <th>Variant Size</th>
+            <th>Variant Files</th>
+            <th>Protein Sequences</th>
+            <th>Reads</th>
+            <th>Deletions</th>
+            <th>Inserts</th>
+            <th>Accepted</th>
+        </tr>
+    </thead>
+    <tbody>
+    [% FOR qc IN crispr_qc %]
+        <tr>
+            [% INCLUDE 'crispr_qc_view.tt'
+                row                    = qc.ep_pick_qc
+                accept                 = 0
+                edit                   = 1
+                hide_crispr_well_id    = 1
+                complete_info          = 1
+                hide_crispr_validation = 1
+                hide_het_validation    = 1
+            %]
+            <td>
+            [% IF qc.accepted %]
+                <span class="label label-success">Accepted</span>
+            [% END %]
+            </td>
+        </tr>
+        [% IF qc.piq_qc %]
+            [% FOR piq_qc IN qc.piq_qc %]
+                <tr class="info">
+                    [% INCLUDE 'crispr_qc_view.tt'
+                        row                 = piq_qc.qc
+                        accept              = 0
+                        edit                = 1
+                        hide_crispr_well_id = 1
+                        complete_info       = 1
+                    %]
+                    <td>
+                    [% IF piq_qc.accepted %]
+                        <span class="label label-success">Accepted</span>
+                    [% END %]
+                    </td>
+                </tr>
+            [% END %]
+        [% ELSE %]
+            <tr class="info">
+                <td colspan="10">No PIQ QC</td>
+            </tr>
+        [% END %]
+    [% END %]
+    </tbody>
+</table>
+
+[% END %]
+
+<script type="text/javascript">
+    $("#gene_id_input").autocomplete({
+      source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+      minLength: 2,
+    });
+
+    $('#transition_time').popover();
+</script>

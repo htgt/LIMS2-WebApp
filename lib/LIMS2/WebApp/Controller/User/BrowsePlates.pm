@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.231';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.322';
 }
 ## use critic
 
@@ -51,7 +51,7 @@ sub index :Path( '/user/browse_plates' ) :Args(0) {
             plate_type => $params->{plate_type},
             species    => $params->{species} || $c->session->{selected_species},
             page       => $params->{page},
-            pagesize   => $params->{pagesize}
+            pagesize   => $params->{pagesize},
         }
     );
 
@@ -84,7 +84,9 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
 
     my $params = $c->request->params;
 
-    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params );
+    # prefetch wells->process_input_wells so we can do the has_child_wells check on plates ( for plate delete button condition )
+    my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params,
+        { prefetch => { 'wells' => 'process_input_wells' } } );
 
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;
@@ -93,11 +95,11 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
 
     $c->stash(
-        plate           => $plate,
-        well_report_uri => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
-        grid_report_uri => $c->uri_for( "/user/report/sync/grid/$report_class", { plate_id => $plate->id } ),
+        plate                    => $plate,
+        well_report_uri          => $c->uri_for( "/user/report/sync/$report_class", { plate_id => $plate->id } ),
+        grid_report_uri          => $c->uri_for( "/user/report/sync/grid/$report_class", { plate_id => $plate->id } ),
         additional_plate_reports => $additional_plate_reports,
-        username  => $c->user->name,
+        username                 => $c->user->name,
     );
 
     return;

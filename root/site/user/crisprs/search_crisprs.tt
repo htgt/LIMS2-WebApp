@@ -1,0 +1,19 @@
+[% META title="Crispr Search"; META tab_name = 'Crisprs' %]
+
+<form method="POST" action="[% c.uri_for( '/user/search_crisprs' ) %]" class="well form-inline" >
+    <legend>Search by LIMS2 ID</legend>
+    <input type="text" name="crispr_id" placeholder="Crispr ID" value="[% crispr_id %]"></input>
+    <br>OR<br>
+    <input type="text" name="crispr_pair_id" placeholder="Pair ID" value="[% crispr_pair_id %]"></input>
+    <br>OR<br>
+    <input type="text" name="crispr_group_id" placeholder="Group ID" value="[% crispr_group_id %]"></input>
+    <br><br>
+    <button type="submit" name="search_by_lims2_id" class="btn btn-primary" value="Search">Search</button>
+</form>
+
+<form method="POST" action="[% c.uri_for( '/user/search_crisprs' ) %]" class="well form-inline" >
+    <legend>Search by WGE ID</legend>
+    <input type="text" name="wge_crispr_id" placeholder="WGE Crispr ID" value="[% wge_crispr_id %]"></input>
+    <br><br>
+    <button type="submit" name="search_by_wge_id" class="btn btn-primary" value="Search">Search</button>
+</form>
