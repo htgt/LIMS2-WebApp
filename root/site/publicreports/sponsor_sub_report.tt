@@ -99,11 +99,12 @@ document.title = "[%- sponsor_id %]";
           [% IF c.user %]
             <th>[% disp_col %]</th>
           [%- END %]
-        [%- ELSIF disp_col == '# colonies'        ||
-                  disp_col == '# wt clones'       ||
-                  disp_col == '# mosaic clones'   ||
-                  disp_col == '# in-frame clones' ||
-                  disp_col == '# frame-shift clones' %]
+        [%- ELSIF disp_col == '# colonies'           ||
+                  disp_col == '# wt clones'          ||
+                  disp_col == '# mosaic clones'      ||
+                  disp_col == '# in-frame clones'    ||
+                  disp_col == '# frame-shift clones' ||
+                  disp_col == '# no-call clones' %]
             <th>[% disp_col %]</th>
         [%- ELSE %]
             <th>[% disp_col %]</th>
@@ -196,7 +197,10 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF col == 'fs_count'
                || col == 'if_count'
                || col == 'wt_count'
-               || col == 'ms_count' %]
+               || col == 'ms_count'
+               || col == 'nc_count'
+               || col == 'ep_pick_het'
+                %]
 
             [% IF row.item('targeted_clones') %]
               <td style="background:#E5E4E2" >[% colval %]</td>
@@ -252,10 +256,12 @@ document.title = "[%- sponsor_id %]";
                   <td>[%- ep_data.item('total_colonies') %]</td>
                   <td>[%- ep_data.item('ep_pick_count') %]</td>
                   <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
-                  <td>[%- ep_data.item('fs_count') %]</td>
-                  <td>[%- ep_data.item('if_count') %]</td>
-                  <td>[%- ep_data.item('wt_count') %]</td>
-                  <td>[%- ep_data.item('ms_count') %]</td>
+                  <td>[%- ep_data.item('frameshift') %]</td>
+                  <td>[%- ep_data.item('in-frame') %]</td>
+                  <td>[%- ep_data.item('wild_type') %]</td>
+                  <td>[%- ep_data.item('mosaic') %]</td>
+                  <td>[%- ep_data.item('no-call') %]</td>
+                  <td>[%- ep_data.item('het') %]</td>
                 [% IF c.user %]
                   <td colspan=3></td>
                 [%- ELSE %]
