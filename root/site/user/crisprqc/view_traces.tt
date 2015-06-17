@@ -1,0 +1,74 @@
+[% META title="Traces"; META tab_name = 'QC' %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>1} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $(".traces").click(function(e) {
+        e.preventDefault();
+
+        //the code for this is inside jquery.flot.traceviewer.js
+        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
+    });
+
+});
+</script>
+
+<div class="well">
+    <table class="table table-condensed">
+        <tr>
+            <th>Crispr ID</th>
+            <td>[% crispr_id %]</td>
+        </tr>
+        <tr>
+            <th>Crispr Sequence</th>
+            <td>[% crispr_seq %]</td>
+        </tr>
+        <tr>
+            <th>Search Sequence</th>
+            <td>[% search_seq %]</td>
+        </tr>
+        <tr>
+            <th>FWD Read Names Like</th>
+            <td>[% read_names.0.fwd %]</td>
+        </tr>
+        <tr>
+            <th>REV Read Names Like</th>
+            <td>[% read_names.0.rev %]</td>
+        </tr>
+    </table>
+
+
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Read</th>
+            <th>Traces</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR names IN read_names %]
+            <tr>
+               <td>[% names.fwd %], [% names.rev %]</td>
+               <td>
+               <div class="forward_full" style="display:none">[% search_seq %]</div>
+               <div class="reverse_full" style="display:none">[% search_seq %]</div>
+        <a class="btn traces" href="#" data-fwd="[% names.fwd %]" data-rev="[% names.rev %]" data-context="15" >View Traces</a>
+               </td>
+            </tr>
+        [% END %]
+    </tbody>
+</table>

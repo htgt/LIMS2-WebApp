@@ -44,6 +44,8 @@ sub trace_data_GET{
 
     # if we don't have a match, the reverse flag might be wrong.... try and reverse it
     if (!$match) {
+        $c->log->debug('reverse flag: '.$params->{reverse});
+        $c->log->debug('No match, reverse flag may be wrong');
         if ($params->{reverse}) {
             delete $params->{reverse};
         } else {
@@ -57,14 +59,16 @@ sub trace_data_GET{
     return $self->status_bad_request( $c, message => "Couldn't find specified sequence in the trace" ) unless $match;
     return $self->status_bad_request( $c, message => "Found the search sequence more than once" ) if @rest;
 
-    my $data = $self->_extract_region( \%scf, $match->{start}, $match->{end}, $params->{reverse} );
+    $c->log->debug('final reverse flag: '.$params->{reverse});
+    my $context = $params->{context} || 0;
+    my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
 
     return $self->status_ok( $c, entity => $data );
 }
 
 sub _get_matches {
     my ( $self, $seq, $search ) = @_;
-
+$self->log->debug("getting matches for $search");
     my $length = length( $search ) - 1;
 
     my @matches;

@@ -10,6 +10,7 @@ use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
 use TryCatch;
 use Log::Log4perl::Level;
+use Bio::Perl qw( revcom );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -343,6 +344,47 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
         damage_types => [ map{ $_->id } @crispr_damage_types ],
     );
     return;
+}
+
+sub view_traces :Path('/user/crisprqc/view_traces') :Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $crispr_id = $c->req->param('crispr_id') or die "No crispr ID provided";
+
+    my $crispr = $c->model('Golgi')->retrieve_crispr({ id => $crispr_id})
+        or die "Cannot find crispr with id $crispr_id";
+
+    my @well_names;
+    foreach my $letter ("A".."H"){
+        foreach my $number (1..12){
+            push @well_names, sprintf("%s%02d",$letter,$number);
+        }
+    }
+
+    my $params = $c->req->params;
+    my @read_names;
+    my $get_fwd = $params->{fwd_read_prefix} or $params->{fwd_read_suffix};
+    my $get_rev = $params->{rev_read_prefix} or $params->{rev_read_suffix};
+    foreach my $well(@well_names){
+        my $names = {};
+        if($get_fwd){
+            $names->{fwd} = $params->{fwd_read_prefix}.$well.$params->{fwd_read_suffix};
+        }
+        if($get_rev){
+            $names->{rev} = $params->{rev_read_prefix}.$well.$params->{rev_read_suffix};
+        }
+        push @read_names, $names;
+    }
+
+    my $partial = substr($crispr->seq,10);
+    $c->stash(
+        crispr_id   => $crispr_id,
+        crispr_seq  => $crispr->seq,
+        search_seq  => $partial,
+        read_names  => \@read_names,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

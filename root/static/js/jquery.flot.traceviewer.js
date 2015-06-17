@@ -139,15 +139,15 @@ TraceViewer.prototype.show_traces = function(button) {
     var fwd_seq = button.closest("td").find(".forward_full").text() || this.extract_sequence( seqs.first() );
     var rev_seq = button.closest("td").find(".reverse_full").text() || this.extract_sequence( seqs.last() );
 
-    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq);
-    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1);
+    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"));
+    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"));
 
     //add both the graphs into a single div and replace the button
     button.replaceWith( $("<div>").append(this.fwd_container).append(this.rev_container) );
 };
 
 //wait for data then give it to the real plot creation method
-TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse) {
+TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context) {
     if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
 
     //create local var for this, as "this" in getJSON is different
@@ -156,7 +156,7 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
     //fetch the users data and add a new graph when the data comes back
     $.getJSON(
         this.url,
-        { "name": name, "search_seq": search_seq, "reverse": reverse },
+        { "name": name, "search_seq": search_seq, "reverse": reverse, "context": context },
         function(data) {
             parent._create_plot(placeholder, data);
         }
