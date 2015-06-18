@@ -53,9 +53,11 @@ sub _build_summary_fields {
             design_id
             int_plate_name
             final_pick_plate_name
+            final_pick_well_name
             final_pick_cassette_name
             final_pick_backbone_name
             final_pick_well_accepted
+            assembly_well_id
             assembly_plate_name
             assembly_well_name
             crispr_ep_well_id
@@ -165,7 +167,7 @@ sub build_ep_detail {
         type_id => 'CRISPR_EP',
         species_id => $self->species,
         #sponsor_id => 'EUCOMMTools Recovery',
-        name => 'HUEP0036', ## FIXME: single plate for testing
+        #name => { -in => ['HUEP0001','HUEP0002','HUEP0003','HUEP0004','HUEP0005',] } ## FIXME: single plate for testing
     });
 
     DEBUG "Creating summary for ".scalar(@crispr_ep_plates)." CRISPR_EP plates";
@@ -191,23 +193,29 @@ sub build_ep_detail {
         next unless @summary;
 
         for my $summary ( @summary ) {
+
+            # Some CRISPR_EP plates come from OLIGO_ASSEMBLY plates
+            # so do not have assembly well in summaries table
+            # We skip these for now
+            next unless $summary->assembly_well_id;
+
             my %data;
 
             #push @data, [ map { fmt_bool( $summary->$_ ) } @{ $self->summary_fields } ];
             $data{$_} = $summary->$_ for @{ $self->summary_fields };
 
             $data{crispr_ep_plate_well_name} = $summary->crispr_ep_plate_name."_".$summary->crispr_ep_well_name;
+            $data{vector_id} = $summary->final_pick_plate_name."_".$summary->final_pick_well_name;
 
-            my $assembly_well = $self->model->retrieve_well( {
-                plate_name => $summary->assembly_plate_name,
-                well_name  => $summary->assembly_well_name,
+            my $assembly_well = $self->model->schema->resultset('Well')->find( {
+                id => $summary->assembly_well_id,
             } );
             my @experiments = $assembly_well->experiments;
             $data{experiment_id} = join ", ", map { $_->id } @experiments;
 
-            my $design = $self->model->schema->resultset('Design')->search({
+            my $design = $self->model->schema->resultset('Design')->find({
                 id => $summary->design_id,
-            })->first;
+            });
             my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
             $data{chromosome} = $design_oligo_locus->chr->name;
 
@@ -222,6 +230,10 @@ sub build_ep_detail {
             my @crisprs = $assembly_well->crisprs;
             $data{crispr_1_id} = $crisprs[0] ? $crisprs[0]->id : undef;
             $data{crispr_2_id} = $crisprs[1] ? $crisprs[1]->id : undef;
+
+            # Work out assembly well QC verification result (true or false). NB: in future we may be storing
+            # this as the well_accepted flag in which case can get it from summaries
+            $data{assembly_well_seq_verified} = fmt_bool($assembly_well->assembly_well_qc_verified);
 
             my @epds = $self->model->schema->resultset('Summary')->search(
                 { crispr_ep_well_id => $summary->crispr_ep_well_id },
@@ -259,6 +271,10 @@ sub build_ep_detail {
                 #my $qc_well = $ep_pick_well->accepted_crispr_es_qc_well;
                 #next unless $qc_well;
                 foreach my $qc_well($ep_pick_well->crispr_es_qc_wells){
+                    # Skip QC wells that have not damage type
+                    # Is this the right thing to do?
+                    next unless $qc_well->crispr_damage_type_id;
+
                     $ep_pick_damage{ $qc_well->crispr_damage_type_id }++;
                 }
             }
@@ -267,7 +283,7 @@ sub build_ep_detail {
                 $data{$damage_type} = $ep_pick_damage{$damage_type};
             }
 
-            if(exists $data{frameshift}){
+            if( $data{ep_colonies_picked} and exists $data{frameshift} ){
                 my $efficiency = ($data{frameshift}/$data{ep_colonies_picked}) * 100;
                 $data{targeting_efficiency} = round($efficiency)."%";
             }

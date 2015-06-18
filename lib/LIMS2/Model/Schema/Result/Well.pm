@@ -1818,5 +1818,20 @@ sub assembly_qc_value{
     return;
 }
 
+sub assembly_well_qc_verified{
+    my ($self) = @_;
+
+    my @good = map { $_->qc_type }
+               $self->search_related('well_assembly_qcs',{
+                  value => 'Good',
+               });
+
+    # True if vector is good and at least one crispr good
+    my $vector_good = grep { $_ eq 'VECTOR_QC' } @good;
+    my $crispr_good = grep { $_ =~ /CRISPR/ } @good;
+
+    return $vector_good and $crispr_good;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
