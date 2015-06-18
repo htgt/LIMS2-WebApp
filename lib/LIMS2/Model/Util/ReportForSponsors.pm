@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.323';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.324';
 }
 ## use critic
 
@@ -455,7 +455,7 @@ sub generate_sub_report {
                                             'wt_count',
                                             'ms_count',
                                             'nc_count',
-                                            # 'ep_pick_het',
+                                            'ep_pick_het',
 
                                             'distrib_clones',
 
@@ -497,7 +497,7 @@ sub generate_sub_report {
                                             '# wt clones',
                                             '# mosaic clones',
                                             '# no-call clones',
-                                            # '# het',
+                                            'het clones',
 
                                             'distributable clones',
 
@@ -965,8 +965,22 @@ sub genes {
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
 
+
         # if there are no designs, stop here
-        next unless scalar @design_ids;
+        if ( !scalar @design_ids ) {
+            push @genes_for_display, {
+                'gene_id'                => $gene_id,
+                'gene_symbol'            => $gene_symbol,
+                'chromosome'             => $chromosome,
+                'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+                'recovery_class'         => $recovery_class ? $recovery_class : '0',
+                'priority'               => $priority ? $priority : '0',
+                'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
+                'ep_data'                => [],
+            };
+            next;
+        }
+
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1143,7 +1157,7 @@ sub genes {
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
-                my $damage_call;
+                my $damage_call = '';
 
 
                 # grab data for crispr damage type
@@ -1182,59 +1196,38 @@ sub genes {
                             $curr_ep_data{$crispr_damage_types[0]}++;
                         } else {
                             DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                            next;
+                            # next;
                         }
                     }
                 }
                 else {
                     DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                    next;
+                    # next;
                 }
 
+                if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
+                    try{
+                        my $het = $self->schema->resultset( 'WellHetStatus' )->find(
+                                { well_id => $ep_pick->ep_pick_well_id } );
+                        my $five = $het->five_prime;
+                        my $three = $het->three_prime;
 
+                        if ( $het->five_prime && $het->three_prime ) {
+                            $curr_ep_data{'het'}++;
+                        }
+                    };
+                } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
+                    try{
+                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
+                                { well_id => $ep_pick->ep_pick_well_id } );
+                        my $five = $het->five_prime;
+                        my $three = $het->three_prime;
 
-
-    # ## $chromosome
-    # ## $damage_call
-
-    #             if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
-    #                 print "no-call X/Y\n";
-    #                 try{
-    #                     # print "Success try\n";
-    #                     my $het = $self->schema->resultset( 'WellHetStatus' )->find(
-    #                             { well_id => $ep_pick->ep_pick_well_id } );
-    #                     my $five = $het->five_prime;
-    #                     my $three = $het->three_prime;
-    #                     ### $five
-    #                     ### $three
-    #                     if ( $het->five_prime && $het->three_prime ) {
-    #                         print "!!!!!! HET X/Y\n";
-    #                         $curr_ep_data{'het'}++;
-    #                     }
-    #                 };
-    #             } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
-    #                 print "wild-type !X/Y\n";
-    #                 try{
-    #                     # print "Success try\n";
-    #                     my $het = $self->schema->resultset( 'WellHetStatus' )->find(
-    #                             { well_id => $ep_pick->ep_pick_well_id } );
-    #                     my $five = $het->five_prime;
-    #                     my $three = $het->three_prime;
-    #                     ### $five
-    #                     ### $three
-    #                     if ( $het->five_prime && $het->three_prime ) {
-    #                         print "!!!!!! HET !X/Y\n";
-    #                         $curr_ep_data{'het'}++;
-    #                     }
-    #                 };
-    #             }
-
-
-
-
-
-
-
+                        if ( $het->five_prime && $het->three_prime ) {
+                            $curr_ep_data{'het'}++;
+                        }
+                    };
+                }
             }
             ## use critic
 
@@ -1361,7 +1354,7 @@ sub genes {
             $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
             $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
             $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
             $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||

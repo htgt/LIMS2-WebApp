@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.323';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.324';
 }
 ## use critic
 
