@@ -927,6 +927,7 @@ sub genes {
         $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
         $sponsors_str =~ s/Transfacs/TF/;
         $sponsors_str =~ s/Pathogen/PG/;
+        $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
         $sponsors_str =~ s/Human Genetics/HG/;
 
@@ -1429,10 +1430,6 @@ sub genes_old {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
-
-    if ($sponsor_id eq 'MGP Recovery') {
-        return mgp_recovery_genes( $self, $sponsor_id, $query_type );
-    }
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
