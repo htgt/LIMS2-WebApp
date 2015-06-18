@@ -272,6 +272,8 @@ sub build_ep_detail {
                 $data{targeting_efficiency} = round($efficiency)."%";
             }
 
+            $data{nhej_of_second_allele} = $data{frameshift} + $data{'in-frame'} + $data{mosaic};
+
             #use hash slice to get all the values we want out in order
             push @row, [ map { $_ } @data{ map { keys %{$_} } @{$self->column_map} } ];
 
