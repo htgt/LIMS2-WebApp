@@ -351,10 +351,22 @@ sub view_traces :Path('/user/crisprqc/view_traces') :Args(0){
 
     $c->assert_user_roles('read');
 
-    my $crispr_id = $c->req->param('crispr_id') or die "No crispr ID provided";
+    my ($crispr_id, $crispr_seq, $search_seq);
 
-    my $crispr = $c->model('Golgi')->retrieve_crispr({ id => $crispr_id})
-        or die "Cannot find crispr with id $crispr_id";
+    if($crispr_id = $c->req->param('crispr_id')){
+        my $crispr = $c->model('Golgi')->retrieve_crispr({ id => $crispr_id})
+            or die "Cannot find crispr with id $crispr_id";
+        $crispr_seq = $crispr->seq;
+        $search_seq = substr($crispr->seq,10);
+    }
+    elsif($c->req->param('search_seq')){
+        $search_seq = $c->req->param('search_seq');
+        $crispr_id = 'no crispr';
+        $crispr_seq = 'no crispr';
+    }
+    else{
+        die "No crispr_id or search_seq specified";
+    }
 
     my @well_names;
     foreach my $letter ("A".."H"){
@@ -378,11 +390,10 @@ sub view_traces :Path('/user/crisprqc/view_traces') :Args(0){
         push @read_names, $names;
     }
 
-    my $partial = substr($crispr->seq,10);
     $c->stash(
         crispr_id   => $crispr_id,
-        crispr_seq  => $crispr->seq,
-        search_seq  => $partial,
+        crispr_seq  => $crispr_seq,
+        search_seq  => $search_seq,
         read_names  => \@read_names,
     );
 }
