@@ -449,7 +449,7 @@ sub generate_sub_report {
                                             'wt_count',
                                             'ms_count',
                                             'nc_count',
-                                            # 'ep_pick_het',
+                                            'ep_pick_het',
 
                                             'distrib_clones',
 
@@ -491,7 +491,7 @@ sub generate_sub_report {
                                             '# wt clones',
                                             '# mosaic clones',
                                             '# no-call clones',
-                                            # '# het',
+                                            'het clones',
 
                                             'distributable clones',
 
@@ -867,7 +867,6 @@ sub genes {
         # Now we grab this from the solr index
         my $gene_symbol = $gene_info->{'gene_symbol'};
         my $chromosome = $gene_info->{'chromosome'};
-# print "GENE: $gene_symbol...\n";
 
         my %search = ( design_gene_id => $gene_id );
 
@@ -1148,11 +1147,11 @@ sub genes {
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
-            # $curr_ep_data{'het'} = 0;
+            $curr_ep_data{'het'} = 0;
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
-                my $damage_call;
+                my $damage_call = '';
 
 
                 # grab data for crispr damage type
@@ -1200,50 +1199,29 @@ sub genes {
                     # next;
                 }
 
+                if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
+                    try{
+                        my $het = $self->schema->resultset( 'WellHetStatus' )->find(
+                                { well_id => $ep_pick->ep_pick_well_id } );
+                        my $five = $het->five_prime;
+                        my $three = $het->three_prime;
 
+                        if ( $het->five_prime && $het->three_prime ) {
+                            $curr_ep_data{'het'}++;
+                        }
+                    };
+                } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
+                    try{
+                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
+                                { well_id => $ep_pick->ep_pick_well_id } );
+                        my $five = $het->five_prime;
+                        my $three = $het->three_prime;
 
-
-    # ### $chromosome
-    # ### $damage_call
-
-    #             if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
-    #                 print "no-call X/Y\n";
-    #                 try{
-    #                     # print "Success try\n";
-    #                     my $het = $self->schema->resultset( 'WellHetStatus' )->find(
-    #                             { well_id => $ep_pick->ep_pick_well_id } );
-    #                     my $five = $het->five_prime;
-    #                     my $three = $het->three_prime;
-    #                     ### $five
-    #                     ### $three
-    #                     if ( $het->five_prime && $het->three_prime ) {
-    #                         print "!!!!!! HET X/Y\n";
-    #                         $curr_ep_data{'het'}++;
-    #                     }
-    #                 };
-    #             } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
-    #                 print "wild-type !X/Y\n";
-    #                 try{
-    #                     # print "Success try\n";
-    #                     my $het = $self->schema->resultset( 'WellHetStatus' )->find(
-    #                             { well_id => $ep_pick->ep_pick_well_id } );
-    #                     my $five = $het->five_prime;
-    #                     my $three = $het->three_prime;
-    #                     ### $five
-    #                     ### $three
-    #                     if ( $het->five_prime && $het->three_prime ) {
-    #                         print "!!!!!! HET !X/Y\n";
-    #                         $curr_ep_data{'het'}++;
-    #                     }
-    #                 };
-    #             }
-
-
-
-
-
-
-
+                        if ( $het->five_prime && $het->three_prime ) {
+                            $curr_ep_data{'het'}++;
+                        }
+                    };
+                }
             }
             ## use critic
 
@@ -1255,7 +1233,7 @@ sub genes {
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
             $total_no_call += $curr_ep_data{'no-call'};
-            # $total_het += $curr_ep_data{'het'};
+            $total_het += $curr_ep_data{'het'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
@@ -1263,7 +1241,7 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
@@ -1341,7 +1319,7 @@ sub genes {
             'wt_count'               => $total_wild_type,
             'ms_count'               => $total_mosaic,
             'nc_count'               => $total_no_call,
-            # 'ep_pick_het'            => $total_het,
+            'ep_pick_het'            => $total_het,
 
             'distrib_clones'         => $piq_pass_count,
 
