@@ -867,6 +867,7 @@ sub genes {
         # Now we grab this from the solr index
         my $gene_symbol = $gene_info->{'gene_symbol'};
         my $chromosome = $gene_info->{'chromosome'};
+# print "GENE: $gene_symbol...\n";
 
         my %search = ( design_gene_id => $gene_id );
 
@@ -959,8 +960,22 @@ sub genes {
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
 
+
         # if there are no designs, stop here
-        next unless scalar @design_ids;
+        if ( !scalar @design_ids ) {
+            push @genes_for_display, {
+                'gene_id'                => $gene_id,
+                'gene_symbol'            => $gene_symbol,
+                'chromosome'             => $chromosome,
+                'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+                'recovery_class'         => $recovery_class ? $recovery_class : '0',
+                'priority'               => $priority ? $priority : '0',
+                'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
+                'ep_data'                => [],
+            };
+            next;
+        }
+
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1133,7 +1148,7 @@ sub genes {
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
-            $curr_ep_data{'het'} = 0;
+            # $curr_ep_data{'het'} = 0;
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
@@ -1176,20 +1191,20 @@ sub genes {
                             $curr_ep_data{$crispr_damage_types[0]}++;
                         } else {
                             DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                            next;
+                            # next;
                         }
                     }
                 }
                 else {
                     DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                    next;
+                    # next;
                 }
 
 
 
 
-    # ## $chromosome
-    # ## $damage_call
+    # ### $chromosome
+    # ### $damage_call
 
     #             if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
     #                 print "no-call X/Y\n";
@@ -1240,7 +1255,7 @@ sub genes {
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
             $total_no_call += $curr_ep_data{'no-call'};
-            $total_het += $curr_ep_data{'het'};
+            # $total_het += $curr_ep_data{'het'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
@@ -1248,7 +1263,7 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
@@ -1326,7 +1341,7 @@ sub genes {
             'wt_count'               => $total_wild_type,
             'ms_count'               => $total_mosaic,
             'nc_count'               => $total_no_call,
-            'ep_pick_het'            => $total_het,
+            # 'ep_pick_het'            => $total_het,
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1355,7 +1370,7 @@ sub genes {
             $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
             $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
             $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
             $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
