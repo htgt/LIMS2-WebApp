@@ -58,10 +58,16 @@ sub create_crispr {
     # If crispr with same seq and locus exists we need to just deal with the crispr off target data
     if ( $crispr ) {
         $self->log->debug( 'Found identical crispr site, just updating off target data: ' . $crispr->id );
-        #also update the wge_crispr_id if its set
-        if ( $params->{wge_crispr_id} ) {
-            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $params->{wge_crispr_id} ) {
-                $crispr->update( { wge_crispr_id => $params->{wge_crispr_id} } );
+        # also update the wge_crispr_id if its set
+        if ( $validated_params->{wge_crispr_id} ) {
+            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $validated_params->{wge_crispr_id} ) {
+                $crispr->update( { wge_crispr_id => $validated_params->{wge_crispr_id} } );
+            }
+        }
+        # update the crispr_loci_type_id
+        if ( $validated_params->{crispr_loci_type_id} ) {
+            if ( (! $crispr->{crispr_loci_type_id}) || $crispr->{crispr_loci_type_id} ne $validated_params->{crispr_loci_type_id} ) {
+                $crispr->update( { crispr_loci_type_id => $validated_params->{crispr_loci_type_id} } );
             }
         }
 
