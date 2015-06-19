@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.325     2015-06-19 14:10:29 Europe/London
+
+   Fixed bug in crispr_loci_type_id of create_crispr
+   Fixed bug in mouse non-crispr project sponsor sub report 
+
 0.324     2015-06-18 12:38:59 Europe/London
 
    Added het clones to sponsor_sub_report
