@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CGAP;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CGAP::VERSION = '0.322';
+    $LIMS2::Model::Util::CGAP::VERSION = '0.325';
 }
 ## use critic
 

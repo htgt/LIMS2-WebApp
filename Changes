@@ -1,3 +1,16 @@
+0.325     2015-06-19 14:10:29 Europe/London
+
+   Fixed bug in crispr_loci_type_id of create_crispr
+   Fixed bug in mouse non-crispr project sponsor sub report 
+
+0.324     2015-06-18 12:38:59 Europe/London
+
+   Added het clones to sponsor_sub_report
+
+0.323     2015-06-16 13:46:48 Europe/London
+
+   wge crispr importer fix. duplicated crispr group prohibited.
+
 0.322     2015-06-09 09:25:14 Europe/London
 
    Added Het validation status framework and interface

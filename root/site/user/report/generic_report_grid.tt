@@ -234,22 +234,10 @@
                     },
                     [%- END %]
 
-                    [%- IF col.match( 'Crispr_.*_qc' ) %]
-                    width: 120,
-                    editor: assembly_qc_combo,
-                    [%- END %]
-
-                    [%- IF col.match( 'Vector_qc') %]
-                    width: 120,
-                    editor: assembly_qc_combo,
-                    [%- END %]
-
-
                     dataIndex: '[%- col %]'
                 }
                 [%- END %]
             ];
-
 
             function lims2_action_combo(val){
                 var id = Ext.id();
@@ -295,7 +283,7 @@
                     combo.setValue(selected);
                 },50);
                 return Ext.String.format('<div id="{0}"></div>', id);
-            }
+            };
 
             function lims2_action_button_json(val) {
                     var id = Ext.id();
@@ -335,7 +323,6 @@
                     return Ext.String.format('<div id="{0}"></div>', id);
                 };
 
-
             grid = Ext.create('Ext.grid.Panel', {
                 [% IF printable %]
                 tbar: [{
@@ -371,7 +358,9 @@
                 ],
                 listeners: {
                     'afterlayout' : function(grid){
-                        grid.syncRowHeights();
+                        if(grid.lockable){
+                            grid.syncRowHeights();
+                        }
                     }
                 },
                 tools:[

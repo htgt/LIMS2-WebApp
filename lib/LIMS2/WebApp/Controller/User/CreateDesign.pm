@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.322';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.325';
 }
 ## use critic
 
@@ -511,6 +511,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
+        delete $design_data->{strand};
+        delete $design_data->{oligo_order_seqs};
+        delete $design_data->{assembly};
         foreach my $comments (@{$design_data->{comments}}) {
             delete $comments->{id};
         }
