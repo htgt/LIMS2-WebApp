@@ -160,12 +160,6 @@ sub resultset_by_id{
     return \%results_by_id;
 }
 
-sub _well_name {
-    my $well = shift;
-
-    return $well ? $well->plate->name . "[" . $well->name . "]" : "";
-}
-
 sub build_ep_detail {
     my ( $self ) = @_;
 

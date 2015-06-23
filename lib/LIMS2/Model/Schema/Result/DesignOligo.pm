@@ -188,13 +188,13 @@ sub as_hash {
 }
 
 sub current_locus{
-    my $self;
+    my $self = shift;
 
     if ( my $default_assembly = $self->design->species->default_assembly ) {
         return $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
 
-    return undef;
+    return;
 }
 
 =head2 oligo_strand_vs_design_strand
