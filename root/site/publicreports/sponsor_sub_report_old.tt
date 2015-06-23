@@ -146,7 +146,13 @@ document.title = "[%- sponsor_id %]";
             [%- IF all %]
               <td>[% colval %]</td>
             [%- END %]
-        [%- ELSIF !colval %]
+
+          [%- ELSIF col == 'vector_pcr_passes' %]
+            [% IF c.user %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+            [%- END %]
+
+        [%- ELSIF !colval  %]
             <td></td>
         [%- ELSE %]
           [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_vector' %]
@@ -166,10 +172,6 @@ document.title = "[%- sponsor_id %]";
                 || col == 'priority'
                 || col == 'effort_concluded' %]
             <td style="background:#E5E4E2" >[%- colval %]</td>
-          [%- ELSIF col == 'vector_pcr_passes' %]
-            [% IF c.user %]
-              <td style="background:#E5E4E2" >[%- colval %]</td>
-            [%- END %]
           [%- ELSE %]
             <td>[%- colval %]</td>
           [%- END %]

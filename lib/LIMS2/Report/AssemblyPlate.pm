@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.321';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.326';
 }
 ## use critic
 
@@ -152,7 +152,9 @@ override iterator => sub {
 
     my $well_data = shift @wells_data;
 
-    my $combo_options = ['Good','Bad','Wrong'];
+    # Get list of QC combo options from enum list in database schema
+    my $col_info = $self->model->schema->resultset('WellAssemblyQc')->result_source->column_info('value');
+    my $combo_options = $col_info->{extra}->{list};
     my %combo_common = (
         options => $combo_options,
         api_base => 'api/update_assembly_qc',

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.321';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.326';
 }
 ## use critic
 
@@ -437,6 +437,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_het_status
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellHetStatus>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_het_status",
+  "LIMS2::Model::Schema::Result::WellHetStatus",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_lab_number
 
 Type: might_have
@@ -563,8 +578,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:23:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vONvzPb/EJls8J7tIbF/Dg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mydeTrbl+IRZGKndI3lQtw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1389,6 +1404,43 @@ sub crispr_entity {
    return $crispr_entity;
 }
 
+=head experiments
+
+Returns all experiment specifications matching this well
+
+Note: only works for assembly well or later at the moment
+
+=cut
+use Time::HiRes qw(gettimeofday tv_interval);
+sub experiments {
+    my $self = shift;
+
+    my $assembly = $self->parent_assembly_well;
+    unless($assembly){
+        die "No assembly well parent found for $self. Cannot identify related experiments";
+    }
+
+    my $t0 = [gettimeofday];
+    my $crispr_entity = $self->crispr_entity;
+    DEBUG "Time taken to get crispr_entity: ".tv_interval($t0);
+    my $design = $self->design;
+
+    unless($crispr_entity or $design){
+        # This should never happen but just in case
+        die "No crispr entity or design found for $self. Cannot identify related experiments";
+    }
+
+    my $search = {};
+    if($crispr_entity){
+        $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
+    }
+    if($design){
+        $search->{design_id} = $design->id;
+    }
+
+    return $self->result_source->schema->resultset('Experiment')->search($search)->all;
+}
+
 =head2 crisprs
 
 Return array of all crispr(s) linked to this well.
@@ -1770,6 +1822,21 @@ sub assembly_qc_value{
     }
 
     return;
+}
+
+sub assembly_well_qc_verified{
+    my ($self) = @_;
+
+    my @good = map { $_->qc_type }
+               $self->search_related('well_assembly_qcs',{
+                  value => 'Good',
+               });
+
+    # True if vector is good and at least one crispr good
+    my $vector_good = grep { $_ eq 'VECTOR_QC' } @good;
+    my $crispr_good = grep { $_ =~ /CRISPR/ } @good;
+
+    return $vector_good and $crispr_good;
 }
 
 __PACKAGE__->meta->make_immutable;

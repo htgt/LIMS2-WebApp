@@ -64,6 +64,7 @@ $(document).ready(function() {
                 hide_crispr_well_id    = 1
                 complete_info          = 1
                 hide_crispr_validation = 1
+                hide_het_validation    = 1
             %]
             <td>
             [% IF qc.accepted %]

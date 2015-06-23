@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.321';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.326';
 }
 ## use critic
 
@@ -296,11 +296,30 @@ sub existing_crispr_plate_appends_type {
 }
 
 sub assembly_qc_type{
-    return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
+    return shift->in_enum_column('WellAssemblyQc','qc_type');
+    #return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
 }
 
 sub assembly_qc_value{
-    return shift->in_set('Good','Bad','Wrong');
+    return shift->in_enum_column('WellAssemblyQc','value');
+    #return shift->in_set('Good','Bad','Wrong');
+}
+
+=head2 in_enum_column
+
+  Use enum from database schema as set, e.g. value column from WellAssemblyQc
+
+  data_type: 'enum'
+  extra: {custom_type_name => "qc_element_type",list => ["Good","Bad","Wrong"]}
+  is_nullable: 0
+
+=cut
+
+sub in_enum_column{
+    my ($self,$resultset_name,$column_name) = @_;
+    my $col_info = $self->model->schema->resultset($resultset_name)->result_source->column_info($column_name);
+    my $list = $col_info->{extra}->{list};
+    return $self->in_set(@{ $list });
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.321';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.326';
 }
 ## use critic
 
@@ -923,7 +923,7 @@ sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
     my @events = $bc->search_related('barcode_events',
             {},
             {
-                order_by => { -desc => [qw/created_at/] }
+                order_by => { -desc => [qw/created_at id/] }
             }
     );
 
