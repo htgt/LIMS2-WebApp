@@ -5,7 +5,7 @@ document.title = "[%- sponsor_id %]";
 
 <span style="float:right">
 
-  [% IF type == 'full' %]
+  [%- IF type == 'full' %]
   <a id='type_simple' type='button' class='btn btn-primary btn-small'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -13,7 +13,7 @@ document.title = "[%- sponsor_id %]";
         type => 'simple'
     }
   ) %]><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
-  [% ELSIF type == 'simple' %]
+  [%- ELSIF type == 'simple' %]
   <a id='type_full' type='button' class='btn btn-primary btn-small'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -21,7 +21,7 @@ document.title = "[%- sponsor_id %]";
         type => 'full'
     }
   ) %]><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
-  [% END %]
+  [%- END %]
   <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -34,70 +34,70 @@ document.title = "[%- sponsor_id %]";
   <h2>Sponsor Progress Sub-Report</h2>
 </div>
 <p>
-<big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+<big><b>[%- disp_stage %]</b> for <b>[%- disp_target_type %]</b> projects for sponsor <b>[%- sponsor_id %]</b></big>
 </p>
 
-[% IF report_id %]
+[%- IF report_id %]
 
 <table class="table table-bordered table-condensed">
   <thead>
     <tr>
       [%- FOR disp_col IN display_columns %]
         [%- IF disp_col == "vector designs" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
             data-content="Number of gibson designs created for this gene (may not yet be plated)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "ordered targeting vectors" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
             data-content="Number of design oligos ordered (DESIGN wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "final vector clones" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="targeting_vector_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="targeting_vector_wells" href="#"
             data-content="Number of final vector clones, post-gateway (FINAL wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "QC-verified vectors" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
             data-content="Number of sequence-verified final vector clones (FINAL wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "vectors constructed" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
             data-content="Number of final vectors and gRNA plasmids passing DNA QC (DNA wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "electroporations" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="electroporations" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="electroporations" href="#"
             data-content="Number of electroporated wells (EP/CRISPR_EP wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "colonies picked" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="colonies_picked" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="colonies_picked" href="#"
             data-content="Number of electroporated colonies picked for screening (EP_PICK wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "targeted clones" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="targeted_clones" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="targeted_clones" href="#"
             data-content="Number of electroporated colonies passing genotyping screens (EP_PICK wells accepted)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th></th>
         [%- ELSIF disp_col == "crispr wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="crispr_wells" href="#"
             data-content="Number of crisprs linked to the vector designs (CRISPR wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "crispr vector wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_vector_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="crispr_vector_wells" href="#"
             data-content="Number of crispr vector wells (CRISPR_V wells)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "crispr dna wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_dna_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="crispr_dna_wells" href="#"
             data-content="Number of crispr vector DNA wells (DNA wells from CRISPR_V)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "accepted crispr dna wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_dna_wells" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="accepted_crispr_dna_wells" href="#"
             data-content="Number of accepted crispr vector DNA wells (DNA wells accepted from CRISPR_V)"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "accepted crispr pairs" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_pairs" href="#"
+            <th>[%- disp_col %] <i class="icon-question-sign" id="accepted_crispr_pairs" href="#"
             data-content="Number of crispr pairs with accepted DNA wells for both left and right crispr"
             rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
         [%- ELSIF disp_col == "PCR-passing design oligos" || disp_col == "info" %]
-          [% IF c.user %]
-            <th>[% disp_col %]</th>
+          [%- IF c.user %]
+            <th>[%- disp_col %]</th>
           [%- END %]
         [%- ELSIF disp_col == '# colonies'           ||
                   disp_col == '# wt clones'          ||
@@ -105,9 +105,9 @@ document.title = "[%- sponsor_id %]";
                   disp_col == '# in-frame clones'    ||
                   disp_col == '# frame-shift clones' ||
                   disp_col == '# no-call clones' %]
-            <th>[% disp_col %]</th>
+            <th>[%- disp_col %]</th>
         [%- ELSE %]
-            <th>[% disp_col %]</th>
+            <th>[%- disp_col %]</th>
         [%- END %]
       [%- END %]
     </tr>
@@ -133,44 +133,44 @@ document.title = "[%- sponsor_id %]";
             <td style="color:red">no</td>
           [%- ELSE %]
             <td style="color:orange">---</td>
-          [% END %]
-        [% ELSIF col == "gene_id" %]
+          [%- END %]
+        [%- ELSIF col == "gene_id" %]
 
-              [% IF c.session.selected_species == 'Human' %]
-                <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% colval %]">[% colval %]</a></td>
-              [% ELSIF c.session.selected_species == 'Mouse' %]
-                <td><a class="brand" href="http://www.informatics.jax.org/marker/[% colval %]">[% colval %]</a></td>
-              [% END %]
+              [%- IF c.session.selected_species == 'Human' %]
+                <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[%- colval %]">[%- colval %]</a></td>
+              [%- ELSIF c.session.selected_species == 'Mouse' %]
+                <td><a class="brand" href="http://www.informatics.jax.org/marker/[%- colval %]">[%- colval %]</a></td>
+              [%- END %]
 
-        [% ELSIF col == "gene_symbol" %]
-            [% IF c.user %]
-                <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[% colval %]</a></td>
-            [% ELSE %]
-                <td>[% colval %]</td>
-            [% END %]
+        [%- ELSIF col == "gene_symbol" %]
+            [%- IF c.user %]
+                <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[%- colval %]</a></td>
+            [%- ELSE %]
+                <td>[%- colval %]</td>
+            [%- END %]
         [%- ELSIF col == "sponsors" %]
-            <td>[% colval %]</td>
+            <td>[%- colval %]</td>
         [%- ELSIF col == "chr" %]
-            <td>[% colval %]</td>
+            <td>[%- colval %]</td>
         [%- ELSIF col == 'vector_pcr_passes' %]
-            [% IF c.user %]
-              [% IF colval %]
+            [%- IF c.user %]
+              [%- IF colval %]
               <td style="background:#E5E4E2" >[%- colval %]</td>
-              [% ELSE %]
+              [%- ELSE %]
               <td></td>
               [%- END %]
             [%- END %]
         [%- ELSIF col == 'recovery_class' %]
-            [% IF c.user %]
+            [%- IF c.user %]
               [%- IF row.item('fs_count') && row.item('effort_concluded') %]
                 <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
               [%- ELSIF row.item('effort_concluded') %]
                 <td style="background:#FF4646;white-space:nowrap">[%- colval %]</td>
-              [% ELSIF colval != '-' %]
+              [%- ELSIF colval != '-' %]
                 <td style="background:#E5E4E2;white-space:nowrap">[%- colval %]</td>
-              [% ELSE %]
+              [%- ELSE %]
                 <td>[%- colval %]</td>
-              [% END %]
+              [%- END %]
             [%- END %]
 
         [%- ELSIF col == 'priority' %]
@@ -186,14 +186,14 @@ document.title = "[%- sponsor_id %]";
 
         [%- ELSIF col == 'targeted_clones' %]
           [%- IF row.item('targeted_clones') && row.item('chromosome') == "X" %]
-            <td style="background:#FFA500"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSIF row.item('targeted_clones') && row.item('fs_count') %]
-            <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSIF row.item('targeted_clones') %]
-            <td style="background:#FF4646"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSE %]
+            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') && row.item('fs_count') %]
+            <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') %]
+            <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSE %]
             <td></td>
-          [% END %]
+          [%- END %]
         [%- ELSIF col == 'fs_count'
                || col == 'if_count'
                || col == 'wt_count'
@@ -202,11 +202,11 @@ document.title = "[%- sponsor_id %]";
                || col == 'ep_pick_het'
                 %]
 
-            [% IF row.item('targeted_clones') %]
-              <td style="background:#E5E4E2" >[% colval %]</td>
-            [% ELSE %]
+            [%- IF row.item('targeted_clones') %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+            [%- ELSE %]
               <td></td>
-            [% END %]
+            [%- END %]
         [%- ELSIF !colval %]
             <td></td>
         [%- ELSIF col == 'passing_vector_wells'
@@ -214,7 +214,7 @@ document.title = "[%- sponsor_id %]";
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
         [%- ELSIF col == 'distrib_clones' %]
-          <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+          <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'
                || col == 'vector_wells'
@@ -240,7 +240,7 @@ document.title = "[%- sponsor_id %]";
               [%- END %]
               </td>
 
-        [% ELSIF col == "ep_data" %]
+        [%- ELSIF col == "ep_data" %]
 
           [%- IF row.item('ep_data').0 %]
           </tbody>
@@ -248,7 +248,7 @@ document.title = "[%- sponsor_id %]";
                 [%- FOREACH ep_data IN row.item('ep_data') %]
 
                 <tr>
-                [% IF c.user %]
+                [%- IF c.user %]
                   <td colspan=10></td>
                 [%- ELSE %]
                   <td colspan=9></td>
@@ -262,7 +262,7 @@ document.title = "[%- sponsor_id %]";
                   <td>[%- ep_data.item('mosaic') %]</td>
                   <td>[%- ep_data.item('no-call') %]</td>
                   <td>[%- ep_data.item('het') %]</td>
-                [% IF c.user %]
+                [%- IF c.user %]
                   <td colspan=3></td>
                 [%- ELSE %]
                   <td colspan=2></td>

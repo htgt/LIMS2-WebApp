@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
               checkout_well_barcode
+              checkout_well_barcode_list
               discard_well_barcode
               freeze_back_fp_barcode
               freeze_back_piq_barcode
