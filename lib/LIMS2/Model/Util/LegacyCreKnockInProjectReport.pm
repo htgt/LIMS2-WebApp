@@ -351,6 +351,11 @@ sub allele_products {
 
     my %allele_mice;
     for my $e ( @mice ) {
+        # avoid error caused by missing allele symbol
+        unless($e->{allele_symbol}){
+            $self->log->debug("No allele_symbol - skipping");
+            next;
+        }
         if ( $e->{allele_symbol} =~ /<sup>(.*)<\/sup>/ ) {
             $allele_mice{$1} = $e->{status_name};
         };

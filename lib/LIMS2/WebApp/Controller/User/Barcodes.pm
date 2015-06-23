@@ -917,7 +917,7 @@ sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
     my @events = $bc->search_related('barcode_events',
             {},
             {
-                order_by => { -desc => [qw/created_at/] }
+                order_by => { -desc => [qw/created_at id/] }
             }
     );
 

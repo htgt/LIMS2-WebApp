@@ -190,7 +190,7 @@
 
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
-                Electroporation Summary
+                Gene Electroporation Summary
               </a>
             </li>
             <li>
@@ -212,6 +212,12 @@
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionGenes' ) %]">
                 Cre Knockin ES Distribution Genes
+              </a>
+            </li>
+            [% ELSE %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummaryJune2015', { species => c.session.selected_species } ) %]">
+              Crispr Electroporation Summary
               </a>
             </li>
             [% END %]
