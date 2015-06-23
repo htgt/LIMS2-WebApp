@@ -11,7 +11,7 @@ use Try::Tiny;
 use Data::Dumper;
 use Math::Round;
 use Time::HiRes qw(gettimeofday tv_interval);
-use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -34,7 +34,7 @@ has '+param_names' => (
 override _build_name => sub {
     my $self = shift;
 
-    return 'Crispr Electroporation Summary';
+    return 'New Crispr Electroporation Summary';
 
 };
 
@@ -108,6 +108,7 @@ sub _build_column_map {
         { wild_type                => "Wild Type - no NHEJ" },
         { mosaic                   => "Mosaic" },
         { 'no-call'                => "No Calls" },
+        { 'het'                    => "Het Clones" },
         { targeting_efficiency     => "Biallelic Targeting Efficiency" },
         { recovery_comment         => "Recovery Comment" },
     ];
@@ -176,6 +177,7 @@ sub build_ep_detail {
     my @summary = $self->model->schema->resultset('Summary')->search({
             crispr_ep_plate_name => { '!=', undef },
             design_species_id    => $self->species,
+            to_report            => 'true',
         },
         {
             select   => $self->summary_fields,
@@ -280,6 +282,10 @@ sub build_ep_detail {
             my $damage_type = crispr_damage_type_for_ep_pick($self->model,$ep_pick_well_id);
             if ($damage_type){
                 $ep_pick_damage{$damage_type}++;
+
+                if(ep_pick_is_het($self->model,$ep_pick_well_id,$data{chromosome},$damage_type)){
+                    $ep_pick_damage{het}++;
+                }
             }
         }
 

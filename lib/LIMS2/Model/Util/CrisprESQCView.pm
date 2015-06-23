@@ -13,13 +13,46 @@ Helper module for displaying Crispr ES QC Data
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'find_gene_crispr_es_qc','crispr_damage_type_for_ep_pick' ]
+    exports => [ 'find_gene_crispr_es_qc','crispr_damage_type_for_ep_pick','ep_pick_is_het' ]
 };
 
 use Log::Log4perl qw( :easy );
 use List::Util qw( first );
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
+
+=head2 ep_pick_is_het
+
+Return true if EP pick well is het based on well het status, damage_call and chromosome
+
+=cut
+
+sub ep_pick_is_het{
+    my ($model, $well_id, $chromosome, $damage_call) = @_;
+
+    my $is_het;
+    if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
+        try{
+            my $het = $model->schema->resultset( 'WellHetStatus' )->find(
+                    { well_id => $well_id } );
+
+            if ( $het->five_prime && $het->three_prime ) {
+                $is_het=1;
+            }
+        };
+    } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
+        try{
+            my $het = $model->schema->resultset( 'WellHetStatus' )->find(
+                    { well_id => $well_id } );
+
+            if ( $het->five_prime && $het->three_prime ) {
+                $is_het=1;
+            }
+        };
+    }
+
+    return $is_het;
+}
 
 =head2 crispr_damage_type_for_ep_pick
 

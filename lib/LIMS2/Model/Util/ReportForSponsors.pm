@@ -4,7 +4,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
-use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
@@ -1158,74 +1158,10 @@ sub genes {
                 else{
                     $damage_call = '';
                 }
-=head
-                # grab data for crispr damage type
-                # only on validated runs...
-                my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
-                    {
-                        well_id  => $ep_pick->ep_pick_well_id,
-                        'crispr_es_qc_run.validated' => 1,
-                    },
-                    {
-                        join => 'crispr_es_qc_run'
 
-                    }
-                );
-
-                my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-                if ( scalar( @crispr_damage_types ) == 1 ) {
-                    $damage_call = $crispr_damage_types[0];
-                    $curr_ep_data{$crispr_damage_types[0]}++;
+                if(ep_pick_is_het($self->model,$ep_pick->ep_pick_well_id,$chromosome,$damage_call)){
+                    $curr_ep_data{het}++;
                 }
-                elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                    # remove any non accepted results
-                    @crispr_damage_types = uniq grep {$_}
-                        map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
-
-                    if ( scalar( @crispr_damage_types ) == 1 ) {
-                        $damage_call = $crispr_damage_types[0];
-                        $curr_ep_data{$crispr_damage_types[0]}++;
-                    }
-                    else {
-                        if (scalar( @crispr_damage_types ) > 1 ) {
-                            # DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has multiple crispr damage types associated with it: "
-                            #         . join( ', ', @crispr_damage_types );
-                            $damage_call = $crispr_damage_types[0];
-                            $curr_ep_data{$crispr_damage_types[0]}++;
-                        } else {
-                            DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                            # next;
-                        }
-                    }
-                }
-                else {
-                    DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                    # next;
-                }
-=cut
-
-                if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
-                    try{
-                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
-                                { well_id => $ep_pick->ep_pick_well_id } );
-
-                        if ( $het->five_prime && $het->three_prime ) {
-                            $curr_ep_data{'het'}++;
-                        }
-                    };
-                } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
-                    try{
-                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
-                                { well_id => $ep_pick->ep_pick_well_id } );
-
-                        if ( $het->five_prime && $het->three_prime ) {
-                            $curr_ep_data{'het'}++;
-                        }
-                    };
-                }
-
-
             }
             ## use critic
 
