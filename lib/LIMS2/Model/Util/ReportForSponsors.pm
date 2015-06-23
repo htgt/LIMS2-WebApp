@@ -4,7 +4,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
-
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
@@ -1150,9 +1150,15 @@ sub genes {
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
-                my $damage_call = '';
+                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-
+                if($damage_call){
+                    $curr_ep_data{$damage_call}++;
+                }
+                else{
+                    $damage_call = '';
+                }
+=head
                 # grab data for crispr damage type
                 # only on validated runs...
                 my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
@@ -1197,7 +1203,7 @@ sub genes {
                     DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
                     # next;
                 }
-
+=cut
 
                 if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
                     try{

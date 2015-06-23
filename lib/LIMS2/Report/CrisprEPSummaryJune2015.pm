@@ -11,6 +11,7 @@ use Try::Tiny;
 use Data::Dumper;
 use Math::Round;
 use Time::HiRes qw(gettimeofday tv_interval);
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -276,16 +277,9 @@ sub build_ep_detail {
         # of all the downstream EP_PICK wells
         my %ep_pick_damage;
         foreach my $ep_pick_well_id (keys %num_wells){
-            my $ep_pick_well = $self->model->schema->resultset('Well')->find({
-                id => $ep_pick_well_id,
-            });
-
-            foreach my $qc_well($ep_pick_well->crispr_es_qc_wells){
-                # Skip QC wells that have no damage type
-                # Is this the right thing to do?
-                next unless $qc_well->crispr_damage_type_id;
-
-                $ep_pick_damage{ $qc_well->crispr_damage_type_id }++;
+            my $damage_type = crispr_damage_type_for_ep_pick($self->model,$ep_pick_well_id);
+            if ($damage_type){
+                $ep_pick_damage{$damage_type}++;
             }
         }
 
