@@ -181,6 +181,9 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     my $crispr_qc = $self->crispr_qc_data( \%wells_hash );
 
+    # Get experiments linked to gene
+    my $experiments = [ map { $_->as_hash } map { $_->experiments } @projects ];
+
     $c->stash(
         'info'         => $gene_info,
         'designs'      => \%designs_hash,
@@ -189,6 +192,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'timeline'     => \@timeline,
         'sponsor'      => $sponsor,
         'crispr_qc'    => $crispr_qc,
+        'experiments'  => $experiments,
     );
 
     return;
