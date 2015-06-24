@@ -221,7 +221,7 @@ sub build_ep_detail {
         my @sponsor_ids = sort { $a cmp $b } uniq @sponsor_ids_unsorted;
 
         $data{sponsor_id} = join "/", @sponsor_ids;
-        $data{recovery_comment} = join ", ", map { $_->recovery_comment } @projects;
+        $data{recovery_comment} = join ", ", grep { $_ } map { $_->recovery_comment } @projects;
 
         # Get chromosome number from design
         my $design = $self->model->schema->resultset('Design')->find({
@@ -283,18 +283,22 @@ sub build_ep_detail {
             }
         }
 
-        foreach my $damage_type (keys %ep_pick_damage){
-            $data{$damage_type} = $ep_pick_damage{$damage_type};
-        }
+        if(%ep_pick_damage){
+            my @types = ('frameshift','in-frame','wild_type','mosaic','no-call','het');
 
-        # Calculate targeting efficiency from frameshift damage counts
-        if( $data{ep_colonies_picked} and exists $data{frameshift} ){
-            my $efficiency = ($data{frameshift}/$data{ep_colonies_picked}) * 100;
-            $data{targeting_efficiency} = round($efficiency)."%";
-        }
+            foreach my $damage_type (@types){
+                $data{$damage_type} = ($ep_pick_damage{$damage_type} ? $ep_pick_damage{$damage_type} : 0);
+            }
 
-        # Count all EP_PICKs where some damage was detected
-        $data{nhej_of_second_allele} = $data{frameshift} + $data{'in-frame'} + $data{mosaic};
+            # Calculate targeting efficiency from frameshift damage counts
+            if( $data{ep_colonies_picked}){
+                my $efficiency = ($data{frameshift}/$data{ep_colonies_picked}) * 100;
+                $data{targeting_efficiency} = round($efficiency)."%";
+            }
+
+            # Count all EP_PICKs where some damage was detected
+            $data{nhej_of_second_allele} = $data{frameshift} + $data{'in-frame'} + $data{mosaic};
+        }
 
         # use hash slice to get all the values we want out in order
         push @row, [ map { $_ } @data{ map { keys %{$_} } @{$self->column_map} } ];
