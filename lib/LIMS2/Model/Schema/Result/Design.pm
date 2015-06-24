@@ -599,5 +599,6 @@ sub gene_symbols{
                   values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
 }
+
 __PACKAGE__->meta->make_immutable;
 1;
