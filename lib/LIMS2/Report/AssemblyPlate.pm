@@ -146,6 +146,14 @@ override iterator => sub {
 
     my $well_data = shift @wells_data;
 
+    # Get list of QC combo options from enum list in database schema
+    my $col_info = $self->model->schema->resultset('WellAssemblyQc')->result_source->column_info('value');
+    my $combo_options = $col_info->{extra}->{list};
+    my %combo_common = (
+        options => $combo_options,
+        api_base => 'api/update_assembly_qc',
+    );
+
     return Iterator::Simple::iter sub {
         return unless $well_data;
 
@@ -171,10 +179,39 @@ override iterator => sub {
                 }
             );
             $crispr_designs = join( "/", map{ $_->design_id } $crispr->crispr_designs->all );
-            $crispr_left_qc_combo = $self->create_combo_json();
-            $crispr_right_qc_combo = $self->create_combo_json();
-            $vector_qc_combo = $self->create_combo_json();
+
+## no critic(ProhibitCommaSeparatedStatements)
+            $crispr_left_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_LEFT_QC',
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_LEFT_QC') || '-' ),
+            });
+
+            $crispr_right_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'CRISPR_RIGHT_QC',
+                },
+                selected => ( $well->assembly_qc_value('CRISPR_RIGHT_QC') || '-' ),
+            });
+
+            $vector_qc_combo = $self->create_combo_json({
+                %combo_common,
+                selected => '-',
+                api_params => {
+                    well_id => $well_data->{well_id},
+                    type    => 'VECTOR_QC',
+                },
+                selected => ( $well->assembly_qc_value('VECTOR_QC') || '-' ),
+            });
         }
+## use critic
 
         # build string reporting individual crispr details
         my @crispr_report_details;

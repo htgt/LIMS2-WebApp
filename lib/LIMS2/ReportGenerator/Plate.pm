@@ -560,11 +560,44 @@ sub create_button_json {
     return $json_text;
 }
 
+# Create a JSON string which will be rendered as a combo box
+# in generic_report_grid.tt and simple_table.tt
+# See LIMS2::Report::AssemblyPlate for an example
 sub create_combo_json {
     my $self = shift;
     my $params = shift;
 
-    my $json_text = 'Placeholder text';
+    # "-" represents the unset option
+    # When a user selects this option in the combobox the request is sent
+    # with no "value" parameter added to the url
+    my @options = (["-","-"]);
+
+    # When an option is selected it is added to the url as value=<option>
+    foreach my $item (@{ $params->{options} }){
+        push @options, [$item,$item];
+    }
+
+    # api_params are key value pairs which are always added
+    # in the request URL, e.g. well_id=12345&qc_type=CRISPR_LEFT_QC
+    my @api_params;
+    foreach my $key (keys %{ $params->{api_params} }){
+        my $param_string = $key."=".$params->{api_params}->{$key};
+        DEBUG("param string: $param_string");
+        push @api_params, $param_string;
+    }
+    my $api_params_string = join "&", @api_params;
+
+    # api_base is the path added after c.uri_for(/)
+    # selected is the currently selected option from the database
+    my $combo = {
+        'lims2_combo' => {
+            options => \@options,
+            selected => $params->{selected},
+            api_base => $params->{api_base},
+            api_params => $api_params_string,
+        },
+    };
+    my $json_text = encode_json( $combo );
     return $json_text;
 }
 

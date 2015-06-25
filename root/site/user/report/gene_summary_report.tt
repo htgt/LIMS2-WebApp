@@ -194,6 +194,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_well_name         = 1
                     hide_gene              = 1
                     hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
             </tr>
 
@@ -213,6 +214,7 @@ function toggle_btn(btn, show_or_hide) {
                     hide_well_name         = 1
                     hide_gene              = 1
                     hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
               [% ELSE %]
                 <td colspan="7">
@@ -1045,6 +1047,48 @@ function toggle_btn(btn, show_or_hide) {
   </div>
 [% END %]
 
+<!-- EXPERIMENTS -->
+[%- IF experiments.defined %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseExperiments">Experiments</a>
+      </h3>
+    </div>
+    <div id="collapseExperiments" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- IF experiments.size > 0 %]
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Project Id</th>
+              <th>Design Id</th>
+              <th>Crispr Id</th>
+              <th>Crispr Pair Id</th>
+              <th>Crispr Group Id</th>
+            </tr>
+          </thead>
+          <tbody>
+            [% FOREACH exp IN experiments %]
+            <tr>
+              <td>[% exp.id %]</td>
+              <td>[% exp.project_id %]</td>
+              <td>[% exp.design_id %]</td>
+              <td>[% exp.crispr_id %]</td>
+              <td>[% exp.crispr_pair_id %]</td>
+              <td>[% exp.crispr_group_id %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No experiments for this gene</em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+[% END %]
 
 </div>
 [%- END %]

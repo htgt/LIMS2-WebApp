@@ -4,7 +4,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
-
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
@@ -448,6 +448,8 @@ sub generate_sub_report {
                                             'if_count',
                                             'wt_count',
                                             'ms_count',
+                                            'nc_count',
+                                            'ep_pick_het',
 
                                             'distrib_clones',
 
@@ -488,6 +490,8 @@ sub generate_sub_report {
                                             '# in-frame clones',
                                             '# wt clones',
                                             '# mosaic clones',
+                                            '# no-call clones',
+                                            'het clones',
 
                                             'distributable clones',
 
@@ -925,6 +929,7 @@ sub genes {
         $sponsors_str =~ s/Pathogen/PG/;
         $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
+        $sponsors_str =~ s/Human Genetics/HG/;
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
@@ -953,6 +958,22 @@ sub genes {
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
+
+        # if there are no designs, stop here
+        if ( !scalar @design_ids ) {
+            push @genes_for_display, {
+                'gene_id'                => $gene_id,
+                'gene_symbol'            => $gene_symbol,
+                'chromosome'             => $chromosome,
+                'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+                'recovery_class'         => $recovery_class ? $recovery_class : '0',
+                'priority'               => $priority ? $priority : '0',
+                'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
+                'ep_data'                => [],
+            };
+            next;
+        }
+
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1068,6 +1089,8 @@ sub genes {
         my $total_in_frame = 0;
         my $total_wild_type = 0;
         my $total_mosaic = 0;
+        my $total_no_call = 0;
+        my $total_het = 0;
 
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
@@ -1122,55 +1145,25 @@ sub genes {
             $curr_ep_data{'in-frame'} = 0;
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
-
-
+            $curr_ep_data{'no-call'} = 0;
+            $curr_ep_data{'het'} = 0;
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
+                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-                # grab data for crispr damage type
-                # only on validated runs...
-                my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
-                    {
-                        well_id  => $ep_pick->ep_pick_well_id,
-                        'crispr_es_qc_run.validated' => 1,
-                    },
-                    {
-                        join => 'crispr_es_qc_run'
-
-                    }
-                );
-
-                my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-                if ( scalar( @crispr_damage_types ) == 1 ) {
-                    $curr_ep_data{$crispr_damage_types[0]}++;
+                if($damage_call){
+                    $curr_ep_data{$damage_call}++;
                 }
-                elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                    # remove any non accepted results
-                    @crispr_damage_types = uniq grep {$_}
-                        map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
-
-                    if ( scalar( @crispr_damage_types ) == 1 ) {
-                        $curr_ep_data{$crispr_damage_types[0]}++;
-                    }
-                    else {
-                        if (scalar( @crispr_damage_types ) > 1 ) {
-                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has multiple crispr damage types associated with it: "
-                                    . join( ', ', @crispr_damage_types );
-                            $curr_ep_data{$crispr_damage_types[0]}++;
-                        } else {
-                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
-                        }
-                    }
-                }
-                else {
-                    DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
+                else{
+                    $damage_call = '';
                 }
 
+                if(ep_pick_is_het($self->model,$ep_pick->ep_pick_well_id,$chromosome,$damage_call)){
+                    $curr_ep_data{het}++;
+                }
             }
             ## use critic
-
 
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
@@ -1179,16 +1172,25 @@ sub genes {
             $total_in_frame += $curr_ep_data{'in-frame'};
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
+            $total_no_call += $curr_ep_data{'no-call'};
+            $total_het += $curr_ep_data{'het'};
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
                 if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '' };
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
+                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
             # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
+
+
+
+
+
 
             push @ep_data, \%curr_ep_data;
 
@@ -1255,7 +1257,9 @@ sub genes {
             'fs_count'               => $total_frameshift,
             'if_count'               => $total_in_frame,
             'wt_count'               => $total_wild_type,
-            'ms_count'                => $total_mosaic,
+            'ms_count'               => $total_mosaic,
+            'nc_count'               => $total_no_call,
+            'ep_pick_het'            => $total_het,
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1271,13 +1275,13 @@ sub genes {
     if($self->targeting_type eq 'single_targeted'){
         # Get the crispr summary information for all designs found in previous gene loop
         # We do this after the main loop so we do not have to search for the designs for each gene again
-        DEBUG "Fetching crispr summary info for report";
+        # DEBUG "Fetching crispr summary info for report";
         my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
-        DEBUG "Adding crispr counts to gene data";
+        # DEBUG "Adding crispr counts to gene data";
         foreach my $gene_data (@genes_for_display){
             add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
         }
-        DEBUG "crispr counts done";
+        # DEBUG "crispr counts done";
     }
 
     my @sorted_genes_for_display =  sort {
@@ -1290,8 +1294,8 @@ sub genes {
             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
-            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' }
+            # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
     return \@sorted_genes_for_display;
@@ -1359,10 +1363,6 @@ sub genes_old {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
-
-    if ($sponsor_id eq 'MGP Recovery') {
-        return mgp_recovery_genes( $self, $sponsor_id, $query_type );
-    }
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 
