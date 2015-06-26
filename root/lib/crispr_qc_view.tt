@@ -40,7 +40,7 @@
     [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
 
     [% UNLESS hide_crispr_validation AND hide_het_validation %]
-    <div class="validation_well well well-small" style="min-width:250px">
+    <div class="validation_well well well-small" style="min-width:750px">
         [% INCLUDE 'crispr_validation.tt' row = row %]
 
       <div class="validate_het" style="float:left;width:250px;">
