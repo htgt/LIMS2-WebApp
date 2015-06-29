@@ -400,6 +400,7 @@ sub format_well_data {
         damage_type             => $self->crispr_damage_type_id,
         vep_output              => $json->{vep_output},
         variant_size            => $self->variant_size,
+        gene_ids                => \@gene_ids,
     };
 }
 ## use critic
