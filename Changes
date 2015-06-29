@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.327     2015-06-29 15:52:14 Europe/London
+
+    Added new variant calls: splice_acceptor, splice_donor, intron
+
 0.326     2015-06-23 15:01:59 Europe/London
 
    Added new human CRISPR EP summary report
