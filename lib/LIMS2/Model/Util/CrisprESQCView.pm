@@ -80,7 +80,7 @@ sub crispr_damage_type_for_ep_pick{
     );
 
     unless(@crispr_es_qc_wells){
-        DEBUG("No crispr QC wells for well_id $well_id");
+        # DEBUG("No crispr QC wells for well_id $well_id");
         return;
     }
 
@@ -103,17 +103,17 @@ sub crispr_damage_type_for_ep_pick{
         }
         else {
             if (scalar( @crispr_damage_types ) > 1 ) {
-                WARN( "$well ep_pick well has multiple crispr damage types associated with it: "
-                        . join( ', ', @crispr_damage_types ) );
+                # WARN( "$well ep_pick well has multiple crispr damage types associated with it: "
+                #         . join( ', ', @crispr_damage_types ) );
                 $damage_type = $crispr_damage_types[0];
             } else {
-                DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
+                # DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
             }
 
         }
     }
     else {
-        DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
+        # DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
     }
 
     return $damage_type;
