@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.317';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.327';
 }
 ## use critic
 
@@ -42,8 +42,8 @@ with 'MooseX::Log::Log4perl';
 
 const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
-const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD}
-    // '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
+const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD} //
+                                    '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my %BWA_REF_GENOMES => (
     human => '/lustre/scratch109/blastdb/Users/team87/Human/bwa/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa',
     mouse => '/lustre/scratch109/blastdb/Users/team87/Mouse/bwa/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa',
@@ -55,7 +55,6 @@ has model => (
     required => 1,
 );
 
-# EP_PICK or PIQ plate name
 has plate_name => (
     is  => 'ro',
     isa => 'Str',
@@ -596,10 +595,25 @@ Combine all the qc analysis data we want to store and return it in a hash.
 sub parse_analysis_data {
     my ( $self, $analyser, $crispr, $design, $analysis_data ) = @_;
 
-    $analysis_data->{crispr_id}  = $crispr->id if $crispr;
+    # Also might as well store crispr ids here, for createing crispr validation records
+    # for qc done on EP_PICK plates
+    # In a future we will try to auto call crispr validation
+    if ( $crispr ) {
+        $analysis_data->{crispr_id}  = $crispr->id;
+        if ( $crispr->is_pair ) {
+            $analysis_data->{is_pair}    = $crispr->is_pair;
+            $analysis_data->{crispr_ids} = [ $crispr->left_crispr_id, $crispr->right_crispr_id ];
+        }
+        elsif ( $crispr->is_group ) {
+            $analysis_data->{is_group}   = $crispr->is_group;
+            $analysis_data->{crispr_ids} = [ map { $_->crispr_id } $crispr->crispr_group_crisprs->all ];
+        }
+        else {
+            $analysis_data->{crispr_ids} = [ $crispr->id ];
+        }
+    }
+
     $analysis_data->{design_id}  = $design->id if $design;
-    $analysis_data->{is_pair}    = $crispr->is_pair if $crispr;
-    $analysis_data->{is_group}   = $crispr->is_group if $crispr;
     $analysis_data->{assembly}   = $self->assembly;
 
     return unless $analyser;
@@ -646,6 +660,7 @@ be converted to json just before we persist the data.
 sub build_qc_data {
     my ( $self, $well, $analyser, $analysis_data, $well_reads, $crispr ) = @_;
 
+    my $crispr_ids = exists $analysis_data->{crispr_ids} ? $analysis_data->{crispr_ids} : undef;
     my %qc_data = (
         well_id       => $well->id,
         analysis_data => $analysis_data,
@@ -655,6 +670,9 @@ sub build_qc_data {
         $qc_data{crispr_start}    = $crispr->start;
         $qc_data{crispr_end}      = $crispr->end;
         $qc_data{crispr_chr_name} = $crispr->chr_name;
+        if ( $self->plate->type_id eq 'EP_PICK' && $crispr_ids ) {
+            $qc_data{crisprs_to_validate} = $crispr_ids;
+        }
     }
 
     if ( $analyser ) {
@@ -665,6 +683,10 @@ sub build_qc_data {
             # if a variant type other can no-call has been made then mark well accepted
             $qc_data{accepted} = 1 if $analyser->variant_type ne 'no-call';
         }
+    }
+
+    if ( $analysis_data->{no_reads} ) {
+        $qc_data{crispr_damage_type} = 'no-call';
     }
 
     if ( exists $well_reads->{forward} ) {

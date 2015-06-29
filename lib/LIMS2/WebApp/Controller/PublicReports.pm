@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.317';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.327';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use LIMS2::Report;
 use Try::Tiny;
 use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 
@@ -155,14 +156,8 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     else {
         # not logged in - always use cached reports for top level and sub-reports
-        if ( !$c->request->params->{'cache_param'} ) {
-            $sub_cache_param = 'with_cache';
-            $top_cache_param = 'with_cache';
-        }
-        else {
-            $sub_cache_param = 'without_cache';
-            $top_cache_param = 'without_cache';
-        }
+        $sub_cache_param = 'with_cache';
+        $top_cache_param = 'with_cache';
     }
 
     if (!$c->request->params->{'species'}) {
@@ -634,51 +629,8 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
         # grab data for alignment popup
         try { $ep_pick_data{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 ) };
 
-        # grab data for crispr damage type
-        # only on validated runs...
-        my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
-            {
-                well_id  => $sr->ep_pick_well_id,
-                'crispr_es_qc_run.validated' => 1,
-            },
-            {
-                join => 'crispr_es_qc_run'
-
-            }
-        );
-
-        my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-        if ( scalar( @crispr_damage_types ) == 1 ) {
-            $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
-        }
-        elsif ( scalar( @crispr_damage_types ) > 1 ) {
-            # remove any non accepted results
-            @crispr_damage_types = uniq grep {$_}
-                map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
-
-            if ( scalar( @crispr_damage_types ) == 1 ) {
-                $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
-            }
-            else {
-                if (scalar( @crispr_damage_types ) > 1 ) {
-                    $c->log->warn( $ep_pick_data{name}
-                            . ' ep_pick well has multiple crispr damage types associated with it: '
-                            . join( ', ', @crispr_damage_types ) );
-                    $ep_pick_data{crispr_damage} = $crispr_damage_types[0];
-                } else {
-                    $c->log->warn( $ep_pick_data{name}
-                        . ' ep_pick well has no crispr damage type associated with it' );
-                    $ep_pick_data{crispr_damage} = '-';
-                }
-
-            }
-        }
-        else {
-            $c->log->warn( $ep_pick_data{name}
-                . ' ep_pick well has no crispr damage type associated with it' );
-            $ep_pick_data{crispr_damage} = '-';
-        }
+        my $damage_type = crispr_damage_type_for_ep_pick($model,$sr->ep_pick_well_id);
+        $ep_pick_data{crispr_damage} = ( $damage_type ? $damage_type : '-' );
 
         # save the clone if targeted clones, keep qc data for distributable clones
         $clones{ $sr->ep_pick_well_id } = \%ep_pick_data unless ( $type eq 'Distributable' );
@@ -722,7 +674,8 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my %summaries;
     for my $tc ( @clones ) {
         $summaries{genotyped}++ if ($tc->{crispr_damage} && ($tc->{crispr_damage} eq 'frameshift' ||
-            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic') );
+            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic' ||
+            $tc->{crispr_damage} eq 'splice_acceptor' || $tc->{crispr_damage} eq 'splice_donor' || $tc->{crispr_damage} eq 'intron') );
         $summaries{ $tc->{crispr_damage} }++ if ($tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified');
     }
 

@@ -129,17 +129,21 @@
     <thead>
       <th>Type</th>
       <th>Sequence</th>
-      <th>Validation State</th>
+      <th class="pull-right">Validation State</th>
     </thead>
     <tbody>
       [%- FOR primer IN design.genotyping_primers %]
       <tr>
         <td>[% primer.type %]</td>
         <td>[% primer.seq  %]</td>
+        [% IF primer.is_rejected %]
+        <td> <span class="label label-important pull-right">Rejected</span> </td>
+        [% ELSE %]
         <td class="validation-state-cell"
             data-validated="[% primer.is_validated %]"
             data-primer-name="[% primer.type %]">
         </td>
+        [% END %]
       </tr>
       [%- END %]
     </tbody>

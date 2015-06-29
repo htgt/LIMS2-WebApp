@@ -63,6 +63,7 @@ DELETE FROM well_recombineering_results;
 DELETE FROM well_colony_counts;
 DELETE FROM well_primer_bands;
 DELETE FROM well_lab_number;
+DELETE FROM well_assembly_qc;
 DELETE FROM barcode_events;
 DELETE FROM fp_picking_list_well_barcode;
 DELETE FROM fp_picking_list;

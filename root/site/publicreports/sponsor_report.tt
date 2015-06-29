@@ -23,11 +23,11 @@
 [%- ELSE %]
     [%- IF species == 'Human' %]
         <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-small'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => 'Mouse', cache_param => cache_param} ) %]">
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse', cache_param => 'without_cache'} ) %]">
         <i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
     [%- ELSE %]
         <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-small'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human', cache_param => cache_param} ) %]">
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human', cache_param => 'without_cache'} ) %]">
         <i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
     [%- END %]
 [%- END %]

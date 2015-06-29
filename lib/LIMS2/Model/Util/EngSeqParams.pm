@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.317';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.327';
 }
 ## use critic
 
@@ -259,9 +259,13 @@ sub fetch_well_eng_seq_params {
 		                                : undef ;
 	}
 
-	unless (@{ $params->{recombinase} }){
-		$params->{recombinase} = $well->recombinases;
+    # User specified recombinase is added to the list of
+    # recombinases associated with the well
+    my @recombinases = @{ $well->recombinases };
+	if (@{ $params->{recombinase} }){
+		push @recombinases, @{ $params->{recombinase} };
 	}
+    $params->{recombinase} = [ uniq @recombinases ];
 
 	if ( !$params->{backbone} && $params->{stage} eq 'vector' ){
 		my $backbone = $well->backbone( { ignore_processes => [ 'crispr_vector' ] } );

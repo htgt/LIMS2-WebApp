@@ -33,6 +33,7 @@ lib/LIMS2/Model/DBConnect.pm
 lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
 lib/LIMS2/Model/Plugin/Assembly.pm
+lib/LIMS2/Model/Plugin/AssemblyWellQc.pm
 lib/LIMS2/Model/Plugin/BAC.pm
 lib/LIMS2/Model/Plugin/Chromosome.pm
 lib/LIMS2/Model/Plugin/Crispr.pm
@@ -87,6 +88,7 @@ lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
+lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
@@ -172,6 +174,7 @@ lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm
+lib/LIMS2/Model/Schema/Result/WellAssemblyQc.pm
 lib/LIMS2/Model/Schema/Result/WellBarcode.pm
 lib/LIMS2/Model/Schema/Result/WellChromosomeFail.pm
 lib/LIMS2/Model/Schema/Result/WellColonyCount.pm
@@ -179,6 +182,7 @@ lib/LIMS2/Model/Schema/Result/WellComment.pm
 lib/LIMS2/Model/Schema/Result/WellDnaQuality.pm
 lib/LIMS2/Model/Schema/Result/WellDnaStatus.pm
 lib/LIMS2/Model/Schema/Result/WellGenotypingResult.pm
+lib/LIMS2/Model/Schema/Result/WellHetStatus.pm
 lib/LIMS2/Model/Schema/Result/WellLabNumber.pm
 lib/LIMS2/Model/Schema/Result/WellPrimerBand.pm
 lib/LIMS2/Model/Schema/Result/WellQcSequencingResult.pm
@@ -193,6 +197,7 @@ lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
 lib/LIMS2/Model/Util/BarcodeActions.pm
+lib/LIMS2/Model/Util/CGAP.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreKiESDistribution.pm
 lib/LIMS2/Model/Util/CreateDesign.pm
@@ -211,6 +216,7 @@ lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
+lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
@@ -228,6 +234,7 @@ lib/LIMS2/Report/CreKiESDistributionSummary.pm
 lib/LIMS2/Report/CrisprEPDetail.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprEPSummary.pm
+lib/LIMS2/Report/CrisprEPSummaryJune2015.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
 lib/LIMS2/Report/CrisprVectorPlate.pm
@@ -269,6 +276,7 @@ lib/LIMS2/SummaryGeneration/SummariesWellDescend.pm
 lib/LIMS2/Test.pm
 lib/LIMS2/WebApp.pm
 lib/LIMS2/WebApp/Controller/API.pm
+lib/LIMS2/WebApp/Controller/API/AssemblyQc.pm
 lib/LIMS2/WebApp/Controller/API/AutoComplete.pm
 lib/LIMS2/WebApp/Controller/API/Browser.pm
 lib/LIMS2/WebApp/Controller/API/Crispr.pm
@@ -319,6 +327,7 @@ root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
 root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
+root/lib/crispr_validation.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
@@ -346,6 +355,7 @@ root/site/user/barcodes/create_qc_plate.tt
 root/site/user/barcodes/discard_barcode.tt
 root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
+root/site/user/barcodes/mutation_signatures_barcodes.tt
 root/site/user/barcodes/picklist_grid.tt
 root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
@@ -353,6 +363,7 @@ root/site/user/barcodes/piq_start_doubling.tt
 root/site/user/barcodes/plate_well_barcode_history.tt
 root/site/user/barcodes/rescan_barcoded_plate.tt
 root/site/user/barcodes/scan_barcode.tt
+root/site/user/barcodes/search_cgap_friendly_name.tt
 root/site/user/barcodes/view_checked_out_barcodes.tt
 root/site/user/barcodes/well_barcode_history.tt
 root/site/user/barcodes/well_checkout.tt
@@ -2267,6 +2278,7 @@ root/static/extjs/src/window/MessageBox.js
 root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
 root/static/files/cells/update_colony_counts.csv
+root/static/files/coding_test/horses.tsv
 root/static/files/plate_upload/crispr_ep_template_es.csv
 root/static/files/plate_upload/crispr_ep_template_vector.csv
 root/static/files/plate_upload/dna_template.csv
@@ -2786,6 +2798,7 @@ t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Admin.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Auth.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Root.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_User.t
+t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AssemblyQc.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AutoComplete.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Crispr.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Design.t
@@ -3004,6 +3017,7 @@ t/lib/LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm
 t/lib/LIMS2/t/Test.pm
 t/lib/LIMS2/t/WebApp.pm
 t/lib/LIMS2/t/WebApp/Controller/API.pm
+t/lib/LIMS2/t/WebApp/Controller/API/AssemblyQc.pm
 t/lib/LIMS2/t/WebApp/Controller/API/AutoComplete.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Browser.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Crispr.pm

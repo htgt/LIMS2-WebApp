@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Crispr::VERSION = '0.317';
+    $LIMS2::Model::Plugin::Crispr::VERSION = '0.327';
 }
 ## use critic
 
@@ -16,6 +16,7 @@ use TryCatch;
 use LIMS2::Exception;
 use LIMS2::Util::WGE;
 use namespace::autoclean;
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -63,10 +64,16 @@ sub create_crispr {
     # If crispr with same seq and locus exists we need to just deal with the crispr off target data
     if ( $crispr ) {
         $self->log->debug( 'Found identical crispr site, just updating off target data: ' . $crispr->id );
-        #also update the wge_crispr_id if its set
-        if ( $params->{wge_crispr_id} ) {
-            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $params->{wge_crispr_id} ) {
-                $crispr->update( { wge_crispr_id => $params->{wge_crispr_id} } );
+        # also update the wge_crispr_id if its set
+        if ( $validated_params->{wge_crispr_id} ) {
+            if ( (! $crispr->{wge_crispr_id}) || $crispr->{wge_crispr_id} ne $validated_params->{wge_crispr_id} ) {
+                $crispr->update( { wge_crispr_id => $validated_params->{wge_crispr_id} } );
+            }
+        }
+        # update the crispr_loci_type_id
+        if ( $validated_params->{crispr_loci_type_id} ) {
+            if ( (! $crispr->{crispr_loci_type_id}) || $crispr->{crispr_loci_type_id} ne $validated_params->{crispr_loci_type_id} ) {
+                $crispr->update( { crispr_loci_type_id => $validated_params->{crispr_loci_type_id} } );
             }
         }
 
@@ -594,6 +601,19 @@ sub create_crispr_group {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_crispr_group );
+
+    # check if there is a group with those crisprs already. if so, return it
+    try{
+        my @crisprs;
+        foreach my $crispr ( @{ $validated_params->{'crisprs'} } ) {
+                push @crisprs, $crispr->{'crispr_id'};
+        }
+        my $existing_crispr_group = get_crispr_group_by_crispr_ids(
+                    $self->schema,
+                    { crispr_ids => \@crisprs },
+                );
+        return $existing_crispr_group;
+    };
 
     my $crispr_group;
     $self->schema->txn_do( sub {

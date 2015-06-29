@@ -65,7 +65,103 @@ $(document).ready(function() {
             },
             dataType: 'json'
         });
+    });
 
+    $(".validate_crispr_checkbox").change(function() {
+
+        var state = this.checked;
+        var crispr_id = $(this).attr('data-crispr_id');
+        var crispr_es_qc_well_id = $(this).attr('data-crispr_es_qc_well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_crispr" ) %]',
+            data: {
+                "crispr_es_qc_well_id": crispr_es_qc_well_id,
+                "crispr_id": crispr_id,
+                "validated": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error validating crispr change not saved' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/set_unset_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "set": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                // alert( 'Error setting Het validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_five_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "five_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
+    });
+
+    $(".validate_het_three_checkbox").change(function() {
+
+        var state = this.checked;
+        var well_id = $(this).attr('well_id');
+
+        $.ajax({
+            type: "POST",
+            url: '[% c.uri_for( "/api/validate_het" ) %]',
+            data: {
+                "user": '[% c.user.name %]',
+                "well_id": well_id,
+                "three_prime": state
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(data) {
+                console.log(data);
+                alert( 'Error setting Het five_prime validation status' );
+            },
+            dataType: 'json'
+        });
     });
 
 });
@@ -158,11 +254,13 @@ $(document).ready(function() {
             <tr>
 
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = row
-                    accept              = can_accept_wells
-                    edit                = 1
-                    complete_info       = 1
-                    hide_crispr_well_id = 0
+                    row                    = row
+                    accept                 = can_accept_wells
+                    edit                   = 1
+                    complete_info          = 1
+                    hide_crispr_well_id    = 0
+                    hide_crispr_validation = hide_crispr_validation
+                    hide_het_validation    = hide_het_validation
                 %]
 
             </tr>

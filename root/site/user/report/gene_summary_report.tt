@@ -186,39 +186,43 @@ function toggle_btn(btn, show_or_hide) {
             <tr>
                 <td><strong>[% qc.epd_well %]</strong></td>
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = qc.epd_qc
-                    accept              = 0
-                    edit                = 0
-                    hide_crispr_well_id = 1
-                    complete_info       = 0
-                    hide_well_name      = 1
-                    hide_gene           = 1
+                    row                    = qc.epd_qc
+                    accept                 = 0
+                    edit                   = 0
+                    hide_crispr_well_id    = 1
+                    complete_info          = 0
+                    hide_well_name         = 1
+                    hide_gene              = 1
+                    hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
             </tr>
 
             <tr>
-            [% IF qc.piq_qc %]
+              [% IF qc.piq_qc %]
                 <td>
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
                 </td>
                 [% INCLUDE 'crispr_qc_view.tt'
-                    row                 = qc.piq_qc
-                    accept              = 0
-                    edit                = 0
-                    hide_crispr_well_id = 1
-                    complete_info       = 0
-                    hide_well_name      = 1
-                    hide_gene           = 1
+                    row                    = qc.piq_qc
+                    accept                 = 0
+                    edit                   = 0
+                    hide_crispr_well_id    = 1
+                    complete_info          = 0
+                    hide_well_name         = 1
+                    hide_gene              = 1
+                    hide_crispr_validation = 1
+                    hide_het_validation    = 1
                 %]
-                [% ELSE %]
-                  <td colspan="7">
-                    <span class="label">No Accepted PIQ Crispr QC</span>
-                  </td>
-                [% END %]
-            [%- END %]
+              [% ELSE %]
+                <td colspan="7">
+                  <span class="label">No Accepted PIQ Crispr QC</span>
+                </td>
+              [% END %]
             </tr>
+            [%- END %]
 
           </tbody>
         </table>
@@ -288,6 +292,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>Freezer Instance</th>
             <th>Accepted?</th>
+            <th>Call</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -308,6 +313,10 @@ function toggle_btn(btn, show_or_hide) {
                 [% END %]
                 [% well.is_accepted %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
+              <td>
+                [% SET piq_well = well.well_id_string %]
+                [% wells.piq.$piq_well.crispr_qc_data.damage_type %]
               </td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
@@ -507,6 +516,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Created on</th>
             <th>Electroporation Well</th>
             <th>Accepted?</th>
+            <th>Call</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -529,6 +539,10 @@ function toggle_btn(btn, show_or_hide) {
                 [% well.is_accepted %]
 
                 [% IF well.crispr_qc_data %]</a>[% END %]
+              </td>
+              <td>
+                [% SET ep_pick_well = well.well_id_string %]
+                [% wells.ep_pick.$ep_pick_well.crispr_qc_data.damage_type %]
               </td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
@@ -1033,6 +1047,48 @@ function toggle_btn(btn, show_or_hide) {
   </div>
 [% END %]
 
+<!-- EXPERIMENTS -->
+[%- IF experiments.defined %]
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <h3>
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseExperiments">Experiments</a>
+      </h3>
+    </div>
+    <div id="collapseExperiments" class="accordion-body collapse">
+      <div class="accordion-inner">
+        [%- IF experiments.size > 0 %]
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Project Id</th>
+              <th>Design Id</th>
+              <th>Crispr Id</th>
+              <th>Crispr Pair Id</th>
+              <th>Crispr Group Id</th>
+            </tr>
+          </thead>
+          <tbody>
+            [% FOREACH exp IN experiments %]
+            <tr>
+              <td>[% exp.id %]</td>
+              <td>[% exp.project_id %]</td>
+              <td>[% exp.design_id %]</td>
+              <td>[% exp.crispr_id %]</td>
+              <td>[% exp.crispr_pair_id %]</td>
+              <td>[% exp.crispr_group_id %]</td>
+            </tr>
+            [%- END %]
+          </tbody>
+        </table>
+        [%- ELSE %]
+        <p><em>No experiments for this gene</em></p>
+        [%- END %]
+      </div>
+    </div>
+  </div>
+[% END %]
 
 </div>
 [%- END %]
