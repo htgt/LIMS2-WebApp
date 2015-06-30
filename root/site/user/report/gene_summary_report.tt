@@ -570,8 +570,9 @@ function toggle_btn(btn, show_or_hide) {
             <th>Plate</td>
             <th>Well</th>
             <th>Created on</th>
-            <th>Final Pick Vector Well</th>
+            <th>Final Pick Well</th>
             <th>DNA Well</th>
+            <th>Assembly Well</th>
             <th>Recombinase / Nuclease</th>
             <th>Accepted?</th>
             <th>Allele Genbank File</th>
@@ -585,6 +586,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.created_at %]</td>
               <td>[% well.final_pick_well %]</td>
               <td>[% well.dna_well %]</td>
+              <td>[% well.assembly_well %]</td>
               <td>[% well.recombinases %]</td>
               <td>[% well.is_accepted %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
@@ -1073,11 +1075,16 @@ function toggle_btn(btn, show_or_hide) {
             [% FOREACH exp IN experiments %]
             <tr>
               <td>[% exp.id %]</td>
-              <td>[% exp.project_id %]</td>
-              <td>[% exp.design_id %]</td>
-              <td>[% exp.crispr_id %]</td>
-              <td>[% exp.crispr_pair_id %]</td>
-              <td>[% exp.crispr_group_id %]</td>
+              <td><a href="[% c.uri_for('/user/view_project/',{ project_id => exp.project_id }) %]">
+              [% exp.project_id %]</a></td>
+              <td><a href="[% c.uri_for('/user/view_design/',{ design_id => exp.design_id }) %]">
+              [% exp.design_id %]</a></td>
+              <td><a href="[% c.uri_for("/user/crispr/${exp.crispr_id}/view") %]">
+              [% exp.crispr_id %]</a></td>
+              <td><a href="[% c.uri_for("/user/crispr_pair/${exp.crispr_pair_id}/view") %]">
+              [% exp.crispr_pair_id %]</a></td>
+              <td><a href="[% c.uri_for("/user/crispr_group/${exp.crispr_group_id}/view") %]">
+              [% exp.crispr_group_id %]</a></td>
             </tr>
             [%- END %]
           </tbody>
