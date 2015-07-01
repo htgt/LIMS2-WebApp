@@ -1039,15 +1039,15 @@ sub genes {
         );
         my $final_pick_pass_count = scalar @final_pick;
 
-        my @final_pick_qc = $summary_rs->search(
-            { final_pick_qc_seq_pass => 't',
-              to_report => 't' },
-            {
-                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
-                distinct => 1
-            }
-        );
-        my $final_pick_qc_pass_count = scalar @final_pick_qc;
+        # my @final_pick_qc = $summary_rs->search(
+        #     { final_pick_qc_seq_pass => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $final_pick_qc_pass_count = scalar @final_pick_qc;
 
 
 
@@ -1218,21 +1218,24 @@ sub genes {
                 piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/piq_plate_name piq_well_name/ ],
+                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
 
-        my @ancestor_piq = $summary_rs->search(
+        push @piq, $summary_rs->search(
             {   ancestor_piq_plate_name => { '!=', undef },
                 ancestor_piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
-        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
+
+        my $piq_pass_count = scalar @piq;
 
 
 
@@ -1248,7 +1251,7 @@ sub genes {
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
-            'qc_passing_vector_wells' => $final_pick_qc_pass_count,
+            # 'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
 
             'colonies_picked'        => $total_ep_pick_count,
@@ -1288,13 +1291,14 @@ sub genes {
             $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
             $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
             $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            # $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
             $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            # $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' }
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'crispr_wells' }          <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
