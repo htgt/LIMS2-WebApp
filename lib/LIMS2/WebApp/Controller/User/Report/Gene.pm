@@ -650,8 +650,8 @@ sub fetch_values_for_type_ep {
         my $dna_plate_name     = $summary_row->dna_plate_name;
         my $dna_well_name      = $summary_row->dna_well_name;
         my $dna_well = $dna_plate_name . '_' . $dna_well_name;
-        my $assembly_plate_name = $summary_row->assembly_plate_name;
-        my $assembly_well_name  = $summary_row->assembly_well_name;
+        my $assembly_plate_name = $summary_row->assembly_plate_name ? $summary_row->assembly_plate_name : '';
+        my $assembly_well_name  = $summary_row->assembly_well_name ? $summary_row->assembly_well_name : '';
         my $assembly_well = $assembly_plate_name . '_' . $assembly_well_name;
         unless ( exists $wells_hash->{ 'ep' }->{ $well_id_string } ) {
             my $well_hash = {
