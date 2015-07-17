@@ -1,0 +1,95 @@
+[%- META title = 'View Experiment' %]
+
+<div class="page-header">
+  <h1>Experiment [% experiment_id %]
+  </h1>
+</div>
+<p>
+  <a href="[% c.uri_for('/user/view_project/'{project_id => experiment.project_id}) %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to project [% experiment.project_id %]
+  </a>
+</p>
+<h2>Experiment Details</h2>
+
+<table class="table experiment">
+  <tr> 
+    <th>Experiment ID</th>
+    <td>[% experiment_id %]</td>
+  <tr>
+    <th>Project ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/view_project/', { project_id => experiment.project_id }) %]">
+        [% experiment.project_id %]
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Design ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/view_design/', { design_id => experiment.design_id }) %]">
+        [% experiment.design_id %]
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Gene ID</th>
+    <td>[% experiment.gene_id %]</td>
+  </tr>
+  <tr>
+    <th>Gene Symbol</th>
+    <td>[% gene_symbol %]</td>
+  </tr>
+  [% IF experiment.crispr_group_id %]
+  <tr>
+    <th>Crispr Group ID</th>
+    <td>[% experiment.crispr_group_id %]</td>
+  </tr>
+  [% END %]
+  [% IF experiment.crispr_pair_id %]
+  <tr>
+    <th>Crispr Pair ID</th>
+    <td>[% experiment.crispr_pair_id %]</td>
+  </tr>
+  [% END %]
+
+</table>
+
+<h2>Crispr Primers</h2>
+<table class="table primer">
+  <tr>
+    <th>Primer Name</th>
+    <th>Sequence</th>
+    <th>Chromosome Name</th>
+    <th>Start</th>
+    <th>End</th>
+  </tr>
+  [% FOREACH crispr_primer IN experiment.crispr_primers%]
+  <tr>
+    <td>[% crispr_primer.primer_name %]</td>
+    <td>[% crispr_primer.primer_seq %]</td>
+    <td>[% crispr_primer.locus.chr_name %]</td>
+    <td>[% crispr_primer.locus.chr_start %]</td>
+    <td>[% crispr_primer.locus.chr_end %]</td>
+  </tr>
+  [% END %]
+</table>
+
+<h2>Crisprs</h2>
+<table class="table crispr">
+  <tr>
+    <th>Crispr ID</th>
+    <th>Sequence</th>
+  </tr>
+  [% FOREACH crispr IN experiment.crisprs %]
+  <tr>
+    <td>[% crispr.id %]</td>
+    <td>[% crispr.seq %]</td>
+  </tr>
+  [% END %]
+
+</table>
+
+<script type="text/javascript">
+
+</script>
