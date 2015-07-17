@@ -29,7 +29,7 @@ sub view_experiment :Path('/user/view_experiment'){
     $exp = $c->model( 'Golgi' )->retrieve_experiment( { id => $exp_id } );
     my $proj_id = $exp->project_id;
     my $project = $c->model('Golgi')->retrieve_project_by_id({ id => $proj_id });
-    my $gene_info =  try{ $c->model('Golgi')->find_gene( { 
+    my $gene_info =  try{ $c->model('Golgi')->find_gene( {
         search_term => $project->gene_id,
         species => $project->species_id
     } ) };
@@ -39,7 +39,7 @@ sub view_experiment :Path('/user/view_experiment'){
         experiment => $exp->as_hash_with_detail,
         gene_symbol => $gene_info->{'gene_symbol'},
     );
-    
+
     return;
 }
 __PACKAGE__->meta->make_immutable;
