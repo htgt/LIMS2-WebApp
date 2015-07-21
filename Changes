@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.328     2015-07-21 11:57:39 Europe/London
+
+    Added view experiment interface
+
 0.327     2015-06-29 15:52:14 Europe/London
 
     Added new variant calls: splice_acceptor, splice_donor, intron
