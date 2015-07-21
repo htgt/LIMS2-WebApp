@@ -1,7 +1,7 @@
 package LIMS2::Report::SEPPOOLPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SEPPOOLPlate::VERSION = '0.326';
+    $LIMS2::Report::SEPPOOLPlate::VERSION = '0.328';
 }
 ## use critic
 

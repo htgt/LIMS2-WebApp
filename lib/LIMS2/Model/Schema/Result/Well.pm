@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.326';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.328';
 }
 ## use critic
 
@@ -1247,16 +1247,25 @@ sub barcoded_descendant_of_type{
 sub descendant_crispr_vectors {
     my $self = shift;
 
-    my @crispr_vectors;
+    return $self->descendants_of_type('CRISPR_V');
+}
+
+# Returns array of all descendant wells of the requested type
+sub descendants_of_type{
+    my ($self, $type) = @_;
+
+    die "No type specified" unless $type;
+
+    my @results;
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
       while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq 'CRISPR_V' ) {
-          push @crispr_vectors, $descendant;
+        if ( $descendant->plate->type_id eq $type ) {
+          push @results, $descendant;
         }
       }
     }
-    return @crispr_vectors;
+    return @results;
 }
 
 =head2 parent_crispr_wells

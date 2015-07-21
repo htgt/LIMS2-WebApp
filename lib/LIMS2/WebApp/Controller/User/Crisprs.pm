@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.326';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.328';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
+use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
 BEGIN { extends 'Catalyst::Controller' };
@@ -122,11 +123,70 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
 
     $c->log->debug( "Retrived crispr: $crispr_id" );
 
-    $c->stash(
-        crispr  => $crispr,
-        species => $species_id,
-    );
+    if($c->request->param('generate_primers')){
 
+        $c->assert_user_roles( 'edit' );
+
+        _generate_primers_for_crispr_entity($c, $crispr);
+    }
+
+    $c->stash->{crispr} = $crispr;
+    $c->stash->{species} = $species_id;
+
+    return;
+}
+
+# Should be able to use the same generation method for crisprs, groups and pairs
+sub _generate_primers_for_crispr_entity{
+    my ($c, $crispr_entity) = @_;
+
+    my $id_type = $crispr_entity->id_column_name;
+    if($crispr_entity->crispr_primers->all){
+        $c->stash->{info_msg} = "Already has primers. Ignoring generate primers request";
+    }
+    else{
+        $ENV{LIMS2_PRIMER_DIR} or die "LIMS2_PRIMER_DIR environment variable not set";
+        my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
+        my $job_id = Data::UUID->new->create_str();
+        my $base_dir = $primer_dir->subdir( $job_id );
+        $base_dir->mkpath;
+
+        my $primer_util = LIMS2::Util::QcPrimers->new({
+            primer_project_name => 'crispr_sequencing',
+            model               => $c->model('Golgi'),
+            base_dir            => "$base_dir",
+            persist_primers     => 1,
+            overwrite           => 0,
+            run_on_farm         => 0,
+        });
+
+        my $pcr_primer_util = LIMS2::Util::QcPrimers->new({
+            primer_project_name => 'crispr_pcr',
+            model               => $c->model('Golgi'),
+            base_dir            => "$base_dir",
+            persist_primers     => 1,
+            overwrite           => 0,
+            run_on_farm         => 0,
+        });
+
+        try{
+            $c->log->debug("Generating primers for $id_type ".$crispr_entity->id);
+            my ($picked_primers, $seq, $db_primers) = $primer_util->crispr_sequencing_primers($crispr_entity);
+            if($picked_primers){
+                my ($pcr_picked_primers, $pcr_seq, $pcr_db_primers)
+                    = $pcr_primer_util->crispr_PCR_primers($picked_primers, $crispr_entity);
+                $c->stash->{success_msg} = "Primers generated for $id_type ".$crispr_entity->id;
+            }
+            else{
+                $c->stash->{error_msg} = "Failed to generate primers for $id_type ".$crispr_entity->id;
+            }
+
+        }
+        catch($e){
+            $c->stash->{error_msg} = $e;
+        }
+        $crispr_entity->discard_changes;
+    }
     return;
 }
 
@@ -202,6 +262,12 @@ sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
 
     $c->log->debug( "Retrived crispr pair: $crispr_pair_id" );
 
+    if($c->request->param('generate_primers')){
+
+        $c->assert_user_roles( 'edit' );
+
+        _generate_primers_for_crispr_entity($c, $crispr_pair);
+    }
     $c->stash(
         cp           => $crispr_pair,
         left_crispr  => $crispr_pair->left_crispr->as_hash,
@@ -272,6 +338,13 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
     }
 
     $c->log->debug( "Retrived crispr group: $crispr_group_id" );
+
+    if($c->request->param('generate_primers')){
+
+        $c->assert_user_roles( 'edit' );
+
+        _generate_primers_for_crispr_entity($c, $crispr_group);
+    }
 
     $c->stash(
         cg           => $crispr_group,

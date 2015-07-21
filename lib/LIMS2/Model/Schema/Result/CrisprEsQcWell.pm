@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.326';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.328';
 }
 ## use critic
 
@@ -406,6 +406,7 @@ sub format_well_data {
         damage_type             => $self->crispr_damage_type_id,
         vep_output              => $json->{vep_output},
         variant_size            => $self->variant_size,
+        gene_ids                => \@gene_ids,
     };
 }
 ## use critic

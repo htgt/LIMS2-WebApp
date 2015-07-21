@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.326';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.328';
 }
 ## use critic
 
@@ -674,7 +674,8 @@ sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my %summaries;
     for my $tc ( @clones ) {
         $summaries{genotyped}++ if ($tc->{crispr_damage} && ($tc->{crispr_damage} eq 'frameshift' ||
-            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic') );
+            $tc->{crispr_damage} eq 'in-frame' || $tc->{crispr_damage} eq 'wild_type' || $tc->{crispr_damage} eq 'mosaic' ||
+            $tc->{crispr_damage} eq 'splice_acceptor' || $tc->{crispr_damage} eq 'splice_donor' || $tc->{crispr_damage} eq 'intron') );
         $summaries{ $tc->{crispr_damage} }++ if ($tc->{crispr_damage} && $tc->{crispr_damage} ne 'unclassified');
     }
 
