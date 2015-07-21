@@ -1074,7 +1074,8 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH exp IN experiments %]
             <tr>
-              <td>[% exp.id %]</td>
+              <td><a href="[% c.uri_for('/user/view_experiment/',{ experiment_id => exp.id }) %]">
+              [% exp.id %]</a></td>
               <td><a href="[% c.uri_for('/user/view_project/',{ project_id => exp.project_id }) %]">
               [% exp.project_id %]</a></td>
               <td><a href="[% c.uri_for('/user/view_design/',{ design_id => exp.design_id }) %]">

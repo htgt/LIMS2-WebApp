@@ -5,7 +5,7 @@
   </h1>
 </div>
 <p>
-  <a href="[% c.uri_for('/user/view_project/'{project_id => experiment.project_id}) %]" class="btn btn-primary">
+  <a href="[% c.uri_for('/user/view_project' { project_id => experiment.project_id }) %]" class="btn btn-primary" name="project_return_button">
     <i class="icon-hand-left icon-white"></i>
     Back to project [% experiment.project_id %]
   </a>
@@ -19,7 +19,7 @@
   <tr>
     <th>Project ID</th>
     <td>
-      <a href="[% c.uri_for('/user/view_project/', { project_id => experiment.project_id }) %]">
+      <a href="[% c.uri_for('/user/view_project', { project_id => experiment.project_id }) %]">
         [% experiment.project_id %]
       </a>
     </td>
@@ -27,7 +27,7 @@
   <tr>
     <th>Design ID</th>
     <td>
-      <a href="[% c.uri_for('/user/view_design/', { design_id => experiment.design_id }) %]">
+      <a href="[% c.uri_for('/user/view_design', { design_id => experiment.design_id }) %]">
         [% experiment.design_id %]
       </a>
     </td>
@@ -38,7 +38,11 @@
   </tr>
   <tr>
     <th>Gene Symbol</th>
-    <td>[% gene_symbol %]</td>
+    <td>
+      <a href="[% c.uri_for('/user/report/gene', { gene_id => gene_symbol }) %]">
+        [% gene_symbol %]
+      </a>
+    </td>
   </tr>
   [% IF experiment.crispr_group_id %]
   <tr>
