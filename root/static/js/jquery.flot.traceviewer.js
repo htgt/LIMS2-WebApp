@@ -142,8 +142,21 @@ TraceViewer.prototype.show_traces = function(button) {
     this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq);
     this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1);
 
-    //add both the graphs into a single div and replace the button
-    button.replaceWith( $("<div>").append(this.fwd_container).append(this.rev_container) );
+    // create button to hide the traces and restore the "View Traces" button
+    var hide_button = $("<a>",{
+        "class":"btn hide-traces",
+        "text":"Hide Traces",
+        "click": function(){
+            var div = $(this).parent();
+            var show_button = div.prev();
+            show_button.show();
+            div.remove();
+        }
+     } );
+
+    //add hide traces button and both the graphs into a single div and hide the "View Traces" button
+    button.after( $("<div>").append(hide_button).append(this.fwd_container).append(this.rev_container) );
+    button.hide();
 };
 
 //wait for data then give it to the real plot creation method
