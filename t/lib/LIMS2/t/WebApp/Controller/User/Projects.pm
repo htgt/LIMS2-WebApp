@@ -1,7 +1,7 @@
 package LIMS2::t::WebApp::Controller::User::Projects;
 use base qw(Test::Class);
 use Test::Most;
-
+use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
 use strict;
@@ -93,7 +93,7 @@ sub manage_projects_tests : Test(21) {
 
 }
 
-sub view_edit_project_tests : Test(17){
+sub view_edit_project_tests : Test(19){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -138,6 +138,12 @@ sub view_edit_project_tests : Test(17){
     $mech->click_button( name => 'add_experiment');
     $mech->content_contains('Experiment created');
 
+    # Test view experiment page link
+    $mech->follow_link( url_regex => qr/\/user\/view_experiment\?experiment_id=\d+/ );
+    $mech->title_is("View Experiment");
+    $mech->follow_link( url_regex => qr/\/user\/view_project\?project_id=\d+/ );
+    $mech->title_is("View Project");
+
     # Test delete experiment
     my @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 2, '2 experiments listed');
@@ -145,7 +151,7 @@ sub view_edit_project_tests : Test(17){
     $mech->form_number(2);
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
-
+    
     @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 1, '1 experiment listed');
 
@@ -181,4 +187,10 @@ sub _selected_sponsors{
     my @selected = map { $_->value } grep { $_->{current} } @all;
     return [ sort @selected ];
 }
+
+#sub view_experiment_page{
+#   my ($mech) = @_;
+#   print "Reached\n";
+#   #   return;    
+#}
 1;

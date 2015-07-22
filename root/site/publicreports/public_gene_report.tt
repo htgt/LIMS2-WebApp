@@ -93,6 +93,19 @@ function toggle_btn(btn, show_or_hide) {
         <dt>Wild Type</dt>
         <dd>[% summary.exists( 'wild_type' ) ? summary.item( 'wild_type' ) : 0 %]</dd>
 
+        [% IF summary.exists( 'splice_acceptor' ) %]
+        <dt>Splice Acceptor</dt>
+        <dd>[% summary.exists( 'splice_acceptor' ) ? summary.item( 'splice_acceptor' ) : 0 %]</dd>
+        [%- END -%]
+        [% IF summary.exists( 'splice_donor' ) %]
+        <dt>Splice Donor</dt>
+        <dd>[% summary.exists( 'splice_donor' ) ? summary.item( 'splice_donor' ) : 0 %]</dd>
+        [%- END -%]
+        [% IF summary.exists( 'intron' ) %]
+        <dt>Intron</dt>
+        <dd>[% summary.exists( 'intron' ) ? summary.item( 'intron' ) : 0 %]</dd>
+        [%- END -%]
+
         <dt>Mosaic</dt>
         <dd>[% summary.exists( 'mosaic' ) ? summary.item( 'mosaic' ) : 0 %]</dd>
 

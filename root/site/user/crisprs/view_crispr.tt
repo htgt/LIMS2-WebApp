@@ -185,6 +185,12 @@
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr</em></p>
+  [% IF c.check_user_roles( 'edit' ) %]
+    <p>
+    <a class="btn btn-primary" href="[% c.uri_for("/user/crispr/${crispr_data.id}/view/", { generate_primers => 1 }) %]">Generate Primers</a>
+    <small>this action may take a few minutes</small>
+    </p>
+  [% END %]
 [% END %]
 
 [% IF crispr_data.off_targets.size > 0 %]
