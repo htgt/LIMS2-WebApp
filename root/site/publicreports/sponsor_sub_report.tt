@@ -43,7 +43,7 @@ document.title = "[%- sponsor_id %]";
   <thead>
     <tr>
       [%- FOR disp_col IN display_columns %]
-        [%- IF disp_col == "PCR-passing design oligos" || disp_col == "info" || disp_col == "chr" %]
+        [%- IF disp_col == "PCR-passing design oligos" || disp_col == "info" %]
           [%- IF c.user %]
             <th>[%- disp_col %]</th>
           [%- END %]
@@ -133,10 +133,10 @@ document.title = "[%- sponsor_id %]";
             [%- END %]
 
         [%- ELSIF col == 'targeted_clones' %]
-          [%- IF row.item('targeted_clones') && row.item('chromosome') == "X" %]
-            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [%- ELSIF row.item('targeted_clones') && row.item('fs_count') %]
+          [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
             <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') && row.item('chr') == "X" %]
+            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSIF row.item('targeted_clones') %]
             <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSE %]
