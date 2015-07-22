@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.329     2015-07-22 10:45:33 Europe/London
+
+    Sponsor front page sub-report updated:
+    - Added splice_acceptor calls to the frameshift counts
+    - het clones make a green project checkpoint
+    - failed project always turn red most recent checkpoint
+
 0.328     2015-07-21 11:57:39 Europe/London
 
     Added view experiment interface
