@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.325';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.329';
 }
 ## use critic
 
@@ -88,7 +88,13 @@ sub project_recovery_comment_GET{
             shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
         }
     );
-    $project->update( { recovery_comment => $c->request->param( 'recovery_comment' ) } );
+    my $new_comment = $c->request->param( 'recovery_comment' );
+    # Grid submits 'null' as text string if comment is deleted
+    if($new_comment eq 'null'){
+        $new_comment = undef;
+    }
+
+    $project->update( { recovery_comment => $new_comment } );
 
     return $self->status_ok( $c, entity => $project->as_hash );
 }

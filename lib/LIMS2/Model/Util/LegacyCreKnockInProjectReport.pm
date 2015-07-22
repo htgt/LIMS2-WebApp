@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::LegacyCreKnockInProjectReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.325';
+    $LIMS2::Model::Util::LegacyCreKnockInProjectReport::VERSION = '0.329';
 }
 ## use critic
 
@@ -357,6 +357,11 @@ sub allele_products {
 
     my %allele_mice;
     for my $e ( @mice ) {
+        # avoid error caused by missing allele symbol
+        unless($e->{allele_symbol}){
+            $self->log->debug("No allele_symbol - skipping");
+            next;
+        }
         if ( $e->{allele_symbol} =~ /<sup>(.*)<\/sup>/ ) {
             $allele_mice{$1} = $e->{status_name};
         };

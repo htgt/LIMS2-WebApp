@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.325';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.329';
 }
 ## use critic
 
@@ -10,7 +10,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
-
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
@@ -1045,15 +1045,15 @@ sub genes {
         );
         my $final_pick_pass_count = scalar @final_pick;
 
-        my @final_pick_qc = $summary_rs->search(
-            { final_pick_qc_seq_pass => 't',
-              to_report => 't' },
-            {
-                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
-                distinct => 1
-            }
-        );
-        my $final_pick_qc_pass_count = scalar @final_pick_qc;
+        # my @final_pick_qc = $summary_rs->search(
+        #     { final_pick_qc_seq_pass => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $final_pick_qc_pass_count = scalar @final_pick_qc;
 
 
 
@@ -1156,79 +1156,22 @@ sub genes {
 
             ## no critic(ProhibitDeepNests)
             foreach my $ep_pick (@ep_pick) {
-                my $damage_call = '';
+                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-
-                # grab data for crispr damage type
-                # only on validated runs...
-                my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
-                    {
-                        well_id  => $ep_pick->ep_pick_well_id,
-                        'crispr_es_qc_run.validated' => 1,
-                    },
-                    {
-                        join => 'crispr_es_qc_run'
-
-                    }
-                );
-
-                my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-                if ( scalar( @crispr_damage_types ) == 1 ) {
-                    $damage_call = $crispr_damage_types[0];
-                    $curr_ep_data{$crispr_damage_types[0]}++;
-                }
-                elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                    # remove any non accepted results
-                    @crispr_damage_types = uniq grep {$_}
-                        map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
-
-                    if ( scalar( @crispr_damage_types ) == 1 ) {
-                        $damage_call = $crispr_damage_types[0];
-                        $curr_ep_data{$crispr_damage_types[0]}++;
-                    }
-                    else {
-                        if (scalar( @crispr_damage_types ) > 1 ) {
-                            # DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has multiple crispr damage types associated with it: "
-                            #         . join( ', ', @crispr_damage_types );
-                            $damage_call = $crispr_damage_types[0];
-                            $curr_ep_data{$crispr_damage_types[0]}++;
-                        } else {
-                            DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                            # next;
-                        }
-                    }
+                if ($damage_call) {
+                    $curr_ep_data{$damage_call}++;
                 }
                 else {
-                    DEBUG "WARNING: ep_pick well " . $ep_pick->ep_pick_plate_name . '_' . $ep_pick->ep_pick_well_name . ' (id:' . $ep_pick->ep_pick_well_id . ") has no crispr damage type associated with it";
-                    # next;
+                    $damage_call = '';
                 }
 
-
-                if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
-                    try{
-                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
-                                { well_id => $ep_pick->ep_pick_well_id } );
-
-                        if ( $het->five_prime && $het->three_prime ) {
-                            $curr_ep_data{'het'}++;
-                        }
-                    };
-                } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
-                    try{
-                        my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
-                                { well_id => $ep_pick->ep_pick_well_id } );
-
-                        if ( $het->five_prime && $het->three_prime ) {
-                            $curr_ep_data{'het'}++;
-                        }
-                    };
+                if ( ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call) ) {
+                    $curr_ep_data{het}++;
                 }
-
-
             }
             ## use critic
 
+            $curr_ep_data{'frameshift'} += $curr_ep_data{'splice_acceptor'} unless (!$curr_ep_data{'splice_acceptor'});
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
@@ -1245,7 +1188,7 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
@@ -1282,21 +1225,24 @@ sub genes {
                 piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/piq_plate_name piq_well_name/ ],
+                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
 
-        my @ancestor_piq = $summary_rs->search(
+        push @piq, $summary_rs->search(
             {   ancestor_piq_plate_name => { '!=', undef },
                 ancestor_piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
-        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
+
+        my $piq_pass_count = scalar @piq;
 
 
 
@@ -1312,7 +1258,7 @@ sub genes {
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
-            'qc_passing_vector_wells' => $final_pick_qc_pass_count,
+            # 'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
 
             'colonies_picked'        => $total_ep_pick_count,
@@ -1349,16 +1295,18 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'distrib_clones' }         <=> $a->{ 'distrib_clones' }         ||
+            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }                ||
+            $b->{ 'ep_pick_het' }            <=> $a->{ 'ep_pick_het' }            ||
+            $b->{ 'targeted_clones' }        <=> $a->{ 'targeted_clones' }        ||
+            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }       <=> $a->{ 'electroporations' }       ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'passing_vector_wells' }   <=> $a->{ 'passing_vector_wells' }   ||
+            # $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' }
+            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
+            $b->{ 'crispr_wells' }           <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 

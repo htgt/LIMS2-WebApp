@@ -234,6 +234,7 @@ lib/LIMS2/Report/CreKiESDistributionSummary.pm
 lib/LIMS2/Report/CrisprEPDetail.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprEPSummary.pm
+lib/LIMS2/Report/CrisprEPSummaryJune2015.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
 lib/LIMS2/Report/CrisprVectorPlate.pm
@@ -302,6 +303,7 @@ lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
+lib/LIMS2/WebApp/Controller/User/Experiments.pm
 lib/LIMS2/WebApp/Controller/User/Genoverse.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
@@ -412,6 +414,7 @@ root/site/user/designtargets/simple_gene_report.tt
 root/site/user/engseqs/generate_sequence_file.tt
 root/site/user/engseqs/pick_gene_generate_sequence_file.tt
 root/site/user/error.tt
+root/site/user/experiments/view_experiment.tt
 root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt

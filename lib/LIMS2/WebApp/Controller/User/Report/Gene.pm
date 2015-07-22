@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.325';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.329';
 }
 ## use critic
 
@@ -187,6 +187,9 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
     my $crispr_qc = $self->crispr_qc_data( \%wells_hash );
 
+    # Get experiments linked to gene
+    my $experiments = [ map { $_->as_hash } map { $_->experiments } @projects ];
+
     $c->stash(
         'info'         => $gene_info,
         'designs'      => \%designs_hash,
@@ -195,6 +198,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'timeline'     => \@timeline,
         'sponsor'      => $sponsor,
         'crispr_qc'    => $crispr_qc,
+        'experiments'  => $experiments,
     );
 
     return;
@@ -633,7 +637,6 @@ sub fetch_values_for_type_ep {
                 'dna_well'          => $dna_well,
                 'is_accepted'       => $well_is_accepted,
             };
-
             $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
         }
     } elsif ( defined $summary_row->crispr_ep_well_id && $summary_row->crispr_ep_well_id > 0 ) {
@@ -653,6 +656,9 @@ sub fetch_values_for_type_ep {
         my $dna_plate_name     = $summary_row->dna_plate_name;
         my $dna_well_name      = $summary_row->dna_well_name;
         my $dna_well = $dna_plate_name . '_' . $dna_well_name;
+        my $assembly_plate_name = $summary_row->assembly_plate_name ? $summary_row->assembly_plate_name : '';
+        my $assembly_well_name  = $summary_row->assembly_well_name ? $summary_row->assembly_well_name : '';
+        my $assembly_well = $assembly_plate_name . '_' . $assembly_well_name;
         unless ( exists $wells_hash->{ 'ep' }->{ $well_id_string } ) {
             my $well_hash = {
                 'well_id'           => $summary_row->crispr_ep_well_id,
@@ -662,8 +668,9 @@ sub fetch_values_for_type_ep {
                 'well_name'         => $summary_row->crispr_ep_well_name,
                 'created_at'        => $summary_row->crispr_ep_well_created_ts->ymd,
                 'recombinases'      => $summary_row->crispr_ep_well_nuclease,
-                'final_pick_well'   => $final_pick_well,
                 'dna_well'          => $dna_well,
+                'assembly_well'     => $assembly_well,
+                'final_pick_well'   => $final_pick_well,
                 'is_accepted'       => $well_is_accepted,
             };
 

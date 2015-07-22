@@ -130,6 +130,7 @@ requires:
   Log::Log4perl: 0
   Log::Log4perl::Catalyst: 0
   Log::Log4perl::Level: 0
+  Math::Round: 0
   Module::Pluggable::Object: 0
   Moose: 0
   Moose::Role: 0
@@ -176,4 +177,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.325
+version: 0.329

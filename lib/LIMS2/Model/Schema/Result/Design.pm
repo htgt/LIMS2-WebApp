@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.325';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.329';
 }
 ## use critic
 
@@ -605,5 +605,6 @@ sub gene_symbols{
                   values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
 }
+
 __PACKAGE__->meta->make_immutable;
 1;

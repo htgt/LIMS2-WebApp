@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.325';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.329';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
               checkout_well_barcode
+              checkout_well_barcode_list
               discard_well_barcode
               freeze_back_fp_barcode
               freeze_back_piq_barcode

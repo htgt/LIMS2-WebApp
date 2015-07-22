@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.325';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.329';
 }
 ## use critic
 
@@ -18,6 +18,7 @@ use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_da
 use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
+use LIMS2::Model::Util::BarcodeActions qw( checkout_well_barcode_list );
 use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
@@ -186,7 +187,48 @@ sub create_plate {
         create_plate_well( $self, $_, $plate ) for @{ $revised_wells };
     }
 
+    # Handle status of parent FP barcodes for Mouse pipeline
+    # (Human FP barcodes are frozen back one by one by user in interface)
+    if($validated_params->{type_id} eq 'PIQ' and $validated_params->{species_id} eq 'Mouse'){
+        $self->_freeze_back_fp_barcodes($plate);
+    }
+
     return $plate;
+}
+
+sub _freeze_back_fp_barcodes{
+    my ($self, $plate) = @_;
+
+    # Identify any parent FP wells with barcodes
+    my @barcodes;
+    foreach my $well ($plate->wells){
+        my ($parent_well) = $well->parent_wells;
+        next unless $parent_well->plate->type_id eq 'FP';
+        if($parent_well->well_barcode){
+            push @barcodes, $parent_well->well_barcode->barcode;
+        }
+    }
+
+    return unless @barcodes;
+
+    $self->log->debug("Freezing back ".scalar(@barcodes)." FP barcodes to make PIQ plate $plate");
+
+    # Checkout parent barcodes (this method handles reversioning of parent plates)
+    checkout_well_barcode_list($self, {
+       barcode_list => \@barcodes,
+       user         => $plate->created_by->name,
+    });
+
+    # Freeze back all barcodes
+    foreach my $barcode (@barcodes){
+        $self->update_well_barcode({
+            barcode   => $barcode,
+            new_state => 'frozen_back',
+            user      => $plate->created_by->name,
+        });
+    }
+
+    return;
 }
 
 =head
