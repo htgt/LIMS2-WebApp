@@ -115,7 +115,7 @@ TraceViewer.prototype.toString = function() { return "TraceViewer"; };
 TraceViewer.prototype.extract_sequence = function(elem) {
     if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
 
-    var m = elem.text().match(/([ACGTacgt]+)/g);
+    var m = elem.text().match(/([ACGTNacgtn]+)/g);
     if ( ! m ) return "";
 
     return m.join("").toUpperCase();
