@@ -312,7 +312,9 @@ sub retrieve_qc_run_summary_results {
 }
 ## use critic
 
-sub _compare_qc_results ($$){
+## no critic (Subroutines::ProhibitSubroutinePrototypes)
+# prototyping seems to be needed to get this to work in sorting
+sub _compare_qc_results($$){
     my ($a,$b) = @_;
 
     my $compare_result = ( $a->{pass}|| 0 ) <=> ( $b->{pass}                || 0 )
@@ -323,6 +325,7 @@ sub _compare_qc_results ($$){
 
     return $compare_result;
 }
+## use critic
 
 sub retrieve_qc_run_seq_well_results {
     my ( $qc_run_id, $seq_well ) = @_;
