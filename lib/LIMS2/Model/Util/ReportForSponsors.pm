@@ -1152,19 +1152,20 @@ sub genes {
             foreach my $ep_pick (@ep_pick) {
                 my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-                if($damage_call){
+                if ($damage_call) {
                     $curr_ep_data{$damage_call}++;
                 }
-                else{
+                else {
                     $damage_call = '';
                 }
 
-                if(ep_pick_is_het($self->model,$ep_pick->ep_pick_well_id,$chromosome,$damage_call)){
+                if ( ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call) ) {
                     $curr_ep_data{het}++;
                 }
             }
             ## use critic
 
+            $curr_ep_data{'frameshift'} += $curr_ep_data{'splice_acceptor'} unless (!$curr_ep_data{'splice_acceptor'});
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
@@ -1181,7 +1182,7 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
@@ -1288,17 +1289,18 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
+            $b->{ 'distrib_clones' }         <=> $a->{ 'distrib_clones' }         ||
+            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }                ||
+            $b->{ 'ep_pick_het' }            <=> $a->{ 'ep_pick_het' }            ||
+            $b->{ 'targeted_clones' }        <=> $a->{ 'targeted_clones' }        ||
             # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            # $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'electroporations' }       <=> $a->{ 'electroporations' }       ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+            $b->{ 'passing_vector_wells' }   <=> $a->{ 'passing_vector_wells' }   ||
             # $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
             $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
-            $b->{ 'crispr_wells' }          <=> $a->{ 'crispr_wells' }
+            $b->{ 'crispr_wells' }           <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 

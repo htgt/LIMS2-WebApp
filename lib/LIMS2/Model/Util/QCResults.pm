@@ -229,18 +229,58 @@ sub retrieve_qc_run_summary_results {
         $model = LIMS2::Model->new( user => 'lims2' );
     }
 
-    my $results = retrieve_qc_run_results_fast($qc_run, $model, $crispr_run);
-
-    my @summary;
-
     my $run_type = 'design_id';
     if ($crispr_run) {
         $run_type = 'crispr_id';
     }
 
+    my $all_results = retrieve_qc_run_results_fast($qc_run, $model, $crispr_run);
+    # Filter results so that if a single well(read) has multiple designs(synvecs) aligning to it
+    # we only consider the best alignment result for that well
+    my $well_results;
+    my $id_gene_symbols;
+    foreach my $result (@$all_results){
+        my $well_name = $result->{plate_name}.$result->{well_name};
+
+        # store the gene symbol for display in case we get no decent results for this ID
+        if($result->{gene_symbol} and $result->{ $run_type }){
+            $id_gene_symbols->{ $result->{ $run_type } } = $result->{gene_symbol};
+        }
+
+        if(my $existing_well_result = $well_results->{$well_name}){
+            DEBUG "Examining duplicate well $well_name";
+            # To determine the best result for the well use the same sort criteria
+            # as we will later use to find the best result for each design/crispr
+            my $this_result_better = _compare_qc_results($result,$existing_well_result);
+            if($this_result_better > 0){
+                DEBUG $result->{ $run_type }." is better match for $well_name than ".$existing_well_result->{ $run_type };
+                $well_results->{$well_name} = $result;
+            }
+            elsif($this_result_better == 0){
+                # same
+                my $ids = join ",",$existing_well_result->{ $run_type }, $result->{ $run_type };
+                ERROR "Well $well_name aligns to ids $ids equally well";
+                # list both IDs. wells with multiple IDs will be ignored when identifying best well for ID
+                $existing_well_result->{ $run_type } = $ids;
+            }
+            else{
+                # existing result better. do nothing.
+                DEBUG $existing_well_result->{ $run_type }." is better match for $well_name than ".$result->{ $run_type };
+            }
+        }
+        else{
+            $well_results->{$well_name} = $result;
+        }
+    }
+
+    my $results = [ values %$well_results ];
+
+    my @summary;
+
     my $template_well_rs = $qc_run->qc_template->qc_template_wells;
     my %seen;
 
+    # Identify the best result for each $run_type (design or crispr) ID
     while ( my $template_well = $template_well_rs->next ) {
         next
             unless $template_well->$run_type
@@ -250,14 +290,8 @@ sub retrieve_qc_run_summary_results {
             $run_type => $template_well->$run_type,
         );
 
-        my @results = reverse sort {
-                   ( $a->{pass}                || 0 ) <=> ( $b->{pass}                || 0 )
-                || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
-                || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
-                || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
-                || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
-            }
-            grep { $_->{$run_type} and ($_->{$run_type} == $template_well->$run_type) } @{$results};
+        my @design_or_crispr_results = grep { $_->{$run_type} and ($_->{$run_type} eq $template_well->$run_type) } @{$results};
+        my @results = reverse sort _compare_qc_results @design_or_crispr_results;
 
         if ( my $best = shift @results ) {
             $s{plate_name}    = $best->{plate_name};
@@ -267,11 +301,29 @@ sub retrieve_qc_run_summary_results {
             $s{pass}          = $best->{pass};
             $s{gene_symbol}   = $best->{gene_symbol};
         }
+        else{
+            $s{gene_symbol} = $id_gene_symbols->{ $template_well->$run_type };
+        }
 
         push @summary, \%s;
     }
 
     return \@summary;
+}
+## use critic
+
+## no critic (Subroutines::ProhibitSubroutinePrototypes)
+# prototyping seems to be needed to get this to work in sorting
+sub _compare_qc_results($$){
+    my ($a,$b) = @_;
+
+    my $compare_result = ( $a->{pass}|| 0 ) <=> ( $b->{pass}                || 0 )
+    || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
+    || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
+    || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
+    || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 );
+
+    return $compare_result;
 }
 ## use critic
 

@@ -94,6 +94,7 @@ sub _build_column_map {
         { vector_id                => "Vector ID" },
         { crispr_1_id              => "CRISPR 1 ID" },
         { crispr_2_id              => "CRISPR 2 ID" },
+        { crispr_id_list           => "All CRISPR IDs" },
         { assembly_plate_name      => "Assembly Plate Name" },
         { assembly_well_name       => "Assembly Well Name" },
         { assembly_well_seq_verified => "Sequence Verification of Assembly" },
@@ -232,10 +233,11 @@ sub build_ep_detail {
 
         # Crisprs displayed in no particular order e.g. not left then right
         # FIXME? is this a problem?
-        # FIXME: will not display crispr groups with more than 2 crisprs
         my @crisprs = $assembly_well->crisprs;
         $data{crispr_1_id} = $crisprs[0] ? $crisprs[0]->id : undef;
         $data{crispr_2_id} = $crisprs[1] ? $crisprs[1]->id : undef;
+        # Provide list of all crispr IDs in case it is group with more than 2 crisprs
+        $data{crispr_id_list} = join "/", map { $_->id } @crisprs;
 
         # Work out assembly well QC verification result (true or false). NB: in future we may be storing
         # this as the well_accepted flag in which case can get it from summaries
@@ -284,10 +286,16 @@ sub build_ep_detail {
         }
 
         if(%ep_pick_damage){
-            my @types = ('frameshift','in-frame','wild_type','mosaic','no-call','het');
+            my @types = ('frameshift','in-frame','wild_type','mosaic','no-call','het','splice_acceptor');
 
             foreach my $damage_type (@types){
                 $data{$damage_type} = ($ep_pick_damage{$damage_type} ? $ep_pick_damage{$damage_type} : 0);
+            }
+
+            # Add number of splice acceptors to frameshift count
+            if($data{'splice_acceptor'}){
+                $data{'frameshift'} //= 0; # avoid uninitialized value errors
+                $data{'frameshift'} += $data{'splice_acceptor'};
             }
 
             # Calculate targeting efficiency from frameshift damage counts

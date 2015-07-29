@@ -1,5 +1,30 @@
 {{$NEXT}}
 
+0.329     2015-07-22 10:45:33 Europe/London
+
+    Sponsor front page sub-report updated:
+    - Added splice_acceptor calls to the frameshift counts
+    - het clones make a green project checkpoint
+    - failed project always turn red most recent checkpoint
+
+0.328     2015-07-21 11:57:39 Europe/London
+
+    Added view experiment interface
+
+0.327     2015-06-29 15:52:14 Europe/London
+
+    Added new variant calls: splice_acceptor, splice_donor, intron
+
+0.326     2015-06-23 15:01:59 Europe/London
+
+   Added new human CRISPR EP summary report
+   Mouse PIQ plate creation handles barcodes on parent FP wells
+
+0.325     2015-06-19 14:10:29 Europe/London
+
+   Fixed bug in crispr_loci_type_id of create_crispr
+   Fixed bug in mouse non-crispr project sponsor sub report 
+
 0.324     2015-06-18 12:38:59 Europe/London
 
    Added het clones to sponsor_sub_report
