@@ -70,6 +70,50 @@ Genoverse.Track.CrisprPairs.LIMS2 = Genoverse.Track.CrisprPairs.extend({
     }
 });
 
+Genoverse.Track.CrisprGroupsLIMS2 = Genoverse.Track.CrisprPairs.extend({
+    threshold    : 10000,
+    populateMenu : function (f) {
+        // get up to date feature object
+        var feature = this.track.model.featuresById[f.id];
+
+        var id = feature.name.replace('LIMS2-','');
+        var report_link = "<a href='" + this.track.group_report_uri + "/"
+                                + id
+                                + "/view' target='_blank'><font color='#00FFFF'>Crispr Group View</font></a>";
+        var atts = {
+            Start  : feature.start,
+            End    : feature.end,
+            Strand : feature.strand,
+            Name   : feature.name,
+            URL    : report_link
+        };
+        return atts;
+    }
+});
+
+Genoverse.Track.PrimersLIMS2 = Genoverse.Track.extend({
+    model     : Genoverse.Track.Model.Transcript.GFF3,
+    view      : Genoverse.Track.View.Transcript,
+    populateMenu : function(f){
+      var feature = this.track.model.featuresById[f.id];
+
+      var atts = {
+        Type   : feature.type,
+      };
+
+      // List primers with forward primer first;
+      var primers = feature.cds;
+      primers.sort(function(a,b){ if(a.strand > b.strand){ return 1 }else{ return -1 } });
+      primers.forEach(function(primer){
+        atts[primer.id + ' Start'] = primer.start;
+        atts[primer.id + ' End'] = primer.end;
+        atts[primer.id + ' Strand'] = primer.strand;
+      });
+
+      return atts;
+    }
+});
+
 // Add extra parameters to a URL for a genoverse track
 function build_uri_params( params_to_build ) {
     var param_stub = "?";

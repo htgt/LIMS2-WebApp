@@ -39,7 +39,7 @@ var generic_designs_params = [
 
     <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
     <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js' )%]"></script>
-    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 1})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 2})%]"></script>
     <script>
       var genoverseConfig = {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
@@ -80,13 +80,12 @@ var generic_designs_params = [
             height    : 150,
             pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
           }),
-          Genoverse.Track.extend({
+          Genoverse.Track.CrisprGroupsLIMS2.extend({
             name      : 'Crispr_groups',
             url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
-            model     : Genoverse.Track.Model.Transcript.GFF3,
-            view      : Genoverse.Track.View.Transcript,
             resizable : 'auto',
-            height    : 150
+            height    : 150,
+            group_report_uri : "[% c.uri_for('/user/crispr_group') %]"
           }),
           Genoverse.Track.Crisprs.LIMS2.extend({
             name      : 'Crisprs',
