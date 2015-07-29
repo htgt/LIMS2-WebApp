@@ -162,6 +162,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             qc_run_id  => $c->req->params->{qc_run_id},
             plate_name => $c->req->params->{plate_name},
             well_name  => uc( $c->req->params->{well_name} ),
+            with_eng_seq => 1,
         }
     );
 

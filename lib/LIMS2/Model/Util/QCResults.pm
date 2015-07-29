@@ -12,6 +12,7 @@ use Sub::Exporter -setup => {
             retrieve_qc_run_seq_well_results
             retrieve_qc_alignment_results
             retrieve_qc_seq_read_sequences
+            retrieve_qc_eng_seq_bioseq
             retrieve_qc_eng_seq_sequence
             build_qc_runs_search_params
             infer_qc_process_type
@@ -415,12 +416,20 @@ sub retrieve_qc_seq_read_sequences {
     return ( $filename, $formatted_seq );
 }
 
-sub retrieve_qc_eng_seq_sequence {
-    my ( $eng_seq_builder, $qc_test_result, $format ) = @_;
+sub retrieve_qc_eng_seq_bioseq{
+    my ( $eng_seq_builder, $qc_test_result ) = @_;
 
     my $qc_eng_seq_params = $qc_test_result->qc_eng_seq->as_hash;
     my $eng_seq_method    = $qc_eng_seq_params->{eng_seq_method};
     my $qc_eng_seq = $eng_seq_builder->$eng_seq_method( $qc_eng_seq_params->{eng_seq_params} );
+
+    return $qc_eng_seq;
+}
+
+sub retrieve_qc_eng_seq_sequence {
+    my ( $eng_seq_builder, $qc_test_result, $format ) = @_;
+
+    my $qc_eng_seq = retrieve_qc_eng_seq_bioseq($eng_seq_builder, $qc_test_result);
 
     my $params = _validated_download_seq_params($format);
 

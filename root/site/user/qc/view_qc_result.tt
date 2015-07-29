@@ -3,6 +3,9 @@
   <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
 
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/angularplasmid.css' ) %]">
+<script src="[% c.uri_for( '/static/js/angularplasmid.complete.min.js' ) %]"></script>
+
 <a class="btn btn-primary" href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
   <i class="icon-arrow-left icon-white"></i> Back to Qc Run Results
 </a>
@@ -144,6 +147,33 @@
     [% END -%]
   </tbody>
 </table>
+[% FOREACH feature IN r.eng_seq.get_SeqFeatures %]
+  [% TRY %]
+    [% name = feature.get_tag_values('note') %]
+  [% CATCH %]
+  [% END %]
+  <p>Feature Start: [% feature.start %], End: [% feature.end %], Name: [% name %]</p>
+[% END %]
+<plasmid class='p1' sequencelength="[% r.eng_seq.length %]">
+  <plasmidtrack class='t1'>
+    <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
+[% FOREACH feature IN r.eng_seq.get_SeqFeatures %]
+  [% TRY %]
+    [% name = feature.get_tag_values('note') %]
+  [% CATCH %]
+  [% END %]
+  [% IF name == 'Synthetic Cassette' %]
+    <trackmarker class='marker_cassette' start='[% feature.start %]' end='[% feature.end %]'>
+      <markerlabel class='mlabel' text='[% name %]' type='path'></markerlabel>
+    </trackmarker>
+  [% ELSIF name.match(' arm') %]
+    <trackmarker class='marker_arm' start='[% feature.start %]' end='[% feature.end %]'>
+      <markerlabel class='mlabel' text='[% name %]' type='path'></markerlabel>
+    </trackmarker>
+  [% END %]
+[% END %]
+  </plasmidtrack>
+</plasmid>
 <p>
 <a class="btn btn-info" href="[% c.uri_for( '/user/qc_eng_seq',
   { 'format' => "genbank", 'qc_test_result_id' => r.qc_test_result_id } ) %]">
