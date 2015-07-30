@@ -16,6 +16,7 @@ use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
+use Number::Range;
 
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -183,6 +184,69 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         @crispr_primers = map { $_->crispr_primer }
                               $template_well->qc_template_well_crispr_primers->search({ qc_run_id => $qc_run->id });
         $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
+    }
+
+    # FIXME: this belongs in a Util module
+    # Set angularplasmid display parameters for each alignment
+    foreach my $result (@$results){
+        # Allow max of 3 levels
+        my @levels = ( Number::Range->new(), Number::Range->new(), Number::Range->new() );
+        my @display_alignments;
+        foreach my $a (@{ $result->{alignments} }){
+            my $params = {
+                name => $a->primer_name,
+                id => $a->id,
+            };
+
+            # Start must be before end for display. draw arrow at start or end to indicate read direction.
+            if ($a->target_start < $a->target_end){
+                $params->{start} = $a->target_start;
+                $params->{end} = $a->target_end;
+                $params->{arrow} = "arrowendlength='10' arrowendwidth='5' arrowendangle='3'";
+            }
+            else{
+                $params->{start} = $a->target_end;
+                $params->{end} = $a->target_start;
+                $params->{arrow} = "arrowstartlength='10' arrowstartwidth='5' arrowstartangle='3'";
+            }
+
+            # Check for overlapping reads and set vadjust level to avoid overlap in display
+            # vadjust_level is used as a multiplier so distance between levels is set in view
+            my $level = 1;
+            foreach my $level_range (@levels){
+                my @in_range_results = $level_range->inrange($params->{start}..$params->{end});
+                if(grep { $_==1 } @in_range_results){
+                    # try the next level
+                    $level++;
+                    next();
+                }
+                else{
+                    # No overlap, we can display on this level
+                    # and add this feature to the range
+                    $params->{vadjust_level} = $level;
+                    $level_range->addrange($params->{start}."..".$params->{end});
+                    last();
+                }
+            }
+
+            unless($params->{vadjust_level}){
+                $c->log->warn("Could not assign read ".$a->primer_name." to display level without overlap");
+                # Bung it in level 1
+                $params->{vadjust_level} = 1;
+            }
+
+            # Set display class to show passes and fails
+            if($a->pass){
+                $params->{class} = 'marker_read_align';
+            }
+            else{
+                $params->{class} = 'marker_fail_read_align';
+            }
+
+            push @display_alignments, $params;
+
+        }
+        $result->{display_alignments} = \@display_alignments;
     }
 
     $c->stash(

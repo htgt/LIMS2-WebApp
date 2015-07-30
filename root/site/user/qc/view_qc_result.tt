@@ -147,6 +147,7 @@
     [% END -%]
   </tbody>
 </table>
+
 <plasmid class='p1' sequencelength="[% r.eng_seq.length %]">
   <plasmidtrack class='t1'>
     <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
@@ -165,18 +166,9 @@
     </trackmarker>
   [% END %]
 [% END %]
-[% FOREACH a IN r.alignments %]
-  [% IF a.target_start < a.target_end %]
-    [% start = a.target_start %]
-    [% end = a.target_end %]
-    [% arrow = "arrowendlength='10' arrowendwidth='5' arrowendangle='3'" %]
-  [% ELSE %]
-    [% start = a.target_end %]
-    [% end = a.target_start %]
-    [% arrow = "arrowstartlength='10' arrowstartwidth='5' arrowstartangle='3'" %]
-  [% END %]
-    <trackmarker class='[% IF a.pass %]marker_read_align[% ELSE %]marker_fail_read_align[% END %]' start='[% start %]' end='[% end %]' [% arrow %] wadjust='-5' vadjust='-25'>
-      <markerlabel text="[% a.primer_name %]" class="mlabel" type="path"></markerlabel>
+[% FOREACH a IN r.display_alignments %]
+    <trackmarker class='[% a.class %]' start='[% a.start %]' end='[% a.end %]' [% a.arrow %] wadjust='-5' vadjust='[% -30 * a.vadjust_level %]'>
+      <markerlabel text="[% a.name %]" class="mlabel" type="path"></markerlabel>
     </trackmarker>
 [% END %]
   </plasmidtrack>
