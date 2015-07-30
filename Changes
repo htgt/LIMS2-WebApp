@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.329     2015-07-30 13:30:02 Europe/London
 Improved genoverse views 
 Fixed bug in crispr damage QC view 
 Added primer generation to crispr import 
