@@ -17,6 +17,7 @@ use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use Number::Range;
+use Bio::Perl qw( revcom );
 
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -190,8 +191,10 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     # Set angularplasmid display parameters for each alignment
     foreach my $result (@$results){
         # Allow max of 3 levels
-        my @levels = ( Number::Range->new(), Number::Range->new(), Number::Range->new() );
+        my @read_levels = ( Number::Range->new(), Number::Range->new(), Number::Range->new() );
+        my @target_region_levels = ( Number::Range->new(), Number::Range->new(), Number::Range->new() );
         my @display_alignments;
+        my $alignment_targets = {};
         foreach my $a (@{ $result->{alignments} }){
             my $params = {
                 name => $a->primer_name,
@@ -210,24 +213,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
                 $params->{arrow} = "arrowstartlength='10' arrowstartwidth='5' arrowstartangle='3'";
             }
 
-            # Check for overlapping reads and set vadjust level to avoid overlap in display
-            # vadjust_level is used as a multiplier so distance between levels is set in view
-            my $level = 1;
-            foreach my $level_range (@levels){
-                my @in_range_results = $level_range->inrange($params->{start}..$params->{end});
-                if(grep { $_==1 } @in_range_results){
-                    # try the next level
-                    $level++;
-                    next();
-                }
-                else{
-                    # No overlap, we can display on this level
-                    # and add this feature to the range
-                    $params->{vadjust_level} = $level;
-                    $level_range->addrange($params->{start}."..".$params->{end});
-                    last();
-                }
-            }
+            $params->{vadjust_level} = _get_vadjust_level($params->{start},$params->{end},\@read_levels);
 
             unless($params->{vadjust_level}){
                 $c->log->warn("Could not assign read ".$a->primer_name." to display level without overlap");
@@ -236,6 +222,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             }
 
             # Set display class to show passes and fails
+            # FIXME: should store pass/fail and set class in tt view
             if($a->pass){
                 $params->{class} = 'marker_read_align';
             }
@@ -245,8 +232,47 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
 
             push @display_alignments, $params;
 
+            # Now find alignment target regions
+            my @alignment_regions;
+            foreach my $region ($a->qc_alignment_regions){
+                my $target_params = {
+                    name => $region->name,
+                    pass => $region->pass,
+                };
+                my $target_str = $region->target_str;
+                $target_str =~ s/-//g;
+                my $start = index($result->{eng_seq}->seq, $target_str);
+                if($start == -1){
+                    # revcom and try again
+                    my $rev_target_str = revcom($target_str)->seq;
+                    $start = index($result->{eng_seq}->seq, $rev_target_str);
+                }
+
+                if($start > -1){
+                    $target_params->{start} = $start;
+                    $target_params->{end} = $start + $region->length;
+                    $target_params->{vadjust_level} = _get_vadjust_level(
+                        $target_params->{start},
+                        $target_params->{end},
+                        \@target_region_levels,
+                        500
+                    );
+                    unless($target_params->{vadjust_level}){
+                        $c->log->warn("Could not assign target region ".$region->name." to display level without overlap");
+                        $target_params->{vadjust_level} = 1;
+                    }
+                    push @alignment_regions, $target_params;
+                }
+                else{
+                    $c->log->warn("Region ".$region->name." not found in eng_seq");
+                }
+            }
+            $alignment_targets->{ $a->primer_name } = \@alignment_regions;
+
         }
         $result->{display_alignments} = \@display_alignments;
+        $result->{alignment_targets} = $alignment_targets;
+$c->log->debug(Dumper($alignment_targets));
     }
 
     $c->stash(
@@ -258,6 +284,35 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
     );
+    return;
+}
+
+# FIXME: this belongs in Util module
+sub _get_vadjust_level{
+    my ($start, $end, $levels, $padding) = @_;
+
+    # Set padding to allow for labels which may be wider than the actual region
+    $padding ||= 0;
+    my $range_start = $start - $padding;
+    my $range_end = $end + $padding;
+
+    # Check for overlapping regions and set vadjust level to avoid overlap in display
+    # vadjust_level is used as a multiplier so distance between levels is set in view
+    my $level = 1;
+    foreach my $level_range (@$levels){
+        my @in_range_results = $level_range->inrange($range_start..$range_end);
+        if(grep { $_==1 } @in_range_results){
+            # try the next level
+            $level++;
+            next();
+        }
+        else{
+            # No overlap, we can display on this level
+            # and add this feature to the range
+            $level_range->addrange($range_start."..".$range_end);
+            return $level;
+        }
+    }
     return;
 }
 

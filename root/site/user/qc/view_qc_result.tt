@@ -3,7 +3,7 @@
   <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
 
-<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/angularplasmid.css', { v => 2} ) %]">
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/angularplasmid.css', { v => 4 } ) %]">
 <script src="[% c.uri_for( '/static/js/angularplasmid.complete.min.js' ) %]"></script>
 
 <a class="btn btn-primary" href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
@@ -148,7 +148,7 @@
   </tbody>
 </table>
 
-<plasmid class='p1' sequencelength="[% r.eng_seq.length %]">
+<plasmid class='p1' sequencelength="[% r.eng_seq.length %]" plasmidheight="500" plasmidwidth="500">
   <plasmidtrack class='t1'>
     <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
 [% FOREACH feature IN r.eng_seq.get_SeqFeatures %]
@@ -170,6 +170,14 @@
     <trackmarker class='[% a.class %]' start='[% a.start %]' end='[% a.end %]' [% a.arrow %] wadjust='-5' vadjust='[% -30 * a.vadjust_level %]'>
       <markerlabel text="[% a.name %]" class="mlabel" type="path"></markerlabel>
     </trackmarker>
+[% END %]
+[% FOREACH primer IN r.alignment_targets.keys %]
+  [% FOREACH region IN r.alignment_targets.$primer %]
+    <trackmarker class='marker_target_region' start='[% region.start %]' end='[% region.end %]'>
+      <markerlabel text="[% primer %]" valign="outer" vadjust="[% region.vadjust_level * 40 %]" type="path"></markerlabel>
+      <markerlabel text="[% region.name %]" valign="outer" showline="1" vadjust="[% region.vadjust_level * 40 - 10 %]" type="path" labelstyle="font-size:10px"></markerlabel>
+    </trackmarker>
+  [% END %]
 [% END %]
   </plasmidtrack>
 </plasmid>

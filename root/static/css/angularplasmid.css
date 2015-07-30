@@ -26,3 +26,5 @@
 .marker_read_align { fill:#99FF99;stroke:#000;}
 
 .marker_fail_read_align { fill:#99FF99;stroke:#000;stroke-dasharray:5,5; }
+
+.marker_target_region { stroke:#000;fill-opacity:0; }
