@@ -4,6 +4,7 @@ use Test::Most;
 use LIMS2::WebApp::Controller::User::Crisprs;
 
 use LIMS2::Test;
+use Data::Dumper;
 
 use strict;
 
