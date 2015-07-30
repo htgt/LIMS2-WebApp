@@ -2349,6 +2349,7 @@ root/static/js/jquery.flot.min.js
 root/static/js/jquery.flot.navigate.min.js
 root/static/js/jquery.flot.traceviewer.js
 root/static/js/jquery.qtip.min.js
+root/static/js/lims2_genoverse_custom_tracks.js
 root/static/js/poller.js
 root/static/js/primer_validation_state.js
 root/static/js/raphael-min.js

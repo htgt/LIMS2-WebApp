@@ -37,23 +37,15 @@ var unique_crispr_params = [
     "species=[%c.session.selected_species%]"
 ];
 
-function build_uri_params( params_to_build ) {
-    var param_stub = "?";
-    var param_end = [
-        "chr=__CHR__",
-        "start=__START__",
-        "end=__END__"
-    ];
-    params_to_build = params_to_build.concat( param_end );
-    var param_str = params_to_build.join("&");
-    return param_stub.concat( param_str );
-}
 </script>
 
 
 
-    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js')%]">
-       {
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js' )%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 1})%]"></script>
+    <script type="text/javascript">
+       var genoverseConfig = {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
@@ -128,7 +120,11 @@ function build_uri_params( params_to_build ) {
             }
           })
         ]
-      }
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.genoverse = new Genoverse(genoverseConfig);
+      });
     </script>
 
     <div id="genoverse"></div>

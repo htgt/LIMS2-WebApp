@@ -4,6 +4,7 @@ use Test::Most;
 use LIMS2::WebApp::Controller::User::Crisprs;
 
 use LIMS2::Test;
+use Data::Dumper;
 
 use strict;
 
@@ -36,7 +37,8 @@ sub all_tests  : Test(21)
     my @links = $mech->find_all_links(url_regex => qr{/user/crispr/\d*});
     is scalar @links, 2, 'found 2 crispr links after import';
     $mech->links_ok(\@links, 'can follow crispr links from import page');
-    my ($group_id) = ($mech->content =~ /Crispr Group (\d*) Imported/);
+    print $mech->content;
+    my ($group_id) = ($mech->content =~ /Crispr Group <a .*>(\d*)<\/a> Imported/g);
 
     # load design target
     # Check new group is found for target
@@ -71,6 +73,8 @@ sub all_tests  : Test(21)
         },
         button => 'action'
         );
+    print Dumper "$group_id:$design_id";
+    #print Dumper $mech->content;
     ok $res->is_success, 'submitted request to link crispr group to design';
     $mech->content_contains('no crispr in the group lies wholly within target region of design');
 

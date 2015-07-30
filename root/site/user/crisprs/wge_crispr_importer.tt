@@ -8,6 +8,7 @@
     </span>
     <br />
     <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr" />
+    This may take a few minutes to generate the primers.
 </form>
 
 [% IF crispr %]
