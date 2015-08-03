@@ -51,7 +51,7 @@ case $1 in
     regenerate_schema)
         lims2_regenerate_schema
         ;;
-    *) 
+    *)
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
 esac
@@ -238,6 +238,7 @@ function lims2_devel {
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
 }
 
 function lims2_pg9.3 {
@@ -277,6 +278,7 @@ LIMS2 useful environment variables:
 \$LIMS2_WEBAPP_CONFIG          : $LIMS2_WEBAPP_CONFIG
 \$LIMS2_DBCONNECT_CONFIG       : $LIMS2_DBCONNECT_CONFIG
 \$LIMS2_URL_CONFIG             : $LIMS2_URL_CONFIG
+\$LIMS2_PRIMER_DIR             : $LIMS2_PRIMER_DIR
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT

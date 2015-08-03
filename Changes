@@ -1,4 +1,8 @@
 {{$NEXT}}
+Improved genoverse views 
+Fixed bug in crispr damage QC view 
+Added primer generation to crispr import 
+QC run summary changed to handle similar designs
 
 0.329     2015-07-22 10:45:33 Europe/London
 

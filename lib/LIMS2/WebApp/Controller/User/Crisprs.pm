@@ -168,7 +168,7 @@ sub _generate_primers_for_crispr_entity{
             if($picked_primers){
                 my ($pcr_picked_primers, $pcr_seq, $pcr_db_primers)
                     = $pcr_primer_util->crispr_PCR_primers($picked_primers, $crispr_entity);
-                $c->stash->{success_msg} = "Primers generated for $id_type ".$crispr_entity->id;
+                $c->stash->{info_msg} = "Primers generated for $id_type ".$crispr_entity->id;
             }
             else{
                 $c->stash->{error_msg} = "Failed to generate primers for $id_type ".$crispr_entity->id;
