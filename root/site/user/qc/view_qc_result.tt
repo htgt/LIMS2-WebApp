@@ -149,6 +149,8 @@
 </table>
 
 [% IF r.display_alignments %]
+<div class="row">
+<div class="span5">
 <plasmid class='p1' sequencelength="[% r.eng_seq.length %]" plasmidheight="500" plasmidwidth="500">
   <plasmidtrack class='t1'>
     <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
@@ -182,6 +184,13 @@
 [% END %]
   </plasmidtrack>
 </plasmid>
+</div>
+<div class="span6">
+<a class="btn btn-info" href="[% c.uri_for( '/static/images/plasmid_map_help.png' ) %]" target="_blank">
+  What is this <i class="icon-question-sign icon-white"></i>
+</a>
+</div>
+</div>
 [% END %]
 <p>
 <a class="btn btn-info" href="[% c.uri_for( '/user/qc_eng_seq',
