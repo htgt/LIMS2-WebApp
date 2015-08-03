@@ -185,11 +185,21 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
     }
 
-    # Create start and end coords for items to be drawn in plasmid view
-    # Adds result->{display_alignments} which is an array of read alignments
-    # and result->{alignment_targets} which is a hash of target regions by primer
-    # A primer read is required to align to the target region in order to pass
-    add_display_info_to_qc_results($results,$c->log);
+    my $is_es_qc = grep { $_ eq $qc_run->profile } @{ $self->_list_all_profiles('es_cell') };
+
+    my $error_msg;
+    unless($is_es_qc){
+        # Create start and end coords for items to be drawn in plasmid view
+        # Adds result->{display_alignments} which is an array of read alignments
+        # and result->{alignment_targets} which is a hash of target regions by primer
+        # A primer read is required to align to the target region in order to pass
+        try{
+            add_display_info_to_qc_results($results,$c->log);
+        }
+        catch{
+            $error_msg = "Failed to generate plasmid view: $_";
+        };
+    }
 
     $c->stash(
         qc_run      => $qc_run->as_hash,
@@ -199,7 +209,9 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         genotyping_primers => \@genotyping_primers,
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
+        error_msg   => $error_msg,
     );
+
     return;
 }
 

@@ -148,6 +148,7 @@
   </tbody>
 </table>
 
+[% IF r.display_alignments %]
 <plasmid class='p1' sequencelength="[% r.eng_seq.length %]" plasmidheight="500" plasmidwidth="500">
   <plasmidtrack class='t1'>
     <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
@@ -181,6 +182,7 @@
 [% END %]
   </plasmidtrack>
 </plasmid>
+[% END %]
 <p>
 <a class="btn btn-info" href="[% c.uri_for( '/user/qc_eng_seq',
   { 'format' => "genbank", 'qc_test_result_id' => r.qc_test_result_id } ) %]">

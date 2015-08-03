@@ -14,6 +14,7 @@ use Sub::Exporter -setup => {
 
 use Number::Range;
 use Bio::Perl qw( revcom );
+use Data::Dumper;
 
 sub add_display_info_to_qc_results{
     my ($results, $log) = @_;
@@ -108,7 +109,7 @@ sub add_display_info_to_qc_results{
 
 # Inputs:
 #  - start coord of feature
-#  - end cood of features
+#  - end cood of feature
 #  - arrayref of levels where each level is a Number::Range
 #  - number of bases of padding needed around feature to allow for labels etc (default:0)
 #
