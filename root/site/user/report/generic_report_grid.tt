@@ -261,6 +261,10 @@
                         change: function (field, newValue, oldValue) {
                             var record = grid.getSelectionModel().getSelection()[0];
 
+                            if(record === undefined){
+                              return;
+                            }
+
                             console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());
 
                             var params_string = j_val.lims2_combo.api_params;
@@ -275,6 +279,18 @@
                                 // For some reason lastValue does not get updated by setRawValue
                                 // so we do it here to avoid wrong oldValue being sent to next change
                                 field.lastValue = oldValue;
+                            })
+                            .done(function(data){
+                                console.log(field);
+                                if('qc_verified' in data){
+                                  console.log("QC verified: " + data.qc_verified);
+                                  // FIXME: can't do record.set because it reloads the entire record
+                                  // from original values thus overwriting changes to assembly QC
+                                  // grid.store.suspendEvents() stops the reload but also stops the value
+                                  // from being changed in grid!
+
+                                  //record.set('QC Verified?', data.qc_verified);
+                                }
                             });
                         }
                       }

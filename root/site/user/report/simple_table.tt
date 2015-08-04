@@ -58,7 +58,8 @@
 
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js', {v => 1} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
 <script type="text/javascript">
 
   $(document).ready(function() {
@@ -75,17 +76,33 @@
         params_string = params_string + '&value=' + new_value;
       }
       var uri = "[% c.uri_for('/') %]" + combo.data("url") + '?' + params_string;
-      $.getJSON( uri ).fail(function (data){
+      $.getJSON( uri )
+
+      .fail(function (data){
         console.log(data.responseText);
         console.log("Update failed. Returning value to " + old_value);
         combo.val(old_value);
         combo.data("previous", old_value);
+      })
+      .done(function(data){
+        if('qc_verified' in data){
+          console.log(data.qc_verified);
+          label_cell = getCell('QC Verified?','Well Name',data.well_name);
+          addQCVerifiedLabel(label_cell,data.qc_verified);
+        }
       });
     });
 
     // Add primer validation buttons and labels to Assembly plate
     [%IF extra_data.plate_type == 'ASSEMBLY' %]
       console.log('adding assembly plate functionality');
+
+      // Change verification score to label
+      var verification_col_index = getColumnIndexByName('QC Verified?') + 1;
+      $('table tr td:nth-child(' + verification_col_index + ')').each(function(){
+          var value = $(this).text();
+          addQCVerifiedLabel($(this),value);
+      });
 
       [% genotyping = { primer_class => 'genotyping_primers', id_column => 'Design ID', id_param => 'design_id', url => '/user/toggle_genotyping_primer_validation_state' } %]
 
