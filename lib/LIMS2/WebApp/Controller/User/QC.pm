@@ -16,7 +16,7 @@ use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
-
+use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -162,6 +162,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             qc_run_id  => $c->req->params->{qc_run_id},
             plate_name => $c->req->params->{plate_name},
             well_name  => uc( $c->req->params->{well_name} ),
+            with_eng_seq => 1,
         }
     );
 
@@ -184,6 +185,22 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
     }
 
+    my $is_es_qc = grep { $_ eq $qc_run->profile } @{ $self->_list_all_profiles('es_cell') };
+
+    my $error_msg;
+    unless($is_es_qc){
+        # Create start and end coords for items to be drawn in plasmid view
+        # Adds result->{display_alignments} which is an array of read alignments
+        # and result->{alignment_targets} which is a hash of target regions by primer
+        # A primer read is required to align to the target region in order to pass
+        try{
+            add_display_info_to_qc_results($results,$c->log);
+        }
+        catch{
+            $error_msg = "Failed to generate plasmid view: $_";
+        };
+    }
+
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
@@ -192,7 +209,9 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         genotyping_primers => \@genotyping_primers,
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
+        error_msg   => $error_msg,
     );
+
     return;
 }
 

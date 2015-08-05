@@ -1830,6 +1830,11 @@ sub assembly_qc_value{
 sub assembly_well_qc_verified{
     my ($self) = @_;
 
+    # Must have all 3 qc results set to make this call
+    unless($self->well_assembly_qcs->all == 3){
+        return;
+    }
+
     my @good = map { $_->qc_type }
                $self->search_related('well_assembly_qcs',{
                   value => 'Good',
@@ -1839,7 +1844,9 @@ sub assembly_well_qc_verified{
     my $vector_good = grep { $_ eq 'VECTOR_QC' } @good;
     my $crispr_good = grep { $_ =~ /CRISPR/ } @good;
 
-    return $vector_good and $crispr_good;
+    my $is_good = $vector_good && $crispr_good ? 1 : 0;
+
+    return $is_good;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -1,23 +1,23 @@
 function getCell(column_name, id_column_name, row_name) {
     // column_name is the name of the column contaning the cell we want
     // id_column_name is the name of the id column we look in to find the row_name
-    if(!$("table th:contains(" + column_name + ")").length){
-      console.log("table does not contain column named " + column_name);
-      return;
-    }
-    var column_index = $("table th:contains(" + column_name + ")").index();
-
-    if(!$("table th:contains(" + id_column_name + ")").length){
-      console.log("table does not contain column named " + id_column_name );
-      return;
-    }
-    var id_column_index = $("table th:contains(" + id_column_name + ")").index() + 1;
+    var column_index = getColumnIndexByName(column_name);
+    var id_column_index = getColumnIndexByName(id_column_name) + 1;
 
     var id_column = $('table tr td:nth-child(' + id_column_index + ')');
     var row = id_column.filter(function(){
       return ($(this).text().trim() == row_name)
     }).closest('tr');
     return row.find('td').eq(column_index);
+}
+
+function getColumnIndexByName(column_name){
+    if(!$("table th:contains(" + column_name + ")").length){
+      console.log("table does not contain column named " + column_name);
+      return;
+    }
+
+    return $("table th:contains(" + column_name + ")").index();
 }
 
 var valid_label = '<span class="label label-success validation-status pull-right">Validated</span>';
