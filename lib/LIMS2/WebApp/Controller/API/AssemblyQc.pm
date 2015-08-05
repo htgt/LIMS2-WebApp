@@ -30,7 +30,7 @@ sub update_assembly_qc_well_GET {
             }
         );
         my $well = $c->model('Golgi')->retrieve_well({ id => $c->request->param('well_id') });
-        my $qc_verified = $well->assembly_well_qc_verified;
+        my $qc_verified = $well->assembly_well_qc_verified // '';
 
         $self->status_ok( $c,
             entity => {
