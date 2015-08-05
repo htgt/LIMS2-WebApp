@@ -281,10 +281,18 @@
                                 field.lastValue = oldValue;
                             })
                             .done(function(data){
-                                console.log(field);
                                 if('qc_verified' in data){
-                                  console.log("QC verified: " + data.qc_verified);
-                                  // FIXME: can't do record.set because it reloads the entire record
+                                  var qc_verified_col = grid.down('[dataIndex="QC Verified?"]');
+                                  var qc_verified_cell_class = 'x-grid-cell-' + qc_verified_col.id;
+
+                                  var combo_box = field.el.dom;
+                                  var row = $(combo_box).closest('tr.x-grid-row');
+                                  var div = row.find('.' + qc_verified_cell_class ).find('div');
+
+                                  console.log("Changing QC verified value from " + div.text() + " to " + data.qc_verified);
+                                  div.text(data.qc_verified);
+
+                                  // can't do record.set because it reloads the entire record
                                   // from original values thus overwriting changes to assembly QC
                                   // grid.store.suspendEvents() stops the reload but also stops the value
                                   // from being changed in grid!
