@@ -292,6 +292,9 @@
                                   console.log("Changing QC verified value from " + div.text() + " to " + data.qc_verified);
                                   div.text(data.qc_verified);
 
+                                  // change the value in the record too in case grid is exported to csv
+                                  record.data['QC Verified?'] = data.qc_verified;
+
                                   // can't do record.set because it reloads the entire record
                                   // from original values thus overwriting changes to assembly QC
                                   // grid.store.suspendEvents() stops the reload but also stops the value
