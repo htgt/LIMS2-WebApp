@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AssemblyQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AssemblyQc::VERSION = '0.328';
+    $LIMS2::WebApp::Controller::API::AssemblyQc::VERSION = '0.331';
 }
 ## use critic
 
@@ -30,12 +30,21 @@ sub update_assembly_qc_well_GET {
     $c->assert_user_roles('edit');
 
     try{
-        my $qc_well = $c->model('Golgi')->txn_do(
+        my $qc = $c->model('Golgi')->txn_do(
             sub {
                 shift->update_assembly_qc_well( $c->request->params );
             }
         );
-        $self->status_ok( $c, entity => { success => 1 } );
+        my $well = $c->model('Golgi')->retrieve_well({ id => $c->request->param('well_id') });
+        my $qc_verified = $well->assembly_well_qc_verified // '';
+
+        $self->status_ok( $c,
+            entity => {
+                success     => 1,
+                qc_verified => "$qc_verified",
+                well_name   => $well->name,
+            }
+        );
     }
     catch {
         $c->log->error( "Error updating assembly qc well value: $_" );

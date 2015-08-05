@@ -221,6 +221,11 @@
               </a>
             </li>
             [% END %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/HetSummary' ) %]">
+              Het Summary
+              </a>
+            </li>
 
             <li class="divider"></li>
 

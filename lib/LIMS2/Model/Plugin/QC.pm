@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.328';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.331';
 }
 ## use critic
 
@@ -29,6 +29,7 @@ use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_alignment_results
     retrieve_qc_seq_read_sequences
     retrieve_qc_eng_seq_sequence
+    retrieve_qc_eng_seq_bioseq
     build_qc_runs_search_params
     infer_qc_process_type
 );
@@ -585,6 +586,7 @@ sub pspec_qc_run_seq_well_results {
         qc_run_id  => { validate => 'uuid' },
         plate_name => { validate => 'plate_name' },
         well_name  => { validate => 'well_name' },
+        with_eng_seq => { validate => 'boolean', default => 0 },
     };
 }
 
@@ -593,9 +595,20 @@ sub qc_run_seq_well_results {
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
 
+    my $with_eng_seq = delete $validated_params->{with_eng_seq};
+
     my $qc_seq_well = $self->retrieve_qc_run_seq_well($validated_params);
 
     my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($params->{qc_run_id}, $qc_seq_well);
+
+    if($with_eng_seq == 1){
+        foreach my $result(@$results){
+            my $eng_seq = $self->qc_eng_seq_bioseq({
+                            qc_test_result_id => $result->{qc_test_result_id}
+                        });
+            $result->{eng_seq} = $eng_seq;
+        }
+    }
 
     return ( $qc_seq_well, $seq_reads, $results );
 }
@@ -652,6 +665,23 @@ sub qc_eng_seq_sequence {
 
     return retrieve_qc_eng_seq_sequence( $self->eng_seq_builder, $qc_test_result,
         $validated_params->{format} );
+}
+
+sub pspec_qc_eng_seq_bioseq {
+    return {
+        qc_test_result_id => { validate => 'integer' },
+    };
+}
+
+sub qc_eng_seq_bioseq{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_eng_seq_bioseq );
+
+    my $qc_test_result
+        = $self->retrieve( 'QcTestResult' => { id => $validated_params->{qc_test_result_id} }, );
+
+    return retrieve_qc_eng_seq_bioseq( $self->eng_seq_builder, $qc_test_result );
 }
 
 sub pass_to_boolean {

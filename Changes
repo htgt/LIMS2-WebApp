@@ -1,3 +1,24 @@
+0.331     2015-08-05 14:26:27 Europe/London
+
+   Het summary report added
+   Vector QC plasmid maps added to result view
+   Assembly plate QC verified status flag added
+
+0.330     2015-07-30 14:07:01 Europe/London
+
+0.329     2015-07-30 13:30:02 Europe/London
+Improved genoverse views 
+Fixed bug in crispr damage QC view 
+Added primer generation to crispr import 
+QC run summary changed to handle similar designs
+
+0.329     2015-07-22 10:45:33 Europe/London
+
+    Sponsor front page sub-report updated:
+    - Added splice_acceptor calls to the frameshift counts
+    - het clones make a green project checkpoint
+    - failed project always turn red most recent checkpoint
+
 0.328     2015-07-21 11:57:39 Europe/London
 
     Added view experiment interface
