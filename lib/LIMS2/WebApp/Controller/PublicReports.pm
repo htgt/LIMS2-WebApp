@@ -136,6 +136,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
         $top_cache_param = 'without_cache';
+        $c->session->{display_type} = 'wide';
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};

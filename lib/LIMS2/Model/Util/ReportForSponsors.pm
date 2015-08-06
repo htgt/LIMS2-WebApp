@@ -919,7 +919,7 @@ sub genes {
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( '; ', @sponsors );
+        my $sponsors_str = join  ( ';', @sponsors );
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Pathogen Group 3/PG3/;
