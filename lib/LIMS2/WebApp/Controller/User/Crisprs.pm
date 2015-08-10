@@ -463,7 +463,6 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
         $c->stash( success_msg => "Successfully imported the following WGE ids:\n"
                                 . join ', ', map { $_->{wge_id} } @output );
     }
-
     $c->stash(
         crispr => \@output,
     );
