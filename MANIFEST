@@ -2359,7 +2359,6 @@ root/static/js/lims2_utils.js
 root/static/js/poller.js
 root/static/js/primer_validation_state.js
 root/static/js/raphael-min.js
-root/static/js/test_file.js~
 root/static/test/data/10_LIMS2_Model_Util_AlleleDetermination.yaml
 root/static/test/data/10_LIMS2_Model_Util_CreKiESDistribution.yaml
 root/static/test/data/2w_gateway_process.yaml
@@ -3066,4 +3065,3 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
-test_transcript_fetch.pl~

@@ -1,7 +1,7 @@
 package LIMS2::Report::HetSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::HetSummary::VERSION = '0.331';
+    $LIMS2::Report::HetSummary::VERSION = '0.332';
 }
 ## use critic
 
@@ -75,9 +75,10 @@ sub _build_column_map {
         { ep_pick_plate_name       => "EP_PICK Plate Name" },
         { ep_pick_well_name        => "EP_PICK Well Name" },
         { damage                   => "Damage" },
-        { five_prime               => "PCR 5 band" },
-        { three_prime              => "PCR 3 band" },
-        { is_het                   => "Het?" },
+        { pcr_done                 => "PCR done" },
+        { five_prime               => "5 band" },
+        { three_prime              => "3 band" },
+        { is_het                   => "Het" },
     ];
 }
 
@@ -151,12 +152,14 @@ sub build_ep_detail {
         });
         my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
         $data{chromosome} = $design_oligo_locus->chr->name;
-
         $data{damage} = crispr_damage_type_for_ep_pick( $self->model, $summary->ep_pick_well_id);
+        $data{pcr_done} = 0;
 
         try{
             my $het = $self->model->schema->resultset( 'WellHetStatus' )->find(
                     { well_id => $summary->ep_pick_well_id } );
+
+            if ( $het ) { $data{pcr_done} = 1 };
 
             $data{five_prime} = $het->five_prime;
             $data{five_prime} = fmt_pass($data{five_prime});
@@ -166,9 +169,10 @@ sub build_ep_detail {
 
         };
 
+        $data{pcr_done} = fmt_bool($data{pcr_done});
+
         $data{is_het} = ep_pick_is_het($self->model, $summary->ep_pick_well_id, $data{chromosome}, $data{damage}) unless !$data{damage};
         $data{is_het} = fmt_bool($data{is_het});
-
 
         push @row, [ map { $_ } @data{ map { keys %{$_} } @{$self->column_map} } ];
 
