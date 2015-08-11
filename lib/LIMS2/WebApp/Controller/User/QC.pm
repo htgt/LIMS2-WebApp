@@ -494,7 +494,10 @@ sub latest_runs :Path('/user/latest_runs') :Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
+    my $llr = HTGT::QC::Util::ListLatestRuns->new( { 
+        config => $self->qc_config,
+        file_api_url => $ENV{'LUSTRE_SERVER_URL'}
+    } );
 
     $c->stash( latest => $llr->get_latest_run_data );
 
