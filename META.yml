@@ -141,6 +141,7 @@ requires:
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
   MooseX::Types::Path::Class::MoreCoercions: 0
+  Number::Range: 0
   Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
@@ -177,4 +178,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.329
+version: 0.332

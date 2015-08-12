@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreKiESDistribution;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.329';
+    $LIMS2::Model::Util::CreKiESDistribution::VERSION = '0.332';
 }
 ## use critic
 

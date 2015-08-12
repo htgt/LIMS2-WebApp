@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.329';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.332';
 }
 ## use critic
 
@@ -925,7 +925,7 @@ sub genes {
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( '; ', @sponsors );
+        my $sponsors_str = join  ( ';', @sponsors );
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Pathogen Group 3/PG3/;

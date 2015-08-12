@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.329';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.332';
 }
 ## use critic
 
@@ -267,6 +267,18 @@ use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
+use Data::Dumper;
+use List::MoreUtils qw( any );
+use Bio::Perl qw( revcom );
+
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -362,23 +374,39 @@ sub format_well_data {
       Z => 'G',
     );
 
-    #rebuild entire sequence. insertions hash will be empty if there are none
-    #this is to make finding the sequence within a trace easier
-    for my $dir ( keys %{ $insertions } ) {
-        my @positions = sort keys %{ $insertions->{$dir} };
+    if($params->{truncate}){
+      # Do we really need to do this?? can't we take section of fwd_read and rev_read?
 
-        my ( $res, $i ) = ( "", 0 );
-        #loop through the whole string, replacing any special chars with their insert
-        for my $char ( split "", $alignment_data->{$dir} ) {
-            next if $char =~ /[-X]/; #skip dashes and Xs
-            #this just gets the sequence out of the insertions hash, what a nightmare
-            $res .= ($char =~ /[JLPYZ]/)
-                  ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
-                  : uc $char;
+      #rebuild entire sequence. insertions hash will be empty if there are none
+      #this is to make finding the sequence within a trace easier
+      for my $dir ( keys %{ $insertions } ) {
+          my @positions = sort keys %{ $insertions->{$dir} };
+
+          my ( $res, $i ) = ( "", 0 );
+          #loop through the whole string, replacing any special chars with their insert
+          for my $char ( split "", $alignment_data->{$dir} ) {
+              next if $char =~ /[-X]/; #skip dashes and Xs
+              #this just gets the sequence out of the insertions hash, what a nightmare
+              $res .= ($char =~ /[JLPYZ]/)
+                    ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
+                    : uc $char;
+          }
+
+          #store with the other alignment data for easy access
+          $alignment_data->{$dir."_full"} = $res;
+      }
+    }
+    else{
+        # We are looking at the complete read so can just get it from the database
+        if($self->fwd_read){
+            my ($name, $seq) = split "\n", $self->fwd_read;
+            $alignment_data->{'forward_full'} = $seq;
         }
 
-        #store with the other alignment data for easy access
-        $alignment_data->{$dir."_full"} = $res;
+        if($self->rev_read){
+            my ($name, $seq) = split "\n", $self->rev_read;
+            $alignment_data->{'reverse_full'} = revcom( $seq )->seq;
+        }
     }
 
     return {

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.329';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.332';
 }
 ## use critic
 
@@ -588,7 +588,7 @@ sub fetch_values_for_type_assembly {
                 'plate_name'     => $summary_row->assembly_plate_name,
                 'well_name'      => $summary_row->assembly_well_name,
                 'created_at'     => $summary_row->assembly_well_created_ts->ymd,
-                'is_accepted'    => $well_is_accepted,
+                'qc_verified'    => $well->assembly_well_qc_verified // '',
                 'design_id'      => $well->design->id,
                 'crispr_type'    => $crispr_type,
                 'crispr_type_id' => $crispr_entity ? $crispr_entity->id : '',

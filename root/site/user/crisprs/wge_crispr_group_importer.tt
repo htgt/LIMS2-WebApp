@@ -19,11 +19,12 @@
     </span>
     <br />
     <input type="submit" name="import_crispr_group" class="btn btn-primary" value="Import Crispr Group" />
+    This may take a few minutes to generate the primers.
 </form>
 
 [% IF group %]
 <div class="well">
-  <legend>Crispr Group [% group.id %] Imported</legend>
+  <legend>Crispr Group <a href="[% c.uri_for('/user/crispr_group',group.id,'view')%]">[% group.id %]</a> Imported</legend>
   Gene: [% group.gene_id %]
     <table class="table table-bordered table-striped table-condensed">
       <thead>

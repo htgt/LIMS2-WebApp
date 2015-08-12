@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.329';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.332';
 }
 ## use critic
 
@@ -265,7 +265,28 @@ sub id {
 sub as_hash {
     my $self = shift;
 
+    my $locus = $self->current_locus;
+
+    return {
+        crispr_oligo_id => $self->crispr_oligo_id,
+        primer_seq      => $self->primer_seq,
+        primer_name     => $self->primer_name->primer_name,
+        tm              => $self->tm,
+        gc_content      => $self->gc_content,
+        locus           => $locus ? $locus->as_hash : undef,
+        crispr_pair_id  => $self->crispr_pair_id,
+        crispr_id       => $self->crispr_id,
+        crispr_group_id => $self->crispr_group_id,
+        is_validated    => $self->is_validated,
+        is_rejected     => $self->is_rejected,
+    };
+}
+
+sub current_locus {
+    my $self = shift;
+
     my $species;
+
     if ( $self->crispr_id ) {
         $species = $self->crispr->species;
     }
@@ -285,20 +306,38 @@ sub as_hash {
             { assembly_id => $default_assembly->assembly_id } )->first;
     }
 
-    return {
-        crispr_oligo_id => $self->crispr_oligo_id,
-        primer_seq      => $self->primer_seq,
-        primer_name     => $self->primer_name->primer_name,
-        tm              => $self->tm,
-        gc_content      => $self->gc_content,
-        locus           => $locus ? $locus->as_hash : undef,
-        crispr_pair_id  => $self->crispr_pair_id,
-        crispr_id       => $self->crispr_id,
-        crispr_group_id => $self->crispr_group_id,
-        is_validated    => $self->is_validated,
-        is_rejected     => $self->is_rejected,
-    };
+    return $locus;
 }
 
+sub start {
+    return shift->current_locus->chr_start;
+}
+
+sub end {
+    return shift->current_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->current_locus->chr->name;
+}
+
+sub get_target{
+    my $self = shift;
+    if($self->crispr_id){
+        return $self->crispr;
+    }
+    elsif($self->crispr_pair_id){
+        return $self->crispr_pair;
+    }
+    elsif($self->crispr_group_id){
+        return $self->crispr_group;
+    }
+
+    return;
+}
 __PACKAGE__->meta->make_immutable;
 1;

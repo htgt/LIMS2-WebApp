@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.329';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.332';
 }
 ## use critic
 
@@ -131,7 +131,7 @@ override _build_columns => sub {
     return [
         'Well Name', 'Design ID', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Crispr ID', 'Crispr Design', 'Genoverse View', 'Genbank File',
-        'Crispr Left QC', 'Crispr Right QC', 'Vector QC',
+        'Crispr Left QC', 'Crispr Right QC', 'Vector QC','QC Verified?',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', #'Recombinases',
         'Crispr Vector Well(s)', 'Final Pick Well',
         'DNA Quality EGel Pass?','Sequencing QC Pass',
@@ -242,6 +242,7 @@ override iterator => sub {
             $crispr_left_qc_combo,
             $crispr_right_qc_combo,
             $vector_qc_combo,
+            ($well->assembly_well_qc_verified // ""),
             $well_data->{cassette},
             $well_data->{cassette_resistance},
             $well_data->{cassette_promoter},

@@ -219,7 +219,9 @@ lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
+lib/LIMS2/Model/Util/PrimerChecks.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
+lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/QCTemplates.pm
 lib/LIMS2/Model/Util/RankQCResults.pm
@@ -248,6 +250,7 @@ lib/LIMS2/Report/FPPlate.pm
 lib/LIMS2/Report/FinalPickVectorPlate.pm
 lib/LIMS2/Report/FinalVectorPlate.pm
 lib/LIMS2/Report/GeneEPSummary.pm
+lib/LIMS2/Report/HetSummary.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
 lib/LIMS2/Report/OligoAssembly.pm
@@ -476,6 +479,7 @@ root/static/bootstrap/img/glyphicons-halflings-white.png
 root/static/bootstrap/img/glyphicons-halflings.png
 root/static/bootstrap/js/bootstrap.js
 root/static/bootstrap/js/bootstrap.min.js
+root/static/css/angularplasmid.css
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
 root/static/css/lims2_extjs.css
@@ -2323,6 +2327,7 @@ root/static/images/btn_88x31_built_shadow.png
 root/static/images/btn_88x31_powered.png
 root/static/images/btn_88x31_powered_shadow.png
 root/static/images/catalyst_logo.png
+root/static/images/plasmid_map_help.png
 root/static/images/spinner-circle.gif
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_18_b81900_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png
@@ -2340,6 +2345,7 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css
 root/static/jquery/js/jquery-ui-1.8.21.custom.min.js
+root/static/js/angularplasmid.complete.min.js
 root/static/js/crispr-es-qc-well-update.js
 root/static/js/crispr-qc.js
 root/static/js/crisprs.js
@@ -2349,6 +2355,8 @@ root/static/js/jquery.flot.min.js
 root/static/js/jquery.flot.navigate.min.js
 root/static/js/jquery.flot.traceviewer.js
 root/static/js/jquery.qtip.min.js
+root/static/js/lims2_genoverse_custom_tracks.js
+root/static/js/lims2_utils.js
 root/static/js/poller.js
 root/static/js/primer_validation_state.js
 root/static/js/raphael-min.js

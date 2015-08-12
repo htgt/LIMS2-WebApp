@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.329';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.332';
 }
 ## use critic
 
@@ -311,6 +311,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $species = $c->session->{selected_species};
 
     my $cache_param = $c->request->params->{'cache_param'};
+
+    if ($c->request->params->{generate_cache}) {
+        $c->session->{display_type} = 'wide';
+    } else {
+        $c->session->{display_type} = 'default';
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {

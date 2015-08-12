@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.329';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.332';
 }
 ## use critic
 
@@ -121,8 +121,7 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
         return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
 
-    $c->log->debug( "Retrived crispr: $crispr_id" );
-
+    $c->log->debug( "Retrieved crispr: $crispr_id" );
     if($c->request->param('generate_primers')){
 
         $c->assert_user_roles( 'edit' );
@@ -139,8 +138,8 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
 # Should be able to use the same generation method for crisprs, groups and pairs
 sub _generate_primers_for_crispr_entity{
     my ($c, $crispr_entity) = @_;
-
     my $id_type = $crispr_entity->id_column_name;
+
     if($crispr_entity->crispr_primers->all){
         $c->stash->{info_msg} = "Already has primers. Ignoring generate primers request";
     }
@@ -175,7 +174,7 @@ sub _generate_primers_for_crispr_entity{
             if($picked_primers){
                 my ($pcr_picked_primers, $pcr_seq, $pcr_db_primers)
                     = $pcr_primer_util->crispr_PCR_primers($picked_primers, $crispr_entity);
-                $c->stash->{success_msg} = "Primers generated for $id_type ".$crispr_entity->id;
+                $c->stash->{info_msg} = "Primers generated for $id_type ".$crispr_entity->id;
             }
             else{
                 $c->stash->{error_msg} = "Failed to generate primers for $id_type ".$crispr_entity->id;
@@ -340,12 +339,9 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
     $c->log->debug( "Retrived crispr group: $crispr_group_id" );
 
     if($c->request->param('generate_primers')){
-
         $c->assert_user_roles( 'edit' );
-
         _generate_primers_for_crispr_entity($c, $crispr_group);
     }
-
     $c->stash(
         cg           => $crispr_group,
         group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],
@@ -360,7 +356,6 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
 =cut
 sub view_crispr_group : PathPart('view') Chained('crispr_group') Args(0) {
     my ( $self, $c ) = @_;
-
     my $crispr_group = $c->stash->{cg};
     my $cg_data = $crispr_group->as_hash;
 
@@ -474,11 +469,10 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
         $c->stash( success_msg => "Successfully imported the following WGE ids:\n"
                                 . join ', ', map { $_->{wge_id} } @output );
     }
-
     $c->stash(
         crispr => \@output,
     );
-
+    generate_on_import($self,$c,"single",@output);
     return;
 }
 
@@ -487,7 +481,6 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-
     return unless $c->request->param('import_crispr');
 
     my @output;
@@ -507,16 +500,17 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
                                 . join ', ', map { $_->{wge_id} } @output );
     }
 
+
     $c->stash(
         crispr => \@output,
     );
+    generate_on_import($self,$c,"pair",@output);
 
     return;
 }
 
 sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->log->debug( 'Attempting to import crispr group' );
     $c->assert_user_roles( 'edit' );
 
@@ -550,7 +544,7 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
         }
     }
     else{
-        $error = "You must provide and gene ID for this crispr group";
+        $error = "You must provide a gene ID for this crispr group";
     }
 
     if($error){
@@ -609,6 +603,15 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
         group  => $group->as_hash,
     );
 
+    #Convert the lims2 id string into the same format as single and pair importation 
+    my @lims2_group;
+    my $lims2_conversion_id = {
+        lims2_id => $group->as_hash->{id},
+    };
+    push(@lims2_group,$lims2_conversion_id);
+
+    generate_on_import($self,$c,"group",@lims2_group);
+
     return;
 }
 
@@ -662,6 +665,37 @@ sub wge_importer {
     my @output = $c->model('Golgi')->$method( \@ids, $species, $assembly );
 
     return @output;
+}
+
+#After the crisprs have been imported from WGE, retrieve the crispr entities.
+sub generate_on_import {
+    my ( $self, $c, $instance, @wge_crisprs) = @_;
+    my @lims2_ids;
+
+    foreach my $crispr (@wge_crisprs){
+        push(@lims2_ids, $crispr->{lims2_id});
+    }
+
+    my $crispr_entity;
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    #Depending on the type of crispr, retrieve the crispr entity in one of the following ways. 
+    foreach my $crispr_id (@lims2_ids)
+    {
+        if ($instance eq "single"){
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr( { id => $crispr_id, species => $species_id } );
+        }
+        elsif ($instance eq "pair"){
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_id } );
+        }
+        elsif ($instance eq "group") {
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_id } );
+        }
+        #Pass the crispr entities for primer generation
+        _generate_primers_for_crispr_entity($c, $crispr_entity);
+    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

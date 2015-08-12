@@ -19,9 +19,18 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
+
 <script type="text/javascript">
 
 $(document).ready(function() {
+
+    // add labels to assembly qc verification using js to ensure they look the same
+    // across different pages
+    $(".assembly_qc_verified").each(function(){
+      var value = $(this).text();
+      addQCVerifiedLabel($(this),value);
+    });
 
     // crispr qc trace view button
     $(".traces").click(function(e) {
@@ -616,7 +625,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Well</th>
             <th>Crispr</th>
             <th>Created on</th>
-            <th>Accepted?</th>
+            <th>QC verified?</th>
             <th>Genoverse View</th>
             <th>Vector Genbank File</th>
           </thead>
@@ -628,7 +637,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="label">[% well.crispr_type.replace('\_', ' ') %]</span></td>
               <td>[% well.created_at %]</td>
-              <td>[% well.is_accepted %]</td>
+              <td class="assembly_qc_verified">[% well.qc_verified %]</td>
               <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_primer_view', {
                       crispr_type_id => well.crispr_type_id,
                       design_id => well.design_id,
