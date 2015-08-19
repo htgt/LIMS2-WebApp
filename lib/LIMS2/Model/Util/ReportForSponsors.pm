@@ -15,7 +15,6 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
-use feature "switch";
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -870,39 +869,15 @@ sub genes {
 
         my %search = ( design_gene_id => $gene_id );
 
-        if ($self->species eq 'Human' ) {
+        if ($self->species eq 'Human' || $sponsor_id eq 'Pathogen Group 2' || $sponsor_id eq 'Pathogen Group 3' ) {
             $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
                 ];
         }
 
-        for ($sponsor_id) {
-            when ('Pathogen Group 2') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 3') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 1') {
-                $search{'sponsor_id'} = 'Pathogen Group 1';
-            }
-            when ('EUCOMMTools Recovery') {
-                $search{'sponsor_id'} = 'EUCOMMTools Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            # default { DEBUG "No special option for sponsor: " . $sponsor_id }
+        if ($sponsor_id eq 'Pathogen Group 1' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'Barry Short Arm Recovery') {
+            $search{'sponsor_id'} = $sponsor_id;
         }
 
         my $summary_rs = $self->model->schema->resultset("Summary")->search(
