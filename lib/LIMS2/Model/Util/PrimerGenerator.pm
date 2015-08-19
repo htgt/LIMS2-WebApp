@@ -401,13 +401,8 @@ has base_dir => (
 
 sub _build_base_dir {
     my $self = shift;
-    my $primer_path;
-    if($self->run_on_farm){
-        $primer_path = $ENV{FARM_PRIMER_DIR} or die "FARM_PRIMER_DIR environment variable not set";
-    }
-    else{
-        $primer_path = $ENV{LIMS2_PRIMER_DIR} or die "LIMS2_PRIMER_DIR environment variable not set";
-    }
+    my $primer_path = $ENV{LIMS2_PRIMER_DIR} 
+        or die "LIMS2_PRIMER_DIR environment variable not set";
     my $primer_dir = dir( $primer_path );
     my $base_dir = $primer_dir->subdir( $self->job_id );
     $base_dir->mkpath;
