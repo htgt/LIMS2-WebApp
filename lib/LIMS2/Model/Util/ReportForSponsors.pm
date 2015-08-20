@@ -890,7 +890,7 @@ sub genes {
 
         try {
             my $index = 0;
-            $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+            $index++ until ( $index >= scalar @sponsors || $sponsors[$index] eq 'All' );
             splice(@sponsors, $index, 1);
         };
 
@@ -1065,7 +1065,7 @@ sub genes {
         my $total_wild_type = 0;
         my $total_mosaic = 0;
         my $total_no_call = 0;
-        my $total_het = 0;
+        my $total_het;
 
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
@@ -1121,9 +1121,9 @@ sub genes {
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
-            $curr_ep_data{'het'} = 0;
 
             ## no critic(ProhibitDeepNests)
+
             foreach my $ep_pick (@ep_pick) {
                 my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
@@ -1134,9 +1134,12 @@ sub genes {
                     $damage_call = '';
                 }
 
-                if ( ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call) ) {
-                    $curr_ep_data{het}++;
+                my $is_het = ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call);
+
+                if ( defined $is_het) {
+                    $curr_ep_data{het} += $is_het;
                 }
+
             }
             ## use critic
 
@@ -1149,7 +1152,10 @@ sub genes {
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
             $total_no_call += $curr_ep_data{'no-call'};
-            $total_het += $curr_ep_data{'het'};
+
+            if (defined $curr_ep_data{'het'} ) {
+                $total_het += $curr_ep_data{'het'};
+            }
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
@@ -1157,20 +1163,18 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
+                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
             # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
 
 
-
-
-
-
             push @ep_data, \%curr_ep_data;
 
         }
+
+        # if ( !defined $total_het ) { $total_het = '-' };  This will need changing the tt because it will turn green the total genotyped clones
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
