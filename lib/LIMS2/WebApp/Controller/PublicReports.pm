@@ -135,7 +135,6 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
         $top_cache_param = 'without_cache';
-        $c->session->{display_type} = 'wide';
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
@@ -305,6 +304,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $species = $c->session->{selected_species};
 
     my $cache_param = $c->request->params->{'cache_param'};
+
+    if ($c->request->params->{generate_cache}) {
+        $c->session->{display_type} = 'wide';
+    } else {
+        $c->session->{display_type} = 'default';
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
