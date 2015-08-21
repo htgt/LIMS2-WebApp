@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.334     2015-08-21 11:32:40 Europe/London
+    Search crisprs by sequence feature added
+    Crispr primer validation checks added to public reports 
+
 0.333     2015-08-12 14:15:23 Europe/London
 
     Front page report wide view update
