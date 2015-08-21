@@ -219,6 +219,7 @@ lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
+lib/LIMS2/Model/Util/PrimerChecks.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
 lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm

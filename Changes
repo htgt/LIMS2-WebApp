@@ -1,5 +1,15 @@
+0.334     2015-08-21 11:32:40 Europe/London
+    Search crisprs by sequence feature added
+    Crispr primer validation checks added to public reports 
+
+0.333     2015-08-12 14:15:23 Europe/London
+
+    Front page report wide view update
+    Extra methods to check region around primers
+
 0.332     2015-08-10 16:50:10 Europe/London
-Het summary update
+
+    Het summary update
 
 0.331     2015-08-05 14:26:27 Europe/London
 
@@ -10,10 +20,11 @@ Het summary update
 0.330     2015-07-30 14:07:01 Europe/London
 
 0.329     2015-07-30 13:30:02 Europe/London
-Improved genoverse views 
-Fixed bug in crispr damage QC view 
-Added primer generation to crispr import 
-QC run summary changed to handle similar designs
+
+    Improved genoverse views 
+    Fixed bug in crispr damage QC view 
+    Added primer generation to crispr import 
+    QC run summary changed to handle similar designs
 
 0.329     2015-07-22 10:45:33 Europe/London
 

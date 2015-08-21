@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.332';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.334';
 }
 ## use critic
 
@@ -55,7 +55,6 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
             $c->stash->{$item} = $value;
         }
     }
-
     my $crispr_entity;
     if($c->req->param('search_by_lims2_id')){
         my $params = {
@@ -80,7 +79,9 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
             $c->stash->{error_msg} = "Failed to find WGE crispr in LIMS2: $e";
         }
     }
-
+    elsif($c->req->param('search_by_sequence')){
+        sequence_search($self, $c);
+    }
     if($crispr_entity){
         my $redirect_path = _path_for_crispr_entity($crispr_entity);
         $c->res->redirect( $c->uri_for($redirect_path) );
@@ -241,7 +242,6 @@ sub crispr_ucsc_blat : PathPart('blat') Chained('crispr') : Args(0) {
 =cut
 sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
     my ( $self, $c, $crispr_pair_id ) = @_;
-
     $c->assert_user_roles( 'read' );
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
@@ -282,7 +282,6 @@ sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
 =cut
 sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my ( $self, $c ) = @_;
-
     my $crispr_pair = $c->stash->{cp};
     my $off_target_summary = Load( $crispr_pair->off_target_summary );
     my $cp_data = $crispr_pair->as_hash;
@@ -696,6 +695,49 @@ sub generate_on_import {
     }
 
     return;
+}
+
+sub sequence_search {
+    my ($self, $c) = @_;
+    my $sequence = $c->req->param('sequence');
+    $sequence = uc $sequence;
+    my $count = length($sequence);
+    if ( $count > 23) {
+        $c->stash->{info_msg} = "Please provide 23 or less base sequence, you provided ". $count;
+        return;
+    }
+    elsif ( $sequence =~ qr/^[ACTG]+$/ ){
+        my $species = $c->session->{selected_species};
+
+        my @crisprs = $c->model('Golgi')->schema->resultset('Crispr')->search({
+            seq => {'like', "%".$sequence."%"},
+            species_id => $species,
+        },
+        {
+            distinct => 1,
+            columns => [qw/ 
+                id
+                seq
+                species_id
+            /],
+        }
+        );
+        if (@crisprs){
+            $c->stash(
+                crispr => \@crisprs,
+                original => $sequence,
+            );
+        }
+        else {
+             $c->stash->{info_msg} = "No crispr were found with the sequence pattern: ". $sequence;
+        }
+        return
+    }
+    else {
+        $c->stash->{info_msg} = "Not a valid sequence, please check for invalid bases.";
+        return;
+    }
+
 }
 
 __PACKAGE__->meta->make_immutable;
