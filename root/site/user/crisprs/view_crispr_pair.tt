@@ -135,12 +135,8 @@
   $(document).ready(function() {
     $(".validation-state-cell").each(function(){
       //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
-      addPrimerValidationState(
+      addPrimerValidationLabel(
         $(this),
-        "[% c.uri_for('/user/toggle_crispr_primer_validation_state') %]",
-        'crispr_key',
-        '[% cp.id %]' + '(crispr_pair)',
-        $(this).data('primer-name'),
         $(this).data('validated')
       );
     });

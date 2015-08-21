@@ -54,3 +54,12 @@ function addPrimerValidationState(cell, api_url, object_id_param, object_id, pri
     cell.append(not_valid_label);
   }
 }
+
+function addPrimerValidationLabel(cell, is_validated){
+  if(is_validated == 1){
+    cell.append(valid_label);
+  }
+  else{
+    cell.append(not_valid_label);
+  }
+}
