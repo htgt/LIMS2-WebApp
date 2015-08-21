@@ -32,7 +32,7 @@
       <thead>
         <tr>
           <th>Crispr ID</th>
-          <th>Species</th>
+          <th>Type</th>
           <th>Sequence</th>
         </tr>
       </thead>
@@ -40,8 +40,8 @@
       [% FOREACH entity IN crispr %]
         <tr>
           <td><a class="brand" href="[% c.uri_for('/user/crispr', entity.id, 'view' ) %]">[% entity.id %]</a></td>
-          <td>[% entity.species_id %]</td>
-          <td>[% entity.seq %]</td>
+          <td>[% entity.crispr_loci_type_id %]</td>
+          <td class="seq">[% entity.seq %]</td>
         </tr>
       [% END %]
       </tbody>
@@ -51,9 +51,13 @@
 [% END %]
 
 <style>
-.highlight
-{
-    background-color:yellow;
+.seq {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  font-size:15px;
+}
+.highlight {
+    font-weight: bold;
+    color: #FF0000;
 }
 </style>
 
@@ -147,8 +151,8 @@ var instantSearch = {
                         nodeVal = nodeVal.substring(foundIndex + myToken.length);
                     } // Whend
 
-                } // Next i 
-            }; // End Function checkAndReplace 
+                } // Next i
+            }; // End Function checkAndReplace
 
             function iterator(p)
             {
@@ -193,7 +197,7 @@ var instantSearch = {
                     }
                 ]
             }
-        ); // End Call internalHighlighter 
+        ); // End Call internalHighlighter
 
     } // End Function highlight
 
