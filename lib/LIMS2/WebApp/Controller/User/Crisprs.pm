@@ -493,7 +493,6 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
                                 . join ', ', map { $_->{wge_id} } @output );
     }
 
-
     $c->stash(
         crispr => \@output,
     );
