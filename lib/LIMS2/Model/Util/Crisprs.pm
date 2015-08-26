@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.334';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.335';
 }
 ## use critic
 
@@ -498,7 +498,6 @@ to identify the correct group.
 =cut
 sub get_crispr_group_by_crispr_ids{
     my ($schema, $params) = @_;
-
     my @crispr_ids = @{ $params->{crispr_ids} }
         or die "No crispr_ids array provided to get_crispr_group_by_crispr_ids";
 

@@ -33,16 +33,16 @@
 
     <label><strong>Show Crispr Type</strong></label>
     <label class="radio">
-      <input type="radio" name="crispr_types" value="pair" checked>
-      Pairs
+      <input type="radio" name="crispr_types" value="group" checked>
+      Group
+    </label>
+    <label class="radio">
+      <input type="radio" name="crispr_types" value="pair">
+      Pair
     </label>
     <label class="radio">
       <input type="radio" name="crispr_types" value="single">
       Single
-    </label>
-    <label class="radio">
-      <input type="radio" name="crispr_types" value="group">
-      Group
     </label>
     <br>
     <input type="submit" name="action" class="btn btn-primary" value="Generate Report" />

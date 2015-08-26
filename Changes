@@ -1,3 +1,6 @@
+0.335     2015-08-26 09:26:50 Europe/London
+    Fixed bug in the public reports
+
 0.334     2015-08-21 11:32:40 Europe/London
     Search crisprs by sequence feature added
     Crispr primer validation checks added to public reports 

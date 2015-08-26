@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.334';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.335';
 }
 ## use critic
 
@@ -499,7 +499,6 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
                                 . join ', ', map { $_->{wge_id} } @output );
     }
 
-
     $c->stash(
         crispr => \@output,
     );
@@ -602,7 +601,7 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
         group  => $group->as_hash,
     );
 
-    #Convert the lims2 id string into the same format as single and pair importation 
+    #Convert the lims2 id string into the same format as single and pair importation
     my @lims2_group;
     my $lims2_conversion_id = {
         lims2_id => $group->as_hash->{id},
@@ -678,7 +677,7 @@ sub generate_on_import {
     my $crispr_entity;
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
 
-    #Depending on the type of crispr, retrieve the crispr entity in one of the following ways. 
+    #Depending on the type of crispr, retrieve the crispr entity in one of the following ways.
     foreach my $crispr_id (@lims2_ids)
     {
         if ($instance eq "single"){
@@ -715,10 +714,11 @@ sub sequence_search {
         },
         {
             distinct => 1,
-            columns => [qw/ 
+            columns => [qw/
                 id
                 seq
                 species_id
+                crispr_loci_type_id
             /],
         }
         );

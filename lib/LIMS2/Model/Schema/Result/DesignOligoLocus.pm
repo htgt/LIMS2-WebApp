@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligoLocus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoLocus::VERSION = '0.334';
+    $LIMS2::Model::Schema::Result::DesignOligoLocus::VERSION = '0.335';
 }
 ## use critic
 

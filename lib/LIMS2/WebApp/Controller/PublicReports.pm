@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.334';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.335';
 }
 ## use critic
 
@@ -12,6 +12,7 @@ use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
@@ -560,16 +561,36 @@ sub _stash_well_genotyping_info {
                 push @crispr_data, $crispr_data_hash;
             }
         }
-        my @crispr_pair_schema = $c->model('Golgi')->schema->resultset('CrisprPair')->search({ left_crispr_id => $crispr_data[0]->{id}})->all;
-        my $crispr_pair = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_pair_schema[0]->{_column_data}->{id} } );
-        $crispr_pair = $crispr_pair->as_hash;
-
+        my $crispr_result;
+        my $type;
+        try{
+            #Depending on type of crispr, retrieve crispr hash ref
+            if ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprPair';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprGroup';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            else {
+                $type = 'Crispr';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+        } catch {
+            $c->stash( error_msg => "Validation tags not found");
+            $c->stash( data => $data, crispr_data => \@crispr_data);
+            return;
+        };
+        #Crispr hash ref contains validation confirmation
         my $crispr_primers = $data->{primers}->{crispr_primers};
         my $match;
         foreach my $set (values %$crispr_primers)
         {
-            foreach my $primer(@$set){
-                $match = search_primers($primer->{seq}, $crispr_pair->{crispr_primers});
+            foreach my $primer(@$set)
+            {
+                #Compare sequences to find the correct tag for the correct sequence
+                $match = search_primers($primer->{seq}, $crispr_result->{crispr_primers});
                 $primer->{is_validated} = $match->{is_validated};
                 $primer->{is_rejected} = $match->{is_rejected};
             }
@@ -583,6 +604,55 @@ sub _stash_well_genotyping_info {
 
     return;
 }
+
+#Depending on type of crispr, search for the crispr then retrieves it's data hash
+sub retrieve_crispr_hash {
+    my ($c, $type, @crisprs) = @_;
+    my $crispr_data;
+    my @crispr_schema;
+    my $id = $crisprs[0]->{id};
+
+    #Searches for the crispr id in either the left or the right location
+    if ($type eq 'CrisprPair'){
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search(
+            [ { left_crispr_id => $id },{ right_crispr_id => $id } ],
+            {
+                distinct => 1,
+            }
+            )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Joins the crispr group and the crispr group crisprs tables to search which crispr group contains the id
+    elsif ($type eq 'CrisprGroup') {
+        @crispr_schema = $c->model('Golgi')->schema->resultset('CrisprGroup')->search(
+        {
+            'crispr_group_crisprs.crispr_id' => $id,
+        },
+        {
+            join     => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+        )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Single crispr search
+    else {
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search({ id => $id })->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr(
+            {
+                id => $crispr_schema[0]->{_column_data}->{id}
+            },
+            {
+                distinct => 1,
+            }->all);
+    }
+
+    return $crispr_data->as_hash;
+}
+
+#Retrieves the correct sequence validation tag
 sub search_primers {
     my ($seq, $validation_primers) = @_;
     foreach my $valid_primer(@$validation_primers)
