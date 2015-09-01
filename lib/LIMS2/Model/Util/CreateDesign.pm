@@ -399,10 +399,10 @@ to create a design. Does some validation of wt vs mutant oligo sequence.
 sub _pspec_create_point_mutation_design{
     return {
         oligo_sequence     => { validate => 'dna_seq' },
-        chr_name           => { validate => 'existing_chromosome' },        
+        chr_name           => { validate => 'existing_chromosome' },
         chr_start          => { validate => 'integer' },
         chr_end            => { validate => 'integer' },
-        chr_strand         => { validate => 'strand'  },     
+        chr_strand         => { validate => 'strand'  },
     }
 }
 
@@ -439,7 +439,7 @@ sub create_point_mutation_design{
 
     # add the oligo and loci information to params
     $params->{oligos} = [
-        { 
+        {
             type => 'PM',
             seq  => $oligo_sequence,
             loci => [ $locus ],
@@ -452,7 +452,7 @@ sub create_point_mutation_design{
     my $design;
     $self->model->txn_do(
         sub {
-            try { 
+            try {
                 $design = $self->model->c_create_design($params);
             }
             catch ($err){
