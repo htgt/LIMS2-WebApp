@@ -82,7 +82,7 @@
             </li>
             <li class="divider"></li>
             <li>
-              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs by ID</a>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
           </ul>
         </li>

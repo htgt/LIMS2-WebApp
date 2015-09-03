@@ -5,8 +5,10 @@ use Try::Tiny;
 use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
+use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
+use feature 'switch';
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -48,7 +50,7 @@ sub cre_knockin_project_status : Path( '/public_reports/cre_knockin_project_stat
     $c->stash(
         template    => 'publicreports/await_report.tt',
         report_name => 'Cre_KnockIn_Project_Status',
-        report_id   => $report_id
+        report_id   => $report_id,
     );
 
     return;
@@ -115,9 +117,6 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
     return;
 }
 
-
-
-
 =head2 index
 
 =cut
@@ -136,7 +135,6 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
         $top_cache_param = 'without_cache';
-        $c->session->{display_type} = 'wide';
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
@@ -306,6 +304,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $species = $c->session->{selected_species};
 
     my $cache_param = $c->request->params->{'cache_param'};
+
+    if ($c->request->params->{generate_cache}) {
+        $c->session->{display_type} = 'wide';
+    } else {
+        $c->session->{display_type} = 'default';
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
@@ -540,18 +544,31 @@ sub _stash_well_genotyping_info {
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
-
         my @crisprs = $well->parent_crispr_wells;
         foreach my $crispr_well ( @crisprs ) {
             my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
             if ( $process_crispr ) {
                 my $crispr_data_hash = $process_crispr->crispr->as_hash;
+
                 $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
                 push @crispr_data, $crispr_data_hash;
             }
         }
+        my @crispr_pair_schema = $c->model('Golgi')->schema->resultset('CrisprPair')->search({ left_crispr_id => $crispr_data[0]->{id}})->all;
+        my $crispr_pair = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_pair_schema[0]->{_column_data}->{id} } );
+        $crispr_pair = $crispr_pair->as_hash;
 
-        $c->stash( data => $data, crispr_data => \@crispr_data );
+        my $crispr_primers = $data->{primers}->{crispr_primers};
+        my $match;
+        foreach my $set (values %$crispr_primers)
+        {
+            foreach my $primer(@$set){
+                $match = search_primers($primer->{seq}, $crispr_pair->{crispr_primers});
+                $primer->{is_validated} = $match->{is_validated};
+                $primer->{is_rejected} = $match->{is_rejected};
+            }
+        }
+        $c->stash( data => $data, crispr_data => \@crispr_data);
     }
     catch {
         #get string representation if its a lims2::exception
@@ -560,7 +577,16 @@ sub _stash_well_genotyping_info {
 
     return;
 }
-
+sub search_primers {
+    my ($seq, $validation_primers) = @_;
+    foreach my $valid_primer(@$validation_primers)
+    {
+        if ($seq eq $valid_primer->{primer_seq}){
+            return $valid_primer;
+        }
+    }
+    return;
+}
 =head2 public_gene_report
 
 Public gene report, only show targeted clone details:

@@ -1,0 +1,26 @@
+[% META title = "Point Mutation Design"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/create_point_mutation_design' ) %]" class="well">
+
+    <legend>Mutant Oligo</legend>
+    <p>Enter the sequence of your mutant oligo</p>
+    <input type="text" class="span6" name="oligo_sequence" [% IF oligo_sequence %]value="[% oligo_sequence %]"[% END %]/>
+
+    <legend>Target Coordinates</legend>
+    <p>Enter the genomic coordinates of the region your oligo targets</p>
+
+    <label>Chromosome</label>
+    <input type="text" name="chr_name" [% IF chr_name %]value="[% chr_name %]"[% END %]>
+
+    <label>Start</label>
+    <input type="text" name="chr_start" [% IF chr_start %]value="[% chr_start %]"[% END %]>
+    
+    <label>End</label>
+    <input type="text" name="chr_end" [% IF chr_end %]value="[% chr_end %]"[% END %]>
+    
+    <label>Strand</label>
+    <input type="text" name="chr_strand" [% IF chr_strand %]value="[% chr_strand %]"[% END %]>
+    
+    <button type="submit" class="btn btn-primary" name="submit" value="submit">Submit Design</button>
+
+</form>
