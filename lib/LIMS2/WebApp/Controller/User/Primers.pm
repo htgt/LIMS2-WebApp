@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Primers;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.331';
+    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.336';
 }
 ## use critic
 
@@ -205,7 +205,7 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
             overwrite        => $c->req->param('overwrite_checkbox') // 0,
             use_short_arm_designs => $c->req->param('short_arm_designs_checkbox') // 0,
             species_name     => $plate->species_id,
-            run_on_farm      => 1,
+            run_on_farm      => 0,
         };
         if(@well_names){
             $generator_params->{plate_well_names} = \@well_names;
@@ -246,26 +246,17 @@ sub generate_primers_in_background{
         try{
             if($params->{crispr_primer_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_crispr_primers;
-                my $file_rel = $file_path->relative( $dir );
-                $primer_results->{crispr_seq}->{file_path} = "$file_rel";
-                $primer_results->{crispr_seq}->{db_primers} = $db_primers ;
-                $primer_results->{crispr_seq}->{errors} = $errors;
+                $primer_results->{crispr_seq} = _primer_results_hash($dir, $file_path, $db_primers, $errors);
             }
 
             if($params->{crispr_pcr_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_crispr_PCR_primers;
-                my $file_rel = $file_path->relative( $dir );
-                $primer_results->{crispr_pcr}->{file_path} = "$file_rel";
-                $primer_results->{crispr_pcr}->{db_primers} = $db_primers ;
-                $primer_results->{crispr_pcr}->{errors} = $errors;
+                $primer_results->{crispr_pcr} = _primer_results_hash($dir, $file_path, $db_primers, $errors);
             }
 
             if($params->{genotyping_primer_checkbox}){
                 my ($file_path, $db_primers, $errors) = $generator->generate_design_genotyping_primers;
-                my $file_rel = $file_path->relative( $dir );
-                $primer_results->{genotyping}->{file_path} = "$file_rel";
-                $primer_results->{genotyping}->{db_primers} = $db_primers ;
-                $primer_results->{genotyping}->{errors} = $errors;
+                $primer_results->{genotyping} = _primer_results_hash($dir, $file_path, $db_primers, $errors);
             }
 
             my $json = encode_json($primer_results);
@@ -281,6 +272,20 @@ sub generate_primers_in_background{
 
     return;
 }
+
+sub _primer_results_hash{
+    my ($dir, $file_path, $db_primers, $errors) = @_;
+
+    my $results;
+    if($file_path){
+        my $file_rel = $file_path->relative( $dir );
+        $results->{file_path} = "$file_rel";
+    }
+    $results->{db_primers} = $db_primers ;
+    $results->{errors} = $errors;
+    return $results;
+}
+
 sub generate_primers_results :Path( '/user/generate_primers_results' ) :Args(1){
     my ($self, $c, $job_id) = @_;
 

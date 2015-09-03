@@ -1,0 +1,14 @@
+check_and_set_dir LIMS2_PRIMER_DIR ~/tmp/primer_generation
+check_and_set_dir FARM_PRIMER_DIR /lustre/scratch109/sanger/team87/lims2_primer_generation
+
+check_and_set_dir DEFAULT_CRISPR_ES_QC_DIR ~/tmp/crispr_es_qc
+
+check_and_set LIMS2_URL_CONFIG ~/conf/lims2_urls.conf
+
+export DESIGN_CREATION_HUMAN_FA=/nfs/team87/bwa_genomes/Homo_sapiens.GRCh38_15.fa
+export DESIGN_CREATION_MOUSE_FA=/nfs/team87/bwa_genomes/Mus_musculus.GRCm38.68.dna.toplevel.fa
+
+export BWA_REF_GENOME_HUMAN_FA=/nfs/team87/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.clean_chr_names.fa
+export BWA_REF_GENOME_MOUSE_FA=/nfs/team87/bwa_genomes/Mus_musculus.GRCm38.toplevel.clean_chr_names.fa
+
+export PERL5LIB=~/lib/lib/perl5:$PERL5LIB

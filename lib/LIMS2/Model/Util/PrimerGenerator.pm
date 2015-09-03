@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.331';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.336';
 }
 ## use critic
 
@@ -407,8 +407,9 @@ has base_dir => (
 
 sub _build_base_dir {
     my $self = shift;
-    $ENV{LIMS2_PRIMER_DIR} or die "LIMS2_PRIMER_DIR environment variable not set";
-    my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
+    my $primer_path = $ENV{LIMS2_PRIMER_DIR}
+        or die "LIMS2_PRIMER_DIR environment variable not set";
+    my $primer_dir = dir( $primer_path );
     my $base_dir = $primer_dir->subdir( $self->job_id );
     $base_dir->mkpath;
     return "$base_dir";

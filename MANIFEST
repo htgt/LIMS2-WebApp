@@ -219,6 +219,7 @@ lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
+lib/LIMS2/Model/Util/PrimerChecks.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
 lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm
@@ -325,6 +326,7 @@ lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
 lib/LIMS2/WebApp/View/JSON.pm
+no_lustre_env.sh~
 root/favicon.ico
 root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
@@ -382,6 +384,7 @@ root/site/user/browsetemplates/index.tt
 root/site/user/browsetemplates/view.tt
 root/site/user/createdesign/create_custom_target_gibson_design.tt
 root/site/user/createdesign/create_gibson_design.tt
+root/site/user/createdesign/create_point_mutation_design.tt
 root/site/user/createdesign/design_attempts.tt
 root/site/user/createdesign/gibson_design_exon_pick.tt
 root/site/user/createdesign/gibson_design_gene_pick.tt
@@ -2359,7 +2362,6 @@ root/static/js/lims2_utils.js
 root/static/js/poller.js
 root/static/js/primer_validation_state.js
 root/static/js/raphael-min.js
-root/static/js/test_file.js~
 root/static/test/data/10_LIMS2_Model_Util_AlleleDetermination.yaml
 root/static/test/data/10_LIMS2_Model_Util_CreKiESDistribution.yaml
 root/static/test/data/2w_gateway_process.yaml
@@ -3066,4 +3068,3 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
-test_transcript_fetch.pl~

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.331';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.336';
 }
 ## use critic
 
@@ -168,6 +168,11 @@ sub _build_target_region_start {
         return $self->oligos->{'N'}{start};
     }
 
+    # Do the same for point mutation designs
+    if( $self->type eq 'point-mutation'){
+        return $self->oligos->{'PM'}{start};
+    }
+
     return;
 }
 
@@ -215,6 +220,11 @@ sub _build_target_region_end {
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
         return $self->oligos->{'N'}{end};
+    }
+
+    # Do the same for point mutation designs
+    if( $self->type eq 'point-mutation'){
+        return $self->oligos->{'PM'}{end};
     }
 
     return;
@@ -367,7 +377,7 @@ sub _build_homology_arm_start {
             return $self->oligos->{'3R'}{start};
         }
     }
-    elsif ( $self->type eq 'nonsense' ) {
+    elsif ( $self->type eq 'nonsense' or $self->type eq 'point-mutation') {
         return;
     }
     else {
