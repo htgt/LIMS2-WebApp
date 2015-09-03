@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.336     2015-09-03 12:59:33 Europe/London
+
+    Removed dependancy on lustre file system
+    Added point mutation design creation form
+    Workflow changes to allow freeze back of Kolf cells to FP
+
 0.335     2015-08-26 09:26:50 Europe/London
     Fixed bug in the public reports
 
