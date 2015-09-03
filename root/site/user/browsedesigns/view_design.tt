@@ -99,7 +99,7 @@
         <td>[% oligo.locus.chr_strand %]</td>
         <td>[% oligo.locus.chr_start  %]</td>
         <td>[% oligo.locus.chr_end    %]</td>
-        <td>[% oligo.seq              %]</td>
+        <td [% IF oligo.type == 'PM' %]class="mutant_seq"[% END %]>[% oligo.seq %]</td>
       </tr>
     [%- END %]
     </tbody>
@@ -245,6 +245,33 @@
         $(this).data('validated')
       );
     });
+
+    $(".mutant_seq").each(function(){
+        var seq = $(this).text();
+        console.log('mutant seq: ' + seq);
+        
+        var mismatch_char = /[actgn]/;
+
+        var result = "";
+
+        for (var i = 0; i < seq.length; i++) {
+          if ( mismatch_char.test(seq.charAt(i)) ) {
+            console.log('mismatch at at position ' + i);
+            result += "<span class='mismatch'>" + seq.charAt(i) + "</span>";
+          }
+          else {
+            result += seq.charAt(i)
+          }
+        };
+        $(this).html(result);
+    });
+
   })
 
 </script>
+
+<style type="text/css">
+.mismatch {
+  color: #FF0000;
+}
+</style>
