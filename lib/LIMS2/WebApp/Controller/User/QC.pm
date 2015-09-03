@@ -47,13 +47,13 @@ has latest_run_util => (
 
 sub _build_latest_run_util {
     my $self = shift;
-    $ENV{ LIMS2_URL_CONFIG } 
+    $ENV{ LIMS2_URL_CONFIG }
         or die "LIMS2_URL_CONFIG environment variable not set";
     my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
     my $lustre_server = $conf->{_}->{lustre_server_url}
         or die "lustre_server_url not found in LIMS2_URL_CONFIG file ".$ENV{ LIMS2_URL_CONFIG };
 
-    return HTGT::QC::Util::ListLatestRuns->new( { 
+    return HTGT::QC::Util::ListLatestRuns->new( {
         config => $self->qc_config,
         file_api_url => $lustre_server,
     } );
