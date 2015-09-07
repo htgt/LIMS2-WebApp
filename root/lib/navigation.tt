@@ -58,6 +58,10 @@
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
+            </li>
+
 
             <li class="divider"></li>
 
