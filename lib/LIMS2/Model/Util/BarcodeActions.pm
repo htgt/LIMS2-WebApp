@@ -428,15 +428,20 @@ DEBUG Dumper($validated_params);
         push @child_well_data, $well_data;
     }
 
-    my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
-    my $tmp_piq_plate = $model->create_plate({
-        name       => $random_name,
-        species    => $bc->well->plate->species_id,
-        type       => 'PIQ',
-        created_by => $validated_params->{user},
-        wells      => \@child_well_data,
-        is_virtual => 1,
-    });
+    my $tmp_piq_plate;
+
+    # In some cases there are no child wells
+    if(@child_well_data){
+        my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
+        $tmp_piq_plate = $model->create_plate({
+            name       => $random_name,
+            species    => $bc->well->plate->species_id,
+            type       => 'PIQ',
+            created_by => $validated_params->{user},
+            wells      => \@child_well_data,
+            is_virtual => 1,
+        });
+    }
 
     # Set original barcode's status to 'frozen_back'
     $model->update_well_barcode({
