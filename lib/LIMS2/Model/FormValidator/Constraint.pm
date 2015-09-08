@@ -49,10 +49,6 @@ sub oxygen_condition {
     return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
-sub dna_seq {
-    return shift->regexp_matches(qr/^[ATGCN]+$/);
-}
-
 sub confidence_float {
     my $self = shift;
     return sub {

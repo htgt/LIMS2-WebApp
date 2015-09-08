@@ -71,6 +71,7 @@ DELETE FROM fp_picking_list;
 DELETE FROM well_barcodes;
 DELETE FROM wells;
 DELETE FROM plate_comments;
+DELETE FROM crispr_plate_appends;
 DELETE FROM plates;
 DELETE FROM project_sponsors;
 DELETE FROM projects;
@@ -82,5 +83,6 @@ DELETE FROM nucleases;
 DELETE FROM crispr_es_qc_runs;
 DELETE FROM crispr_es_qc_wells;
 DELETE FROM barcode_states;
+DELETE FROM cell_lines;
 
 
