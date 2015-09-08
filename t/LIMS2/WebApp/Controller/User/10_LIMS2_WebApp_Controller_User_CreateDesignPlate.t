@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -d 
 # 10_LIMS2_WebApp_Controller_User_CreateDesignPlate.t
 
 use strict;

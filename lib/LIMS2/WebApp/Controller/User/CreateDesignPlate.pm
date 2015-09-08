@@ -139,7 +139,7 @@ sub extract_data {
     my %columns = map { $_ => 1 } @columns_array;
 
     unless (exists($columns{'well_name'}) && exists($columns{'design_id'})){
-        $c->stash->{error_msg} = "Incorrect headers.";
+        $c->stash->{error_msg} = "Invalid file. Headers may be incorrect";
         return;
     }
 
