@@ -15,14 +15,12 @@ BEGIN {
     Log::Log4perl->easy_init( $FATAL );
 };
 
-
-
-
-sub all_tests  : Test(20)
+sub all_tests  : Test(33)
 {
 
     my $mech = mech();
     $mech->get_ok('/user/select_species?species=Mouse');
+
     {        
 	note( "No design plate data file set" );
 	$mech->get_ok( '/user/create_design_plate' );
@@ -63,7 +61,8 @@ sub all_tests  : Test(20)
     {
 	note( "Empty csv file" );
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-
+	$test_file->print(",,");
+	$test_file->seek( 0, 0 );
 	$mech->get_ok( '/user/create_design_plate' );
 	$mech->title_is('Create Design Plate');
 	ok my $res = $mech->submit_form(
@@ -91,6 +90,43 @@ $DB::single=1;
 
 	$mech->get_ok( '/user/create_design_plate' );
 	$mech->title_is('Create Design Plate');
+
+	ok my $res = $mech->submit_form(
+	    form_id => 'design_plate_create',
+	    fields  => {
+		plate_name => 'DESIGN_TEST',
+		datafile   => $test_file->filename
+	    },
+	    button  => 'create_plate'
+	), 'submit form with valid well data file';
+
+	ok $res->is_success, '...response is_success';
+	is $res->base->path, '/user/create_design_plate', '... moves to plate view page';
+	like $res->content, qr/Successful design plate creation/ , '...page has create new plate message';
+    }
+
+    {
+	note( "Delete newly created plate" );
+
+	lives_ok {
+	    model->delete_plate( { name => 'DESIGN_TEST' } )
+	} 'delete plate';
+    }
+
+    {
+	note( "Successful primer generation" );
+	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
+	$test_file->print("well_name,design_id\n"
+			  . "A01,10000841");
+	$test_file->seek( 0, 0 );
+
+	$mech->get_ok( '/user/create_design_plate' );
+	$mech->title_is('Create Design Plate');
+    
+    my $form_mech = $mech->current_form();
+    $form_mech->find_input('bacs')->check();
+    $form_mech->find_input('primers')->check();
+
 
 	ok my $res = $mech->submit_form(
 	    form_id => 'design_plate_create',
