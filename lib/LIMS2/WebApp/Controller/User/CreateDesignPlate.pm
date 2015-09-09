@@ -66,6 +66,7 @@ sub _build_base_dir {
 
 sub create_design_plate :Path( '/user/create_design_plate' ) :Args(0){
     my ( $self, $c ) = @_;
+$DB::single=1;
     my $req_plate_name = $c->req->param('plate_name');
     my $req_primers = $c->req->param('primers');
 
