@@ -1,3 +1,5 @@
 id,name,password,active
-1080,mt4@sanger.ac.uk,,t
-1081,unknown,,t
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,t
+1080,tg6@sanger.ac.uk,,t
+1081,mt4@sanger.ac.uk,,t
+1082,unknown,,t

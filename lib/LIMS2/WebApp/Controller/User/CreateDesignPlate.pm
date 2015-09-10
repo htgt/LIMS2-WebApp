@@ -66,9 +66,10 @@ sub _build_base_dir {
 
 sub create_design_plate :Path( '/user/create_design_plate' ) :Args(0){
     my ( $self, $c ) = @_;
-$DB::single=1;
     my $req_plate_name = $c->req->param('plate_name');
     my $req_primers = $c->req->param('primers');
+    my $req_bacs = $c->req->param('bacs');
+
 
     my $plate_data = $c->request->upload('datafile');
     if ($plate_data){
@@ -90,7 +91,12 @@ $DB::single=1;
                 return;
             }
             else{
-                $c->stash->{info_msg} = 'Successful design plate creation';
+                if ($req_bacs){
+                    $c->stash->{info_msg} = 'Successful design plate creation with bacs';
+                }
+                else {
+                    $c->stash->{info_msg} = 'Successful design plate creation';
+                }
             }
         } catch {
             $c->stash->{error_msg} = 'Error creating plate: ' . $_;
@@ -112,7 +118,7 @@ sub build_design_plate_data {
         or die "Cannot use CSV: ".Text::CSV->error_diag ();
     my $fh;
     open $fh, "<:encoding(utf8)", $plate->tempname or die;
-    @wells = extract_data($c, $csv, $fh, @wells);
+    @wells = extract_data($c, $csv, $fh);
     close $fh;
     unless (@wells){
         return;
@@ -132,7 +138,8 @@ sub build_design_plate_data {
 }
 
 sub extract_data {
-    my ($c, $csv, $fh, @wells) = @_;
+    my ($c, $csv, $fh) = @_;
+    my @wells_arr;
     my $headers = $csv->getline( $fh );
     $csv->column_names( @{ $headers } );
 
@@ -151,7 +158,7 @@ sub extract_data {
         try{
             my $well_data = _build_well_data( $c, $data );
             $well_design_ids->{ $data->{well_name} } = $data->{design_id};
-            push (@wells, $well_data);
+            push (@wells_arr, $well_data);
         }
         catch {
             $c->stash->{error_msg} = 'Error creating well data: ' . $_ ;
@@ -161,7 +168,7 @@ sub extract_data {
 
     $c->{well_design_ids} = $well_design_ids;
 
-    return @wells, $well_design_ids;
+    return @wells_arr;
 }
 
 sub run_primer_generation {
