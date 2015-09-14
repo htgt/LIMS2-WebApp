@@ -36,6 +36,9 @@ case $1 in
     devel)
         lims2_devel
         ;;
+    scisand)
+        lims2_scisand
+        ;;
     wge)
         lims2_wge_rest_client $2
         ;;
@@ -225,6 +228,25 @@ function lims2_wge_rest_client {
 
 function lims2_devel {
     unset PERL5LIB
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-WebApp/lib
+    export PERL5LIB="$PERL5LIB:$LIMS2_SHARED/Eng-Seq-Builder/lib:$LIMS2_SHARED/HTGT-QC-Common/lib:$LIMS2_SHARED/LIMS2-REST-Client/lib"
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Exception/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Utils/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
+    export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-76/modules
+    export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
+    export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
+    export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
+    export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+}
+
+function lims2_scisand {
+    unset PERL5LIB
+    export LIMS2_SHARED=/www/dp10/git-checkout
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-WebApp/lib
     export PERL5LIB="$PERL5LIB:$LIMS2_SHARED/Eng-Seq-Builder/lib:$LIMS2_SHARED/HTGT-QC-Common/lib:$LIMS2_SHARED/LIMS2-REST-Client/lib"
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Exception/lib
