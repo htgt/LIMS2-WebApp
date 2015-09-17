@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.336';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.337';
 }
 ## use critic
 
@@ -1054,7 +1054,7 @@ sub genes {
                 to_report => 't',
             },
             {
-                columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
+                columns => [ qw/assembly_well_id ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
                 distinct => 1
             }
         );
@@ -1082,6 +1082,8 @@ sub genes {
             else {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
+
+# $curr_ep_data{'experiment'} = join ", ", map { $_->id } $self->model->retrieve_well( { id => $curr_ep->assembly_well_id } )->experiments;
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;

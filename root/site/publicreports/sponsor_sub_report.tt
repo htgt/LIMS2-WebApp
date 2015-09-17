@@ -135,6 +135,9 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF col == 'targeted_clones' %]
           [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
             <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') && row.item('effort_concluded') %]
+            <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+
           [%- ELSIF row.item('targeted_clones') && row.item('chr') == "X" %]
             <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSIF row.item('targeted_clones') %]
@@ -201,9 +204,17 @@ document.title = "[%- sponsor_id %]";
 
                 <tr>
                 [%- IF c.user %]
-                  <td colspan=10></td>
+                  <td colspan=10 style="text-align:right">
+<!--                   Electroporation belongs to experiment
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => ep_data.item('experiment') } ) %]">[%- ep_data.item('experiment') %]</a>
+-->
+                  </td>
                 [%- ELSE %]
-                  <td colspan=9></td>
+                  <td colspan=9  style="text-align:right">
+<!--                  Electroporation belongs to experiment
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => ep_data.item('experiment') } ) %]">[%- ep_data.item('experiment') %]</a>
+-->
+                  </td>
                 [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
                   <td>[%- ep_data.item('ep_pick_count') %]</td>

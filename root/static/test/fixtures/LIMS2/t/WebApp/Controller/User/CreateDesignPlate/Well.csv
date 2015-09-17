@@ -1,0 +1,2 @@
+id,plate_id,name,created_by_id,created_at,assay_pending,assay_complete,accepted,accepted_rules_version,to_report
+3001,3011,A01,1080,2015-09-09 15:29:03.066569,,,f,,t

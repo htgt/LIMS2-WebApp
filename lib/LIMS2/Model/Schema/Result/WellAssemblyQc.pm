@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellAssemblyQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellAssemblyQc::VERSION = '0.336';
+    $LIMS2::Model::Schema::Result::WellAssemblyQc::VERSION = '0.337';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ __PACKAGE__->table("well_assembly_qc");
 =head2 value
 
   data_type: 'enum'
-  extra: {custom_type_name => "qc_element_type",list => ["Good","Bad","Wrong","No Insert"]}
+  extra: {custom_type_name => "qc_element_type",list => ["Good","Bad","Wrong"]}
   is_nullable: 0
 
 =cut
@@ -95,7 +95,7 @@ __PACKAGE__->add_columns(
     data_type => "enum",
     extra => {
       custom_type_name => "qc_element_type",
-      list => ["Good", "Bad", "Wrong", "No Insert"],
+      list => ["Good", "Bad", "Wrong"],
     },
     is_nullable => 0,
   },
@@ -150,8 +150,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-06-09 14:15:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YVIdnJIE+sOEl63KdBQ4cQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-16 16:54:22
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5WPJF2f+P3EcIRUM6S/U0A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
