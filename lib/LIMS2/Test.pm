@@ -341,6 +341,8 @@ sub load_dynamic_files {
             WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
+            CrisprPlateAppendsType
+            CrisprPlateAppends
         )
     );
 

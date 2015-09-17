@@ -1,4 +1,4 @@
-[%- META title = 'Crispr Plate Upload' %]
+[%- META title = 'Create Crispr Plate' %]
 
 <div class="page-header">
   <h1>Upload Crispr Plate</h1>
@@ -7,7 +7,7 @@
 <div class="row">
 
   <div class="span6 offset3">
-    <form method="POST" id="crispr_plate_create" action="[% c.uri_for( '/user/crispr_plate_upload' ) %]" class="form well"  enctype="multipart/form-data" >
+    <form method="POST" id="crispr_plate_create" action="[% c.uri_for( '/user/create_crispr_plate' ) %]" class="form well"  enctype="multipart/form-data" >
 
         <input name="crispr_plate_upload" type="hidden"/>
 
@@ -16,15 +16,20 @@
           [%IF plate_name %]value="[% plate_name %]"[% END %]
         />
         <br>
+       
+        <label>Appends</label>
+        <select name="append_type" id="append_type">
+          <option value="" selected="selected">-</option>
+          [%- FOR append IN append_list %]
+            <option value="[% append %]">[% append.replace( '_', ' ' ) %]</option>
+          [%- END %]
+        </select>
 
         <label>Crispr Data File</label>
         <input name="datafile" type="file" >
-        
-        <br><br>
-        <input type="checkbox" name="primers" id="check_primers" enabled />
-            Generate primers
-        <input type="checkbox" name="bacs" id="check_bacs" enabled />
-            Include BACs
+
+        <input type="checkbox" name="wge" id="check_wge" enabled />
+            WGE Crispr IDs
         <br><br>
 
         <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
@@ -39,5 +44,8 @@
 $('form#plate_create').submit(function(){
     $(this).children('button[type=submit]').attr('disabled', 'disabled');
 });
+$('#process_type').change(function() {
+    $(this).closest("form").submit();
+})
 
 </script>

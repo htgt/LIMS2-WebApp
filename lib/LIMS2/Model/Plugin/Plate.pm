@@ -241,7 +241,6 @@ sub check_xep_pool_wells {
     WELL_HASH: foreach my $well_hash ( @$original_wells ) {
         if ( $well_hash->{'process_type'} ne 'xep_pool' ) {
             push @revised_wells, $well_hash;
-            
             next WELL_HASH;
         }
         my $target_well = $well_hash->{'well_name'};
