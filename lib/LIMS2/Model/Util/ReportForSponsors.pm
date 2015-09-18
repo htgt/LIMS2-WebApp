@@ -1048,7 +1048,7 @@ sub genes {
                 to_report => 't',
             },
             {
-                columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
+                columns => [ qw/experiments ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
                 distinct => 1
             }
         );
@@ -1076,6 +1076,8 @@ sub genes {
             else {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
+
+            $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
@@ -1171,7 +1173,6 @@ sub genes {
 
 
             push @ep_data, \%curr_ep_data;
-
         }
 
         # if ( !defined $total_het ) { $total_het = '-' };  This will need changing the tt because it will turn green the total genotyped clones

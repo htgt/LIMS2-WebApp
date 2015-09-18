@@ -238,7 +238,6 @@ sub check_xep_pool_wells {
     my $original_wells = shift;
 
     my @revised_wells;
-
     WELL_HASH: foreach my $well_hash ( @$original_wells ) {
         if ( $well_hash->{'process_type'} ne 'xep_pool' ) {
             push @revised_wells, $well_hash;
