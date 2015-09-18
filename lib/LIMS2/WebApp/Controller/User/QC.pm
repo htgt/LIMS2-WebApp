@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.333';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.338';
 }
 ## use critic
 
@@ -44,6 +44,26 @@ has qc_config => (
     default => sub{ HTGT::QC::Config->new({ is_lims2 => 1 }) },
     lazy    => 1,
 );
+
+has latest_run_util => (
+    is      => 'ro',
+    isa     => 'HTGT::QC::Util::ListLatestRuns',
+    lazy_build => 1,
+);
+
+sub _build_latest_run_util {
+    my $self = shift;
+    $ENV{ LIMS2_URL_CONFIG }
+        or die "LIMS2_URL_CONFIG environment variable not set";
+    my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
+    my $lustre_server = $conf->{_}->{lustre_server_url}
+        or die "lustre_server_url not found in LIMS2_URL_CONFIG file ".$ENV{ LIMS2_URL_CONFIG };
+
+    return HTGT::QC::Util::ListLatestRuns->new( {
+        config => $self->qc_config,
+        file_api_url => $lustre_server,
+    } );
+}
 
 ## no critic(ProtectPrivateSubs)
 sub _list_all_profiles {
@@ -500,9 +520,7 @@ sub latest_runs :Path('/user/latest_runs') :Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
-
-    $c->stash( latest => $llr->get_latest_run_data );
+    $c->stash( latest => $self->latest_run_util->get_latest_run_data );
 
     return;
 }
@@ -515,8 +533,8 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
     my ( $qc_run_id, $last_stage ) = $params =~ /^(.+)___(.+)$/;
     my $config = $self->qc_config;
 
-    my $error_file = $config->basedir->subdir( $qc_run_id )->subdir( 'error' )->file( $last_stage . '.err' );
-    my @error_file_content = $error_file->slurp( chomp => 1 );
+    # Fetches error file via file server api
+    my @error_file_content = $self->latest_run_util->fetch_error_file($qc_run_id, $last_stage);
 
     $c->stash( run_id => $qc_run_id );
     $c->stash( last_stage => $last_stage );

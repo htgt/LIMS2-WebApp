@@ -91,6 +91,7 @@ requires:
   Getopt::Long: 0
   GraphViz2: 0
   HTGT::QC::Config: 0
+  HTGT::QC::Constants: 0
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
@@ -178,4 +179,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.333
+version: 0.338

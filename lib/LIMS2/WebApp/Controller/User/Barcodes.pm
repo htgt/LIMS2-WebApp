@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.333';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.338';
 }
 ## use critic
 
@@ -437,14 +437,26 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         $c->stash->{well_details} = $self->_well_display_details($c, $well);
 
         my $num = 0;
+        my $child_piq_count = 0;
         foreach my $output (@freeze_back_outputs){
             $num++;
-            $c->stash->{"piq_plate_name_$num"} = $output->{tmp_piq_plate}->name;
-            $c->stash->{"piq_wells_$num"} = [ $output->{tmp_piq_plate}->wells ];
+            my $tmp_piq_plate = $output->{tmp_piq_plate};
+            $c->stash->{"piq_plate_name_$num"} = $tmp_piq_plate ? $tmp_piq_plate->name : "" ;
+            $c->stash->{"piq_wells_$num"} = $tmp_piq_plate ? [ $tmp_piq_plate->wells ] : [] ;
+
+            if($tmp_piq_plate){
+                $child_piq_count += $tmp_piq_plate->wells;
+            }
 
             if($output->{qc_well}->well_barcode){
                 $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->well_barcode->barcode;
             }
+        }
+
+        if($child_piq_count == 0){
+            $c->flash->{success_msg} = ("Barcode $barcode frozen back. QC PIQ well has been added to "
+                .$c->stash->{qc_piq_plate_name_1}." well ".$c->stash->{qc_piq_well_name_1});
+            $c->res->redirect( $redirect_on_completion );
         }
     }
     elsif($c->request->param('submit_piq_barcodes')){

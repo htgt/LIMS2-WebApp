@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.333';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.338';
 }
 ## use critic
 
@@ -11,11 +11,13 @@ use warnings FATAL => 'all';
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Exception;
 use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
 use TryCatch;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
@@ -393,6 +395,132 @@ sub find_or_create_design_target {
     return $design_target;
 }
 
+=head create_point_mutation_design
+
+Provide a wild type sequence (or its coordinates) and oligo sequence containing point mutation
+to create a design. Does some validation of wt vs mutant oligo sequence.
+
+=cut
+
+sub _pspec_create_point_mutation_design{
+    return {
+        oligo_sequence     => { validate => 'dna_seq' },
+        chr_name           => { validate => 'existing_chromosome' },
+        chr_start          => { validate => 'integer' },
+        chr_end            => { validate => 'integer' },
+        chr_strand         => { validate => 'strand'  },
+    }
+}
+
+sub create_point_mutation_design{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->model->check_params( $params, $self->_pspec_create_point_mutation_design, ignore_unknown => 1 );
+
+    my $locus = { slice_def $validated_params, qw(chr_name chr_strand chr_start chr_end) };
+
+    my $assembly = $self->model->get_species_default_assembly($self->species);
+    $locus->{assembly} = $assembly;
+
+    # find wild type sequence in ensembl
+    my $slice = $self->ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $locus->{chr_name},
+        $locus->{chr_start},
+        $locus->{chr_end},
+        $locus->{chr_strand}
+    );
+    my $wild_type_sequence = $slice->seq();
+    $self->log->debug("Got wild type sequence $wild_type_sequence");
+
+    my $oligo_sequence = $self->mutant_seq_with_lower_case({
+        mutant_seq    => $validated_params->{oligo_sequence},
+        wild_type_seq => $wild_type_sequence,
+        max_mismatch_percent => 10,
+    });
+
+    # delete point mutation design specific params as the remaining params
+    # will be passed to the generic design creation method
+    delete @{$params}{qw( oligo_sequence chr_name chr_strand chr_start chr_end wild_type_sequence)};
+
+    # add the oligo and loci information to params
+    $params->{oligos} = [
+        {
+            type => 'PM',
+            seq  => $oligo_sequence,
+            loci => [ $locus ],
+        }
+    ];
+
+    $params->{species} = $self->species;
+    $params->{created_by} = $self->user;
+
+    my $design;
+    $self->model->txn_do(
+        sub {
+            try {
+                $design = $self->model->c_create_design($params);
+            }
+            catch ($err){
+                $self->log->error( "Error creating point muation design: $err" );
+                $self->model->txn_rollback;
+
+                #re-throw error so it goes to webapp
+                die $err;
+            };
+        }
+    );
+
+    return $design;
+}
+
+=head2 mutant_seq_with_lower_case
+
+Return mutant seq with lower case characters where it does not match
+wild type seq. (comparison is base by base and assumes strings are same
+length with no insertions/deletions)
+
+=cut
+
+sub mutant_seq_with_lower_case{
+    my ($self, $params) = @_;
+    my $mutant = $params->{mutant_seq} or die "No mutant_seq parameter provided";
+    my $wt = $params->{wild_type_seq} or die "No wild_type_seq parameter provided";
+
+    my @mutant_chars = map { uc $_ } split "", $mutant;
+    my @wt_chars = map { uc $_ } split "", $wt;
+
+    if(scalar @mutant_chars != scalar @wt_chars){
+        die "Wild type sequences are different lengths. Cannot compare.";
+    }
+
+    my @new_chars;
+    my $mismatch_count = 0;
+    foreach my $i (0..$#mutant_chars){
+        if( $mutant_chars[$i] eq $wt_chars[$i] ){
+            push @new_chars, $mutant_chars[$i];
+        }
+        else{
+            $self->log->debug("Sequence mismatch identified at position $i of oligo");
+            $mismatch_count++;
+            push @new_chars, lc( $mutant_chars[$i] );
+        }
+    }
+
+    my $new = join "", @new_chars;
+
+    my $max_mismatch_percent = $params->{max_mismatch_percent};
+    if(defined $max_mismatch_percent){
+        my $percent = ( $mismatch_count / scalar(@mutant_chars) ) * 100;
+        $self->log->debug("Mismatch percent: $percent");
+        if($percent > $max_mismatch_percent){
+            die "More than $max_mismatch_percent % mismatch found between sequences:\n"
+                ."Wild type: $wt\n"
+                ."Mutant   : $mutant";
+        }
+    }
+    return $new;
+}
 =head2 throw_validation_error
 
 Override parent throw method to use LIMS2::Exception::Validation.

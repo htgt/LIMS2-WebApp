@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.333';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.338';
 }
 ## use critic
 
@@ -38,7 +38,18 @@ sub trace_data_GET{
     my $params = $c->request->params;
 
     $self->log->debug( "Finding trace for '" . $params->{name} . "'" );
-    my $trace = $self->traceserver->get_trace( $params->{name} );
+    my $trace;
+    my $traceserver_error;
+    try{
+        $trace = $self->traceserver->get_trace( $params->{name} );
+    }
+    catch{
+        $traceserver_error = $_;
+    };
+
+    if($traceserver_error){
+        return $self->status_bad_request($c, message => $traceserver_error);
+    }
 
     my $fh = $self->traceserver->write_temp_file( $trace );
     tie my %scf, 'Bio::SCF', $fh;

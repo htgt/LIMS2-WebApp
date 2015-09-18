@@ -9,9 +9,10 @@
 
 [% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
 
-[% IF piq_plate_name_1 %]
+[% IF qc_piq_plate_name_1 %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
   QC PIQ well has been added to plate [% qc_piq_plate_name_1 %] at well [% qc_piq_well_name_1 %] (no barcode required)<br><br>
+  [% IF number_of_wells_1 %]
   PIQ wells with the following lab numbers have been created on temporary plate [% piq_plate_name_1 %]. Please enter barcodes.
   <fieldset>
     <input type="hidden" name="freeze_back_type" value="FP"/>
@@ -33,6 +34,7 @@
       <i class="icon-arrow-right icon-white"></i>
     </button>
   </fieldset>
+  [% END %]
 </form>
 [% ELSIF !barcode_state_error %]
 <form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
@@ -44,7 +46,7 @@
     <tr>
      <td>
       <label>Number of PIQ wells to create</label>
-      <input type="number" name="number_of_wells_1" min="1" max="10" value="[% number_of_wells_1 %]"/>
+      <input type="number" name="number_of_wells_1" min="0" max="10" value="[% number_of_wells_1 %]"/>
      </td>
      <td>
       <label>Lab Number</label>

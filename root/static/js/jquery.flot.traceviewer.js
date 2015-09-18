@@ -173,7 +173,10 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
         function(data) {
             parent._create_plot(placeholder, data);
         }
-    );
+    )
+    .fail(function( jqxhr, textStatus, error ) {
+        console.log( jqxhr.responseText );
+    });
 };
 
 //function that actually creates the plot
