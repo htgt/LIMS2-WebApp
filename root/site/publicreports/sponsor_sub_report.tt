@@ -161,9 +161,9 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF !colval %]
             <td></td>
         [%- ELSIF col == 'passing_vector_wells'  && !row.item('targeted_clones') && row.item('effort_concluded')  %]
-          <td style="background:#FF4646">[%- colval %]</td>
+          <td style="background:#999999">[%- colval %]</td>
         [%- ELSIF col == 'accepted_crispr_vector'  && !row.item('passing_vector_wells') && !row.item('targeted_clones') && row.item('effort_concluded')  %]
-          <td style="background:#FF4646">[%- colval %]</td>
+          <td style="background:#999999">[%- colval %]</td>
         [%- ELSIF col == 'passing_vector_wells'
                || col == 'accepted_crispr_vector'
                   %]
@@ -205,15 +205,17 @@ document.title = "[%- sponsor_id %]";
                 <tr>
                 [%- IF c.user %]
                   <td colspan=10 style="text-align:right">
-<!--                   Electroporation belongs to experiment
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => ep_data.item('experiment') } ) %]">[%- ep_data.item('experiment') %]</a>
--->
+                      Electroporation belongs to experiment
+                    [% FOREACH exp IN ep_data.item('experiment') %]
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                    [% END %]
                   </td>
                 [%- ELSE %]
                   <td colspan=9  style="text-align:right">
-<!--                  Electroporation belongs to experiment
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => ep_data.item('experiment') } ) %]">[%- ep_data.item('experiment') %]</a>
--->
+                      Electroporation belongs to experiment
+                    [% FOREACH exp IN ep_data.item('experiment') %]
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                    [% END %]
                   </td>
                 [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
