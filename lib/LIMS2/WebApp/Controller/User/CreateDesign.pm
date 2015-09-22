@@ -5,6 +5,7 @@ use namespace::autoclean;
 use Const::Fast;
 use TryCatch;
 use Path::Class;
+use Hash::MoreUtils qw( slice_def );
 
 use LIMS2::Exception::System;
 use LIMS2::Model::Util::CreateDesign;
@@ -505,6 +506,9 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
 
         delete $design_data->{assigned_genes};
         delete $design_data->{oligos_fasta};
+        delete $design_data->{strand};
+        delete $design_data->{oligo_order_seqs};
+        delete $design_data->{assembly};
         foreach my $comments (@{$design_data->{comments}}) {
             delete $comments->{id};
         }
@@ -545,6 +549,37 @@ sub wge_design_importer :Path( '/user/wge_design_importer' ) : Args(0) {
             }
             $c->stash( design_id => $design_id );
         });
+    }
+
+    return;
+}
+
+sub create_point_mutation_design :Path( '/user/create_point_mutation_design' ) : Args(0){
+    my ($self, $c ) = @_;
+
+    if($c->req->param('submit')){
+        my $design_params = { slice_def $c->req->params(), qw(oligo_sequence chr_start chr_end chr_strand chr_name) };
+        $c->stash( $design_params );
+
+        $design_params->{species} = $c->session->{selected_species};
+        $design_params->{type} = 'point-mutation';
+
+        my $create_design_util = LIMS2::Model::Util::CreateDesign->new(
+            catalyst => $c,
+            model    => $c->model('Golgi'),
+        );
+
+        try{
+            my $design = $create_design_util->create_point_mutation_design( $design_params );
+            if($design){
+                $c->flash->{success_msg} = ('Point mutation design created');
+                $c->res->redirect( $c->uri_for('/user/view_design', { design_id => $design->id }) );
+                return;
+            }
+        }
+        catch ($err){
+            $c->stash->{error_msg} = "Design creation failed: $err";
+        }
     }
 
     return;

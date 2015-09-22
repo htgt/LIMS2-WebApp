@@ -5,7 +5,7 @@ document.title = "[%- sponsor_id %]";
 
 <span style="float:right">
 
-  [% IF type == 'full' %]
+  [%- IF type == 'full' %]
   <a id='type_simple' type='button' class='btn btn-primary btn-small'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -13,7 +13,7 @@ document.title = "[%- sponsor_id %]";
         type => 'simple'
     }
   ) %]><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
-  [% ELSIF type == 'simple' %]
+  [%- ELSIF type == 'simple' %]
   <a id='type_full' type='button' class='btn btn-primary btn-small'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -21,7 +21,7 @@ document.title = "[%- sponsor_id %]";
         type => 'full'
     }
   ) %]><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
-  [% END %]
+  [%- END %]
   <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
@@ -34,79 +34,28 @@ document.title = "[%- sponsor_id %]";
   <h2>Sponsor Progress Sub-Report</h2>
 </div>
 <p>
-<big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+<big><b>[%- disp_stage %]</b> for <b>[%- disp_target_type %]</b> projects for sponsor <b>[%- sponsor_id %]</b></big>
 </p>
 
-[% IF report_id %]
+[%- IF report_id %]
 
 <table class="table table-bordered table-condensed">
   <thead>
     <tr>
       [%- FOR disp_col IN display_columns %]
-        [%- IF disp_col == "vector designs" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
-            data-content="Number of gibson designs created for this gene (may not yet be plated)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "ordered targeting vectors" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
-            data-content="Number of design oligos ordered (DESIGN wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "final vector clones" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="targeting_vector_wells" href="#"
-            data-content="Number of final vector clones, post-gateway (FINAL wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "QC-verified vectors" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
-            data-content="Number of sequence-verified final vector clones (FINAL wells accepted)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "vectors constructed" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
-            data-content="Number of final vectors and gRNA plasmids passing DNA QC (DNA wells accepted)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "electroporations" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="electroporations" href="#"
-            data-content="Number of electroporated wells (EP/CRISPR_EP wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "colonies picked" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="colonies_picked" href="#"
-            data-content="Number of electroporated colonies picked for screening (EP_PICK wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "targeted clones" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="targeted_clones" href="#"
-            data-content="Number of electroporated colonies passing genotyping screens (EP_PICK wells accepted)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th></th>
-        [%- ELSIF disp_col == "crispr wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_wells" href="#"
-            data-content="Number of crisprs linked to the vector designs (CRISPR wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "crispr vector wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_vector_wells" href="#"
-            data-content="Number of crispr vector wells (CRISPR_V wells)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "crispr dna wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_dna_wells" href="#"
-            data-content="Number of crispr vector DNA wells (DNA wells from CRISPR_V)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "accepted crispr dna wells" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_dna_wells" href="#"
-            data-content="Number of accepted crispr vector DNA wells (DNA wells accepted from CRISPR_V)"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "accepted crispr pairs" %]
-            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_pairs" href="#"
-            data-content="Number of crispr pairs with accepted DNA wells for both left and right crispr"
-            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
-        [%- ELSIF disp_col == "PCR-passing design oligos" || disp_col == "info" %]
-          [% IF c.user %]
-            <th>[% disp_col %]</th>
+        [%- IF disp_col == "PCR-passing design oligos" || disp_col == "info" %]
+          [%- IF c.user %]
+            <th>[%- disp_col %]</th>
           [%- END %]
-        [%- ELSIF disp_col == '# colonies'        ||
-                  disp_col == '# wt clones'       ||
-                  disp_col == '# mosaic clones'   ||
-                  disp_col == '# in-frame clones' ||
-                  disp_col == '# frame-shift clones' %]
-            <th>[% disp_col %]</th>
+        [%- ELSIF disp_col == '# colonies'           ||
+                  disp_col == '# wt clones'          ||
+                  disp_col == '# mosaic clones'      ||
+                  disp_col == '# in-frame clones'    ||
+                  disp_col == '# frame-shift clones' ||
+                  disp_col == '# no-call clones' %]
+            <th>[%- disp_col %]</th>
         [%- ELSE %]
-            <th>[% disp_col %]</th>
+            <th>[%- disp_col %]</th>
         [%- END %]
       [%- END %]
     </tr>
@@ -132,44 +81,44 @@ document.title = "[%- sponsor_id %]";
             <td style="color:red">no</td>
           [%- ELSE %]
             <td style="color:orange">---</td>
-          [% END %]
-        [% ELSIF col == "gene_id" %]
+          [%- END %]
+        [%- ELSIF col == "gene_id" %]
 
-              [% IF c.session.selected_species == 'Human' %]
-                <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% colval %]">[% colval %]</a></td>
-              [% ELSIF c.session.selected_species == 'Mouse' %]
-                <td><a class="brand" href="http://www.informatics.jax.org/marker/[% colval %]">[% colval %]</a></td>
-              [% END %]
+              [%- IF c.session.selected_species == 'Human' %]
+                <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[%- colval %]">[%- colval %]</a></td>
+              [%- ELSIF c.session.selected_species == 'Mouse' %]
+                <td><a class="brand" href="http://www.informatics.jax.org/marker/[%- colval %]">[%- colval %]</a></td>
+              [%- END %]
 
-        [% ELSIF col == "gene_symbol" %]
-            [% IF c.user %]
-                <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[% colval %]</a></td>
-            [% ELSE %]
-                <td>[% colval %]</td>
-            [% END %]
+        [%- ELSIF col == "gene_symbol" %]
+            [%- IF c.user %]
+                <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[%- colval %]</a></td>
+            [%- ELSE %]
+                <td>[%- colval %]</td>
+            [%- END %]
         [%- ELSIF col == "sponsors" %]
-            <td>[% colval %]</td>
+            <td>[%- colval %]</td>
         [%- ELSIF col == "chr" %]
-            <td>[% colval %]</td>
+            <td>[%- colval %]</td>
         [%- ELSIF col == 'vector_pcr_passes' %]
-            [% IF c.user %]
-              [% IF colval %]
+            [%- IF c.user %]
+              [%- IF colval %]
               <td style="background:#E5E4E2" >[%- colval %]</td>
-              [% ELSE %]
+              [%- ELSE %]
               <td></td>
               [%- END %]
             [%- END %]
         [%- ELSIF col == 'recovery_class' %]
-            [% IF c.user %]
+            [%- IF c.user %]
               [%- IF row.item('fs_count') && row.item('effort_concluded') %]
                 <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
               [%- ELSIF row.item('effort_concluded') %]
                 <td style="background:#FF4646;white-space:nowrap">[%- colval %]</td>
-              [% ELSIF colval != '-' %]
+              [%- ELSIF colval != '-' %]
                 <td style="background:#E5E4E2;white-space:nowrap">[%- colval %]</td>
-              [% ELSE %]
+              [%- ELSE %]
                 <td>[%- colval %]</td>
-              [% END %]
+              [%- END %]
             [%- END %]
 
         [%- ELSIF col == 'priority' %]
@@ -184,33 +133,43 @@ document.title = "[%- sponsor_id %]";
             [%- END %]
 
         [%- ELSIF col == 'targeted_clones' %]
-          [%- IF row.item('targeted_clones') && row.item('chromosome') == "X" %]
-            <td style="background:#FFA500"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSIF row.item('targeted_clones') && row.item('fs_count') %]
-            <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSIF row.item('targeted_clones') %]
-            <td style="background:#FF4646"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [% ELSE %]
+          [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
+            <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') && row.item('effort_concluded') %]
+            <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+
+          [%- ELSIF row.item('targeted_clones') && row.item('chr') == "X" %]
+            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSIF row.item('targeted_clones') %]
+            <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+          [%- ELSE %]
             <td></td>
-          [% END %]
+          [%- END %]
         [%- ELSIF col == 'fs_count'
                || col == 'if_count'
                || col == 'wt_count'
-               || col == 'ms_count' %]
+               || col == 'ms_count'
+               || col == 'nc_count'
+               || col == 'ep_pick_het'
+                %]
 
-            [% IF row.item('targeted_clones') %]
-              <td style="background:#E5E4E2" >[% colval %]</td>
-            [% ELSE %]
+            [%- IF row.item('targeted_clones') %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+            [%- ELSE %]
               <td></td>
-            [% END %]
+            [%- END %]
         [%- ELSIF !colval %]
             <td></td>
+        [%- ELSIF col == 'passing_vector_wells'  && !row.item('targeted_clones') && row.item('effort_concluded')  %]
+          <td style="background:#999999">[%- colval %]</td>
+        [%- ELSIF col == 'accepted_crispr_vector'  && !row.item('passing_vector_wells') && !row.item('targeted_clones') && row.item('effort_concluded')  %]
+          <td style="background:#999999">[%- colval %]</td>
         [%- ELSIF col == 'passing_vector_wells'
                || col == 'accepted_crispr_vector'
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
         [%- ELSIF col == 'distrib_clones' %]
-          <td style="background:#8AD95A"><a class="brand" href="[% c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+          <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'
                || col == 'vector_wells'
@@ -236,7 +195,7 @@ document.title = "[%- sponsor_id %]";
               [%- END %]
               </td>
 
-        [% ELSIF col == "ep_data" %]
+        [%- ELSIF col == "ep_data" %]
 
           [%- IF row.item('ep_data').0 %]
           </tbody>
@@ -244,19 +203,31 @@ document.title = "[%- sponsor_id %]";
                 [%- FOREACH ep_data IN row.item('ep_data') %]
 
                 <tr>
-                [% IF c.user %]
-                  <td colspan=10></td>
+                [%- IF c.user %]
+                  <td colspan=10 style="text-align:right">
+                      Electroporation belongs to experiment
+                    [% FOREACH exp IN ep_data.item('experiment') %]
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                    [% END %]
+                  </td>
                 [%- ELSE %]
-                  <td colspan=9></td>
+                  <td colspan=9  style="text-align:right">
+                      Electroporation belongs to experiment
+                    [% FOREACH exp IN ep_data.item('experiment') %]
+                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                    [% END %]
+                  </td>
                 [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
                   <td>[%- ep_data.item('ep_pick_count') %]</td>
                   <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
-                  <td>[%- ep_data.item('fs_count') %]</td>
-                  <td>[%- ep_data.item('if_count') %]</td>
-                  <td>[%- ep_data.item('wt_count') %]</td>
-                  <td>[%- ep_data.item('ms_count') %]</td>
-                [% IF c.user %]
+                  <td>[%- ep_data.item('frameshift') %]</td>
+                  <td>[%- ep_data.item('in-frame') %]</td>
+                  <td>[%- ep_data.item('wild_type') %]</td>
+                  <td>[%- ep_data.item('mosaic') %]</td>
+                  <td>[%- ep_data.item('no-call') %]</td>
+                  <td>[%- ep_data.item('het') %]</td>
+                [%- IF c.user %]
                   <td colspan=3></td>
                 [%- ELSE %]
                   <td colspan=2></td>
@@ -287,6 +258,282 @@ document.title = "[%- sponsor_id %]";
 
 <script type="text/javascript">
 
+  $(function () {
+      $("table").stickyTableHeaders();
+  });
+
+  (function ($, window, undefined) {
+      'use strict';
+
+      var name = 'stickyTableHeaders',
+          id = 0,
+          defaults = {
+              fixedOffset: 0,
+              leftOffset: 0,
+              marginTop: 35,
+              scrollableArea: window
+          };
+
+      function Plugin(el, options) {
+          // To avoid scope issues, use 'base' instead of 'this'
+          // to reference this class from internal events and functions.
+          var base = this;
+
+          // Access to jQuery and DOM versions of element
+          base.$el = $(el);
+          base.el = el;
+          base.id = id++;
+          base.$window = $(window);
+          base.$document = $(document);
+
+          // Listen for destroyed, call teardown
+          base.$el.bind('destroyed',
+          $.proxy(base.teardown, base));
+
+          // Cache DOM refs for performance reasons
+          base.$clonedHeader = null;
+          base.$originalHeader = null;
+
+          // Keep track of state
+          base.isSticky = false;
+          base.hasBeenSticky = false;
+          base.leftOffset = null;
+          base.topOffset = null;
+
+          base.init = function () {
+              base.$el.each(function () {
+                  var $this = $(this);
+
+                  // remove padding on <table> to fix issue #7
+                  $this.css('padding', 0);
+
+                  base.$originalHeader = $('thead:first', this);
+                  base.$clonedHeader = base.$originalHeader.clone();
+                  $this.trigger('clonedHeader.' + name, [base.$clonedHeader]);
+
+                  base.$clonedHeader.addClass('tableFloatingHeader');
+                  base.$clonedHeader.css('display', 'none');
+
+                  base.$originalHeader.addClass('tableFloatingHeaderOriginal');
+
+                  base.$originalHeader.after(base.$clonedHeader);
+
+                  base.$printStyle = $('<style type="text/css" media="print">' +
+                      '.tableFloatingHeader{display:none !important;}' +
+                      '.tableFloatingHeaderOriginal{position:static !important;}' +
+                      '</style>');
+                  $('head').append(base.$printStyle);
+              });
+
+              base.setOptions(options);
+              base.updateWidth();
+              base.toggleHeaders();
+              base.bind();
+          };
+
+          base.destroy = function () {
+              base.$el.unbind('destroyed', base.teardown);
+              base.teardown();
+          };
+
+          base.teardown = function () {
+              if (base.isSticky) {
+                  base.$originalHeader.css('position', 'static');
+              }
+              $.removeData(base.el, 'plugin_' + name);
+              base.unbind();
+
+              base.$clonedHeader.remove();
+              base.$originalHeader.removeClass('tableFloatingHeaderOriginal');
+              base.$originalHeader.css('visibility', 'visible');
+              base.$printStyle.remove();
+
+              base.el = null;
+              base.$el = null;
+          };
+
+          base.bind = function () {
+              base.$scrollableArea.on('scroll.' + name, base.toggleHeaders);
+              if (!base.isWindowScrolling) {
+                  base.$window.on('scroll.' + name + base.id, base.setPositionValues);
+                  base.$window.on('resize.' + name + base.id, base.toggleHeaders);
+              }
+              base.$scrollableArea.on('resize.' + name, base.toggleHeaders);
+              base.$scrollableArea.on('resize.' + name, base.updateWidth);
+          };
+
+          base.unbind = function () {
+              // unbind window events by specifying handle so we don't remove too much
+              base.$scrollableArea.off('.' + name, base.toggleHeaders);
+              if (!base.isWindowScrolling) {
+                  base.$window.off('.' + name + base.id, base.setPositionValues);
+                  base.$window.off('.' + name + base.id, base.toggleHeaders);
+              }
+              base.$scrollableArea.off('.' + name, base.updateWidth);
+          };
+
+          base.toggleHeaders = function () {
+              if (base.$el) {
+                  base.$el.each(function () {
+                      var $this = $(this),
+                          newLeft,
+                          newTopOffset = base.isWindowScrolling ? (
+                          isNaN(base.options.fixedOffset) ? base.options.fixedOffset.outerHeight() : base.options.fixedOffset) : base.$scrollableArea.offset().top + (!isNaN(base.options.fixedOffset) ? base.options.fixedOffset : 0),
+                          offset = $this.offset(),
+
+                          scrollTop = base.$scrollableArea.scrollTop() + newTopOffset,
+                          scrollLeft = base.$scrollableArea.scrollLeft(),
+
+                          scrolledPastTop = base.isWindowScrolling ? scrollTop > offset.top : newTopOffset > offset.top,
+                          notScrolledPastBottom = (base.isWindowScrolling ? scrollTop : 0) < (offset.top + $this.height() - base.$clonedHeader.height() - (base.isWindowScrolling ? 0 : newTopOffset));
+
+                      if (scrolledPastTop && notScrolledPastBottom) {
+                          newLeft = offset.left - scrollLeft + base.options.leftOffset;
+                          base.$originalHeader.css({
+                              'position': 'fixed',
+                                  'margin-top': base.options.marginTop,
+                                  'left': newLeft,
+                                  'z-index': 3 // #18: opacity bug
+                          });
+                          base.leftOffset = newLeft;
+                          base.topOffset = newTopOffset;
+                          base.$clonedHeader.css('display', '');
+                          if (!base.isSticky) {
+                              base.isSticky = true;
+                              // make sure the width is correct: the user might have resized the browser while in static mode
+                              base.updateWidth();
+                          }
+                          base.setPositionValues();
+                      } else if (base.isSticky) {
+                          base.$originalHeader.css('position', 'static');
+                          base.$clonedHeader.css('display', 'none');
+                          base.isSticky = false;
+                          base.resetWidth($('td,th', base.$clonedHeader), $('td,th', base.$originalHeader));
+                      }
+                  });
+              }
+          };
+
+          base.setPositionValues = function () {
+              var winScrollTop = base.$window.scrollTop(),
+                  winScrollLeft = base.$window.scrollLeft();
+              if (!base.isSticky || winScrollTop < 0 || winScrollTop + base.$window.height() > base.$document.height() || winScrollLeft < 0 || winScrollLeft + base.$window.width() > base.$document.width()) {
+                  return;
+              }
+              base.$originalHeader.css({
+                  'top': base.topOffset - (base.isWindowScrolling ? 0 : winScrollTop),
+                      'left': base.leftOffset - (base.isWindowScrolling ? 0 : winScrollLeft)
+              });
+          };
+
+          base.updateWidth = function () {
+              if (!base.isSticky) {
+                  return;
+              }
+              // Copy cell widths from clone
+              if (!base.$originalHeaderCells) {
+                  base.$originalHeaderCells = $('th,td', base.$originalHeader);
+              }
+              if (!base.$clonedHeaderCells) {
+                  base.$clonedHeaderCells = $('th,td', base.$clonedHeader);
+              }
+              var cellWidths = base.getWidth(base.$clonedHeaderCells);
+              base.setWidth(cellWidths, base.$clonedHeaderCells, base.$originalHeaderCells);
+
+              // Copy row width from whole table
+              base.$originalHeader.css('width', base.$clonedHeader.width());
+          };
+
+          base.getWidth = function ($clonedHeaders) {
+              var widths = [];
+              $clonedHeaders.each(function (index) {
+                  var width, $this = $(this);
+
+                  if ($this.css('box-sizing') === 'border-box') {
+                      width = $this[0].getBoundingClientRect().width; // #39: border-box bug
+                  } else {
+                      var $origTh = $('th', base.$originalHeader);
+                      if ($origTh.css('border-collapse') === 'collapse') {
+                          if (window.getComputedStyle) {
+                              width = parseFloat(window.getComputedStyle(this, null).width);
+                          } else {
+                              // ie8 only
+                              var leftPadding = parseFloat($this.css('padding-left'));
+                              var rightPadding = parseFloat($this.css('padding-right'));
+                              // Needs more investigation - this is assuming constant border around this cell and it's neighbours.
+                              var border = parseFloat($this.css('border-width'));
+                              width = $this.outerWidth() - leftPadding - rightPadding - border;
+                          }
+                      } else {
+                          width = $this.width();
+                      }
+                  }
+
+                  widths[index] = width;
+              });
+              return widths;
+          };
+
+          base.setWidth = function (widths, $clonedHeaders, $origHeaders) {
+              $clonedHeaders.each(function (index) {
+                  var width = widths[index];
+                  $origHeaders.eq(index).css({
+                      'min-width': width,
+                          'max-width': width
+                  });
+              });
+          };
+
+          base.resetWidth = function ($clonedHeaders, $origHeaders) {
+              $clonedHeaders.each(function (index) {
+                  var $this = $(this);
+                  $origHeaders.eq(index).css({
+                      'min-width': $this.css('min-width'),
+                          'max-width': $this.css('max-width')
+                  });
+              });
+          };
+
+          base.setOptions = function (options) {
+              base.options = $.extend({}, defaults, options);
+              base.$scrollableArea = $(base.options.scrollableArea);
+              base.isWindowScrolling = base.$scrollableArea[0] === window;
+          };
+
+          base.updateOptions = function (options) {
+              base.setOptions(options);
+              // scrollableArea might have changed
+              base.unbind();
+              base.bind();
+              base.updateWidth();
+              base.toggleHeaders();
+          };
+
+          // Run initializer
+          base.init();
+      }
+
+      // A plugin wrapper around the constructor,
+      // preventing against multiple instantiations
+      $.fn[name] = function (options) {
+          return this.each(function () {
+              var instance = $.data(this, 'plugin_' + name);
+              if (instance) {
+                  if (typeof options === 'string') {
+                      instance[options].apply(instance);
+                  } else {
+                      instance.updateOptions(options);
+                  }
+              } else if (options !== 'destroy') {
+                  $.data(this, 'plugin_' + name, new Plugin(this, options));
+              }
+          });
+      };
+
+  })(jQuery, window);
+
+
+
   function displayRow( my_id ){
     var row = document.getElementById(my_id);
     if (row.style.display == '')
@@ -298,22 +545,4 @@ document.title = "[%- sponsor_id %]";
 </script>
 
 
-
-<script type="text/javascript">
-  // description fields on the table
-  $('#vector_designs').popover();
-  $('#vector_wells').popover();
-  $('#targeting_vector_wells').popover();
-  $('#passing_vector_wells').popover();
-  $('#accepted_vector_wells').popover();
-  $('#electroporations').popover();
-  $('#colonies_picked').popover();
-  $('#targeted_clones').popover();
-  $('#crispr_wells').popover();
-  $('#crispr_vector_wells').popover();
-  $('#crispr_dna_wells').popover();
-  $('#accepted_crispr_dna_wells').popover();
-  $('#accepted_crispr_pairs').popover();
-
-</script>
 

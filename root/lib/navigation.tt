@@ -58,6 +58,10 @@
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
+            </li>
 
             <li class="divider"></li>
 
@@ -82,7 +86,11 @@
             </li>
             <li class="divider"></li>
             <li>
-              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs by ID</a>
+              <a href="[% c.uri_for( '/user/create_crispr_plate' ) %]">Upload Crispr Plate</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
           </ul>
         </li>
@@ -190,7 +198,7 @@
 
             <li>
               <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
-                Electroporation Summary
+                Gene Electroporation Summary
               </a>
             </li>
             <li>
@@ -214,7 +222,18 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+            [% ELSE %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummaryJune2015', { species => c.session.selected_species } ) %]">
+              Crispr Electroporation Summary
+              </a>
+            </li>
             [% END %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/HetSummary' ) %]">
+              Het Summary
+              </a>
+            </li>
 
             <li class="divider"></li>
 

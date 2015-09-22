@@ -13,13 +13,116 @@ Helper module for displaying Crispr ES QC Data
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'find_gene_crispr_es_qc' ]
+    exports => [ 'find_gene_crispr_es_qc','crispr_damage_type_for_ep_pick','ep_pick_is_het' ]
 };
 
 use Log::Log4perl qw( :easy );
 use List::Util qw( first );
+use List::MoreUtils qw( uniq );
 use Try::Tiny;
 
+=head2 ep_pick_is_het
+
+Return true if EP pick well is het based on well het status, damage_call and chromosome
+
+=cut
+
+sub ep_pick_is_het{
+    my ($model, $well_id, $chromosome, $damage_call) = @_;
+
+    my $is_het;
+
+    my $het;
+
+    try{
+        $het = $model->schema->resultset( 'WellHetStatus' )->find(
+                { well_id => $well_id } );
+        if ( defined $het->five_prime && defined $het->three_prime ) {
+            $is_het = 0;
+        }
+    };
+
+    if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
+        try{
+            if ( $het->five_prime && $het->three_prime ) {
+                $is_het = 1;
+            }
+        };
+    } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
+        try{
+            if ( $het->five_prime && $het->three_prime ) {
+                $is_het = 1;
+            }
+        };
+    }
+
+    return $is_het;
+}
+
+=head2 crispr_damage_type_for_ep_pick
+
+Find all validated ES QC wells for a given EP pick well ID and
+return the crispr damage type seen (there may be multiple qc wells
+so need to filter on accepted qc results in some cases)
+
+Used for reporting
+
+=cut
+
+sub crispr_damage_type_for_ep_pick{
+    my ($model, $well_id) = @_;
+
+    # grab data for crispr damage type
+    # only on validated runs...
+    my @crispr_es_qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
+        {
+            well_id  => $well_id,
+            'crispr_es_qc_run.validated' => 1,
+        },
+        {
+            join => 'crispr_es_qc_run'
+        }
+    );
+
+    unless(@crispr_es_qc_wells){
+        # DEBUG("No crispr QC wells for well_id $well_id");
+        return;
+    }
+
+    my $well = $crispr_es_qc_wells[0]->well;
+
+    my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
+
+    my $damage_type;
+
+    if ( scalar( @crispr_damage_types ) == 1 ) {
+        $damage_type = $crispr_damage_types[0];
+    }
+    elsif ( scalar( @crispr_damage_types ) > 1 ) {
+        # remove any non accepted results
+        @crispr_damage_types = uniq grep {$_}
+            map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
+
+        if ( scalar( @crispr_damage_types ) == 1 ) {
+            $damage_type = $crispr_damage_types[0];
+        }
+        else {
+            if (scalar( @crispr_damage_types ) > 1 ) {
+                # WARN( "$well ep_pick well has multiple crispr damage types associated with it: "
+                #         . join( ', ', @crispr_damage_types ) );
+                $damage_type = $crispr_damage_types[0];
+            } else {
+                # DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
+            }
+
+        }
+    }
+    else {
+        # DEBUG( "$well ep_pick well has no crispr damage type associated with it" );
+    }
+
+    return $damage_type;
+}
 =head2 find_gene_crispr_es_qc
 
 Find all the accepted crispr es qc ep_pick wells for a given gene.

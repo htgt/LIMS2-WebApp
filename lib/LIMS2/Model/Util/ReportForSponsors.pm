@@ -4,7 +4,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use LIMS2::Model::Util::DataUpload qw( parse_csv_file );
 use LIMS2::Model::Util qw( sanitize_like_expr );
-
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 
@@ -15,7 +15,6 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
-use feature "switch";
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -448,6 +447,8 @@ sub generate_sub_report {
                                             'if_count',
                                             'wt_count',
                                             'ms_count',
+                                            'nc_count',
+                                            'ep_pick_het',
 
                                             'distrib_clones',
 
@@ -488,6 +489,8 @@ sub generate_sub_report {
                                             '# in-frame clones',
                                             '# wt clones',
                                             '# mosaic clones',
+                                            '# no-call clones',
+                                            'het clones',
 
                                             'distributable clones',
 
@@ -866,39 +869,15 @@ sub genes {
 
         my %search = ( design_gene_id => $gene_id );
 
-        if ($self->species eq 'Human' ) {
+        if ($self->species eq 'Human' || $sponsor_id eq 'Pathogen Group 2' || $sponsor_id eq 'Pathogen Group 3' ) {
             $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
                 ];
         }
 
-        for ($sponsor_id) {
-            when ('Pathogen Group 2') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 3') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 1') {
-                $search{'sponsor_id'} = 'Pathogen Group 1';
-            }
-            when ('EUCOMMTools Recovery') {
-                $search{'sponsor_id'} = 'EUCOMMTools Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            # default { DEBUG "No special option for sponsor: " . $sponsor_id }
+        if ($sponsor_id eq 'Pathogen Group 1' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'Barry Short Arm Recovery') {
+            $search{'sponsor_id'} = $sponsor_id;
         }
 
         my $summary_rs = $self->model->schema->resultset("Summary")->search(
@@ -911,11 +890,11 @@ sub genes {
 
         try {
             my $index = 0;
-            $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+            $index++ until ( $index >= scalar @sponsors || $sponsors[$index] eq 'All' );
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( '; ', @sponsors );
+        my $sponsors_str = join  ( ';', @sponsors );
         $sponsors_str =~ s/Pathogen Group 1/PG1/;
         $sponsors_str =~ s/Pathogen Group 2/PG2/;
         $sponsors_str =~ s/Pathogen Group 3/PG3/;
@@ -925,6 +904,7 @@ sub genes {
         $sponsors_str =~ s/Pathogen/PG/;
         $sponsors_str =~ s/PGs/Pathogens/;
         $sponsors_str =~ s/Stem Cell Engineering/SCE/;
+        $sponsors_str =~ s/Human Genetics/HG/;
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
@@ -953,6 +933,22 @@ sub genes {
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
+
+        # if there are no designs, stop here
+        if ( !scalar @design_ids ) {
+            push @genes_for_display, {
+                'gene_id'                => $gene_id,
+                'gene_symbol'            => $gene_symbol,
+                'chromosome'             => $chromosome,
+                'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+                'recovery_class'         => $recovery_class ? $recovery_class : '0',
+                'priority'               => $priority ? $priority : '0',
+                'effort_concluded'       => $effort_concluded ? $effort_concluded : '0',
+                'ep_data'                => [],
+            };
+            next;
+        }
+
 
         foreach my $design_id (uniq @design_ids){
             $designs_for_gene->{$gene_id} ||= [];
@@ -1018,15 +1014,15 @@ sub genes {
         );
         my $final_pick_pass_count = scalar @final_pick;
 
-        my @final_pick_qc = $summary_rs->search(
-            { final_pick_qc_seq_pass => 't',
-              to_report => 't' },
-            {
-                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
-                distinct => 1
-            }
-        );
-        my $final_pick_qc_pass_count = scalar @final_pick_qc;
+        # my @final_pick_qc = $summary_rs->search(
+        #     { final_pick_qc_seq_pass => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $final_pick_qc_pass_count = scalar @final_pick_qc;
 
 
 
@@ -1052,7 +1048,7 @@ sub genes {
                 to_report => 't',
             },
             {
-                columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
+                columns => [ qw/experiments ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
                 distinct => 1
             }
         );
@@ -1068,6 +1064,8 @@ sub genes {
         my $total_in_frame = 0;
         my $total_wild_type = 0;
         my $total_mosaic = 0;
+        my $total_no_call = 0;
+        my $total_het;
 
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
@@ -1078,6 +1076,8 @@ sub genes {
             else {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
+
+            $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
@@ -1122,56 +1122,30 @@ sub genes {
             $curr_ep_data{'in-frame'} = 0;
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
-
-
+            $curr_ep_data{'no-call'} = 0;
 
             ## no critic(ProhibitDeepNests)
+
             foreach my $ep_pick (@ep_pick) {
+                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-                # grab data for crispr damage type
-                # only on validated runs...
-                my @crispr_es_qc_wells = $self->model->schema->resultset('CrisprEsQcWell')->search(
-                    {
-                        well_id  => $ep_pick->ep_pick_well_id,
-                        'crispr_es_qc_run.validated' => 1,
-                    },
-                    {
-                        join => 'crispr_es_qc_run'
-
-                    }
-                );
-
-                my @crispr_damage_types = uniq grep { $_ } map{ $_->crispr_damage_type_id } @crispr_es_qc_wells;
-
-                if ( scalar( @crispr_damage_types ) == 1 ) {
-                    $curr_ep_data{$crispr_damage_types[0]}++;
-                }
-                elsif ( scalar( @crispr_damage_types ) > 1 ) {
-                    # remove any non accepted results
-                    @crispr_damage_types = uniq grep {$_}
-                        map { $_->crispr_damage_type_id } grep { $_->accepted } @crispr_es_qc_wells;
-
-                    if ( scalar( @crispr_damage_types ) == 1 ) {
-                        $curr_ep_data{$crispr_damage_types[0]}++;
-                    }
-                    else {
-                        if (scalar( @crispr_damage_types ) > 1 ) {
-                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has multiple crispr damage types associated with it: "
-                                    . join( ', ', @crispr_damage_types );
-                            $curr_ep_data{$crispr_damage_types[0]}++;
-                        } else {
-                            DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
-                        }
-                    }
+                if ($damage_call) {
+                    $curr_ep_data{$damage_call}++;
                 }
                 else {
-                    DEBUG "WARNING: ep_pick well id:" . $ep_pick->ep_pick_well_id . " has no crispr damage type associated with it";
+                    $damage_call = '';
+                }
+
+                my $is_het = ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call);
+
+                if ( defined $is_het) {
+                    $curr_ep_data{het} += $is_het;
                 }
 
             }
             ## use critic
 
-
+            $curr_ep_data{'frameshift'} += $curr_ep_data{'splice_acceptor'} unless (!$curr_ep_data{'splice_acceptor'});
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
@@ -1179,20 +1153,29 @@ sub genes {
             $total_in_frame += $curr_ep_data{'in-frame'};
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
+            $total_no_call += $curr_ep_data{'no-call'};
+
+            if (defined $curr_ep_data{'het'} ) {
+                $total_het += $curr_ep_data{'het'};
+            }
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
                 if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '' };
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
+                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
             # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
             # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
 
-            push @ep_data, \%curr_ep_data;
 
+            push @ep_data, \%curr_ep_data;
         }
+
+        # if ( !defined $total_het ) { $total_het = '-' };  This will need changing the tt because it will turn green the total genotyped clones
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
@@ -1216,21 +1199,24 @@ sub genes {
                 piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/piq_plate_name piq_well_name/ ],
+                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
 
-        my @ancestor_piq = $summary_rs->search(
+        push @piq, $summary_rs->search(
             {   ancestor_piq_plate_name => { '!=', undef },
                 ancestor_piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
-        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
+
+        my $piq_pass_count = scalar @piq;
 
 
 
@@ -1246,7 +1232,7 @@ sub genes {
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
-            'qc_passing_vector_wells' => $final_pick_qc_pass_count,
+            # 'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
 
             'colonies_picked'        => $total_ep_pick_count,
@@ -1255,7 +1241,9 @@ sub genes {
             'fs_count'               => $total_frameshift,
             'if_count'               => $total_in_frame,
             'wt_count'               => $total_wild_type,
-            'ms_count'                => $total_mosaic,
+            'ms_count'               => $total_mosaic,
+            'nc_count'               => $total_no_call,
+            'ep_pick_het'            => $total_het,
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1271,27 +1259,29 @@ sub genes {
     if($self->targeting_type eq 'single_targeted'){
         # Get the crispr summary information for all designs found in previous gene loop
         # We do this after the main loop so we do not have to search for the designs for each gene again
-        DEBUG "Fetching crispr summary info for report";
+        # DEBUG "Fetching crispr summary info for report";
         my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
-        DEBUG "Adding crispr counts to gene data";
+        # DEBUG "Adding crispr counts to gene data";
         foreach my $gene_data (@genes_for_display){
             add_crispr_well_counts_for_gene($gene_data, $designs_for_gene, $design_crispr_summary);
         }
-        DEBUG "crispr counts done";
+        # DEBUG "crispr counts done";
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
+            $b->{ 'distrib_clones' }         <=> $a->{ 'distrib_clones' }         ||
+            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }                ||
+            $b->{ 'ep_pick_het' }            <=> $a->{ 'ep_pick_het' }            ||
+            $b->{ 'targeted_clones' }        <=> $a->{ 'targeted_clones' }        ||
+            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
+            $b->{ 'electroporations' }       <=> $a->{ 'electroporations' }       ||
             # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
+            $b->{ 'passing_vector_wells' }   <=> $a->{ 'passing_vector_wells' }   ||
+            # $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
             $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
-            $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+            $b->{ 'crispr_wells' }           <=> $a->{ 'crispr_wells' }
+            # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
     return \@sorted_genes_for_display;
@@ -1359,10 +1349,6 @@ sub genes_old {
     my ( $self, $sponsor_id, $query_type ) = @_;
 
     DEBUG "Genes for: sponsor id = ".$sponsor_id." and targeting_type = ".$self->targeting_type.' and species = '.$self->species;
-
-    if ($sponsor_id eq 'MGP Recovery') {
-        return mgp_recovery_genes( $self, $sponsor_id, $query_type );
-    }
 
     my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
 

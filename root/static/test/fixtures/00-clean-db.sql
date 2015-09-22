@@ -31,6 +31,7 @@ DELETE FROM bac_clones;
 DELETE FROM crispr_off_targets;
 DELETE FROM crispr_off_target_summaries;
 DELETE FROM crispr_loci;
+DELETE FROM crispr_primers;
 DELETE FROM crispr_pairs;
 DELETE FROM crispr_group_crisprs;
 DELETE FROM crispr_groups;
@@ -70,6 +71,7 @@ DELETE FROM fp_picking_list;
 DELETE FROM well_barcodes;
 DELETE FROM wells;
 DELETE FROM plate_comments;
+DELETE FROM crispr_plate_appends;
 DELETE FROM plates;
 DELETE FROM project_sponsors;
 DELETE FROM projects;
@@ -81,5 +83,6 @@ DELETE FROM nucleases;
 DELETE FROM crispr_es_qc_runs;
 DELETE FROM crispr_es_qc_wells;
 DELETE FROM barcode_states;
+DELETE FROM cell_lines;
 
 

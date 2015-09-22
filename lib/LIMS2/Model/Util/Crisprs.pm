@@ -492,7 +492,6 @@ to identify the correct group.
 =cut
 sub get_crispr_group_by_crispr_ids{
     my ($schema, $params) = @_;
-
     my @crispr_ids = @{ $params->{crispr_ids} }
         or die "No crispr_ids array provided to get_crispr_group_by_crispr_ids";
 

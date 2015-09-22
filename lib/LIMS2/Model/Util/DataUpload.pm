@@ -118,6 +118,12 @@ sub upload_plate_pcr_status {
     for my $datum ( @{$data} ) {
 
         # remove any whitespace and get it lowercased
+        if ( !$datum->{'l_pcr_result'} || !$datum->{'r_pcr_result'} ) {
+            LIMS2::Exception::Validation->throw(
+                $datum->{'well_name'} . ' - l_pcr_result and r_pcr_result both required, plese check csv file'
+            );
+        }
+
         $datum->{'l_pcr_result'} = lc trim_string($datum->{'l_pcr_result'});
         $datum->{'r_pcr_result'} = lc trim_string($datum->{'r_pcr_result'});
 

@@ -11,6 +11,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
+use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
 BEGIN { extends 'Catalyst::Controller' };
@@ -48,7 +49,6 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
             $c->stash->{$item} = $value;
         }
     }
-
     my $crispr_entity;
     if($c->req->param('search_by_lims2_id')){
         my $params = {
@@ -73,7 +73,9 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
             $c->stash->{error_msg} = "Failed to find WGE crispr in LIMS2: $e";
         }
     }
-
+    elsif($c->req->param('search_by_sequence')){
+        sequence_search($self, $c);
+    }
     if($crispr_entity){
         my $redirect_path = _path_for_crispr_entity($crispr_entity);
         $c->res->redirect( $c->uri_for($redirect_path) );
@@ -114,13 +116,71 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
         return $c->go( 'Controller::User::DesignTargets', 'index' );
     }
 
-    $c->log->debug( "Retrived crispr: $crispr_id" );
+    $c->log->debug( "Retrieved crispr: $crispr_id" );
+    if($c->request->param('generate_primers')){
 
-    $c->stash(
-        crispr  => $crispr,
-        species => $species_id,
-    );
+        $c->assert_user_roles( 'edit' );
 
+        _generate_primers_for_crispr_entity($c, $crispr);
+    }
+
+    $c->stash->{crispr} = $crispr;
+    $c->stash->{species} = $species_id;
+
+    return;
+}
+
+# Should be able to use the same generation method for crisprs, groups and pairs
+sub _generate_primers_for_crispr_entity{
+    my ($c, $crispr_entity) = @_;
+    my $id_type = $crispr_entity->id_column_name;
+
+    if($crispr_entity->crispr_primers->all){
+        $c->stash->{info_msg} = "Already has primers. Ignoring generate primers request";
+    }
+    else{
+        $ENV{LIMS2_PRIMER_DIR} or die "LIMS2_PRIMER_DIR environment variable not set";
+        my $primer_dir = dir( $ENV{LIMS2_PRIMER_DIR} );
+        my $job_id = Data::UUID->new->create_str();
+        my $base_dir = $primer_dir->subdir( $job_id );
+        $base_dir->mkpath;
+
+        my $primer_util = LIMS2::Util::QcPrimers->new({
+            primer_project_name => 'crispr_sequencing',
+            model               => $c->model('Golgi'),
+            base_dir            => "$base_dir",
+            persist_primers     => 1,
+            overwrite           => 0,
+            run_on_farm         => 0,
+        });
+
+        my $pcr_primer_util = LIMS2::Util::QcPrimers->new({
+            primer_project_name => 'crispr_pcr',
+            model               => $c->model('Golgi'),
+            base_dir            => "$base_dir",
+            persist_primers     => 1,
+            overwrite           => 0,
+            run_on_farm         => 0,
+        });
+
+        try{
+            $c->log->debug("Generating primers for $id_type ".$crispr_entity->id);
+            my ($picked_primers, $seq, $db_primers) = $primer_util->crispr_sequencing_primers($crispr_entity);
+            if($picked_primers){
+                my ($pcr_picked_primers, $pcr_seq, $pcr_db_primers)
+                    = $pcr_primer_util->crispr_PCR_primers($picked_primers, $crispr_entity);
+                $c->stash->{info_msg} = "Primers generated for $id_type ".$crispr_entity->id;
+            }
+            else{
+                $c->stash->{error_msg} = "Failed to generate primers for $id_type ".$crispr_entity->id;
+            }
+
+        }
+        catch($e){
+            $c->stash->{error_msg} = $e;
+        }
+        $crispr_entity->discard_changes;
+    }
     return;
 }
 
@@ -176,7 +236,6 @@ sub crispr_ucsc_blat : PathPart('blat') Chained('crispr') : Args(0) {
 =cut
 sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
     my ( $self, $c, $crispr_pair_id ) = @_;
-
     $c->assert_user_roles( 'read' );
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
@@ -196,6 +255,12 @@ sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
 
     $c->log->debug( "Retrived crispr pair: $crispr_pair_id" );
 
+    if($c->request->param('generate_primers')){
+
+        $c->assert_user_roles( 'edit' );
+
+        _generate_primers_for_crispr_entity($c, $crispr_pair);
+    }
     $c->stash(
         cp           => $crispr_pair,
         left_crispr  => $crispr_pair->left_crispr->as_hash,
@@ -211,7 +276,6 @@ sub crispr_pair : PathPart('user/crispr_pair') Chained('/') CaptureArgs(1) {
 =cut
 sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my ( $self, $c ) = @_;
-
     my $crispr_pair = $c->stash->{cp};
     my $off_target_summary = Load( $crispr_pair->off_target_summary );
     my $cp_data = $crispr_pair->as_hash;
@@ -267,6 +331,10 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
 
     $c->log->debug( "Retrived crispr group: $crispr_group_id" );
 
+    if($c->request->param('generate_primers')){
+        $c->assert_user_roles( 'edit' );
+        _generate_primers_for_crispr_entity($c, $crispr_group);
+    }
     $c->stash(
         cg           => $crispr_group,
         group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],
@@ -281,7 +349,6 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
 =cut
 sub view_crispr_group : PathPart('view') Chained('crispr_group') Args(0) {
     my ( $self, $c ) = @_;
-
     my $crispr_group = $c->stash->{cg};
     my $cg_data = $crispr_group->as_hash;
 
@@ -395,11 +462,10 @@ sub wge_crispr_importer :Path( '/user/wge_crispr_importer' ) : Args(0) {
         $c->stash( success_msg => "Successfully imported the following WGE ids:\n"
                                 . join ', ', map { $_->{wge_id} } @output );
     }
-
     $c->stash(
         crispr => \@output,
     );
-
+    generate_on_import($self,$c,"single",@output);
     return;
 }
 
@@ -408,7 +474,6 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-
     return unless $c->request->param('import_crispr');
 
     my @output;
@@ -431,13 +496,13 @@ sub wge_crispr_pair_importer :Path( '/user/wge_crispr_pair_importer' ) : Args(0)
     $c->stash(
         crispr => \@output,
     );
+    generate_on_import($self,$c,"pair",@output);
 
     return;
 }
 
 sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->log->debug( 'Attempting to import crispr group' );
     $c->assert_user_roles( 'edit' );
 
@@ -471,7 +536,7 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
         }
     }
     else{
-        $error = "You must provide and gene ID for this crispr group";
+        $error = "You must provide a gene ID for this crispr group";
     }
 
     if($error){
@@ -530,6 +595,15 @@ sub wge_crispr_group_importer :Path( '/user/wge_crispr_group_importer' ) : Args(
         group  => $group->as_hash,
     );
 
+    #Convert the lims2 id string into the same format as single and pair importation
+    my @lims2_group;
+    my $lims2_conversion_id = {
+        lims2_id => $group->as_hash->{id},
+    };
+    push(@lims2_group,$lims2_conversion_id);
+
+    generate_on_import($self,$c,"group",@lims2_group);
+
     return;
 }
 
@@ -583,6 +657,81 @@ sub wge_importer {
     my @output = $c->model('Golgi')->$method( \@ids, $species, $assembly );
 
     return @output;
+}
+
+#After the crisprs have been imported from WGE, retrieve the crispr entities.
+sub generate_on_import {
+    my ( $self, $c, $instance, @wge_crisprs) = @_;
+    my @lims2_ids;
+
+    foreach my $crispr (@wge_crisprs){
+        push(@lims2_ids, $crispr->{lims2_id});
+    }
+
+    my $crispr_entity;
+    my $species_id = $c->request->param('species') || $c->session->{selected_species};
+
+    #Depending on the type of crispr, retrieve the crispr entity in one of the following ways.
+    foreach my $crispr_id (@lims2_ids)
+    {
+        if ($instance eq "single"){
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr( { id => $crispr_id, species => $species_id } );
+        }
+        elsif ($instance eq "pair"){
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_id } );
+        }
+        elsif ($instance eq "group") {
+            $crispr_entity = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_id } );
+        }
+        #Pass the crispr entities for primer generation
+        _generate_primers_for_crispr_entity($c, $crispr_entity);
+    }
+
+    return;
+}
+
+sub sequence_search {
+    my ($self, $c) = @_;
+    my $sequence = $c->req->param('sequence');
+    $sequence = uc $sequence;
+    my $count = length($sequence);
+    if ( $count > 23) {
+        $c->stash->{info_msg} = "Please provide 23 or less base sequence, you provided ". $count;
+        return;
+    }
+    elsif ( $sequence =~ qr/^[ACTG]+$/ ){
+        my $species = $c->session->{selected_species};
+
+        my @crisprs = $c->model('Golgi')->schema->resultset('Crispr')->search({
+            seq => {'like', "%".$sequence."%"},
+            species_id => $species,
+        },
+        {
+            distinct => 1,
+            columns => [qw/
+                id
+                seq
+                species_id
+                crispr_loci_type_id
+            /],
+        }
+        );
+        if (@crisprs){
+            $c->stash(
+                crispr => \@crisprs,
+                original => $sequence,
+            );
+        }
+        else {
+             $c->stash->{info_msg} = "No crispr were found with the sequence pattern: ". $sequence;
+        }
+        return
+    }
+    else {
+        $c->stash->{info_msg} = "Not a valid sequence, please check for invalid bases.";
+        return;
+    }
+
 }
 
 __PACKAGE__->meta->make_immutable;
