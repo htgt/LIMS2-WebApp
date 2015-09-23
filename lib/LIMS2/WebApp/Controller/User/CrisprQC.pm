@@ -364,14 +364,11 @@ sub view_traces :Path('/user/crisprqc/view_traces') :Args(0){
         $crispr_id = 'no crispr';
         $crispr_seq = 'no crispr';
     }
-    else{
-        die "No crispr_id or search_seq specified";
-    }
 
     my @well_names;
     foreach my $letter ("A".."H"){
         foreach my $number (1..12){
-            push @well_names, sprintf("%s%02d",$letter,$number);
+            push @well_names, sprintf("%s%02d",lc($letter),$number);
         }
     }
 

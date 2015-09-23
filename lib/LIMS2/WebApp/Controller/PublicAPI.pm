@@ -71,7 +71,13 @@ sub trace_data_GET{
     return $self->status_bad_request( $c, message => "Found the search sequence more than once" ) if @rest;
 
     $c->log->debug('final reverse flag: '.$params->{reverse});
-    my $context = $params->{context} || 0;
+    my $context = 0;
+
+    # Context around the search seq is only relevant if we have a search seq
+    if($params->{search_seq} and $params->{context}){
+        $context = $params->{context};
+    }
+
     my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
 
     return $self->status_ok( $c, entity => $data );
@@ -80,16 +86,23 @@ sub trace_data_GET{
 sub _get_matches {
     my ( $self, $seq, $search ) = @_;
 $self->log->debug("getting matches for $search");
-    my $length = length( $search ) - 1;
 
     my @matches;
-    my $index = 0;
-    while ( 1 ) {
-        #increment
-        $index = index $seq, $search, ++$index;
-        last if $index == -1;
 
-        push @matches, { start => $index, end => $index+$length };
+    if($search){
+        my $length = length( $search ) - 1;
+
+        my $index = 0;
+        while ( 1 ) {
+            #increment
+            $index = index $seq, $search, ++$index;
+            last if $index == -1;
+
+            push @matches, { start => $index, end => $index+$length };
+        }
+    }
+    else{
+        push @matches, { start => 1, end => length($seq) - 1 };
     }
 
     return @matches;

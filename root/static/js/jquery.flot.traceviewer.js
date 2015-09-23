@@ -161,7 +161,7 @@ TraceViewer.prototype.show_traces = function(button) {
 
 //wait for data then give it to the real plot creation method
 TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context) {
-    if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
+    //if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
 
     //create local var for this, as "this" in getJSON is different
     var parent = this;
