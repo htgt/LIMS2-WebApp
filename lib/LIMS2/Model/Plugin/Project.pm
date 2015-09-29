@@ -256,7 +256,7 @@ sub retrieve_experiment{
 
 sub _pspec_create_experiment{
     return {
-        project_id      => { validate => 'integer' },
+        gene_id         => { validate => 'non_empty_string' },
         design_id       => { validate => 'existing_design_id', optional => 1 },
         crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
         crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},

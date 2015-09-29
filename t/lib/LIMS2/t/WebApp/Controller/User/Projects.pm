@@ -93,7 +93,7 @@ sub manage_projects_tests : Test(21) {
 
 }
 
-sub view_edit_project_tests : Test(19){
+sub view_edit_project_tests : Test(21){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -141,17 +141,18 @@ sub view_edit_project_tests : Test(19){
     # Test view experiment page link
     $mech->follow_link( url_regex => qr/\/user\/view_experiment\?experiment_id=\d+/ );
     $mech->title_is("View Experiment");
-    $mech->follow_link( url_regex => qr/\/user\/view_project\?project_id=\d+/ );
-    $mech->title_is("View Project");
+    $mech->content_contains('69848');
+    $mech->content_contains('MGI:109393');
 
-    # Test delete experiment
+    # Reload project view and test delete experiment
+    $mech->get_ok('/user/view_project?project_id=12');
     my @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 2, '2 experiments listed');
 
     $mech->form_number(2);
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
-    
+
     @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 1, '1 experiment listed');
 
@@ -191,6 +192,6 @@ sub _selected_sponsors{
 #sub view_experiment_page{
 #   my ($mech) = @_;
 #   print "Reached\n";
-#   #   return;    
+#   #   return;
 #}
 1;

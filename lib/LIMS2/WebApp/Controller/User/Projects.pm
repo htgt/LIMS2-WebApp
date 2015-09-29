@@ -164,6 +164,8 @@ sub view_project :Path('/user/view_project'){
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};
+        delete $params->{project_id};
+        $params->{gene_id} = $project->gene_id;
         try{
             my $experiment = $c->model('Golgi')->create_experiment($params);
             $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id;
