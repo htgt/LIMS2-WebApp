@@ -274,6 +274,7 @@ sub as_hash {
           "recovery_class"    => $self->recovery_class_name,
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
+          "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "sponsors"          => join "/", @sponsors,
     }
 }
