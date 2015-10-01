@@ -15,7 +15,7 @@ BEGIN {
 
 my $mech = LIMS2::Test::mech();
 
-sub manage_projects_tests : Test(21) {
+sub manage_projects_tests : Test(23) {
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/manage_projects');
@@ -65,16 +65,26 @@ sub manage_projects_tests : Test(21) {
     $mech->click_button( name => 'create_project');
     $mech->content_contains('targeting_type, is missing');
 
+
     $mech->set_fields(
         gene => $new_gene,
         targeting_type => 'single_targeted',
-        sponsor => 'Core'
+        sponsor => 'Core',
+        cell_line_id => 10, # BOBSC-T6/8_B1
     );
     $mech->click_button( name => 'create_project');
     $mech->content_contains('New project created');
     $mech->title_is('View Project');
 
     $mech->get_ok('/user/manage_projects');
+
+    # Check we can search by cell line
+    $mech->set_fields(
+        cell_line_id => 10,
+    );
+    $mech->click_button( name => 'search_projects');
+    $mech->content_contains($new_gene);
+
     $mech->set_fields(
         gene => $new_gene,
         targeting_type => 'single_targeted',
@@ -82,6 +92,8 @@ sub manage_projects_tests : Test(21) {
     $mech->click_button( name => 'create_project' );
     $mech->content_contains('Project already exists (see list below)');
     $mech->content_contains('Pitx1');
+
+
 
     $mech->set_fields(
         gene => $new_gene,
