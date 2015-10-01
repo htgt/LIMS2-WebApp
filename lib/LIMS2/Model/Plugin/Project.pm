@@ -154,6 +154,7 @@ sub _pspec_create_project{
         gene_id           => { validate => 'non_empty_string' },
         targeting_type    => { validate => 'non_empty_string' },
         species_id        => { validate => 'existing_species' },
+        cell_line_id      => { validate => 'integer', optional => 1 },
         targeting_profile_id => { validate => 'non_empty_string', optional => 1},
         htgt_project_id   => { validate => 'integer', optional => 1},
         effort_concluded  => { validate => 'boolean', optional => 1},
@@ -256,7 +257,7 @@ sub retrieve_experiment{
 
 sub _pspec_create_experiment{
     return {
-        project_id      => { validate => 'integer' },
+        gene_id         => { validate => 'non_empty_string' },
         design_id       => { validate => 'existing_design_id', optional => 1 },
         crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
         crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
