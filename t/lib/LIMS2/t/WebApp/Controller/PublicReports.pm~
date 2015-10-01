@@ -1,0 +1,43 @@
+package LIMS2::t::WebApp::Controller::PublicReports;
+use base qw(Test::Class);
+use Test::Most;
+use LIMS2::WebApp::Controller::PublicReports;
+
+use LIMS2::Test model => { classname => __PACKAGE__ };
+use strict;
+
+## no critic
+
+BEGIN
+{
+    # compile time requirements
+    #{REQUIRE_PARENT}
+};
+
+=head2 all_tests
+
+Code to execute all tests
+
+=cut
+
+my $mech = LIMS2::Test::unauthenticated_mech();
+
+sub all_tests  : Test(4)
+{
+    ok(1, "Test of LIMS2::WebApp::Controller::PublicReports");
+    $mech->get_ok('/public_reports/well_genotyping_info_search');
+    $mech->get_ok('/public_reports/well_genotyping_info/HUFP0037_1_A/C01');
+}
+
+=head1 AUTHOR
+
+Lars G. Erlandsen
+
+=cut
+
+## use critic
+
+1;
+
+__END__
+

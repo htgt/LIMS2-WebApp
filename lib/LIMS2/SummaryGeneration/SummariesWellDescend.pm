@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.336';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.339';
 }
 ## use critic
 
@@ -776,6 +776,7 @@ sub fetch_values_for_type_ASSEMBLY {
         $stored_values->{ 'stored_assembly_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_assembly_sponsor' }                = try{ $curr_well->plate->sponsor_id }; # sponsor
+        $stored_values->{ 'stored_experiments' }                     = try{ join ",", map { $_->id } $curr_well->experiments }; # experiment
     }
 
     $summary_row_values->{ 'assembly_well_id' }               = $stored_values->{ stored_assembly_well_id };
@@ -784,7 +785,8 @@ sub fetch_values_for_type_ASSEMBLY {
     $summary_row_values->{ 'assembly_plate_name' }            = $stored_values->{ stored_assembly_plate_name };
     $summary_row_values->{ 'assembly_well_assay_complete' }   = $stored_values->{ stored_assembly_well_assay_complete };
     $summary_row_values->{ 'assembly_well_created_ts' }       = $stored_values->{ stored_assembly_well_created_ts };
-    $summary_row_values->{ 'assembly_well_accepted' }         = $stored_values->{ stored_sfp_well_accepted };
+    $summary_row_values->{ 'assembly_well_accepted' }         = $stored_values->{ stored_assembly_well_accepted };
+    $summary_row_values->{ 'experiments' }                    = $stored_values->{ stored_experiments };
 
     if ($stored_values->{ 'stored_assembly_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_assembly_sponsor } };
     return;
