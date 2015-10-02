@@ -1,0 +1,74 @@
+[%- META title = 'View Sequencing Project' %]
+
+<div class="page-header">
+  <h1>Sequencing Project <small>[% seq_project.name %]</small>
+  </h1>
+</div>
+<h2>Sequencing Details</h2>
+
+<table class="table seq_project">
+  <tr>
+    <th>Sequencing ID</th>
+    <td>[% seq_project.id %]</td>
+  </tr>
+  <tr>
+    <th>Template</th>
+    <td>[% seq_project.qc_template %]</td>
+  </tr>
+  <tr>
+    <th>Plate size</th>
+    <td>[% seq_project.size %]</td>
+  </tr>
+  <tr>
+    <th>Number of sub-projects</th>
+    <td>[% seq_project.sub_projects %]</td>
+  </tr>
+</table>
+
+<h2>Project Status</h2>
+<table class="table seq_status">
+  <tr>
+    <th>For QC</th>
+    <td>[% seq_project.qc %]</td>
+    <td></td> 
+  </tr>
+  <tr>
+    <th>Results available</th>
+    <td>[% seq_project.available_results %]</td>
+    <td></td> 
+  </tr>
+  <tr>
+    <th>Abandoned</th>
+    <td>[% seq_project.abandoned %]</td>
+    <td><button type="button" style="float: right;">Change status</button></td> 
+  </tr>
+</table>
+
+<h2>Primers</h2>
+<table class="table primer" id="primer_table">
+  <tr>
+    <th>Primer Name</th>
+  </tr>
+  [% FOREACH primer IN seq_project.primers %]
+  <tr>
+    <td>[% primer %]</td>
+    <td><button type="button" style="float: right;" onclick=retrieve_file();>Download [% seq_project.name %] : [% primer %]</button></td> 
+  </tr>
+  [% END %]
+</table> 
+
+<script type="text/javascript" src="[% c.uri_for('/js/jquery-1.7.2.min.js' )%]"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+    var id = '[% seq_project.id %]'; 
+})
+function retrieve_file() {
+    console.log("reached");
+    var half = '[% c.uri_for('/api/seq_project/') %]';
+    var id = '[% seq_project.id %]';
+    var rest =  encodeURI('?seq_id=' + id);
+    console.log(half + rest);
+    location.href(half + rest);
+}
+</script>
+
