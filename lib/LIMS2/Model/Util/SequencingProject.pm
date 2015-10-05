@@ -88,7 +88,6 @@ sub build_xlsx_file {
 
 sub xlsx_transport {
     my ($self, $c, $name) = @_;
-    
     my $body = read_file( '/tmp/' . $name, {binmode => ':raw'} ) ;
     $c->response->status( 200 );
     $c->response->content_type( 'application/xlsx' );

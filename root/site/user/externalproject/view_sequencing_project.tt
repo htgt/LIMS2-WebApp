@@ -57,6 +57,8 @@
   [% END %]
 </table> 
 
+<div id='inject'></div>
+
 <script type="text/javascript" src="[% c.uri_for('/js/jquery-1.7.2.min.js' )%]"></script>
 <script type="text/javascript">
 $(document).ready(function () {
@@ -66,9 +68,17 @@ function retrieve_file() {
     console.log("reached");
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
-    var rest =  encodeURI('?seq_id=' + id);
-    console.log(half + rest);
-    location.href(half + rest);
+    var link =  half + encodeURI('?seq_id=' + id);
+    console.log(link);
+
+    $(document).load( link, function(data) {
+        document.body.innerHTML += '<div>' + data + '</div>';
+
+        alert( "Load was performed.");
+    });
 }
+
+
+
 </script>
 
