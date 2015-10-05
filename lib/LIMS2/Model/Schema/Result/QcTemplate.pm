@@ -116,6 +116,21 @@ __PACKAGE__->add_unique_constraint("qc_templates_name_created_at_key", ["name", 
 
 =head1 RELATIONS
 
+=head2 external_projects
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ExternalProject>
+
+=cut
+
+__PACKAGE__->has_many(
+  "external_projects",
+  "LIMS2::Model::Schema::Result::ExternalProject",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_runs
 
 Type: has_many
@@ -146,6 +161,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sequencing_projects
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProject>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_projects",
+  "LIMS2::Model::Schema::Result::SequencingProject",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -162,8 +192,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wD5+VruNZe3N7yTC5pSXvA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q2XGMdVrprnnsCS005ieHA
 
 sub as_hash {
     my $self = shift;

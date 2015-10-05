@@ -33,8 +33,9 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use HTGT::QC::Config;
-use TryCatch;
 use namespace::autoclean;
+use Try::Tiny;
+
 
 requires qw( schema check_params throw );
 
@@ -1015,6 +1016,95 @@ sub _add_well_qc_sequencing_results{
     }
     return;
 }
+
+sub pspec_create_sequencing_project{
+    return {
+        name            => { validate => 'non_empty_string' },
+        template        => { validate => 'existing_qc_template_id', rename => 'qc_template_id' },
+        user_id         => { validate => 'existing_user_id', rename => 'created_by_id' },
+        sub_projects    => { validate => 'integer' },
+        qc              => { validate => 'boolean', optional => 1},
+        is_384          => { validate => 'boolean', optional => 1},
+        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        primers         => { optional => 1},
+    };
+}
+
+sub create_sequencing_project {
+    my ($self, $params) = @_;
+$DB::single=1;
+    DEBUG "Creating sequencing project ".$params->{name};
+    try {
+        my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
+        $params->{template} = $template_id;
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'QC template: ' . $params->{template}
+                  . ' does not exist'
+            }
+        );
+        return;
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project);
+
+    if ( $self->schema->resultset('SequencingProject')->find({ name => $validated_params->{name} }) ) {
+        $self->throw( InvalidState => {
+            message => 'Sequencing project name: ' . $validated_params->{name}
+                  . ' already exists'
+            }
+        );
+        return;
+    }
+    
+    # Otherwise, create a new template
+    my $seq_project = $self->schema->resultset('SequencingProject')->create( { slice_def $validated_params, qw( name qc_template_id created_by_id created_at sub_projects qc is_384) } );
+    $self->log->debug('created sequencing project ' . $seq_project->name . ' with id ' . $seq_project->id );
+
+    if ($validated_params->{primers}){
+        my @primers = @{$validated_params->{primers}};
+        foreach my $primer (@primers){
+            my $check_primer = $self->schema->resultset('GenotypingPrimerType')->find({ id => $primer },{ distinct => 1 });
+
+            if($check_primer) {
+                create_sequencing_relations($self, $primer, $seq_project, 'sequencing_project_genotyping_primers');
+            }
+            else {
+                create_sequencing_relations($self, $primer, $seq_project, 'sequencing_project_crispr_primers');
+            }
+        }
+    }
+    return;
+ }
+
+ sub create_sequencing_relations {
+    my ($self, $primer, $seq_proj, $table, $primer_id) = @_;
+$DB::single=1;
+    my $seq_relation;
+    try{
+        $seq_relation = $seq_proj->create_related(
+                $table => {
+                primer_id       => $primer,
+                seq_project_id  => $seq_proj->{_column_data}->{id},
+            }
+        );
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'Could not create relation in: ' . $table
+                  . ' for id: '. $seq_proj->{_column_data}->{id}
+            }
+        );
+
+    };
+    
+    if( $seq_relation->{_column_data} ) {
+        $self->log->debug('created sequencing relation ' . $seq_relation->{_column_data}->{seq_project_id} . ' with primer ' . $seq_relation->{_column_data}->{primer_id} );
+    }
+    return;
+ }
+
+ 
+
 1;
 
 __END__

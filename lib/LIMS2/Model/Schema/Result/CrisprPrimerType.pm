@@ -76,9 +76,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sequencing_project_crispr_primers
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e2ILUVTqQfeLL49MhnHERQ
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProjectCrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_project_crispr_primers",
+  "LIMS2::Model::Schema::Result::SequencingProjectCrisprPrimer",
+  { "foreign.primer_id" => "self.primer_name" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4Cqk0DdxB54wd7Ha/onBOw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
