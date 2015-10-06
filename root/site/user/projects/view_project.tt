@@ -58,6 +58,10 @@
     <th>Sponsors</th>
     <td>[% project.sponsors %]</td>
   </tr>
+  <tr>
+    <th>Tracker Issues (Sanger users only)</th>
+    <td id="tracker_issues"><img id="tracker_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
+  </tr>
 </table>
 
 
@@ -173,7 +177,23 @@ No experiments for this project
 <script type="text/javascript">
 
 $( document ).ready(function() {
-    $("#update_sponsors_form").collapse('hide');
+  $("#update_sponsors_form").collapse('hide');
+
+  $.ajax({
+    type: "GET",
+    contentType: 'application/json',
+    url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]"
+  }).done(function(data) {
+    $("#tracker_spinner").remove();
+    $.each(data, function(i,issue){
+      console.log(issue);
+      console.log(issue.id)
+      $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
+    });
+  }).fail(function(){
+    $("#tracker_spinner").remove();
+    $("#tracker_issues").append("tracker query failed");
+  });
 });
 
 var designs = [
