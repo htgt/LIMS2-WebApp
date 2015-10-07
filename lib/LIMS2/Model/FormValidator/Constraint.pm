@@ -295,6 +295,14 @@ sub assembly_qc_value{
     #return shift->in_set('Good','Bad','Wrong');
 }
 
+sub existing_project_id {
+    return shift->in_resultset( 'Project', 'id' );
+}
+
+sub existing_experiment_id {
+    return shift->in_resultset( 'Experiment', 'id' );
+}
+
 =head2 in_enum_column
 
   Use enum from database schema as set, e.g. value column from WellAssemblyQc

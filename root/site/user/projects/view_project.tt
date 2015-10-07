@@ -179,6 +179,8 @@ No experiments for this project
 $( document ).ready(function() {
   $("#update_sponsors_form").collapse('hide');
 
+  var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
   $.ajax({
     type: "GET",
     contentType: 'application/json',
@@ -190,6 +192,34 @@ $( document ).ready(function() {
       console.log(issue.id)
       $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
     });
+
+    if(data.length == 0){
+      $("#tracker_issues").append("<button class='btn' id='create_issue'>Create Tracker Issue</button>");
+      $("#create_issue").click( function(){
+        $("#create_issue").remove();
+        $("#tracker_issues").append(spinner_html);
+        $.ajax({
+          type: "POST",
+          url: "[% c.uri_for('/api/redmine_issue') %]",
+          dataType: 'json',
+          data: {
+            gene_symbol   : "[% gene_symbol %]",
+            gene_id       : "[% project.gene_id %]",
+            project_id    : "[% project.id %]",
+            experiment_id : "[% experiments.-1.id %]",
+            sponsors      : "[% project.sponsors %]",
+            cell_line     : "[% project.cell_line %]"
+          }
+        }).done(function(data){
+          console.log(data);
+          $("#tracker_spinner").remove();
+          $("#tracker_issues").append("<a href='"+ data.url + "' target='_blank'>#" + data.id + "</a> ");
+        }).fail(function(){
+          $("#tracker_spinner").remove();
+          $("#tracker_issues").append("tracker issue creation failed");
+        })
+      });
+    }
   }).fail(function(){
     $("#tracker_spinner").remove();
     $("#tracker_issues").append("tracker query failed");

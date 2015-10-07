@@ -28,7 +28,7 @@ has access_key => (
     required => 1,
 );
 
-has project_name => (
+has project_identifier => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
@@ -42,9 +42,9 @@ has project_id => (
 
 sub _build_project_id {
     my $self = shift;
-    my $projects = $self->get('projects.json');
+    my $get = $self->get('projects.json');
 
-    my ($project) = grep { $_->{identifier} eq $self->project_name } @{ $projects->res->{projects} };
+    my ($project) = grep { $_->{identifier} eq $self->project_identifier } @{ $get->res->{projects} };
 
     die "Cannot find project ".$self->project." in redmine tracker at ".$self->redmine_url unless $project;
     return $project->{id};
@@ -86,16 +86,32 @@ sub _build_custom_field_id_for{
         project_id => $self->project_id,
     };
 
-    my $issues = $self->get("issues.json",$params);
-    my $issue_json = $issues->res->{issues}->[0];
+    my $get = $self->get("issues.json",$params);
+    my $issue = $get->res->{issues}->[0];
 
-    my $fields = $issue_json->{custom_fields};
+    my $fields = $issue->{custom_fields};
     my $name_to_id = {};
     foreach my $field (@$fields){
         $name_to_id->{ $field->{name} } = $field->{id};
     }
 
     return $name_to_id;
+}
+
+has tracker_id_for => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_tracker_id_for{
+    my $self = shift;
+
+    my $get = $self->get("trackers.json");
+    my $trackers = $get->res->{trackers};
+
+    my %tracker_names_to_ids = map { $_->{name} => $_->{id} } @{ $trackers };
+    return \%tracker_names_to_ids;
 }
 
 sub get_issues{
@@ -125,10 +141,10 @@ sub get_issues{
     $params->{offset} = $offset;
 
     $self->log("Offset: $offset");
-    my $issues = $self->get("issues.json",$params);
+    my $first_page = $self->get("issues.json",$params);
 
-    push @all_issues, @{ $issues->res->{issues} };
-    my $total = $issues->res->{total_count};
+    push @all_issues, @{ $first_page->res->{issues} };
+    my $total = $first_page->res->{total_count};
 
     # Get issues from any additional pages
     while(scalar @all_issues < $total ){
@@ -141,27 +157,116 @@ sub get_issues{
 
     # Add url for the issue (user view, not api)
     foreach my $issue (@all_issues){
-        $issue->{url} = $self->redmine_url."/issues/".$issue->{id};
+        $self->_prepare_issue_for_lims2($issue);
     }
 
-    my $issues_with_custom_fields = _add_custom_fields_by_name(\@all_issues);
-    return $issues_with_custom_fields;
+    return \@all_issues;
+}
+
+sub _pspec_create_issue{
+    return {
+        tracker_name => { validate => 'non_empty_string' },
+        gene_id     => { validate => 'non_empty_string' },
+        gene_symbol => { validate => 'non_empty_string' },
+        project_id  => { validate => 'existing_project_id' },
+        sponsors    => { validate => 'non_empty_string' },
+        cell_line   => { validate => 'existing_cell_line' },
+        experiment_id => { validate => 'existing_experiment_id', optional => 1},
+    };
+}
+
+sub create_issue{
+    my ($self, $model, $params) = @_;
+
+    $model->check_params($params, $self->_pspec_create_issue);
+
+    my @sponsors = grep { $_ ne 'All' } split "/", $params->{sponsors};
+    # FIXME: temp fix. change cell line list in redmine
+    my $cell_line = $params->{cell_line};
+    $cell_line =~ s/_/-/g;
+
+    # Marker_Symbol, Sponsor (list), Project ID, HGNC ID, Current Experiment ID, Cell Line
+    # Chromosome (we could get chr_name from experiment design/crispr entity)
+    my $custom_fields = [
+        {
+            id    => $self->custom_field_id_for->{'Marker_Symbol'},
+            value => $params->{gene_symbol},
+        },
+        {
+            id    => $self->custom_field_id_for->{'Sponsor'},
+            value => \@sponsors,
+        },
+        {
+            id    => $self->custom_field_id_for->{'Project ID'},
+            value => $params->{project_id},
+        },
+        {
+            id    => $self->custom_field_id_for->{'HGNC ID'},
+            value => $params->{gene_id},
+        },
+        {
+            id    => $self->custom_field_id_for->{'Cell Line'},
+            value => $cell_line,
+        },
+        {
+            id    => $self->custom_field_id_for->{'Current activity (HUMAN)'},
+            value => 'Review', # FIXME: placeholder for testing as this is required field
+        },
+        {
+            id    => $self->custom_field_id_for->{'Human Allele'},
+            value => 'Single targeted', # FIXME: placeholder for testing as this is required field
+        },
+    ];
+
+    if($params->{experiment_id}){
+        push @$custom_fields, {
+            id    => $self->custom_field_id_for->{'Current Experiment ID'},
+            value => $params->{experiment_id},
+        };
+
+        my $experiment = $model->retrieve_experiment({ id => $params->{experiment_id} });
+
+        # FIXME: what to do about chromosome if we have no experiment yet
+        push @$custom_fields, {
+            id    => $self->custom_field_id_for->{'Chromosome'},
+            value => $experiment->chr_name,
+        };
+    }
+
+    my $issue_info = {
+      "issue" => {
+            "tracker_id" => $self->tracker_id_for->{ $params->{tracker_name} },
+            "project_id" => $self->project_id, # this is the redmine project ID
+            "subject"    => $params->{gene_symbol},
+            "custom_fields" => $custom_fields,
+        }
+    };
+    $self->log->debug(Dumper $issue_info);
+
+    my $post = $self->post('issues.json',$issue_info);
+    my $new_issue = $post->res->{issue};
+
+    $self->_prepare_issue_for_lims2($new_issue);
+
+    return $new_issue;
 }
 
 # custom_fields is an array of hashes containing id, name, value
 # convert it to a single hash of name => value pairs
-sub _add_custom_fields_by_name{
-    my ($issues) = @_;
+# add issue url
+sub _prepare_issue_for_lims2{
+    my ($self,$issue) = @_;
 
-    foreach my $issue (@$issues){
-        my $fields = delete $issue->{custom_fields};
-        my $hash = {};
-        foreach my $field (@$fields){
-            $hash->{ $field->{name} } = $field->{value};
-        }
-        $issue->{custom_fields} = $hash;
+    my $fields = delete $issue->{custom_fields};
+    my $hash = {};
+    foreach my $field (@$fields){
+        $hash->{ $field->{name} } = $field->{value};
     }
-    return $issues;
+    $issue->{custom_fields} = $hash;
+
+    $issue->{url} = $self->redmine_url."/issues/".$issue->{id};
+
+    return $issue;
 }
 
 1;
