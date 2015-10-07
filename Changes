@@ -1,5 +1,14 @@
 {{$NEXT}}
 
+0.339     2015-10-01 11:50:37 Europe/London
+
+    Cell line added to projects
+    Experiments linked to genes rather than projects
+
+0.337     2015-09-17 16:50:11 Europe/London
+    Added create design and crispr plates function
+    Added experiments to summarys table
+
 0.336     2015-09-03 12:59:33 Europe/London
 
     Removed dependancy on lustre file system
