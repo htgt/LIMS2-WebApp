@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.337';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.340';
 }
 ## use critic
 
@@ -301,6 +301,12 @@ sub assembly_qc_value{
     #return shift->in_set('Good','Bad','Wrong');
 }
 
+sub primer_array {
+    my $self = shift;
+    return sub {
+        ref $_[0] eq 'ARRAY';
+    }
+}
 =head2 in_enum_column
 
   Use enum from database schema as set, e.g. value column from WellAssemblyQc

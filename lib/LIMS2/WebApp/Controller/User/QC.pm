@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.337';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.340';
 }
 ## use critic
 
@@ -53,11 +53,8 @@ has latest_run_util => (
 
 sub _build_latest_run_util {
     my $self = shift;
-    $ENV{ LIMS2_URL_CONFIG }
-        or die "LIMS2_URL_CONFIG environment variable not set";
-    my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
-    my $lustre_server = $conf->{_}->{lustre_server_url}
-        or die "lustre_server_url not found in LIMS2_URL_CONFIG file ".$ENV{ LIMS2_URL_CONFIG };
+    my $lustre_server = $ENV{ FILE_API_URL }
+        or die "FILE_API_URL environment variable not set";
 
     return HTGT::QC::Util::ListLatestRuns->new( {
         config => $self->qc_config,

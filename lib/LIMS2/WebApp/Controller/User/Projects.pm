@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.337';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.340';
 }
 ## use critic
 
@@ -31,6 +31,9 @@ sub manage_projects :Path('/user/manage_projects'){
 
     $c->assert_user_roles('edit');
 
+    my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
+    $c->stash->{cell_line_options} = \@cell_lines;
+
     my $species_id = $c->session->{selected_species};
     my $gene_id;
     if(my $gene = $c->req->param('gene')){
@@ -56,6 +59,10 @@ sub manage_projects :Path('/user/manage_projects'){
     if(my $targ_profile = $c->req->param('targeting_profile_id')){
         $c->stash->{targeting_profile_id} = $targ_profile;
         $search->{targeting_profile_id} = $targ_profile;
+    }
+    if( my $cell_line_id = $c->req->param('cell_line_id')){
+        $c->stash->{cell_line_id} = $cell_line_id;
+        $search->{cell_line_id} = $cell_line_id;
     }
 
     my @project_results;
@@ -170,6 +177,8 @@ sub view_project :Path('/user/view_project'){
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};
+        delete $params->{project_id};
+        $params->{gene_id} = $project->gene_id;
         try{
             my $experiment = $c->model('Golgi')->create_experiment($params);
             $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id;

@@ -160,6 +160,15 @@
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
             </li>
+
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/external_project' ) %]">Create Sequencing Project</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_sequencing_projects' ) %]">Search Sequencing Projects</a>
+            </li>
+
             [% END %]
           </ul>
         </li>

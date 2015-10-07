@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CellLine;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.337';
+    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.340';
 }
 ## use critic
 
@@ -100,9 +100,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 projects
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pSfCCClMxm0TYxzgA3xXCw
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Project>
+
+=cut
+
+__PACKAGE__->has_many(
+  "projects",
+  "LIMS2::Model::Schema::Result::Project",
+  { "foreign.cell_line_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2f9ld501hKKzBD32Hf6hBA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

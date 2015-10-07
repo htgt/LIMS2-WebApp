@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Experiments;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.337';
+    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.340';
 }
 ## use critic
 
@@ -31,13 +31,10 @@ sub view_experiment :Path('/user/view_experiment'){
 
     $c->assert_user_roles('read');
     my $exp_id = $c->req->param('experiment_id');
-    my $exp;
-    $exp = $c->model( 'Golgi' )->retrieve_experiment( { id => $exp_id } );
-    my $proj_id = $exp->project_id;
-    my $project = $c->model('Golgi')->retrieve_project_by_id({ id => $proj_id });
+    my $exp = $c->model( 'Golgi' )->retrieve_experiment( { id => $exp_id } );
     my $gene_info =  try{ $c->model('Golgi')->find_gene( {
-        search_term => $project->gene_id,
-        species => $project->species_id
+        search_term => $exp->gene_id,
+        species => $exp->species_id,
     } ) };
 
     $c->stash(
