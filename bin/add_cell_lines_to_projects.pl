@@ -36,8 +36,10 @@ $model->schema->txn_do(sub{
     open (my $fh, ">", "new_projects.csv") or die $!;
     process_projects($projects_rs,$fh);
     close $fh;
-    #ERROR "Rolling back!";
-    #$model->schema->txn_rollback();
+
+	ERROR "Rolling back!";
+	$model->schema->txn_rollback();
+
 });
 
 sub process_projects{
@@ -111,4 +113,8 @@ sub sponsor_cell_line{
 	}
 
 	return 'kolf';
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> devel

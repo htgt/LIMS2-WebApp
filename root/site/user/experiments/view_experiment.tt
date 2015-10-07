@@ -4,37 +4,13 @@
   <h1>Experiment [% experiment_id %]
   </h1>
 </div>
-<p>
-  <a href="[% c.uri_for('/user/view_project' { project_id => experiment.project_id }) %]" class="btn btn-primary" name="project_return_button">
-    <i class="icon-hand-left icon-white"></i>
-    Back to project [% experiment.project_id %]
-  </a>
-</p>
+
 <h2>Experiment Details</h2>
 
 <table class="table experiment">
-  <tr> 
+  <tr>
     <th>Experiment ID</th>
     <td>[% experiment_id %]</td>
-  <tr>
-    <th>Project ID</th>
-    <td>
-      <a href="[% c.uri_for('/user/view_project', { project_id => experiment.project_id }) %]">
-        [% experiment.project_id %]
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <th>Design ID</th>
-    <td>
-      <a href="[% c.uri_for('/user/view_design', { design_id => experiment.design_id }) %]">
-        [% experiment.design_id %]
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <th>Gene ID</th>
-    <td>[% experiment.gene_id %]</td>
   </tr>
   <tr>
     <th>Gene Symbol</th>
@@ -44,16 +20,48 @@
       </a>
     </td>
   </tr>
-  [% IF experiment.crispr_group_id %]
   <tr>
-    <th>Crispr Group ID</th>
-    <td>[% experiment.crispr_group_id %]</td>
+    <th>Gene ID</th>
+    <td>[% experiment.gene_id %]</td>
   </tr>
+  <tr>
+    <th>Design ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/view_design', { design_id => experiment.design_id }) %]">
+        [% experiment.design_id %]
+      </a>
+    </td>
+  </tr>
+
+  [% IF experiment.crispr_id %]
+  <tr>
+    <th>Crispr ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/crispr/' _ experiment.crispr_id _ '/view') %]">
+        [% experiment.crispr_id %]
+      </a>
+    </td>  </tr>
   [% END %]
+
   [% IF experiment.crispr_pair_id %]
   <tr>
     <th>Crispr Pair ID</th>
-    <td>[% experiment.crispr_pair_id %]</td>
+    <td>
+      <a href="[% c.uri_for('/user/crispr_pair/' _ experiment.crispr_pair_id _ '/view') %]">
+        [% experiment.crispr_pair_id %]
+      </a>
+    </td>
+  </tr>
+  [% END %]
+
+  [% IF experiment.crispr_group_id %]
+  <tr>
+    <th>Crispr Group ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/crispr_group/' _ experiment.crispr_group_id _ '/view') %]">
+        [% experiment.crispr_group_id %]
+      </a>
+    </td>
   </tr>
   [% END %]
 
