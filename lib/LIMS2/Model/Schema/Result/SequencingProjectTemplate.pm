@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::SequencingProjectCrisprPrimer;
+package LIMS2::Model::Schema::Result::SequencingProjectTemplate;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::SequencingProjectCrisprPrimer
+LIMS2::Model::Schema::Result::SequencingProjectTemplate
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sequencing_project_crispr_primers>
+=head1 TABLE: C<sequencing_project_templates>
 
 =cut
 
-__PACKAGE__->table("sequencing_project_crispr_primers");
+__PACKAGE__->table("sequencing_project_templates");
 
 =head1 ACCESSORS
 
@@ -44,9 +44,9 @@ __PACKAGE__->table("sequencing_project_crispr_primers");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 primer_id
+=head2 qc_template_id
 
-  data_type: 'text'
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -55,24 +55,24 @@ __PACKAGE__->table("sequencing_project_crispr_primers");
 __PACKAGE__->add_columns(
   "seq_project_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "primer_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "qc_template_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 RELATIONS
 
-=head2 primer
+=head2 qc_template
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprPrimerType>
+Related object: L<LIMS2::Model::Schema::Result::QcTemplate>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "primer",
-  "LIMS2::Model::Schema::Result::CrisprPrimerType",
-  { primer_name => "primer_id" },
+  "qc_template",
+  "LIMS2::Model::Schema::Result::QcTemplate",
+  { id => "qc_template_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
@@ -92,8 +92,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gpcy+tzR7cKJ5dBcJSyXXA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-05 16:17:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8aqAyUo2whTxES17pBbq8g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

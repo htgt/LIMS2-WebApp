@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::SequencingProjectGenotypingPrimer;
+package LIMS2::Model::Schema::Result::SequencingProjectPrimer;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::SequencingProjectGenotypingPrimer
+LIMS2::Model::Schema::Result::SequencingProjectPrimer
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<sequencing_project_genotyping_primers>
+=head1 TABLE: C<sequencing_project_primers>
 
 =cut
 
-__PACKAGE__->table("sequencing_project_genotyping_primers");
+__PACKAGE__->table("sequencing_project_primers");
 
 =head1 ACCESSORS
 
@@ -65,13 +65,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimerType>
+Related object: L<LIMS2::Model::Schema::Result::SequencingPrimerType>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "primer",
-  "LIMS2::Model::Schema::Result::GenotypingPrimerType",
+  "LIMS2::Model::Schema::Result::SequencingPrimerType",
   { id => "primer_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -92,8 +92,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mF7Sdiifz/hnxD2YtPsA2g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-05 14:59:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ClOAB9CY0CcoLe0JvF7+4g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

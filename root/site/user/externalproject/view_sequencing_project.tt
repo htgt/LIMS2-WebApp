@@ -11,10 +11,12 @@
     <th>Sequencing ID</th>
     <td>[% seq_project.id %]</td>
   </tr>
+[% IF seq_project.qc == 1 %]
   <tr>
     <th>Template</th>
-    <td>[% seq_project.qc_template %]</td>
+    <td>[% qc.qc_template %]</td>
   </tr>
+[% END %]
   <tr>
     <th>Plate size</th>
     <td>[% seq_project.size %]</td>
@@ -24,58 +26,71 @@
     <td>[% seq_project.sub_projects %]</td>
   </tr>
 </table>
+<br>
 
-<h2>Project Status</h2>
+<h2>Project Status  </h2> <!-- <button type="button" class="btn btn-info">Change status</button> -->
 <table class="table seq_status">
   <tr>
     <th>For QC</th>
     <td>[% seq_project.qc %]</td>
-    <td></td> 
   </tr>
   <tr>
     <th>Results available</th>
     <td>[% seq_project.available_results %]</td>
-    <td></td> 
   </tr>
   <tr>
     <th>Abandoned</th>
     <td>[% seq_project.abandoned %]</td>
-    <td><button type="button" style="float: right;">Change status</button></td> 
   </tr>
 </table>
 
-<h2>Primers</h2>
+<h2>Project Submission Files</h2>
 <table class="table primer" id="primer_table">
   <tr>
     <th>Primer Name</th>
+    <th>Sub-project Number</th>
+    <th></th>
   </tr>
-  [% FOREACH primer IN seq_project.primers %]
+[% SET sub_counter = 0 %]
+[% WHILE sub_counter < seq_project.sub_projects %]
+  [% sub_counter = sub_counter + 1 %]
+  [% FOREACH primer IN primer_list %]
   <tr>
     <td>[% primer %]</td>
-    <td><button type="button" style="float: right;" onclick=retrieve_file();>Download [% seq_project.name %] : [% primer %]</button></td> 
+    <td>[% sub_counter %]</td>
+    <td>
+      <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% sub_counter %]');>
+        <i class="icon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
+      </button>
+    </td> 
   </tr>
   [% END %]
+[% END %]
 </table> 
 
-<div id='inject'></div>
-
-<script type="text/javascript" src="[% c.uri_for('/js/jquery-1.7.2.min.js' )%]"></script>
 <script type="text/javascript">
 $(document).ready(function () {
     var id = '[% seq_project.id %]'; 
 })
-function retrieve_file() {
+function retrieve_file(primer, sub) {
     console.log("reached");
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
-    var link =  half + encodeURI('?seq_id=' + id);
+    var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub=' + sub);
     console.log(link);
-
-    $(document).load( link, function(data) {
+    
+    OpenInNewTab(link);
+    /*
+    #$(document).load( link, function(data) {
         document.body.innerHTML += '<div>' + data + '</div>';
 
         alert( "Load was performed.");
     });
+    */
+}
+function OpenInNewTab(url) {
+    var win = window.open(url, '_blank');
+
 }
 
 

@@ -297,7 +297,6 @@ sub assembly_qc_value{
 
 sub primer_array {
     my $self = shift;
-$DB::single=1;
     return sub {
         ref $_[0] eq 'ARRAY';
     }

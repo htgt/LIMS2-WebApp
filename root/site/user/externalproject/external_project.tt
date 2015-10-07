@@ -17,16 +17,15 @@
         <input type="checkbox" name="qc" id="check_qc" enabled />
             For LIMS2 QC?
         <br>
-
+        <!-- Coming soon
         <input type="checkbox" name="large_well" id="check_well" enabled/>
             Is 384?
+        -->
         <br>
-        <br> 
-        <label id="template_label">QC Template</label>
+        <label id="template_label">QC Template</label><br>
         <input type="text" class="span3" id="template_input" name="template_id" placeholder="Template identifier" autocomplete="off" />
-
-        <button type="button" onclick="addTemplate()">
-          Add QC template
+        <button type="button" id="add_qc" class="btn btn-link" onclick="addTemplate()">
+          Create QC template
         </button>
 
 
@@ -40,11 +39,11 @@
         <select name="dd_primer" id="dd_primer">
           <option value="" selected="selected"></option>
           [%- FOR primer IN primer_list %]
-            <option value="[% primer %]">[% primer.replace( '_', ' ' ) %]</option>
+            <option value="[% primer %]">[% primer %]</option>
           [%- END %]
         </select>
 
-        <button type="button" onclick="addPrimer()">
+        <button type="button" class="btn btn-default" onclick="addPrimer()">
           Add Primer
         </button>
         
@@ -56,7 +55,7 @@
         </table>
         <br>
 
-        <button name="create_project" id="create_project" type="submit" value="create_project" class="btn">
+        <button name="create_project" class="btn btn-primary" id="create_project" type="submit" value="create_project" class="btn">
             <i class="icon-upload"></i> Create Project
         </button>
     </form>
@@ -68,7 +67,14 @@
 
 <script type="text/javascript">
 window.onload = function () {
-    switchVisilibityState("none");    
+    switchVisilibityState("none");
+    showTemplate("none");
+
+    var id = '[% project_id %]';
+
+    if(id){
+        window.location.href = '[% c.uri_for('/user/view_sequencing_project/') %]' + encodeURI('?seq_id=' + id); 
+    }
 }
 
 window.onchange = function () {
@@ -89,6 +95,21 @@ var primerCount = 0;
 
 function switchVisilibityState(state) {
     document.getElementById("primer_table").style.display = state;
+}
+
+function showTemplate(state){
+    document.getElementById("template_label").style.display = state;
+    document.getElementById("template_input").style.display = state;
+    document.getElementById("add_qc").style.display = state;
+}
+
+document.getElementById('check_qc').onclick = function() {
+    if ( this.checked ) {
+        showTemplate("initial");
+    } else {
+        showTemplate("none");
+    }
+ 
 }
 
 function addPrimer() {

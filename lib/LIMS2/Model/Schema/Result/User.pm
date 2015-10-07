@@ -182,21 +182,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 external_projects
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ExternalProject>
-
-=cut
-
-__PACKAGE__->has_many(
-  "external_projects",
-  "LIMS2::Model::Schema::Result::ExternalProject",
-  { "foreign.created_by_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 fp_picking_lists
 
 Type: has_many
@@ -268,21 +253,6 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 __PACKAGE__->has_many(
   "qc_runs",
   "LIMS2::Model::Schema::Result::QcRun",
-  { "foreign.created_by_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 sequencing_projects
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::SequencingProject>
-
-=cut
-
-__PACKAGE__->has_many(
-  "sequencing_projects",
-  "LIMS2::Model::Schema::Result::SequencingProject",
   { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -538,8 +508,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rCxo36V1TYOJ0qqXBOHveg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-07 10:47:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wpKKUWf+k01w4d6Sqka51A
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

@@ -76,24 +76,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 sequencing_project_genotyping_primers
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::SequencingProjectGenotypingPrimer>
-
-=cut
-
-__PACKAGE__->has_many(
-  "sequencing_project_genotyping_primers",
-  "LIMS2::Model::Schema::Result::SequencingProjectGenotypingPrimer",
-  { "foreign.primer_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-22 14:03:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/62E56VYOrONkq785v1SRg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-07 10:47:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5mXpg7UOupgpCoNzOJ+EMQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
