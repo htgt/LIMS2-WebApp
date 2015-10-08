@@ -60,17 +60,20 @@
 </div>
 
 [% IF reads %]
-<table class="table table-striped">
+<table class="table span12" style="table-layout:fixed">
     <thead>
         <tr>
-            <th>Read</th>
-            <th>Trace <button class="btn btn-mini" id="hide_all_traces">Hide All Traces</button></th>
+            <th class="span3">Read</th>
+            <th class="span9">Trace <button class="btn btn-mini" id="hide_all_traces">Hide All Traces</button></th>
         </tr>
     </thead>
     <tbody>
         [% FOR read IN reads %]
             <tr>
-               <td>[% read.orig_read_name %]</td>
+              <td rowspan="2">[% read.orig_read_name %]</td>
+              <td style="overflow-wrap:break-word">[% read.seq %]</td>
+            </tr>
+            <tr>
                <td>
                <div class="forward_full" style="display:none">[% search_seq %]</div>
         <a class="btn traces" href="#" data-fwd="[% read.orig_read_name %]" data-context="15" >View Traces</a>

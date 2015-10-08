@@ -17,6 +17,7 @@ use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
+use IPC::System::Simple qw( capturex );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -875,8 +876,27 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
 
     if($c->req->param('get_reads')){
+        my $script_name = 'fetch-seq-reads.sh';
+        my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+
+        my $seq = {};
+        my $read_name;
+        foreach my $line( capturex( $fetch_cmd, $c->req->param('sequencing_project') ) ){
+            chomp $line;
+            if ($line =~ /^>([^\s]*)/g){
+                 $read_name = $1;
+            }
+            else{
+                die "No read name for sequence $line" unless $read_name;
+                $seq->{$read_name} = $line;
+                $read_name = undef;
+            }
+        }
+
         my $reads_by_sub;
         foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
+            $read->{seq} = $seq->{ $read->{orig_read_name} };
+
             $reads_by_sub->{ $read->{plate_name} } ||= [];
             push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
         }
