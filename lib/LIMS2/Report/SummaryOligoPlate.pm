@@ -1,7 +1,7 @@
 package LIMS2::Report::SummaryOligoPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.340';
+    $LIMS2::Report::SummaryOligoPlate::VERSION = '0.341';
 }
 ## use critic
 

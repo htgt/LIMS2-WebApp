@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::SequencingProject::VERSION = '0.340';
+    $LIMS2::Model::Util::SequencingProject::VERSION = '0.341';
 }
 ## use critic
 
@@ -64,7 +64,8 @@ sub build_seq_data {
     else {
         return "Primers not found.";
     }
-    my $base = $ENV{ 'LIMS2_SEQ_DIR' } // '/var/tmp/seq/';
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
     my $body = read_file( $base . $file_name, {binmode => ':raw'} );
 
     my $file_contents = ({
@@ -79,8 +80,8 @@ sub build_xlsx_file {
     my ($self, $c, $wells, $primer_name, $sub_num) = @_;
     my $project = $wells->{project_data};
     my $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
-
-    my $base = $ENV{ 'LIMS2_SEQ_DIR' } // '/var/tmp/seq/';
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
     my $workbook = Excel::Writer::XLSX->new( $base . $file_name );
     my $worksheet = $workbook->add_worksheet();
 
