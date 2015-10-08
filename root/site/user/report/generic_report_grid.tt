@@ -160,12 +160,12 @@
                     [%- END %]
                     [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                         renderer: function(val) {
-                            return "<a href=\"[% c.uri_for('/user/view_design/') %]" + '?design_id=' + val + "\">" + val + '</a>';
+                            return "<a href=\"[% c.uri_for('/user/view_design') %]" + '?design_id=' + val + "\">" + val + '</a>';
                         },
                     [%- END %]
                     [%- IF col.match( '[Gg]ene[_\- ]([Ss]ymbol|[Ii][Dd])' ) %]
                         renderer: function(val) {
-                            return "<a href=\"[% c.uri_for('/user/report/gene/') %]" + '?gene_id=' + val + "\">" + val + '</a>';
+                            return "<a href=\"[% c.uri_for('/user/report/gene') %]" + '?gene_id=' + val + "\">" + val + '</a>';
                         },
                     [%- END %]
                     [%- IF col.match( '[Cc]rispr[_\- ][Ii][Dd]' ) %]
