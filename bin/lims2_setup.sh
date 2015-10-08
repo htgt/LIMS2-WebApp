@@ -270,6 +270,7 @@ LIMS2 useful environment variables:
 \$PGUSER                       : $PGUSER
 
 \$LIMS2_PRIMER_DIR             : $LIMS2_PRIMER_DIR
+\$LIMS2_SEQ_DIR             : $LIMS2_SEQ_DIR
 \$DEFAULT_CRISPR_ES_QC_DIR     : $DEFAULT_CRISPR_ES_QC_DIR
 \$VEP_CACHE_DIR                : $VEP_CACHE_DIR
 \$DESIGN_CREATION_HUMAN_FA     : $DESIGN_CREATION_HUMAN_FA
