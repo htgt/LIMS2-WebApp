@@ -346,54 +346,7 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     return;
 }
 
-sub view_traces :Path('/user/crisprqc/view_traces') :Args(0){
-    my ($self, $c) = @_;
 
-    $c->assert_user_roles('read');
-
-    my ($crispr_id, $crispr_seq, $search_seq);
-
-    if($crispr_id = $c->req->param('crispr_id')){
-        my $crispr = $c->model('Golgi')->retrieve_crispr({ id => $crispr_id})
-            or die "Cannot find crispr with id $crispr_id";
-        $crispr_seq = $crispr->seq;
-        $search_seq = substr($crispr->seq,10);
-    }
-    elsif($c->req->param('search_seq')){
-        $search_seq = $c->req->param('search_seq');
-        $crispr_id = 'no crispr';
-        $crispr_seq = 'no crispr';
-    }
-
-    my @well_names;
-    foreach my $letter ("A".."H"){
-        foreach my $number (1..12){
-            push @well_names, sprintf("%s%02d",lc($letter),$number);
-        }
-    }
-
-    my $params = $c->req->params;
-    my @read_names;
-    my $get_fwd = $params->{fwd_read_prefix} or $params->{fwd_read_suffix};
-    my $get_rev = $params->{rev_read_prefix} or $params->{rev_read_suffix};
-    foreach my $well(@well_names){
-        my $names = {};
-        if($get_fwd){
-            $names->{fwd} = $params->{fwd_read_prefix}.$well.$params->{fwd_read_suffix};
-        }
-        if($get_rev){
-            $names->{rev} = $params->{rev_read_prefix}.$well.$params->{rev_read_suffix};
-        }
-        push @read_names, $names;
-    }
-
-    $c->stash(
-        crispr_id   => $crispr_id,
-        crispr_seq  => $crispr_seq,
-        search_seq  => $search_seq,
-        read_names  => \@read_names,
-    );
-}
 
 __PACKAGE__->meta->make_immutable;
 

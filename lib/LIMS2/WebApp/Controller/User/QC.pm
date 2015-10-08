@@ -13,7 +13,7 @@ use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
@@ -865,6 +865,29 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
 	return;
 }
 
+sub view_traces :Path('/user/qc/view_traces') :Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    # Store form values
+    $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
+    $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+
+    if($c->req->param('get_reads')){
+        my @reads;
+
+        my @reads = grep { $_->{plate_name} eq $c->req->param('sequencing_sub_project') }
+                    get_parsed_reads( $c->request->params->{sequencing_project} );
+
+        $c->log->debug(Dumper \@reads);
+        $c->stash(
+            reads => \@reads,
+        );
+    }
+
+    return;
+}
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
