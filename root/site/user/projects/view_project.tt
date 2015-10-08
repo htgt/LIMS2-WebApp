@@ -58,10 +58,12 @@
     <th>Sponsors</th>
     <td>[% project.sponsors %]</td>
   </tr>
+[% IF c.user.is_sanger %]
   <tr>
     <th>Tracker Issues (Sanger users only)</th>
     <td id="tracker_issues"><img id="tracker_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
   </tr>
+[% END %]
 </table>
 
 
@@ -179,6 +181,7 @@ No experiments for this project
 $( document ).ready(function() {
   $("#update_sponsors_form").collapse('hide');
 
+[% IF c.user.is_sanger %]
   var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
 
   $.ajax({
@@ -224,7 +227,10 @@ $( document ).ready(function() {
     $("#tracker_spinner").remove();
     $("#tracker_issues").append("tracker query failed");
   });
+[% END %]
+
 });
+
 
 var designs = [
 [% FOREACH id IN design_suggest %]

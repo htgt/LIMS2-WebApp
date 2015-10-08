@@ -217,7 +217,7 @@ sub create_issue{
             value => 'Single targeted', # FIXME: placeholder for testing as this is required field
         },
     ];
-
+# FIXME: Current Experiment ID is required
     if($params->{experiment_id}){
         push @$custom_fields, {
             id    => $self->custom_field_id_for->{'Current Experiment ID'},
@@ -226,7 +226,6 @@ sub create_issue{
 
         my $experiment = $model->retrieve_experiment({ id => $params->{experiment_id} });
 
-        # FIXME: what to do about chromosome if we have no experiment yet
         push @$custom_fields, {
             id    => $self->custom_field_id_for->{'Chromosome'},
             value => $experiment->chr_name,
@@ -244,7 +243,8 @@ sub create_issue{
     $self->log->debug(Dumper $issue_info);
 
     my $post = $self->post('issues.json',$issue_info);
-    my $new_issue = $post->res->{issue};
+    my $new_issue = $post->res->{issue}
+        or die "Could not create issue: ".Dumper $post->res;
 
     $self->_prepare_issue_for_lims2($new_issue);
 
@@ -256,7 +256,7 @@ sub create_issue{
 # add issue url
 sub _prepare_issue_for_lims2{
     my ($self,$issue) = @_;
-
+$self->log->debug(Dumper $issue);
     my $fields = delete $issue->{custom_fields};
     my $hash = {};
     foreach my $field (@$fields){
