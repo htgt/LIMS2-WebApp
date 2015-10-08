@@ -239,6 +239,7 @@ function lims2_devel {
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
     export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+    export LIMS2_TEMP=/opt/t87/local/tmp
 }
 
 function lims2_pg9.3 {
@@ -270,7 +271,7 @@ LIMS2 useful environment variables:
 \$PGUSER                       : $PGUSER
 
 \$LIMS2_PRIMER_DIR             : $LIMS2_PRIMER_DIR
-\$LIMS2_SEQ_DIR             : $LIMS2_SEQ_DIR
+\$LIMS2_TEMP                   : $LIMS2_TEMP
 \$DEFAULT_CRISPR_ES_QC_DIR     : $DEFAULT_CRISPR_ES_QC_DIR
 \$VEP_CACHE_DIR                : $VEP_CACHE_DIR
 \$DESIGN_CREATION_HUMAN_FA     : $DESIGN_CREATION_HUMAN_FA
