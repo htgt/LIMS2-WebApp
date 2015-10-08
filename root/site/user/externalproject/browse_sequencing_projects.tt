@@ -1,0 +1,17 @@
+[% META title = "Browse Sequencing Projects" %]
+
+<form method="POST" action="[% c.uri_for( '/user/view_sequencing_project' ) %]" class="well">
+  <fieldset>
+    <legend>Search by Project ID</legend>
+    <input type="text" name="seq_id" placeholder="Sequencing Project id" id="seq_id" />
+    <input type="submit" name="action" class="btn btn-primary" value="Search" />
+  </fieldset>
+</form>
+
+<form method="POST" action="[% c.uri_for( '/user/view_sequencing_project' ) %]" class="well">
+  <fieldset>
+    <legend>Search by Project Name</legend>
+    <input type="text" name="seq_name" placeholder="Sequencing Project Name" id="seq_name" />
+    <input type="submit" name="action" class="btn btn-primary" value="Search" />
+  </fieldset>
+</form>

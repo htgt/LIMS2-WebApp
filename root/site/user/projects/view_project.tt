@@ -33,6 +33,10 @@
     <td>[% project.species_id %]</td>
   </tr>
   <tr>
+    <th>Cell line</th>
+    <td>[% project.cell_line %]</td>
+  </tr>
+  <tr>
     <th>Targeting Type</th>
     <td>[% project.targeting_type %]</td>
   </tr>
@@ -83,7 +87,8 @@
 </div>
 [% END %]
 
-<h2>Project Experiments</h2>
+<div class="well">
+<h3>Experiments targeting [% project.gene_id %]</h3>
 [% IF experiments.size %]
 <table class="table experiments">
   <tr>
@@ -118,6 +123,7 @@
 [% ELSE %]
 No experiments for this project
 [% END %]
+
 
 <div class="modal hide fade" id="DeleteExperimentModal">
     <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_modal" >
@@ -161,8 +167,8 @@ No experiments for this project
   </div>
 </div>
 
-
 [% END %]
+</div>
 
 <script type="text/javascript">
 

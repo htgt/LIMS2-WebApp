@@ -295,6 +295,12 @@ sub assembly_qc_value{
     #return shift->in_set('Good','Bad','Wrong');
 }
 
+sub primer_array {
+    my $self = shift;
+    return sub {
+        ref $_[0] eq 'ARRAY';
+    }
+}
 =head2 in_enum_column
 
   Use enum from database schema as set, e.g. value column from WellAssemblyQc

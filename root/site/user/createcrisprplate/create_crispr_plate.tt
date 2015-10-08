@@ -40,6 +40,8 @@
 
 </div>
 
+[% INCLUDE 'crispr_plate_upload_help.tt' plate_help = plate_help %]
+
 <script type="text/javascript">
 $('form#plate_create').submit(function(){
     $(this).children('button[type=submit]').attr('disabled', 'disabled');
