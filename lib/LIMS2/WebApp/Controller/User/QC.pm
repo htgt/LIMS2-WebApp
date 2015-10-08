@@ -875,14 +875,15 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
 
     if($c->req->param('get_reads')){
-        my @reads;
+        my $reads_by_sub;
+        foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
+            $reads_by_sub->{ $read->{plate_name} } ||= [];
+            push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+        }
 
-        my @reads = grep { $_->{plate_name} eq $c->req->param('sequencing_sub_project') }
-                    get_parsed_reads( $c->request->params->{sequencing_project} );
-
-        $c->log->debug(Dumper \@reads);
         $c->stash(
-            reads => \@reads,
+            reads            => $reads_by_sub->{ $c->req->param('sequencing_sub_project') },
+            sub_project_list => [ sort keys %$reads_by_sub ],
         );
     }
 

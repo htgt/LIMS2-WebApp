@@ -5,7 +5,7 @@
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>1} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>2} ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
     api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
@@ -35,7 +35,9 @@
       <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
       <div class="controls">
         <select name="sequencing_sub_project" id="sequencing_sub_project" type="text">
-          [% IF sequencing_sub_project %]<option>[% sequencing_sub_project %]</option>[% END %]
+          [% FOR sub IN sub_project_list %]
+          <option [% IF sequencing_sub_project == sub %]selected[% END %]>[% sub %]</option>
+          [% END %]
         </select>
 
         <!-- <input name="sequencing_sub_project" id="sequencing_sub_project" type="text"
@@ -62,17 +64,16 @@
     <thead>
         <tr>
             <th>Read</th>
-            <th>Trace</th>
+            <th>Trace <button class="btn btn-mini" id="hide_all_traces">Hide All Traces</button></th>
         </tr>
     </thead>
     <tbody>
         [% FOR read IN reads %]
             <tr>
-               <td>[% read.plate_name %]</td>
+               <td>[% read.orig_read_name %]</td>
                <td>
                <div class="forward_full" style="display:none">[% search_seq %]</div>
-               <div class="reverse_full" style="display:none">[% search_seq %]</div>
-        <a class="btn traces" href="#" data-fwd="[% names.fwd %]" data-rev="[% names.rev %]" data-context="15" >View Traces</a>
+        <a class="btn traces" href="#" data-fwd="[% read.orig_read_name %]" data-context="15" >View Traces</a>
                </td>
             </tr>
         [% END %]
@@ -129,6 +130,22 @@ $(document).ready(function() {
 
     //the code for this is inside jquery.flot.traceviewer.js
     var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
+  });
+
+  // Decided not to do this as it takes ages to get them all
+  // and we don't want to overload lims2
+  //$("#show_all_traces").click(function(){
+  //  $(".traces").click();
+  //});
+
+  $("#hide_all_traces").click(function(){
+    // Remove the trace plots
+    $(".demo-container").remove();
+
+    // Hide the hide traces buttons
+    $(".hide-traces").remove();
+    // Show the show traces buttons
+    $(".traces").show();
   });
 
 });
