@@ -876,26 +876,22 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
 
     if($c->req->param('get_reads')){
+        # Fetch the sequence fasta and parse it
         my $script_name = 'fetch-seq-reads.sh';
         my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
 
-        my $seq = {};
-        my $read_name;
-        foreach my $line( capturex( $fetch_cmd, $c->req->param('sequencing_project') ) ){
-            chomp $line;
-            if ($line =~ /^>([^\s]*)/g){
-                 $read_name = $1;
-            }
-            else{
-                die "No read name for sequence $line" unless $read_name;
-                $seq->{$read_name} = $line;
-                $read_name = undef;
-            }
+        my $fasta_input = join "", capturex( $fetch_cmd, $c->req->param('sequencing_project') );
+        my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
+        my $seq_by_name = {};
+        while (my $seq = $seqIO->next_seq() ){
+            $seq_by_name->{ $seq->display_id } = $seq->seq;
         }
 
+        # Parse all read names for the project
+        # and store along with read sequence
         my $reads_by_sub;
         foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
-            $read->{seq} = $seq->{ $read->{orig_read_name} };
+            $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
 
             $reads_by_sub->{ $read->{plate_name} } ||= [];
             push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
