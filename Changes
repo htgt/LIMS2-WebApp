@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.341     2015-10-08 15:18:51 Europe/London
+
+0.340     2015-10-07 15:27:03 Europe/London
+    Sequencing project 96 plate creation added
+    Download sequencing project xlsx added
+    Sequencing project view and create interfaces added 
 0.339     2015-10-01 11:50:37 Europe/London
 
     Cell line added to projects
