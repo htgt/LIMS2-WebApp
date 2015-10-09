@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::SequencingProject::VERSION = '0.341';
+    $LIMS2::Model::Util::SequencingProject::VERSION = '0.342';
 }
 ## use critic
 
@@ -20,6 +20,9 @@ use namespace::autoclean;
 use Try::Tiny;
 use Excel::Writer::XLSX;
 use File::Slurp;
+use Carp;
+use Path::Class;
+use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 
 sub build_seq_data {
     my ( $self, $c, $id, $primer_req, $sub_number) = @_;
@@ -64,9 +67,9 @@ sub build_seq_data {
     else {
         return "Primers not found.";
     }
-    my $base = $ENV{LIMS2_TEMP}
-        or die "LIMS2_TEMP not set";
-    my $body = read_file( $base . $file_name, {binmode => ':raw'} );
+
+    my $dir = dir_build($file_name);
+    my $body = read_file( $dir, {binmode => ':raw'} );
 
     my $file_contents = ({
         body    => $body,
@@ -80,9 +83,10 @@ sub build_xlsx_file {
     my ($self, $c, $wells, $primer_name, $sub_num) = @_;
     my $project = $wells->{project_data};
     my $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
-    my $base = $ENV{LIMS2_TEMP}
-        or die "LIMS2_TEMP not set";
-    my $workbook = Excel::Writer::XLSX->new( $base . $file_name );
+
+    my $dir = dir_build($file_name);
+    my $workbook = Excel::Writer::XLSX->new($dir);
+
     my $worksheet = $workbook->add_worksheet();
 
     #Create Headers
@@ -101,5 +105,11 @@ sub build_xlsx_file {
     return $file_name;
 }
 
+sub dir_build{
+    my ($file_name) = @_;
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
+    return $base . '/' . $file_name;
+}
 
 1;
