@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.339';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.343';
 }
 ## use critic
 
@@ -16,6 +16,7 @@ use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
 use TryCatch;
 use Log::Log4perl::Level;
+use Bio::Perl qw( revcom );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -350,6 +351,8 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     );
     return;
 }
+
+
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.339';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.343';
 }
 ## use critic
 
@@ -711,6 +711,7 @@ sub fetch_values_for_type_ep_pick {
                 'recombinases'      => $summary_row->ep_pick_well_recombinase_id,
                 'ep_well'           => $ep_well,
                 'is_accepted'       => $well_is_accepted,
+                'to_report'         => $summary_row->to_report,
             };
 
             if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
@@ -944,6 +945,7 @@ sub fetch_values_for_type_piq {
                 'fp_well'           => $fp_well,
                 'is_accepted'       => $well_is_accepted,
                 'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
+                'to_report'         => $summary_row->to_report,
             };
 
             if ( $summary_row->crispr_ep_well_name ) {
@@ -1116,13 +1118,15 @@ sub crispr_qc_data {
                     piq_qc       => $piq_qc->{qc},
                     piq_well     => $piq_qc->{piq_well},
                     piq_accepted => $piq_qc->{accepted},
+                    to_report    => $well_data->{to_report},
                 };
             }
         }
         else {
             push @crispr_qc, {
-                epd_well => $ep_pick,
-                epd_qc   => $crispr_qc_data,
+                epd_well  => $ep_pick,
+                epd_qc    => $crispr_qc_data,
+                to_report => $well_data->{to_report},
             };
         }
 

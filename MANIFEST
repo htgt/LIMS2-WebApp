@@ -8,6 +8,7 @@ bin/add_cell_lines_to_projects.pl
 bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
+bin/extract_eurofins_data.pl
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
@@ -164,6 +165,10 @@ lib/LIMS2/Model/Schema/Result/Recombinase.pm
 lib/LIMS2/Model/Schema/Result/RecombineeringResultType.pm
 lib/LIMS2/Model/Schema/Result/Role.pm
 lib/LIMS2/Model/Schema/Result/SchemaVersion.pm
+lib/LIMS2/Model/Schema/Result/SequencingPrimerType.pm
+lib/LIMS2/Model/Schema/Result/SequencingProject.pm
+lib/LIMS2/Model/Schema/Result/SequencingProjectPrimer.pm
+lib/LIMS2/Model/Schema/Result/SequencingProjectTemplate.pm
 lib/LIMS2/Model/Schema/Result/Species.pm
 lib/LIMS2/Model/Schema/Result/SpeciesDefaultAssembly.pm
 lib/LIMS2/Model/Schema/Result/Sponsor.pm
@@ -228,6 +233,7 @@ lib/LIMS2/Model/Util/QCTemplates.pm
 lib/LIMS2/Model/Util/RankQCResults.pm
 lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
+lib/LIMS2/Model/Util/SequencingProject.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/AlleleDump.pm
@@ -291,6 +297,7 @@ lib/LIMS2/WebApp/Controller/API/PlateWell.pm
 lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
+lib/LIMS2/WebApp/Controller/API/SequencingProject.pm
 lib/LIMS2/WebApp/Controller/Admin.pm
 lib/LIMS2/WebApp/Controller/Auth.pm
 lib/LIMS2/WebApp/Controller/FixtureData.pm
@@ -310,6 +317,7 @@ lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
 lib/LIMS2/WebApp/Controller/User/Experiments.pm
+lib/LIMS2/WebApp/Controller/User/ExternalProject.pm
 lib/LIMS2/WebApp/Controller/User/Genoverse.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
@@ -329,9 +337,12 @@ lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
 lib/LIMS2/WebApp/View/JSON.pm
+redmine_api_lab_tracker.conf~
+redmine_api_lab_tracker_test.conf~
 root/favicon.ico
 root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
+root/lib/crispr_plate_upload_help.tt
 root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
 root/lib/crispr_validation.tt
@@ -342,6 +353,7 @@ root/lib/plate_copy_help.tt
 root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
+root/lib/sequencing_project_creation_help.tt
 root/lib/template_creation_help.tt
 root/lib/well_specific_fields.tt
 root/lib/wrapper.tt
@@ -425,6 +437,9 @@ root/site/user/engseqs/generate_sequence_file.tt
 root/site/user/engseqs/pick_gene_generate_sequence_file.tt
 root/site/user/error.tt
 root/site/user/experiments/view_experiment.tt
+root/site/user/externalproject/browse_sequencing_projects.tt
+root/site/user/externalproject/external_project.tt
+root/site/user/externalproject/view_sequencing_project.tt
 root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt
@@ -452,6 +467,7 @@ root/site/user/qc/submit_new_qc.tt
 root/site/user/qc/view_qc_alignment.tt
 root/site/user/qc/view_qc_result.tt
 root/site/user/qc/view_qc_run.tt
+root/site/user/qc/view_traces.tt
 root/site/user/recombinaseupload/recombinase_upload.tt
 root/site/user/report/await_report.tt
 root/site/user/report/extjs_report_table.tt
@@ -2831,7 +2847,6 @@ t/LIMS2/WebApp/10_LIMS2_WebApp_Pageset.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_API.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Admin.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Auth.t
-t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_PublicReports.t~
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_Root.t
 t/LIMS2/WebApp/Controller/10_LIMS2_WebApp_Controller_User.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_AssemblyQc.t
@@ -3065,7 +3080,6 @@ t/lib/LIMS2/t/WebApp/Controller/API/QC.pm
 t/lib/LIMS2/t/WebApp/Controller/API/Report.pm
 t/lib/LIMS2/t/WebApp/Controller/Admin.pm
 t/lib/LIMS2/t/WebApp/Controller/Auth.pm
-t/lib/LIMS2/t/WebApp/Controller/PublicReports.pm~
 t/lib/LIMS2/t/WebApp/Controller/Root.pm
 t/lib/LIMS2/t/WebApp/Controller/User.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Barcodes.pm

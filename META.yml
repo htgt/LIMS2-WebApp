@@ -31,6 +31,7 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Archive::Zip: 0
   Bio::Perl: 0
   Bio::SCF: 0
   Bio::Seq: 0
@@ -81,9 +82,12 @@ requires:
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
   EngSeqBuilder: 0
+  Excel::Writer::XLSX: 0
   Exporter: 0
   Fcntl: 0
   File::Basename: 0
+  File::Path: 0
+  File::Slurp: 0
   File::Temp: 0
   File::Which: 0
   File::stat: 0
@@ -106,6 +110,7 @@ requires:
   IO::Pipe: 0
   IO::String: 0
   IPC::Run: 0
+  IPC::System::Simple: 0
   Iterator::Simple: 0
   JSON: 0
   LIMS2::Exception: 0
@@ -143,6 +148,7 @@ requires:
   MooseX::Types::Path::Class: 0
   MooseX::Types::Path::Class::MoreCoercions: 0
   Number::Range: 0
+  POSIX: 0
   Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
@@ -179,4 +185,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.339
+version: 0.343
