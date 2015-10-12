@@ -113,8 +113,4 @@ sub sponsor_cell_line{
 	}
 
 	return 'kolf';
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> devel
