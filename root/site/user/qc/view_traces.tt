@@ -45,6 +45,12 @@
       </div>
     </div>
 
+    <div class="control-group">
+      <label class="control-label" for="primer_names">Primer Read Counts</label>
+      <div class="controls">
+          <input id="primer_names" name="primer_names" value="[% primer_names %]" readonly />
+      </div>
+    </div>
 
     <div class="control-group">
       <div class="controls">
@@ -75,7 +81,7 @@
             </tr>
             <tr>
                <td>
-               <div class="forward_full" style="display:none">[% search_seq %]</div>
+               <div class="forward_full" style="display:none"></div>
         <a class="btn traces" href="#" data-fwd="[% read.orig_read_name %]" data-context="15" >View Traces</a>
                </td>
             </tr>
@@ -107,9 +113,9 @@ $(document).ready(function() {
        '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
        { term: ui.item.value },
        function (data) {
-         console.log(data);
+          console.log(data);
 
-         $("#sequencing_sub_project").empty();
+          $("#sequencing_sub_project").empty();
 
           var plates;
 
@@ -123,8 +129,33 @@ $(document).ready(function() {
             opt.data(data[sub_project]);
             opt.appendTo( $("#sequencing_sub_project") );
           }
+
+          //trigger primer names update
+          $("#sequencing_sub_project").change();
        }
      );
+    }
+  });
+
+  $("#sequencing_sub_project").change(function() {
+    var primer_data = $("#sequencing_sub_project option:selected").data();
+    console.log(primer_data);
+
+    if ( primer_data ) {
+      var names = Object.keys(primer_data);
+
+      var primers = [];
+      for ( var i = 0; i < names.length; i++ ) {
+        var name = names[i];
+
+        primers.push(name + " (" + primer_data[name] + ")");
+
+      }
+
+      $("#primer_names").val( primers.join(", ") );
+    }
+    else {
+      $("#primer_names").val("");
     }
   });
 
