@@ -10,6 +10,7 @@ use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
 use TryCatch;
 use Log::Log4perl::Level;
+use Bio::Perl qw( revcom );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -344,6 +345,8 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     );
     return;
 }
+
+
 
 __PACKAGE__->meta->make_immutable;
 

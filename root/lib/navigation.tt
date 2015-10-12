@@ -168,7 +168,9 @@
             <li>
               <a href="[% c.uri_for( '/user/browse_sequencing_projects' ) %]">Search Sequencing Projects</a>
             </li>
-
+            <li>
+              <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
+            </li>
             [% END %]
           </ul>
         </li>
