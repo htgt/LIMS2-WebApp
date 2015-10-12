@@ -881,6 +881,8 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     # Store form values
     $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+    # This field is for display only
+    $c->stash->{primer_names} = $c->req->param('primer_names');
 
     if($c->req->param('get_reads')){
         # Fetch the sequence fasta and parse it
