@@ -13,10 +13,11 @@ use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
+use IPC::System::Simple qw( capturex );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -667,11 +668,18 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must select a csv file containing the well list";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) }
+                            grep { $c->req->param($_) }
+                            qw( cassette backbone phase_matched_cassette);
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_csv({
 				template_name => $template_name,
 				well_data_fh  => $well_data->fh,
 				species       => $c->session->{selected_species},
+                %overrides,
 			});
+
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
@@ -865,6 +873,47 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
 	return;
 }
 
+sub view_traces :Path('/user/qc/view_traces') :Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    # Store form values
+    $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
+    $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+    # This field is for display only
+    $c->stash->{primer_names} = $c->req->param('primer_names');
+
+    if($c->req->param('get_reads')){
+        # Fetch the sequence fasta and parse it
+        my $script_name = 'fetch-seq-reads.sh';
+        my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+
+        my $fasta_input = join "", capturex( $fetch_cmd, $c->req->param('sequencing_project') );
+        my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
+        my $seq_by_name = {};
+        while (my $seq = $seqIO->next_seq() ){
+            $seq_by_name->{ $seq->display_id } = $seq->seq;
+        }
+
+        # Parse all read names for the project
+        # and store along with read sequence
+        my $reads_by_sub;
+        foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
+            $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
+
+            $reads_by_sub->{ $read->{plate_name} } ||= [];
+            push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+        }
+
+        $c->stash(
+            reads            => $reads_by_sub->{ $c->req->param('sequencing_sub_project') },
+            sub_project_list => [ sort keys %$reads_by_sub ],
+        );
+    }
+
+    return;
+}
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify

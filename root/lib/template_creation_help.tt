@@ -18,8 +18,8 @@
           <h6>Create from plate</h6>
           <p>
           Enter the name of a source plate to create a QC template using all wells on this plate. If the template will have
-          a different cassette, backbone or recombinase to the source plate then select the relevant items for the template 
-          from the drop down lists provided. If you do not select a new value then the template will inherit this information 
+          a different cassette, backbone or recombinase to the source plate then select the relevant items for the template
+          from the drop down lists provided. If you do not select a new value then the template will inherit this information
           from the source plate.</p>
         </div>
 
@@ -28,8 +28,8 @@
           <p>
            <a href="[% c.uri_for('/static/files/plate_upload/qc_template_plate_template.csv') %]">
             <i class="icon-download"></i> Download Example CSV File
-           </a>          
-          </p>          
+           </a>
+          </p>
           <p>
             Fill in the required fields in the example CSV file.
           </p>
@@ -39,26 +39,27 @@
               <dt>source_plate</dt>
               <dd>The name of the source plate</dd>
               <dt>source_well</dt>
-              <dd>The name of the source well</dd>              
+              <dd>The name of the source well</dd>
             </dl>
           <p>
-          If the template well will have a different cassette, backbone or recombinase to the source well then enter the relevant items 
-          for the template in the optional columns listed below. If you do not enter a new value then the template well will inherit this 
+          If the template well will have a different cassette, backbone or recombinase to the source well then select the relevant items for the template
+          from the drop down lists provided. You may override that selection for specific wells by entering the relevant items
+          for the template in the optional columns listed below. If you do not select or enter a new value then the template well will inherit this
           information from the source well.</p>
             <dl class="dl-horizontal">
               <dt>phase_matched_cassette</dt>
-              <dd>The phase matched cassette to be used by the template, e.g. pL1L2_GT?_DelLacZ_bsd (only needed if different from that in source well)</dd>            
+              <dd>The phase matched cassette to be used by the template, e.g. pL1L2_GT?_DelLacZ_bsd (only needed if different from that in source well)</dd>
               <dt>cassette</dt>
               <dd>The cassette to be used by the template (only needed if different from that in source well and phase_matched_cassette has NOT been specified)</dd>
               <dt>backbone</dt>
               <dd>The backbone to be used by the template (only needed different from that in source well)</dd>
               <dt>recombinase</dt>
-              <dd>The backbone to be used by the template (only needed different from that in source well). 
+              <dd>The backbone to be used by the template (only needed different from that in source well).
                Multiple recombinases can be specified in a comma separated list, e.g. Cre, Dre</dd>
             </dl>
-          
 
-       
+
+
         </div>
 
       </div>
