@@ -13,31 +13,8 @@
         <input name="template_plate" id="template_plate" type="text"
           [% IF template_plate %]value="[% template_plate %]"[% END %]
         />
-        
-        <hr/>
 
-<div class="accordion" id="accordian">
-
-  <div class="accordion-group">
-
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOneMain">
-        <i class="icon-play"></i> Create from plate
-      </a>
-    </div>
-
-    <div id="collapseOneMain" class="accordion-body collapse">
-      <div class="accordion-inner">
-              
-        <table>
-         <tr>
-          <td>
-        <label>Enter name of source plate</label>
-        <input name="source_plate" id="source_plate" type="text"
-          [% IF source_plate %]value="[% source_plate %]"[% END %]
-          </td>
-        
-          <td>
+        <td>
         <label>Non-Phase Matched Cassette (optional)</label>
         <select name="cassette" id="cassette"/>
           [% FOR cass IN non_phase_cassettes %]
@@ -46,10 +23,10 @@
         </select>
           </td>
          </tr>
-          
+
          <tr>
           <td>
-          </td> 
+          </td>
           <td>
         <label>Phase Matched Cassette (optional)</label>
         <select name="phase_matched_cassette" id="phase_matched_cassette"/>
@@ -58,7 +35,7 @@
           [%- END %]
         </select>
           </td>
-                    
+
          </tr>
          <tr>
           <td>
@@ -85,6 +62,31 @@
           </td>
          </tr>
          <tr>
+      <hr/>
+
+
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOneMain">
+        <i class="icon-play"></i> Create from plate
+      </a>
+    </div>
+
+    <div id="collapseOneMain" class="accordion-body collapse">
+      <div class="accordion-inner">
+
+        <table>
+         <tr>
+          <td>
+        <label>Enter name of source plate</label>
+        <input name="source_plate" id="source_plate" type="text"
+          [% IF source_plate %]value="[% source_plate %]"[% END %]
+          </td>
+
+
           <td>
        <button name="create_from_plate" id="create_from_plate" type="submit" value="create_from_plate" class="btn">
          Create New Template from Plate
@@ -93,8 +95,8 @@
           <td>
           </td>
          </tr>
-        </table> 
-       
+        </table>
+
 </div>
 </div>
 </div>
@@ -110,27 +112,27 @@
 
     <div id="collapseTwoMain" class="accordion-body collapse">
       <div class="accordion-inner">
-       
+
        <label>Upload a csv file listing the required wells for the template</label>
-       
+
        <br />
-       
+
        <input name="datafile" type="file"/>
-            
+
        <br />
        <br />
-       
+
        <button name="create_from_csv" id="create_from_csv" type="submit" value="create_from_csv" class="btn">
          Create New Template from CSV
        </button>
-       
+
      </form>
 </div>
 </div>
 </div>
-     
+
   </div>
-  
+
 
 
 [% INCLUDE 'template_creation_help.tt' %]

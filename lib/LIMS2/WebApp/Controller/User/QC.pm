@@ -667,11 +667,18 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must select a csv file containing the well list";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) }
+                            grep { $c->req->param($_) }
+                            qw( cassette backbone phase_matched_cassette);
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_csv({
 				template_name => $template_name,
 				well_data_fh  => $well_data->fh,
 				species       => $c->session->{selected_species},
+                %overrides,
 			});
+
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
