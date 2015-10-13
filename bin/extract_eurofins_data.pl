@@ -46,7 +46,8 @@ while( my $plate_dir = $temp_dir->next ){
 	next unless -d $plate_dir;
 	while(my $data_file = $plate_dir->next){
 		my ($project_name, $fixed_file);
-        if ($data_file =~ /\.seq\.clipped$/){
+        #if ($data_file =~ /\.seq\.clipped$/){
+        if($data_file =~ /\.seq$/){
         	($project_name, $fixed_file) = fix_seq_file($data_file);
         }
         elsif($data_file =~ /\.scf$/){
@@ -81,6 +82,10 @@ print "SCF file name: $file\n";
     my $new_name = "$file";
     $new_name =~ s/$STRING_TO_REMOVE//;
 
+    # tmp fix to convert SF -> SF1
+    $new_name =~ s/p1kSF\./p1kSF1./;
+    $new_name =~ s/p1kSR\./p1kSR1./;
+
     my $new_file = file($new_name);
     $file->move_to( $new_file ) or die "Could not move $file to $new_file";
 
@@ -101,11 +106,20 @@ print "Seq file name: $file\n";
     my $new_name = "$file";
     $new_name =~ s/$STRING_TO_REMOVE//;
     $new_name =~ s/\.clipped$//;
+
+    # tmp fix to convert SF -> SF1
+    $new_name =~ s/p1kSF\./p1kSF1./;
+    $new_name =~ s/p1kSR\./p1kSR1./;
+
     my $new_file = file($new_name);
     my $fh = $new_file->openw or die "Can't open $new_file for writing - $!";
 
     foreach my $line (@lines){
     	$line =~ s/$STRING_TO_REMOVE//;
+        # tmp fix to convert SF -> SF1
+        $line =~ s/p1kSF\b/p1kSF1/;
+        $line =~ s/p1kSR\b/p1kSR1/;
+
     	print $fh $line;
     }
 

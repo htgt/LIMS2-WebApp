@@ -524,5 +524,14 @@ sub as_hash {
     };
 }
 
+sub is_sanger{
+    my $self = shift;
+
+    if($self->name =~ /.*\@sanger\.ac\.uk/){
+        return 1;
+    }
+    return 0;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;
