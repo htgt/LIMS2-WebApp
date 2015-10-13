@@ -58,6 +58,12 @@
     <th>Sponsors</th>
     <td>[% project.sponsors %]</td>
   </tr>
+[% IF c.user.is_sanger %]
+  <tr>
+    <th>Tracker Issues (Sanger users only)</th>
+    <td id="tracker_issues"><img id="tracker_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
+  </tr>
+[% END %]
 </table>
 
 
@@ -94,8 +100,11 @@
   <tr>
     <th>Experiment ID</th>
     <th>Design ID</th>
+  [% IF c.user.is_sanger %]
+    <th>Tracker Issues (Sanger users only)</th>
+  [% END %]
     <th>Crisprs</th>
-    <th>Delete</th>
+    <th>Delete Experiment</th>
   </tr>
   [% FOREACH exp IN experiments %]
   <tr>
@@ -109,6 +118,9 @@
         [% exp.design_id %]
       </a>
     </td>
+    [% IF c.user.is_sanger %]
+    <td class="tracker_exp_issues" data-exp-id="[% exp.id %]"><img class="tracker_exp_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
+    [% END %]
     <td>[% exp.crispr_description %]</td>
     <td>
       <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form">
@@ -173,8 +185,97 @@ No experiments for this project
 <script type="text/javascript">
 
 $( document ).ready(function() {
-    $("#update_sponsors_form").collapse('hide');
+  $("#update_sponsors_form").collapse('hide');
+
+[% IF c.user.is_sanger %]
+  var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+  // Search for any tracker issues linked to this project
+  $.ajax({
+    type: "GET",
+    contentType: 'application/json',
+    url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]"
+  }).done(function(data) {
+    $("#tracker_spinner").remove();
+    $.each(data, function(i,issue){
+      console.log(issue);
+      console.log(issue.id)
+      $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
+    });
+  }).fail(function(){
+    $("#tracker_spinner").remove();
+    $("#tracker_issues").append("tracker query failed");
+  });
+
+  var exp_spinner_html = '<img class="tracker_exp_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+  // Search for tracker issues for this project for each experiment
+  $(".tracker_exp_issues").each(function(i, item){
+    console.log($(item).data('expId') );
+    $.ajax({
+      type: "GET",
+      contentType: 'application/json',
+      url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]",
+      data: { experiment_id:$(item).data('expId') }
+    }).done(function(data) {
+      $(item).children( $(".tracker_exp_spinner") ).remove();
+      $.each(data, function(i,issue){
+        console.log(issue);
+        console.log(issue.id)
+        var issue_text = "#" + issue.id;
+
+        if(issue.status.name == "Active"){
+          issue_text += " - " + issue.custom_fields[ 'Current activity (HUMAN)' ];
+        }
+        else{
+          issue_text += " - " + issue.status.name;
+        }
+
+        $(item).append("<a href='"+ issue.url + "' target='_blank'>" + issue_text + "</a> ");
+      });
+
+      if(data.length == 0){
+        var btn_id = 'create_issue_' + $(item).data('expId');
+        $(item).append("<button class='btn' id='" + btn_id + "'>Create Tracker Issue</button>");
+        $("#" + btn_id).click( function(){
+          var exp_td = $(this).parent( $(".tracker_exp_issues") );
+          this.remove();
+          exp_td.append(exp_spinner_html);
+
+          $.ajax({
+            type: "POST",
+            url: "[% c.uri_for('/api/redmine_issue') %]",
+            dataType: 'json',
+            data: {
+              gene_symbol   : "[% gene_symbol %]",
+              gene_id       : "[% project.gene_id %]",
+              project_id    : "[% project.id %]",
+              experiment_id : $(item).data('expId'),
+              sponsors      : "[% project.sponsors %]",
+              cell_line     : "[% project.cell_line %]"
+            }
+          }).done(function(data){
+            console.log(data);
+            exp_td.children( $(".tracker_exp_spinner") ).remove();
+            var issue_link_html = "<a href='"+ data.url + "' target='_blank'>#" + data.id + "</a> ";
+            exp_td.append(issue_link_html);
+            // append to project level list of issues too
+            $("#tracker_issues").append(issue_link_html);
+
+          }).fail(function(){
+            exp_td.children( $(".tracker_exp_spinner") ).remove();
+            exp_td.append("tracker issue creation failed");
+          })
+        });
+      }
+
+    });
+  });
+
+[% END %]
+
 });
+
 
 var designs = [
 [% FOREACH id IN design_suggest %]
