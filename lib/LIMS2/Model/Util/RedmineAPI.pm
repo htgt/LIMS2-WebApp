@@ -165,13 +165,14 @@ sub get_issues{
 
 sub _pspec_create_issue{
     return {
-        tracker_name => { validate => 'non_empty_string' },
-        gene_id     => { validate => 'non_empty_string' },
-        gene_symbol => { validate => 'non_empty_string' },
-        project_id  => { validate => 'existing_project_id' },
-        sponsors    => { validate => 'non_empty_string' },
-        cell_line   => { validate => 'existing_cell_line' },
-        experiment_id => { validate => 'existing_experiment_id', optional => 1},
+        tracker_name  => { validate => 'non_empty_string' },
+        gene_id       => { validate => 'non_empty_string' },
+        gene_symbol   => { validate => 'non_empty_string' },
+        project_id    => { validate => 'existing_project_id' },
+        sponsors      => { validate => 'non_empty_string' },
+        cell_line     => { validate => 'existing_cell_line' },
+        experiment_id => { validate => 'existing_experiment_id'},
+        description   => { validate => 'non_empty_string', optional => 1},
     };
 }
 
@@ -181,9 +182,12 @@ sub create_issue{
     $model->check_params($params, $self->_pspec_create_issue);
 
     my @sponsors = grep { $_ ne 'All' } split "/", $params->{sponsors};
-    # FIXME: temp fix. change cell line list in redmine
+
+    # Change cell line names to match those in redmine list
     my $cell_line = $params->{cell_line};
     $cell_line =~ s/_/-/g;
+
+    my $experiment = $model->retrieve_experiment({ id => $params->{experiment_id} });
 
     # Marker_Symbol, Sponsor (list), Project ID, HGNC ID, Current Experiment ID, Cell Line
     # Chromosome (we could get chr_name from experiment design/crispr entity)
@@ -209,40 +213,35 @@ sub create_issue{
             value => $cell_line,
         },
         {
-            id    => $self->custom_field_id_for->{'Current activity (HUMAN)'},
-            value => 'Review', # FIXME: placeholder for testing as this is required field
+            id    => $self->custom_field_id_for->{'Human Allele'},
+            value => 'Single targeted', # Setting all as single targeted
         },
         {
-            id    => $self->custom_field_id_for->{'Human Allele'},
-            value => 'Single targeted', # FIXME: placeholder for testing as this is required field
-        },
-    ];
-# FIXME: Current Experiment ID is required
-    if($params->{experiment_id}){
-        push @$custom_fields, {
             id    => $self->custom_field_id_for->{'Current Experiment ID'},
             value => $params->{experiment_id},
-        };
-
-        my $experiment = $model->retrieve_experiment({ id => $params->{experiment_id} });
-
-        push @$custom_fields, {
+        },
+        {
             id    => $self->custom_field_id_for->{'Chromosome'},
             value => $experiment->chr_name,
-        };
-    }
+        },
+    ];
 
     my $issue_info = {
       "issue" => {
-            "tracker_id" => $self->tracker_id_for->{ $params->{tracker_name} },
-            "project_id" => $self->project_id, # this is the redmine project ID
-            "subject"    => $params->{gene_symbol},
+            "tracker_id"    => $self->tracker_id_for->{ $params->{tracker_name} },
+            "project_id"    => $self->project_id, # this is the redmine project ID
+            "subject"       => $params->{gene_symbol},
+            "description"   => $params->{description} // "",
             "custom_fields" => $custom_fields,
         }
     };
-    $self->log->debug(Dumper $issue_info);
+
+    # Show ticket as created by LIMS2
+    $self->redmine->default_header( 'X-Redmine-Switch-User' => 'lims2' );
 
     my $post = $self->post('issues.json',$issue_info);
+    $self->redmine->default_header( 'X-Redmine-Switch-User' => '' );
+
     my $new_issue = $post->res->{issue}
         or die "Could not create issue: ".Dumper $post->res;
 
@@ -256,7 +255,7 @@ sub create_issue{
 # add issue url
 sub _prepare_issue_for_lims2{
     my ($self,$issue) = @_;
-$self->log->debug(Dumper $issue);
+
     my $fields = delete $issue->{custom_fields};
     my $hash = {};
     foreach my $field (@$fields){

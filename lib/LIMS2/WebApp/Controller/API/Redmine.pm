@@ -20,8 +20,17 @@ sub redmine_issues_GET{
 
     return $self->status_bad_request( $c, message => "Error: no project_id specified" ) unless $id;
 
-    my $issues = $redmine->get_issues({},{ 'Project ID' => $id } );
-    $c->log->debug(Dumper $issues);
+    my $search_params = {
+        'Project ID' => $id,
+    };
+
+    if(my $exp_id = $c->request->param('experiment_id')){
+        $search_params->{'Current Experiment ID'} = $exp_id;
+    }
+
+    # First arg to get issues is hash of standard redmine filter params
+    # Second arg is hash of custom field name to values
+    my $issues = $redmine->get_issues({},$search_params);
 
     return $self->status_ok( $c, entity => $issues );
 }
@@ -41,7 +50,10 @@ sub redmine_issue_POST{
     # have other controllers to create redmine entries for other trackers
     $params->{tracker_name} = 'Issue';
 
-    my $issue = $redmine->create_issue($c->model('Golgi'), $c->req->params);
+    # Add some text to say who created the ticket
+    $params->{description} = "Issue created by LIMS2 user ".$c->user->name;
+
+    my $issue = $redmine->create_issue($c->model('Golgi'), $params);
 
     return $self->status_bad_request( $c, message => "Issue creation failed" ) unless $issue;
 
