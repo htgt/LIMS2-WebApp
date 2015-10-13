@@ -193,7 +193,13 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH qc IN crispr_qc %]
             <tr>
-                <td><strong>[% qc.epd_well %]</strong></td>
+                <td>
+                    <strong>[% qc.epd_well %]</strong>
+                    [% IF !qc.to_report %]
+                    <br>
+                    <span class="label label-important">Not to Report</span>
+                    [% END %]
+                </td>
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = qc.epd_qc
                     accept                 = 0
@@ -213,6 +219,9 @@ function toggle_btn(btn, show_or_hide) {
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
+                    [% IF !qc.to_report %]
+                    <span class="label label-important">Not to Report</span>
+                    [% END %]
                 </td>
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = qc.piq_qc

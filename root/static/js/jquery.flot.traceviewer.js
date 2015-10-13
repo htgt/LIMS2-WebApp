@@ -123,7 +123,7 @@ TraceViewer.prototype.extract_sequence = function(elem) {
 
 
 TraceViewer.prototype.show_traces = function(button) {
-    //create two container divs with placeholder divs inside to hold the two
+    //create container divs with placeholder divs inside to hold the required graphs
     //graphs. Placeholder is where the graph actually gets isnerted
     var fwd_placeholder = $("<div>", {"class":"demo-placeholder"});
     this.fwd_container   = $("<div>", {"class":"demo-container"} ).append( fwd_placeholder );
@@ -139,8 +139,9 @@ TraceViewer.prototype.show_traces = function(button) {
     var fwd_seq = button.closest("td").find(".forward_full").text() || this.extract_sequence( seqs.first() );
     var rev_seq = button.closest("td").find(".reverse_full").text() || this.extract_sequence( seqs.last() );
 
-    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq);
-    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1);
+
+    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"));
+    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"));
 
     // create button to hide the traces and restore the "View Traces" button
     var hide_button = $("<a>",{
@@ -160,8 +161,8 @@ TraceViewer.prototype.show_traces = function(button) {
 };
 
 //wait for data then give it to the real plot creation method
-TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse) {
-    if ( ! search_seq ) { placeholder.parent().hide(); return }; //skip blank sequence
+TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context) {
+    if ( ! name ) { placeholder.parent().hide(); return }; //skip if we do not have a read name
 
     //create local var for this, as "this" in getJSON is different
     var parent = this;
@@ -169,7 +170,7 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
     //fetch the users data and add a new graph when the data comes back
     $.getJSON(
         this.url,
-        { "name": name, "search_seq": search_seq, "reverse": reverse },
+        { "name": name, "search_seq": search_seq, "reverse": reverse, "context": context },
         function(data) {
             parent._create_plot(placeholder, data);
         }

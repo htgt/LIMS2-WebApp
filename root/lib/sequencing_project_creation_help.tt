@@ -1,0 +1,50 @@
+<div class="accordion" id="accordian">
+
+  <div class="accordion-group">
+
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="icon-question-sign"></i> Create Sequencing Project
+      </a>
+    </div>
+
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <p>
+          The purpose of this page is to create projects for external sequencing at Eurofins. Please enter the relevant data to your project. Each data type is explained below. 
+          Once you have successfully created your project, you will be redirected to the view sequencing project page.
+        </p>
+        <p>
+          If there are any errors were to occur, a warning will show up and the project will not
+          be created. Once the data is proven valid then the project will be created and a success message will appear.         
+        </p>
+
+        <div class="well">
+          <h6>Setup</h6>
+          <p>
+            Fill in basic plate details, the compulsory fields are:
+          </p>
+            <dl class="dl-horizontal">
+              <dt>Name</dt>
+              <dd>Must contain only letters, numbers or underscores. The project name must not match any names of the old projects.</dd>
+              <dt>Sub-projects</dt>
+              <dd>The number of projects attached to this project. Must be a positive integer. If you do not intend to attach any additional sub projects, please enter 1.</dd>
+              <dt>Primers</dt>
+              <dd>Primers for the sequencing project. It is possible to add multiple primers to one project by adding each primer seperately. Duplicates will be removed before insertation. Click the Add Primer button before clicking the Create Project button to ensure your primer is attached to the project. Once the primer has been added, it will appear in the primer table along with a delete primer button</dd>
+            </dl>
+          <p>
+            The options are listed below.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>QC Template</dt>
+              <dd>Must exist in the LIMS2 system. Autocorrect functionality has been added to assist with this. Only required if you intend to run the project through LIMS2 QC. The Create QC template button will navigate you away from this page</dd>
+              <dt>QC</dt>
+              <dd>Tick the box if you intend to run the project through the LIMS2 QC system</dd>
+              <dt>Is 384?</dt>
+              <dd>Coming soon. If you wish to submit 384 well plates to Eurofins at current moment, please contact us at htgt@sanger.ac.uk</dd>
+            </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

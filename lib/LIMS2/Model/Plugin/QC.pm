@@ -33,8 +33,9 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use HTGT::QC::Config;
-use TryCatch;
 use namespace::autoclean;
+use Try::Tiny;
+
 
 requires qw( schema check_params throw );
 
@@ -729,9 +730,13 @@ sub create_qc_template_from_plate {
 
 sub pspec_qc_template_from_csv{
     return{
-        template_name => { validate => 'plate_name'},
-        species       => { validate => 'existing_species'},
-        well_data_fh  => { validate => 'file_handle' },
+        template_name          => { validate => 'plate_name'},
+        species                => { validate => 'existing_species'},
+        well_data_fh           => { validate => 'file_handle' },
+        cassette               => { validate => 'existing_cassette', optional => 1},
+        backbone               => { validate => 'existing_backbone', optional => 1},
+        recombinase            => { validate => 'existing_recombinase', optional => 1},
+        phase_matched_cassette => { optional => 1 },
     };
 }
 
@@ -750,14 +755,31 @@ sub create_qc_template_from_csv{
         my $name = uc( $datum->{well_name} );
         $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
-        $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
-        $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
-        $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette} if $datum->{phase_matched_cassette};
+
+        if ($datum->{cassette}) {
+            $well_hash->{$name}->{cassette} = $datum->{cassette};
+        } elsif ($params->{cassette}) {
+            $well_hash->{$name}->{cassette} = $params->{cassette};
+        }
+
+        if ($datum->{backbone}) {
+            $well_hash->{$name}->{backbone} = $datum->{backbone};
+        } elsif ($params->{backbone}) {
+            $well_hash->{$name}->{backbone} = $params->{backbone};
+        }
+
+        if ($datum->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette};
+        } elsif ($params->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $params->{phase_matched_cassette};
+        }
 
         if ($datum->{recombinase}){
             my @recombinases = split ",", $datum->{recombinase};
             s/\s*//g foreach @recombinases;
             $well_hash->{$name}->{recombinase} = \@recombinases;
+        } elsif ($params->{recombinase}) {
+            $well_hash->{$name}->{recombinase} = $params->{recombinase};
         }
     }
 
@@ -1015,6 +1037,101 @@ sub _add_well_qc_sequencing_results{
     }
     return;
 }
+
+sub pspec_create_sequencing_project{
+    return {
+        name            => { validate => 'non_empty_string' },
+        template        => { validate => 'existing_qc_template_id', rename => 'qc_template_id', optional => 1},
+        user_id         => { validate => 'existing_user_id', rename => 'created_by_id' },
+        sub_projects    => { validate => 'integer' },
+        qc              => { validate => 'boolean', optional => 1},
+        is_384          => { validate => 'boolean', optional => 1},
+        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        primers         => { optional => 1},
+    };
+}
+
+sub create_sequencing_project {
+    my ($self, $params) = @_;
+    DEBUG "Creating sequencing project ".$params->{name};
+
+    try {
+        if($params->{qc}){
+            my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
+            $params->{template} = $template_id;
+        }
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'QC template: ' . $params->{template}
+                  . ' does not exist'
+            }
+        );
+        return;
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project);
+
+    #Create if the project name already exists
+    if ( $self->schema->resultset('SequencingProject')->find({ name => $validated_params->{name} }) ) {
+        $self->throw( InvalidState => {
+            message => 'Sequencing project name: ' . $validated_params->{name}
+                  . ' already exists'
+            }
+        );
+        return;
+    }
+
+    # Otherwise, create a new project
+    my $seq_project = $self->schema->resultset('SequencingProject')->create( { slice_def $validated_params, qw( name created_by_id created_at sub_projects qc is_384) } );
+    $self->log->debug('created sequencing project ' . $seq_project->name . ' with id ' . $seq_project->id );
+
+    if ($validated_params->{primers}){
+        my @primers = @{$validated_params->{primers}};
+        foreach my $primer (@primers){
+            my $check_primer = $self->schema->resultset('SequencingPrimerType')->find({ id => $primer },{ distinct => 1 });
+
+            if($check_primer) {
+                create_sequencing_relations($self, $primer, $seq_project, 'sequencing_project_primers', 'primer_id');
+            }
+            else {
+                $self->throw( InvalidState => {
+                    message => 'Primer : ' . $primer
+                        . ' was not found in the sequencing primer types table.'
+                    }
+                );
+            }
+        }
+    }
+    if ($validated_params->{qc_template_id}){
+        create_sequencing_relations($self, $validated_params->{qc_template_id}, $seq_project, 'sequencing_project_templates', 'qc_template_id');
+    }
+    return;
+ }
+
+ sub create_sequencing_relations {
+    my ($self, $data, $seq_proj, $table, $column) = @_;
+    my $seq_relation;
+    try{
+        $seq_relation = $seq_proj->create_related(
+                $table => {
+                $column         => $data,
+                seq_project_id  => $seq_proj->{_column_data}->{id},
+            }
+        );
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'Could not create relation in ' . $table . ' table for id: '. $seq_proj->{_column_data}->{id}
+            }
+        );
+
+    };
+
+    if( $seq_relation->{_column_data} ) {
+        $self->log->debug('created sequencing relation. table: ' . $table . ' id: ' . $seq_relation->{_column_data}->{seq_project_id} . ' foreign key: ' . $data );
+    }
+    return;
+ }
+
 1;
 
 __END__

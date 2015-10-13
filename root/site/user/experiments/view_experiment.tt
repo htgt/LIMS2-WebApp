@@ -76,7 +76,7 @@
     <th>Start</th>
     <th>End</th>
   </tr>
-  [% FOREACH crispr_primer IN experiment.crispr_primers%]
+  [% FOREACH crispr_primer IN experiment.crispr_primers %]
   <tr>
     <td>[% crispr_primer.primer_name %]</td>
     <td>[% crispr_primer.primer_seq %]</td>

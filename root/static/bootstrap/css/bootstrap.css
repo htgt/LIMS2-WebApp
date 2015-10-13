@@ -5835,3 +5835,7 @@ button.close {
     overflow: visible !important;
   }
 }
+.red-border{
+    border: 5px solid #FF0000;
+    border-color: #FF0000;
+}
