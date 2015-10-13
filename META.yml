@@ -144,6 +144,7 @@ requires:
   MooseX::Log::Log4perl: 0
   MooseX::MarkAsMethods: 0
   MooseX::NonMoose: 0
+  MooseX::SimpleConfig: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
   MooseX::Types::Path::Class::MoreCoercions: 0
@@ -169,6 +170,7 @@ requires:
   TryCatch: 0
   URI: 0
   URI::QueryParam: 0
+  WWW::JSON: 0
   WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
   WebAppCommon::FormValidator: 0
@@ -185,4 +187,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.343
+version: 0.344

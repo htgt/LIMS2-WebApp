@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::SequencingProject::VERSION = '0.343';
+    $LIMS2::WebApp::Controller::API::SequencingProject::VERSION = '0.344';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Script::FastCGI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Script::FastCGI::VERSION = '0.343';
+    $LIMS2::WebApp::Script::FastCGI::VERSION = '0.344';
 }
 ## use critic
 

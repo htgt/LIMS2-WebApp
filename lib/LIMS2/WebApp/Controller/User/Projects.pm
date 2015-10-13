@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.343';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.344';
 }
 ## use critic
 
@@ -213,7 +213,7 @@ sub view_project :Path('/user/view_project'){
     }
     $c->stash->{project_sponsors} = { map { $_ => 1 } $project->sponsor_ids };
     $c->stash->{all_sponsors} = \@sponsors;
-    $c->stash->{experiments} = [ $project->experiments ];
+    $c->stash->{experiments} = [ sort { $a->id <=> $b->id } $project->experiments ];
     $c->stash->{design_suggest} = \@design_suggest;
     $c->stash->{group_suggest} = \@group_suggest;
     return;

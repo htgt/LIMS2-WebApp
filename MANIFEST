@@ -231,6 +231,7 @@ lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm
 lib/LIMS2/Model/Util/QCTemplates.pm
 lib/LIMS2/Model/Util/RankQCResults.pm
+lib/LIMS2/Model/Util/RedmineAPI.pm
 lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/SequencingProject.pm
@@ -296,6 +297,7 @@ lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
 lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
+lib/LIMS2/WebApp/Controller/API/Redmine.pm
 lib/LIMS2/WebApp/Controller/API/Report.pm
 lib/LIMS2/WebApp/Controller/API/SequencingProject.pm
 lib/LIMS2/WebApp/Controller/Admin.pm
@@ -337,8 +339,6 @@ lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
 lib/LIMS2/WebApp/View/JSON.pm
-redmine_api_lab_tracker.conf~
-redmine_api_lab_tracker_test.conf~
 root/favicon.ico
 root/lib/barcode_well_details.tt
 root/lib/colony_count_upload_help.tt
@@ -2351,6 +2351,7 @@ root/static/images/btn_88x31_powered.png
 root/static/images/btn_88x31_powered_shadow.png
 root/static/images/catalyst_logo.png
 root/static/images/plasmid_map_help.png
+root/static/images/spinner-circle-small.gif
 root/static/images/spinner-circle.gif
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_18_b81900_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png
