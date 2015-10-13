@@ -195,7 +195,7 @@ function toggle_btn(btn, show_or_hide) {
             <tr>
                 <td>
                     <strong>[% qc.epd_well %]</strong>
-                    [% IF qc.to_report %]
+                    [% IF !qc.to_report %]
                     <br>
                     <span class="label label-important">Not to Report</span>
                     [% END %]
@@ -219,7 +219,7 @@ function toggle_btn(btn, show_or_hide) {
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
-                    [% IF qc.to_report %]
+                    [% IF !qc.to_report %]
                     <span class="label label-important">Not to Report</span>
                     [% END %]
                 </td>
