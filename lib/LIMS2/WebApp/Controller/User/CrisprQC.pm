@@ -185,17 +185,30 @@ sub crispr_es_qc_aa_file :PathPart( 'aa_file' ) Chained('crispr_qc_well') :Args(
 sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @runs = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->search(
-        { 'me.species_id' => $c->session->{selected_species} },
+    my $params = $c->request->params;
+
+    my ( $runs, $pager ) = $c->model('Golgi')->list_crispr_es_qc_runs(
         {
-            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
-            #rows     => 20,
-            order_by => { -desc => "me.created_at" }
+            species    => $c->session->{selected_species},
+            page       => $params->{page},
+            pagesize   => $params->{pagesize},
+        }
+    );
+
+    my $pageset = LIMS2::WebApp::Pageset->new(
+        {
+            total_entries    => $pager->total_entries,
+            entries_per_page => $pager->entries_per_page,
+            current_page     => $pager->current_page,
+            pages_per_set    => 5,
+            mode             => 'slide',
+            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs' )
         }
     );
 
     $c->stash(
-        runs => [ map { $_->as_hash({ include_plate_name => 1}) } @runs ],
+        runs                => $runs,
+        pageset             => $pageset
     );
 
     return;
