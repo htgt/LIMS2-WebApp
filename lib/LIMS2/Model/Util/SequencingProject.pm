@@ -17,37 +17,26 @@ use File::Slurp;
 use Carp;
 use Path::Class;
 use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
+use LIMS2::Model::Util::WellName qw/to384/;
 
 sub build_seq_data {
     my ( $self, $c, $id, $primer_req, $sub_number) = @_;
     $c->assert_user_roles('read');
+ 
     my $seq_project = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->schema->resultset('SequencingProject')->find( { id => $id } )->{_column_data};
         }
     );
 
-    my @well_letters = qw( A B C D E F G H );
-    my @data;
+    #Generate data for spreedsheet
+    my @data = generate_rows($seq_project, $sub_number, $primer_req, 1);
 
-    for (my $well_counter = 0; $well_counter < 8; $well_counter++) {
-        my $letter = $well_letters[$well_counter];
-        for (my $well_number = 1; $well_number < 13; $well_number++){
-            my $well = $letter . $well_number;
-            my $qcwell = (lc $letter) . sprintf("%02d",$well_number);
-            my $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
-            my $row = ({
-                'well'          => $well,
-                'sample_name'   => $sample,
-                'primer_name'   => 'premix w. temp',
-            });
-            push @data, $row;
-        }
-    }
     my $data_hash = ({
         project_data    => $seq_project,
         data            => \@data,
     });
+
     my $primer_rs = $c->model('Golgi')->schema->resultset('SequencingProjectPrimer')->find(
     {
         seq_project_id  => $id,
@@ -73,20 +62,80 @@ sub build_seq_data {
     return $file_contents;
 }
 
+sub generate_rows {
+    my ($seq_project, $sub_number, $primer_req, $recursion) = @_;
+    my @well_letters = qw( A B C D E F G H );
+    my @data;
+
+    foreach my $letter (@well_letters) {
+        for (my $well_number = 1; $well_number < 13; $well_number++){
+            my $row;
+            if ($seq_project->{is_384}){
+                for (my $quad = 1; $quad < 5; $quad++){
+                    $row = construct_row($letter, $well_number, $seq_project, $primer_req, $sub_number, $quad);
+                    push @data, $row;
+                }
+            }
+            else {
+                $row = construct_row($letter, $well_number, $seq_project, $primer_req, $sub_number);
+                push @data, $row;
+            }
+        }
+    }
+    return @data;
+}
+
+sub construct_row {
+    my ($letter, $well_number, $seq_project, $primer_req, $sub_number, $set) = @_;
+    my $primer_name = 'premix w. temp';
+    my $qcwell = (lc $letter) . sprintf("%02d",$well_number);
+    my $well;
+    my $sample;
+    my $row;
+
+    if ($seq_project->{is_384}){
+        my $sample_no = $sub_number + $set - 1;
+        unless ($sample_no <= $seq_project->{sub_projects}){
+            $row = ({
+                'well'          => 'EMPTY',
+                'sample_name'   => "",
+                'primer_name'   => "",
+            });
+            return $row;
+        }
+        $well = to384('_' . $set, $qcwell);
+        $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
+    }
+    else {
+        $well = $letter . $well_number;
+        $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
+    }
+    #Lowercase letter and single digit wells include leading zero so a01, a02. Required format for qc
+    #e.g. Marshmallow_1a01.p1kLR
+    $row = ({
+        'well'          => $well,
+        'sample_name'   => $sample,
+        'primer_name'   => $primer_name,
+    });
+    return $row;
+}
+
 sub build_xlsx_file {
     my ($self, $c, $wells, $primer_name, $sub_num) = @_;
     my $project = $wells->{project_data};
     my $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
 
+    #Write file to temp loction
     my $dir = dir_build($file_name);
     my $workbook = Excel::Writer::XLSX->new($dir);
 
     my $worksheet = $workbook->add_worksheet();
 
-    #Create Headers
+    #Write sheet headers
     my @headers = ( 'Well','Sample name','1. Primer name','1. Primer sequence','2. Primer name','2. Primer sequence' );
     $worksheet->write_row( 'A1', \@headers );
 
+    #Write generated data to file
     my @data = @{$wells->{data}};
     my $row_number = 2;
     foreach my $well (@data){
@@ -99,11 +148,12 @@ sub build_xlsx_file {
     return $file_name;
 }
 
-sub dir_build{
+sub dir_build {
     my ($file_name) = @_;
     my $base = $ENV{LIMS2_TEMP}
         or die "LIMS2_TEMP not set";
     return $base . '/' . $file_name;
 }
+
 
 1;
