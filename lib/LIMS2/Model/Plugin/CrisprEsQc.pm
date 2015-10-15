@@ -408,6 +408,32 @@ sub set_het_status {
 }
 
 
+sub pspec_list_crispr_es_qc_runs {
+    return {
+        species    => { validate => 'existing_species' },
+        page       => { validate => 'integer', optional => 1, default => 1 },
+        pagesize   => { validate => 'integer', optional => 1, default => 20 },
+    };
+}
+
+sub list_crispr_es_qc_runs {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_list_crispr_es_qc_runs );
+
+    my $resultset = $self->schema->resultset('CrisprEsQcRuns')->search(
+        { 'me.species_id' => $validated_params->{species} },
+        {
+            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
+            order_by => { -desc => "me.created_at" },
+            page     => $validated_params->{page},
+            rows     => $validated_params->{pagesize},
+        }
+    );
+
+    return ( [ map { $_->as_hash({ include_plate_name => 1}) } $resultset->all ], $resultset->pager );
+}
+
 1;
 
 __END__

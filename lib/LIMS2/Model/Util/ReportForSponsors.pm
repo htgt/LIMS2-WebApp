@@ -915,7 +915,7 @@ sub genes {
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
             splice(@priority_array, $index, 1);
 
-            $priority = join ( '; ', @priority_array );
+            $priority = join ( '; ', @priority_array ) // '';
         };
         if (! $priority) {$priority = '-'}
 

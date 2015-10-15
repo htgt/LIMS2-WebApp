@@ -1,5 +1,7 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
+
 <table class="table table-striped">
     <thead>
         <tr>
