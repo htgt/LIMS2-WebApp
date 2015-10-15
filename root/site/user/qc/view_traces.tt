@@ -35,20 +35,18 @@
       <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
       <div class="controls">
         <select name="sequencing_sub_project" id="sequencing_sub_project" type="text">
-          [% FOR sub IN sub_project_list %]
-          <option [% IF sequencing_sub_project == sub %]selected[% END %]>[% sub %]</option>
-          [% END %]
         </select>
 
         <!-- <input name="sequencing_sub_project" id="sequencing_sub_project" type="text"
             [% IF sequencing_sub_project %]value="[% sequencing_sub_project %]"[% END %] /> -->
       </div>
     </div>
+    <input type="hidden" name="primer_data" id="primer_data" value="[% primer_data %]">
 
     <div class="control-group">
       <label class="control-label" for="primer_names">Primer Read Counts</label>
       <div class="controls">
-          <input id="primer_names" name="primer_names" value="[% primer_names %]" readonly />
+          <input id="primer_names" name="primer_names" value="" disabled />
       </div>
     </div>
 
@@ -104,41 +102,10 @@ if ( ! Object.keys ) {
 
 $(document).ready(function() {
 
-  $("#sequencing_project").autocomplete({
-    autoFocus: true,
-    source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
-    minLength: 5,
-    select: function (event, ui) {
-     $.getJSON(
-       '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
-       { term: ui.item.value },
-       function (data) {
-          console.log(data);
-
-          $("#sequencing_sub_project").empty();
-
-          var plates;
-
-          var sorted_keys = Object.keys(data).sort();
-
-          for (var i = 0; i < sorted_keys.length; i++) {
-            var sub_project = sorted_keys[i];
-
-            var opt = $("<option>", { value: sub_project, text: sub_project });
-            //store primer information in the option
-            opt.data(data[sub_project]);
-            opt.appendTo( $("#sequencing_sub_project") );
-          }
-
-          //trigger primer names update
-          $("#sequencing_sub_project").change();
-       }
-     );
-    }
-  });
-
   $("#sequencing_sub_project").change(function() {
     var primer_data = $("#sequencing_sub_project option:selected").data();
+    console.log("selected option: " + $("#sequencing_sub_project option:selected").val() );
+    console.log("primer data for selected option:");
     console.log(primer_data);
 
     if ( primer_data ) {
@@ -156,6 +123,64 @@ $(document).ready(function() {
     }
     else {
       $("#primer_names").val("");
+    }
+  });
+
+  function populate_subproject_list(data, selected_value){
+    console.log("primer data: ");
+    console.log(data);
+    $("#sequencing_sub_project").empty();
+
+    var plates;
+
+    var sorted_keys = Object.keys(data).sort();
+
+    for (var i = 0; i < sorted_keys.length; i++) {
+      var sub_project = sorted_keys[i];
+
+      var opt = $("<option>", { value: sub_project, text: sub_project });
+
+      //store primer information in the option
+      opt.data(data[sub_project]);
+      opt.appendTo( $("#sequencing_sub_project") );
+
+      if(sub_project == selected_value){
+        console.log('selecting sub-project ' + sub_project);
+        opt.attr("selected","selected");
+      }
+    }
+
+    //trigger primer names update
+    $("#sequencing_sub_project").change();
+  }
+
+  // Check for primer data element
+  // If available fetch json data from it and use it to populate subproject options
+  if( $("#primer_data").val() ){
+    var data = JSON.parse( $("#primer_data").val() );
+    console.log("populating sub-projects with preloaded primer data");
+    populate_subproject_list(data, "[% sequencing_sub_project %]");
+  }
+
+  $("#sequencing_project").autocomplete({
+    autoFocus: true,
+    source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
+    minLength: 5,
+    select: function (event, ui) {
+     $.getJSON(
+       '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
+       { term: ui.item.value },
+       function (data) {
+          console.log(data);
+
+          // remove any existing primer data form field and replace with new one
+          $("#primer_data").remove();
+          $("#view_traces").append("<input type='hidden' name='primer_data' id='primer_data' value='" + JSON.stringify(data) + "'>");
+
+          // populate sub project list
+          populate_subproject_list(data,'');
+       }
+     );
     }
   });
 
