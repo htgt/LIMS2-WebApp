@@ -22,7 +22,7 @@ use LIMS2::Model::Util::WellName qw/to384/;
 sub build_seq_data {
     my ( $self, $c, $id, $primer_req, $sub_number) = @_;
     $c->assert_user_roles('read');
- 
+
     my $seq_project = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->schema->resultset('SequencingProject')->find( { id => $id } )->{_column_data};
@@ -86,7 +86,7 @@ sub generate_rows {
 }
 
 sub construct_row {
-    my ($letter, $well_number, $seq_project, $primer_req, $sub_number, $set) = @_;
+    my ($letter, $well_number, $seq_project, $primer_req, $sub_number, $quad) = @_;
     my $primer_name = 'premix w. temp';
     my $qcwell = (lc $letter) . sprintf("%02d",$well_number);
     my $well;
@@ -94,7 +94,7 @@ sub construct_row {
     my $row;
 
     if ($seq_project->{is_384}){
-        my $sample_no = $sub_number + $set - 1;
+        my $sample_no = $sub_number + $quad - 1;
         unless ($sample_no <= $seq_project->{sub_projects}){
             $row = ({
                 'well'          => 'EMPTY',
@@ -103,7 +103,7 @@ sub construct_row {
             });
             return $row;
         }
-        $well = to384('_' . $set, $qcwell);
+        $well = to384('_' . $quad, $qcwell);
         $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
     }
     else {

@@ -37,10 +37,10 @@ sub status : Path( '/api/set_status' ) : Args(0) : ActionClass( 'REST' ) {
 sub status_GET {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('read');
-    
+
     my $id = $c->request->param( 'seq_id' );
     my $abandoned = $c->request->param( 'abandoned' );
-   
+
     LIMS2::WebApp::Controller::User::ExternalProject::update_status($c, $id, $abandoned);
 
     return;

@@ -1034,7 +1034,6 @@ sub pspec_create_sequencing_project{
 sub create_sequencing_project {
     my ($self, $params) = @_;
     DEBUG "Creating sequencing project ".$params->{name};
-$DB::single=1;
     try {
         if($params->{qc}){
             unless ($params->{qc_type} eq 'Crispr') {
