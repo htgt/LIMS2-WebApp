@@ -285,6 +285,10 @@ sub load_static_files {
             Sponsor
             BarcodeState
             CrisprTrackerRna
+            SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectTemplate
             )
     );
 

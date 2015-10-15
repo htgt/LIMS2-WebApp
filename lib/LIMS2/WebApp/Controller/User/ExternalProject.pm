@@ -29,9 +29,9 @@ Catalyst Controller.
 sub external_project :Path('/user/external_project'){
     my ( $self, $c ) = @_;
 
-    my $primer_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
+    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
 
-    handle_primers($c, $primer_rs); #Fills the primer dropdown menu
+    handle_primers($c, $secondary_rs); #Fills the primer dropdown menu
 
     my $project_name = $c->req->param('project_name');
     if ($project_name){
@@ -58,17 +58,19 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
     my ($self, $c) = @_;
 
     my $proj = $c->req->param('seq_id');
-    my $key;
 
-    if ($proj){
-        $key = 'id';
-    }
-    else {
-        $key = 'name';
-        $proj = $c->req->param('seq_name');
-    }
+    my $seq_project;
+    try {
+        $seq_project = $c->model('Golgi')->schema->resultset('SequencingProject')->find({ id => $proj})->{_column_data};
+    } catch {
+        $c->stash->{error_msg} = "Error retrieving sequencing project data. " . $_;
+        return;
+    };
 
-    my $seq_project = $c->model('Golgi')->schema->resultset('SequencingProject')->find({ $key => $proj})->{_column_data};
+    unless ($seq_project) {
+        $c->stash->{error_msg} = "Sequencing project id not found: " . $proj;
+        return;
+    }
 
     my $size;
     if ($seq_project->{is_384}){
@@ -79,24 +81,29 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
     }
 
     if ($seq_project->{qc}){
-        my $template_id = $c->model('Golgi')->schema->resultset('SequencingProjectTemplate')->find({ seq_project_id => $seq_project->{id} })->{_column_data};
+        try{
+            my $template_id = $c->model('Golgi')->schema->resultset('SequencingProjectTemplate')->find({ seq_project_id => $seq_project->{id} })->{_column_data};
 
-        my $template_name = $c->model('Golgi')->schema->resultset('QcTemplate')->find(
-            {
-                id => $template_id->{qc_template_id}
-            },
-            {
-                columns => [qw/ name /],
-                distinct => 1,
-            }
-        )->{_column_data};
-        $c->stash->{qc} = ({ qc_template => $template_name->{name} });
+            my $template_name = $c->model('Golgi')->schema->resultset('QcTemplate')->find(
+                {
+                    id => $template_id->{qc_template_id}
+                },
+                {
+                    columns => [qw/ name /],
+                    distinct => 1,
+                }
+            )->{_column_data};
+            $c->stash->{qc} = ({ qc_template => $template_name->{name} });
+        };
     }
 
     my @primers;
-    my $primer_rs = $c->model('Golgi')->schema->resultset('SequencingProjectPrimer')->search({ seq_project_id => $seq_project->{id}});
+    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingProjectPrimer')->search({ seq_project_id => $seq_project->{id}});
 
-    handle_primers($c, $primer_rs);
+    handle_primers($c, $secondary_rs);
+
+    my $user_id = $seq_project->{created_by_id};
+    my $user_rs = $c->model('Golgi')->schema->resultset('User')->find({ id => $user_id})->{_column_data};
 
     $c->stash->{seq_project} = ({
         abandoned           => $seq_project->{abandoned},
@@ -107,14 +114,9 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
         qc                  => $seq_project->{qc},
         sub_projects        => $seq_project->{sub_projects},
         primers             => \@primers,
+        user                => $user_rs->{name},
     });
 
-    return;
-}
-
-sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
-    my ($self, $c) = @_;
-    #Will contain update status methods
     return;
 }
 
@@ -122,16 +124,17 @@ sub check_params{
     my $c = shift;
     my $params = $c->req->params;
 
-    #Only if QC is ticked, check for template id
-    if($params->{qc}){
-        unless ($params->{template_id}){
-            $c->stash->{error_msg} = "Please select a QC template from the autocorrect.";
-        }
+    #Sub-projects may only contain a positive integer
+    unless ($params->{sub_projects} =~ m/^\d+$/) {
+        $c->stash->{error_msg} = "Please enter a positive integer value into sub_projects.";
     }
 
-    #Sub-projects may only contain a positive integer
-    unless ($params->{sub_projects} =~ m/^-?\d+$/) {
-        $c->stash->{error_msg} = "Please enter a positive integer value into sub_projects.";
+    if ($params->{qc}) {
+        unless ($params->{qc_type} eq 'Crispr') {
+            unless ($params->{template_id}) {
+                $c->stash->{error_msg} = "Please enter a QC template.";
+            }
+        }
     }
 
     #Name may only contain A-Z, a-z, 0-9
@@ -141,10 +144,10 @@ sub check_params{
 
     #Check if name exists as old project in HTGT
     my $projects = search_seq_project_names($params->{project_name});
-    #If not found, empty array reference is returned
-    if (@{ $projects }) {
+    if ( grep { /^$params->{project_name}$/ } @{ $projects }  ) {
         $c->stash->{error_msg} = $params->{project_name} . " already exists as an old project name. Please enter an unique name.";
     }
+
     return;
 }
 
@@ -170,8 +173,6 @@ sub create_ext_project {
     }
     my @primers = match_primers($c, $params);
 
-
-
     my $seq_plate = ({
         name            => $params->{'project_name'},
         template        => $params->{'template_id'},
@@ -180,23 +181,24 @@ sub create_ext_project {
         user_id         => $c->session->{__user}->{id},
         is_384          => $params->{'large_well'},
         primers         => \@primers,
+        qc_type         => $params->{'qc_type'},
     });
     return $seq_plate;
 }
 
 sub handle_primers {
-    my ($c, $primer_rs) = @_;
+    my ($c, $secondary_rs) = @_;
     my @primers;
-    my $primer_name;
+    my $secondary_name;
 
-    while (my $primer = $primer_rs->next) {
-        if ($primer->{_column_data}->{id}){
-            $primer_name = $primer->{_column_data}->{id};
+    while (my $secondary = $secondary_rs->next) {
+        if ($secondary->{_column_data}->{id}){
+            $secondary_name = $secondary->{_column_data}->{id};
         }
         else {
-            $primer_name = $primer->{_column_data}->{primer_id};
+            $secondary_name = $secondary->{_column_data}->{primer_id};
         }
-        push(@primers, $primer_name);
+        push(@primers, $secondary_name);
     }
     @primers = sort { "\L$a" cmp "\L$b" } @primers;
     $c->stash->{primer_list} = \@primers;
@@ -224,12 +226,125 @@ sub match_primers {
     return @filtered_values;
 }
 
+sub update_status {
+    my ($c, $id, $abandoned) = @_;
+    my $bool;
 
-sub retrieve_files{
-    my ($self, $c, $primer) = @_;
-    #LIMS2::Model::Util::SequencingProject::build_seq_data    
+    if ($abandoned eq 'Yes'){
+        $bool = 1;
+    }
+    else {
+        $bool = 0;
+    }
+    my $update = ({
+        id          => $id,
+        abandoned   => $bool,
+    });
+    try {
+        $c->model('Golgi')->update_sequencing_project($update);
+    } catch {
+        $c->stash->{error_msg} = "Error creating sequencing project: " . $_;
+    };
     return;
 }
+
+sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
+    my ($self, $c) = @_;
+
+    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
+
+    handle_primers($c, $secondary_rs);
+
+    if ($c->req->params){
+        search_results($self, $c);
+    }
+
+    return;
+}
+
+sub search_results {
+    my ($self, $c) = @_;
+    my $name = $c->req->param('seq_name');
+    my $primer_req = $c->req->param('dd_primer');
+    $name = lc $name;
+
+    my $primary_rs;
+    my $table;
+    my $column;
+    if ($name) {
+       $primary_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->search({
+            'lower(name)' => {'like', "%".$name."%"},
+        },
+        {
+            distinct => 1,
+            columns => [qw/
+                id
+                name
+            /],
+        }
+        );
+        retrieve_results($c, $primary_rs,'SequencingProjectPrimer','seq_project_id', 'id');
+    }
+    elsif ($primer_req) {
+        $primary_rs = $c->model('Golgi')->schema->resultset('SequencingProjectPrimer')->search({ primer_id => $primer_req });
+        retrieve_results($c, $primary_rs,'SequencingProject','id', 'seq_project_id');
+    }
+
+
+    return;
+}
+
+sub retrieve_results {
+    my ($c, $primary_rs, $table, $column, $result_column) = @_;
+
+    my @results;
+    while (my $primary = $primary_rs->next) {
+        my $primary_cd = $primary->{_column_data};
+        my $secondary_rs = $c->model('Golgi')->schema->resultset($table)->search({ $column => $primary_cd->{$result_column} });
+
+        if ($table eq 'SequencingProjectPrimer')
+        {
+            my @primers;
+            while (my $primer_rs = $secondary_rs->next){
+                push @primers, $primer_rs->{_column_data}->{primer_id};
+            }
+            my $primer_concat = join(', ', @primers);
+            @results = store_result($primer_concat, $primary_cd, @results);
+        }
+        else {
+            while (my $project_rs = $secondary_rs->next){
+                my $project_cd = $project_rs->{_column_data};
+                @results = store_result($primary_cd->{primer_id}, $project_cd, @results);
+
+            }
+        }
+    }
+    my @sorted =  sort { $a->{name} cmp $b->{name} } @results;
+    if (@results) {
+        $c->stash(
+            results => \@sorted,
+        );
+    }
+    else {
+         $c->stash->{info_msg} = "No sequencing projects were found.";
+    }
+    return;
+}
+
+sub store_result {
+    my ($primer, $project, @results) = @_;
+    my $result = ({
+        primer      => $primer,
+        id          => $project->{id},
+        name        => $project->{name},
+    });
+
+    push @results, $result;
+
+    return @results;
+}
+
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -36,12 +36,14 @@
             The options are listed below.
           </p>
             <dl class="dl-horizontal">
+              <dt>QC Type</dt>
+              <dd>If you intend to run the project through the LIMS2 QC, please select which type of QC you intend to run. If you are going to use Crispr QC, there is no need to insert a QC template in the next field.</dd>
               <dt>QC Template</dt>
               <dd>Must exist in the LIMS2 system. Autocorrect functionality has been added to assist with this. Only required if you intend to run the project through LIMS2 QC. The Create QC template button will navigate you away from this page</dd>
               <dt>QC</dt>
               <dd>Tick the box if you intend to run the project through the LIMS2 QC system</dd>
               <dt>Is 384?</dt>
-              <dd>Coming soon. If you wish to submit 384 well plates to Eurofins at current moment, please contact us at htgt@sanger.ac.uk</dd>
+              <dd>Set the project to 384 sized well plates. This will affect how the spreadsheets are generated for this project. By default, this option is set to 96 well plates</dd>
             </dl>
         </div>
       </div>
