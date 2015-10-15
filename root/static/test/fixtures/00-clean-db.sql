@@ -55,6 +55,7 @@ DELETE FROM sequencing_project_templates;
 DELETE FROM qc_templates;
 DELETE FROM qc_eng_seqs;
 DELETE FROM sequencing_project_primers;
+DELETE FROM sequencing_project_templates;
 DELETE FROM sequencing_primer_types;
 DELETE FROM sequencing_projects;
 DELETE FROM well_accepted_override;
