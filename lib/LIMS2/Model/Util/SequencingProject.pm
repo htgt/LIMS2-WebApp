@@ -45,7 +45,7 @@ sub build_seq_data {
 
     my $file_name;
     if ($primer_rs){
-        $file_name = build_xlsx_file($self, $c, $data_hash, $primer_rs->{_column_data}->{primer_id}, $sub_number);
+        $file_name = build_xlsx_file($self, $c, $data_hash, $primer_rs->{_column_data}->{primer_id}, $sub_number, $seq_project);
     }
     else {
         return "Primers not found.";
@@ -121,9 +121,24 @@ sub construct_row {
 }
 
 sub build_xlsx_file {
-    my ($self, $c, $wells, $primer_name, $sub_num) = @_;
+    my ($self, $c, $wells, $primer_name, $sub_num, $seq_project) = @_;
     my $project = $wells->{project_data};
-    my $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
+    my $file_name;
+    if ($seq_project->{is_384}) {
+        my $max = $sub_num + 3;
+        if ($sub_num == $seq_project->{sub_projects}) {
+            $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
+        }
+        elsif ($max > $seq_project->{sub_projects}) {
+            $file_name = $project->{name} . '_' . $sub_num . '-' . $seq_project->{sub_projects} . '_' . $primer_name . '.xlsx';
+        }
+        else {
+            $file_name = $project->{name} . '_' . $sub_num . '-' . $max . '_' . $primer_name . '.xlsx';
+        }
+    }
+    else {
+        $file_name = $project->{name} . '_' . $sub_num . '_' . $primer_name . '.xlsx';
+    }
 
     #Write file to temp loction
     my $dir = dir_build($file_name);
