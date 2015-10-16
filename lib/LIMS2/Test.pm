@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.342';
+    $LIMS2::Test::VERSION = '0.345';
 }
 ## use critic
 
@@ -291,6 +291,10 @@ sub load_static_files {
             Sponsor
             BarcodeState
             CrisprTrackerRna
+            SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectTemplate
             )
     );
 

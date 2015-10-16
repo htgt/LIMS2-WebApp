@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.342';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.345';
 }
 ## use critic
 
@@ -736,9 +736,13 @@ sub create_qc_template_from_plate {
 
 sub pspec_qc_template_from_csv{
     return{
-        template_name => { validate => 'plate_name'},
-        species       => { validate => 'existing_species'},
-        well_data_fh  => { validate => 'file_handle' },
+        template_name          => { validate => 'plate_name'},
+        species                => { validate => 'existing_species'},
+        well_data_fh           => { validate => 'file_handle' },
+        cassette               => { validate => 'existing_cassette', optional => 1},
+        backbone               => { validate => 'existing_backbone', optional => 1},
+        recombinase            => { validate => 'existing_recombinase', optional => 1},
+        phase_matched_cassette => { optional => 1 },
     };
 }
 
@@ -757,14 +761,31 @@ sub create_qc_template_from_csv{
         my $name = uc( $datum->{well_name} );
         $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
-        $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
-        $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
-        $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette} if $datum->{phase_matched_cassette};
+
+        if ($datum->{cassette}) {
+            $well_hash->{$name}->{cassette} = $datum->{cassette};
+        } elsif ($params->{cassette}) {
+            $well_hash->{$name}->{cassette} = $params->{cassette};
+        }
+
+        if ($datum->{backbone}) {
+            $well_hash->{$name}->{backbone} = $datum->{backbone};
+        } elsif ($params->{backbone}) {
+            $well_hash->{$name}->{backbone} = $params->{backbone};
+        }
+
+        if ($datum->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette};
+        } elsif ($params->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $params->{phase_matched_cassette};
+        }
 
         if ($datum->{recombinase}){
             my @recombinases = split ",", $datum->{recombinase};
             s/\s*//g foreach @recombinases;
             $well_hash->{$name}->{recombinase} = \@recombinases;
+        } elsif ($params->{recombinase}) {
+            $well_hash->{$name}->{recombinase} = $params->{recombinase};
         }
     }
 
@@ -1032,18 +1053,20 @@ sub pspec_create_sequencing_project{
         qc              => { validate => 'boolean', optional => 1},
         is_384          => { validate => 'boolean', optional => 1},
         created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-        primers         => { optional => 1},
+        primers         => { optional => 1 },
+        qc_type         => { optional => 1 },
     };
 }
 
 sub create_sequencing_project {
     my ($self, $params) = @_;
     DEBUG "Creating sequencing project ".$params->{name};
-
     try {
         if($params->{qc}){
-            my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
-            $params->{template} = $template_id;
+            unless ($params->{qc_type} eq 'Crispr') {
+                my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
+                $params->{template} = $template_id;
+            }
         }
     } catch {
         $self->throw( InvalidState => {
@@ -1056,7 +1079,7 @@ sub create_sequencing_project {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project);
 
-    #Create if the project name already exists 
+    #Create if the project name already exists
     if ( $self->schema->resultset('SequencingProject')->find({ name => $validated_params->{name} }) ) {
         $self->throw( InvalidState => {
             message => 'Sequencing project name: ' . $validated_params->{name}
@@ -1117,6 +1140,23 @@ sub create_sequencing_project {
     return;
  }
 
+sub pspec_update_sequencing_project{
+    return {
+        id          => { validate => 'integer' },
+        abandoned   => { validate => 'boolean', optional => 1},
+    };
+}
+
+ sub update_sequencing_project {
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_update_sequencing_project );
+
+    my $seq_proj = $self->retrieve( SequencingProject => { id => $validated_params->{id} } );
+
+    $seq_proj->update( { abandoned => $validated_params->{abandoned} } );
+
+    return;
+ }
 1;
 
 __END__

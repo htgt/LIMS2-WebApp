@@ -11,7 +11,7 @@
     <th>Sequencing ID</th>
     <td>[% seq_project.id %]</td>
   </tr>
-[% IF seq_project.qc == 1 %]
+[% IF qc.qc_template %]
   <tr>
     <th>Template</th>
     <td>[% qc.qc_template %]</td>
@@ -25,22 +25,49 @@
     <th>Number of sub-projects</th>
     <td>[% seq_project.sub_projects %]</td>
   </tr>
+  <tr>
+    <th>Created by User</th>
+    <td>[% seq_project.user %]</td>
+  </tr>
 </table>
 <br>
 
-<h2>Project Status  </h2> <!-- <button type="button" class="btn btn-info">Change status</button> -->
+<h2>Project Status  </h2>
 <table class="table seq_status">
   <tr>
     <th>For QC</th>
-    <td>[% seq_project.qc %]</td>
+    <td id="qc_id">
+    [% IF seq_project.qc == 0 %]
+      No
+    [% ELSE %]
+      Yes
+    [% END %]
+    </td>
+    <td></td>
   </tr>
   <tr>
     <th>Results available</th>
-    <td>[% seq_project.available_results %]</td>
+    <td id="results_id">
+    [% IF seq_project.available_results == 0 %]
+      No
+    [% ELSE %]
+      Yes
+    [% END %]
+    </td>
+    <td></td>
   </tr>
   <tr>
     <th>Abandoned</th>
-    <td>[% seq_project.abandoned %]</td>
+    <td id="abandoned_id">
+    [% IF seq_project.abandoned == 0 %]
+      No
+    [% ELSE %]
+      Yes
+    [% END %]
+    </td>
+    <td>
+      <input type="button"  id="status_btn" value="Change Status" style="float: right;" class="btn btn-info"  onclick=changeStatus();></button>
+    </td>
   </tr>
 </table>
 
@@ -51,49 +78,141 @@
     <th>Sub-project Number</th>
     <th></th>
   </tr>
-[% SET sub_counter = 0 %]
-[% WHILE sub_counter < seq_project.sub_projects %]
-  [% sub_counter = sub_counter + 1 %]
+[% IF seq_project.size == 96 %]
   [% FOREACH primer IN primer_list %]
-  <tr>
-    <td>[% primer %]</td>
-    <td>[% sub_counter %]</td>
-    <td>
-      <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% sub_counter %]');>
-        <i class="icon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
-      </button>
-    </td> 
-  </tr>
+    [% SET sub_counter = 0 %]
+    [% WHILE sub_counter < seq_project.sub_projects %]
+      [% sub_counter = sub_counter + 1 %]
+        <tr>
+          <td>[% primer %]</td>
+          <td>[% sub_counter %]</td>
+          <td>
+            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% sub_counter %]');>
+              <i class="icon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
+            </button>
+          </td>
+        </tr>
+    [% END %]
+[% END %]
+<!-- 384 well plate -->
+[% ELSE %]
+  [% FOREACH primer IN primer_list %]
+<!-- Create main bulk of projects 1-4, 5-8 etc -->
+    [% SET counter = 0 %]
+    [% SET set_counter = seq_project.sub_projects div 4 %]
+    [% WHILE counter < set_counter %]
+      [% SET adjustment = counter * 4 %]
+        <tr>
+          <td>[% primer %]</td>
+          <td>[% 1 + adjustment %] - [% 4 + adjustment %]</td>
+          <td>
+            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% 1 + adjustment %]');>
+              <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
+            </button>
+          </td>
+        </tr>
+      [% counter = counter + 1 %]
+    [% END %]
+<!-- Create the modulus of projects -->
+    [% SET modulus = seq_project.sub_projects % 4 %]
+    [% SET adjustment = set_counter * 4 %]
+    [% IF modulus != 0 %]
+      <tr>
+        <td>[% primer %]</td>
+        [% IF modulus ==  1 %]
+          <td>[% seq_project.sub_projects %]</td>
+          <td>
+            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% seq_project.sub_projects %]');>
+              <i class="icon-download"></i> Download [% seq_project.name %] [% seq_project.sub_projects %] : [% primer %]
+            </button>
+          </td>
+        [% ELSE %]
+          <td>[% 1 + adjustment %] - [% modulus + adjustment %]</td>
+          <td>
+            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% 1 + adjustment %]');>
+              <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
+            </button>
+          </td>
+        [% END %]
+      </tr>
+    [% END %] 
   [% END %]
 [% END %]
+
 </table> 
 
 <script type="text/javascript">
 $(document).ready(function () {
     var id = '[% seq_project.id %]'; 
 })
-function retrieve_file(primer, sub) {
+function retrieve_file(primer, sub, size) {
     console.log("reached");
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
-    var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub=' + sub);
+    var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub='+ sub);
     console.log(link);
     
     OpenInNewTab(link);
-    /*
-    #$(document).load( link, function(data) {
-        document.body.innerHTML += '<div>' + data + '</div>';
-
-        alert( "Load was performed.");
-    });
-    */
 }
+
 function OpenInNewTab(url) {
     var win = window.open(url, '_blank');
-
 }
 
+function changeStatus() {
+    var data = document.getElementById("abandoned_id").innerHTML;
+    var elem = document.getElementById("status_btn");
+    
+    if (data.indexOf("input") > -1) {
+        commitStatus();
+        elem.value = "Change Status";
+    }
+    else {
+        elem.value = "Submit Status";
+        injectCheckbox(data);
 
+    }
+}
+
+function injectCheckbox(data) {
+    document.getElementById("abandoned_id").innerHTML = '<input type="checkbox" name="qc" id="check_abandoned" enabled />';
+    var checkAbandoned = document.getElementById("check_abandoned");
+
+    defaultCheck(checkAbandoned, data);
+}
+
+function commitStatus() {
+    var checkboxAbandoned = document.getElementById("check_abandoned");
+
+    var abandoned = convertToYN(checkboxAbandoned.checked);
+
+    document.getElementById("abandoned_id").innerHTML = abandoned;
+    $.ajax({
+        url: '[% c.uri_for('/api/set_status/') %]',
+        type: 'GET',
+        data: 'seq_id=' + '[% seq_project.id %]' + '&abandoned=' + abandoned,
+        success: function() { alert('PUT completed'); }
+    });
+    console.log("reach");
+}
+
+function convertToYN(val) {
+    if (val == false) {
+        return "No";
+    }
+    else {
+        return "Yes";
+    }
+}
+
+function defaultCheck(box, value) {
+    if (value.indexOf("Yes") > -1) {
+        box.checked=true;
+    }
+    else {
+        box.checked=false;
+    }
+}
 
 </script>
 

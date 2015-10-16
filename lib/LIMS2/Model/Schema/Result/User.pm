@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.342';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.345';
 }
 ## use critic
 
@@ -528,6 +528,15 @@ sub as_hash {
         active => $self->active,
         roles  => [ sort map { $_->name } $self->roles ]
     };
+}
+
+sub is_sanger{
+    my $self = shift;
+
+    if($self->name =~ /.*\@sanger\.ac\.uk/){
+        return 1;
+    }
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;

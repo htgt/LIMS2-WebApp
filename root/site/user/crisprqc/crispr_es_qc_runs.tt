@@ -1,5 +1,7 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
+[%- INCLUDE 'pagination.tt' pageset = pageset %]
+
 <table class="table table-striped">
     <thead>
         <tr>
@@ -16,7 +18,7 @@
         [% FOR run IN runs %]
         <tr>
             <td><a href="[% c.uri_for('es_qc_run', run.id) %]">[% run.id.substr(0, 8) %]</a></td>
-            <td>[% run.plate_name %]</dt>
+            <td><a href="[% c.uri_for('/user/view_plate', { name => run.plate_name}) %]">[% run.plate_name %]</a></dt>
             <td>[% run.sequencing_project %]</td>
             <td>
                 [% IF run.validated %]

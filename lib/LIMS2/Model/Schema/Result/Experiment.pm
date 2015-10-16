@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.342';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.345';
 }
 ## use critic
 
@@ -263,12 +263,21 @@ sub as_hash_with_detail{
     return $info;
 }
 
+# Grab the first design or crispr entity we find so we can get chromosome info etc from it
+sub _related_entity{
+    my $self = shift;
+    my ($related_entity) = grep { $_ } ( $self->crispr, $self->crispr_pair, $self->crispr_group, $self->design );
+    return $related_entity;
+}
+
 sub species_id{
     my $self = shift;
+    return $self->_related_entity->species_id;
+}
 
-    my ($related_entity) = grep { $_ } ($self->design, $self->crispr, $self->crispr_pair, $self->crispr_group);
-
-    return $related_entity->species_id;
+sub chr_name{
+    my $self = shift;
+    return $self->_related_entity->chr_name;
 }
 
 sub crispr_description{
@@ -300,6 +309,7 @@ sub _chr_location{
     my $location = "chr".$entity->chr_name.":".$entity->start."-".$entity->end;
     return $location;
 }
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.342';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.345';
 }
 ## use critic
 
@@ -16,6 +16,7 @@ use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
 use TryCatch;
 use Log::Log4perl::Level;
+use Bio::Perl qw( revcom );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -190,17 +191,30 @@ sub crispr_es_qc_aa_file :PathPart( 'aa_file' ) Chained('crispr_qc_well') :Args(
 sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @runs = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->search(
-        { 'me.species_id' => $c->session->{selected_species} },
+    my $params = $c->request->params;
+
+    my ( $runs, $pager ) = $c->model('Golgi')->list_crispr_es_qc_runs(
         {
-            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
-            #rows     => 20,
-            order_by => { -desc => "me.created_at" }
+            species    => $c->session->{selected_species},
+            page       => $params->{page},
+            pagesize   => $params->{pagesize},
+        }
+    );
+
+    my $pageset = LIMS2::WebApp::Pageset->new(
+        {
+            total_entries    => $pager->total_entries,
+            entries_per_page => $pager->entries_per_page,
+            current_page     => $pager->current_page,
+            pages_per_set    => 5,
+            mode             => 'slide',
+            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs' )
         }
     );
 
     $c->stash(
-        runs => [ map { $_->as_hash({ include_plate_name => 1}) } @runs ],
+        runs                => $runs,
+        pageset             => $pageset
     );
 
     return;
@@ -350,6 +364,8 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     );
     return;
 }
+
+
 
 __PACKAGE__->meta->make_immutable;
 
