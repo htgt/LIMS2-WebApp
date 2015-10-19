@@ -240,8 +240,8 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
         yaxis: {
             zoomRange: [100, 10000],
             panRange: false,
-            reserveSpace: true,
-            show: false
+            labelWidth: 60,
+            show: true,
         },
         zoom: {
             interactive: false
