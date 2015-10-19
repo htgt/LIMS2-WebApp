@@ -24,6 +24,7 @@
             /* really we only want to draw once, not per series */
             var x = plot.getAxes().xaxis;
 
+            var reads = [];
             for ( var i = 0; i < plot.labels.length; i++ ) {
                 var label = plot.labels[i];
 
@@ -44,6 +45,33 @@
 
                 if (loc.left > 0)
                     drawNucleotide(series, label.nuc, loc.left, loc.top);
+                    reads.push(label);
+            }
+
+            // sort reads left to right to produce sequence search string
+            reads.sort(function(a, b){
+              if(a.x == b.x) return 0;
+              return a.x > b.x ? 1 : -1;
+            });
+
+            var read = "";
+            $.each(reads, function(i,label){ read += label.nuc });
+
+            // If we can find the trace_sequence preceding the plot highlight the
+            // search sequence string within it
+            var seq_td = plot.getPlaceholder().parents("tr").prev().children(".trace_sequence");
+            if(seq_td){
+              var context = seq_td.text().split(read);
+              if(context[2]){
+                // search sequence must be repeated. do not attempt to highlight.
+                // remove previous highlighing
+                seq_td.html(seq_td.text());
+              }
+              else{
+                var highlighted = "<span class='traceviewer_highlight'>" + read + "</span>";
+                var new_html = context.join(highlighted);
+                seq_td.html(new_html);
+              }
             }
 
             ctx.restore();
@@ -148,6 +176,13 @@ TraceViewer.prototype.show_traces = function(button) {
         "class":"btn hide-traces",
         "text":"Hide Traces",
         "click": function(){
+            // remove sequence highlighting
+            var seq_td = $(this).parents("tr").prev().children(".trace_sequence");
+            if(seq_td){
+                seq_td.html( seq_td.text() );
+            }
+
+            // show the show button
             var div = $(this).parent();
             var show_button = div.prev();
             show_button.show();
@@ -218,6 +253,29 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
             show: false,
             position: "nw"
         }
+    });
+
+    placeholder.bind("plotpan", function (event, plot) {
+        return;
+        var axes = plot.getAxes();
+
+        var x = plot.getAxes().xaxis;
+        var read = "";
+
+        console.log(plot.labels);
+        for ( var i = 0; i < plot.labels.length; i++ ) {
+            var label = plot.labels[i];
+
+            //only show values within the range we're looking
+            if ( label.x < x.min || label.x > x.max ) {
+                //console.log(label.x + " < " + x.min + " || " + label.x + " > " + x.max);
+                continue;
+            }
+
+            read += label.nuc;
+        }
+
+        console.log( read );
     });
 
     function addZoom(text, left, top, args) {
