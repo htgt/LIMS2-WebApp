@@ -252,7 +252,8 @@ $( document ).ready(function() {
               project_id    : "[% project.id %]",
               experiment_id : $(item).data('expId'),
               sponsors      : "[% project.sponsors %]",
-              cell_line     : "[% project.cell_line %]"
+              cell_line     : "[% project.cell_line %]",
+              priority      : "[% project.priority %]"
             }
           }).done(function(data){
             console.log(data);

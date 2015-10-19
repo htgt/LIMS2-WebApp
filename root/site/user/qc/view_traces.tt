@@ -1,11 +1,11 @@
 [% META title="View Sequencing Traces"; META tab_name = 'QC' %]
 
-<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css', {id=1} ) %]">
 
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>2} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>3} ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
     api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
@@ -64,6 +64,8 @@
 </div>
 
 [% IF reads %]
+<div id="message"></div>
+
 <table class="table span12" style="table-layout:fixed">
     <thead>
         <tr>
@@ -75,7 +77,7 @@
         [% FOR read IN reads %]
             <tr>
               <td rowspan="2">[% read.orig_read_name %]</td>
-              <td style="overflow-wrap:break-word">[% read.seq %]</td>
+              <td style="overflow-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
             </tr>
             <tr>
                <td>
@@ -200,6 +202,11 @@ $(document).ready(function() {
   $("#hide_all_traces").click(function(){
     // Remove the trace plots
     $(".demo-container").remove();
+
+    // Remove any sequence highlighing
+    $(".trace_sequence").each(function(i,seq_td){
+      $(seq_td).html($(seq_td).text());
+    });
 
     // Hide the hide traces buttons
     $(".hide-traces").remove();
