@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.344';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.346';
 }
 ## use critic
 
@@ -887,8 +887,7 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     # Store form values
     $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
-    # This field is for display only
-    $c->stash->{primer_names} = $c->req->param('primer_names');
+    $c->stash->{primer_data} = $c->req->param('primer_data');
 
     if($c->req->param('get_reads')){
         # Fetch the sequence fasta and parse it
@@ -914,7 +913,6 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
 
         $c->stash(
             reads            => $reads_by_sub->{ $c->req->param('sequencing_sub_project') },
-            sub_project_list => [ sort keys %$reads_by_sub ],
         );
     }
 

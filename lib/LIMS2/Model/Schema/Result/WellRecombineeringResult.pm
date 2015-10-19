@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellRecombineeringResult;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellRecombineeringResult::VERSION = '0.344';
+    $LIMS2::Model::Schema::Result::WellRecombineeringResult::VERSION = '0.346';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCPlasmidView;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCPlasmidView::VERSION = '0.344';
+    $LIMS2::Model::Util::QCPlasmidView::VERSION = '0.346';
 }
 ## use critic
 

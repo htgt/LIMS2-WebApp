@@ -2,7 +2,6 @@ package LIMS2::t::WebApp::Controller::User::CreateCrisprPlate;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::CreateCrisprPlate;
-$DB::single=1;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 

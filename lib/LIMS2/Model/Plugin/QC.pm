@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.344';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.346';
 }
 ## use critic
 
@@ -1053,18 +1053,20 @@ sub pspec_create_sequencing_project{
         qc              => { validate => 'boolean', optional => 1},
         is_384          => { validate => 'boolean', optional => 1},
         created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-        primers         => { optional => 1},
+        primers         => { optional => 1 },
+        qc_type         => { optional => 1 },
     };
 }
 
 sub create_sequencing_project {
     my ($self, $params) = @_;
     DEBUG "Creating sequencing project ".$params->{name};
-
     try {
         if($params->{qc}){
-            my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
-            $params->{template} = $template_id;
+            unless ($params->{qc_type} eq 'Crispr') {
+                my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
+                $params->{template} = $template_id;
+            }
         }
     } catch {
         $self->throw( InvalidState => {
@@ -1138,6 +1140,23 @@ sub create_sequencing_project {
     return;
  }
 
+sub pspec_update_sequencing_project{
+    return {
+        id          => { validate => 'integer' },
+        abandoned   => { validate => 'boolean', optional => 1},
+    };
+}
+
+ sub update_sequencing_project {
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_update_sequencing_project );
+
+    my $seq_proj = $self->retrieve( SequencingProject => { id => $validated_params->{id} } );
+
+    $seq_proj->update( { abandoned => $validated_params->{abandoned} } );
+
+    return;
+ }
 1;
 
 __END__

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.344';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.346';
 }
 ## use critic
 
@@ -921,7 +921,7 @@ sub genes {
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
             splice(@priority_array, $index, 1);
 
-            $priority = join ( '; ', @priority_array );
+            $priority = join ( '; ', @priority_array ) // '';
         };
         if (! $priority) {$priority = '-'}
 
