@@ -118,7 +118,15 @@ function extract_sequence(elem) {
                                 span_html+=before;
                             }
                             if(read.length){
-                                span_html+="<span style='border-style:solid;border-color:black'>"
+                                var style = "border-style:solid;border-color:black;";
+                                if(end > span_start + span_seq.length){
+                                    style+="border-right-style:none;";
+                                }
+                                if(start < span_start){
+                                    style+="border-left-style:none";
+                                }
+
+                                span_html+="<span style='" + style + "'>"
                                            + read + "</span>";
                             }
                             if(after.length){
