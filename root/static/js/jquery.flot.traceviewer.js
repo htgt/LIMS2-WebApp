@@ -1,4 +1,3 @@
-(function ($) {
 function extract_sequence(elem) {
     if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
 
@@ -8,6 +7,7 @@ function extract_sequence(elem) {
     return m.join("").toUpperCase();
 }
 
+(function ($) {
         function init(plot) {
             plot.hooks.processOptions.push(processLabels);
             plot.hooks.draw.push(draw);
@@ -99,8 +99,9 @@ function extract_sequence(elem) {
 
                 // Find position of traceviewer read within seq_string
                 var start = seq_string.indexOf(read);
-                //FIXME: check lastIndexOf to see if it is repeated
-                if(start > -1){
+
+                // read is found only once
+                if(start > -1 && seq_string.lastIndexOf(read) == start){
                     var end = start + read.length;
 
                     // Loop through coloured seq spans, ignoring "-" for deleted region
@@ -143,7 +144,10 @@ function extract_sequence(elem) {
                 }
                 else{
                     // read from traceviewer not found in sequence string
-                    // FIXME: remove highlighting
+                    // remove existing highlighting
+                    seq.children().each(function(i,span){
+                        $(span).html( $(span).text() );
+                    });
                 }
 
             }
@@ -214,16 +218,6 @@ function TraceViewer(trace_url, button) {
 
 TraceViewer.prototype.toString = function() { return "TraceViewer"; };
 
-TraceViewer.prototype.extract_sequence = function(elem) {
-    if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
-
-    var m = elem.text().match(/([ACGTNacgtn]+)/g);
-    if ( ! m ) return "";
-
-    return m.join("").toUpperCase();
-};
-
-
 TraceViewer.prototype.show_traces = function(button) {
     //create container divs with placeholder divs inside to hold the required graphs
     //graphs. Placeholder is where the graph actually gets isnerted
@@ -238,8 +232,8 @@ TraceViewer.prototype.show_traces = function(button) {
 
     //should maybe just do this in perl and always take forward/rev_full
     //if there's a full sequence take it, if not strip away everythign but the nucleotides
-    var fwd_seq = button.closest("td").find(".forward_full").text() || this.extract_sequence( seqs.first() );
-    var rev_seq = button.closest("td").find(".reverse_full").text() || this.extract_sequence( seqs.last() );
+    var fwd_seq = button.closest("td").find(".forward_full").text() || extract_sequence( seqs.first() );
+    var rev_seq = button.closest("td").find(".reverse_full").text() || extract_sequence( seqs.last() );
 
 
     this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"));
@@ -255,6 +249,14 @@ TraceViewer.prototype.show_traces = function(button) {
             if(seq_td){
                 seq_td.html( seq_td.text() );
             }
+
+            // remove coloured_seq highlighting
+            var seqs = $(this).parents("td").find(".coloured_seq");
+            $.each(seqs,function(i,seq){
+                $(seq).children().each(function(i,span){
+                    $(span).html( $(span).text() );
+                });
+            });
 
             // show the show button
             var div = $(this).parent();
