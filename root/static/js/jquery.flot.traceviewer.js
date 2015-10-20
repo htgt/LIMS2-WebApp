@@ -1,4 +1,13 @@
 (function ($) {
+function extract_sequence(elem) {
+    if ( elem.text().match(/(?:No alignment)|(?:No Read)/) ) return "";
+
+    var m = elem.text().match(/([ACGTNacgtn]+)/g);
+    if ( ! m ) return "";
+
+    return m.join("").toUpperCase();
+}
+
         function init(plot) {
             plot.hooks.processOptions.push(processLabels);
             plot.hooks.draw.push(draw);
@@ -72,6 +81,63 @@
                 var new_html = context.join(highlighted);
                 seq_td.html(new_html);
               }
+            }
+
+            // If we have coloured_seq spans above the plot then highlight this
+            var seqs = plot.getPlaceholder().parents("td").find(".coloured_seq");
+            if(seqs){
+                var seq;
+                if( plot.getPlaceholder().hasClass("reverse") ){
+                    seq = seqs.last();
+                }
+                else{
+                    // default is to link to forward read
+                    seq = seqs.first();
+                }
+
+                var seq_string = extract_sequence($(seq));
+
+                // Find position of traceviewer read within seq_string
+                var start = seq_string.indexOf(read);
+                //FIXME: check lastIndexOf to see if it is repeated
+                if(start > -1){
+                    var end = start + read.length;
+
+                    // Loop through coloured seq spans, ignoring "-" for deleted region
+                    // Add border to bases in the traceviewer read range
+                    var span_start = 0;
+                    seq.children().each(function(i,span){
+                        var span_seq = extract_sequence($(span));
+                        if(span_seq.length){
+                            var before = span_seq.substring(0, start - span_start);
+                            var read = span_seq.substring(start - span_start, end - span_start);
+                            var after = span_seq.substring(end - span_start, span_seq.length);
+
+                            var span_html = "";
+                            if(before.length){
+                                span_html+=before;
+                            }
+                            if(read.length){
+                                span_html+="<span style='border-style:solid;border-color:black'>"
+                                           + read + "</span>";
+                            }
+                            if(after.length){
+                                span_html+=after;
+                            }
+                            $(span).html(span_html);
+                        }
+                        else{
+                            // No sequence content - keep old span as it is
+                        }
+
+                        span_start += span_seq.length;
+                    });
+                }
+                else{
+                    // read from traceviewer not found in sequence string
+                    // FIXME: remove highlighting
+                }
+
             }
 
             ctx.restore();
@@ -153,10 +219,10 @@ TraceViewer.prototype.extract_sequence = function(elem) {
 TraceViewer.prototype.show_traces = function(button) {
     //create container divs with placeholder divs inside to hold the required graphs
     //graphs. Placeholder is where the graph actually gets isnerted
-    var fwd_placeholder = $("<div>", {"class":"demo-placeholder"});
+    var fwd_placeholder = $("<div>", {"class":"demo-placeholder forward"});
     this.fwd_container   = $("<div>", {"class":"demo-container"} ).append( fwd_placeholder );
 
-    var rev_placeholder = $("<div>", {"class":"demo-placeholder"});
+    var rev_placeholder = $("<div>", {"class":"demo-placeholder reverse"});
     this.rev_container   = $("<div>", {"class":"demo-container"} ).append( rev_placeholder );
 
     //pull up the coloured sequence that is nearby to our button
@@ -253,29 +319,6 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
             show: false,
             position: "nw"
         }
-    });
-
-    placeholder.bind("plotpan", function (event, plot) {
-        return;
-        var axes = plot.getAxes();
-
-        var x = plot.getAxes().xaxis;
-        var read = "";
-
-        console.log(plot.labels);
-        for ( var i = 0; i < plot.labels.length; i++ ) {
-            var label = plot.labels[i];
-
-            //only show values within the range we're looking
-            if ( label.x < x.min || label.x > x.max ) {
-                //console.log(label.x + " < " + x.min + " || " + label.x + " > " + x.max);
-                continue;
-            }
-
-            read += label.nuc;
-        }
-
-        console.log( read );
     });
 
     function addZoom(text, left, top, args) {
