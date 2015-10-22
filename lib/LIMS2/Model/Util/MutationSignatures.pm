@@ -84,7 +84,7 @@ sub get_mutation_signatures_barcode_data{
 
 		push @all_data, $data;
 	}
- 
+
     return \@all_data;
 }
 
