@@ -24,10 +24,16 @@ sub auto : Private {
     my ( $self, $c ) = @_;
 
     if ( ! $c->user_exists ) {
-        #$c->stash( error_msg => 'Please login to access this system' );
-        $c->stash( goto_on_success => $c->request->uri );
-        #$c->go( 'Controller::Auth', 'login' );
-        $c->go( 'Controller::PublicReports', 'sponsor_report' );
+        if($c->req->path eq ""){
+            # Send anonymous users to the public sponsor report instead of root
+            $c->log->debug("redirecting anonymous user from / to public reports");
+            $c->go( 'Controller::PublicReports', 'sponsor_report' );
+        }
+        else{
+            $c->stash->{error_msg} = 'You must login to access '.$c->request->uri ;
+            $c->stash->{goto_on_success} = $c->request->uri ;
+            $c->go( 'Controller::Auth', 'login' );
+        }
     }
 
     if ( ! $c->session->{selected_species} ) {

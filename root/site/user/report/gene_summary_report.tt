@@ -598,7 +598,10 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH well IN sorted_wells.ep %]
             <tr>
-              <td>[% well.well_id_string %]</td>
+              <td>[% well.well_id_string %]
+                [% IF !well.to_report %]
+                  <br><span class="label label-important">Not to Report</span>
+                [% END %]</td>
               <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
