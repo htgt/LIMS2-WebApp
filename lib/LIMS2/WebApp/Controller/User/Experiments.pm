@@ -4,7 +4,6 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
-use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
