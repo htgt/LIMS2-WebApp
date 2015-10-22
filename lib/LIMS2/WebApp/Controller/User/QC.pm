@@ -912,6 +912,29 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
 
     return;
 }
+
+sub download_reads :Path( '/user/download_reads' ) :Args() {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $seq_project = $c->req->param('sequencing_project');
+
+    unless($seq_project){
+        $c->stash->{error_msg} = "No sequencing_project specified";
+    }
+
+    my $script_name = 'fetch-seq-reads.sh';
+    my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+    my $fasta = join "", capturex( $fetch_cmd, $seq_project );
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$seq_project.fasta" );
+    $c->response->body( $fasta );
+    return;
+}
+
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
