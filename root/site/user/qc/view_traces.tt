@@ -31,6 +31,14 @@
       </div>
     </div>
 
+    <div class="control-group hidden" id="download_reads_button">
+      <div class="controls">
+      <button name="download_reads" id="download_reads" type="submit" value="download_reads" class="btn btn-info">
+        <i class="icon-download-alt icon-white"></i> Download Reads (all sub-projects)
+      </button>
+      </div>
+    </div>
+
     <div class="control-group">
       <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
       <div class="controls">
@@ -52,8 +60,8 @@
 
     <div class="control-group">
       <div class="controls">
-      <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn">
-        <i class="icon-upload"></i> Fetch Reads
+      <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn btn-primary">
+        Fetch Reads <i class="icon-arrow-right icon-white"></i>
       </button>
       </div>
     </div>
@@ -64,8 +72,6 @@
 </div>
 
 [% IF reads %]
-<div id="message"></div>
-
 <table class="table span12" style="table-layout:fixed">
     <thead>
         <tr>
@@ -129,6 +135,9 @@ $(document).ready(function() {
   });
 
   function populate_subproject_list(data, selected_value){
+    // Show the dowload button at the same time
+    $("#download_reads_button").removeClass('hidden');
+
     console.log("primer data: ");
     console.log(data);
     $("#sequencing_sub_project").empty();
@@ -184,6 +193,14 @@ $(document).ready(function() {
        }
      );
     }
+  });
+
+  $("#download_reads_button").click(function(e){
+    e.preventDefault();
+    // go to read dowload link with value from sequencing project select field
+    var seq_project = $("#sequencing_project").val();
+    var download_uri = "[% c.uri_for('/user/download_reads') %]";
+    window.location.href = download_uri + "?sequencing_project=" + seq_project;
   });
 
   $(".traces").click(function(e) {

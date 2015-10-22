@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.346';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.347';
 }
 ## use critic
 
@@ -223,6 +223,11 @@ sub existing_crispr_damage_type {
 sub existing_crispr_es_qc_run_id {
     return shift->existing_row( 'CrisprEsQcRuns', 'id' );
 }
+
+sub existing_crispr_es_qc_seq_project {
+    return shift->existing_row( 'CrisprEsQcRuns', 'sequencing_project' );
+}
+
 
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method

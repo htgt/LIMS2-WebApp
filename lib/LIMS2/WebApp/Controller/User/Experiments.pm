@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Experiments;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.346';
+    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.347';
 }
 ## use critic
 
@@ -10,7 +10,6 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
-use Data::Dumper;
 
 BEGIN {extends 'Catalyst::Controller'; }
 

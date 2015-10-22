@@ -1,3 +1,8 @@
+0.347     2015-10-22 15:04:26 Europe/London
+
+  Gene symbols and searching added to mutation signatures barcodes page
+  Sequence highlighting added to crispr QC view page 
+
 0.346     2015-10-19 13:12:15 Europe/London
 
   Sequence highlighting on trace view page
