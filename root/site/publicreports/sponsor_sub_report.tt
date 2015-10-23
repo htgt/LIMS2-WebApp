@@ -205,17 +205,19 @@ document.title = "[%- sponsor_id %]";
                 <tr>
                 [%- IF c.user %]
                   <td colspan=10 style="text-align:right">
-                      Electroporation belongs to experiment
+                      Experiment
                     [% FOREACH exp IN ep_data.item('experiment') %]
                       <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
                     [% END %]
+                     in [% ep_data.item('cell_line') %]
                   </td>
                 [%- ELSE %]
                   <td colspan=9  style="text-align:right">
-                      Electroporation belongs to experiment
+                      Experiment
                     [% FOREACH exp IN ep_data.item('experiment') %]
                       <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
                     [% END %]
+                      in [% ep_data.item('cell_line') %]
                   </td>
                 [%- END %]
                   <td>[%- ep_data.item('total_colonies') %]</td>
