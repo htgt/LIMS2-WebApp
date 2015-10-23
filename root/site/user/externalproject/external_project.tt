@@ -1,0 +1,202 @@
+[%- META title = 'External Project' %]
+
+<div class="page-header">
+  <h1>Create Sequencing Project</h1>
+</div>
+
+<div class="row">
+
+  <div class="span6 offset3">
+    <form method="POST" id="create_ext_project" action="[% c.uri_for( '/user/external_project' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Project Name</label>
+        <input name="project_name" id="project_name" type="text"
+          [%IF project_name %]value="[% project_name %]"[% END %]
+        />
+        <p>Please enter only alphanumeric characters and underscores</p>
+        <input type="checkbox" name="qc" id="check_qc" enabled />
+            For LIMS2 QC?
+        <br>
+        <input type="checkbox" name="large_well" id="check_well" enabled/>
+            Is 384?
+        <br>
+
+
+        <label id="qc_type_label">QC Type</label><br>       
+        <select name="qc_type" id="qc_type">
+            <option value="" selected="selected"></option>
+            <option value="Vector">Vector</option>
+            <option value="ES Cell">ES Cell</option>
+            <option value="Crispr">Crispr</option>
+        </select><br>
+        <label id="template_label">QC Template</label><br>
+        <input type="text" class="span3" id="template_input" name="template_id" placeholder="Template identifier" autocomplete="off" />
+        <button type="button" id="add_qc" class="btn btn-link" onclick="addTemplate()">
+          Create QC template
+        </button>
+
+
+
+        <label id="sub_label">Number of sub-projects</label>
+        <input type="text" name="sub_projects" id="sub_projects" value="1" maxlength="3" style="width: 50px;"/>
+        <p id="up" style="display:inline"><span class="icon-plus"></span></p>
+        <p id="down" style="display:inline"><span class="icon-minus"></span></p>
+        
+        
+        <label id="primer_type_label">Primer Type</label>
+        <select name="dd_primer" id="dd_primer">
+          <option value="" selected="selected"></option>
+          [%- FOR primer IN primer_list %]
+            <option value="[% primer %]">[% primer %]</option>
+          [%- END %]
+        </select>
+
+        <button name="primer_button" type="button" class="btn btn-default" onclick="addPrimer()">
+          Add Primer
+        </button>
+        
+        <br>
+        <table id='primer_table'> 
+          <th>
+            Primers
+          </th>
+        </table>
+        <br>
+
+        <button name="create_project" class="btn btn-primary" id="create_project" type="submit" value="create_project" class="btn">
+            <i class="icon-upload"></i> Create Project
+        </button>
+    </form>
+  </div>
+
+</div>
+
+[% INCLUDE 'sequencing_project_creation_help.tt' seq_help = seq_help %]
+
+<script type="text/javascript">
+window.onload = function () {
+    switchVisilibityState("none");
+    showTemplate("none");
+    showQC("none");
+
+    var id = '[% project_id %]';
+
+    if(id){
+        window.location.href = '[% c.uri_for('/user/view_sequencing_project/') %]' + encodeURI('?seq_id=' + id); 
+    }
+}
+
+window.onchange = function () {
+    var project_name = document.getElementById("project_name");
+
+    if (qc_type.value != 'Crispr' && qc_type.value != ''){
+        showTemplate("initial");
+    }
+    else {
+        showTemplate("none");
+    }
+
+    if (! /^[a-zA-Z0-9_]*$/.test($("#project_name").val())) {
+        document.getElementById('project_name').style.border = "red-border";
+        document.getElementById('project_name').style.borderWidth = "5px";
+        document.getElementById('project_name').style.borderColor = "red";
+    }
+    else {
+        document.getElementById('project_name').style.border = "default";
+        document.getElementById('project_name').style.borderWidth = "1px";
+        document.getElementById('project_name').style.borderColor = "lightgrey";
+    }
+}
+var primerCount = 0;
+
+function switchVisilibityState(state) {
+    document.getElementById("primer_table").style.display = state;
+}
+
+function showTemplate(state) {
+    document.getElementById("template_label").style.display = state;
+    document.getElementById("template_input").style.display = state;
+    document.getElementById("add_qc").style.display = state;
+}
+
+function showQC(state) {
+    document.getElementById("qc_type_label").style.display = state;
+    document.getElementById("qc_type").style.display = state;
+}
+
+document.getElementById('check_qc').onclick = function() {
+    if ( this.checked ) {
+        showQC("initial");
+    } else {
+        qc_type.value = "";
+        showTemplate("none");
+        showQC("none");
+    }
+}
+
+document.getElementById('check_well').onclick = function() {
+    if ( this.checked ) {
+        document.getElementById("sub_projects").value = 4;
+    } else {
+        document.getElementById("sub_projects").value = 1;
+    }
+}
+
+
+function addPrimer() {
+    var dropDown = document.getElementById("dd_primer");
+    var primer = dropDown.options[dropDown.selectedIndex].text;
+
+    if (primer != ''){ 
+        switchVisilibityState("initial");
+        var table = document.getElementById("primer_table");
+        var row = table.insertRow(1);
+        var cell0 = row.insertCell(0);
+        var cell1 = row.insertCell(1);
+        var cell2 = row.insertCell(2);
+
+        
+        var buttonHTML = '<input type="button" value="Delete" onclick="deleteRow(this)"/>';
+        var hidden = '<input type="hidden" id="primer'+ primerCount + '" name="primer'+ primerCount + '" value="' + primer + '">'
+
+        primerCount++;
+
+        cell0.innerHTML = primer;
+        cell1.innerHTML = buttonHTML;
+        cell2.innerHTML = hidden;
+    }
+}
+
+function addTemplate() {
+    window.location.href = '/user/create_template_plate'; 
+}
+
+function deleteRow(btn) {
+    var row = btn.parentNode.parentNode;
+    row.parentNode.removeChild(row);
+}
+
+$("input[name='template_id']").autocomplete({
+    source: "[% c.uri_for( '/api/autocomplete/qc_templates' ) %]",
+    minLength: 2,
+});
+
+$(document).ready(function(){
+    $("#up").on('click',function(){
+        if ($("#sub_projects").val() == ""){
+            $("#sub_projects").val(parseInt(1));        
+        }
+        $("#sub_projects").val(parseInt($("#sub_projects").val())+1);
+    });
+
+    $("#down").on('click',function(){
+        if ($("#sub_projects").val() == ""){
+            $("#sub_projects").val(parseInt(1));        
+        }
+        if (parseInt($("#sub_projects").val()) > 1) {
+            $("#sub_projects").val(parseInt($("#sub_projects").val())-1);
+        }
+    });
+
+});
+</script>

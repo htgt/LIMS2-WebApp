@@ -91,11 +91,12 @@ sub genoverse_browse_view : Path( '/user/genoverse_browse' ) : Args(0) {
 }
 
 =head genoverse_crispr_primers_view
-Given
 
-Renders
+FIXME: This controller does not seem to work and there is no link to it anywhere in the LIMS2 app
+Can it be removed or is it work in progres??
 
-With
+Undefined subroutine &LIMS2::Model::Util::GenoverseSupport::get_db_genotyping_primers_as_hash called at
+lib/LIMS2/Model/Util/GenoverseSupport.pm line 47
 
 =cut
 

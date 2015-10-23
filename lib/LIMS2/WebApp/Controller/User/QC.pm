@@ -13,10 +13,11 @@ use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
 use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
-
+use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
+use IPC::System::Simple qw( capturex );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -38,6 +39,23 @@ has qc_config => (
     default => sub{ HTGT::QC::Config->new({ is_lims2 => 1 }) },
     lazy    => 1,
 );
+
+has latest_run_util => (
+    is      => 'ro',
+    isa     => 'HTGT::QC::Util::ListLatestRuns',
+    lazy_build => 1,
+);
+
+sub _build_latest_run_util {
+    my $self = shift;
+    my $lustre_server = $ENV{ FILE_API_URL }
+        or die "FILE_API_URL environment variable not set";
+
+    return HTGT::QC::Util::ListLatestRuns->new( {
+        config => $self->qc_config,
+        file_api_url => $lustre_server,
+    } );
+}
 
 ## no critic(ProtectPrivateSubs)
 sub _list_all_profiles {
@@ -162,6 +180,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             qc_run_id  => $c->req->params->{qc_run_id},
             plate_name => $c->req->params->{plate_name},
             well_name  => uc( $c->req->params->{well_name} ),
+            with_eng_seq => 1,
         }
     );
 
@@ -184,6 +203,22 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
     }
 
+    my $is_es_qc = grep { $_ eq $qc_run->profile } @{ $self->_list_all_profiles('es_cell') };
+
+    my $error_msg;
+    unless($is_es_qc){
+        # Create start and end coords for items to be drawn in plasmid view
+        # Adds result->{display_alignments} which is an array of read alignments
+        # and result->{alignment_targets} which is a hash of target regions by primer
+        # A primer read is required to align to the target region in order to pass
+        try{
+            add_display_info_to_qc_results($results,$c->log);
+        }
+        catch{
+            $error_msg = "Failed to generate plasmid view: $_";
+        };
+    }
+
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
@@ -192,7 +227,9 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         genotyping_primers => \@genotyping_primers,
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
+        error_msg   => $error_msg,
     );
+
     return;
 }
 
@@ -475,9 +512,7 @@ sub latest_runs :Path('/user/latest_runs') :Args(0) {
 
     $c->assert_user_roles( 'read' );
 
-    my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
-
-    $c->stash( latest => $llr->get_latest_run_data );
+    $c->stash( latest => $self->latest_run_util->get_latest_run_data );
 
     return;
 }
@@ -490,8 +525,8 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
     my ( $qc_run_id, $last_stage ) = $params =~ /^(.+)___(.+)$/;
     my $config = $self->qc_config;
 
-    my $error_file = $config->basedir->subdir( $qc_run_id )->subdir( 'error' )->file( $last_stage . '.err' );
-    my @error_file_content = $error_file->slurp( chomp => 1 );
+    # Fetches error file via file server api
+    my @error_file_content = $self->latest_run_util->fetch_error_file($qc_run_id, $last_stage);
 
     $c->stash( run_id => $qc_run_id );
     $c->stash( last_stage => $last_stage );
@@ -633,11 +668,18 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must select a csv file containing the well list";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) }
+                            grep { $c->req->param($_) }
+                            qw( cassette backbone phase_matched_cassette);
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_csv({
 				template_name => $template_name,
 				well_data_fh  => $well_data->fh,
 				species       => $c->session->{selected_species},
+                %overrides,
 			});
+
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
@@ -829,6 +871,68 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
     $c->res->redirect( $c->uri_for('/user/view_qc_run', { qc_run_id => $run_id } ) );
 
 	return;
+}
+
+sub view_traces :Path('/user/qc/view_traces') :Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('read');
+
+    # Store form values
+    $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
+    $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+    $c->stash->{primer_data} = $c->req->param('primer_data');
+
+    if($c->req->param('get_reads')){
+        # Fetch the sequence fasta and parse it
+        my $script_name = 'fetch-seq-reads.sh';
+        my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+
+        my $fasta_input = join "", capturex( $fetch_cmd, $c->req->param('sequencing_project') );
+        my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
+        my $seq_by_name = {};
+        while (my $seq = $seqIO->next_seq() ){
+            $seq_by_name->{ $seq->display_id } = $seq->seq;
+        }
+
+        # Parse all read names for the project
+        # and store along with read sequence
+        my $reads_by_sub;
+        foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
+            $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
+
+            $reads_by_sub->{ $read->{plate_name} } ||= [];
+            push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+        }
+
+        $c->stash(
+            reads            => $reads_by_sub->{ $c->req->param('sequencing_sub_project') },
+        );
+    }
+
+    return;
+}
+
+sub download_reads :Path( '/user/download_reads' ) :Args() {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $seq_project = $c->req->param('sequencing_project');
+
+    unless($seq_project){
+        $c->stash->{error_msg} = "No sequencing_project specified";
+    }
+
+    my $script_name = 'fetch-seq-reads.sh';
+    my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+    my $fasta = join "", capturex( $fetch_cmd, $seq_project );
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$seq_project.fasta" );
+    $c->response->body( $fasta );
+    return;
 }
 
 =head1 LICENSE

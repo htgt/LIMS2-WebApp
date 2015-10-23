@@ -8,6 +8,7 @@ use Bio::SCF;
 use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
 
 with "MooseX::Log::Log4perl";
 
@@ -32,7 +33,18 @@ sub trace_data_GET{
     my $params = $c->request->params;
 
     $self->log->debug( "Finding trace for '" . $params->{name} . "'" );
-    my $trace = $self->traceserver->get_trace( $params->{name} );
+    my $trace;
+    my $traceserver_error;
+    try{
+        $trace = $self->traceserver->get_trace( $params->{name} );
+    }
+    catch{
+        $traceserver_error = $_;
+    };
+
+    if($traceserver_error){
+        return $self->status_bad_request($c, message => $traceserver_error);
+    }
 
     my $fh = $self->traceserver->write_temp_file( $trace );
     tie my %scf, 'Bio::SCF', $fh;
@@ -44,6 +56,8 @@ sub trace_data_GET{
 
     # if we don't have a match, the reverse flag might be wrong.... try and reverse it
     if (!$match) {
+        $c->log->debug('reverse flag: '.$params->{reverse});
+        $c->log->debug('No match, reverse flag may be wrong');
         if ($params->{reverse}) {
             delete $params->{reverse};
         } else {
@@ -57,24 +71,39 @@ sub trace_data_GET{
     return $self->status_bad_request( $c, message => "Couldn't find specified sequence in the trace" ) unless $match;
     return $self->status_bad_request( $c, message => "Found the search sequence more than once" ) if @rest;
 
-    my $data = $self->_extract_region( \%scf, $match->{start}, $match->{end}, $params->{reverse} );
+    $c->log->debug('final reverse flag: '.$params->{reverse});
+    my $context = 0;
+
+    # Context around the search seq is only relevant if we have a search seq
+    if($params->{search_seq} and $params->{context}){
+        $context = $params->{context};
+    }
+
+    my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
 
     return $self->status_ok( $c, entity => $data );
 }
 
 sub _get_matches {
     my ( $self, $seq, $search ) = @_;
-
-    my $length = length( $search ) - 1;
+$self->log->debug("getting matches for $search");
 
     my @matches;
-    my $index = 0;
-    while ( 1 ) {
-        #increment
-        $index = index $seq, $search, ++$index;
-        last if $index == -1;
 
-        push @matches, { start => $index, end => $index+$length };
+    if($search){
+        my $length = length( $search ) - 1;
+
+        my $index = 0;
+        while ( 1 ) {
+            #increment
+            $index = index $seq, $search, ++$index;
+            last if $index == -1;
+
+            push @matches, { start => $index, end => $index+$length };
+        }
+    }
+    else{
+        push @matches, { start => 1, end => length($seq) - 1 };
     }
 
     return @matches;
@@ -270,6 +299,15 @@ sub mutation_signatures_info_GET{
             my @genes = $design->gene_symbols($gene_finder);
             $data->{gene_id} = (@gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ]);
             $data->{gene} = (@genes == 1 ? $genes[0] : [ @genes ]);
+
+            # damaged required to check if clone is het. clone qc_data hash seems to be inside an array (of max size 1)?
+            my $damage = $data->{ms_qc_data}->[0]->{qc_data}->{damage_type};
+            my $species = $c->model('Golgi')->schema->resultset('Species')->find({ id => $well->plate->species_id});
+            my $assembly_id = $species->default_assembly->assembly_id;
+            my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+            my $chromosome = $design_oligo_locus->chr->name;
+            $data->{chromosome} = $chromosome;
+            $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $well->id, $chromosome, $damage) unless !$damage;
         }
         $c->stash->{json_data} = $data;
     }

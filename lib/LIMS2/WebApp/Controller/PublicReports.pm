@@ -5,8 +5,11 @@ use Try::Tiny;
 use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
+use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
+use feature 'switch';
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -48,7 +51,7 @@ sub cre_knockin_project_status : Path( '/public_reports/cre_knockin_project_stat
     $c->stash(
         template    => 'publicreports/await_report.tt',
         report_name => 'Cre_KnockIn_Project_Status',
-        report_id   => $report_id
+        report_id   => $report_id,
     );
 
     return;
@@ -114,9 +117,6 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
 
     return;
 }
-
-
-
 
 =head2 index
 
@@ -305,6 +305,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $species = $c->session->{selected_species};
 
     my $cache_param = $c->request->params->{'cache_param'};
+
+    if ($c->request->params->{generate_cache}) {
+        $c->session->{display_type} = 'wide';
+    } else {
+        $c->session->{display_type} = 'default';
+    }
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
@@ -540,18 +546,51 @@ sub _stash_well_genotyping_info {
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
-
         my @crisprs = $well->parent_crispr_wells;
         foreach my $crispr_well ( @crisprs ) {
             my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
             if ( $process_crispr ) {
                 my $crispr_data_hash = $process_crispr->crispr->as_hash;
+
                 $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
                 push @crispr_data, $crispr_data_hash;
             }
         }
-
-        $c->stash( data => $data, crispr_data => \@crispr_data );
+        my $crispr_result;
+        my $type;
+        try{
+            #Depending on type of crispr, retrieve crispr hash ref
+            if ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprPair';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprGroup';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            else {
+                $type = 'Crispr';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+        } catch {
+            $c->stash( error_msg => "Validation tags not found");
+            $c->stash( data => $data, crispr_data => \@crispr_data);
+            return;
+        };
+        #Crispr hash ref contains validation confirmation
+        my $crispr_primers = $data->{primers}->{crispr_primers};
+        my $match;
+        foreach my $set (values %$crispr_primers)
+        {
+            foreach my $primer(@$set)
+            {
+                #Compare sequences to find the correct tag for the correct sequence
+                $match = search_primers($primer->{seq}, $crispr_result->{crispr_primers});
+                $primer->{is_validated} = $match->{is_validated};
+                $primer->{is_rejected} = $match->{is_rejected};
+            }
+        }
+        $c->stash( data => $data, crispr_data => \@crispr_data);
     }
     catch {
         #get string representation if its a lims2::exception
@@ -561,6 +600,64 @@ sub _stash_well_genotyping_info {
     return;
 }
 
+#Depending on type of crispr, search for the crispr then retrieves it's data hash
+sub retrieve_crispr_hash {
+    my ($c, $type, @crisprs) = @_;
+    my $crispr_data;
+    my @crispr_schema;
+    my $id = $crisprs[0]->{id};
+
+    #Searches for the crispr id in either the left or the right location
+    if ($type eq 'CrisprPair'){
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search(
+            [ { left_crispr_id => $id },{ right_crispr_id => $id } ],
+            {
+                distinct => 1,
+            }
+            )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Joins the crispr group and the crispr group crisprs tables to search which crispr group contains the id
+    elsif ($type eq 'CrisprGroup') {
+        @crispr_schema = $c->model('Golgi')->schema->resultset('CrisprGroup')->search(
+        {
+            'crispr_group_crisprs.crispr_id' => $id,
+        },
+        {
+            join     => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+        )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Single crispr search
+    else {
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search({ id => $id })->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr(
+            {
+                id => $crispr_schema[0]->{_column_data}->{id}
+            },
+            {
+                distinct => 1,
+            }->all);
+    }
+
+    return $crispr_data->as_hash;
+}
+
+#Retrieves the correct sequence validation tag
+sub search_primers {
+    my ($seq, $validation_primers) = @_;
+    foreach my $valid_primer(@$validation_primers)
+    {
+        if ($seq eq $valid_primer->{primer_seq}){
+            return $valid_primer;
+        }
+    }
+    return;
+}
 =head2 public_gene_report
 
 Public gene report, only show targeted clone details:

@@ -286,10 +286,16 @@ sub build_ep_detail {
         }
 
         if(%ep_pick_damage){
-            my @types = ('frameshift','in-frame','wild_type','mosaic','no-call','het');
+            my @types = ('frameshift','in-frame','wild_type','mosaic','no-call','het','splice_acceptor');
 
             foreach my $damage_type (@types){
                 $data{$damage_type} = ($ep_pick_damage{$damage_type} ? $ep_pick_damage{$damage_type} : 0);
+            }
+
+            # Add number of splice acceptors to frameshift count
+            if($data{'splice_acceptor'}){
+                $data{'frameshift'} //= 0; # avoid uninitialized value errors
+                $data{'frameshift'} += $data{'splice_acceptor'};
             }
 
             # Calculate targeting efficiency from frameshift damage counts

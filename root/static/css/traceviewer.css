@@ -1,3 +1,8 @@
+.traceviewer_highlight {
+    color: white;
+    background: slategray;
+}
+
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
     font-size: 11px;
@@ -14,7 +19,7 @@
     width: 600px;
     height: 300px;
     padding: 20px 15px 15px 15px;
-    margin: 15px auto 30px auto;
+    margin: 15px auto 30px 200px;
     border: 1px solid #ddd;
     background: #fff;
     background: linear-gradient(#f6f6f6 0, #fff 50px);

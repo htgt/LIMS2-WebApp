@@ -19,9 +19,18 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
+
 <script type="text/javascript">
 
 $(document).ready(function() {
+
+    // add labels to assembly qc verification using js to ensure they look the same
+    // across different pages
+    $(".assembly_qc_verified").each(function(){
+      var value = $(this).text();
+      addQCVerifiedLabel($(this),value);
+    });
 
     // crispr qc trace view button
     $(".traces").click(function(e) {
@@ -184,7 +193,13 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH qc IN crispr_qc %]
             <tr>
-                <td><strong>[% qc.epd_well %]</strong></td>
+                <td>
+                    <strong>[% qc.epd_well %]</strong>
+                    [% IF !qc.to_report %]
+                    <br>
+                    <span class="label label-important">Not to Report</span>
+                    [% END %]
+                </td>
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = qc.epd_qc
                     accept                 = 0
@@ -204,6 +219,9 @@ function toggle_btn(btn, show_or_hide) {
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
+                    [% IF !qc.to_report %]
+                    <span class="label label-important">Not to Report</span>
+                    [% END %]
                 </td>
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = qc.piq_qc
@@ -580,7 +598,10 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH well IN sorted_wells.ep %]
             <tr>
-              <td>[% well.well_id_string %]</td>
+              <td>[% well.well_id_string %]
+                [% IF !well.to_report %]
+                  <br><span class="label label-important">Not to Report</span>
+                [% END %]</td>
               <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
@@ -616,7 +637,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Well</th>
             <th>Crispr</th>
             <th>Created on</th>
-            <th>Accepted?</th>
+            <th>QC verified?</th>
             <th>Genoverse View</th>
             <th>Vector Genbank File</th>
           </thead>
@@ -628,7 +649,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="label">[% well.crispr_type.replace('\_', ' ') %]</span></td>
               <td>[% well.created_at %]</td>
-              <td>[% well.is_accepted %]</td>
+              <td class="assembly_qc_verified">[% well.qc_verified %]</td>
               <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_primer_view', {
                       crispr_type_id => well.crispr_type_id,
                       design_id => well.design_id,

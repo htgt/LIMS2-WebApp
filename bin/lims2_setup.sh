@@ -51,7 +51,7 @@ case $1 in
     regenerate_schema)
         lims2_regenerate_schema
         ;;
-    *) 
+    *)
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
 esac
@@ -238,6 +238,8 @@ function lims2_devel {
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+    export LIMS2_TEMP=/opt/t87/local/tmp
 }
 
 function lims2_pg9.3 {
@@ -268,6 +270,15 @@ LIMS2 useful environment variables:
 \$PSQL_EXE                     : $PSQL_EXE
 \$PGUSER                       : $PGUSER
 
+\$LIMS2_PRIMER_DIR             : $LIMS2_PRIMER_DIR
+\$LIMS2_TEMP                   : $LIMS2_TEMP
+\$DEFAULT_CRISPR_ES_QC_DIR     : $DEFAULT_CRISPR_ES_QC_DIR
+\$VEP_CACHE_DIR                : $VEP_CACHE_DIR
+\$DESIGN_CREATION_HUMAN_FA     : $DESIGN_CREATION_HUMAN_FA
+\$DESIGN_CREATION_MOUSE_FA     : $DESIGN_CREATION_MOUSE_FA
+\$BWA_REF_GENOME_HUMAN_FA      : $BWA_REF_GENOME_HUMAN_FA
+\$BWA_REF_GENOME_MOUSE_FA      : $BWA_REF_GENOME_MOUSE_FA
+
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
 \$LIMS2_LOG4PERL_CONFIG        : $LIMS2_LOG4PERL_CONFIG
@@ -277,6 +288,7 @@ LIMS2 useful environment variables:
 \$LIMS2_WEBAPP_CONFIG          : $LIMS2_WEBAPP_CONFIG
 \$LIMS2_DBCONNECT_CONFIG       : $LIMS2_DBCONNECT_CONFIG
 \$LIMS2_URL_CONFIG             : $LIMS2_URL_CONFIG
+\$HTGT_QC_CONF                 : $HTGT_QC_CONF
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT

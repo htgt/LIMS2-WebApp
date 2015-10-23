@@ -148,7 +148,6 @@ sub _build_test_data {
 
 sub _build_fixture_data {
     my ( $class, $name, $args ) = @_;
-
     return sub {
         my ( $filename, %opts ) = @_;
         my $fixture_filename = file($filename);
@@ -286,6 +285,10 @@ sub load_static_files {
             Sponsor
             BarcodeState
             CrisprTrackerRna
+            SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectTemplate
             )
     );
 
@@ -342,6 +345,8 @@ sub load_dynamic_files {
             WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
+            CrisprPlateAppendsType
+            CrisprPlateAppends
         )
     );
 
@@ -425,7 +430,6 @@ sub load_files {
 
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
-
     my $mech = mech();
     my $dir = $args->{dir} || '/static/test/fixtures';
     $mech->get($dir);

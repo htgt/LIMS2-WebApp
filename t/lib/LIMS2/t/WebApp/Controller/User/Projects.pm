@@ -15,7 +15,7 @@ BEGIN {
 
 my $mech = LIMS2::Test::mech();
 
-sub manage_projects_tests : Test(21) {
+sub manage_projects_tests : Test(23) {
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/manage_projects');
@@ -65,16 +65,26 @@ sub manage_projects_tests : Test(21) {
     $mech->click_button( name => 'create_project');
     $mech->content_contains('targeting_type, is missing');
 
+
     $mech->set_fields(
         gene => $new_gene,
         targeting_type => 'single_targeted',
-        sponsor => 'Core'
+        sponsor => 'Core',
+        cell_line_id => 10, # BOBSC-T6/8_B1
     );
     $mech->click_button( name => 'create_project');
     $mech->content_contains('New project created');
     $mech->title_is('View Project');
 
     $mech->get_ok('/user/manage_projects');
+
+    # Check we can search by cell line
+    $mech->set_fields(
+        cell_line_id => 10,
+    );
+    $mech->click_button( name => 'search_projects');
+    $mech->content_contains($new_gene);
+
     $mech->set_fields(
         gene => $new_gene,
         targeting_type => 'single_targeted',
@@ -82,6 +92,8 @@ sub manage_projects_tests : Test(21) {
     $mech->click_button( name => 'create_project' );
     $mech->content_contains('Project already exists (see list below)');
     $mech->content_contains('Pitx1');
+
+
 
     $mech->set_fields(
         gene => $new_gene,
@@ -93,7 +105,7 @@ sub manage_projects_tests : Test(21) {
 
 }
 
-sub view_edit_project_tests : Test(19){
+sub view_edit_project_tests : Test(21){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -141,17 +153,18 @@ sub view_edit_project_tests : Test(19){
     # Test view experiment page link
     $mech->follow_link( url_regex => qr/\/user\/view_experiment\?experiment_id=\d+/ );
     $mech->title_is("View Experiment");
-    $mech->follow_link( url_regex => qr/\/user\/view_project\?project_id=\d+/ );
-    $mech->title_is("View Project");
+    $mech->content_contains('69848');
+    $mech->content_contains('MGI:109393');
 
-    # Test delete experiment
+    # Reload project view and test delete experiment
+    $mech->get_ok('/user/view_project?project_id=12');
     my @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 2, '2 experiments listed');
 
     $mech->form_number(2);
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
-    
+
     @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 1, '1 experiment listed');
 
@@ -191,6 +204,6 @@ sub _selected_sponsors{
 #sub view_experiment_page{
 #   my ($mech) = @_;
 #   print "Reached\n";
-#   #   return;    
+#   #   return;
 #}
 1;
