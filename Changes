@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.348     2015-10-23 13:15:28 Europe/London
+
+    Search updated in CRISPR QC Runs 
+    is_het added to mutation signatures JSON string
+
 0.347     2015-10-22 15:04:26 Europe/London
 
   Gene symbols and searching added to mutation signatures barcodes page
