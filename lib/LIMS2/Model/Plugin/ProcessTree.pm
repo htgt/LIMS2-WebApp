@@ -364,7 +364,6 @@ sub get_design_data_for_well_id_list {
     );
 
     my $result_hash;
-
     foreach my $result ( @{$sql_result} ) {
         $result_hash->{$result->[2]} = {
             'design_well_id' => $result->[0],

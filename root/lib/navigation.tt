@@ -58,6 +58,10 @@
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
+            </li>
 
             <li class="divider"></li>
 
@@ -79,6 +83,10 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_crispr_plate' ) %]">Upload Crispr Plate</a>
             </li>
             <li class="divider"></li>
             <li>
@@ -151,6 +159,17 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
+            </li>
+
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/external_project' ) %]">Create Sequencing Project</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_sequencing_projects' ) %]">Search Sequencing Projects</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
             </li>
             [% END %]
           </ul>

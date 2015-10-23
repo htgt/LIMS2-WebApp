@@ -218,6 +218,11 @@ sub existing_crispr_es_qc_run_id {
     return shift->existing_row( 'CrisprEsQcRuns', 'id' );
 }
 
+sub existing_crispr_es_qc_seq_project {
+    return shift->existing_row( 'CrisprEsQcRuns', 'sequencing_project' );
+}
+
+
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
 sub existing_backbone {
@@ -293,6 +298,21 @@ sub assembly_qc_type{
 sub assembly_qc_value{
     return shift->in_enum_column('WellAssemblyQc','value');
     #return shift->in_set('Good','Bad','Wrong');
+}
+
+sub existing_project_id {
+    return shift->in_resultset( 'Project', 'id' );
+}
+
+sub existing_experiment_id {
+    return shift->in_resultset( 'Experiment', 'id' );
+}
+
+sub primer_array {
+    my $self = shift;
+    return sub {
+        ref $_[0] eq 'ARRAY';
+    }
 }
 
 =head2 in_enum_column

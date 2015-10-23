@@ -1,5 +1,41 @@
 {{$NEXT}}
 
+0.347     2015-10-22 15:04:26 Europe/London
+
+  Gene symbols and searching added to mutation signatures barcodes page
+  Sequence highlighting added to crispr QC view page 
+
+0.346     2015-10-19 13:12:15 Europe/London
+
+  Sequence highlighting on trace view page
+
+0.345     2015-10-16 09:38:21 Europe/London
+
+0.344     2015-10-13 15:56:23 Europe/London
+
+   Added view and create links from project/experiment view to redmine
+
+0.343     2015-10-12 15:43:51 Europe/London
+
+    Added page to view sequence data traces
+
+0.342     2015-10-09 09:43:12 Europe/London
+
+0.341     2015-10-08 15:18:51 Europe/London
+
+0.340     2015-10-07 15:27:03 Europe/London
+    Sequencing project 96 plate creation added
+    Download sequencing project xlsx added
+    Sequencing project view and create interfaces added 
+0.339     2015-10-01 11:50:37 Europe/London
+
+    Cell line added to projects
+    Experiments linked to genes rather than projects
+
+0.337     2015-09-17 16:50:11 Europe/London
+    Added create design and crispr plates function
+    Added experiments to summarys table
+
 0.336     2015-09-03 12:59:33 Europe/London
 
     Removed dependancy on lustre file system

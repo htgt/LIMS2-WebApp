@@ -508,8 +508,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e1T/UQEVDzGErLcVxFl3fQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-07 10:47:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wpKKUWf+k01w4d6Sqka51A
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -522,6 +522,15 @@ sub as_hash {
         active => $self->active,
         roles  => [ sort map { $_->name } $self->roles ]
     };
+}
+
+sub is_sanger{
+    my $self = shift;
+
+    if($self->name =~ /.*\@sanger\.ac\.uk/){
+        return 1;
+    }
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -883,6 +883,11 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 experiments
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1227,6 +1232,8 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "ancestor_piq_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "experiments",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1242,8 +1249,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:14:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pX0rZsB9Zk1Px+VlxWRODw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-17 10:38:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TVNVIlUskmJ8tSqBlUqM5w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
