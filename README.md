@@ -19,7 +19,7 @@ LIMS2 supports a variety of quality control checking methods. Multiple QCs may b
 
 LIMS2 integrates the Genoverse genome browser to display Gibson designs, PCR and sequencing primers, Ensembl information and so on.
 
-LIMS2 is a three tier webapp based on PostgreSQL, Perl (with ORM DBIx::class), and template toolkit - fully supporting the Model-view-controller MVC pattern. It is a production quality system inn everyday use at the Wellcome Trust Sanger Institute supporting the high-throughput gene targting efforts in human and mouse embryonic stem cells. Many user facilities make extensive use of Javascript and the ExtJS Gridpanel widget is used as one method of vieweing plate output reports on an essentially infinitely scrolling canvas.
+LIMS2 is a three tier webapp based on PostgreSQL, Perl (with ORM DBIx::class), and template toolkit - fully supporting the Model-view-controller MVC pattern. It is a production quality system in everyday use at the Wellcome Trust Sanger Institute supporting the high-throughput gene targting efforts in human and mouse embryonic stem cells. Many user facilities make extensive use of Javascript and the ExtJS Gridpanel widget is used as one method of vieweing plate output reports on an essentially infinitely scrolling canvas.
 
 Stem Cell Informatics Team
 
