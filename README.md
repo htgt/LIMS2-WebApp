@@ -5,6 +5,8 @@ that exist in a hierarchichal parent:child relationship with each other. The nod
 are well objects (wells) and the edges of the graph connecting wells are process objects (processes).
 The process linking two wells determines which input and output well object types are valid for that process.
 
+![alt tag](https://raw.github.com/htgt/LIMS2-WebApp/devel/images/process_graph_example.png)
+
 Wells are grouped together into plates. Plates may contain any number of wells. Typical real lab plates contain 12, 96 or 384 wells. However, LIMS2 only uses plates as a means of grouping wells and imposes no constraints on well numbers. Plates do not
 necessarily contain the same types of well - although generally they do and the user interface does not provide facilities
 for creating single plates with different well types.
