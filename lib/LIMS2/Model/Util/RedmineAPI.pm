@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RedmineAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RedmineAPI::VERSION = '0.345';
+    $LIMS2::Model::Util::RedmineAPI::VERSION = '0.349';
 }
 ## use critic
 
@@ -120,6 +120,22 @@ sub _build_tracker_id_for{
     return \%tracker_names_to_ids;
 }
 
+has priority_id_for => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_priority_id_for{
+    my $self = shift;
+
+    my $get = $self->get("/enumerations/issue_priorities.json");
+    my $priorities = $get->res->{issue_priorities};
+
+    my %pr_to_ids = map { lc( $_->{name} ) => $_->{id} } @{ $priorities };
+    return \%pr_to_ids;
+}
+
 sub get_issues{
     my ($self, $params, $custom_field_params) = @_;
     $params ||= {};
@@ -179,6 +195,7 @@ sub _pspec_create_issue{
         cell_line     => { validate => 'existing_cell_line' },
         experiment_id => { validate => 'existing_experiment_id'},
         description   => { validate => 'non_empty_string', optional => 1},
+        priority      => { validate => 'non_empty_string', optional => 1},
     };
 }
 
@@ -220,7 +237,7 @@ sub create_issue{
         },
         {
             id    => $self->custom_field_id_for->{'Human Allele'},
-            value => 'Single targeted', # Setting all as single targeted
+            value => 'CRISPR Homozygous', # Setting all as CRISPR homozygous
         },
         {
             id    => $self->custom_field_id_for->{'Current Experiment ID'},
@@ -242,6 +259,16 @@ sub create_issue{
         }
     };
 
+    if(my $pr_name = $params->{priority}){
+        $pr_name = lc($pr_name);
+        my $priority_id = $self->priority_id_for->{ $pr_name };
+        if($priority_id){
+            $issue_info->{issue}->{priority_id} = $priority_id;
+        }
+        else{
+            die "No priority named $pr_name found in redmine";
+        }
+    }
     # Show ticket as created by LIMS2
     $self->redmine->default_header( 'X-Redmine-Switch-User' => 'lims2' );
 

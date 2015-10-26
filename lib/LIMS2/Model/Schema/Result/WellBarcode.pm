@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellBarcode::VERSION = '0.345';
+    $LIMS2::Model::Schema::Result::WellBarcode::VERSION = '0.349';
 }
 ## use critic
 

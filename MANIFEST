@@ -4,6 +4,7 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+README.md
 bin/add_cell_lines_to_projects.pl
 bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
@@ -17,6 +18,7 @@ bin/lims2_staging_clone
 bin/list_db_names.pl
 bin/process_graph.pl
 bin/run_crispr_es_qc.pl
+docs/images/process_graph_example.png
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/lims2_util_oligo_selection_overview.txt

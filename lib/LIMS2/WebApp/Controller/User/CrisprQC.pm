@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.345';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.349';
 }
 ## use critic
 
@@ -193,13 +193,25 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
 
     my $params = $c->request->params;
 
-    my ( $runs, $pager ) = $c->model('Golgi')->list_crispr_es_qc_runs(
-        {
-            species    => $c->session->{selected_species},
-            page       => $params->{page},
-            pagesize   => $params->{pagesize},
-        }
-    );
+    if ( defined $params->{show_all} ) {
+        delete @{$params}{ qw( show_all sequencing_project plate_name ) };
+    }
+
+    #filter isnt in the pspec so remove it to avoid an error
+    delete $params->{filter} if defined $params->{filter};
+
+    $params->{species} ||= $c->session->{selected_species};
+
+    if ($params->{sequencing_project}) {
+        $params->{sequencing_project} =~ s/^\s+//;
+        $params->{sequencing_project} =~ s/\s+$//;
+    }
+    if ($params->{plate_name}) {
+        $params->{plate_name} =~ s/^\s+//;
+        $params->{plate_name} =~ s/\s+$//;
+    }
+
+    my ( $runs, $pager ) = $c->model('Golgi')->list_crispr_es_qc_runs( $params );
 
     my $pageset = LIMS2::WebApp::Pageset->new(
         {
@@ -208,13 +220,15 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
             current_page     => $pager->current_page,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs' )
+            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs', $params )
         }
     );
 
     $c->stash(
-        runs                => $runs,
-        pageset             => $pageset
+        runs               => $runs,
+        pageset            => $pageset,
+        plate_name         => $params->{plate_name},
+        sequencing_project => $params->{sequencing_project},
     );
 
     return;

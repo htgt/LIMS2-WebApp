@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.345';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.349';
 }
 ## use critic
 
@@ -1005,7 +1005,7 @@ sub mutation_signatures_barcodes : Path( '/user/mutation_signatures_barcodes' ) 
     my ($self, $c) = @_;
 
     try{
-        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'));
+        my $ms_barcode_data = get_mutation_signatures_barcode_data($c->model('Golgi'),$c->session->{selected_species});
         my $barcodes_by_state = {};
         foreach my $barcode (@$ms_barcode_data){
             my $state = $barcode->{state};

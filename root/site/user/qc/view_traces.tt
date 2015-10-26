@@ -1,11 +1,11 @@
 [% META title="View Sequencing Traces"; META tab_name = 'QC' %]
 
-<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css', {id=1} ) %]">
 
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>2} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>3} ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
     api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
@@ -31,6 +31,14 @@
       </div>
     </div>
 
+    <div class="control-group hidden" id="download_reads_button">
+      <div class="controls">
+      <button name="download_reads" id="download_reads" type="submit" value="download_reads" class="btn btn-info">
+        <i class="icon-download-alt icon-white"></i> Download Reads (all sub-projects)
+      </button>
+      </div>
+    </div>
+
     <div class="control-group">
       <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
       <div class="controls">
@@ -52,8 +60,8 @@
 
     <div class="control-group">
       <div class="controls">
-      <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn">
-        <i class="icon-upload"></i> Fetch Reads
+      <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn btn-primary">
+        Fetch Reads <i class="icon-arrow-right icon-white"></i>
       </button>
       </div>
     </div>
@@ -75,7 +83,7 @@
         [% FOR read IN reads %]
             <tr>
               <td rowspan="2">[% read.orig_read_name %]</td>
-              <td style="overflow-wrap:break-word">[% read.seq %]</td>
+              <td style="overflow-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
             </tr>
             <tr>
                <td>
@@ -127,6 +135,9 @@ $(document).ready(function() {
   });
 
   function populate_subproject_list(data, selected_value){
+    // Show the dowload button at the same time
+    $("#download_reads_button").removeClass('hidden');
+
     console.log("primer data: ");
     console.log(data);
     $("#sequencing_sub_project").empty();
@@ -184,6 +195,14 @@ $(document).ready(function() {
     }
   });
 
+  $("#download_reads_button").click(function(e){
+    e.preventDefault();
+    // go to read dowload link with value from sequencing project select field
+    var seq_project = $("#sequencing_project").val();
+    var download_uri = "[% c.uri_for('/user/download_reads') %]";
+    window.location.href = download_uri + "?sequencing_project=" + seq_project;
+  });
+
   $(".traces").click(function(e) {
     e.preventDefault();
 
@@ -200,6 +219,11 @@ $(document).ready(function() {
   $("#hide_all_traces").click(function(){
     // Remove the trace plots
     $(".demo-container").remove();
+
+    // Remove any sequence highlighing
+    $(".trace_sequence").each(function(i,seq_td){
+      $(seq_td).html($(seq_td).text());
+    });
 
     // Hide the hide traces buttons
     $(".hide-traces").remove();

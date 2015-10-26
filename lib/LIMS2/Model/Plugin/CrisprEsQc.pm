@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.345';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.349';
 }
 ## use critic
 
@@ -417,8 +417,10 @@ sub set_het_status {
 sub pspec_list_crispr_es_qc_runs {
     return {
         species    => { validate => 'existing_species' },
+        sequencing_project => { validate => 'non_empty_string', optional => 1 },
+        plate_name => { validate => 'non_empty_string',  optional => 1 },
         page       => { validate => 'integer', optional => 1, default => 1 },
-        pagesize   => { validate => 'integer', optional => 1, default => 20 },
+        pagesize   => { validate => 'integer', optional => 1, default => 15 },
     };
 }
 
@@ -427,13 +429,26 @@ sub list_crispr_es_qc_runs {
 
     my $validated_params = $self->check_params( $params, $self->pspec_list_crispr_es_qc_runs );
 
+    my %search = (
+        'me.species_id' => $validated_params->{species},
+    );
+
+    if ( $validated_params->{sequencing_project} ) {
+        $search{'sequencing_project'} = { 'like', '%' . $validated_params->{sequencing_project} . '%' };
+    }
+    if ( $validated_params->{plate_name} ) {
+        $search{'plate.name'} = { 'like', '%' . $validated_params->{plate_name} . '%' };
+    }
+
     my $resultset = $self->schema->resultset('CrisprEsQcRuns')->search(
-        { 'me.species_id' => $validated_params->{species} },
+        { %search },
         {
-            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
+            prefetch => [ 'created_by' ],
+            join     => {'crispr_es_qc_wells' => { well => 'plate' }},
             order_by => { -desc => "me.created_at" },
             page     => $validated_params->{page},
             rows     => $validated_params->{pagesize},
+            distinct => 1
         }
     );
 
