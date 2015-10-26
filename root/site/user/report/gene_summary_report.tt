@@ -11,6 +11,11 @@
     display: block;
     font-weight: bold
 }
+
+span0 {
+    background-color:yellow;
+}
+
 </style>
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
@@ -135,9 +140,15 @@ function toggle_btn(btn, show_or_hide) {
 </div>
 [%- END %]
 
+[%- IF info.defined %]
+<input type="text" class="span3" id="query"  placeholder="Find in page" autocomplete="on" />
+<button class="btn" onclick=searchThroughAccordion();>Find</button>
+[% END %]
+
 <div class="accordion" id="gene_report_accordion">
 [% IF timeline %]
   <div class="accordion-group">
+    <p id="collapseTimeline_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Date Report</a>
@@ -173,6 +184,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--CRISPR QC-->
 [%- IF crispr_qc %]
   <div class="accordion-group">
+    <p id="collapseCrisprQC_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
@@ -253,6 +265,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--SFP WELLS-->
 [%- IF sorted_wells.sfp %]
   <div class="accordion-group">
+    <p id="collapseSFP_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSFP">Second Electroporation Freezes</a>
@@ -294,6 +307,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--PIQ WELLS-->
 [%- IF sorted_wells.piq %]
   <div class="accordion-group">
+    <p id="collapsePIQ_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Distribution QC</a>
@@ -349,6 +363,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--FP WELLS-->
 [%- IF sorted_wells.fp %]
   <div class="accordion-group">
+    <p id="collapseFP_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFP">Electroporation Freezer Instances</a>
@@ -392,6 +407,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--SEP_PICK WELLS-->
 [%- IF sorted_wells.sep_pick %]
   <div class="accordion-group">
+    <p id="collapseSepPick_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSepPick">Second Electroporation Picks</a>
@@ -430,6 +446,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--SEP WELLS-->
 [%- IF sorted_wells.sep %]
   <div class="accordion-group">
+    <p id="collapseSEP_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEP">Second Electroporations</a>
@@ -471,6 +488,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--XEP WELLS-->
 [%- IF sorted_wells.xep %]
   <div class="accordion-group">
+    <p id="collapseXEP_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseXEP">XEP Pools</a>
@@ -518,6 +536,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--EP_PICK WELLS-->
 [%- IF sorted_wells.ep_pick %]
   <div class="accordion-group">
+    <p id="collapseEpPick_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">Primary QC</a>
@@ -575,6 +594,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--EP WELLS-->
 [%- IF sorted_wells.ep %]
   <div class="accordion-group">
+    <p id="collapseEP_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEP">Electroporations</a>
@@ -623,6 +643,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--ASSEMBLY WELLS-->
 [%- IF sorted_wells.assembly %]
   <div class="accordion-group">
+    <p id="collapseAssembly_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseAssembly">Assemblies</a>
@@ -673,6 +694,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--CRISPR DNA WELLS-->
 [%- IF sorted_wells.crispr_dna %]
   <div class="accordion-group">
+    <p id="collapseCrisprDNA_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprDNA">Crispr DNA Preparations</a>
@@ -716,6 +738,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--DNA WELLS-->
 [%- IF sorted_wells.dna %]
   <div class="accordion-group">
+    <p id="collapseDNA_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDNA">DNA Preparations</a>
@@ -761,6 +784,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--CRISPR VECTORS-->
 [%- IF sorted_wells.crispr_vector %]
   <div class="accordion-group">
+    <p id="collapseCrisprVector_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprVector">Crispr Vectors</a>
@@ -802,6 +826,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--FINAL PICK VECTORS-->
 [%- IF sorted_wells.final_pick %]
   <div class="accordion-group">
+    <p id="collapseFinalPick_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinalPick">Final Pick Vectors</a>
@@ -847,6 +872,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--FINAL VECTORS-->
 [%- IF sorted_wells.final %]
   <div class="accordion-group">
+    <p id="collapseFinal_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinal">Final Vectors</a>
@@ -892,6 +918,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--INTERMEDIATE VECTORS-->
 [%- IF sorted_wells.int %]
   <div class="accordion-group">
+    <p id="collapseIntermediateVectors_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseIntermediateVectors">Intermediate Vectors</a>
@@ -938,6 +965,7 @@ function toggle_btn(btn, show_or_hide) {
 [%- IF wells.defined %]
   [%- IF sorted_wells.design %]
   <div class="accordion-group">
+    <p id="collapseDesignInstances_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesignInstances">Design Instances</a>
@@ -978,6 +1006,7 @@ function toggle_btn(btn, show_or_hide) {
 
   [%- IF sorted_wells.crispr %]
   <div class="accordion-group">
+    <p id="collapseCrisprInstances_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprInstances">Crispr Instances</a>
@@ -1015,6 +1044,7 @@ function toggle_btn(btn, show_or_hide) {
 <!--DESIGNS -->
 [%- IF designs.defined %]
   <div class="accordion-group">
+    <p id="collapseDesigns_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
@@ -1073,6 +1103,7 @@ function toggle_btn(btn, show_or_hide) {
 <!-- EXPERIMENTS -->
 [%- IF experiments.defined %]
   <div class="accordion-group">
+    <p id="collapseExperiments_id"></p>
     <div class="accordion-heading">
       <h3>
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseExperiments">Experiments</a>
@@ -1129,4 +1160,61 @@ $("#gene_id_input").autocomplete({
 });
 
 $('#transition_time').popover();
+
+$(function() {
+
+    $('.accordion').on('show', function (e) {
+         $(e.target).prev('.accordion-heading').find('.accordion-toggle').addClass('active');
+    });
+    
+    $('.accordion').on('hide', function (e) {
+        $(this).find('.accordion-toggle').not($(e.target)).removeClass('active');
+    });
+        
+});
+
+function searchThroughAccordion() {
+    var collection = document.getElementsByClassName('accordion-body collapse');
+    var states = [];
+    for (var i = 0; i < collection.length; i++) {
+        states.push(collection[i].id);
+    }
+    console.log(states);
+    states.forEach(function(state) {
+        highlightSearch(state);
+    });
+}
+
+function highlightSearch(state) {
+    var text = document.getElementById("query").value;
+    if (text) {
+        var query = new RegExp("(" + text + ")(?![^<]*>|[^<>]*<\/>\S)", "gim");
+        var accordion = document.getElementById(state).innerHTML;
+        var clearAccord = accordion.replace(/(<span0>|<\/span0>)/igm, "");
+        document.getElementById(state + '_id').innerHTML = "No results found";
+        document.getElementById(state).innerHTML = clearAccord;
+        var newAccord = clearAccord.replace(query, "<span0>$1</span0>");
+        var count;
+        try {
+            count = newAccord.match(query).length;
+        } catch (err) {
+            count = 0;
+        }
+        document.getElementById(state + '_id').innerHTML = "Results found: " + count;
+        
+        document.getElementById(state).innerHTML = newAccord;
+        document.getElementById(state + '_id').style = "color:red";
+        var ua = navigator.userAgent;
+        var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+
+        if (browser[1] != "Firefox") {
+            if (count > 0 ){
+                $("#" + state).collapse("show");
+            }
+            else {
+                $("#" + state).collapse("hide");
+            }
+        }
+    }
+}	
 </script>

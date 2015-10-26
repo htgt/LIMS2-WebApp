@@ -11,6 +11,7 @@ use Sub::Exporter -setup => {
             upload_plate_dna_quality
             upload_plate_pcr_status
             spreadsheet_to_csv
+            csv_to_spreadsheet
           )
     ]
 };
@@ -24,8 +25,11 @@ use TryCatch;
 use Perl6::Slurp;
 use Text::Iconv;
 use Spreadsheet::XLSX;
+use Excel::Writer::XLSX;
 use File::Temp;
 use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
+use LIMS2::Exception::System;
+use File::Slurp;
 
 BEGIN {
     #try not to override the lims2 logger
@@ -305,6 +309,37 @@ sub spreadsheet_to_csv {
     }
 
     return \%worksheets;
+}
+
+#Converts a CSV into XLSX format. Returns the file in raw format with file name
+sub csv_to_spreadsheet {
+    my ( $csv_name, $csv_fh ) = @_;
+
+    my $csv = Text::CSV_XS->new( { binary => 1, eol => "\n" } );
+
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
+    $csv_name = $csv_name . '.xlsx';
+    my $dir = $base . '/' . $csv_name;
+    my $workbook = Excel::Writer::XLSX->new($dir);
+    my $worksheet = $workbook->add_worksheet();
+
+    my @row;
+    my $row_number = 1;
+    my @body = @{$csv->getline_all($csv_fh)};
+    foreach my $body_line (@body) {
+        @row = @{$body_line};
+        $worksheet->write_row('A' . $row_number, \@row);
+        $row_number++;
+    }
+    $workbook->close;
+    my $file = read_file( $dir, {binmode => ':raw'} );
+    my $file_contents = ({
+        file    => $file,
+        name    => $csv_name,
+    });
+
+    return $file_contents;
 }
 
 # remove whitespace from beginning and end of string

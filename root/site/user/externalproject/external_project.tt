@@ -168,7 +168,7 @@ function addPrimer() {
 }
 
 function addTemplate() {
-    window.location.href = '/user/create_template_plate'; 
+    window.location.href = "[% c.uri_for( '/user/create_template_plate' ) %]"; 
 }
 
 function deleteRow(btn) {
