@@ -62,10 +62,15 @@ sub cre_knockin_project_status : Path( '/public_reports/cre_knockin_project_stat
 Downloads a csv report of a given report_id
 
 =cut
-sub download_report :Path( '/public_reports/download' ) :Args(1) {
+
+
+sub download_report_csv :Path( '/public_reports/download_csv' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -74,7 +79,22 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
     return;
 }
 
+sub download_report_xlsx :Path( '/public_reports/download_xlsx' ) :Args(1) {
+    my ( $self, $c, $report_id ) = @_;
+    $c->assert_user_roles( 'read' );
 
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
+    my $file = csv_to_spreadsheet($report_name, $report_fh);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->content_encoding( 'binary' );
+    $c->response->header( 'content-disposition' => 'attachment; filename=' . $file->{name} );
+    $c->response->body( $file->{file} );
+    return;
+
+}
 =head2 download_compressed
 
 Generates a gzipped file for download, and downloads it
