@@ -52,7 +52,7 @@ foreach my $archive(@archives){
 }
 
 if($db_update){
-    my $model = 'FIXME';
+    my $model = LIMS2::Model->new( user => 'lims2' );
     foreach my $project (@all_projects){
         # update in db
         # use model method in transaction

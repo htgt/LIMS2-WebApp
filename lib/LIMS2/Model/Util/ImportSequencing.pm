@@ -136,8 +136,8 @@ sub extract_eurofins_data{
 
 	# Store orig archives in warehouse too
 	# FIXME: put this in environment variable
-	#my $archive_dir = dir('/warehouse/team87_wh01/eurofins_order_archive_data');
-	my $archive_dir = dir('/var/tmp/eurofins_order_archive_data');
+	my $archive_dir = dir('/warehouse/team87_wh01/eurofins_order_archive_data');
+	#my $archive_dir = dir('/var/tmp/eurofins_order_archive_data');
 	my $archive_to = $archive_dir->file( $archive_file->basename );
 	$archive_file->move_to( $archive_to ) or LOGDIE "Cannot move archive file $archive_file to $archive_to - $!";
 
@@ -194,13 +194,16 @@ sub fix_seq_file{
 }
 
 sub _get_new_name{
-	my ($new_name) = shift;
+	my ($new_name) = @_;
 
     $new_name =~ s/$STRING_TO_REMOVE//;
 
     # tmp fix to convert SF -> SF1
-    $new_name =~ s/p1kSF\./p1kSF1./;
-    $new_name =~ s/p1kSR\./p1kSR1./;
+    $new_name =~ s/p1kSF\b/p1kSF1/;
+    $new_name =~ s/p1kSR\b/p1kSR1/;
 
     return $new_name;
 }
+
+1;
+
