@@ -806,7 +806,7 @@ sub _is_allele_type_valid_for_genotyping_pass {
     my $valid = 0;
     foreach my $curr_well_allele_type ( @curr_well_allele_types_array ) {
 #        if ( $curr_well_allele_type =~ @conv_allowed_types_array ) {
-        if ( any(@cond_allowed_types_array) eq $curr_well_allele_type )
+        if ( any(@conv_allowed_types_array) eq $curr_well_allele_type ) {
             # DEBUG ( $curr_well_allele_type . ' matches!' );
             $valid = 1;
         }
