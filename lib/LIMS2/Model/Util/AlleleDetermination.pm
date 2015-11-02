@@ -1,7 +1,5 @@
 package LIMS2::Model::Util::AlleleDetermination;
 
-use strict;
-use warnings FATAL => 'all';
 
 =head1 NAME
 
@@ -19,6 +17,8 @@ use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
 use Log::Log4perl qw( :easy );
+use syntax 'junction'; #Adds the any keyword to avaoid using smart match operator on an array
+
 
 has model => (
     is       => 'ro',
@@ -489,7 +489,7 @@ sub _determine_allele_type_for_well {
 
     $self->current_well_stage( $self->current_well->{ 'plate_type' } );
 
-    unless ( $self->current_well_stage ~~ [ qw( EP_PICK SEP_PICK PIQ ) ] ) { return 'N/A'; }
+    unless ( $self->current_well_stage =~ / EP_PICK | SEP_PICK | PIQ /xgms  ) { return 'N/A'; }
     unless ( defined $self->current_well->{ 'workflow' } ) { return 'Failed: workflow not present'; }
 
     $self->current_well_workflow( $self->current_well->{ 'workflow' } );
@@ -556,7 +556,7 @@ sub _create_assay_summary_string {
 
     my @pattern;
 
-    if ( $self->current_well_workflow ~~ [ qw( CreKi CreKiDre ) ] ) {
+    if ( $self->current_well_workflow =~ / CreKi | CreKiDre /xgms ) {
         # build the summary for Cre Knockin workflows
         foreach my $assay_name ( 'cre', 'puro', 'loadel', 'loacrit' ) {
             push( @pattern,
@@ -741,7 +741,7 @@ sub _determine_genotyping_pass_for_well {
 
     $self->current_well_stage( $self->current_well->{ 'plate_type' } );
 
-    LIMS2::Exception->throw( 'Failed: Plate type unusable' ) unless ( $self->current_well_stage ~~ [ qw( EP_PICK SEP_PICK PIQ ) ] );
+    LIMS2::Exception->throw( 'Failed: Plate type unusable' ) unless ( $self->current_well_stage =~ / EP_PICK | SEP_PICK | PIQ /xgms );
     LIMS2::Exception->throw( 'Failed: Workflow not present' ) unless ( defined $self->current_well->{ 'workflow' } );
 
     $self->current_well_workflow( $self->current_well->{ 'workflow' } );
@@ -805,7 +805,8 @@ sub _is_allele_type_valid_for_genotyping_pass {
     # N.B. This is currently coded so that ANY one matching allele type triggers a pass
     my $valid = 0;
     foreach my $curr_well_allele_type ( @curr_well_allele_types_array ) {
-        if ( $curr_well_allele_type ~~ @conv_allowed_types_array ) {
+#        if ( $curr_well_allele_type =~ @conv_allowed_types_array ) {
+        if ( any(@cond_allowed_types_array) eq $curr_well_allele_type )
             # DEBUG ( $curr_well_allele_type . ' matches!' );
             $valid = 1;
         }
@@ -1688,22 +1689,22 @@ sub _validate_primers {
     my $gr4 = $self->current_well->{ 'gr4' };
 
     # expecting 'pass','fail' (or blank if not done)
-    unless ( defined $gf3 && ( $gf3 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gf3 && ( $gf3 =~ / pass | fail /xgmsi ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf3 value not present. " );
         return 0;
     }
 
-    unless ( defined $gr3 && ( $gr3 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gr3 && ( $gr3 =~ / pass | fail /xgms ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr3 value not present. " );
         return 0;
     }
 
-    unless ( defined $gf4 && ( $gf4 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gf4 && ( $gf4 =~ / pass | fail /xgms ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gf4 value not present. " );
         return 0;
     }
 
-    unless ( defined $gr4 && ( $gr4 ~~ [ qw( pass fail ) ] ) ) {
+    unless ( defined $gr4 && ( $gr4 =~ / pass | fail /xgms ) ) {
         $self->current_well_validation_msg( $self->current_well_validation_msg . "$assay_name assay validation: gr4 value not present. " );
         return 0;
     }

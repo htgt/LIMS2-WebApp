@@ -615,7 +615,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
     $c->assert_user_roles( 'edit' );
 
     # Store form values
-    foreach my $param qw(template_plate source_plate cassette backbone phase_matched_cassette){
+    foreach my $param (qw/template_plate source_plate cassette backbone phase_matched_cassette/) {
     	$c->stash->{$param} = $c->req->param($param);
     }
     $c->stash->{recombinase} = [ $c->req->param('recombinase') ];

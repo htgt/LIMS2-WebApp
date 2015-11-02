@@ -253,14 +253,14 @@ function lims2_scisand {
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Utils/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-76/modules
-    export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
+    #export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
+    #export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    #export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-76/modules
+    #export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
-    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+    #export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
 }
 
 function lims2_pg9.3 {
@@ -364,6 +364,21 @@ Files:
 END
 }
 
+function local_lims2_setup {
+    source ~/.lims2_init
+}
+
+function lims2_legacy {
+    source $LIMS2_MIGRATION_ROOT/opt/t87/global/scripts/bash_utils.sh
+    use perl-utils
+}
+
+if [[ -f $HOME/.lims2_init ]] ; then
+    printf "Sourcing initialisation mods to lims2 environment\n"
+    local_lims2_setup
+fi
+
+
 printf "Environment setup for lims2. Type 'lims2 help' for help on commands.\n"
 if [[ -f $HOME/.lims2_local ]] ; then
     printf "Sourcing local mods to lims2 environment\n"
@@ -373,3 +388,6 @@ fi
 if [[ !"$PGUSER" ]]; then
     export PGUSER=lims2
 fi
+
+lims2_legacy
+lims2_local_db
