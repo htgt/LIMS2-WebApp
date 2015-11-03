@@ -2,7 +2,7 @@ package LIMS2::Model::Util::CreatePlate;
 
 use strict;
 use warnings FATAL => 'all';
-use feature "switch";
+use experimental "switch";
 
 use Sub::Exporter -setup => {
     exports => [
