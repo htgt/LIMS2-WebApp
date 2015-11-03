@@ -19,42 +19,14 @@ use Path::Class;
 use POSIX;
 use File::Path qw(remove_tree);
 use Data::Dumper;
-use Net::FTPSSL;
 
-Log::Log4perl->easy_init( { level => $DEBUG } );
+Log::Log4perl->easy_init( { level => $INFO } );
 
 my $STRING_TO_REMOVE = qr/_premix-w\.-temp/;
 my $PROJECT_NAME_RX = qr/^(.*)_\d+[a-z]{1}\d{2}\./;
 
-sub fetch_archives_added_since{
-	my ($last_poll, $conf) = shift;
-
-    # Connect to sftp
-    my $ftps = Net::FTPSSL->new('ftps.eurofinsgenomics.eu',
-                              Encryption => IMP_CRYPT,
-                              Croak => 1);
-
-    $ftps->login($ENV{EUROFINS_USER}, $ENV{EUROFINS_PASSWORD} );
-
-    # Any archives since last poll
-    my @new_files;
-    my @file_list = $ftps->nlst(".");
-    foreach my $file (@file_list){
-    	my $timestamp = $ftps->_mdtm($file);
-    	DEBUG "Timestamp for file $file: $timestamp";
-    	if($timestamp > $last_poll){
-    		push @new_files, $file;
-    	}
-    }
-
-    # Download to some temp dir
-
-    # Return list of archive paths
-    return @new_files;
-}
-
 sub extract_eurofins_data{
-	my ($archive) = @_;
+	my ($archive, $move) = @_;
 
 	# Unpack zip archive
 	my $tmp_dir_name = $archive;
@@ -72,13 +44,13 @@ sub extract_eurofins_data{
 	my $temp_dir = dir($tmp_dir_name);
 	$temp_dir->mkpath;
 
-	DEBUG "Unzipping archive..";
+	INFO "Unzipping archive $archive_file...";
 	my $zip = Archive::Zip->new();
 	unless( $zip->read("$archive_file") == AZ_OK ){
 		LOGDIE "Could not inflate zip $archive_file - $!";
 	}
 	$zip->extractTree( '', $temp_dir );
-	DEBUG "Unzipping complete";
+	INFO "Unzipping complete";
 
 
 
@@ -116,6 +88,7 @@ sub extract_eurofins_data{
 	        	$projects{$project_name} = $project_dir;
 	        }
 
+            INFO "Moving $fixed_file to $project_dir";
 	        $fixed_file->move_to($project_dir) or LOGDIE "Could not move $fixed_file to $project_dir - $!";
 		}
 
@@ -130,16 +103,19 @@ sub extract_eurofins_data{
 	    my $archive_name = $archive_file->basename;
 	    print $fh "$time_stamp,$archive_name\n";
 	    close $fh;
-	    print "Sequencing data in project directory $project_dir updated\n";
+	    INFO "Sequencing data in project directory $project_dir updated\n";
 	}
 
 
-	# Store orig archives in warehouse too
-	# FIXME: put this in environment variable
-	my $archive_dir = dir('/warehouse/team87_wh01/eurofins_order_archive_data');
-	#my $archive_dir = dir('/var/tmp/eurofins_order_archive_data');
-	my $archive_to = $archive_dir->file( $archive_file->basename );
-	$archive_file->move_to( $archive_to ) or LOGDIE "Cannot move archive file $archive_file to $archive_to - $!";
+    if($move){
+	    # Store orig archives in warehouse too
+	    my $dir_path = $ENV{LIMS2_SEQ_ARCHIVE_DIR}
+	        or LOGDIE "Cannot move archive file as LIMS2_SEQ_ARCHIVE_DIR is not set";
+	    INFO "Moving original archive $archive_file to $dir_path";
+	    my $archive_dir = dir($dir_path);
+	    my $archive_to = $archive_dir->file( $archive_file->basename );
+	    $archive_file->move_to( $archive_to ) or LOGDIE "Cannot move archive file $archive_file to $archive_to - $!";
+    }
 
 	# Tidy up temporarily unpacked files
 	remove_tree($temp_dir->stringify) or LOGDIE "Could not remove $temp_dir - $!";
