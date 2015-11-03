@@ -121,7 +121,8 @@ sub extract_eurofins_data{
 	remove_tree($temp_dir->stringify) or LOGDIE "Could not remove $temp_dir - $!";
 
 	# Return list of projects seen
-	return sort keys %projects;
+	my @sorted_projects = sort keys %projects;
+	return @sorted_projects;
 }
 
 # Remove "premix-w.-temp" from file names and read names:
@@ -156,9 +157,9 @@ sub fix_seq_file{
     my $fh = $new_file->openw or LOGDIE "Can't open $new_file for writing - $!";
 
     foreach my $line (@lines){
-    	my $new_name = _get_new_name($line);
+    	my $new_read_name = _get_new_name($line);
 
-    	print $fh $new_name;
+    	print $fh $new_read_name;
     }
 
     close $fh;
