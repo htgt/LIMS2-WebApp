@@ -8,6 +8,7 @@ use Bio::SCF;
 use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
+use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
 
 with "MooseX::Log::Log4perl";
 
@@ -298,6 +299,15 @@ sub mutation_signatures_info_GET{
             my @genes = $design->gene_symbols($gene_finder);
             $data->{gene_id} = (@gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ]);
             $data->{gene} = (@genes == 1 ? $genes[0] : [ @genes ]);
+
+            # damaged required to check if clone is het. clone qc_data hash seems to be inside an array (of max size 1)?
+            my $damage = $data->{ms_qc_data}->[0]->{qc_data}->{damage_type};
+            my $species = $c->model('Golgi')->schema->resultset('Species')->find({ id => $well->plate->species_id});
+            my $assembly_id = $species->default_assembly->assembly_id;
+            my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+            my $chromosome = $design_oligo_locus->chr->name;
+            $data->{chromosome} = $chromosome;
+            $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $well->id, $chromosome, $damage) unless !$damage;
         }
         $c->stash->{json_data} = $data;
     }

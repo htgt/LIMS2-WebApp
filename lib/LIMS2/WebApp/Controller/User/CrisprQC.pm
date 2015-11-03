@@ -188,7 +188,7 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my $params = $c->request->params;
 
     if ( defined $params->{show_all} ) {
-        $params = {};
+        delete @{$params}{ qw( show_all sequencing_project plate_name ) };
     }
 
     #filter isnt in the pspec so remove it to avoid an error
@@ -214,13 +214,15 @@ sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
             current_page     => $pager->current_page,
             pages_per_set    => 5,
             mode             => 'slide',
-            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs' )
+            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs', $params )
         }
     );
 
     $c->stash(
-        runs                => $runs,
-        pageset             => $pageset
+        runs               => $runs,
+        pageset            => $pageset,
+        plate_name         => $params->{plate_name},
+        sequencing_project => $params->{sequencing_project},
     );
 
     return;
