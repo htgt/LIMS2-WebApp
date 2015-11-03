@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::ExternalProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.347';
+    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.350';
 }
 ## use critic
 
@@ -34,11 +34,9 @@ Catalyst Controller.
 
 sub external_project :Path('/user/external_project'){
     my ( $self, $c ) = @_;
-
     my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
 
     handle_primers($c, $secondary_rs); #Fills the primer dropdown menu
-
     my $project_name = $c->req->param('project_name');
     if ($project_name){
         check_params($c);
@@ -56,6 +54,9 @@ sub external_project :Path('/user/external_project'){
             $c->stash->{success_msg} = 'Successfully created sequencing project: ' . $project_name . ' with id: ' . $success_entry->{id};
             $c->stash->{project_id} = $success_entry->{id};
         }
+    }
+    elsif ($c->req->param('create_project')) {
+        $c->stash->{error_msg} = "Please enter a project name and add a primer";
     }
     return;
 }
