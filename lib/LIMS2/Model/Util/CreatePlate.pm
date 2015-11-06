@@ -285,7 +285,7 @@ sub xep_pool_parents {
 sub create_di_or_crispr_parents {
     my ( $model, $params ) = @_;
 
-    return [];
+    return;
 }
 
 sub other_parents {
