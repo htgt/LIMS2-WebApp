@@ -173,42 +173,25 @@ sub _build_target_region_start {
 sub _build_target_region_end {
     my $self = shift;
 
-    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{D3}{start};
-        }
-        else {
-            return $self->oligos->{U5}{start};
-        }
-    }
-
-    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{D5}{end};
-        }
-        else {
-            return $self->oligos->{U3}{end};
-        }
-    }
-
-    # Assuming gibson design is used as a conditional
-    if ( $self->type eq 'gibson' ) {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{ER}{start};
-        }
-        else {
-            return $self->oligos->{EF}{start};
-        }
-    }
-
-    if ( $self->type eq 'gibson-deletion') {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{'3F'}{start};
-        }
-        else {
-            return $self->oligos->{'5R'}{start};
-        }
-    }
+    my %forward_strand = (
+        'deletion'          => $self->oligos->{D3}{start},
+        'insertion'         => $self->oligos->{D3}{start},
+        'conditional'       => $self->oligos->{D5}{end},
+        'artificial-intron' => $self->oligos->{D5}{end},
+        'gibson'            => $self->oligos->{ER}{start},
+        'gibson-deletion'   => $self->oligos->{'3F'}{start},
+        'fusion-deletion'   => $self->oligos->{'3F'}{start}, #TODO INSERT ACTUAL OLIGO PRIMERS
+    );
+    
+    my %reverse_strand = (
+        'deletion'          => $self->oligos->{U5}{start},
+        'insertion'         => $self->oligos->{U5}{start},
+        'conditional'       => $self->oligos->{U3}{end},
+        'artificial-intron' => $self->oligos->{U3}{end},
+        'gibson'            => $self->oligos->{EF}{start},
+        'gibson-deletion'   => $self->oligos->{'5R'}{start},
+        'fusion-deletion'   => $self->oligos->{'5R'}{start}, #TODO INSERT ACTUAL OLIGO PRIMERS
+    );
 
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
@@ -219,6 +202,11 @@ sub _build_target_region_end {
     # Do the same for point mutation designs
     if( $self->type eq 'point-mutation'){
         return $self->oligos->{'PM'}{end};
+    }
+    if ( $self->chr_strand == 1 ) {
+        return $forward_strand{$self->type};
+    } else {
+        return $reverse_strand{$self->type};
     }
 
     return;

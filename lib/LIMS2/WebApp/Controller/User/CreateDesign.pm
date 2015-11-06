@@ -282,7 +282,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
-        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
+        $self->_create_design( $c, $create_design_util, 'create_exon_target_design' );
     }
 
     return;
@@ -304,7 +304,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
-        $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
+        $self->_create_design( $c, $create_design_util, 'create_custom_target_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
         my $target_data = $create_design_util->c_target_params_from_exons;
@@ -317,10 +317,10 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     return;
 }
 
-sub _create_gibson_design {
+sub _create_design {
     my ( $self, $c, $create_design_util, $cmd ) = @_;
 
-    $c->log->info('Creating new gibson design');
+    $c->log->info('Creating new design');
 
     my ($design_attempt, $job_id);
     $c->stash( $c->request->params );
@@ -329,12 +329,12 @@ sub _create_gibson_design {
     }
     catch ( LIMS2::Exception::Validation $err ) {
         my $errors = $create_design_util->c_format_validation_errors( $err );
-        $c->log->warn( 'User create gibson design error: ' . $errors );
+        $c->log->warn( 'User create design error: ' . $errors );
         $c->stash( error_msg => $errors );
         return;
     }
     catch ($err) {
-        $c->log->warn( "Error submitting gibson design job: $err " );
+        $c->log->warn( "Error submitting design job: $err " );
         $c->stash( error_msg => "Error submitting Design Creation job: $err" );
         return;
     }

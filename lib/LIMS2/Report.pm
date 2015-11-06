@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ 'generator_for', 'generate_report', 'cached_report' ]
+    exports => [ 'generator_for', 'generate_report', 'cached_report' , 'get_raw_spreadsheet' ]
 };
 
 use Data::UUID;
@@ -23,6 +23,8 @@ use DateTime;
 use DateTime::Duration;
 use JSON;
 use IO::Compress::Gzip qw(gzip $GzipError);
+use Excel::Writer::XLSX;
+use File::Slurp;
 
 const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
 const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
@@ -302,6 +304,29 @@ sub init_work_dir {
     return $work_dir;
 }
 
+sub get_raw_spreadsheet {
+    my ($file_name, $data) = @_;
+$DB::single=1;
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
+    my $name = $file_name . '.xlsx';
+    my $dir = $base . '/' . $name;
+    my $workbook = Excel::Writer::XLSX->new($dir);
+    my $worksheet = $workbook->add_worksheet();
+
+    my @row;
+    my $row_number = 1;
+    for (split /^/, $data) {
+        @row = split(/,/);
+        $worksheet->write_row('A' . $row_number, \@row);
+        $row_number++;
+    }
+
+    $workbook->close;
+    my $file = read_file( $dir, {binmode => ':raw'} );
+    
+    return $file;
+}
 
 1;
 

@@ -908,6 +908,7 @@ sub csv_genotyping_qc_plate_data {
         $csv_row_line = join q{,}, @csv_row;
         push @csv_data, $csv_row_line;
     }
+$DB::single=1;
     return @csv_data;
 }
 

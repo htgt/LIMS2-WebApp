@@ -314,7 +314,7 @@ sub spreadsheet_to_csv {
 #Converts a CSV into XLSX format. Returns the file in raw format with file name
 sub csv_to_spreadsheet {
     my ( $csv_name, $csv_fh ) = @_;
-
+$DB::single=1;
     my $csv = Text::CSV_XS->new( { binary => 1, eol => "\n" } );
 
     my $base = $ENV{LIMS2_TEMP}

@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use LIMS2::Model::Util::DataUpload qw(spreadsheet_to_csv);
+use LIMS2::Report qw(get_raw_spreadsheet);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -333,6 +334,28 @@ sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {
     $c->response->body( $body );
     return;
 }
+
+sub genotyping_qc_report_xlsx : Path( '/user/genotyping_qc_report_xlsx') : Args(1) {
+    my ( $self, $c, $plate_name ) = @_;
+    $c->assert_user_roles( 'read' );
+
+    my $model = $c->model('Golgi');
+    my $plate = $model->retrieve_plate({ name => $plate_name});
+
+    my @csv_plate_data = $model->csv_genotyping_qc_plate_data( $plate_name, $c->session->{selected_species});
+
+    @csv_plate_data = map { $_ . "\n" } @csv_plate_data;
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename='
+            . $plate_name
+            . '_gqc.xlsx' );
+    my $body = join q{}, @csv_plate_data;
+    $body = get_raw_spreadsheet($plate_name, $body);
+    $c->response->body( $body );
+    return;
+}
+
 
 sub genotyping_grid_help : Path( '/user/genotyping_grid_help') : Args(0) {
     return;

@@ -154,6 +154,7 @@ sub designs_for_exons {
                 -or => [
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
+                    design_type_id  => 'fussion-deletion',
                 ],
             ],
         },
@@ -220,37 +221,37 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 create_exon_target_gibson_design
+=head2 create_exon_target_design
 
 Wrapper for all the seperate subroutines we need to run to
 initiate the creation of a gibson design with a exon target.
 
 =cut
-sub create_exon_target_gibson_design {
+sub create_exon_target_design {
     my ( $self ) = @_;
-
-    my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
+$DB::single=1;
+    my $params         = $self->c_parse_and_validate_exon_target_design_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     $self->calculate_design_targets( $params );
-    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $cmd            = $self->c_generate_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );
 }
 
-=head2 create_custom_target_gibson_design
+=head2 create_custom_target_design
 
 Wrapper for all the seperate subroutines we need to run to
 initiate the creation of a gibson design with a custom target.
 
 =cut
-sub create_custom_target_gibson_design {
+sub create_custom_target_design {
     my ( $self ) = @_;
 
-    my $params         = $self->c_parse_and_validate_custom_target_gibson_params();
+    my $params         = $self->c_parse_and_validate_custom_target_design_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     $self->calculate_design_targets( $params );
-    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $cmd            = $self->c_generate_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );

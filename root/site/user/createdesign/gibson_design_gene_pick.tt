@@ -1,8 +1,8 @@
-[% META title = "Gibson Design Gene Pick"; META tab_name = "Designs" %]
+[% META title = "Design Gene Pick"; META tab_name = "Designs" %]
 
 <form method="POST" action="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]" class="well">
   <fieldset>
-    <legend>Gibson Design Gene Pick</legend>
+    <legend>Design Gene Pick</legend>
 
     <input type="text" class="input-xxlarge" name="search_gene" placeholder="gene name">
     <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.<br>
