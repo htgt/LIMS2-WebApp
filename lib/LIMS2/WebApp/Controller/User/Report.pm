@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.348';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.351';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use MooseX::Types::Path::Class;
 use LIMS2::WebApp::Pageset;
 use Text::CSV;
 use namespace::autoclean;
+use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -153,7 +154,7 @@ Read report I<$REPORT_ID> from disk and deliver CSV file to browser.
 
 =cut
 
-sub download_report :Path( '/user/report/download' ) :Args(1) {
+sub download_report_csv :Path( '/user/report/download_csv' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
     $c->assert_user_roles( 'read' );
@@ -166,6 +167,23 @@ sub download_report :Path( '/user/report/download' ) :Args(1) {
     $c->response->header( 'Content-Disposition' => "attachment; filename=$report_name.csv" );
     $c->response->body( $report_fh );
     return;
+}
+
+sub download_report_xlsx :Path( '/user/report/download_xlsx' ) :Args(1) {
+    my ( $self, $c, $report_id ) = @_;
+    $c->assert_user_roles( 'read' );
+
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
+    my $file = csv_to_spreadsheet($report_name, $report_fh);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->content_encoding( 'binary' );
+    $c->response->header( 'content-disposition' => 'attachment; filename=' . $file->{name} );
+    $c->response->body( $file->{file} );
+    return;
+
 }
 
 =head1 GET /user/report/view/$REPORT_ID

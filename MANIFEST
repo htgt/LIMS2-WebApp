@@ -4,11 +4,11 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+README.md
 bin/add_cell_lines_to_projects.pl
 bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
-bin/extract_eurofins_data.pl
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
 bin/lims2_model_dump_schema.pl
@@ -17,6 +17,7 @@ bin/lims2_staging_clone
 bin/list_db_names.pl
 bin/process_graph.pl
 bin/run_crispr_es_qc.pl
+docs/images/process_graph_example.png
 docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/lims2_util_oligo_selection_overview.txt
@@ -221,6 +222,7 @@ lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
+lib/LIMS2/Model/Util/ImportSequencing.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
@@ -2648,6 +2650,7 @@ root/static/test/fixtures/reference_data/Role.csv
 root/static/test/fixtures/reference_data/Species.csv
 root/static/test/fixtures/reference_data/SpeciesDefaultAssembly.csv
 root/static/test/fixtures/reference_data/Sponsor.csv
+script/extract_eurofins_data.pl
 script/generate-pg-audit-ddl
 script/htgt_env.pl
 script/lims2_clone_database.pl
