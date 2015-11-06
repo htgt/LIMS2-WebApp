@@ -32,7 +32,7 @@ sub pspec_create_plate_well {
 # we need to convert this into a format expected by create_well
 sub create_plate_well {
     my ( $model, $params, $plate ) = @_;
-print "CREATE PLATE WELL!!!\n";
+
     my $validated_params
         = $model->check_params( $params, pspec_create_plate_well, ignore_unknown => 1 );
     my $parent_well_ids = find_parent_well_ids( $model, $params );
