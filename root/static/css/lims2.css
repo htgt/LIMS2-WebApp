@@ -32,3 +32,10 @@ ul.ui-autocomplete
 #design-target-report td.crispr{
     background: #FCFCFC;
 }
+
+.selector_size_display{
+  display: none;
+  font-size: 13px;
+  color: red;
+  position: fixed;
+}
