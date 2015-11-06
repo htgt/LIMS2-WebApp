@@ -160,18 +160,22 @@
                     [%- END %]
                     [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                         renderer: function(val) {
-                            return "<a href=\"[% c.uri_for('/user/view_design') %]" + '?design_id=' + val + "\" target=\"_blank\">" + val + '</a>';
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_design') %]" + '?design_id=' + val + "\">" + val + '</a>';
                         },
                     [%- END %]
                     [%- IF col.match( '[Gg]ene[_\- ]([Ss]ymbol|[Ii][Dd])' ) %]
                         renderer: function(val) {
-                            return "<a href=\"[% c.uri_for('/user/report/gene') %]" + '?gene_id=' + val + "\" target=\"_blank\">" + val + '</a>';
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/report/gene') %]" + '?gene_id=' + val + "\">" + val + '</a>';
                         },
                     [%- END %]
-                    [%- IF col.match( '[Cc]rispr[_\- ][Ii][Dd]' ) %]
+                    [%- IF col.match( '^[Cc]rispr[_\- ][Ii][Dd]' ) %]
                         renderer: function(val) {
                             var arr = /(\d*)\s*\((\w*)\)/.exec(val);
-                            return "<a href=\"[% c.uri_for('/user/') %]" + arr[2] + '/' + arr[1] + "/view\" target=\"_blank\">" + arr[1] + '</a> (' + arr[2] + ')';
+                            if (arr) {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/') %]" + arr[2] + '/' + arr[1] + "/view\">" + arr[1] + '</a> (' + arr[2] + ')';
+                            } else {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/crispr/') %]" + val + "/view\">" + val;
+                            }
                         },
                     [%- END %]
                     [%- IF col.match( 'concluded\?' ) %]
