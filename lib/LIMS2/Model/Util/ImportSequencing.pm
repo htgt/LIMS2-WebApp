@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ImportSequencing;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.351';
+    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.352';
 }
 ## use critic
 
