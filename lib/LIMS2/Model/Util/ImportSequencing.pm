@@ -138,8 +138,8 @@ sub fix_scf_file{
 
     my ($project_name) = ( $new_file->basename =~ /$PROJECT_NAME_RX/g );
 
-    DEBUG "New SCF file name: $new_file\n";
-    DEBUG "Project name: $project_name\n\n";
+    DEBUG "New SCF file name: ".($new_file || "");
+    DEBUG "Project name: ".($project_name ||  "");
     return ($project_name, $new_file);
 }
 
@@ -165,8 +165,8 @@ sub fix_seq_file{
     close $fh;
 
     my ($project_name) = ( $new_file->basename =~ /$PROJECT_NAME_RX/g );
-    DEBUG "New seq file name: $new_file\n";
-    DEBUG "Project name: $project_name\n\n";
+    DEBUG "New seq file name: ".($new_file || "");
+    DEBUG "Project name: ".($project_name ||  "");
     return ($project_name, $new_file);
 }
 
