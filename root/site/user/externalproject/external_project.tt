@@ -13,7 +13,8 @@
         <input name="project_name" id="project_name" type="text"
           [%IF project_name %]value="[% project_name %]"[% END %]
         />
-        <p>Please enter only alphanumeric characters and underscores</p>
+
+        <div class="span3 pull-right">Naming guidance: use only letters, numbers and underscores. If you need to repeat some sequencing create a new project with additional characters at the end of the name, e.g. original: HUEPD0072, repeat: HUEPD0072_A</div>
         <input type="checkbox" name="qc" id="check_qc" enabled />
             For LIMS2 QC?
         <br>
@@ -22,7 +23,7 @@
         <br>
 
 
-        <label id="qc_type_label">QC Type</label><br>       
+        <label id="qc_type_label">QC Type</label><br>
         <select name="qc_type" id="qc_type">
             <option value="" selected="selected"></option>
             <option value="Vector">Vector</option>
@@ -41,8 +42,8 @@
         <input type="text" name="sub_projects" id="sub_projects" value="1" maxlength="3" style="width: 50px;"/>
         <p id="up" style="display:inline"><span class="icon-plus"></span></p>
         <p id="down" style="display:inline"><span class="icon-minus"></span></p>
-        
-        
+
+
         <label id="primer_type_label">Primer Type</label>
         <select name="dd_primer" id="dd_primer">
           <option value="" selected="selected"></option>
@@ -54,9 +55,9 @@
         <button name="primer_button" type="button" class="btn btn-default" onclick="addPrimer()">
           Add Primer
         </button>
-        
+
         <br>
-        <table id='primer_table'> 
+        <table id='primer_table'>
           <th>
             Primers
           </th>
@@ -82,7 +83,7 @@ window.onload = function () {
     var id = '[% project_id %]';
 
     if(id){
-        window.location.href = '[% c.uri_for('/user/view_sequencing_project/') %]' + encodeURI('?seq_id=' + id); 
+        window.location.href = '[% c.uri_for('/user/view_sequencing_project/') %]' + encodeURI('?seq_id=' + id);
     }
 }
 
@@ -147,7 +148,7 @@ function addPrimer() {
     var dropDown = document.getElementById("dd_primer");
     var primer = dropDown.options[dropDown.selectedIndex].text;
 
-    if (primer != ''){ 
+    if (primer != ''){
         switchVisilibityState("initial");
         var table = document.getElementById("primer_table");
         var row = table.insertRow(1);
@@ -155,7 +156,7 @@ function addPrimer() {
         var cell1 = row.insertCell(1);
         var cell2 = row.insertCell(2);
 
-        
+
         var buttonHTML = '<input type="button" value="Delete" onclick="deleteRow(this)"/>';
         var hidden = '<input type="hidden" id="primer'+ primerCount + '" name="primer'+ primerCount + '" value="' + primer + '">'
 
@@ -168,7 +169,7 @@ function addPrimer() {
 }
 
 function addTemplate() {
-    window.location.href = "[% c.uri_for( '/user/create_template_plate' ) %]"; 
+    window.location.href = "[% c.uri_for( '/user/create_template_plate' ) %]";
 }
 
 function deleteRow(btn) {
@@ -184,14 +185,14 @@ $("input[name='template_id']").autocomplete({
 $(document).ready(function(){
     $("#up").on('click',function(){
         if ($("#sub_projects").val() == ""){
-            $("#sub_projects").val(parseInt(1));        
+            $("#sub_projects").val(parseInt(1));
         }
         $("#sub_projects").val(parseInt($("#sub_projects").val())+1);
     });
 
     $("#down").on('click',function(){
         if ($("#sub_projects").val() == ""){
-            $("#sub_projects").val(parseInt(1));        
+            $("#sub_projects").val(parseInt(1));
         }
         if (parseInt($("#sub_projects").val()) > 1) {
             $("#sub_projects").val(parseInt($("#sub_projects").val())-1);
