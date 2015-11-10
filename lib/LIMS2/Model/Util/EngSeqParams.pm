@@ -199,7 +199,10 @@ $DB::single=1;
         }
         #fusion added
         elsif ( $type eq 'fusion-deletion') {
-            #TODO Consult lab
+            $params->{five_arm_start}  = $loci->{'5R'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'3R'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'U5'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'D3'}->{chr_end};
         }
         #End of
         else {
@@ -218,7 +221,10 @@ $DB::single=1;
         }
         #fusion added
         elsif ( $type eq 'fusion-deletion') {
-            #TODO Consult lab
+            $params->{five_arm_start}  = $loci->{'5R'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'3R'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'U5'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'D3'}->{chr_end};
         }
         #End of
         else {
