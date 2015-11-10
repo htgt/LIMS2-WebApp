@@ -23,8 +23,7 @@ use Data::Dumper;
 Log::Log4perl->easy_init( { level => $INFO } );
 
 my $STRING_TO_REMOVE = qr/_premix-w\.-temp/;
-my $PROJECT_NAME_RX = qr/^(.*)_\d+[a-z]{1}\d{2}\./;
-
+my $PROJECT_NAME_RX = qr/^(.*)_\d+[A-Z]?[a-z]{1}\d{2}\./;
 sub extract_eurofins_data{
 	my ($archive, $move) = @_;
 
@@ -135,11 +134,10 @@ sub fix_scf_file{
 
     my $new_file = file($new_name);
     $file->move_to( $new_file ) or die "Could not move $file to $new_file";
-
     my ($project_name) = ( $new_file->basename =~ /$PROJECT_NAME_RX/g );
 
     DEBUG "New SCF file name: $new_file\n";
-    DEBUG "Project name: $project_name\n\n";
+    DEBUG "Project name: " . ($project_name // "Undefined") . "\n\n";
     return ($project_name, $new_file);
 }
 
@@ -166,7 +164,7 @@ sub fix_seq_file{
 
     my ($project_name) = ( $new_file->basename =~ /$PROJECT_NAME_RX/g );
     DEBUG "New seq file name: $new_file\n";
-    DEBUG "Project name: $project_name\n\n";
+    DEBUG "Project name: " . ($project_name // "Undefined") . "\n\n";
     return ($project_name, $new_file);
 }
 
