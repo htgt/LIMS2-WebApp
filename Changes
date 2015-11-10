@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.353     2015-11-10 10:40:24 Europe/London
+
+  Bug fix to sequencing import. Added sequencing project help text
+
 0.352     2015-11-07 13:49:36 Europe/London
 
 
