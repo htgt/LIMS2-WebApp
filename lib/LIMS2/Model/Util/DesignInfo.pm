@@ -118,26 +118,43 @@ has floxed_exons => (
 #     Need to pass a flag in to this object if we know the design in a deletion
 sub _build_target_region_start {
     my $self = shift;
-    
-    my %forward_strand = (
-        'deletion'          => $self->oligos->{U5}{end},
-        'insertion'         => $self->oligos->{U5}{end},
-        'conditional'       => $self->oligos->{U3}{start},
-        'artificial-intron' => $self->oligos->{U3}{start},
-        'gibson'            => $self->oligos->{EF}{end},
-        'gibson-deletion'   => $self->oligos->{'5R'}{end},
-        'fusion-deletion'   => $self->oligos->{'5R'}{start}, #TODO INSERT ACTUAL OLIGO 
-    );
-    
-    my %reverse_strand = (
-        'deletion'          => $self->oligos->{D3}{end},
-        'insertion'         => $self->oligos->{D3}{end},
-        'conditional'       => $self->oligos->{D5}{start},
-        'artificial-intron' => $self->oligos->{D5}{start},
-        'gibson'            => $self->oligos->{ER}{end},
-        'gibson-deletion'   => $self->oligos->{'5F'}{end},
-        'fusion-deletion'   => $self->oligos->{'U5'}{start}, #TODO INSERT ACTUAL OLIGO 
-    );
+
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U5}{end};
+        }
+        else {
+            return $self->oligos->{D3}{end};
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{U3}{start};
+        }
+        else {
+            return $self->oligos->{D5}{start};
+        }
+    }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{EF}{end};
+        }
+        else {
+            return $self->oligos->{ER}{end};
+        }
+    }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'5R'}{end};
+        }
+        else {
+            return $self->oligos->{'3F'}{end};
+        }
+    }
 
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
@@ -149,11 +166,6 @@ sub _build_target_region_start {
     if( $self->type eq 'point-mutation'){
         return $self->oligos->{'PM'}{start};
     }
-    if ( $self->chr_strand == 1 ) {
-        return $forward_strand{$self->type};
-    } else {
-        return $reverse_strand{$self->type};
-    }
 
     return;
 }
@@ -161,25 +173,42 @@ sub _build_target_region_start {
 sub _build_target_region_end {
     my $self = shift;
 
-    my %forward_strand = (
-        'deletion'          => $self->oligos->{D3}{start},
-        'insertion'         => $self->oligos->{D3}{start},
-        'conditional'       => $self->oligos->{D5}{end},
-        'artificial-intron' => $self->oligos->{D5}{end},
-        'gibson'            => $self->oligos->{ER}{start},
-        'gibson-deletion'   => $self->oligos->{'3F'}{start},
-        'fusion-deletion'   => $self->oligos->{'3R'}{start}, #TODO INSERT ACTUAL OLIGO 
-    );
-    
-    my %reverse_strand = (
-        'deletion'          => $self->oligos->{U5}{start},
-        'insertion'         => $self->oligos->{U5}{start},
-        'conditional'       => $self->oligos->{U3}{end},
-        'artificial-intron' => $self->oligos->{U3}{end},
-        'gibson'            => $self->oligos->{EF}{start},
-        'gibson-deletion'   => $self->oligos->{'5R'}{start},
-        'fusion-deletion'   => $self->oligos->{'D3'}{start}, #TODO INSERT ACTUAL OLIGO
-    );
+    if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D3}{start};
+        }
+        else {
+            return $self->oligos->{U5}{start};
+        }
+    }
+
+    if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{D5}{end};
+        }
+        else {
+            return $self->oligos->{U3}{end};
+        }
+    }
+
+    # Assuming gibson design is used as a conditional
+    if ( $self->type eq 'gibson' ) {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{ER}{start};
+        }
+        else {
+            return $self->oligos->{EF}{start};
+        }
+    }
+
+    if ( $self->type eq 'gibson-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'3F'}{start};
+        }
+        else {
+            return $self->oligos->{'5R'}{start};
+        }
+    }
 
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
@@ -190,11 +219,6 @@ sub _build_target_region_end {
     # Do the same for point mutation designs
     if( $self->type eq 'point-mutation'){
         return $self->oligos->{'PM'}{end};
-    }
-    if ( $self->chr_strand == 1 ) {
-        return $forward_strand{$self->type};
-    } else {
-        return $reverse_strand{$self->type};
     }
 
     return;
@@ -290,16 +314,6 @@ sub _build_cassette_start {
         }
     }
 
-    if ( $self->type eq 'fusion-deletion' ) {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{'D3'}{end} + 1;
-        }
-        else {
-            return $self->oligos->{'3R'}{end} + 1;
-        }
-
-    }
-
     return;
 }
 
@@ -342,16 +356,6 @@ sub _build_cassette_end {
             return $self->oligos->{'5R'}{start} - 1;
         }
     }
-    
-    if ( $self->type eq 'fusion-deletion') {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{'5R'}{start} - 1;
-        }
-        else {
-            return $self->oligos->{'U5'}{start} - 1;
-        }
-    }
-
 
     return;
 }
@@ -366,9 +370,6 @@ sub _build_homology_arm_start {
         else {
             return $self->oligos->{'3R'}{start};
         }
-    }
-    elsif ( $self->type eq 'fusion-deletion' ) {
-
     }
     elsif ( $self->type eq 'nonsense' or $self->type eq 'point-mutation') {
         return;
@@ -394,15 +395,6 @@ sub _build_homology_arm_end {
             return $self->oligos->{'5F'}{end};
         }
     }
-    elsif ( $self->type eq 'fusion-deletion' ) {
-        if ( $self->chr_strand == 1 ) {
-            return $self->oligos->{'3R'}{end};
-        }
-        else {
-            return $self->oligos->{'5F'}{end};
-        }
-
-    }
     elsif ( $self->type eq 'nonsense' ) {
         return;
     }
@@ -418,7 +410,7 @@ sub _build_homology_arm_end {
 
 sub _build_chr_strand {
     my $self = shift;
-$DB::single=1;
+
     my @strands = uniq map { $_->{strand} } values %{ $self->oligos };
     LIMS2::Exception->throw(
         'Design ' . $self->design->id . ' oligos have inconsistent strands'
