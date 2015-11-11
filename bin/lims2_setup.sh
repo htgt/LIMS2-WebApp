@@ -5,7 +5,7 @@ export LIMS2_DEBUG_DEFINITION="perl -d"
 
 #TODO: check that we are in the correct directory
 export LIMS2_MIGRATION_ROOT=`pwd`;
-export LIMS2_SHARED=~/git-checkout
+export LIMS2_SHARED=$GIT_CHECKOUT_ROOT
 
 function lims2 {
 case $1 in
