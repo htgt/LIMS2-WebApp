@@ -133,7 +133,7 @@ document.title = "[%- sponsor_id %]";
             [%- END %]
 
         [%- ELSIF col == 'targeted_clones' %]
-          [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
+          [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') > 0 ) %]
             <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSIF row.item('targeted_clones') && row.item('effort_concluded') %]
             <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>

@@ -915,7 +915,7 @@ sub genes {
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
             splice(@priority_array, $index, 1);
 
-            $priority = join ( '; ', @priority_array ) // '';
+            $priority = shift @priority_array;
         };
         if (! $priority) {$priority = '-'}
 
@@ -1177,7 +1177,7 @@ sub genes {
             push @ep_data, \%curr_ep_data;
         }
 
-        # if ( !defined $total_het ) { $total_het = '-' };  This will need changing the tt because it will turn green the total genotyped clones
+        if ( !defined $total_het ) { $total_het = '-' };
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
@@ -1272,7 +1272,7 @@ sub genes {
 
     my @sorted_genes_for_display =  sort {
             $b->{ 'distrib_clones' }         <=> $a->{ 'distrib_clones' }         ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }                ||
+            $b->{ 'fs_count' }               <=> $a->{ 'fs_count' }               ||
             $b->{ 'ep_pick_het' }            <=> $a->{ 'ep_pick_het' }            ||
             $b->{ 'targeted_clones' }        <=> $a->{ 'targeted_clones' }        ||
             # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
