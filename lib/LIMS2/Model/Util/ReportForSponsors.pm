@@ -1170,14 +1170,9 @@ sub genes {
                 # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
-            # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
-            # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
-
-
             push @ep_data, \%curr_ep_data;
         }
 
-        if ( !defined $total_het ) { $total_het = '-' };
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
@@ -1185,6 +1180,8 @@ sub genes {
             $total_in_frame = '';
             $total_wild_type = '';
             $total_mosaic = '';
+            $total_no_call = '';
+            $total_het = '';
         }
 
 
@@ -1245,7 +1242,7 @@ sub genes {
             'wt_count'               => $total_wild_type,
             'ms_count'               => $total_mosaic,
             'nc_count'               => $total_no_call,
-            'ep_pick_het'            => $total_het,
+            'ep_pick_het'            => $total_het // '-',
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1271,19 +1268,19 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }         <=> $a->{ 'distrib_clones' }         ||
-            $b->{ 'fs_count' }               <=> $a->{ 'fs_count' }               ||
-            $b->{ 'ep_pick_het' }            <=> $a->{ 'ep_pick_het' }            ||
-            $b->{ 'targeted_clones' }        <=> $a->{ 'targeted_clones' }        ||
-            # $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }       <=> $a->{ 'electroporations' }       ||
-            # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
-            $b->{ 'passing_vector_wells' }   <=> $a->{ 'passing_vector_wells' }   ||
-            # $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
-            # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' } ||
-            $b->{ 'crispr_wells' }           <=> $a->{ 'crispr_wells' }
-            # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+          ( $b->{ 'distrib_clones' } || -1 )   <=> ( $a->{ 'distrib_clones' } || -1 )   ||
+          ( $b->{ 'fs_count' } || -1 )         <=> ( $a->{ 'fs_count' } || -1 )         ||
+          ( $b->{ 'ep_pick_het' } || -1 )      <=> ( $a->{ 'ep_pick_het' } || -1 )      ||
+          ( $b->{ 'targeted_clones' } || -1 )  <=> ( $a->{ 'targeted_clones' } || -1 )  ||
+            # $b->{ 'colonies_picked' }        <=> $a->{ 'colonies_picked' }            ||
+          ( $b->{ 'electroporations' } || -1 ) <=> ( $a->{ 'electroporations' } || -1 ) ||
+            # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' }   ||
+          ( $b->{ 'passing_vector_wells' } || -1 ) <=> ( $a->{ 'passing_vector_wells' } || -1 )  ||
+            # $b->{ 'vector_wells' }           <=> $a->{ 'vector_wells' }               ||
+            # $b->{ 'vector_designs' }         <=> $a->{ 'vector_designs' }             ||
+            $b->{ 'accepted_crispr_vector' }   <=> $a->{ 'accepted_crispr_vector' }     ||
+            $b->{ 'crispr_wells' }             <=> $a->{ 'crispr_wells' }
+            # $a->{ 'gene_symbol' }            cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
 
     return \@sorted_genes_for_display;
@@ -1597,10 +1594,10 @@ SQL_END
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+          ( $b->{ 'targeted_clones' } || -1 )      <=> ( $a->{ 'targeted_clones' } || -1 )       ||
+          ( $b->{ 'colonies_picked' } || -1 )      <=> ( $a->{ 'colonies_picked' } || -1 )       ||
+          ( $b->{ 'electroporations' } || -1 )     <=> ( $a->{ 'electroporations' } || -1 )      ||
+          ( $b->{ 'passing_vector_wells' } || -1 ) <=> ( $a->{ 'passing_vector_wells' } || -1 )  ||
             # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
