@@ -85,40 +85,58 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(17)
+sub all_tests  : Test(18)
 {
     {
-	const my %GENE_DATA => ( gene_id => 'MGI:105369', gene_symbol => 'Cbx1' );
+	const my %GENE_DATA => (
+        chromosome => '11',
+        ensembl_id => 'ENSMUSG00000018666',
+        gene_id => 'MGI:105369',
+        gene_symbol => 'Cbx1',
+    );
 	const my @SEARCHES => (
 	    { species => 'Mouse', search_term => 'Cbx1' },
 	    { species => 'Mouse', search_term => 'MGI:105369' },
 	    { species => 'Mouse', search_term => 'ENSMUSG00000018666' }
 	);
 	for my $search ( @SEARCHES ) {
-	    ok my $searched = model->search_genes( $search ), 'search_genes';
-	    is_deeply $searched, [ \%GENE_DATA ], '...returns expected result';
-	    ok my $retrieved = model->retrieve_gene( $search ), 'retrieve_gene';
+	    ok my $searched = model->find_gene( $search ), 'search_genes';
+	    is_deeply $searched, \%GENE_DATA, '...returns expected result';
+	    ok my $retrieved = model->find_gene( $search ), 'retrieve_gene';
 	    is_deeply $retrieved, \%GENE_DATA, '...returns expected result';
 	}
     }
 
     {
-	throws_ok{
-	    model->search_genes( { species => 'Mouse', search_term => 'FooBarBaz' } )
-	} 'LIMS2::Exception::NotFound', 'not found genes for made up name';
+        is_deeply model->find_genes({ species => 'Mouse', search_term => 'FooBarBaz' }), {}, 'not found genes for made up name';
     }
 
     {
-	const my %GENE_DATA => ( gene_id => 'HGNC:5117', gene_symbol => 'HOXB6' );
-	for my $search_term ( values %GENE_DATA ) {
-	    is_deeply model->retrieve_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,
+	const my %GENE_DATA => (
+        chromosome => '17',
+        ensembl_id => 'ENSG00000108511',
+        gene_id => 'HGNC:5117',
+        gene_symbol => 'HOXB6',
+    );
+	for my $search_term ( 'ENSG00000108511', 'HGNC:5117', 'HOXB6' ) {
+	    is_deeply model->find_gene( { species => 'Human', search_term => $search_term } ), \%GENE_DATA,
 		"Retrieve gene $search_term returns the expected result";
 	}
     }
 
     {
-	ok my $searched = model->search_genes( { species => 'Human', search_term => 'HOXB6' } ), 'search human gene';
-	is_deeply $searched, [ {  gene_id => 'HGNC:5117', gene_symbol => 'HOXB6' } ],
+	ok my $searched = model->find_genes('Human', ['HOXB6'] ), 'search human gene';
+
+    my $expected = {
+      'HOXB6' => {
+                 'chromosome' => '17',
+                 'ensembl_id' => 'ENSG00000108511',
+                 'gene_id' => 'HGNC:5117',
+                 'gene_symbol' => 'HOXB6'
+               }
+    };
+
+	is_deeply $searched, $expected,
 	    '.. returns expected results';
     }
 
