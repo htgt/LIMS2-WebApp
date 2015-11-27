@@ -4,6 +4,7 @@ use Try::Tiny;
 use namespace::autoclean;
 use Date::Calc qw(Delta_Days);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
+use LIMS2::Model::Util::CrisprESQCView qw( crispr_damage_type_for_ep_pick ep_pick_is_het );
 use List::MoreUtils qw( uniq );
 use Data::Dumper;
 
@@ -723,6 +724,27 @@ sub fetch_values_for_type_ep_pick {
         my $ep_well_name      = $summary_row->ep_well_name // $summary_row->crispr_ep_well_name;
         my $ep_well = $ep_plate_name . '_' . $ep_well_name;
 
+        my $design = $model->schema->resultset('Design')->find({
+            id => $summary_row->design_id,
+        });
+
+        my $species = $model->schema->resultset('Species')->find({ id => $summary_row->design_species_id});
+        my $assembly_id = $species->default_assembly->assembly_id;
+        my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+        my $chromosome = $design_oligo_locus->chr->name;
+
+        my $is_het = '---';
+        try {
+            my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ep_pick_well_id);
+            $is_het = ep_pick_is_het($model,$summary_row->ep_pick_well_id,$chromosome,$damage_type) // '---';
+            if ( $is_het eq '1' ) {
+                $is_het = 'yes';
+            }
+            elsif ( $is_het eq '0' ){
+                $is_het = 'no';
+            }
+        };
+
         my $well_hash = {
             'well_id'           => $summary_row->ep_pick_well_id,
             'well_id_string'    => $well_id_string,
@@ -733,6 +755,7 @@ sub fetch_values_for_type_ep_pick {
             'recombinases'      => $summary_row->ep_pick_well_recombinase_id,
             'ep_well'           => $ep_well,
             'is_accepted'       => $well_is_accepted,
+            'is_het'            => $is_het,
             'to_report'         => $summary_row->to_report,
         };
 
@@ -960,6 +983,27 @@ sub fetch_values_for_type_piq {
         my $fp_well_name      = $summary_row->fp_well_name;
         my $fp_well = $fp_plate_name . '_' . $fp_well_name;
 
+        my $design = $model->schema->resultset('Design')->find({
+            id => $summary_row->design_id,
+        });
+
+        my $species = $model->schema->resultset('Species')->find({ id => $summary_row->design_species_id});
+        my $assembly_id = $species->default_assembly->assembly_id;
+        my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+        my $chromosome = $design_oligo_locus->chr->name;
+
+        my $is_het = '---';
+        try {
+            my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id);
+            $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
+            if ( $is_het eq '1' ) {
+                $is_het = 'yes';
+            }
+            elsif ( $is_het eq '0' ){
+                $is_het = 'no';
+            }
+        };
+
         my $well_hash = {
             'well_id'           => $summary_row->piq_well_id,
             'well_id_string'    => $well_id_string,
@@ -968,6 +1012,7 @@ sub fetch_values_for_type_piq {
             'well_name'         => $summary_row->piq_well_name,
             'created_at'        => $summary_row->piq_well_created_ts->ymd,
             'fp_well'           => $fp_well,
+            'is_het'            => $is_het,
             'is_accepted'       => $well_is_accepted,
             'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
             'to_report'         => $summary_row->to_report,
@@ -1006,6 +1051,17 @@ sub fetch_values_for_type_piq {
                 $ancestor_well_is_accepted = 'no';
             }
 
+            try {
+                my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id);
+                $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
+                if ( $is_het eq '1' ) {
+                    $is_het = 'yes';
+                }
+                elsif ( $is_het eq '0' ){
+                    $is_het = 'no';
+                }
+            };
+
             unless ( exists $wells_hash->{ 'piq' }->{ $ancestor_well_id_string } ) {
                 my $well_hash = {
                     'well_id'           => $summary_row->ancestor_piq_well_id,
@@ -1016,7 +1072,9 @@ sub fetch_values_for_type_piq {
                     'created_at'        => $summary_row->ancestor_piq_well_created_ts->ymd,
                     'fp_well'           => $fp_well,
                     'is_accepted'       => $ancestor_well_is_accepted,
+                    'is_het'            => $is_het,
                     'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
+                    'to_report'         => $summary_row->to_report,
                 };
 
                 if ( $summary_row->crispr_ep_well_name ) {

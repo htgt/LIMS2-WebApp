@@ -325,6 +325,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Freezer Instance</th>
             <th>Accepted?</th>
             <th>Call</th>
+            <th>Het?</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -350,6 +351,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% SET piq_well = well.well_id_string %]
                 [% wells.piq.$piq_well.crispr_qc_data.damage_type %]
               </td>
+              <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
@@ -554,6 +556,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Electroporation Well</th>
             <th>Accepted?</th>
             <th>Call</th>
+            <th>Het?</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -581,6 +584,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% SET ep_pick_well = well.well_id_string %]
                 [% wells.ep_pick.$ep_pick_well.crispr_qc_data.damage_type %]
               </td>
+              <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
