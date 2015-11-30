@@ -154,7 +154,6 @@ sub all_tests  : Tests
               <td>_</td>
               <td>MOHFAQ0001_A_2_H02</td>
               <td></td>
-              <td></td>
               <td>no</td>', 'Checked EP');
 
     $mech->content_like(qr'>XEP0006</a></td>

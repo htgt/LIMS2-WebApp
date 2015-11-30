@@ -1063,7 +1063,7 @@ sub fetch_values_for_type_piq {
             };
 
             unless ( exists $wells_hash->{ 'piq' }->{ $ancestor_well_id_string } ) {
-                my $well_hash = {
+                $well_hash = {
                     'well_id'           => $summary_row->ancestor_piq_well_id,
                     'well_id_string'    => $ancestor_well_id_string,
                     'plate_id'          => $summary_row->ancestor_piq_plate_id,
@@ -1111,8 +1111,6 @@ sub fetch_values_for_type_sfp {
         my $well_name      = $summary_row->sfp_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'sfp' }->{ $well_id_string };
-
         my $sepd_plate_name     = $summary_row->sep_pick_plate_name;
         my $sepd_well_name      = $summary_row->sep_pick_well_name;
         my $sepd_well_id_string = $sepd_plate_name . '_' . $sepd_well_name;
@@ -1138,20 +1136,27 @@ sub fetch_values_for_type_sfp {
             $ep_id_string = $ep_plate_name . '_' . $ep_well_name;
         }
 
-        my $well_hash = {
-            'well_id'        => $summary_row->sfp_well_id,
-            'well_id_string' => $well_id_string,
-            'plate_id'       => $summary_row->sfp_plate_id,
-            'plate_name'     => $summary_row->sfp_plate_name,
-            'well_name'      => $summary_row->sfp_well_name,
-            'created_at'     => $summary_row->sfp_well_created_ts->ymd,
-            'ep_well'        => $ep_id_string,
-            'sep_well'       => $sep_well_id_string,
-            'sepd_well'      => $sepd_well_id_string,
-            'is_accepted'    => $well_is_accepted,
-        };
 
-        $wells_hash->{ 'sfp' }->{ $well_id_string } = $well_hash;
+        if ( !exists $wells_hash->{ 'sfp' }->{ $well_id_string } ) {
+            my $well_hash = {
+                'well_id'        => $summary_row->sfp_well_id,
+                'well_id_string' => $well_id_string,
+                'plate_id'       => $summary_row->sfp_plate_id,
+                'plate_name'     => $summary_row->sfp_plate_name,
+                'well_name'      => $summary_row->sfp_well_name,
+                'created_at'     => $summary_row->sfp_well_created_ts->ymd,
+                'ep_well'        => $ep_id_string,
+                'sep_well'       => $sep_well_id_string,
+                'sepd_well'      => $sepd_well_id_string,
+                'is_accepted'    => $well_is_accepted,
+             };
+
+             $wells_hash->{ 'sfp' }->{ $well_id_string } = $well_hash;
+        } else {
+            if ($ep_id_string) {
+                $wells_hash->{ 'sfp' }->{ $well_id_string }->{'ep_well'} = $ep_id_string;
+            }
+        }
 
     }
     return;
