@@ -164,10 +164,10 @@ sub design_data {
 
     my @gene_symbols;
     foreach my $gene_id ( @gene_ids ) {
-        my $genes = $model->search_genes(
+        my $gene = $model->find_gene(
             { search_term => $gene_id, species =>  $species } );
 
-        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+        push @gene_symbols, $gene->{gene_symbol};
     }
 
     $info->{gene_ids} = join q{/}, @gene_ids;

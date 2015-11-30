@@ -329,7 +329,7 @@
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.request.uri } ) %]">
                       [% species_id %]
                     </a>
                   </li>
