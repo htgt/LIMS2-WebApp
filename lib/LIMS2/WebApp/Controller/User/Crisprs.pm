@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.352';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.354';
 }
 ## use critic
 
@@ -83,6 +83,10 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
         sequence_search($self, $c);
     }
     if($crispr_entity){
+        if ($species_id ne $crispr_entity->species_id) {
+            $c->stash->{error_msg} = "Crispr does not seem to be for $species_id. Please switch species.";
+            return;
+        }
         my $redirect_path = _path_for_crispr_entity($crispr_entity);
         $c->res->redirect( $c->uri_for($redirect_path) );
     }
@@ -115,11 +119,11 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid crispr id" );
-        return $c->go( 'Controller::User::DesignTargets', 'index' );
+        return $c->go( 'search_crisprs' );
     }
     catch( LIMS2::Exception::NotFound $e ) {
         $c->stash( error_msg => "Crispr $crispr_id not found" );
-        return $c->go( 'Controller::User::DesignTargets', 'index' );
+        return $c->go( 'search_crisprs' );
     }
 
     $c->log->debug( "Retrieved crispr: $crispr_id" );

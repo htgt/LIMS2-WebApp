@@ -1,3 +1,15 @@
+0.354     2015-11-30 14:48:25 Europe/London
+
+    bugfix on crispr qc, checking if a well is accepted on any run
+    species switch now stays on same page instead of homepage
+    gene summary page: added het status, update to electroporation section, refactoring to speed up
+    front page report warnings cleanup
+    search_genes method deprecated
+
+0.353     2015-11-10 10:40:24 Europe/London
+
+  Bug fix to sequencing import. Added sequencing project help text
+
 0.352     2015-11-07 13:49:36 Europe/London
 
 

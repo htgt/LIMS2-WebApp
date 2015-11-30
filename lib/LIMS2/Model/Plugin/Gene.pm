@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Gene::VERSION = '0.352';
+    $LIMS2::Model::Plugin::Gene::VERSION = '0.354';
 }
 ## use critic
 
@@ -41,6 +41,7 @@ sub pspec_search_genes {
     };
 }
 
+# DEPRECATED. use find_gene / find_genes instead
 sub search_genes {
     my ( $self, $params ) = @_;
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
