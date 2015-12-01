@@ -72,6 +72,7 @@
 </table>
 
 <h2>Project Submission Files</h2>
+<p>Below are the spreadsheets needed to upload your submission to Eurofins. There is 1 spreadsheet per sub-project/primer combination. Each spreadsheet contains names for 96 samples. If your plate does not contain 96 samples edit the spreadsheet to remove sample names for empty wells or replace them with the word "empty". Do not make any other changes to the sample names. During submission you will be asked to enter a "plate name" - this must match the name written on the plate that you send to Eurofins. The Eurofins submission system is here: <a href="https://ecom.mwgdna.com/register/index.tcl" target="#_blank">Eurofins submissions</a>
 <table class="table primer" id="primer_table">
   <tr>
     <th>Primer Name</th>
@@ -135,15 +136,15 @@
           </td>
         [% END %]
       </tr>
-    [% END %] 
+    [% END %]
   [% END %]
 [% END %]
 
-</table> 
+</table>
 
 <script type="text/javascript">
 $(document).ready(function () {
-    var id = '[% seq_project.id %]'; 
+    var id = '[% seq_project.id %]';
 })
 function retrieve_file(primer, sub, size) {
     console.log("reached");
@@ -151,7 +152,7 @@ function retrieve_file(primer, sub, size) {
     var id = '[% seq_project.id %]';
     var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub='+ sub);
     console.log(link);
-    
+
     OpenInNewTab(link);
 }
 
@@ -162,7 +163,7 @@ function OpenInNewTab(url) {
 function changeStatus() {
     var data = document.getElementById("abandoned_id").innerHTML;
     var elem = document.getElementById("status_btn");
-    
+
     if (data.indexOf("input") > -1) {
         commitStatus();
         elem.value = "Change Status";

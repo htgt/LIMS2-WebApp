@@ -131,6 +131,9 @@
 
       document.addEventListener('DOMContentLoaded', function () {
         window.genoverse = new Genoverse(genoverseConfig);
+
+        // From WebApp-Common/shared_static
+        [% INCLUDE 'genoverse_mods/selector_size_display.tt' %]
       });
     </script>
 

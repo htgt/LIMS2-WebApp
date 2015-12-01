@@ -154,7 +154,7 @@ sub designs_for_exons {
                 -or => [
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
-                    design_type_id  => 'fussion-deletion',
+                    design_type_id  => 'fusion-deletion',
                 ],
             ],
         },

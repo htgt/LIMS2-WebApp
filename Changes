@@ -1,5 +1,12 @@
 {{$NEXT}}
 
+0.352     2015-11-07 13:49:36 Europe/London
+
+
+0.351     2015-11-06 16:24:45 Europe/London
+
+    Bugfixes to the generic grid report
+
 0.350     2015-11-03 14:32:41 Europe/London
 
     Improvements to Eurofins data extraction script

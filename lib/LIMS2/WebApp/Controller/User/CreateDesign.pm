@@ -186,7 +186,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
 sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     $c->assert_user_roles( 'edit' );
 
     if ( $c->request->params->{pick_exons} ) {
