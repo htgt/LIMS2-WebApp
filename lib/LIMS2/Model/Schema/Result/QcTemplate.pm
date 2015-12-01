@@ -146,6 +146,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sequencing_project_templates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProjectTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_project_templates",
+  "LIMS2::Model::Schema::Result::SequencingProjectTemplate",
+  { "foreign.qc_template_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 species
 
 Type: belongs_to
@@ -162,8 +177,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-07 10:47:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/899lV3VANFhoT6l19DkWA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-11-30 10:23:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+POwXRiNsNhUgqhfm4zVYA
 
 sub as_hash {
     my $self = shift;
