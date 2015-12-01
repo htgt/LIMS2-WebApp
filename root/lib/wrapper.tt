@@ -81,19 +81,19 @@
     [% INCLUDE 'navigation.tt' %]
 
     <div id="main" class="[% IF c.session.display_type && c.session.display_type == 'wide' %]container-fluid[% ELSE %]container[% END %]">
-      [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
+      [% SET error = error_msg || c.flash.error_msg; IF error.length %]
       <div class="alert alert-error">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% error | html_line_break %]</p>
       </div>
       [% END %]
-      [% SET info = info_msg || c.flash.info_msg; IF info.length > 0 %]
+      [% SET info = info_msg || c.flash.info_msg; IF info.length %]
       <div class="alert alert-info">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% info | html_line_break %]</p>
       </div>
       [% END %]
-      [% SET success = success_msg || c.flash.success_msg; IF success.length > 0 %]
+      [% SET success = success_msg || c.flash.success_msg; IF success.length %]
       <div class="alert alert-success">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% success | none %]</p>

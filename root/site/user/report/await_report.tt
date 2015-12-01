@@ -11,7 +11,7 @@
 
 <div id="report_complete" class="alert alert-success hide">
   <p>
-    Report ready. Download as <a href="[% c.uri_for( '/user/report/download_csv', report_id ) %]">CSV</a> or <a href="[% c.uri_for( '/user/report/download_xlsx', report_id ) %]">XLSX</a>.
+    Report ready. Download as <a href="[% c.uri_for( '/user/report/download', report_id ) %]">CSV</a> or <a href="[% c.uri_for( '/user/report/download_xlsx', report_id ) %]">XLSX</a>.
     View as <a href="[% c.uri_for( '/user/report/view', report_id ) %]">Paged View</a>
     (or as <a href="[% c.uri_for( '/user/report/grid_view', report_id ) %]">Data Grid</a> 
     displaying all data in one scrollable grid allowing you to sort and re-arrange columns).

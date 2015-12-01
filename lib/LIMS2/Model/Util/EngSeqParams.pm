@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.349';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.354';
 }
 ## use critic
 
@@ -141,7 +141,7 @@ sub fetch_design_eng_seq_params {
 
     if( @not_found ) {
         LIMS2::Exception->throw( "No design oligo loci found for design "
-                . $design_data->{id} . " oilgos " . ( join ", ", @not_found ) );
+                . $design_data->{id} . " oligos " . ( join ", ", @not_found ) );
     }
 
 	my $params = build_eng_seq_params_from_loci(\%locus_for, $design_data->{type});
@@ -177,7 +177,6 @@ values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_st
 =cut
 sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
-
     my $params;
 
     if ( $type =~ /gibson/ ) {
@@ -185,6 +184,13 @@ sub build_eng_seq_params_from_loci{
         $params->{strand}     = $loci->{'5F'}->{chr_strand};
         $params->{assembly}   = $loci->{'5F'}->{assembly};
     }
+    #fusion added
+    elsif ( $type eq 'fusion-deletion') {
+        $params->{chromosome} = $loci->{'f5F'}->{chr_name};
+        $params->{strand}     = $loci->{'f5F'}->{chr_strand};
+        $params->{assembly}   = $loci->{'f5F'}->{assembly};
+    }
+    #End of
     else {
         $params->{chromosome} = $loci->{G5}->{chr_name};
         $params->{strand}     = $loci->{G5}->{chr_strand};
@@ -198,6 +204,14 @@ sub build_eng_seq_params_from_loci{
             $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
             $params->{three_arm_end}   = $loci->{'3R'}->{chr_end};
         }
+        #fusion added
+        elsif ( $type eq 'fusion-deletion') {
+            $params->{five_arm_start}  = $loci->{'f5F'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'f3R'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'U5'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'D3'}->{chr_end};
+        }
+        #End of
         else {
             $params->{five_arm_start}  = $loci->{G5}->{chr_start};
             $params->{five_arm_end}    = $loci->{U5}->{chr_end};
@@ -212,6 +226,14 @@ sub build_eng_seq_params_from_loci{
             $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
             $params->{three_arm_end}   = $loci->{'3F'}->{chr_end};
         }
+        #fusion added
+        elsif ( $type eq 'fusion-deletion') {
+            $params->{five_arm_start}  = $loci->{'f3R'}->{chr_start};
+            $params->{five_arm_end}    = $loci->{'f5F'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'D3'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'U5'}->{chr_end};
+        }
+        #End of
         else {
             $params->{five_arm_start}  = $loci->{U5}->{chr_start};
             $params->{five_arm_end}    = $loci->{G5}->{chr_end};
@@ -219,10 +241,16 @@ sub build_eng_seq_params_from_loci{
             $params->{three_arm_end}   = $loci->{D3}->{chr_end};
         }
     }
-
-    return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
+    my %exceptions = (
+        'deletion'          => 1,
+        'insertion'         => 1,
+        'gibson-deletion'   => 1,
+        'gibson'            => 1,
+        'fusion-deletion'  => 1,
+    );
+    #return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
     # for now all gibson designs are treated as deletions
-    return $params if $type eq 'gibson';
+    return $params if (exists($exceptions{$type}));
 
     if ( $params->{strand} == 1 ) {
 	    if ( $type eq 'gibson' ) {
@@ -295,68 +323,68 @@ sub fetch_eng_seq_params {
 	my $design_type = $params->{design_type};
     my $cassette_first = $params->{design_cassette_first};
     $well_params->{recombinase} = $params->{recombinase};
-
 	if ($params->{stage} eq 'allele'){
-		## no critic (ProhibitCascadingIfElse)
-	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
-	        $method = 'conditional_allele_seq';
-            if ( $cassette_first ) {
-                $well_params->{u_insertion}->{name} = $params->{cassette};
-                $well_params->{d_insertion}->{name} = 'LoxP' ;
-            }
-            else {
-                $well_params->{u_insertion}->{name} = 'LoxP';
-                $well_params->{d_insertion}->{name} = $params->{cassette};
-            }
-	    }
-	    elsif ( $design_type eq 'insertion' ) {
-	        $method = 'insertion_allele_seq';
-	        $well_params->{insertion}->{name} = $params->{cassette};
-	    }
-	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
-            # This needs fixing for a gibson: when we generate the expected sequence, we have to know
-	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
-		    # I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
-	        $method = 'deletion_allele_seq';
-	        $well_params->{insertion}->{name} = $params->{cassette};
-	    }
-	    else {
+        my %allele_dispatch = (
+            'conditional'       => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_allele_seq'); },
+            'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_allele_seq'); },
+            'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_allele_seq'); },
+            'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
+            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
+            'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_allele_seq'); },
+        );
+
+        if (exists $allele_dispatch{$design_type}) {
+            ($well_params, $method) = &{ $allele_dispatch{$design_type} };
+        } else {
             LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
-	    }
-        ## use critic
+        }
 	}
 	else {
+        my %vector_dispatch = (
+            'conditional'       => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_vector_seq'); },
+            'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_vector_seq'); },
+            'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_vector_seq'); },
+            'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
+            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
+            'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_vector_seq'); },
+        );
+
 		$well_params->{backbone}{name} = $params->{backbone};
 
-	    if ( $design_type eq 'conditional' || $design_type eq 'artificial-intron' ) {
-	        $method = 'conditional_vector_seq';
-            if ( $cassette_first ) {
-                $well_params->{u_insertion}->{name} = $params->{cassette};
-                $well_params->{d_insertion}->{name} = 'LoxP' ;
-            }
-            else {
-                $well_params->{u_insertion}->{name} = 'LoxP';
-                $well_params->{d_insertion}->{name} = $params->{cassette};
-            }
-	    }
-	    elsif ( $design_type eq 'insertion' ) {
-	        $method = 'insertion_vector_seq';
-	        $well_params->{insertion}->{name} = $params->{cassette};
-	    }
-	    elsif ( $design_type eq 'deletion' || $design_type =~ /gibson/ ) {
-            # This needs fixing for a gibson: when we generate the expected sequence, we have to know
-	        # whether the loxP has actually been inserted (by the pipeline) or whether the KO has been left as a deletion
-		    # I'm leaving it as a deletion because this will be made by the lab for the foreseeable future.
-	        $method = 'deletion_vector_seq';
-	        $well_params->{insertion}->{name} = $params->{cassette};
-	    }
-	    else {
+        if (exists $vector_dispatch{$design_type}) {
+            ($well_params, $method) = &{ $vector_dispatch{$design_type} };
+        } else {
             LIMS2::Exception->throw( "Don't know how to generate vector seq for design of type $design_type" );
-	    }
+        }
+
 	}
     add_display_id( $params->{stage}, $well_params, $params->{design_id} );
 
 	return $method,$well_params;
+}
+
+sub conditional_params {
+    my ($params, $cassette_first, $well_params, $method) = @_;
+
+    if ( $cassette_first ) {
+        $well_params->{u_insertion}->{name} = $params->{cassette};
+        $well_params->{d_insertion}->{name} = 'LoxP' ;
+    }
+    else {
+        $well_params->{u_insertion}->{name} = 'LoxP';
+        $well_params->{d_insertion}->{name} = $params->{cassette};
+    }
+    return $well_params, $method;
+}
+
+sub construct_params {
+    my ($params, $well_params, $method) = @_;
+
+    $well_params->{insertion}->{name} = $params->{cassette};
+
+    return $well_params, $method;
 }
 
 sub add_display_id{

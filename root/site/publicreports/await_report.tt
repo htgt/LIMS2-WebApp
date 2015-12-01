@@ -11,7 +11,7 @@
 
 <div id="report_complete" class="alert alert-success hide">
   <p>
-    Report ready. Download as <a href="[% c.uri_for( '/public_reports/download_csv', report_id ) %]">CSV</a>, <a href="[% c.uri_for( '/user/report/download_xlsx', report_id ) %]">XLSX</a>
+    Report ready. Download as <a href="[% c.uri_for( '/public_reports/download', report_id ) %]">CSV</a>, <a href="[% c.uri_for( '/public_reports/download_xlsx', report_id ) %]">XLSX</a>
     (<a href="[% c.uri_for( '/public_reports/download_compressed', report_id ) %]"> or as gzipped file)</a>
   </p>
 </div>

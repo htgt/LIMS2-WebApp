@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.349';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.354';
 }
 ## use critic
 
@@ -1142,8 +1142,11 @@ sub create_sequencing_project {
 
 sub pspec_update_sequencing_project{
     return {
-        id          => { validate => 'integer' },
+        id          => { validate => 'integer', optional =>  1},
+        name        => { validate => 'non_empty_string', optional => 1},
         abandoned   => { validate => 'boolean', optional => 1},
+        available_results => { validate => 'boolean', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
     };
 }
 
@@ -1151,12 +1154,30 @@ sub pspec_update_sequencing_project{
     my ($self, $params) = @_;
     my $validated_params = $self->check_params( $params, $self->pspec_update_sequencing_project );
 
-    my $seq_proj = $self->retrieve( SequencingProject => { id => $validated_params->{id} } );
+    my $seq_proj = $self->retrieve_sequencing_project( { slice_def( $validated_params, qw( name id ) ) });
 
-    $seq_proj->update( { abandoned => $validated_params->{abandoned} } );
+    my $update_params = { slice_def( $validated_params, qw( abandoned available_results ) ) };
+    $seq_proj->update( $update_params );
 
     return;
- }
+}
+
+sub pspec_retrieve_sequencing_project{
+    return {
+        id          => { validate => 'integer', optional =>  1},
+        name        => { validate => 'non_empty_string', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    }
+}
+
+sub retrieve_sequencing_project{
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_sequencing_project );
+
+    my $project_params = { slice_def( $validated_params, qw( name id ) ) };
+    return $self->retrieve( SequencingProject => { id => $validated_params->{id} } );
+}
+
 1;
 
 __END__

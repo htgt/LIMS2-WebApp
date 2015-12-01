@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.349';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.354';
 }
 ## use critic
 
@@ -122,6 +122,7 @@ sub select_species :Local {
     $c->assert_user_roles('read');
 
     my $species_id = $c->request->param('species');
+    my $goto = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
 
     $c->model('Golgi')->txn_do(
         sub {
@@ -138,7 +139,7 @@ sub select_species :Local {
 
     $c->flash( info_msg => "Switched to species $species_id" );
 
-    return $c->response->redirect( $c->uri_for('/') );
+    return $c->response->redirect( $goto );
 }
 
 =head1 AUTHOR

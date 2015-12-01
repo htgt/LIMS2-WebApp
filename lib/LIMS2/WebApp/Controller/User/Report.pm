@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.349';
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.354';
 }
 ## use critic
 
@@ -154,7 +154,7 @@ Read report I<$REPORT_ID> from disk and deliver CSV file to browser.
 
 =cut
 
-sub download_report_csv :Path( '/user/report/download_csv' ) :Args(1) {
+sub download_report_csv :Path( '/user/report/download' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
     $c->assert_user_roles( 'read' );

@@ -325,6 +325,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Freezer Instance</th>
             <th>Accepted?</th>
             <th>Call</th>
+            <th>Het?</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -350,6 +351,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% SET piq_well = well.well_id_string %]
                 [% wells.piq.$piq_well.crispr_qc_data.damage_type %]
               </td>
+              <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
@@ -554,6 +556,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Electroporation Well</th>
             <th>Accepted?</th>
             <th>Call</th>
+            <th>Het?</th>
             <th>Allele Genbank File</th>
           </thead>
           <tbody>
@@ -581,6 +584,7 @@ function toggle_btn(btn, show_or_hide) {
                 [% SET ep_pick_well = well.well_id_string %]
                 [% wells.ep_pick.$ep_pick_well.crispr_qc_data.damage_type %]
               </td>
+              <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
@@ -611,7 +615,15 @@ function toggle_btn(btn, show_or_hide) {
             <th>Final Pick Well</th>
             <th>DNA Well</th>
             <th>Assembly Well</th>
+            [%- IF sorted_wells.ep.0.recombinases %]
             <th>Recombinase / Nuclease</th>
+            [%- END %]
+            [%- IF sorted_wells.ep.0.cell_line %]
+            <th>Cell Line</th>
+            [%- END %]
+            [%- IF sorted_wells.ep.0.crisprs %]
+            <th>Crisprs</th>
+            [%- END %]
             <th>Accepted?</th>
             <th>Allele Genbank File</th>
           </thead>
@@ -628,7 +640,17 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.final_pick_well %]</td>
               <td>[% well.dna_well %]</td>
               <td>[% well.assembly_well %]</td>
+              [%- IF well.recombinases %]
               <td>[% well.recombinases %]</td>
+              [%- END %]
+              [%- IF well.cell_line %]
+              <td>[% well.cell_line %]</td>
+              [%- END %]
+              [%- IF well.crisprs %]<td>
+              [%- FOREACH crispr IN well.crisprs %]
+              <a href="[% c.uri_for( '/user/crispr', crispr, 'view' ) %]">[% crispr %]</a>
+              [%- END %]</td>
+              [%- END %]
               <td>[% well.is_accepted %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
@@ -1166,11 +1188,11 @@ $(function() {
     $('.accordion').on('show', function (e) {
          $(e.target).prev('.accordion-heading').find('.accordion-toggle').addClass('active');
     });
-    
+
     $('.accordion').on('hide', function (e) {
         $(this).find('.accordion-toggle').not($(e.target)).removeClass('active');
     });
-        
+
 });
 
 function searchThroughAccordion() {
@@ -1201,7 +1223,7 @@ function highlightSearch(state) {
             count = 0;
         }
         document.getElementById(state + '_id').innerHTML = "Results found: " + count;
-        
+
         document.getElementById(state).innerHTML = newAccord;
         document.getElementById(state + '_id').style = "color:red";
         var ua = navigator.userAgent;
@@ -1216,5 +1238,5 @@ function highlightSearch(state) {
             }
         }
     }
-}	
+}
 </script>
