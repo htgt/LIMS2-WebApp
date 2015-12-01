@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.354     2015-12-01 13:55:54 Europe/London
+    Changes made for Fusion-Deletion
+    Initial release for testing on staging
+
 0.354     2015-11-30 14:48:25 Europe/London
 
     bugfix on crispr qc, checking if a well is accepted on any run
