@@ -229,7 +229,6 @@ initiate the creation of a gibson design with a exon target.
 =cut
 sub create_exon_target_design {
     my ( $self ) = @_;
-$DB::single=1;
     my $params         = $self->c_parse_and_validate_exon_target_design_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     $self->calculate_design_targets( $params );

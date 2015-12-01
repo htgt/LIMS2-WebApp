@@ -306,7 +306,6 @@ sub init_work_dir {
 
 sub get_raw_spreadsheet {
     my ($file_name, $data) = @_;
-$DB::single=1;
     my $base = $ENV{LIMS2_TEMP}
         or die "LIMS2_TEMP not set";
     my $name = $file_name . '.xlsx';
@@ -324,7 +323,7 @@ $DB::single=1;
 
     $workbook->close;
     my $file = read_file( $dir, {binmode => ':raw'} );
-    
+
     return $file;
 }
 

@@ -395,7 +395,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         else {
             $c->response->content_type( 'text/csv' );
             $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
-        }   
+        }
         $c->response->body( $body );
     }
     else {

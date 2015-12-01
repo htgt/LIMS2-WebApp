@@ -171,7 +171,6 @@ values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_st
 =cut
 sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
-$DB::single=1;
     my $params;
 
     if ( $type =~ /gibson/ ) {
@@ -237,10 +236,10 @@ $DB::single=1;
         }
     }
     my %exceptions = (
-        'deletion'          => 1, 
-        'insertion'         => 1, 
-        'gibson-deletion'   => 1, 
-        'gibson'            => 1, 
+        'deletion'          => 1,
+        'insertion'         => 1,
+        'gibson-deletion'   => 1,
+        'gibson'            => 1,
         'fusion-deletion'  => 1,
     );
     #return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
@@ -318,7 +317,6 @@ sub fetch_eng_seq_params {
 	my $design_type = $params->{design_type};
     my $cassette_first = $params->{design_cassette_first};
     $well_params->{recombinase} = $params->{recombinase};
-$DB::single=1;
 	if ($params->{stage} eq 'allele'){
         my %allele_dispatch = (
             'conditional'       => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_allele_seq'); },
@@ -327,10 +325,10 @@ $DB::single=1;
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
-            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_allele_seq'); },  
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_allele_seq'); },
         );
 
-        if (exists $allele_dispatch{$design_type}) { 
+        if (exists $allele_dispatch{$design_type}) {
             ($well_params, $method) = &{ $allele_dispatch{$design_type} };
         } else {
             LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
@@ -344,15 +342,15 @@ $DB::single=1;
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
-            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_vector_seq'); },  
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_vector_seq'); },
         );
 
 		$well_params->{backbone}{name} = $params->{backbone};
 
-        if (exists $vector_dispatch{$design_type}) { 
+        if (exists $vector_dispatch{$design_type}) {
             ($well_params, $method) = &{ $vector_dispatch{$design_type} };
         } else {
-            LIMS2::Exception->throw( "Don't know how to generate allele seq for design of type $design_type" );
+            LIMS2::Exception->throw( "Don't know how to generate vector seq for design of type $design_type" );
         }
 
 	}
@@ -363,7 +361,7 @@ $DB::single=1;
 
 sub conditional_params {
     my ($params, $cassette_first, $well_params, $method) = @_;
- 
+
     if ( $cassette_first ) {
         $well_params->{u_insertion}->{name} = $params->{cassette};
         $well_params->{d_insertion}->{name} = 'LoxP' ;
