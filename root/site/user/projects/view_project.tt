@@ -4,6 +4,8 @@
   <h1>View Project [% project.id %]
   [% IF project.effort_concluded %]
   <span class="label label-info">Effort Concluded</span>
+  [% ELSE %]
+  <button class="btn" id="conclude_effort_button" href="#ConcludeEffortModal" data-toggle="modal" style="display:none"><i class="icon-stop"></i> Mark Project as Concluded</button>
   [% END %]
   </h1>
 </div>
@@ -48,11 +50,36 @@
   [% END %]
   <tr>
     <th>Recovery Class</th>
-    <td>[% project.recovery_class %]</td>
+    <td>
+      [% IF c.check_user_roles( 'edit' ) %]
+      <form class="form-inline">
+        <select id="recovery_class_value">
+          <option value="-" [% IF not project.recovery_class %]selected[% END %]>-</option>
+          [% FOREACH class IN recovery_classes %]
+          <option value="[% class %]" [% IF project.recovery_class == class %]selected[% END %]>
+            [% class %]
+          </option>
+          [% END %]
+        </select>
+        <button type="submit" class="btn" id="recovery_class_btn">Update</button>
+      </form>
+      [% ELSE %]
+        [% project.recovery_class %]
+      [% END %]
+    </td>
   </tr>
   <tr>
     <th>Recovery Comment</th>
-    <td>[% project.recovery_comment %]</td>
+    <td>
+      [% IF c.check_user_roles( 'edit' ) %]
+      <form class="form-inline">
+        <input type="text" id="recovery_comment_value" value="[% project.recovery_comment %]"></input>
+        <button type="submit" class="btn" id="recovery_comment_btn">Update</button>
+      </form>
+      [% ELSE %]
+        [% project.recovery_comment %]
+      [% END %]
+    </td>
   </tr>
   <tr>
     <th>Sponsors</th>
@@ -157,6 +184,26 @@ No experiments for this project
     </form>
 </div>
 
+<div class="modal hide fade" id="ConcludeEffortModal">
+    <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="conclude_effort_modal" id="conclude_effort_modal_form">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Conclude Project Effort</h3>
+      </div>
+
+      <div class="modal-body" align="center">
+        Are you sure you want to conclude this project? This will also terminate all related redmine issues.
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button type="submit" name="conclude_project" class="btn btn-danger" value="conclude" id="conclude_project">
+          <i class="icon-remove icon-white"></i> Confirm Conclude Project
+        </button>
+      </div>
+    </form>
+</div>
+
 [% IF c.check_user_roles( 'edit' ) %]
 <div class="accordion" id="add_experiment_div">
   <div class="accordion-group">
@@ -187,6 +234,34 @@ No experiments for this project
 $( document ).ready(function() {
   $("#update_sponsors_form").collapse('hide');
 
+  $("#recovery_comment_btn").click(function(e){
+    e.preventDefault();
+    $.ajax({
+      type: "GET",
+      contentType: "application/json",
+      url: "[% c.uri_for('/api/project_recovery_comment') %]",
+      data: { 'id': [% project.id %], 'recovery_comment': $("#recovery_comment_value").val() }
+    }).done(function(data){
+      alert("Recovery comment updated");
+    }).fail(function(data){
+      alert("Could not update recovery comment");
+    });
+  });
+
+  $("#recovery_class_btn").click(function(e){
+    e.preventDefault();
+    $.ajax({
+      type: "GET",
+      contentType: "application/json",
+      url: "[% c.uri_for('/api/project_recovery_class') %]",
+      data: { 'id': [% project.id %], 'recovery_class': $("#recovery_class_value").val() }
+    }).done(function(data){
+      alert("Recovery class updated");
+    }).fail(function(data){
+      alert("Could not update recovery class");
+    });
+  });
+
 [% IF c.user.is_sanger %]
   var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
 
@@ -201,7 +276,9 @@ $( document ).ready(function() {
       console.log(issue);
       console.log(issue.id)
       $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
+      $("#conclude_effort_modal_form").append("<input type='hidden' name='redmine_issue_id' value='" + issue.id + "'></input>");
     });
+    $("#conclude_effort_button").show();
   }).fail(function(){
     $("#tracker_spinner").remove();
     $("#tracker_issues").append("tracker query failed");

@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::API::Project;
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use Data::Dumper;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
