@@ -59,6 +59,7 @@
   <tr><th>ID</th> <td>[% crispr_data.id %]</td></tr>
   <tr><th>Sequence</th> <td>[% crispr_data.seq %]</td></tr>
   <tr><th>Species</th> <td>[% crispr_data.species %]</td></tr>
+  <tr><th>Gene</th> <td>[%- FOR gene IN genes %] [% gene.gene_symbol %] ([% gene.gene_id %]) <br /> [%- END %]</td></tr>
   <tr><th>Chromosome</th> <td>[% crispr_data.locus.chr_name %]</td></tr>
   <tr><th>Start</th> <td>[% crispr_data.locus.chr_start %]</td></tr>
   <tr><th>End</th> <td>[% crispr_data.locus.chr_end %]</td></tr>
