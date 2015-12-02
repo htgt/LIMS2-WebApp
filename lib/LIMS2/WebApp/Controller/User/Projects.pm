@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.353';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.356';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::RedmineAPI;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -25,6 +26,8 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
+
+my $redmine = LIMS2::Model::Util::RedmineAPI->new_with_config();
 
 sub manage_projects :Path('/user/manage_projects'){
     my ( $self, $c ) = @_;
@@ -153,6 +156,32 @@ sub view_project :Path('/user/view_project'){
         species => $project->species_id
     } ) };
 
+    if($c->req->param('conclude_project')){
+        $project->update({ effort_concluded => 1});
+
+        # We also need to update the status in redmine if applicable
+        my $comment = "Project terminated by LIMS2 user ".$c->user->name;
+        my @issues = $c->req->param('redmine_issue_id');
+        $c->log->debug("redmine issues to terminate: ".join ",", @issues);
+
+        my @update_errors;
+        foreach my $issue_id (@issues){
+            $c->log->debug("Setting redmine issue $issue_id status to Terminated");
+            try{
+                $redmine->update_issue_status($issue_id,'Terminated',$comment);
+            }
+            catch{
+                 push @update_errors, "Error terminating redmine issue $issue_id: ".$_;
+            };
+        }
+        if(@update_errors){
+            $c->stash->{error_msg} = join "<br>", @update_errors;
+        }
+        else{
+            $c->stash->{success_msg} = "Project effort has been concuded";
+        }
+    }
+
     if($c->req->param('update_sponsors')){
         $c->assert_user_roles('edit');
         my @new_sponsors = $c->req->param('sponsors');
@@ -207,6 +236,8 @@ sub view_project :Path('/user/view_project'){
     my @group_suggest = map { $_->id }
                             $c->model('Golgi')->schema->resultset('CrisprGroup')->search({ gene_id => $project->gene_id });
 
+    my @recovery_class_names =  map { $_->name } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } });
+
     $c->stash->{project} = $project->as_hash;
     if($gene_info->{gene_symbol}){
         $c->stash->{gene_symbol} = $gene_info->{gene_symbol};
@@ -216,6 +247,8 @@ sub view_project :Path('/user/view_project'){
     $c->stash->{experiments} = [ sort { $a->id <=> $b->id } $project->experiments ];
     $c->stash->{design_suggest} = \@design_suggest;
     $c->stash->{group_suggest} = \@group_suggest;
+    $c->stash->{recovery_classes} = \@recovery_class_names;
+
     return;
 }
 

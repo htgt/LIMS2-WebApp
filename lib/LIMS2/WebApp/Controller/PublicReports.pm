@@ -1,9 +1,10 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.353';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.356';
 }
 ## use critic
+
 
 use Moose;
 use LIMS2::Report;
@@ -16,6 +17,11 @@ use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
+use Text::CSV_XS;
+use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
+use Excel::Writer::XLSX;
+use File::Slurp;
+use LIMS2::Report qw/get_raw_spreadsheet/;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -70,7 +76,7 @@ Downloads a csv report of a given report_id
 =cut
 
 
-sub download_report_csv :Path( '/public_reports/download_csv' ) :Args(1) {
+sub download_report_csv :Path( '/public_reports/download' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
     $c->assert_user_roles( 'read' );
@@ -250,7 +256,22 @@ sub view_cached_csv : Path( '/public_reports/cached_sponsor_csv' ) : Args(1) {
     my ( $self, $c, $sponsor_id ) = @_;
 
     $sponsor_id =~ s/\ /_/g;
-    return $self->_view_cached_csv($c, $sponsor_id);
+    my $body = $self->_view_cached_csv($c, $sponsor_id);
+    return $c->response->body($body);
+}
+
+sub convert_cached_csv : Path( '/public_reports/cached_sponsor_xlsx' ) : Args(1) {
+    my ( $self, $c, $sponsor_id ) = @_;
+
+    $sponsor_id =~ s/\ /_/g;
+    my $body = $self->_view_cached_csv($c, $sponsor_id);
+
+    $body = get_raw_spreadsheet($sponsor_id, $body);
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->content_encoding( 'binary' );
+    $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+    return $c->response->body($body);
 }
 
 sub _view_cached_csv {
@@ -285,7 +306,7 @@ sub _view_cached_csv {
     close $csv_handle
         or die "unable to close cached file: $!";
 
-    return $c->response->body( join( '', @lines_out ));
+    return join( '', @lines_out );
 }
 
 
@@ -358,11 +379,8 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my $type;
 
     # csv download
-    if ($c->request->params->{csv}) {
+    if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
         $c->response->status( 200 );
-        $c->response->content_type( 'text/csv' );
-        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
-
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
 
         my @csv_colums;
@@ -371,11 +389,19 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         } else {
             @csv_colums = @{$columns};
         }
-
         foreach my $column ( @{$data} ) {
             $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
         }
-
+        if ($c->request->param('xlsx')) {
+            $c->response->content_type( 'application/xlsx' );
+            $c->response->content_encoding( 'binary' );
+            $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+            $body = get_raw_spreadsheet('report', $body);
+        }
+        else {
+            $c->response->content_type( 'text/csv' );
+            $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+        }
         $c->response->body( $body );
     }
     else {
@@ -418,6 +444,8 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     return;
 }
+
+
 
 sub _simple_transform {
     my $self = shift;

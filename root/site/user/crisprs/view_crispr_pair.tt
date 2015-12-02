@@ -9,6 +9,7 @@
     <tr><th>ID</th> <td>[% cp.id %]</td></tr>
     <tr><th>Spacer</th> <td>[% cp.spacer %]</td></tr>
     <tr><th>Species</th> <td>[% cp.left_crispr.species_id %]</td></tr>
+    <tr><th>Gene</th> <td>[%- FOR gene IN genes %] [% gene.gene_symbol %] ([% gene.gene_id %]) <br /> [%- END %]</td></tr>
   </table>
 </div>
 

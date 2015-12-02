@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.353';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.356';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
@@ -83,6 +84,10 @@ sub search_crisprs : Path( '/user/search_crisprs' ) : Args(0) {
         sequence_search($self, $c);
     }
     if($crispr_entity){
+        if ($species_id ne $crispr_entity->species_id) {
+            $c->stash->{error_msg} = "Crispr does not seem to be for $species_id. Please switch species.";
+            return;
+        }
         my $redirect_path = _path_for_crispr_entity($crispr_entity);
         $c->res->redirect( $c->uri_for($redirect_path) );
     }
@@ -115,11 +120,11 @@ sub crispr : PathPart('user/crispr') Chained('/') CaptureArgs(1) {
     }
     catch( LIMS2::Exception::Validation $e ) {
         $c->stash( error_msg => "Please enter a valid crispr id" );
-        return $c->go( 'Controller::User::DesignTargets', 'index' );
+        return $c->go( 'search_crisprs' );
     }
     catch( LIMS2::Exception::NotFound $e ) {
         $c->stash( error_msg => "Crispr $crispr_id not found" );
-        return $c->go( 'Controller::User::DesignTargets', 'index' );
+        return $c->go( 'search_crisprs' );
     }
 
     $c->log->debug( "Retrieved crispr: $crispr_id" );
@@ -207,11 +212,23 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
         }
     }
 
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+
+    my @genes;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $c->model('Golgi')->find_gene( { species => $c->stash->{species}, search_term => $gene_id } );
+            push @genes, { 'gene_symbol' => $gene->{gene_symbol}, 'gene_id' => $gene_id };
+        };
+    }
+
     $c->stash(
         crispr_data             => $crispr->as_hash,
         ots                     => \@off_target_summaries,
         designs                 => [ $crispr->crispr_designs->all ],
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
+        genes                   => \@genes,
     );
 
     return;
@@ -286,10 +303,22 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my $off_target_summary = Load( $crispr_pair->off_target_summary );
     my $cp_data = $crispr_pair->as_hash;
 
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair ) };
+
+    my @genes;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $c->model('Golgi')->find_gene( { species => $c->stash->{species}, search_term => $gene_id } );
+            push @genes, { 'gene_symbol' => $gene->{gene_symbol}, 'gene_id' => $gene_id };
+        };
+    }
+
     $c->stash(
         ots            => $off_target_summary,
         designs        => [ $crispr_pair->crispr_designs->all ],
         crispr_primers => $cp_data->{crispr_primers},
+        genes          => \@genes,
     );
 
     return;

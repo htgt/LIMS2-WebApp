@@ -7,8 +7,8 @@
 <div class="row">
   <table class="table table-bordered">
     <tr><th>ID</th> <td>[% cg.id %]</td></tr>
-    <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
     <tr><th>Species</th> <td>[% cg.species %]</td></tr>
+    <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
   </table>
 </div>
 

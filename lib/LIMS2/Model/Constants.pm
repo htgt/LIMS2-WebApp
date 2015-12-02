@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.353';
+    $LIMS2::Model::Constants::VERSION = '0.356';
 }
 ## use critic
 
@@ -248,6 +248,14 @@ const our %GIBSON_OLIGO_APPENDS => (
     "3F" => "CTGAGCTAGCCATCAGTGAT",
     "3R" => "CCATGATTACGCCAAGCTTGAT",
 );
+
+const our %FUSION_OLIGO_APPENDS => (
+    "f5F" => "GCCAGTGAATTCGAT",
+    "f3R" => "TACGCCAAGCTTGAT",
+    "U5"  => "AAGGCGCATAACGATACCAC",
+    "D3"  => "CCGCCTACTGCGACTATAGA",
+);
+
 
 const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
     "G5" => "ACAACTTATATCGTATGGGGC",

@@ -1,3 +1,23 @@
+0.356     2015-12-02 14:59:12 Europe/London
+
+    Recovery status editing added to project view page
+    Updates to gene summary page
+    Gene symbols added to design and crispr view pages
+
+0.355     2015-12-01 14:40:49 Europe/London
+
+0.354     2015-12-01 13:55:54 Europe/London
+    Changes made for Fusion-Deletion
+    Initial release for testing on staging
+
+0.354     2015-11-30 14:48:25 Europe/London
+
+    bugfix on crispr qc, checking if a well is accepted on any run
+    species switch now stays on same page instead of homepage
+    gene summary page: added het status, update to electroporation section, refactoring to speed up
+    front page report warnings cleanup
+    search_genes method deprecated
+
 0.353     2015-11-10 10:40:24 Europe/London
 
   Bug fix to sequencing import. Added sequencing project help text

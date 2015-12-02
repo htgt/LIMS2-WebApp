@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.353';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.356';
 }
 ## use critic
 
@@ -350,10 +350,10 @@ sub format_well_data {
     my ( $alignment_data, $insertions, $deletions )
         = $self->format_alignment_strings( $params, $json );
 
-    my $well_accepted = $self->well->accepted;
+    my $accepted_any_run = $self->well_accepted_any_run;
     my $show_checkbox = 1; #by default we show the accepted checkbox
     #if the well itself is accepted, we need to see if it was this run that made it so
-    if ( $well_accepted && ! $self->accepted ) {
+    if ( $accepted_any_run && ! $self->accepted ) {
         #the well was accepted on another QC run
         $show_checkbox = 0;
     }
@@ -420,7 +420,7 @@ sub format_well_data {
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
-        well_accepted           => $well_accepted,
+        well_accepted           => $self->well->accepted,
         show_checkbox           => $show_checkbox,
         insertions              => $insertions,
         deletions               => $deletions,
@@ -698,6 +698,19 @@ sub _split_sequence {
     }
 
     return $ref_start, $crispr_seq, $ref_end;
+}
+
+sub well_accepted_any_run {
+    my $self = shift;
+
+    my $accepted = $self->result_source->schema->resultset('CrisprEsQcWell')->find(
+        {
+            'well_id'  => $self->well->id,
+            'accepted' => 't',
+        }
+    );
+
+    return $accepted ? 1 : 0;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

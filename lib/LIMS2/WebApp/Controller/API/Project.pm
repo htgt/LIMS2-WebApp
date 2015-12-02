@@ -1,13 +1,14 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.353';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.356';
 }
 ## use critic
 
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use Data::Dumper;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 

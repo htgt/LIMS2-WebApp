@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.353';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.356';
 }
 ## use critic
 
@@ -83,6 +83,10 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     }
 
     my $design_data = $design->as_hash;
+
+    $design_data->{assigned_genes} = [ map { $_->{gene_symbol} . ' (' . $_->{gene_id} . ')' }
+                      values %{ $c->model('Golgi')->find_genes( $species_id, $design_data->{assigned_genes} ) } ];
+
     $design_data->{assigned_genes} = join q{, }, @{ $design_data->{assigned_genes} || [] };
 
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };

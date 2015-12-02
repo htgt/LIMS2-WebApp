@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.353';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.356';
 }
 ## use critic
 
@@ -320,7 +320,6 @@ sub spreadsheet_to_csv {
 #Converts a CSV into XLSX format. Returns the file in raw format with file name
 sub csv_to_spreadsheet {
     my ( $csv_name, $csv_fh ) = @_;
-
     my $csv = Text::CSV_XS->new( { binary => 1, eol => "\n" } );
 
     my $base = $ENV{LIMS2_TEMP}
