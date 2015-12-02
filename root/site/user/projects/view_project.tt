@@ -4,7 +4,7 @@
   <h1>View Project [% project.id %]
   [% IF project.effort_concluded %]
   <span class="label label-info">Effort Concluded</span>
-  [% ELSE %]
+  [% ELSIF c.check_user_roles('edit') and c.user.is_sanger %]
   <button class="btn" id="conclude_effort_button" href="#ConcludeEffortModal" data-toggle="modal" style="display:none"><i class="icon-stop"></i> Mark Project as Concluded</button>
   [% END %]
   </h1>
@@ -104,7 +104,7 @@
     </div>
     <div id="update_sponsors_form" class="accordion-body collapse in">
       <div class="accordion-inner">
-		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form" id="sponsors_form">
 		  <input type="hidden" name="project_id" value="[% project.id %]">
 		  [% FOREACH sponsor IN all_sponsors %]
       <label class="checkbox">
@@ -150,7 +150,7 @@
     [% END %]
     <td>[% exp.crispr_description %]</td>
     <td>
-      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form">
+      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form" id="delete_experiment_[% exp.id %]">
         <button type="submit" class="btn btn-danger" name="delete_experiment" value="[% exp.id %]" href="#DeleteExperimentModal" data-toggle="modal">
           <i class="icon-remove icon-white"></i>
         </button>
