@@ -11,6 +11,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
@@ -205,11 +206,23 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
         }
     }
 
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+
+    my @genes;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $c->model('Golgi')->find_gene( { species => $c->stash->{species}, search_term => $gene_id } );
+            push @genes, { 'gene_symbol' => $gene->{gene_symbol}, 'gene_id' => $gene_id };
+        };
+    }
+
     $c->stash(
         crispr_data             => $crispr->as_hash,
         ots                     => \@off_target_summaries,
         designs                 => [ $crispr->crispr_designs->all ],
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
+        genes                   => \@genes,
     );
 
     return;
@@ -284,10 +297,22 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my $off_target_summary = Load( $crispr_pair->off_target_summary );
     my $cp_data = $crispr_pair->as_hash;
 
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair ) };
+
+    my @genes;
+    for my $gene_id ( @gene_ids ) {
+        try {
+            my $gene = $c->model('Golgi')->find_gene( { species => $c->stash->{species}, search_term => $gene_id } );
+            push @genes, { 'gene_symbol' => $gene->{gene_symbol}, 'gene_id' => $gene_id };
+        };
+    }
+
     $c->stash(
         ots            => $off_target_summary,
         designs        => [ $crispr_pair->crispr_designs->all ],
         crispr_primers => $cp_data->{crispr_primers},
+        genes          => \@genes,
     );
 
     return;
