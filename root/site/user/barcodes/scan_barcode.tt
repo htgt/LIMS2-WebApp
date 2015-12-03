@@ -17,6 +17,7 @@
     </button>
   </fieldset>
 </form>
+
     [% ELSIF well_details.barcode_state == 'doubling_in_progress' %]
 <form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
 Actions:
@@ -26,6 +27,9 @@ Actions:
     </a>
     <br><br>
     [% INCLUDE discard_options %]
+  </fieldset>
+</form>
+
     [% ELSIF well_details.barcode_state == 'checked_out' %]
 <form method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]" class="well">
 Actions:
@@ -46,15 +50,24 @@ Actions:
     <br><br>
       [% END %]
     [% INCLUDE discard_options %]
-  [% END %]
   </fieldset>
 </form>
- [% END %]
+
+    [% ELSIF well_details.barcode_state == 'discarded' %]
+    <br><br>
+    <a href="[% c.uri_for('/user/undiscard_barcode', barcode => well_details.barcode) %]" class="btn btn-primary">
+    Un-discard
+    <i class="icon-arrow-left icon-white"></i><i class="icon-trash icon-white"></i>
+    </a><br>
+    <small>(return the barcode state to checked out)</small>
+    [% END %]
+
+  [% END %]
 [% ELSE %]
 <form method="POST" action="[% c.uri_for( '/user/scan_barcode' ) %]" class="well">
   <fieldset>
     <legend>Scan Barcode</legend>
-    <input type="text" name="barcode" placeholder="scan barcode here" value="[% barcode %]" />
+    <input type="text" name="barcode" placeholder="scan barcode here" value="[% barcode || c.flash.barcode %]" />
     <input type="submit" name="submit_barcode" class="btn btn-primary" value="Get Details" />
   </fieldset>
 </form>
@@ -67,6 +80,6 @@ Actions:
     <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
     <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
       Discard
-      <i class="icon-arrow-right icon-white"></i>
+      <i class="icon-arrow-right icon-white"></i><i class="icon-trash icon-white"></i>
     </button>
 [% END %]
