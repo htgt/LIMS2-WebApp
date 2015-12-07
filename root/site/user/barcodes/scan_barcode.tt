@@ -48,6 +48,10 @@ Actions:
     Start Doubling
     </a>
     <br><br>
+    <a href="[% c.uri_for('/user/freeze_back', barcode => well_details.barcode, freeze_back_type => 'PIQ_EXPAND' ) %]" class="btn btn-primary">
+    Expand and Freeze Back
+    </a>
+    <br><br>
       [% END %]
     [% INCLUDE discard_options %]
   </fieldset>
