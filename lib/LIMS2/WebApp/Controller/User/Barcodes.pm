@@ -8,6 +8,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
     discard_well_barcode
     freeze_back_fp_barcode
     freeze_back_piq_barcode
+    piq_expand_freeze_back_barcode
     add_barcodes_to_wells
     upload_plate_scan
     send_out_well_barcode
@@ -349,6 +350,10 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         $c->stash->{template} = 'user/barcodes/piq_freeze_back.tt';
         $redirect_on_completion = $c->uri_for('/user/scan_barcode');
     }
+    elsif($type eq 'PIQ_EXPAND'){
+        $c->stash->{template} = 'user/barcodes/piq_expand_freeze_back.tt';
+        $redirect_on_completion = $c->uri_for('/user/scan_barcode');
+    }
 
     my $well;
     if($barcode){
@@ -386,6 +391,9 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         }
         elsif($c->req->param('freeze_back_type') eq 'FP'){
             $freeze_back_method = \&freeze_back_fp_barcode;
+        }
+        elsif($c->req->param('freeze_back_type') eq 'PIQ_EXPAND'){
+            $freeze_back_method = \&piq_expand_freeze_back_barcode;
         }
         else{
             die "Freeze back type not specified in form";
@@ -512,8 +520,8 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     my $barcode = $c->request->param('barcode');
     my $plate_type = $c->request->param('plate_type');
 
-    $c->stash->{barcode} = $barcode;
-    $c->stash->{reason} = $c->request->param('reason');
+    $c->flash->{barcode} = $barcode;
+    $c->flash->{reason} = $c->request->param('reason');
 
     if($c->request->param('cancel_discard')){
         $c->flash->{info_msg} = "Cancelled discard of barcode $barcode";
@@ -564,6 +572,51 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     else{
         $c->stash->{error_msg} = "No barcode provided";
     }
+    return;
+}
+
+sub undiscard_barcode : Path( '/user/undiscard_barcode' ) : Args(0){
+    # Returns discarded barcode to checked out state
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+
+    if($barcode){
+        $c->flash->{barcode} = $barcode;
+        # check barcode is currently discarded
+        my $well = $c->model('Golgi')->retrieve_well({
+            barcode => $barcode,
+        });
+        if($well){
+            my $state = $well->well_barcode->barcode_state->id;
+            if( $state eq "discarded"){
+                try{
+                    $c->model('Golgi')->update_well_barcode({
+                        barcode   => $barcode,
+                        new_state => 'checked_out',
+                        user      => $c->user->name,
+                    });
+                    $c->flash->{success_msg} = "Barcode $barcode returned to checked_out state";
+                }
+                catch($e){
+                    $c->flash->{error_msg} = "Failed to update barcode: $e";
+                };
+            }
+            else{
+                $c->flash->{error_msg} = "Barcode state is currently $state. Cannot undiscard.";
+            }
+        }
+        else{
+            $c->flash->{error_msg} = "Could not retrieve barcode $barcode";
+        }
+    }
+    else{
+        $c->flash->{error_msg} = "No barcode provided";
+    }
+
+    $c->res->redirect( $c->uri_for("/user/scan_barcode") );
     return;
 }
 

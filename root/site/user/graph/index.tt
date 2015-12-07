@@ -9,6 +9,9 @@
     <input type="checkbox" name="crisprs" value="crisprs"[% IF crisprs == 'crisprs' %] checked="checked"[% END %]> include crisprs
     <button name="go" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
   </fieldset>
+  [%- IF genes %]
+  <b>Gene: </b> [%- FOREACH gene IN genes %] <a href="[% c.uri_for( '/user/report/gene', { 'gene_id' => gene } ) %]">[% gene %]</a> [%- END %]
+  [%- END %]
 </form>
 
 <form method="GET" action="[% c.uri_for( '/user/graph' ) %]" class="well">

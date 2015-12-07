@@ -161,7 +161,8 @@ sub view_edit_project_tests : Test(21){
     my @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
     is (scalar @delete_forms, 2, '2 experiments listed');
 
-    $mech->form_number(2);
+    # Set form to the first delete_experiment_form
+    $mech->form_id($delete_forms[0]->attr('id'));
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
 
@@ -177,6 +178,8 @@ sub edit_human_sponsor_list : Test(10){
     $mech->content_contains('HGNC:19417');
     $mech->content_contains('ZNF404');
 
+    # We have multiple forms on the page so set the form to use
+    $mech->form_id('sponsors_form');
     $mech->tick('sponsors','Pathogen');
     $mech->click_button( name => 'update_sponsors' );
     $mech->content_contains('Project sponsor list updated');
