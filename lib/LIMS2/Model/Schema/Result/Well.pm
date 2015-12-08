@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.355';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.357';
 }
 ## use critic
 
@@ -1244,6 +1244,19 @@ sub barcoded_descendant_of_type{
     return;
 }
 
+sub barcoded_descendants{
+    my ($self) = @_;
+    my @barcoded_descendants;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( $descendant->well_barcode ){
+          push @barcoded_descendants, $descendant;
+        }
+      }
+    }
+    return @barcoded_descendants;
+}
 sub descendant_crispr_vectors {
     my $self = shift;
 

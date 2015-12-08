@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.355';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.357';
 }
 ## use critic
 
@@ -651,6 +651,7 @@ sub fetch_values_for_type_ep {
             'plate_name'        => $summary_row->ep_plate_name,
             'well_name'         => $summary_row->ep_well_name,
             'created_at'        => $summary_row->ep_well_created_ts->ymd,
+            'cell_line'         => $summary_row->crispr_ep_well_cell_line,
             'recombinases'      => $summary_row->ep_well_recombinase_id,
             'final_pick_well'   => $final_pick_well,
             'dna_well'          => $dna_well,
@@ -692,7 +693,7 @@ sub fetch_values_for_type_ep {
             'well_name'         => $summary_row->crispr_ep_well_name,
             'created_at'        => $summary_row->crispr_ep_well_created_ts->ymd,
             'cell_line'         => $summary_row->crispr_ep_well_cell_line,
-            # 'recombinases'      => $summary_row->crispr_ep_well_nuclease,
+            'recombinases'      => $summary_row->crispr_ep_well_nuclease,
             'crisprs'           => \@crisprs,
             'dna_well'          => $dna_well,
             'assembly_well'     => $assembly_well,
@@ -739,9 +740,11 @@ sub fetch_values_for_type_ep_pick {
         my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
         my $chromosome = $design_oligo_locus->chr->name;
 
-        my $is_het = '---';
+        my $is_het;
+        my $damage_type;
+
         try {
-            my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ep_pick_well_id);
+            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ep_pick_well_id) // '---';
             $is_het = ep_pick_is_het($model,$summary_row->ep_pick_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -763,6 +766,7 @@ sub fetch_values_for_type_ep_pick {
             'is_accepted'       => $well_is_accepted,
             'is_het'            => $is_het,
             'to_report'         => $summary_row->to_report,
+            'damage_type'       => $damage_type,
         };
 
         if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
@@ -998,9 +1002,11 @@ sub fetch_values_for_type_piq {
         my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
         my $chromosome = $design_oligo_locus->chr->name;
 
-        my $is_het = '---';
+        my $is_het;
+        my $damage_type;
+
         try {
-            my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id);
+            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id) // '---';
             $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -1022,6 +1028,7 @@ sub fetch_values_for_type_piq {
             'is_accepted'       => $well_is_accepted,
             'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
             'to_report'         => $summary_row->to_report,
+            'damage_type'       => $damage_type,
         };
 
         if ( $summary_row->crispr_ep_well_name ) {
@@ -1057,9 +1064,12 @@ sub fetch_values_for_type_piq {
                 $ancestor_well_is_accepted = 'no';
             }
 
+            undef $is_het;
+            undef $damage_type;
+
             try {
-                my $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id);
-                $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
+                $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ancestor_piq_well_id) // '---';
+                $is_het = ep_pick_is_het($model,$summary_row->ancestor_piq_well_id,$chromosome,$damage_type) // '---';
                 if ( $is_het eq '1' ) {
                     $is_het = 'yes';
                 }
@@ -1081,6 +1091,7 @@ sub fetch_values_for_type_piq {
                     'is_het'            => $is_het,
                     'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
                     'to_report'         => $summary_row->to_report,
+                    'damage_type'       => $damage_type,
                 };
 
                 if ( $summary_row->crispr_ep_well_name ) {

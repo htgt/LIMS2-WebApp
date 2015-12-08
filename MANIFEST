@@ -379,6 +379,7 @@ root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
 root/site/user/barcodes/mutation_signatures_barcodes.tt
 root/site/user/barcodes/picklist_grid.tt
+root/site/user/barcodes/piq_expand_freeze_back.tt
 root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
 root/site/user/barcodes/piq_start_doubling.tt

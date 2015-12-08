@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::MutationSignatures;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.355';
+    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.357';
 }
 ## use critic
 
@@ -52,6 +52,23 @@ sub get_mutation_signatures_barcode_data{
             number_of_doublings => $process->get_parameter_value('doublings')
         };
         push @wells, $well;
+
+        # Child well may have been expanded to produce more clone so add
+        # any barcoded descendants of the child well too
+        if($child_well){
+            foreach my $descendant ($child_well->barcoded_descendants){
+                DEBUG "Found descendant well: $descendant";
+                # We report exactly the same data as for the original child
+                # only the child well is now the new descendant
+                my $data = {
+                    parent              => $parent_well,
+                    child               => $descendant,
+                    oxygen_condition    => $well->{oxygen_condition},
+                    number_of_doublings => $well->{number_of_doublings},
+                };
+                push @wells, $data;
+            }
+        }
     }
 
     my $design_data = $model->get_design_data_for_well_id_list(\@parent_well_ids);
@@ -59,6 +76,11 @@ sub get_mutation_signatures_barcode_data{
 	foreach my $well (@wells){
     	my ($parent_well) = $well->{parent};
 		my ($child_well) = $well->{child};
+
+        if($child_well){
+            # Skip child wells on old plate versions
+            next if $child_well->plate->version;
+        }
 
 		my $state = $parent_well->well_barcode->barcode_state->id;
         my $well_id = $parent_well->{_column_data}->{id};
