@@ -206,19 +206,19 @@ function extract_sequence(elem) {
 //add a TraceViewer object for easy creation of plots
 //this is incredibly specific to our layout, though.
 
-function TraceViewer(trace_url, button) {
+function TraceViewer(trace_url, button, full_trace) {
     if ( ! button && trace_url ) {
         console.log("Please provide a trace button and trace URL");
         return;
     }
 
     this.url = trace_url;
-    this.show_traces(button);
+    this.show_traces(button, full_trace);
 }
 
 TraceViewer.prototype.toString = function() { return "TraceViewer"; };
 
-TraceViewer.prototype.show_traces = function(button) {
+TraceViewer.prototype.show_traces = function(button, full_trace) {
     //create container divs with placeholder divs inside to hold the required graphs
     //graphs. Placeholder is where the graph actually gets isnerted
     var fwd_placeholder = $("<div>", {"class":"demo-placeholder forward"});
@@ -235,6 +235,11 @@ TraceViewer.prototype.show_traces = function(button) {
     var fwd_seq = button.closest("td").find(".forward_full").text() || extract_sequence( seqs.first() );
     var rev_seq = button.closest("td").find(".reverse_full").text() || extract_sequence( seqs.last() );
 
+    // We want to display the full trace, not search for a sequence within in
+    if(full_trace){
+        fwd_seq = "";
+        rev_seq = "";
+    }
 
     this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"));
     this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"));
