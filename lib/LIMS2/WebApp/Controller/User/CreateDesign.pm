@@ -13,6 +13,7 @@ use WebAppCommon::Util::FarmJobRunner;
 
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::CreateDesign qw/convert_gibson_to_fusion/;
 
 
 BEGIN { extends 'Catalyst::Controller' };
@@ -134,8 +135,12 @@ sub pspec_create_design {
 
 sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     $c->assert_user_roles( 'edit' );
+
+    if ($c->req->param('gibson_id')) {
+        LIMS2::Model::Util::CreateDesign::convert_gibson_to_fusion($self, $c, $c->req->param('gibson_id'));
+    }
 
     return unless $c->request->param('gene_pick');
 

@@ -2,7 +2,15 @@ package LIMS2::Model::Util::CreateDesign;
 
 use warnings FATAL => 'all';
 
+use Sub::Exporter -setup => {
+    exports => [qw( convert_gibson_to_fusion )]
+};
+
+
 use Moose;
+
+with 'DesignCreate::CmdRole::ConsolidateDesignData';
+
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Exception;
@@ -514,6 +522,38 @@ sub mutant_seq_with_lower_case{
         }
     }
     return $new;
+}
+
+sub convert_gibson_to_fusion {
+    my ($self, $c, $id) = @_;
+$DB::single=1;
+    my $oligo_rs = $c->model('Golgi')->schema->resultset('DesignOligo')->search({ design_id => $id });
+    my @oligos;
+    while (my $singular_oligo = $oligo_rs->next) {
+        $singular_oligo = $singular_oligo->{_column_data};
+        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->find({ design_oligo_id => $singular_oligo->{id} })->{_column_data};
+        my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data}; 
+
+        my $loci = {
+            'chr_end'   => $loci_rs->{chr_end},
+            'chr_start' => $loci_rs->{chr_start},
+        };
+        my @loci = $loci;
+        my $oligo = {
+            'type'          => $singular_oligo->{design_oligo_type_id},
+            'seq'           => $singular_oligo->{seq},
+            'loci'          => \@loci,
+            'chr_name'      => $chromosome->{name},
+            'chr_strand'    => $loci_rs->{chr_strand},
+        };
+
+        push @oligos, $oligo;
+    }
+$DB::single=1;
+    my $oligos = \@oligos;
+    my $design = $self->modify_fusion_oligos($oligos, 1);
+
+    return;
 }
 =head2 throw_validation_error
 

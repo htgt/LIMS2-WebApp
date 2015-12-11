@@ -89,6 +89,21 @@ sub _build_is_gibson {
     return $is_gibson;
 }
 
+has is_fusion => (
+    is          => 'ro',
+    isa         => 'Bool',
+    lazy_build  => 1,
+);
+
+sub _build_is_fusion {
+    my $self = shift;
+
+    my $design_type = $self->plate->wells->first->design->design_type_id;
+    my $is_fusion = $design_type eq 'fusion-deletion' ? 1 : 0;
+
+    return $is_fusion;
+}
+
 has oligo_types => (
     is         => 'ro',
     isa        => 'ArrayRef',
@@ -99,6 +114,7 @@ sub _build_oligo_types {
     my $self = shift;
     my @oligo_types;
 
+$DB::single=1;
     if ( $self->is_gibson ) {
         @oligo_types = qw( 5F 5R EF ER 3F 3R );
     }
@@ -118,6 +134,7 @@ Gibson design plates do not have bac data.
 sub generate_design_plate_order_sheet_data {
     my ( $self ) = @_;
 
+$DB::single=1;
     $self->build_base_report_data();
     $self->oligo_seq_data;
     unless ( $self->is_gibson ) {
@@ -131,6 +148,7 @@ sub generate_design_plate_order_sheet_data {
 sub build_base_report_data{
     my ( $self ) = @_;
 
+$DB::single=1;
     my @wells = $self->plate->wells;
     for my $well ( @wells ) {
         my ( $parent_process ) = $well->parent_processes;
@@ -164,6 +182,7 @@ sub build_base_report_data{
 sub set_design_well_bacs {
     my ( $self, $well, $parent_process ) = @_;
 
+$DB::single=1;
     my @process_bacs = $parent_process->process_bacs( {}, { prefetch => 'bac_clone' } );
     for my $process_bac ( @process_bacs ) {
         my $bac_id = $process_bac->bac_clone->name;
@@ -175,7 +194,7 @@ sub set_design_well_bacs {
 
 sub oligo_seq_data {
     my ( $self ) = @_;
-
+$DB::single=1;
     for my $oligo_type ( @{ $self->oligo_types } ) {
         my $plate_name = 'plate_' . $self->plate->name . '_' . $oligo_type;
         $self->add_report_row( [ 'Temp_' . $plate_name ] );
@@ -189,6 +208,7 @@ sub oligo_seq_data {
 sub oligo_type_seq_data {
     my ( $self, $oligo_type, $plate_name ) = @_;
 
+$DB::single=1;
     for my $oligo_data ( @{ $self->oligo_data->{ $oligo_type } } ) {
         $oligo_data->{well} =~ /(?<row>\w)(?<column>\d{2})/;
         my $oligo_name = $oligo_data->{well} . '_' . $oligo_data->{design_id} . '_' . $oligo_type;
@@ -211,6 +231,7 @@ sub oligo_type_seq_data {
 sub bac_plate_data {
     my ( $self ) = @_;
 
+$DB::single=1;
     foreach my $bac_plate ( "a".."d" ) {
         $self->add_blank_report_row;
         $self->add_report_row( [ $self->plate->name . $bac_plate . '_BAC1' ] );
@@ -234,6 +255,7 @@ sub bac_plate_data {
 sub bac_list {
     my ( $self ) = @_;
 
+$DB::single=1;
     foreach my $bac_plate ( "a".."d" ) {
         my @bac_names = values %{ $self->bac_data->{$bac_plate} };
         my $plate_name = $self->plate->name . $bac_plate . '_BAC2';
