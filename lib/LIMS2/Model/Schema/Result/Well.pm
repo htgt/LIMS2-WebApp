@@ -932,6 +932,26 @@ sub child_wells {
     return map{ $_->output_wells } @child_processes;
 }
 
+sub child_wells_skip_versioned_plates{
+    my $self = shift;
+
+    DEBUG "Finding real child wells of $self";
+
+    my @real_child_wells;
+
+    my @child_wells = $self->child_wells;
+    foreach my $well (@child_wells){
+        if($well->plate->version){
+            push @real_child_wells, $well->child_wells_skip_versioned_plates;
+        }
+        else{
+            push @real_child_wells, $well;
+        }
+    }
+
+    return @real_child_wells;
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',
@@ -1567,7 +1587,7 @@ sub distributable_child_barcodes{
     my @barcodes;
 
     # Find all child wells which have a barcode and are distributable (accepted)
-    foreach my $well ( $self->child_wells ){
+    foreach my $well ( $self->child_wells_skip_versioned_plates ){
         next unless $well->well_barcode;
         next unless $well->is_accepted;
         push @barcodes, $well->well_barcode->barcode;
@@ -1691,7 +1711,7 @@ sub ms_qc_data{
     DEBUG "Looking for MS_QC wells with parent $ms_parent";
 
     # Get QC results for MS_QC plates produced from the parent well
-    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells;
+    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells_skip_versioned_plates;
     foreach my $qc_well (@ms_qc_wells){
         DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
         my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
