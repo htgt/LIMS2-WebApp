@@ -14,9 +14,55 @@ use WebAppCommon::Util::FarmJobRunner;
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw/convert_gibson_to_fusion/;
-
+use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 
 BEGIN { extends 'Catalyst::Controller' };
+
+has chr_name => (
+    is         => 'ro',
+    isa        => Chromosome,
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+);
+
+sub _build_chr_name {
+    my $self = shift;
+
+    return $self->{chr_name};
+}
+
+has chr_strand => (
+    is         => 'ro',
+    isa        => Strand,
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+);
+
+sub _build_chr_strand {
+    my $self = shift;
+
+    return $self->{chr_strand};
+}
+
+has ensembl_util => (
+    is         => 'ro',
+    isa        => 'WebAppCommon::Util::EnsEMBL',
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+    handles    => [ qw( slice_adaptor exon_adaptor gene_adaptor ) ],
+);
+
+sub _build_ensembl_util {
+    my $self = shift;
+    require WebAppCommon::Util::EnsEMBL;
+    
+    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->{species} );
+
+    # this flag should stop the database connection being lost on long jobs
+    $ensembl_util->registry->set_reconnect_when_lost;
+
+    return $ensembl_util;
+}
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
@@ -135,7 +181,6 @@ sub pspec_create_design {
 
 sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     my ( $self, $c ) = @_;
-$DB::single=1;
     $c->assert_user_roles( 'edit' );
 
     if ($c->req->param('gibson_id')) {

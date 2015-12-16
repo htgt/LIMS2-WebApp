@@ -402,7 +402,6 @@ sub _build_design_info {
 
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;
-
     # updates design object with latest information from database
     # if not done then the created_at value which can default to the current
     # timestamp does not seem to be set and a error is thrown
@@ -447,7 +446,6 @@ sub oligos_sorted{
 
 sub _sort_oligos {
     my $self = shift;
-
     my @oligos = map { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }

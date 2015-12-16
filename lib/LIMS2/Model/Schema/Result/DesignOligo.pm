@@ -176,7 +176,6 @@ use LIMS2::Model::Constants qw(
 
 sub as_hash {
     my $self = shift;
-
     my $locus = $self->current_locus;
 
     return {
@@ -189,7 +188,6 @@ sub as_hash {
 
 sub current_locus{
     my $self = shift;
-
     if ( my $default_assembly = $self->design->species->default_assembly ) {
         return $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }

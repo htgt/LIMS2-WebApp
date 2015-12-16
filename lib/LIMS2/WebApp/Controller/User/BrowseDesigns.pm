@@ -57,7 +57,7 @@ const my @DISPLAY_DESIGN => (
 
 sub view_design : Path( '/user/view_design' ) : Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     $c->assert_user_roles( 'read' );
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
