@@ -2,14 +2,13 @@ package LIMS2::Model::Util::CreateDesign;
 
 use warnings FATAL => 'all';
 
+use Moose;
+with 'DesignCreate::CmdRole::ConsolidateDesignData';
+
 use Sub::Exporter -setup => {
-    exports => [qw( convert_gibson_to_fusion )]
+    exports => [ 'convert_gibson_to_fusion' ]
 };
 
-
-use Moose;
-
-with 'DesignCreate::CmdRole::ConsolidateDesignData';
 
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
@@ -539,7 +538,7 @@ sub convert_gibson_to_fusion {
     while (my $singular_oligo = $oligo_rs->next) {
         my $singular = $singular_oligo->{_column_data};
         my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({ design_oligo_id => $singular->{id} })->next->{_column_data};
-        my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data}; 
+        my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data};
         $self->{species} = $chromosome->{species_id};
         $self->{chr_strand} = $loci_rs->{chr_strand};
         $self->{chr_name} = $chromosome->{name};
@@ -564,7 +563,6 @@ sub convert_gibson_to_fusion {
     $self->_build_ensembl_util();
     my $oligos = \@oligos;
     my @modified_oligos = modify_fusion_oligos($self, $oligos, 1);
-$DB::single=1;
     my $gene = $c->model('Golgi')->schema->resultset('GeneDesign')->find({ design_id => $id })->{_column_data};
     my @genes;
     push (@genes, $gene);
