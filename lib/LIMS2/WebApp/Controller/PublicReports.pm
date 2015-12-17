@@ -16,6 +16,7 @@ use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
+use LIMS2::Model::Util::ReportForSponsorsDec2015;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -215,10 +216,11 @@ sub _generate_front_page_report {
     my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
 
     # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new({
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsorsDec2015->new({
             'species' => $species,
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
+            'report_config' => '/nfs/users/nfs_a/af11/git/LIMS2-WebApp/sponsor_progress_report_config.csv',
         });
 
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );

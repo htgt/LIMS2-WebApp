@@ -1,0 +1,43 @@
+report_id,SponsRep,,,,,
+category_name,Stage,,,,,
+categories_as_columns,0,,,,,
+items:SQL,"SELECT distinct(ps.sponsor_id)
+FROM project_sponsors ps, projects pr
+WHERE ps.project_id = pr.id
+AND pr.species_id = '$species'
+AND pr.targeting_type = '$targeting_type'
+ORDER BY ps.sponsor_id",,,,,
+base:SQL:all_genes,"SELECT count(distinct(gene_id)) AS genes
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$item'
+AND ps.project_id = p.id
+AND p.targeting_type = '$targeting_type'
+AND p.species_id = '$species'",,,,,
+base:SQL:genes_from_summaries_table,"WITH project_requests AS (
+SELECT p.id, ps.sponsor_id, p.gene_id, p.targeting_type
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$item'
+AND ps.project_id = p.id
+AND p.targeting_type = 'single_targeted'
+AND p.species_id = '$species'
+)
+SELECT count(distinct(s.design_gene_id))
+FROM summaries s
+INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
+",,,,,
+,,,,,,
+modifier:SQL:gibson_only,AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ),,,,,
+modifier:SQL:cre_knockin,FIXME: this is a different query really,,,,,
+modifier:SQL:summary_sponsor_id,AND s.sponsor_id = $item,,,,,
+,,,,,,
+!RULES,,,,,,
+Category,category_base:SQL,category_modifier:SQL,condition:$species eq 'Human',condition:$item eq 'Pathogen Group 2',condition:$item eq 'Cre Knockin',condition:$item =~ /Pathogen Group 1|EUCOMMTools Recovery|Barry Short Arm Recovery|MGP Recovery/
+Genes,base:SQL:all_genes,,,,,
+Vectors Constructed,base:SQL:genes_from_summaries_table,WHERE s.final_pick_qc_seq_pass = true,modifier:SQL:gibson_only,modifier:SQL:gibson_only,,modifier:SQL:summary_sponsor_id
+Genes Electroporated,base:SQL:genes_from_summaries_table,WHERE (s.ep_well_id > 0 OR s.crispr_ep_well_id > 0),modifier:SQL:gibson_only,modifier:SQL:gibson_only,,modifier:SQL:summary_sponsor_id
+Targeted Gene,base:SQL:genes_from_summaries_table,"INNER JOIN crispr_es_qc_wells cw ON cw.well_id = s.ep_pick_well_id
+INNER JOIN crispr_es_qc_runs cr ON cw.crispr_es_qc_run_id = cr.id
+WHERE s.ep_pick_well_accepted = true
+AND cw.crispr_damage_type_id = 'frameshift'
+AND cw.accepted = true
+AND cr.validated = true",modifier:SQL:gibson_only,modifier:SQL:gibson_only,,modifier:SQL:summary_sponsor_id
