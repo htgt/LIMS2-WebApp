@@ -171,7 +171,7 @@ sub view_edit_project_tests : Test(21){
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
 
-    my @delete_forms;
+    undef @delete_forms;
     foreach my $form ( $mech->forms ) {
         if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
             push @delete_forms, $form;
