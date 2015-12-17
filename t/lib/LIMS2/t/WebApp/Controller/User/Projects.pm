@@ -158,7 +158,12 @@ sub view_edit_project_tests : Test(21){
 
     # Reload project view and test delete experiment
     $mech->get_ok('/user/view_project?project_id=12');
-    my @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
+    my @delete_forms;
+    foreach my $form ( $mech->forms ) {
+        if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
+            push @delete_forms, $form;
+        }
+    }
     is (scalar @delete_forms, 2, '2 experiments listed');
 
     # Set form to the first delete_experiment_form
@@ -166,7 +171,12 @@ sub view_edit_project_tests : Test(21){
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
 
-    @delete_forms = grep { $_->attr('name') eq 'delete_experiment_form' } $mech->forms;
+    my @delete_forms;
+    foreach my $form ( $mech->forms ) {
+        if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
+            push @delete_forms, $form;
+        }
+    }
     is (scalar @delete_forms, 1, '1 experiment listed');
 
 }

@@ -240,7 +240,7 @@ sub build_eng_seq_params_from_loci{
         'insertion'         => 1,
         'gibson-deletion'   => 1,
         'gibson'            => 1,
-        'fusion-deletion'  => 1,
+        'fusion-deletion'   => 1,
     );
     #return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
     # for now all gibson designs are treated as deletions
