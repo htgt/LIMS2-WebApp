@@ -3,7 +3,6 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
-with 'DesignCreate::CmdRole::ConsolidateDesignData';
 
 use Sub::Exporter -setup => {
     exports => [ 'convert_gibson_to_fusion' ]
@@ -20,7 +19,7 @@ use Const::Fast;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
-
+use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs';
