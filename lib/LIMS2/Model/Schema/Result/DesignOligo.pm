@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.357';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.358';
 }
 ## use critic
 
@@ -182,7 +182,6 @@ use LIMS2::Model::Constants qw(
 
 sub as_hash {
     my $self = shift;
-
     my $locus = $self->current_locus;
 
     return {
@@ -195,7 +194,6 @@ sub as_hash {
 
 sub current_locus{
     my $self = shift;
-
     if ( my $default_assembly = $self->design->species->default_assembly ) {
         return $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }

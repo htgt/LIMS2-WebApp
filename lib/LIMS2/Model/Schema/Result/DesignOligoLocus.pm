@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligoLocus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoLocus::VERSION = '0.357';
+    $LIMS2::Model::Schema::Result::DesignOligoLocus::VERSION = '0.358';
 }
 ## use critic
 
@@ -164,7 +164,6 @@ __PACKAGE__->belongs_to(
 
 sub as_hash {
     my $self = shift;
-
     return {
         species  => $self->assembly->species_id,
         assembly => $self->assembly_id,

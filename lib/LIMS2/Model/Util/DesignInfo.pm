@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.357';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.358';
 }
 ## use critic
 
@@ -435,8 +435,8 @@ sub _build_chr_strand {
 
 sub _build_chr_name {
     my $self = shift;
-
     my @chr_names = uniq map { $_->{chromosome} } values %{ $self->oligos };
+
     LIMS2::Exception->throw(
         'Design ' . $self->design->id . ' oligos have inconsistent chromosomes'
     ) unless @chr_names == 1;

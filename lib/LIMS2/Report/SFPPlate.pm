@@ -1,7 +1,7 @@
 package LIMS2::Report::SFPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SFPPlate::VERSION = '0.357';
+    $LIMS2::Report::SFPPlate::VERSION = '0.358';
 }
 ## use critic
 

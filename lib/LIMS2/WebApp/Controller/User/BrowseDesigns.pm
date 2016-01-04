@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.357';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.358';
 }
 ## use critic
 
@@ -63,7 +63,6 @@ const my @DISPLAY_DESIGN => (
 
 sub view_design : Path( '/user/view_design' ) : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles( 'read' );
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
