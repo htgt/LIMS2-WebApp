@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.358';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.359';
 }
 ## use critic
 
@@ -118,6 +118,12 @@ __PACKAGE__->table("designs");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 parent_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -156,6 +162,8 @@ __PACKAGE__->add_columns(
   "global_arm_shortened",
   { data_type => "integer", is_nullable => 1 },
   "nonsense_design_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -215,6 +223,21 @@ __PACKAGE__->has_many(
   "crispr_designs",
   "LIMS2::Model::Schema::Result::CrisprDesign",
   { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->has_many(
+  "designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.parent_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -298,6 +321,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 parent
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "parent",
+  "LIMS2::Model::Schema::Result::Design",
+  { id => "parent_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 process_designs
 
 Type: has_many
@@ -359,8 +402,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wzzQdVF7ohmrYFtsQapVUw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rEg/Qmh+J1NoGFmuARMF7w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -427,6 +470,7 @@ sub as_hash {
         cassette_first            => $self->cassette_first,
         global_arm_shortened      => $self->global_arm_shortened,
         nonsense_design_crispr_id => $self->nonsense_design_crispr_id,
+        parent_id                 => $self->parent_id,
     );
 
     if ( ! $suppress_relations ) {

@@ -98,6 +98,7 @@ lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
 lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
 lib/LIMS2/Model/Schema/Result/DesignOligo.pm
+lib/LIMS2/Model/Schema/Result/DesignOligoAppend.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm

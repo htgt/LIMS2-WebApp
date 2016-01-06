@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.358';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.359';
 }
 ## use critic
 

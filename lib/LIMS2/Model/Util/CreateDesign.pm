@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.358';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.359';
 }
 ## use critic
 
@@ -578,6 +578,7 @@ sub convert_gibson_to_fusion {
         'oligos'        => \@oligos,
         'type'          => 'fusion-deletion',
         'gene_ids'      => \@genes,
+        'parent_id'     => $id,
     };
     my $design = $c->model( 'Golgi' )->c_create_design( $attempt );
     if ($design) {
