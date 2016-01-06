@@ -572,6 +572,7 @@ sub convert_gibson_to_fusion {
         'oligos'        => \@oligos,
         'type'          => 'fusion-deletion',
         'gene_ids'      => \@genes,
+        'parent_id'     => $id,
     };
     my $design = $c->model( 'Golgi' )->c_create_design( $attempt );
     if ($design) {
