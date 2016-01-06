@@ -42,6 +42,14 @@
     </td>
   </tr>
   [% END %]
+  [% IF design.parent_id %]
+  <tr>
+    <th>Parent ID</th>
+    <td>
+    <a href="[% c.uri_for( '/user/view_design', { design_id => design.parent_id } ) %]"> [% design.parent_id %] </a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>

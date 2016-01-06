@@ -158,7 +158,6 @@ __PACKAGE__->belongs_to(
 
 sub as_hash {
     my $self = shift;
-
     return {
         species  => $self->assembly->species_id,
         assembly => $self->assembly_id,
