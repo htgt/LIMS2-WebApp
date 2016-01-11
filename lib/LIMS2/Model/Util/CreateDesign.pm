@@ -551,12 +551,14 @@ sub convert_gibson_to_fusion {
         };
         my @loci = $loci;
         my $fusion_oligo = $oligo_rename->{$singular->{design_oligo_type_id}};
-        my $oligo = {
-            'type'          => $fusion_oligo,
-            'seq'           => $singular->{seq},
-            'loci'          => \@loci,
-        };
-        push @oligos, $oligo;
+        if ($fusion_oligo) {
+            my $oligo = {
+                'type'          => $fusion_oligo,
+                'seq'           => $singular->{seq},
+                'loci'          => \@loci,
+            };
+            push @oligos, $oligo;
+        }
     }
 
     $self->_build_ensembl_util();
