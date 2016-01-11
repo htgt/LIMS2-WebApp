@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Sponsor;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Sponsor::VERSION = '0.359';
+    $LIMS2::Model::Schema::Result::Sponsor::VERSION = '0.360';
 }
 ## use critic
 

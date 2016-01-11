@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PlateReport::VERSION = '0.359';
+    $LIMS2::Model::Schema::Result::PlateReport::VERSION = '0.360';
 }
 ## use critic
 
