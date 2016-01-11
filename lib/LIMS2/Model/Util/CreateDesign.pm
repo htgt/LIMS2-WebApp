@@ -3,7 +3,6 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
-with 'DesignCreate::CmdRole::ConsolidateDesignData';
 
 use Sub::Exporter -setup => {
     exports => [ 'convert_gibson_to_fusion' ]
@@ -20,7 +19,7 @@ use Const::Fast;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
-
+use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs';
@@ -552,12 +551,14 @@ sub convert_gibson_to_fusion {
         };
         my @loci = $loci;
         my $fusion_oligo = $oligo_rename->{$singular->{design_oligo_type_id}};
-        my $oligo = {
-            'type'          => $fusion_oligo,
-            'seq'           => $singular->{seq},
-            'loci'          => \@loci,
-        };
-        push @oligos, $oligo;
+        if ($fusion_oligo) {
+            my $oligo = {
+                'type'          => $fusion_oligo,
+                'seq'           => $singular->{seq},
+                'loci'          => \@loci,
+            };
+            push @oligos, $oligo;
+        }
     }
 
     $self->_build_ensembl_util();
@@ -573,6 +574,7 @@ sub convert_gibson_to_fusion {
         'oligos'        => \@oligos,
         'type'          => 'fusion-deletion',
         'gene_ids'      => \@genes,
+        'parent_id'     => $id,
     };
     my $design = $c->model( 'Golgi' )->c_create_design( $attempt );
     if ($design) {
