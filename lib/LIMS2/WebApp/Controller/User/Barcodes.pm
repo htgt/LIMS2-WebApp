@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.360';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.361';
 }
 ## use critic
 
@@ -526,8 +526,8 @@ sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
     my $barcode = $c->request->param('barcode');
     my $plate_type = $c->request->param('plate_type');
 
-    $c->flash->{barcode} = $barcode;
-    $c->flash->{reason} = $c->request->param('reason');
+    $c->stash->{barcode} = $barcode;
+    $c->stash->{reason} = $c->request->param('reason');
 
     if($c->request->param('cancel_discard')){
         $c->flash->{info_msg} = "Cancelled discard of barcode $barcode";

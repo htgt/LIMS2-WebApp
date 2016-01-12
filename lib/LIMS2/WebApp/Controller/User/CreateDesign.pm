@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.360';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.361';
 }
 ## use critic
 
@@ -190,7 +190,7 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     if ($c->req->param('gibson_id')) {
         my $id = $c->req->param('gibson_id');
         my $design = $c->model('Golgi')->schema->resultset('Design')->find({ id => $id });
-        unless ($design->{_column_data}->{design_type_id} eq 'gibson-deletion') {
+        unless ($design->{_column_data}->{design_type_id} eq 'gibson-deletion' || $design->as_hash->{type} eq 'gibson' ) {
             $c->stash->{error_msg} = 'Please enter a valid gibson-deletion design';
             return;
         }

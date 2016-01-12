@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.360';
+    $LIMS2::Model::Constants::VERSION = '0.361';
 }
 ## use critic
 
@@ -23,6 +23,7 @@ BEGIN {
         %STANDARD_KO_OLIGO_APPENDS
         %STANDARD_INS_DEL_OLIGO_APPENDS
         %GIBSON_OLIGO_APPENDS
+        %FUSION_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
