@@ -39,3 +39,7 @@ ul.ui-autocomplete
   color: red;
   position: fixed;
 }
+
+.trace_sequence{
+    font-family: "Lucida console", Courier, Lucida, monospace;
+}

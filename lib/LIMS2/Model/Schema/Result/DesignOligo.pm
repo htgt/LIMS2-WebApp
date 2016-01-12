@@ -171,6 +171,7 @@ use LIMS2::Model::Constants qw(
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
 %GIBSON_OLIGO_APPENDS
+%FUSION_OLIGO_APPENDS
 %GLOBAL_SHORTENED_OLIGO_APPEND
 );
 
@@ -258,7 +259,6 @@ Send in optional design_type to avoid extra DB calls.
 sub append_seq {
     my ( $self, $design_type ) = @_;
     require LIMS2::Exception;
-
     my $append_seq;
     $design_type ||= $self->design->design_type_id;
     my $shortened_global_arm = $self->design->global_arm_shortened;
@@ -286,6 +286,10 @@ sub append_seq {
     elsif ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
         $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
             if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
+    }
+    elsif ( $design_type eq 'fusion-deletion' ) {
+        $append_seq = $FUSION_OLIGO_APPENDS{ $oligo_type }
+            if exists $FUSION_OLIGO_APPENDS{ $oligo_type };
     }
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
@@ -320,6 +324,14 @@ sub oligo_order_seq {
     # gibson oligos have the append on the 5' end
     if ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
         $oligo_seq = $self->append_seq( $design_type ) . $seq;
+    }
+    elsif ( $design_type eq 'fusion-deletion' ) {
+        if ($self->design_oligo_type_id eq 'f5F' || $self->design_oligo_type_id eq 'D3') {
+            $oligo_seq = $self->append_seq( $design_type ) . $seq;
+        }
+        else {
+            $oligo_seq = $seq . $self->append_seq( $design_type );
+        }
     }
     # all other designs have appends on the 3' end of the oligo
     else {

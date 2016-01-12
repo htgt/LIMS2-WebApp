@@ -289,7 +289,7 @@ sub mutation_signatures_info_GET{
             well_id    => $well->id,
             well_name  => $well->name,
             plate_name => $well->plate->name,
-            parameters => $well->input_process_parameters,
+            parameters => $well->input_process_parameters_skip_versioned_plates,
             child_barcodes => $well->distributable_child_barcodes,
             ms_qc_data => $well->ms_qc_data($gene_finder),
         };

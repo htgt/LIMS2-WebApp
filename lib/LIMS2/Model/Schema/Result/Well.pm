@@ -578,7 +578,7 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
-use List::MoreUtils qw( any );
+use List::MoreUtils qw( any uniq );
 
 use Log::Log4perl qw(:easy);
 BEGIN {
@@ -602,7 +602,6 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
-use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
@@ -1596,13 +1595,34 @@ sub distributable_child_barcodes{
 }
 
 sub input_process_parameters{
-    my ( $self ) = @_;
-    my $parameters;
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
     foreach my $process ($self->parent_processes){
         foreach my $param ($process->process_parameters){
             # FIXME: will overwrite if we have multiple input protocols with
             # same parameter names
             $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
+}
+
+sub input_process_parameters_skip_versioned_plates{
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
+    foreach my $process ($self->parent_processes){
+        my ($input_well) = $process->input_wells;
+        if($input_well->plate->version and $process->type_id eq 'rearray'){
+            DEBUG ("process input well $input_well is versioned."
+                    ."skipping this process in search for process parameters");
+            $input_well->input_process_parameters_skip_versioned_plates($parameters);
+        }
+        else{
+            foreach my $param ($process->process_parameters){
+                # FIXME: will overwrite if we have multiple input protocols with
+                # same parameter names
+                $parameters->{ $param->parameter_name } = $param->parameter_value;
+            }
         }
     }
     return $parameters;
@@ -1710,24 +1730,36 @@ sub ms_qc_data{
 
     DEBUG "Looking for MS_QC wells with parent $ms_parent";
 
+    my @ms_parent_child_wells = $ms_parent->child_wells_skip_versioned_plates;
     # Get QC results for MS_QC plates produced from the parent well
-    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells_skip_versioned_plates;
+    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } @ms_parent_child_wells;
     foreach my $qc_well (@ms_qc_wells){
         DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
         my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
         next unless $crispr_qc_well;
         DEBUG "Storing MS_QC info for $qc_well";
         my $qc_info = _qc_info($crispr_qc_well,$gene_finder);
-        $qc_info->{parameters} = $qc_well->input_process_parameters;
+        $qc_info->{parameters} = $qc_well->input_process_parameters_skip_versioned_plates;
         push @mutation_signatures_qc, $qc_info;
     }
 
-    # Add any QC info linked to the well produced by the doubling process
-    my ($final_qc_well) = $doubling->output_wells;
+    # Add any QC info linked to the PIQ QC well produced by the doubling process
+    # To find the correct well to use look for an ancestor of the current well
+    # which is in the list of real (not versioned) child wells of the doubling input
+    # well.
+    my $final_qc_well;
+    my $ancestors = $self->ancestors->depth_first_traversal($self,'in');
+    while (my $ancestor = $ancestors->next){
+        if (grep { $_->id eq $ancestor->id } @ms_parent_child_wells){
+            $final_qc_well = $ancestor;
+            last;
+        }
+    }
+
     my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
     if($crispr_qc_well){
         my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
-        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters_skip_versioned_plates;
         $final_qc_info->{final_ms_qc_result} = 1;
         push @mutation_signatures_qc, $final_qc_info;
     }

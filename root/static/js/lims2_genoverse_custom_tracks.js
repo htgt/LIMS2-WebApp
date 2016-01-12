@@ -49,7 +49,7 @@ Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
                 + "' target='_blank'><font color='#00FFFF'>Design View</font></a>";
 
     var atts;
-
+    console.log("LIMS2 genoverse custom tracks");
     if(feature.oligo_name){
       atts = {
         Name  : (feature.oligo_name + " oligo"),
