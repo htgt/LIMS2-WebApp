@@ -83,7 +83,7 @@
         [% FOR read IN reads %]
             <tr>
               <td rowspan="2">[% read.orig_read_name %]</td>
-              <td style="overflow-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
+              <td style="word-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
             </tr>
             <tr>
                <td>
