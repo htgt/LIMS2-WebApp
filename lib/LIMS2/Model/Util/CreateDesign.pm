@@ -537,7 +537,7 @@ sub convert_gibson_to_fusion {
     while (my $singular_oligo = $oligo_rs->next) {
         my $singular = $singular_oligo->{_column_data};
         my $existing_loci = $singular_oligo->current_locus;
-        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({ 
+        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({
             design_oligo_id => $singular->{id},
             assembly_id => $existing_loci->assembly_id
         })->next->{_column_data};

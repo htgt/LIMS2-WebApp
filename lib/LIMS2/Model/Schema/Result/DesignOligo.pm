@@ -259,7 +259,6 @@ Send in optional design_type to avoid extra DB calls.
 sub append_seq {
     my ( $self, $design_type ) = @_;
     require LIMS2::Exception;
-$DB::single=1;
     my $append_seq;
     $design_type ||= $self->design->design_type_id;
     my $shortened_global_arm = $self->design->global_arm_shortened;
@@ -313,7 +312,6 @@ Send in optional design strand and design type to avoid extra DB calls.
 =cut
 sub oligo_order_seq {
     my ( $self, $design_strand, $design_type ) = @_;
-$DB::single=1;
     $design_strand ||= $self->design->chr_strand;
     $design_type   ||= $self->design->design_type_id;
 

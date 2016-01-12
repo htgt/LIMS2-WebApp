@@ -83,7 +83,6 @@ has is_gibson => (
 sub _build_is_gibson {
     my $self = shift;
 
-$DB::single=1;
     my $design_type = $self->plate->wells->first->design->design_type_id;
     my $is_gibson = $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ? 1 : 0;
 
@@ -99,7 +98,6 @@ has is_fusion => (
 sub _build_is_fusion {
     my $self = shift;
 
-$DB::single=1;
     my $design_type = $self->plate->wells->first->design->design_type_id;
     my $is_fusion = $design_type eq 'fusion-deletion' ? 1 : 0;
 
@@ -115,7 +113,6 @@ has oligo_types => (
 sub _build_oligo_types {
     my $self = shift;
     my @oligo_types;
-$DB::single=1;
     if ( $self->is_gibson ) {
         @oligo_types = qw( 5F 5R EF ER 3F 3R );
     }
@@ -151,7 +148,6 @@ sub generate_design_plate_order_sheet_data {
 sub build_base_report_data{
     my ( $self ) = @_;
 
-$DB::single=1;
     my @wells = $self->plate->wells;
     for my $well ( @wells ) {
         my ( $parent_process ) = $well->parent_processes;
@@ -167,7 +163,6 @@ $DB::single=1;
             }
         );
         $self->set_design_well_bacs( $well, $parent_process) unless ($self->is_gibson || $self->is_fusion );
-$DB::single=1;
         my $oligo_seqs = $design->oligo_order_seqs;
         for my $oligo_type ( @{ $self->oligo_types } ) {
             push @{ $self->oligo_data->{ $oligo_type } }, {
@@ -178,14 +173,12 @@ $DB::single=1;
             };
         }
     }
-
     return;
 }
 
 sub set_design_well_bacs {
     my ( $self, $well, $parent_process ) = @_;
 
-$DB::single=1;
     my @process_bacs = $parent_process->process_bacs( {}, { prefetch => 'bac_clone' } );
     for my $process_bac ( @process_bacs ) {
         my $bac_id = $process_bac->bac_clone->name;
@@ -197,7 +190,6 @@ $DB::single=1;
 
 sub oligo_seq_data {
     my ( $self ) = @_;
-$DB::single=1;
     for my $oligo_type ( @{ $self->oligo_types } ) {
         my $plate_name = 'plate_' . $self->plate->name . '_' . $oligo_type;
         $self->add_report_row( [ 'Temp_' . $plate_name ] );
@@ -211,7 +203,6 @@ $DB::single=1;
 sub oligo_type_seq_data {
     my ( $self, $oligo_type, $plate_name ) = @_;
 
-$DB::single=1;
     for my $oligo_data ( @{ $self->oligo_data->{ $oligo_type } } ) {
         $oligo_data->{well} =~ /(?<row>\w)(?<column>\d{2})/;
         my $oligo_name = $oligo_data->{well} . '_' . $oligo_data->{design_id} . '_' . $oligo_type;
@@ -234,7 +225,6 @@ $DB::single=1;
 sub bac_plate_data {
     my ( $self ) = @_;
 
-$DB::single=1;
     foreach my $bac_plate ( "a".."d" ) {
         $self->add_blank_report_row;
         $self->add_report_row( [ $self->plate->name . $bac_plate . '_BAC1' ] );
@@ -258,7 +248,6 @@ $DB::single=1;
 sub bac_list {
     my ( $self ) = @_;
 
-$DB::single=1;
     foreach my $bac_plate ( "a".."d" ) {
         my @bac_names = values %{ $self->bac_data->{$bac_plate} };
         my $plate_name = $self->plate->name . $bac_plate . '_BAC2';
@@ -275,7 +264,6 @@ $DB::single=1;
 
 ## no critic(RequireFinalReturn)
 sub add_blank_report_row {
-$DB::single=1;
     shift->add_report_row( [] );
 }
 ## use critic
