@@ -113,12 +113,11 @@ has oligo_types => (
 sub _build_oligo_types {
     my $self = shift;
     my @oligo_types;
-
     if ( $self->is_gibson ) {
         @oligo_types = qw( 5F 5R EF ER 3F 3R );
     }
     elsif ( $self->is_fusion ) {
-        @oligo_types = qw( f5F U5 EF ER D3 f3R );
+        @oligo_types = qw( f5F U5 D3 f3R );
     }
     else {
         @oligo_types = qw( G5 G3 U5 U3 D5 D3 );
@@ -164,7 +163,6 @@ sub build_base_report_data{
             }
         );
         $self->set_design_well_bacs( $well, $parent_process) unless ($self->is_gibson || $self->is_fusion );
-
         my $oligo_seqs = $design->oligo_order_seqs;
         for my $oligo_type ( @{ $self->oligo_types } ) {
             push @{ $self->oligo_data->{ $oligo_type } }, {
@@ -175,7 +173,6 @@ sub build_base_report_data{
             };
         }
     }
-
     return;
 }
 
