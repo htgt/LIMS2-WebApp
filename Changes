@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.362     2016-01-13 12:09:01 Europe/London
+    Fixed genoverse design browser  
+0.361     2016-01-12 12:25:40 Europe/London
+    Converter sequence alignment fixes
+0.360     2016-01-11 13:18:00 Europe/London
+    Added standard gibsons to the fusion converter
+0.359     2016-01-06 11:22:15 Europe/London
+    Added parent IDs to designs
 0.358     2016-01-04 12:13:24 Europe/London
     Added fusion convertor
 0.357     2015-12-08 16:12:42 Europe/London
