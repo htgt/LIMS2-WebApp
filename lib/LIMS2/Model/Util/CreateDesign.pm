@@ -536,12 +536,15 @@ sub convert_gibson_to_fusion {
 
     while (my $singular_oligo = $oligo_rs->next) {
         my $singular = $singular_oligo->{_column_data};
-        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({ design_oligo_id => $singular->{id} })->next->{_column_data};
+        my $existing_loci = $singular_oligo->current_locus;
+        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({
+            design_oligo_id => $singular->{id},
+            assembly_id => $existing_loci->assembly_id
+        })->next->{_column_data};
         my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data};
         $self->{species} = $chromosome->{species_id};
         $self->{chr_strand} = $loci_rs->{chr_strand};
         $self->{chr_name} = $chromosome->{name};
-        my $existing_loci = $singular_oligo->current_locus;
         my $loci = {
             'chr_end'       => $loci_rs->{chr_end},
             'chr_start'     => $loci_rs->{chr_start},
@@ -551,12 +554,14 @@ sub convert_gibson_to_fusion {
         };
         my @loci = $loci;
         my $fusion_oligo = $oligo_rename->{$singular->{design_oligo_type_id}};
-        my $oligo = {
-            'type'          => $fusion_oligo,
-            'seq'           => $singular->{seq},
-            'loci'          => \@loci,
-        };
-        push @oligos, $oligo;
+        if ($fusion_oligo) {
+            my $oligo = {
+                'type'          => $fusion_oligo,
+                'seq'           => $singular->{seq},
+                'loci'          => \@loci,
+            };
+            push @oligos, $oligo;
+        }
     }
 
     $self->_build_ensembl_util();
