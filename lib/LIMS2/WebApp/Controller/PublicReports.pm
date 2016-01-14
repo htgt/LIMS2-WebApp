@@ -356,14 +356,30 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     }
 
     # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
-            'species' => $species,
-            'model' => $c->model( 'Golgi' ),
-            'targeting_type' => $targeting_type,
-        });
+    #my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
+    #        'species' => $species,
+    #        'model' => $c->model( 'Golgi' ),
+    #        'targeting_type' => $targeting_type,
+    #    });
 
-    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
-     # Fetch details from returned report parameters
+    #my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
+
+    my $report_specific_params = {
+        sponsor_id    => $sponsor_id,
+        report_stage  => $stage,
+    };
+
+    my $sponsor_report = LIMS2::Model::Util::ReportForSponsorsDec2015->new({
+        'species' => $species,
+        'model' => $c->model( 'Golgi' ),
+        'targeting_type' => $targeting_type,
+        'report_config' => '/nfs/users/nfs_a/af11/git/LIMS2-WebApp/sponsor_progress_sub_report_config.csv',
+        'custom_params' => $report_specific_params,
+    });
+
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
+
+    # Fetch details from returned report parameters
     my $report_id = $report_params->{ 'report_id' };
     my $disp_target_type = $report_params->{ 'disp_target_type' };
     my $disp_stage = $report_params->{ 'disp_stage' };
