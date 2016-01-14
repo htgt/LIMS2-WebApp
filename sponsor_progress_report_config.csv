@@ -1,5 +1,6 @@
 report_id,SponsRep,,,,,
 category_name,Stage,,,,,
+item_name,Sponsor,,,,,
 categories_as_columns,0,,,,,
 items:SQL,"SELECT distinct(ps.sponsor_id)
 FROM project_sponsors ps, projects pr

@@ -431,8 +431,20 @@ sub generate_top_level_report_for_sponsors {
     my ($columns, $rows);
     if($self->categories_as_columns){
         # Add blank for first column (FIXME: need to configure name of column)
-        $columns = [ '', @{ $self->categories} ];
+        $columns = [ $self->item_name, @{ $self->categories} ];
         $rows = $self->items;
+        # FIXME: I am altering the structure of data because of the way sponsor_sub_report.tt
+        # handles the rows and columns but should instead create a generic tt grid which
+        # correctly searches data as category->item = value and uses the categories_as_columns
+        # flag to work out that category = col and item = row in this case
+        my $new_data = {};
+        foreach my $category (keys %$data){
+            foreach my $item (keys %{ $data->{$category} }){
+                $new_data->{$item} ||= {};
+                $new_data->{$item}->{$category} = $data->{$category}->{$item};
+            }
+        }
+        $data = $new_data;
     }
     else{
         $columns = [ $self->category_name, @{ $self->items } ];
@@ -443,6 +455,7 @@ sub generate_top_level_report_for_sponsors {
         'report_id'      => $self->report_id,
         'title'          => $self->build_page_title,
         'columns'        => $columns,
+        'display_columns' => $columns,
         'rows'           => $rows,
         'data'           => $data,
     );

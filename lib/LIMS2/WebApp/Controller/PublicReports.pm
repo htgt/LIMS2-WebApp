@@ -17,6 +17,7 @@ use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
 use LIMS2::Model::Util::ReportForSponsorsDec2015;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -338,6 +339,12 @@ sub _filter_public_attributes {
 sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
 
+    # FIXME: This mapping was in ReportForSponsors. not sure why we need it
+    my $display_name_for = {
+        single_targeted => 'single-targeted',
+        double_targeted => 'double-targeted',
+        Genes           => 'Genes',
+    };
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
     # sponsor id is the project sponsor e.g. Syboss, Pathogens
@@ -381,11 +388,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     # Fetch details from returned report parameters
     my $report_id = $report_params->{ 'report_id' };
-    my $disp_target_type = $report_params->{ 'disp_target_type' };
-    my $disp_stage = $report_params->{ 'disp_stage' };
     my $columns = $report_params->{ 'columns' };
     my $display_columns = $report_params->{ 'display_columns' };
     my $data = $report_params->{ 'data' };
+
+    my $disp_target_type = $display_name_for->{$targeting_type};
+    my $disp_stage = $display_name_for->{$stage};
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
@@ -436,7 +444,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-
+$c->log->debug("Data: ".Dumper($data));
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,
@@ -451,6 +459,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'type'                 => $type,
             'species'              => $species,
             'cache_param'          => $cache_param,
+            'rows'                 => $report_params->{rows},
         );
     }
 

@@ -1,6 +1,6 @@
 report_id,SponsSubReport,,
 category_name,Stage,,
-item_name,Gene,,
+item_name,gene id,,
 categories_as_columns,1,,
 items:SQL,"SELECT distinct(p.gene_id)
 FROM projects p, project_sponsors ps

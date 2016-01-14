@@ -67,11 +67,17 @@ document.title = "[%- sponsor_id %]";
     </tr>
   </thead>
   <tbody>
-    [%- FOREACH row IN data %]
+    [%- FOREACH row IN rows %]
         <tr>
+      [% first_col = 1 %]
       [%- FOREACH col IN columns %]
-        [%- colval = row.item(col) %]
-
+        [% IF first_col %]
+          <td>[% row %]</td>
+          [% first_col = 0 %]
+          [% NEXT %]
+        [% END %]
+        [%- colval = data.$row.$col %]
+        <!-- row: [% row %], col: [% col %], colval: [% colval %] -->
         [%- IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
           [%-IF colval == "1" %]
             <td style="color:green">pass</td>
