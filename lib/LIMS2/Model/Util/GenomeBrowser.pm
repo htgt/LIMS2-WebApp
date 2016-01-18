@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.356';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.363';
 }
 ## use critic
 
@@ -588,7 +588,6 @@ sub design_oligos_to_gff {
 sub generic_design_oligos_to_gff {
     my $oligo_rs = shift;
     my $params = shift;
-
     my @oligo_gff;
 
     push @oligo_gff, "##gff-version 3";
@@ -820,6 +819,8 @@ sub generic_colour {
         'U3' => '#BF249B',
         'U5' => '#BF249B',
         'N' => '#18D6CD',
+        'f5F' => '#68D310',
+        'f3R' => '#BF249B',
     );
     return $colours{ $oligo_type_id };
 }

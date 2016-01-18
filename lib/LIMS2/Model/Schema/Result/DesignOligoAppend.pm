@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::BacLibrary;
+package LIMS2::Model::Schema::Result::DesignOligoAppend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::BacLibrary::VERSION = '0.363';
+    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.363';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::BacLibrary;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::BacLibrary
+LIMS2::Model::Schema::Result::DesignOligoAppend
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<bac_libraries>
+=head1 TABLE: C<design_oligo_appends>
 
 =cut
 
-__PACKAGE__->table("bac_libraries");
+__PACKAGE__->table("design_oligo_appends");
 
 =head1 ACCESSORS
 
@@ -49,10 +49,15 @@ __PACKAGE__->table("bac_libraries");
   data_type: 'text'
   is_nullable: 0
 
-=head2 species_id
+=head2 design_oligo_type_id
 
   data_type: 'text'
   is_foreign_key: 1
+  is_nullable: 0
+
+=head2 seq
+
+  data_type: 'text'
   is_nullable: 0
 
 =cut
@@ -60,57 +65,32 @@ __PACKAGE__->table("bac_libraries");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "text", is_nullable => 0 },
-  "species_id",
+  "design_oligo_type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "seq",
+  { data_type => "text", is_nullable => 0 },
 );
-
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 bac_clones
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::BacClone>
-
-=cut
-
-__PACKAGE__->has_many(
-  "bac_clones",
-  "LIMS2::Model::Schema::Result::BacClone",
-  { "foreign.bac_library_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 species
+=head2 design_oligo_type
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Species>
+Related object: L<LIMS2::Model::Schema::Result::DesignOligoType>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "species",
-  "LIMS2::Model::Schema::Result::Species",
-  { id => "species_id" },
+  "design_oligo_type",
+  "LIMS2::Model::Schema::Result::DesignOligoType",
+  { id => "design_oligo_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RkYywLyd0rULaIjZtHBV/g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+y8pKKQ+Sl/Czz63sA+8Hw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

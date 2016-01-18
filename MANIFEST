@@ -98,6 +98,7 @@ lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
 lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
 lib/LIMS2/Model/Schema/Result/DesignOligo.pm
+lib/LIMS2/Model/Schema/Result/DesignOligoAppend.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm
@@ -379,6 +380,7 @@ root/site/user/barcodes/fp_freeze_back.tt
 root/site/user/barcodes/generate_picklist.tt
 root/site/user/barcodes/mutation_signatures_barcodes.tt
 root/site/user/barcodes/picklist_grid.tt
+root/site/user/barcodes/piq_expand_freeze_back.tt
 root/site/user/barcodes/piq_freeze_back.tt
 root/site/user/barcodes/piq_send_out.tt
 root/site/user/barcodes/piq_start_doubling.tt

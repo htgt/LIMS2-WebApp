@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.356';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.363';
 }
 ## use critic
 
@@ -9,6 +9,12 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
+
+use Sub::Exporter -setup => {
+    exports => [ 'convert_gibson_to_fusion' ]
+};
+
+
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Exception;
@@ -19,6 +25,7 @@ use Const::Fast;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs';
@@ -520,6 +527,73 @@ sub mutant_seq_with_lower_case{
         }
     }
     return $new;
+}
+
+sub convert_gibson_to_fusion {
+    my ($self, $c, $id) = @_;
+    my $oligo_rs = $c->model('Golgi')->schema->resultset('DesignOligo')->search({ design_id => $id });
+    my @oligos;
+    my $oligo_rename = {
+        '5F'   => 'f5F',
+        '3F'    => 'D3',
+        '3R'    => 'f3R',
+        '5R'   => 'U5',
+    };
+
+    while (my $singular_oligo = $oligo_rs->next) {
+        my $singular = $singular_oligo->{_column_data};
+        my $existing_loci = $singular_oligo->current_locus;
+        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({
+            design_oligo_id => $singular->{id},
+            assembly_id => $existing_loci->assembly_id
+        })->next->{_column_data};
+        my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data};
+        $self->{species} = $chromosome->{species_id};
+        $self->{chr_strand} = $loci_rs->{chr_strand};
+        $self->{chr_name} = $chromosome->{name};
+        my $loci = {
+            'chr_end'       => $loci_rs->{chr_end},
+            'chr_start'     => $loci_rs->{chr_start},
+            'chr_strand'    => $self->{chr_strand},
+            'chr_name'      => $self->{chr_name},
+            'assembly'      => $existing_loci->assembly_id,
+        };
+        my @loci = $loci;
+        my $fusion_oligo = $oligo_rename->{$singular->{design_oligo_type_id}};
+        if ($fusion_oligo) {
+            my $oligo = {
+                'type'          => $fusion_oligo,
+                'seq'           => $singular->{seq},
+                'loci'          => \@loci,
+            };
+            push @oligos, $oligo;
+        }
+    }
+
+    $self->_build_ensembl_util();
+    my $oligos = \@oligos;
+    my @modified_oligos = modify_fusion_oligos($self, $oligos, 1);
+    my $gene = $c->model('Golgi')->schema->resultset('GeneDesign')->find({ design_id => $id })->{_column_data};
+    my @genes;
+    push (@genes, $gene);
+
+    my $attempt = {
+        'species'       => $self->{species},
+        'created_by'    => $c->user->name,
+        'oligos'        => \@oligos,
+        'type'          => 'fusion-deletion',
+        'gene_ids'      => \@genes,
+        'parent_id'     => $id,
+    };
+    my $design = $c->model( 'Golgi' )->c_create_design( $attempt );
+    if ($design) {
+        $c->stash->{success_msg} = "Successfully created fusion-deletion design " . $design->id . " from design " . $id;
+        $c->response->redirect( $c->uri_for('/user/view_design' , {'design_id'=>$design->id}) );
+    }
+    else {
+        $c->stash->{error_msg} = "Error occured during conversion " . $_;
+    }
+    return;
 }
 =head2 throw_validation_error
 
