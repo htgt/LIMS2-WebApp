@@ -69,6 +69,14 @@ has report_id => (
     default   => 'SponsRep',
 );
 
+# Name of a template toolkit file available in root/lib
+# which contains block to provide custom display for some categories
+has helper_tt => (
+    is        => 'rw',
+    isa       => 'Str',
+    required  => 0,
+);
+
 # Name of module that provides perl methods which can be referenced in the config file
 # Module should have a "new" method
 has helper_module_name => (
@@ -194,8 +202,9 @@ has base_method_results => (
     default    => sub{ {} },
 );
 
-# Hash of functions by category which will output styling params for given values
-has category_styling_rules => (
+# Hash of formatters to style the cell for each category
+# Formatters must be named BLOCKs in the helper_tt file
+has category_formatter => (
     is         => 'rw',
     isa        => 'HashRef',
     required   => 0,
@@ -293,6 +302,7 @@ my $SETTINGS_DISPATCH = {
     'report_id'             => sub { my ($self,$value) = @_; $self->report_id($value) },
     'categories_as_columns' => sub { my ($self,$value) = @_; $self->categories_as_columns($value) },
     'helper_module'         => sub { my ($self,$value) = @_; $self->helper_module_name($value) },
+    'helper_tt'             => sub { my ($self,$value) = @_; $self->helper_tt($value) },
     'items:SQL'             => sub { my ($self,$value) = @_; $self->items( $self->run_items_sql($value) ) },
     'items:PERL'            => sub { my ($self,$value) = @_; $self->items( $self->execute_perl($value) ) },
     'base:SQL:(.*)'         => sub { my ($self,$value,$name) = @_; $self->base_sql_queries->{$name} = $value; },
@@ -310,6 +320,11 @@ sub _process_settings{
             my ($name) = $ra->capture;
             $SETTINGS_DISPATCH->{$matched}->($self,$value,$name);
         }
+    }
+
+    # Do this after the dispatch methods as item_name must be set first
+    if(defined $settings->{item_formatter}){
+        $self->category_formatter->{ $self->item_name } = $settings->{item_formatter};
     }
 
     return;
@@ -344,6 +359,7 @@ my $RULES_DISPATCH = {
     'category_base:METHOD'          => sub { my ($self,$cat,$val) = @_; $self->set_base_method_for_category($cat,$val) },
     'category_modifier:METHOD'      => sub { my ($self,$cat,$val) = @_; $self->set_modifier_method_for_category($cat,$val) },
     'category_modifier:METHOD_ARGS' => sub { my ($self,$cat,$val) = @_; $self->set_modifier_method_args_for_category($cat,$val) },
+    'formatter'              => sub { my ($self,$cat,$val) = @_; $self->category_formatter->{$cat} = $val },
 };
 
 sub _process_rules{
@@ -718,6 +734,5 @@ sub set_category_method{
     $self->category_method->{$category}{$type} = $value;
     return;
 }
-
 
 1;

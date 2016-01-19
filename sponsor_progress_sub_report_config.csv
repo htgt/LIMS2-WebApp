@@ -1,39 +1,39 @@
-report_id,SponsSubReport,,
-category_name,Stage,,
-item_name,gene id,,
-categories_as_columns,1,,
+report_id,SponsSubReport,,,
+category_name,Stage,,,
+item_name,gene id,,,
+categories_as_columns,1,,,
 items:SQL,"SELECT distinct(p.gene_id)
 FROM projects p, project_sponsors ps
 WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species'
-ORDER BY p.gene_id",,
-helper_module,LIMS2::Model::Util::ReportForSponsors::SubReport,,
-,,,
-,,,
-,,,
-,,,
-,,,
-,,,
-!RULES,,,
-Category,category_base:METHOD,category_modifier:METHOD,category_modifier:METHOD_ARGS
-gene symbol,get_gene,gene_symbol,
-chr,get_gene,chr_name,
-sponsors,get_gene,sponsors,
-ordered crispr primers,get_crispr_summaries,count_crispr_wells,
-crispr plasmids constructed,get_crispr_summaries,count_accepted_crispr_v,
-ordered vector primers,get_summaries_to_report,count_designs,
-donor vectors constructed,get_summaries_to_report,count_final_pick_accepted,
-electroporation of iPSCs,get_summaries_to_report,count_ep_wells,
-# colonies,get_summaries_to_report,colony_counts_by_gene_and_ep,
-iPSC colonies picked,get_summaries_to_report,ep_pick_counts_by_gene_and_ep,
-total genotyped clones,get_summaries_to_report,genotyped_clone_counts_by_gene_and_ep,
-frame-shift clones,get_summaries_to_report,clone_counts_by_gene_and_ep,frameshift
-in-frame clones,get_summaries_to_report,clone_counts_by_gene_and_ep,in-frame
-wt clones,get_summaries_to_report,clone_counts_by_gene_and_ep,wild_type
-mosaic clones,get_summaries_to_report,clone_counts_by_gene_and_ep,mosaic
-no-call clones,get_summaries_to_report,clone_counts_by_gene_and_ep,no-call
-het clones,get_summaries_to_report,het_clone_counts_by_gene_and_ep,
-distributable clones,get_summaries_to_report,count_piq_accepted,
-priority,get_gene,priority,
+ORDER BY p.gene_id",,,
+helper_module,LIMS2::Model::Util::ReportForSponsors::SubReport,,,
+helper_tt,sponsor_sub_report_formatting.tt,,,
+item_formatter,external_gene_link,,,
+,,,,
+,,,,
+,,,,
+,,,,
+!RULES,,,,
+Category,category_base:METHOD,category_modifier:METHOD,category_modifier:METHOD_ARGS,formatter
+gene symbol,get_gene,gene_symbol,,gene_symbol_page_link
+chr,get_gene,chr_name,,
+sponsors,get_gene,sponsors,,
+ordered crispr primers,get_crispr_summaries,count_crispr_wells,,
+crispr plasmids constructed,get_crispr_summaries,count_accepted_crispr_v,,
+ordered vector primers,get_summaries_to_report,count_designs,,
+donor vectors constructed,get_summaries_to_report,count_final_pick_accepted,,
+electroporation of iPSCs,get_summaries_to_report,count_ep_wells,,
+# colonies,get_summaries_to_report,colony_counts_by_gene_and_ep,,
+iPSC colonies picked,get_summaries_to_report,ep_pick_counts_by_gene_and_ep,,
+total genotyped clones,get_summaries_to_report,genotyped_clone_counts_by_gene_and_ep,,
+frame-shift clones,get_summaries_to_report,clone_counts_by_gene_and_ep,frameshift,
+in-frame clones,get_summaries_to_report,clone_counts_by_gene_and_ep,in-frame,
+wt clones,get_summaries_to_report,clone_counts_by_gene_and_ep,wild_type,
+mosaic clones,get_summaries_to_report,clone_counts_by_gene_and_ep,mosaic,
+no-call clones,get_summaries_to_report,clone_counts_by_gene_and_ep,no-call,
+het clones,get_summaries_to_report,het_clone_counts_by_gene_and_ep,,
+distributable clones,get_summaries_to_report,count_piq_accepted,,
+priority,get_gene,priority,,

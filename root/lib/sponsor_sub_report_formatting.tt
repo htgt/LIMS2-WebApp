@@ -1,0 +1,15 @@
+[% BLOCK external_gene_link %]
+  [% IF c.session.selected_species == 'Human'%]
+    <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% colval %]">[% colval %]</a></td>
+  [%- ELSIF c.session.selected_species == 'Mouse' %]
+    <td><a class="brand" href="http://www.informatics.jax.org/marker/[% colval %]">[% colval %]</a></td>
+  [%- END %]
+[% END %]
+
+[% BLOCK gene_symbol_page_link %]
+  [% IF c.user %]
+    <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[% colval %]</a></td>
+  [% ELSE %]
+    <td>[% colval %]</td>
+  [% END %]
+[% END %]

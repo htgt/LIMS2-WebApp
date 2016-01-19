@@ -461,6 +461,8 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'species'              => $species,
             'cache_param'          => $cache_param,
             'rows'                 => $report_params->{rows},
+            'helper_tt'            => $sponsor_report->helper_tt,
+            'formatter'            => $sponsor_report->category_formatter,
         );
     }
 

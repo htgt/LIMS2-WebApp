@@ -4,6 +4,7 @@ use Moose;
 use Try::Tiny;
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
+use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 
 with qw( MooseX::Log::Log4perl );
 
@@ -58,6 +59,86 @@ sub _build_all_crispr_summaries{
     });
 }
 
+# het calling needs chromosome which is not in the summary information
+# so we will store it when processing the gene information
+has gene_id_to_chromosome => (
+    is         => 'rw',
+    isa        => 'HashRef',
+    required   => 0,
+    default    => sub{ {} },
+);
+
+# Store the list of ep picks for a well id
+# with their damage type calls
+# as this is used in the calculation of several categories
+has ep_to_ep_pick_info => (
+    is          => 'rw',
+    isa         => 'HashRef',
+    required    => 0,
+    default     => sub{ {} },
+);
+
+sub _fetch_ep_pick_info{
+    my ($self, $summaries, $ep) = @_;
+
+    my $info;
+    my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
+    if(exists $self->ep_to_ep_pick_info->{$ep_well_id}){
+        $self->log->debug("Using existing ep_pick_info");
+        $info = $self->ep_to_ep_pick_info->{$ep_well_id};
+    }
+    else{
+        $info = $self->_generate_ep_pick_info($summaries,$ep);
+        $self->ep_to_ep_pick_info->{$ep_well_id} = $info;
+    }
+    return $info;
+}
+
+sub _generate_ep_pick_info{
+    my ($self, $summaries, $ep) = @_;
+
+    $self->log->debug("Generating ep_pick_info");
+    # Find the summary rows for this ep that also have ep_pick
+    my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
+    my @all_ep_pick = grep { $_->ep_pick_well_id } @$summaries;
+    my @pick_for_this_ep = ();
+
+    if($ep->ep_well_id){
+        @pick_for_this_ep = grep { $_->ep_well_id == $ep_well_id } @all_ep_pick;
+    }
+    elsif($ep->crispr_ep_well_id){
+        @pick_for_this_ep = grep { $_->crispr_ep_well_id == $ep_well_id } @all_ep_pick;
+    }
+    my @pick_well_ids = uniq map { $_->ep_pick_well_id } @pick_for_this_ep;
+
+    # Fetch and store damage type/het info for each ep_pick
+    my $ep_pick_info = {
+        ep_pick_ids => \@pick_well_ids,
+    };
+
+    foreach my $ep_pick_id (@pick_well_ids) {
+        my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick_id);
+
+        if ($damage_call) {
+            $ep_pick_info->{$damage_call}++;
+        }
+        else {
+            $damage_call = '';
+        }
+
+        # Get the chromosome name that we stored earlier when processing gene info
+        my $chromosome = $self->gene_id_to_chromosome->{ $pick_for_this_ep[0]->design_gene_id };
+
+        my $is_het = ep_pick_is_het($self->model, $ep_pick_id, $chromosome, $damage_call);
+
+        if ( defined $is_het) {
+            $ep_pick_info->{het} += $is_het;
+        }
+
+    }
+    return $ep_pick_info;
+}
+
 # Base methods
 # These methods are always passed the item name (gene_id in this case)
 sub get_gene{
@@ -75,7 +156,23 @@ sub get_gene{
         $self->log->error('Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species);
     };
 
+    my @projects = $self->model->schema->resultset('Project')->search({
+        gene_id => $gene_id,
+        targeting_type => $self->targeting_type,
+        species_id => $self->species,
+    });
+
+    my @priority = uniq grep { $_ } map { $_->priority } @projects;
+    $gene_info->{priority} = join ";", @priority;
+
     $self->log->debug("Gene info: ".Dumper($gene_info));
+
+    # We need to store the chromosome so it can be passed to the ep_pick_is_het method
+    # This assumes the gene_info will be generated before the is het score
+    # FIXME: this is not ideal!
+    if(defined $gene_info->{chromosome}){
+        $self->gene_id_to_chromosome->{$gene_id} = $gene_info->{chromosome};
+    }
     return $gene_info;
 }
 
@@ -133,12 +230,21 @@ sub get_summaries_to_report{
 
     my @columns = qw(
         design_well_id
+        design_gene_id
         final_pick_well_id
         final_pick_well_accepted
         ep_well_id
         crispr_ep_well_id
         experiments
         crispr_ep_well_cell_line
+        ep_pick_plate_name
+        ep_pick_well_name
+        ep_pick_well_accepted
+        ep_pick_well_id
+        piq_well_id
+        piq_well_accepted
+        ancestor_piq_well_id
+        ancestor_piq_well_accepted
     );
 
     my $summary_rs = $self->model->schema->resultset("Summary")->search(
@@ -185,7 +291,7 @@ sub sponsors{
 
 sub priority{
     my ($self,$gene) = @_;
-    return "test priority";
+    return $gene->{priority};
 }
 
 sub count_crispr_wells{
@@ -210,7 +316,7 @@ sub count_designs{
 sub count_final_pick_accepted{
     my ($self,$summaries) = @_;
 
-    my @all_accetped = grep { $_->final_pick_well_accepted and $_->final_pick_well_accepted eq 't' } @$summaries;
+    my @all_accetped = grep { $_->final_pick_well_accepted } @$summaries;
     my @unique = uniq map { $_->final_pick_well_id } @all_accetped;
 
     return scalar @unique;
@@ -245,13 +351,7 @@ sub colony_counts_by_gene_and_ep{
 
     foreach my $curr_ep (@$ep) {
         my %curr_ep_data;
-        my $ep_id;
-        if ($curr_ep->ep_well_id) {
-            $ep_id = $curr_ep->ep_well_id;
-        }
-        else {
-            $ep_id = $curr_ep->crispr_ep_well_id;
-        }
+        my $ep_id = $curr_ep->ep_well_id || $curr_ep->crispr_ep_well_id;
 
         $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
         $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
@@ -273,23 +373,84 @@ sub colony_counts_by_gene_and_ep{
 }
 
 sub ep_pick_counts_by_gene_and_ep{
-    return "TEST";
+    my ($self, $summaries) = @_;
+
+    my $counts = {
+        total      => 0,
+        by_ep_well => {},
+    };
+
+    my $eps = $self->_ep_well_search($summaries);
+
+    foreach my $ep (@$eps){
+        my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
+        my $ep_pick_info = $self->_fetch_ep_pick_info($summaries,$ep);
+
+        $counts->{total} += scalar @{ $ep_pick_info->{ep_pick_ids} };
+        $counts->{by_ep_well}->{$ep_well_id} = scalar @{ $ep_pick_info->{ep_pick_ids} };
+    }
+    return $counts->{total}
 }
 
 sub genotyped_clone_counts_by_gene_and_ep{
-    return "TEST";
+    my ($self, $summaries) = @_;
+
+    my $counts = {
+        total      => 0,
+        by_ep_well => {},
+    };
+
+    my $eps = $self->_ep_well_search($summaries);
+
+    foreach my $ep (@$eps){
+        my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
+        my $ep_pick_info = $self->_fetch_ep_pick_info($summaries,$ep);
+        my $genotyped_count = $ep_pick_info->{'wild_type'}
+                            + $ep_pick_info->{'in-frame'}
+                            + $ep_pick_info->{'frameshift'}
+                            + $ep_pick_info->{'mosaic'};
+
+        $counts->{total} += $genotyped_count;
+        $counts->{by_ep_well}->{$ep_well_id} = $genotyped_count;
+    }
+    return $counts->{total};
 }
 
 sub clone_counts_by_gene_and_ep{
-    return "TEST";
+    my ($self, $summaries, $damage_call) = @_;
+
+    my $counts = {
+        total      => 0,
+        by_ep_well => {},
+    };
+
+    my $eps = $self->_ep_well_search($summaries);
+
+    foreach my $ep (@$eps){
+        my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
+        my $ep_pick_info = $self->_fetch_ep_pick_info($summaries,$ep);
+        $counts->{total} += $ep_pick_info->{$damage_call};
+        $counts->{by_ep_well}->{$ep_well_id} = $ep_pick_info->{$damage_call};
+    }
+    return $counts->{total};
 }
 
 sub het_clone_counts_by_gene_and_ep{
-    return "TEST";
+    my ($self, $summaries) = @_;
+    return $self->clone_counts_by_gene_and_ep($summaries,'het');
 }
 
 sub count_piq_accepted{
-    return "TEST";
+    my ($self, $summaries) = @_;
+
+    my @piq = map { $_->piq_well_id }
+              grep { $_->piq_well_accepted  } @$summaries;
+
+    push @piq, map { $_->ancestor_piq_well_id }
+               grep { $_->ancestor_piq_well_accepted } @$summaries;
+
+    my @unique = uniq @piq;
+    return scalar @unique;
 }
 
 1;

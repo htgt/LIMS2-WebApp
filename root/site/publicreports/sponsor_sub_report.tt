@@ -1,4 +1,9 @@
 [%- META title = "Summary Report" %]
+
+[% IF helper_tt %]
+  [% PROCESS $helper_tt %]
+[% END %]
+
 <SCRIPT LANGUAGE = JavaScript >
 document.title = "[%- sponsor_id %]";
 </SCRIPT>
@@ -72,12 +77,21 @@ document.title = "[%- sponsor_id %]";
       [% first_col = 1 %]
       [%- FOREACH col IN columns %]
         [% IF first_col %]
-          <td>[% row %]</td>
+          [% colval = row %]
           [% first_col = 0 %]
+        [% ELSE %]
+          [%- colval = data.$row.$col %]
+        [% END %]
+        <!-- row: [% row %], col: [% col %], colval: [% colval %] -->
+
+        [% IF formatter.$col %]
+          [% INCLUDE $formatter.$col %]
+          [% NEXT %]
+        [% ELSE %]
+          <td>[% colval %]</td>
           [% NEXT %]
         [% END %]
-        [%- colval = data.$row.$col %]
-        <!-- row: [% row %], col: [% col %], colval: [% colval %] -->
+
         [%- IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
           [%-IF colval == "1" %]
             <td style="color:green">pass</td>
@@ -94,20 +108,8 @@ document.title = "[%- sponsor_id %]";
           [%- ELSE %]
             <td style="color:orange">---</td>
           [%- END %]
-        [%- ELSIF col == "gene_id" %]
 
-              [%- IF c.session.selected_species == 'Human' %]
-                <td><a class="brand" href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[%- colval %]">[%- colval %]</a></td>
-              [%- ELSIF c.session.selected_species == 'Mouse' %]
-                <td><a class="brand" href="http://www.informatics.jax.org/marker/[%- colval %]">[%- colval %]</a></td>
-              [%- END %]
 
-        [%- ELSIF col == "gene_symbol" %]
-            [%- IF c.user %]
-                <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[%- colval %]</a></td>
-            [%- ELSE %]
-                <td>[%- colval %]</td>
-            [%- END %]
         [%- ELSIF col == "sponsors" %]
             <td>[%- colval %]</td>
         [%- ELSIF col == "chr" %]
