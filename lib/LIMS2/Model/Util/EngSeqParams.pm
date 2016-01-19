@@ -325,7 +325,7 @@ sub fetch_eng_seq_params {
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
-            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_allele_seq'); },
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
         );
 
         if (exists $allele_dispatch{$design_type}) {
@@ -342,7 +342,7 @@ sub fetch_eng_seq_params {
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
-            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'fusion_vector_seq'); },
+            'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
         );
 
 		$well_params->{backbone}{name} = $params->{backbone};
