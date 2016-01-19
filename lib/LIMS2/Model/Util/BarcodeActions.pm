@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.354';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.364';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use Sub::Exporter -setup => {
               discard_well_barcode
               freeze_back_fp_barcode
               freeze_back_piq_barcode
+              piq_expand_freeze_back_barcode
               add_barcodes_to_wells
               upload_plate_scan
               send_out_well_barcode
@@ -219,6 +220,13 @@ sub pspec_freeze_back_fp_barcode{
     }
 }
 
+sub pspec_piq_expand_freeze_back_barcode{
+    return {
+        barcode         => { validate => 'well_barcode' },
+        qc_well_params  => { },
+    }
+}
+
 # Each set of qc well params is validated as per this spec
 sub pspec_freeze_back_barcode_common{
     # params common to both fp and piq freeze back
@@ -243,6 +251,7 @@ sub pspec_freeze_back_piq_barcode_qc_well{
 sub pspec_freeze_back_fp_barcode_qc_well{
     return pspec_freeze_back_barcode_common;
 }
+
 sub freeze_back_fp_barcode{
     my ($model, $params) = @_;
 
@@ -276,6 +285,41 @@ sub freeze_back_fp_barcode{
         };
     }
 
+    return @freeze_back_outputs;
+}
+
+sub piq_expand_freeze_back_barcode{
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_piq_expand_freeze_back_barcode, ignore_unknown => 1);
+
+    my $barcode = $validated_params->{barcode};
+
+    # Fetch well_barcode
+    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_barcode_common);
+
+        # Fetch QC PIQ plate or create it if not found
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+
+        # Create the QC PIQ well
+        my $process_data = {
+            type        => 'rearray',
+            input_wells => [ { id => $bc->well->id } ],
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
+    }
     return @freeze_back_outputs;
 }
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.354';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.364';
 }
 ## use critic
 
@@ -264,8 +264,13 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             $c->stash( error_msg => $err->as_webapp_string );
             return;
         }
-
         my $plate = $c->model('Golgi')->retrieve_plate( { name => $validated_params->{plate_name} } );
+        my $plate_species = $plate->{_column_data}->{species_id};
+        unless ($plate->{_column_data}->{species_id} eq $c->session->{selected_species}) {
+            $c->stash( error_msg =>  $validated_params->{plate_name} . " is a " . $plate_species . " plate whereas your session is set to "
+                . $c->session->{selected_species} . ". Please set your session to " . $plate_species . " and resubmit.");
+            return;
+        }
 
         my $qc_run;
 		try {

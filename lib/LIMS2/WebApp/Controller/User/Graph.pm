@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.354';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.364';
 }
 ## use critic
 
@@ -122,19 +122,10 @@ sub index :Path :Args(0) {
         return;
     }
 
-    my $plate;
-    try{
-        $plate = $c->model('Golgi')->retrieve_plate({ name => $plate_name });
-    };
-
-    unless($plate){
-        $c->stash( error_msg => "Plate $plate_name not found" );
-        return;
-    }
-
     my $well;
     try{
         $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        $c->stash( 'genes' =>  [ $well->design->gene_ids ] );
     };
 
     unless($well){

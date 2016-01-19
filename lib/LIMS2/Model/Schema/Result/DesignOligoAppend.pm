@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::ProcessElectroporation;
+package LIMS2::Model::Schema::Result::DesignOligoAppend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProcessElectroporation::VERSION = '0.364';
+    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.364';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::ProcessElectroporation;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::ProcessElectroporation
+LIMS2::Model::Schema::Result::DesignOligoAppend
 
 =cut
 
@@ -36,21 +36,26 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<process_electroporation>
+=head1 TABLE: C<design_oligo_appends>
 
 =cut
 
-__PACKAGE__->table("process_electroporation");
+__PACKAGE__->table("design_oligo_appends");
 
 =head1 ACCESSORS
 
-=head2 process_id
+=head2 id
 
-  data_type: 'integer'
+  data_type: 'text'
+  is_nullable: 0
+
+=head2 design_oligo_type_id
+
+  data_type: 'text'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 cell_line
+=head2 seq
 
   data_type: 'text'
   is_nullable: 0
@@ -58,44 +63,34 @@ __PACKAGE__->table("process_electroporation");
 =cut
 
 __PACKAGE__->add_columns(
-  "process_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "cell_line",
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "design_oligo_type_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "seq",
   { data_type => "text", is_nullable => 0 },
 );
 
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</process_id>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("process_id");
-
 =head1 RELATIONS
 
-=head2 process
+=head2 design_oligo_type
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Process>
+Related object: L<LIMS2::Model::Schema::Result::DesignOligoType>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "process",
-  "LIMS2::Model::Schema::Result::Process",
-  { id => "process_id" },
+  "design_oligo_type",
+  "LIMS2::Model::Schema::Result::DesignOligoType",
+  { id => "design_oligo_type_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2012-07-17 12:50:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u4Br9SZrM+gC5PV+b5es5w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+y8pKKQ+Sl/Czz63sA+8Hw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

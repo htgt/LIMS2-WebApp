@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.354';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.364';
 }
 ## use critic
 
@@ -584,7 +584,7 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
-use List::MoreUtils qw( any );
+use List::MoreUtils qw( any uniq );
 
 use Log::Log4perl qw(:easy);
 BEGIN {
@@ -608,7 +608,6 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
-use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
@@ -938,6 +937,26 @@ sub child_wells {
     return map{ $_->output_wells } @child_processes;
 }
 
+sub child_wells_skip_versioned_plates{
+    my $self = shift;
+
+    DEBUG "Finding real child wells of $self";
+
+    my @real_child_wells;
+
+    my @child_wells = $self->child_wells;
+    foreach my $well (@child_wells){
+        if($well->plate->version){
+            push @real_child_wells, $well->child_wells_skip_versioned_plates;
+        }
+        else{
+            push @real_child_wells, $well;
+        }
+    }
+
+    return @real_child_wells;
+}
+
 has second_electroporation_process => (
     is         => 'ro',
     isa        => 'LIMS2::Model::Schema::Result::Process',
@@ -1244,6 +1263,19 @@ sub barcoded_descendant_of_type{
     return;
 }
 
+sub barcoded_descendants{
+    my ($self) = @_;
+    my @barcoded_descendants;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( $descendant->well_barcode ){
+          push @barcoded_descendants, $descendant;
+        }
+      }
+    }
+    return @barcoded_descendants;
+}
 sub descendant_crispr_vectors {
     my $self = shift;
 
@@ -1560,7 +1592,7 @@ sub distributable_child_barcodes{
     my @barcodes;
 
     # Find all child wells which have a barcode and are distributable (accepted)
-    foreach my $well ( $self->child_wells ){
+    foreach my $well ( $self->child_wells_skip_versioned_plates ){
         next unless $well->well_barcode;
         next unless $well->is_accepted;
         push @barcodes, $well->well_barcode->barcode;
@@ -1569,13 +1601,34 @@ sub distributable_child_barcodes{
 }
 
 sub input_process_parameters{
-    my ( $self ) = @_;
-    my $parameters;
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
     foreach my $process ($self->parent_processes){
         foreach my $param ($process->process_parameters){
             # FIXME: will overwrite if we have multiple input protocols with
             # same parameter names
             $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
+}
+
+sub input_process_parameters_skip_versioned_plates{
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
+    foreach my $process ($self->parent_processes){
+        my ($input_well) = $process->input_wells;
+        if($input_well->plate->version and $process->type_id eq 'rearray'){
+            DEBUG ("process input well $input_well is versioned."
+                    ."skipping this process in search for process parameters");
+            $input_well->input_process_parameters_skip_versioned_plates($parameters);
+        }
+        else{
+            foreach my $param ($process->process_parameters){
+                # FIXME: will overwrite if we have multiple input protocols with
+                # same parameter names
+                $parameters->{ $param->parameter_name } = $param->parameter_value;
+            }
         }
     }
     return $parameters;
@@ -1683,24 +1736,38 @@ sub ms_qc_data{
 
     DEBUG "Looking for MS_QC wells with parent $ms_parent";
 
+    my @ms_parent_child_wells = $ms_parent->child_wells_skip_versioned_plates;
     # Get QC results for MS_QC plates produced from the parent well
-    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells;
+    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } @ms_parent_child_wells;
     foreach my $qc_well (@ms_qc_wells){
         DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
         my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
         next unless $crispr_qc_well;
         DEBUG "Storing MS_QC info for $qc_well";
         my $qc_info = _qc_info($crispr_qc_well,$gene_finder);
-        $qc_info->{parameters} = $qc_well->input_process_parameters;
+        $qc_info->{parameters} = $qc_well->input_process_parameters_skip_versioned_plates;
         push @mutation_signatures_qc, $qc_info;
     }
 
-    # Add any QC info linked to the well produced by the doubling process
-    my ($final_qc_well) = $doubling->output_wells;
+    # Add any QC info linked to the PIQ QC well produced by the doubling process
+    # To find the correct well to use look for an ancestor of the current well
+    # which is in the list of real (not versioned) child wells of the doubling input
+    # well.
+    my $final_qc_well;
+    my $ancestors = $self->ancestors->depth_first_traversal($self,'in');
+    while (my $ancestor = $ancestors->next){
+        if (grep { $_->id eq $ancestor->id } @ms_parent_child_wells){
+            $final_qc_well = $ancestor;
+            last;
+        }
+    }
+
+    DEBUG "Final QC well for MS QC: $final_qc_well";
+
     my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
     if($crispr_qc_well){
         my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
-        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters_skip_versioned_plates;
         $final_qc_info->{final_ms_qc_result} = 1;
         push @mutation_signatures_qc, $final_qc_info;
     }
@@ -1712,6 +1779,15 @@ sub accepted_crispr_es_qc_well{
     my ($self) = @_;
     my @qc_wells = $self->crispr_es_qc_wells;
 
+    # But QC might be linked to a parent of this well
+    # which sits on an old version of the plate so we
+    # need to search these too
+    # FIXME: Plate versioning is truly horrible!
+    # it would be better to refactor lims2 to allow
+    # tubes to move from one plate location to another
+
+    push @qc_wells, map { $_->crispr_es_qc_wells } $self->old_versions;
+
     my $accepted_qc_well;
     for my $qc_well ( @qc_wells ) {
         if ( $qc_well->accepted ) {
@@ -1721,6 +1797,31 @@ sub accepted_crispr_es_qc_well{
     }
 
     return $accepted_qc_well;
+}
+
+# Use this method to find all ancestors of this well
+# that exist in LIMS2 as a result of plate versioning
+# Wells will be returned in an array from most recent
+# to oldest
+sub old_versions{
+    my ($self) = @_;
+
+    my @versioned_parents;
+    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
+    while ( my $ancestor = $ancestors->next ) {
+      # Ancestor list contains self - skip it
+      next if $ancestor->id == $self->id;
+        # FIXME: this will break if user changes the name of the current plate
+        # as the old version of the plate will no longer have the same name
+        if($ancestor->plate->version and $ancestor->plate->name eq $self->plate->name){
+            DEBUG "Found old version of well: $ancestor";
+            push @versioned_parents, $ancestor;
+        }
+        else{
+            last;
+        }
+    }
+    return @versioned_parents;
 }
 
 sub _qc_info{

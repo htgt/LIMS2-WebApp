@@ -78,6 +78,7 @@ requires:
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
+  DesignCreate::Types: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
@@ -173,6 +174,7 @@ requires:
   WWW::JSON: 0
   WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
+  WebAppCommon::Design::FusionConversion: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
@@ -187,4 +189,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.354
+version: 0.364

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.354';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.364';
 }
 ## use critic
 
@@ -177,12 +177,12 @@ use LIMS2::Model::Constants qw(
 %STANDARD_KO_OLIGO_APPENDS
 %STANDARD_INS_DEL_OLIGO_APPENDS
 %GIBSON_OLIGO_APPENDS
+%FUSION_OLIGO_APPENDS
 %GLOBAL_SHORTENED_OLIGO_APPEND
 );
 
 sub as_hash {
     my $self = shift;
-
     my $locus = $self->current_locus;
 
     return {
@@ -195,7 +195,6 @@ sub as_hash {
 
 sub current_locus{
     my $self = shift;
-
     if ( my $default_assembly = $self->design->species->default_assembly ) {
         return $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
@@ -231,6 +230,8 @@ my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "ER" => -1,
     "3F" => 1,
     "3R" => -1,
+    "f5F" => 1,
+    "f3R" => -1,
 );
 
 =head2 revcomp_seq
@@ -266,7 +267,6 @@ Send in optional design_type to avoid extra DB calls.
 sub append_seq {
     my ( $self, $design_type ) = @_;
     require LIMS2::Exception;
-
     my $append_seq;
     $design_type ||= $self->design->design_type_id;
     my $shortened_global_arm = $self->design->global_arm_shortened;
@@ -295,6 +295,10 @@ sub append_seq {
         $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
             if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
     }
+    elsif ( $design_type eq 'fusion-deletion' ) {
+        $append_seq = $FUSION_OLIGO_APPENDS{ $oligo_type }
+            if exists $FUSION_OLIGO_APPENDS{ $oligo_type };
+    }
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
     }
@@ -318,7 +322,6 @@ sub oligo_order_seq {
     my ( $self, $design_strand, $design_type ) = @_;
     $design_strand ||= $self->design->chr_strand;
     $design_type   ||= $self->design->design_type_id;
-
     # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
     my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
     my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
@@ -328,6 +331,14 @@ sub oligo_order_seq {
     # gibson oligos have the append on the 5' end
     if ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
         $oligo_seq = $self->append_seq( $design_type ) . $seq;
+    }
+    elsif ( $design_type eq 'fusion-deletion' ) {
+        if ($self->design_oligo_type_id eq 'f5F' || $self->design_oligo_type_id eq 'f3R') {
+            $oligo_seq = $self->append_seq( $design_type ) . $seq;
+        }
+        else {
+            $oligo_seq = $seq . $self->append_seq( $design_type );
+        }
     }
     # all other designs have appends on the 3' end of the oligo
     else {

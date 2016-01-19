@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RedmineAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RedmineAPI::VERSION = '0.354';
+    $LIMS2::Model::Util::RedmineAPI::VERSION = '0.364';
 }
 ## use critic
 
@@ -73,6 +73,7 @@ sub _build_redmine {
         post_body_format => 'JSON',
         authentication => { 'Basic' => { username => $self->access_key, password => 'random' } },
     });
+
     return $redmine;
 }
 
@@ -134,6 +135,24 @@ sub _build_priority_id_for{
 
     my %pr_to_ids = map { lc( $_->{name} ) => $_->{id} } @{ $priorities };
     return \%pr_to_ids;
+}
+
+has status_id_for => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
+
+sub _build_status_id_for{
+   my $self = shift;
+
+   my $get = $self->get("issue_statuses.json");
+
+   $self->log->debug("Statuses: ".Dumper($get->res));
+
+   my $statuses = $get->res->{issue_statuses};
+   my %name_to_id = map { $_->{name} => $_->{id} } @{ $statuses };
+   return \%name_to_id;
 }
 
 sub get_issues{
@@ -281,6 +300,46 @@ sub create_issue{
     $self->_prepare_issue_for_lims2($new_issue);
 
     return $new_issue;
+}
+
+sub update_issue_status{
+    my ($self, $issue_id, $new_status, $comment) = @_;
+
+    my $status_id = $self->status_id_for->{$new_status}
+        or die "Could not find ID for status $new_status";
+
+    my $update_info = {
+        issue => {
+            status_id => $status_id,
+        }
+    };
+
+    if($comment){
+        $update_info->{issue}->{notes} = $comment;
+    }
+
+    $self->redmine->default_header( 'X-Redmine-Switch-User' => 'lims2' );
+    my $target = "issues/$issue_id.json";
+    my $put = $self->put($target, $update_info);
+
+    my $updated_issue;
+    if($put->success){
+        # Check it has updated status
+        my $get = $self->get($target);
+        my $issue = $get->res->{issue};
+        if( $issue->{status}->{name} eq $new_status){
+            # It worked, return issue
+            return $updated_issue;
+        }
+        else{
+            die "Issue $issue_id status not updated to $new_status. Current status is "
+                .$issue->{status}->{name};
+        }
+    }
+    else{
+        die "Failed to update issue $issue_id status: ".$put->error;
+    }
+    return $updated_issue;
 }
 
 # custom_fields is an array of hashes containing id, name, value

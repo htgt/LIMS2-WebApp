@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.354';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.364';
 }
 ## use critic
 
@@ -14,14 +14,60 @@ use Path::Class;
 use Hash::MoreUtils qw( slice_def );
 
 use LIMS2::Exception::System;
-use LIMS2::Model::Util::CreateDesign;
 use WebAppCommon::Util::FarmJobRunner;
 
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
-
+use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
+use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 
 BEGIN { extends 'Catalyst::Controller' };
+
+has chr_name => (
+    is         => 'ro',
+    isa        => Chromosome,
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+);
+
+sub _build_chr_name {
+    my $self = shift;
+
+    return $self->{chr_name};
+}
+
+has chr_strand => (
+    is         => 'ro',
+    isa        => Strand,
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+);
+
+sub _build_chr_strand {
+    my $self = shift;
+
+    return $self->{chr_strand};
+}
+
+has ensembl_util => (
+    is         => 'ro',
+    isa        => 'WebAppCommon::Util::EnsEMBL',
+    traits     => [ 'NoGetopt' ],
+    lazy_build => 1,
+    handles    => [ qw( slice_adaptor exon_adaptor gene_adaptor ) ],
+);
+
+sub _build_ensembl_util {
+    my $self = shift;
+    require WebAppCommon::Util::EnsEMBL;
+
+    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->{species} );
+
+    # this flag should stop the database connection being lost on long jobs
+    $ensembl_util->registry->set_reconnect_when_lost;
+
+    return $ensembl_util;
+}
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
@@ -140,8 +186,16 @@ sub pspec_create_design {
 
 sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles( 'edit' );
+    if ($c->req->param('gibson_id')) {
+        my $id = $c->req->param('gibson_id');
+        my $design = $c->model('Golgi')->schema->resultset('Design')->find({ id => $id });
+        unless ($design->{_column_data}->{design_type_id} eq 'gibson-deletion' || $design->as_hash->{type} eq 'gibson' ) {
+            $c->stash->{error_msg} = 'Please enter a valid gibson-deletion design';
+            return;
+        }
+        &LIMS2::Model::Util::CreateDesign::convert_gibson_to_fusion($self, $c, $id);
+    }
 
     return unless $c->request->param('gene_pick');
 
@@ -192,7 +246,6 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
 
 sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles( 'edit' );
 
     if ( $c->request->params->{pick_exons} ) {
@@ -288,7 +341,7 @@ sub create_gibson_design : Path( '/user/create_gibson_design' ) : Args {
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
-        $self->_create_gibson_design( $c, $create_design_util, 'create_exon_target_gibson_design' );
+        $self->_create_design( $c, $create_design_util, 'create_exon_target_design' );
     }
 
     return;
@@ -310,7 +363,7 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
         return;
     }
     elsif ( exists $c->request->params->{create_design} ) {
-        $self->_create_gibson_design( $c, $create_design_util, 'create_custom_target_gibson_design' );
+        $self->_create_design( $c, $create_design_util, 'create_custom_target_design' );
     }
     elsif ( exists $c->request->params->{target_from_exons} ) {
         my $target_data = $create_design_util->c_target_params_from_exons;
@@ -323,10 +376,10 @@ sub create_custom_target_gibson_design : Path( '/user/create_custom_target_gibso
     return;
 }
 
-sub _create_gibson_design {
+sub _create_design {
     my ( $self, $c, $create_design_util, $cmd ) = @_;
 
-    $c->log->info('Creating new gibson design');
+    $c->log->info('Creating new design');
 
     my ($design_attempt, $job_id);
     $c->stash( $c->request->params );
@@ -335,12 +388,12 @@ sub _create_gibson_design {
     }
     catch ( LIMS2::Exception::Validation $err ) {
         my $errors = $create_design_util->c_format_validation_errors( $err );
-        $c->log->warn( 'User create gibson design error: ' . $errors );
+        $c->log->warn( 'User create design error: ' . $errors );
         $c->stash( error_msg => $errors );
         return;
     }
     catch ($err) {
-        $c->log->warn( "Error submitting gibson design job: $err " );
+        $c->log->warn( "Error submitting design job: $err " );
         $c->stash( error_msg => "Error submitting Design Creation job: $err" );
         return;
     }

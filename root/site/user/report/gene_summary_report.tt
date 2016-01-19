@@ -336,20 +336,17 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.fp_well %]</td>
-              <td class="accepted">
-                [% IF well.crispr_qc_data && well.is_accepted == 'yes' %]
+              <td class="accepted">[% well.is_accepted %]</td>
+              <td>
+                [% IF well.crispr_qc_data %]
                 <a href="#" class="crispr_qc_accepted">
                 <!-- insert alignments but hidden -->
                 <div style="display:none">
                 [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
                 </div>
                 [% END %]
-                [% well.is_accepted %]
+                [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
-              </td>
-              <td>
-                [% SET piq_well = well.well_id_string %]
-                [% wells.piq.$piq_well.crispr_qc_data.damage_type %]
               </td>
               <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
@@ -515,16 +512,12 @@ function toggle_btn(btn, show_or_hide) {
               <td><a href="[% c.uri_for( '/user/view_plate', { id => sorted_wells.xep.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
-              <td>
-                [% FOR parent IN well.ep_parents.keys %]
+              <td>[%- FOR parent IN well.ep_parents.keys %]
                   [% parent %]<br style="line-height:50%;" />
-                [% END %]
-                </td>
-              <td>
-                [% FOR parent IN well.fepd_parents.keys %]
+                [%- END %]</td>
+              <td>[%- FOR parent IN well.fepd_parents.keys %]
                   [% parent %]<br style="line-height:50%;" />
-                [% END %]
-              </td>
+                [%- END %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>
             [%- END %]
@@ -567,22 +560,17 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_name %]</td>
               <td>[% well.created_at %]</td>
               <td>[% well.ep_well %]</td>
-              <td class="accepted">
-                [% IF well.crispr_qc_data && well.is_accepted == 'yes' %]
+              <td class="accepted">[% well.is_accepted %]</td>
+              <td>
+                [% IF well.crispr_qc_data %]
                 <a href="#" class="crispr_qc_accepted">
                 <!-- insert alignments but hidden -->
                 <div style="display:none">
                 [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
                 </div>
                 [% END %]
-
-                [% well.is_accepted %]
-
+                [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
-              </td>
-              <td>
-                [% SET ep_pick_well = well.well_id_string %]
-                [% wells.ep_pick.$ep_pick_well.crispr_qc_data.damage_type %]
               </td>
               <td>[% well.is_het %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
@@ -615,15 +603,9 @@ function toggle_btn(btn, show_or_hide) {
             <th>Final Pick Well</th>
             <th>DNA Well</th>
             <th>Assembly Well</th>
-            [%- IF sorted_wells.ep.0.recombinases %]
             <th>Recombinase / Nuclease</th>
-            [%- END %]
-            [%- IF sorted_wells.ep.0.cell_line %]
             <th>Cell Line</th>
-            [%- END %]
-            [%- IF sorted_wells.ep.0.crisprs %]
             <th>Crisprs</th>
-            [%- END %]
             <th>Accepted?</th>
             <th>Allele Genbank File</th>
           </thead>
@@ -640,17 +622,11 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.final_pick_well %]</td>
               <td>[% well.dna_well %]</td>
               <td>[% well.assembly_well %]</td>
-              [%- IF well.recombinases %]
               <td>[% well.recombinases %]</td>
-              [%- END %]
-              [%- IF well.cell_line %]
               <td>[% well.cell_line %]</td>
-              [%- END %]
-              [%- IF well.crisprs %]<td>
-              [%- FOREACH crispr IN well.crisprs %]
+              <td>[%- FOREACH crispr IN well.crisprs %]
               <a href="[% c.uri_for( '/user/crispr', crispr, 'view' ) %]">[% crispr %]</a>
               [%- END %]</td>
-              [%- END %]
               <td>[% well.is_accepted %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
             </tr>

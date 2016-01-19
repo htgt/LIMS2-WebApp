@@ -35,8 +35,9 @@ highlight {
 
 
 <input type="text" class="span3" id="query"  placeholder="Find in page" autocomplete="on" />
-<button class="btn" onclick=searchThroughAccordion();>Find</button>
-
+<button class="btn btn-primary" onclick=searchThroughAccordion();>Find</button>
+<button class="btn" onclick=removeStyles();>Clear</button>
+[% SET row = 0 %]
 <div class="accordion" id="mutation_accordion">
 [% FOREACH state IN ['frozen_back', 'doubling_in_progress', 'discarded'] %]
     <p id="[% state %]_id"></p>
@@ -63,9 +64,9 @@ highlight {
                   <th>Child Well Accepted?</th>
                 </tr>
             </thead>
-              <tbody>
-            [% FOREACH bc IN data.$state %]
-              <tr>
+            <tbody>
+          [% FOREACH bc IN data.$state %]
+              <tr id=[% row %]>
                 <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.parent_barcode }) %]">[% bc.parent_barcode %]</a></td>
                 <td>[% bc.gene_id %]</td>
                 <td>[% bc.gene_symbol %]</td>
@@ -77,8 +78,9 @@ highlight {
                 <td>[% bc.child_well_name %]</td>
                 <td>[% bc.child_well_accepted_str %]</td>
               </tr>
-            [% END %]
             </tbody>
+            [% row = row + 1 %]
+          [% END %]
           </table>
         </div>
       </div>
@@ -86,9 +88,17 @@ highlight {
 [% END %]
 </div>
 <script type="text/javascript">
+var accorfionClone;
+
+window.onload = function () {
+    accordionClone = $("#mutation_accordion").clone();
+}
+
+function removeStyles() {
+    $("#mutation_accordion").replaceWith(accordionClone.clone());
+}
 
 $(function() {
-
     $('.accordion').on('show', function (e) {
          $(e.target).prev('.accordion-heading').find('.accordion-toggle').addClass('active');
     });
@@ -105,17 +115,16 @@ function searchThroughAccordion() {
     states.forEach(function(state) {
         highlightSearch(state);
     });
+    editRows("display:none");
+
 }
 
 function highlightSearch(state) {
     var text = document.getElementById("query").value;
     if (text) {
         var query = new RegExp("(" + text + ")(?![^<]*>|[^<>]*<\/>\S)", "gim");
-        var accordion = document.getElementById(state).innerHTML;
-        var clearAccord = accordion.replace(/(<span>|<\/span>)/igm, "");
-        document.getElementById(state + '_id').innerHTML = "No results found";
-        document.getElementById(state).innerHTML = clearAccord;
-        var newAccord = clearAccord.replace(query, "<span>$1</span>");
+        var clear = clearRows(state);
+        var newAccord = clear.replace(query, "<span>$1</span>");
         var count;
         try {
             count = newAccord.match(query).length;
@@ -140,5 +149,23 @@ function highlightSearch(state) {
     }
 }	
 
+function editRows(display) {
+    var count = '[% row %]';
+
+    for (var tick = 0; tick < count; tick++) {
+        var row = document.getElementById(tick).innerHTML;
+        if (row.indexOf("<span>") < 1) {
+            document.getElementById(tick).style = display;
+        }
+    }
+}
+
+function clearRows(state) {
+    var accordion = document.getElementById(state).innerHTML;
+    var clearAccord = accordion.replace(/(<span>|<\/span>)/igm, "");
+    document.getElementById(state + '_id').innerHTML = "";
+    document.getElementById(state).innerHTML = clearAccord;
+    return clearAccord;
+}
 
 </script>

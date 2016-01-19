@@ -1,8 +1,8 @@
-[% META title = "Gibson Design Gene Pick"; META tab_name = "Designs" %]
+[% META title = "Design Gene Pick"; META tab_name = "Designs" %]
 
 <form method="POST" action="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]" class="well">
   <fieldset>
-    <legend>Gibson Design Gene Pick</legend>
+    <legend>Design Gene Pick</legend>
 
     <input type="text" class="input-xxlarge" name="search_gene" placeholder="gene name">
     <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols.<br>
@@ -30,3 +30,12 @@ If you know the exact coordinates of your target click <a href="[% c.uri_for('/u
 <div class="well">
 If you know the exon you want to target click <a href="[% c.uri_for('/user/create_gibson_design') %]">here</a>.
 </div>
+
+<form method="POST" action="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]" class="well">
+  <fieldset>
+    <legend>Convert Gibson-Deletion Designs to Fusion-Deletion</legend>
+    <input type="text" class="input-large" name="gibson_id" placeholder="Gibson Design ID"/>
+    <br>
+    <input type="submit" name="conversion" class="btn btn-primary" value="Convert" />
+  </fieldset>
+</form>

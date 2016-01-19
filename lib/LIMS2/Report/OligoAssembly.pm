@@ -1,7 +1,7 @@
 package LIMS2::Report::OligoAssembly;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::OligoAssembly::VERSION = '0.354';
+    $LIMS2::Report::OligoAssembly::VERSION = '0.364';
 }
 ## use critic
 

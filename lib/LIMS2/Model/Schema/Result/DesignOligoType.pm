@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligoType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoType::VERSION = '0.354';
+    $LIMS2::Model::Schema::Result::DesignOligoType::VERSION = '0.364';
 }
 ## use critic
 
@@ -67,6 +67,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 design_oligo_appends
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignOligoAppend>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_oligo_appends",
+  "LIMS2::Model::Schema::Result::DesignOligoAppend",
+  { "foreign.design_oligo_type_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 design_oligos
 
 Type: has_many
@@ -83,8 +98,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YvSeW+DtWOstt95pA5lTiA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mryQnVtugVg7PP9p2jmO4Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

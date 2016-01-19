@@ -5,7 +5,7 @@ export LIMS2_DEBUG_DEFINITION="perl -d"
 
 #TODO: check that we are in the correct directory
 export LIMS2_MIGRATION_ROOT=`pwd`;
-export LIMS2_SHARED=~/git-checkout
+export LIMS2_SHARED=$GIT_CHECKOUT_ROOT
 
 function lims2 {
 case $1 in
@@ -230,6 +230,7 @@ function lims2_devel {
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Exception/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Utils/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/Design-Creation/lib
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
