@@ -92,89 +92,8 @@ document.title = "[%- sponsor_id %]";
           [% NEXT %]
         [% END %]
 
-        [%- IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
-          [%-IF colval == "1" %]
-            <td style="color:green">pass</td>
-          [%- ELSIF colval == "0" %]
-            <td style="color:red">fail</td>
-          [%- ELSE %]
-            <td style="color:orange">----</td>
-          [%- END %]
-        [%- ELSIF col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
-          [%- IF colval == "1" %]
-            <td style="color:green">yes</td>
-          [%- ELSIF colval == "0" %]
-            <td style="color:red">no</td>
-          [%- ELSE %]
-            <td style="color:orange">---</td>
-          [%- END %]
 
-
-        [%- ELSIF col == "sponsors" %]
-            <td>[%- colval %]</td>
-        [%- ELSIF col == "chr" %]
-            <td>[%- colval %]</td>
-        [%- ELSIF col == 'vector_pcr_passes' %]
-            [%- IF c.user %]
-              [%- IF colval %]
-              <td style="background:#E5E4E2" >[%- colval %]</td>
-              [%- ELSE %]
-              <td></td>
-              [%- END %]
-            [%- END %]
-        [%- ELSIF col == 'recovery_class' %]
-            [%- IF c.user %]
-              [%- IF row.item('fs_count') && row.item('effort_concluded') %]
-                <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
-              [%- ELSIF row.item('effort_concluded') %]
-                <td style="background:#FF4646;white-space:nowrap">[%- colval %]</td>
-              [%- ELSIF colval != '-' %]
-                <td style="background:#E5E4E2;white-space:nowrap">[%- colval %]</td>
-              [%- ELSE %]
-                <td>[%- colval %]</td>
-              [%- END %]
-            [%- END %]
-
-        [%- ELSIF col == 'priority' %]
-            [%- IF colval == 'high' %]
-              <td><font color='#FF4646'>[%- colval %]</font></td>
-            [%- ELSIF colval == 'medium' %]
-              <td><font color='#FFA500'>[%- colval %]</font></td>
-            [%- ELSIF colval == 'low' %]
-              <td><font color='#8AD95A'>[%- colval %]</font></td>
-            [%- ELSE %]
-              <td>[%- colval %]</td>
-            [%- END %]
-
-        [%- ELSIF col == 'targeted_clones' %]
-          [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
-            <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [%- ELSIF row.item('targeted_clones') && row.item('effort_concluded') %]
-            <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-
-          [%- ELSIF row.item('targeted_clones') && row.item('chr') == "X" %]
-            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [%- ELSIF row.item('targeted_clones') %]
-            <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-          [%- ELSE %]
-            <td></td>
-          [%- END %]
-        [%- ELSIF col == 'fs_count'
-               || col == 'if_count'
-               || col == 'wt_count'
-               || col == 'ms_count'
-               || col == 'nc_count'
-               || col == 'ep_pick_het'
-                %]
-
-            [%- IF row.item('targeted_clones') %]
-              <td style="background:#E5E4E2" >[%- colval %]</td>
-            [%- ELSE %]
-              <td></td>
-            [%- END %]
-        [%- ELSIF !colval %]
-            <td></td>
-        [%- ELSIF col == 'passing_vector_wells'  && !row.item('targeted_clones') && row.item('effort_concluded')  %]
+        [%- IF col == 'passing_vector_wells'  && !row.item('targeted_clones') && row.item('effort_concluded')  %]
           <td style="background:#999999">[%- colval %]</td>
         [%- ELSIF col == 'accepted_crispr_vector'  && !row.item('passing_vector_wells') && !row.item('targeted_clones') && row.item('effort_concluded')  %]
           <td style="background:#999999">[%- colval %]</td>
@@ -182,8 +101,7 @@ document.title = "[%- sponsor_id %]";
                || col == 'accepted_crispr_vector'
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
-        [%- ELSIF col == 'distrib_clones' %]
-          <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'
                || col == 'vector_wells'
@@ -200,14 +118,7 @@ document.title = "[%- sponsor_id %]";
                || col == 'effort_concluded'
                   %]
           <td style="background:#E5E4E2">[%- colval %]</td>
-        [%- ELSIF col == 'electroporations' %]
-          <td style="background:#E5E4E2">
-              [%- IF row.item('electroporations') %]
-                <a onclick="displayRow('[%- row.item('gene_id') %]')">[%- colval %]</a>
-              [%- ELSE %]
-                [%- colval %]
-              [%- END %]
-              </td>
+
 
         [%- ELSIF col == "ep_data" %]
 

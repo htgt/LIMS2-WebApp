@@ -313,6 +313,39 @@ sub count_designs{
     return scalar @design;
 }
 
+sub count_design_pcr_passes{
+    my ($self,$summaries) = @_;
+
+    my @design_well_ids = uniq map { $_->design_well_id } @$summaries;
+    my $pcr_passes;
+
+    foreach my $well_id (@design_well_ids) {
+
+        my ($l_pcr, $r_pcr) = ('', '');
+        try{
+
+            $l_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                well_id     => $well_id,
+                result_type_id => 'pcr_u',
+            },{
+                select => [ 'result' ],
+            })->result;
+
+            $r_pcr = $self->model->schema->resultset('WellRecombineeringResult')->find({
+                well_id     => $well_id,
+                result_type_id => 'pcr_d',
+            },{
+                select => [ 'result' ],
+            })->result;
+        };
+
+        if ($l_pcr eq 'pass' && $r_pcr eq 'pass') {
+            $pcr_passes++;
+        }
+    }
+    return $pcr_passes;
+}
+
 sub count_final_pick_accepted{
     my ($self,$summaries) = @_;
 

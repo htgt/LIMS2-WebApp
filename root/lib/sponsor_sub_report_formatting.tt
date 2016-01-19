@@ -13,3 +13,108 @@
     <td>[% colval %]</td>
   [% END %]
 [% END %]
+
+[% BLOCK grey_if_value %]
+    [%- IF c.user %]
+      [%- IF colval %]
+      <td style="background:#E5E4E2" >[%- colval %]</td>
+      [%- ELSE %]
+      <td></td>
+      [%- END %]
+    [%- END %]
+[% END %]
+
+[% BLOCK genotyped_clones %]
+    [%- IF row.item('total genotyped clones') && ( row.item('frame-shift clones') || row.item('het clones') ) %]
+        <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+    [%- ELSIF row.item('total genotyped clones') && row.item('effort_concluded') %]
+        <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+    [%- ELSIF row.item('total genotyped clones') && row.item('chr') == "X" %]
+        <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+    [%- ELSIF row.item('total genotyped clones') %]
+        <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+    [%- ELSE %]
+        <td></td>
+    [%- END %]
+[% END %]
+
+[% BLOCK grey_if_genotyped_clones %]
+    [%- IF row.item('total genotyped clones') %]
+      <td style="background:#E5E4E2" >[%- colval %]</td>
+    [%- ELSE %]
+      <td></td>
+    [%- END %]
+[% END %]
+
+[% BLOCK priority %]
+    [%- IF colval == 'high' %]
+      <td><font color='#FF4646'>[%- colval %]</font></td>
+    [%- ELSIF colval == 'medium' %]
+      <td><font color='#FFA500'>[%- colval %]</font></td>
+    [%- ELSIF colval == 'low' %]
+      <td><font color='#8AD95A'>[%- colval %]</font></td>
+    [%- ELSE %]
+      <td>[%- colval %]</td>
+    [%- END %]
+[% END %]
+
+[% BLOCK display_row_link %]
+    <td style="background:#E5E4E2">
+    [%- IF row.item('electroporation of iPSCs') > 0 %]
+        <a onclick="displayRow('[%- row.item('gene_id') %]')">[%- colval %]</a>
+    [%- ELSE %]
+        [%- colval %]
+    [%- END %]
+    </td>
+[% END %]
+
+[% BLOCK distributable_report_link %]
+  <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+[% END %]
+
+[%# not used? citeria from old report: col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
+[% BLOCK yes_no %]
+  [%- IF colval == "1" %]
+    <td style="color:green">yes</td>
+  [%- ELSIF colval == "0" %]
+    <td style="color:red">no</td>
+  [%- ELSE %]
+    <td style="color:orange">---</td>
+  [%- END %]
+[% END %]
+
+[%# not used? %]
+[% BLOCK recovery_class %]
+    [%- IF c.user %]
+      [%- IF row.item('fs_count') && row.item('effort_concluded') %]
+        <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
+      [%- ELSIF row.item('effort_concluded') %]
+        <td style="background:#FF4646;white-space:nowrap">[%- colval %]</td>
+      [%- ELSIF colval != '-' %]
+        <td style="background:#E5E4E2;white-space:nowrap">[%- colval %]</td>
+      [%- ELSE %]
+        <td>[%- colval %]</td>
+      [%- END %]
+    [%- END %]
+[% END %]
+
+[%# not used? citeria from old report: IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
+[% BLOCK pass_fail %]
+  [%-IF colval == "1" %]
+    <td style="color:green">pass</td>
+  [%- ELSIF colval == "0" %]
+    <td style="color:red">fail</td>
+  [%- ELSE %]
+    <td style="color:orange">----</td>
+  [%- END %]
+[% END %]
+
+
+
+
+
+
+
+
+
+
