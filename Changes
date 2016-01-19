@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.364     2016-01-19 14:51:42 Europe/London
+
+    bugfix: fusion qc_eng_seqs method was incorrect
+
 0.363     2016-01-18 09:39:35 Europe/London
 
     bugfix: QC results now shown in mutation_signatures_info if they are linked to an old version of the well
