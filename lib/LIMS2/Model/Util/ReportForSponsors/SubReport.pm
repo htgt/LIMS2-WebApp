@@ -131,11 +131,24 @@ sub get_summaries_to_report{
         $search{'sponsor_id'} = $sponsor_id;
     }
 
-    my $summary_rs = $self->model->schema->resultset("Summary")->search(
-        { %search },
+    my @columns = qw(
+        design_well_id
+        final_pick_well_id
+        final_pick_well_accepted
+        ep_well_id
+        crispr_ep_well_id
+        experiments
+        crispr_ep_well_cell_line
     );
 
-    return $summary_rs;
+    my $summary_rs = $self->model->schema->resultset("Summary")->search(
+        { %search },
+        {
+            columns => \@columns,
+        }
+    );
+
+    return [ $summary_rs->all ];
 }
 
 # Category specific methods which operate on the results of
@@ -188,65 +201,49 @@ sub count_accepted_crispr_v{
 }
 
 sub count_designs{
-    my ($self,$summary_rs) = @_;
+    my ($self,$summaries) = @_;
 
-    my @design = $summary_rs->search(
-        {},
-        {
-            columns => [ qw/design_well_id/ ],
-            distinct => 1
-        }
-    );
+    my @design = uniq map { $_->design_well_id } @$summaries;
     return scalar @design;
 }
 
 sub count_final_pick_accepted{
-    my ($self,$summary_rs) = @_;
+    my ($self,$summaries) = @_;
 
-    my @final_pick = $summary_rs->search(
-        { final_pick_well_accepted => 't'},
-        {
-            columns  => [qw/final_pick_well_id/],
-            distinct => 1
-        }
-    );
-    return scalar @final_pick;
+    my @all_accetped = grep { $_->final_pick_well_accepted and $_->final_pick_well_accepted eq 't' } @$summaries;
+    my @unique = uniq map { $_->final_pick_well_id } @all_accetped;
+
+    return scalar @unique;
 }
 
 sub _ep_well_search{
-    my ($self,$summary_rs) = @_;
+    my ($self,$summaries) = @_;
 
-    my $ep_wells_rs =  $summary_rs->search(
-        {-or => [
-                    { ep_well_id => { '!=', undef } },
-                    { crispr_ep_well_id => { '!=', undef } },
-                ]
-        },
-        {
-           columns  => [qw/ep_well_id crispr_ep_well_id/],
-           distinct => 1,
-        }
-    );
-    return $ep_wells_rs;
+    my %eps = map { $_->ep_well_id => $_ } grep { $_->ep_well_id } @$summaries;
+    my %crispr_eps = map { $_->crispr_ep_well_id => $_ } grep { $_->crispr_ep_well_id } @$summaries;
+
+    my @all_eps = (values %eps, values %crispr_eps);
+
+    return \@all_eps;
 }
 
 sub count_ep_wells{
-    my ($self,$summary_rs) = @_;
+    my ($self,$summaries) = @_;
 
-    my $ep_wells_rs = $self->_ep_well_search($summary_rs);
-    return scalar $ep_wells_rs->all;
+    my $ep_wells = $self->_ep_well_search($summaries);
+    return scalar @$ep_wells;
 }
 
 sub colony_counts_by_gene_and_ep{
-    my ($self,$summary_rs) = @_;
+    my ($self,$summaries) = @_;
     my $colony_counts = {
         total       => 0,
         by_ep_well  => {},
     };
 
-    my @ep = $self->_ep_well_search($summary_rs)->all;
+    my $ep = $self->_ep_well_search($summaries);
 
-    foreach my $curr_ep (@ep) {
+    foreach my $curr_ep (@$ep) {
         my %curr_ep_data;
         my $ep_id;
         if ($curr_ep->ep_well_id) {
