@@ -376,6 +376,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         report_stage  => $stage,
     };
 
+    $c->log->debug("targeting_type for sub report: $targeting_type");
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsorsDec2015->new({
         'species' => $species,
         'model' => $c->model( 'Golgi' ),
@@ -444,7 +445,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-$c->log->debug("Data: ".Dumper($data));
+
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,

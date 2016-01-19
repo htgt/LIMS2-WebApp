@@ -93,11 +93,17 @@ sub _build_report_helper{
        die("Cannot load helper module $name : $@");
     }
 
-    my $species = $self->species;
-    my $model = $self->model;
+    # We should already have the list of items at this point
+    # because this method/query is executed during parsing of config
+    # at BUILD
+    my $helper = $name->new({
+        species => $self->species,
+        model   => $self->model,
+        targeting_type => $self->targeting_type,
+        custom_params  => $self->custom_params,
+        items   => $self->items,
+    }) or die "cannot create new report_helper $name instance";
 
-    my $helper = $name->new({ species => $species, model => $model })
-        or die "cannot create new report_helper $name instance";
     return $helper;
 }
 
@@ -430,7 +436,7 @@ sub generate_top_level_report_for_sponsors {
 
     my ($columns, $rows);
     if($self->categories_as_columns){
-        # Add blank for first column (FIXME: need to configure name of column)
+
         $columns = [ $self->item_name, @{ $self->categories} ];
         $rows = $self->items;
         # FIXME: I am altering the structure of data because of the way sponsor_sub_report.tt
