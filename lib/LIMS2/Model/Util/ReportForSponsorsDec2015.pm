@@ -510,6 +510,7 @@ sub sort_rows{
         return @$rows;
     }
 
+    # Build the search expression as a string
     my $sort_expression;
     foreach my $category (@{ $self->categories_for_sort }){
         if($sort_expression){
@@ -521,6 +522,8 @@ sub sort_rows{
     }
     $self->log->debug("Sort expression: $sort_expression");
 
+    # Prepare data for comparison by getting 'total' if data is a hashref
+    # and replacing undef entries with -1
     my @data_for_sort;
     foreach my $row (@$rows){
         my $compare_hash = {
@@ -529,7 +532,7 @@ sub sort_rows{
         foreach my $category (@{ $self->categories_for_sort }){
             my $value = $data->{$row}->{$category};
             my $compare_val;
-            if(ref $value eq ref[]){
+            if(ref $value eq ref{}){
                 $compare_val = $value->{total} // -1;
             }
             else{
@@ -540,6 +543,7 @@ sub sort_rows{
         push @data_for_sort, $compare_hash;
     }
 
+    # Run the sort expression and map back to original row ids
     my @sorted_rows = map { $_->{row_id} } sort { eval $sort_expression } @data_for_sort;
 }
 
