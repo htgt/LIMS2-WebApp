@@ -8,7 +8,7 @@
 
 [% BLOCK gene_symbol_page_link %]
   [% IF c.user %]
-    <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[% colval %]</a></td>
+    <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => rowdata.item('gene_id') } ) %]">[% colval %]</a></td>
   [% ELSE %]
     <td>[% colval %]</td>
   [% END %]
@@ -24,26 +24,58 @@
     [%- END %]
 [% END %]
 
+[% BLOCK grey_if_total %]
+    [% total = colval.total %]
+    [%- IF c.user %]
+      [%- IF total %]
+      <td style="background:#E5E4E2" >[%- total %]</td>
+      [%- ELSE %]
+      <td></td>
+      [%- END %]
+    [%- END %]
+[% END %]
+
 [% BLOCK genotyped_clones %]
-    [%- IF row.item('total genotyped clones') && ( row.item('frame-shift clones') || row.item('het clones') ) %]
-        <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-    [%- ELSIF row.item('total genotyped clones') && row.item('effort_concluded') %]
-        <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-    [%- ELSIF row.item('total genotyped clones') && row.item('chr') == "X" %]
-        <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
-    [%- ELSIF row.item('total genotyped clones') %]
-        <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+    [% total = colval.total %]
+    [%- IF total && ( rowdata.item('frame-shift clones').total || rowdata.item('het clones').total ) %]
+        <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', rowdata.item('gene_id') ) %]">[%- total %]</a></td>
+    [%- ELSIF total && rowdata.item('effort_concluded') %]
+        <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', rowdata.item('gene_id') ) %]">[%- total %]</a></td>
+    [%- ELSIF total && rowdata.item('chr') == "X" %]
+        <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', rowdata.item('gene_id') ) %]">[%- total %]</a></td>
+    [%- ELSIF total %]
+        <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', rowdata.item('gene_id') ) %]">[%- total %]</a></td>
     [%- ELSE %]
         <td></td>
     [%- END %]
 [% END %]
 
 [% BLOCK grey_if_genotyped_clones %]
-    [%- IF row.item('total genotyped clones') %]
-      <td style="background:#E5E4E2" >[%- colval %]</td>
+    [%- IF rowdata.item('total genotyped clones').total %]
+      <td style="background:#E5E4E2" >[%- colval.total %]</td>
     [%- ELSE %]
       <td></td>
     [%- END %]
+[% END %]
+
+[% BLOCK green_unless_concluded %]
+    [% IF !rowdata.item('total genotyped clones') && rowdata.item('effort_concluded')  %]
+        <td style="background:#999999">[%- colval %]</td>]
+    [% ELSE %]
+        <td style="background:#8AD95A">[%- colval %]</td>
+    [% END %]
+[% END %]
+
+[% BLOCK green %]
+    <td style="background:#8AD95A">[%- colval %]</td>
+[% END %]
+
+[% BLOCK grey_if_concluded %]
+    [% IF !rowdata.item('donor vectors constructed') && !rowdata.item('total genotyped clones') && rowdata.item('effort_concluded')  %]
+        <td style="background:#999999">[%- colval %]</td>
+    [% ELSE %]
+        <td>[%- colval %]</td>
+    [% END %]
 [% END %]
 
 [% BLOCK priority %]
@@ -60,16 +92,62 @@
 
 [% BLOCK display_row_link %]
     <td style="background:#E5E4E2">
-    [%- IF row.item('electroporation of iPSCs') > 0 %]
-        <a onclick="displayRow('[%- row.item('gene_id') %]')">[%- colval %]</a>
+    [%- IF colval > 0 %]
+        <a onclick="displayRow('[%- rowdata.item('gene_id') %]')">[%- colval %]</a>
     [%- ELSE %]
         [%- colval %]
     [%- END %]
     </td>
 [% END %]
 
+[% BLOCK run_at_end_of_row %]
+<!-- end of row block. row: [% rowdata %]. ep count: [% rowdata.item('electroporation of iPSCs') %] -->
+  [% IF rowdata.item('electroporation of iPSCs') > 0 %]
+        </tbody>
+        <tbody id="[%- rowdata.item('gene_id') %]" style="display:none">
+            [%- FOREACH ep IN rowdata.item('# colonies').by_ep_well.keys %]
+              <tr>
+                <td colspan=10 style="text-align:right">
+                    Experiment
+                [% FOREACH exp IN rowdata.item('# colonies').ep_experiments.$ep %]
+                    <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                [% END %]
+                     in cell line [% rowdata.item('# colonies').ep_cell_lines.$ep %]
+                </td>
+                <td>[%- rowdata.item('# colonies').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('iPSC colonies picked').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('total genotyped clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('frame-shift clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('in-frame clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('wt clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('mosaic clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('no-call clones').by_ep_well.$ep %]</td>
+                <td>[%- rowdata.item('het clones').by_ep_well.$ep %]</td>
+                <td colspan=3></td>
+              </tr>
+
+            [%- END %]
+          </tbody>
+          <tbody>
+  [% END %]
+[% END %]
+
 [% BLOCK distributable_report_link %]
-  <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+  <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', rowdata.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+[% END %]
+
+[% BLOCK helper_javascript %]
+<script type="text/javascript">
+
+  function displayRow( my_id ){
+    var row = document.getElementById(my_id);
+    if (row.style.display == '')
+      row.style.display = 'none';
+    else
+      row.style.display = '';
+  }
+
+</script>
 [% END %]
 
 [%# not used? citeria from old report: col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]

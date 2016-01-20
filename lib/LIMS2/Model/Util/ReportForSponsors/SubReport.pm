@@ -117,6 +117,7 @@ sub _generate_ep_pick_info{
     };
 
     foreach my $ep_pick_id (@pick_well_ids) {
+
         my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick_id);
 
         if ($damage_call) {
@@ -134,7 +135,6 @@ sub _generate_ep_pick_info{
         if ( defined $is_het) {
             $ep_pick_info->{het} += $is_het;
         }
-
     }
     return $ep_pick_info;
 }
@@ -164,6 +164,12 @@ sub get_gene{
 
     my @priority = uniq grep { $_ } map { $_->priority } @projects;
     $gene_info->{priority} = join ";", @priority;
+    if( grep { !$_->effort_concluded } @projects){
+        $gene_info->{effort_concluded} = '';
+    }
+    else{
+        $gene_info->{effort_concluded} = 'yes';
+    }
 
     $self->log->debug("Gene info: ".Dumper($gene_info));
 
@@ -264,6 +270,11 @@ sub get_summaries_to_report{
 # followed by an optitonal list of args from the report config
 
 # The output of this method will be passed to the report tt for display
+sub gene_id{
+    my ($self,$gene) = @_;
+    return $gene->{gene_id};
+}
+
 sub gene_symbol{
     my ($self,$gene) = @_;
     return $gene->{gene_symbol};
@@ -292,6 +303,11 @@ sub sponsors{
 sub priority{
     my ($self,$gene) = @_;
     return $gene->{priority};
+}
+
+sub effort_concluded{
+    my ($self,$gene) = @_;
+    return $gene->{effort_concluded};
 }
 
 sub count_crispr_wells{
@@ -378,6 +394,8 @@ sub colony_counts_by_gene_and_ep{
     my $colony_counts = {
         total       => 0,
         by_ep_well  => {},
+        ep_cell_lines  => {},
+        ep_experiments => {},
     };
 
     my $ep = $self->_ep_well_search($summaries);
@@ -386,8 +404,8 @@ sub colony_counts_by_gene_and_ep{
         my %curr_ep_data;
         my $ep_id = $curr_ep->ep_well_id || $curr_ep->crispr_ep_well_id;
 
-        $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
-        $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
+        $colony_counts->{ep_experiments}->{$ep_id} = [ split ",", $curr_ep->experiments ];
+        $colony_counts->{ep_cell_lines}->{$ep_id} = $curr_ep->crispr_ep_well_cell_line;
 
         my $total_colonies = 0;
 
@@ -402,7 +420,7 @@ sub colony_counts_by_gene_and_ep{
         $colony_counts->{by_ep_well}->{$ep_id} = $total_colonies;
     }
 
-    return $colony_counts->{total};
+    return $colony_counts;
 }
 
 sub ep_pick_counts_by_gene_and_ep{
@@ -422,7 +440,7 @@ sub ep_pick_counts_by_gene_and_ep{
         $counts->{total} += scalar @{ $ep_pick_info->{ep_pick_ids} };
         $counts->{by_ep_well}->{$ep_well_id} = scalar @{ $ep_pick_info->{ep_pick_ids} };
     }
-    return $counts->{total}
+    return $counts;
 }
 
 sub genotyped_clone_counts_by_gene_and_ep{
@@ -446,7 +464,7 @@ sub genotyped_clone_counts_by_gene_and_ep{
         $counts->{total} += $genotyped_count;
         $counts->{by_ep_well}->{$ep_well_id} = $genotyped_count;
     }
-    return $counts->{total};
+    return $counts;
 }
 
 sub clone_counts_by_gene_and_ep{
@@ -465,7 +483,7 @@ sub clone_counts_by_gene_and_ep{
         $counts->{total} += $ep_pick_info->{$damage_call};
         $counts->{by_ep_well}->{$ep_well_id} = $ep_pick_info->{$damage_call};
     }
-    return $counts->{total};
+    return $counts;
 }
 
 sub het_clone_counts_by_gene_and_ep{

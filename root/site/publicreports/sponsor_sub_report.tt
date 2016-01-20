@@ -75,7 +75,7 @@ document.title = "[%- sponsor_id %]";
     [%- FOREACH row IN rows %]
         <tr>
       [% first_col = 1 %]
-      [%- FOREACH col IN columns %]
+      [%- FOREACH col IN display_columns %]
         [% IF first_col %]
           [% colval = row %]
           [% first_col = 0 %]
@@ -85,93 +85,16 @@ document.title = "[%- sponsor_id %]";
         <!-- row: [% row %], col: [% col %], colval: [% colval %] -->
 
         [% IF formatter.$col %]
-          [% INCLUDE $formatter.$col %]
+          [% INCLUDE $formatter.$col rowdata = data.$row %]
           [% NEXT %]
         [% ELSE %]
           <td>[% colval %]</td>
           [% NEXT %]
         [% END %]
 
-
-        [%- IF col == 'passing_vector_wells'  && !row.item('targeted_clones') && row.item('effort_concluded')  %]
-          <td style="background:#999999">[%- colval %]</td>
-        [%- ELSIF col == 'accepted_crispr_vector'  && !row.item('passing_vector_wells') && !row.item('targeted_clones') && row.item('effort_concluded')  %]
-          <td style="background:#999999">[%- colval %]</td>
-        [%- ELSIF col == 'passing_vector_wells'
-               || col == 'accepted_crispr_vector'
-                  %]
-          <td style="background:#8AD95A">[%- colval %]</td>
-
-        [%- ELSIF col == 'crispr_pairs'
-               || col == 'vector_designs'
-               || col == 'vector_wells'
-               || col == 'targeting_vector_wells'
-               || col == 'accepted_vector_wells'
-
-               || col == 'colonies_picked'
-               || col == 'crispr_wells'
-               || col == 'crispr_vector_wells'
-               || col == 'crispr_dna_wells'
-               || col == 'accepted_crispr_dna_wells'
-
-               || col == 'total_colonies'
-               || col == 'effort_concluded'
-                  %]
-          <td style="background:#E5E4E2">[%- colval %]</td>
-
-
-        [%- ELSIF col == "ep_data" %]
-
-          [%- IF row.item('ep_data').0 %]
-          </tbody>
-          <tbody id="[%- row.item('gene_id') %]" style="display:none">
-                [%- FOREACH ep_data IN row.item('ep_data') %]
-
-                <tr>
-                [%- IF c.user %]
-                  <td colspan=10 style="text-align:right">
-                      Experiment
-                    [% FOREACH exp IN ep_data.item('experiment') %]
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
-                    [% END %]
-                     in [% ep_data.item('cell_line') %]
-                  </td>
-                [%- ELSE %]
-                  <td colspan=9  style="text-align:right">
-                      Experiment
-                    [% FOREACH exp IN ep_data.item('experiment') %]
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
-                    [% END %]
-                      in [% ep_data.item('cell_line') %]
-                  </td>
-                [%- END %]
-                  <td>[%- ep_data.item('total_colonies') %]</td>
-                  <td>[%- ep_data.item('ep_pick_count') %]</td>
-                  <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
-                  <td>[%- ep_data.item('frameshift') %]</td>
-                  <td>[%- ep_data.item('in-frame') %]</td>
-                  <td>[%- ep_data.item('wild_type') %]</td>
-                  <td>[%- ep_data.item('mosaic') %]</td>
-                  <td>[%- ep_data.item('no-call') %]</td>
-                  <td>[%- ep_data.item('het') %]</td>
-                [%- IF c.user %]
-                  <td colspan=3></td>
-                [%- ELSE %]
-                  <td colspan=2></td>
-                [%- END %]
-                </tr>
-
-                [%- END %]
-          </tbody>
-          <tbody>
-          [%- END %]
-
-        [%- ELSE %]
-          <td>[%- colval %]</td>
-        [%- END %]
-
       [%- END %]
         </tr>
+        [% INCLUDE run_at_end_of_row rowdata = data.$row %]
     [%- END %]
   </tbody>
 </table>
@@ -181,19 +104,9 @@ document.title = "[%- sponsor_id %]";
 [%- END %]
 
 
+[% INCLUDE helper_javascript %]
 
 
-<script type="text/javascript">
-
-  function displayRow( my_id ){
-    var row = document.getElementById(my_id);
-    if (row.style.display == '')
-      row.style.display = 'none';
-    else
-      row.style.display = '';
-  }
-
-</script>
 
 
 

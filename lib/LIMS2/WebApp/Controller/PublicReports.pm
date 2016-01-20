@@ -224,7 +224,7 @@ sub _generate_front_page_report {
             'report_config' => '/nfs/users/nfs_a/af11/git/LIMS2-WebApp/sponsor_progress_report_config.csv',
         });
 
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
+    my $report_params = $sponsor_report->generate_report( );
 
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
@@ -385,7 +385,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         'custom_params' => $report_specific_params,
     });
 
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
+    my $report_params = $sponsor_report->generate_report();
 
     # Fetch details from returned report parameters
     my $report_id = $report_params->{ 'report_id' };

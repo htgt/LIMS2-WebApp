@@ -133,6 +133,21 @@ has categories => (
     required   => 0,
 );
 
+# Hash of categories which are not to be displayed as columns/rows in the report
+# They can be accessed in the data hash for use in providing formatting
+has do_not_display_category => (
+    is         => 'rw',
+    isa        => 'HashRef',
+    required   => 0,
+    default    => sub{ {} },
+);
+
+has categories_for_sort => (
+    is        => 'rw',
+    isa       => 'ArrayRef',
+    required  => 0,
+);
+
 # Name for the types of category reported, e.g. 'Stage'
 has category_name => (
     is         => 'rw',
@@ -307,6 +322,7 @@ my $SETTINGS_DISPATCH = {
     'items:PERL'            => sub { my ($self,$value) = @_; $self->items( $self->execute_perl($value) ) },
     'base:SQL:(.*)'         => sub { my ($self,$value,$name) = @_; $self->base_sql_queries->{$name} = $value; },
     'modifier:SQL:(.*)'     => sub { my ($self,$value,$name) = @_; $self->sql_query_modifiers->{$name} = $value; },
+    'sort_by'               => sub { my ($self,$value) = @_; $self->set_sort_by_categories($value) },
 };
 
 sub _process_settings{
@@ -360,6 +376,7 @@ my $RULES_DISPATCH = {
     'category_modifier:METHOD'      => sub { my ($self,$cat,$val) = @_; $self->set_modifier_method_for_category($cat,$val) },
     'category_modifier:METHOD_ARGS' => sub { my ($self,$cat,$val) = @_; $self->set_modifier_method_args_for_category($cat,$val) },
     'formatter'              => sub { my ($self,$cat,$val) = @_; $self->category_formatter->{$cat} = $val },
+    'do_not_display'         => sub{ my ($self,$cat,$val) = @_; if($val){ $self->do_not_display_category->{$cat} = $val } },
 };
 
 sub _process_rules{
@@ -385,9 +402,8 @@ sub _process_rules{
     return;
 }
 
-# Generate report matrix
-# FIXME: rename this to generate_report and alter calling methods
-sub generate_top_level_report_for_sponsors {
+# Generate report data
+sub generate_report {
     my ( $self, $report_specific_params ) = @_;
 
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
@@ -442,11 +458,6 @@ sub generate_top_level_report_for_sponsors {
                 DEBUG Dumper($result);
                 $data->{$category}{$item} = $result;
             }
-
-            # Do we have styling rule for this category?
-              # Apply styling rule to value and store styling params
-              # FIXME: this is not yet passed to template toolkit
-              # will have to add this to existing templates
         }
     }
 
@@ -473,16 +484,63 @@ sub generate_top_level_report_for_sponsors {
         $rows = $self->categories;
     }
 
+    my @display_columns = @$columns;
+    my @sorted_rows = @$rows;
+    if($self->categories_as_columns){
+        @display_columns = grep { !$self->do_not_display_category->{$_} } @$columns;
+        @sorted_rows = $self->sort_rows($rows,$data);
+    }
+
     my %return_params = (
         'report_id'      => $self->report_id,
         'title'          => $self->build_page_title,
         'columns'        => $columns,
-        'display_columns' => $columns,
-        'rows'           => $rows,
+        'display_columns' => \@display_columns,
+        'rows'           => \@sorted_rows,
         'data'           => $data,
     );
 
     return \%return_params;
+}
+
+sub sort_rows{
+    my ($self,$rows,$data) = @_;
+
+    unless($self->categories_for_sort){
+        return @$rows;
+    }
+
+    my $sort_expression;
+    foreach my $category (@{ $self->categories_for_sort }){
+        if($sort_expression){
+            $sort_expression .= '|| $b->{\''.$category.'\'} <=> $a->{\''.$category.'\'} ';
+        }
+        else{
+            $sort_expression = '$b->{\''.$category.'\'} <=> $a->{\''.$category.'\'} ';
+        }
+    }
+    $self->log->debug("Sort expression: $sort_expression");
+
+    my @data_for_sort;
+    foreach my $row (@$rows){
+        my $compare_hash = {
+            row_id => $row,
+        };
+        foreach my $category (@{ $self->categories_for_sort }){
+            my $value = $data->{$row}->{$category};
+            my $compare_val;
+            if(ref $value eq ref[]){
+                $compare_val = $value->{total} // -1;
+            }
+            else{
+                $compare_val = $value // -1;
+            }
+            $compare_hash->{$category} = $compare_val;
+        }
+        push @data_for_sort, $compare_hash;
+    }
+
+    my @sorted_rows = map { $_->{row_id} } sort { eval $sort_expression } @data_for_sort;
 }
 
 sub build_page_title {
@@ -715,7 +773,7 @@ sub set_modifier_method_for_category{
 
 sub set_modifier_method_args_for_category{
     my ($self,$category,$value) = @_;
-    my @args = split /\s*,\s*/, $value;
+    my @args = split /\s*;\s*/, $value;
     $self->set_category_method($category,'modifier_args',\@args);
     return;
 }
@@ -735,4 +793,9 @@ sub set_category_method{
     return;
 }
 
+sub set_sort_by_categories{
+    my ($self,$value) = @_;
+    my @categories = split /\s*;\s*/, $value;
+    $self->categories_for_sort(\@categories);
+}
 1;
