@@ -231,7 +231,11 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(){record.commit();});
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {
+                                    id:record.data.id,
+                                    priority:field.getValue(),
+                                    sponsor_id: "[% sel_sponsor %]"
+                                }, function(){record.commit();});
                             }
                         }
 

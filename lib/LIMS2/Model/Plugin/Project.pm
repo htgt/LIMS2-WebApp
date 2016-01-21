@@ -236,6 +236,21 @@ sub update_project_sponsors{
     return $project;
 }
 
+sub _pspec_retrieve_project_sponsor{
+    return {
+        project_id => { validate => 'integer' },
+        sponsor_id => { validate => 'existing_sponsor' },
+    }
+}
+
+sub retrieve_project_sponsor{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->_pspec_retrieve_project_sponsor);
+
+    return $self->retrieve( ProjectSponsor => $validated_params );
+}
+
 sub _pspec_update_create_project_sponsor{
     return {
         project_id => { validate => 'integer' },
