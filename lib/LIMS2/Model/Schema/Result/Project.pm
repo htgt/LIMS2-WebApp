@@ -77,11 +77,6 @@ __PACKAGE__->table("projects");
   data_type: 'text'
   is_nullable: 1
 
-=head2 priority
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 recovery_class_id
 
   data_type: 'integer'
@@ -121,8 +116,6 @@ __PACKAGE__->add_columns(
   "effort_concluded",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "recovery_comment",
-  { data_type => "text", is_nullable => 1 },
-  "priority",
   { data_type => "text", is_nullable => 1 },
   "recovery_class_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
@@ -250,8 +243,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8zdEGms1gS/19xpue/L6qg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 11:09:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A/NJuU/3iM+F6vxZqf4auA
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
@@ -277,6 +270,26 @@ sub as_hash {
           "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "sponsors"          => join "/", @sponsors,
     }
+}
+
+sub priority{
+    my ($self,$sponsor) = @_;
+
+    # For specified sponsor
+    if($sponsor){
+        my ($project_sponsor) = $self->search_related('project_sponsors',{ sponsor_id => $sponsor });
+        my $priority = $project_sponsor ? $project_sponsor->priority : undef;
+        return $priority;
+    }
+
+    # Or string showing priorites for all sponsors
+    my @priority_strings;
+    foreach my $project_sponsor($self->project_sponsors){
+        next unless $project_sponsor->priority;
+        push @priority_strings, $project_sponsor->sponsor_id.": ".$project_sponsor->priority;
+    }
+    my $string = join "; ", @priority_strings;
+    return $string;
 }
 
 sub recovery_class_name {

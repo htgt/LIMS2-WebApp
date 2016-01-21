@@ -305,7 +305,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->effort_concluded,
         $_->recovery_class_name // '',
         $_->recovery_comment // '',
-        $_->priority // '',
+        $_->priority($sel_sponsor) // '',
     ] } @projects;
 
 

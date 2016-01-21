@@ -124,13 +124,14 @@ sub set_recovery_comment {
     return $project;
 }
 
+# sponsors_priority should be a hashref of sponsor_ids to the priority they have placed on this project
 sub _pspec_update_project{
     return {
-        id             => { validate => 'integer' },
-        concluded      => { validate => 'boolean', optional => 1, rename => 'effort_concluded' },
+        id                => { validate => 'integer' },
+        concluded         => { validate => 'boolean', optional => 1, rename => 'effort_concluded' },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
-        comment        => { optional => 1, rename => 'recovery_comment' },
-        priority       => { optional => 1 },
+        comment           => { optional => 1, rename => 'recovery_comment' },
+        sponsors_priority => { optional => 1 },
         MISSING_OPTIONAL_VALID => 1,
     };
 }
@@ -142,9 +143,19 @@ sub update_project {
 
     my $project = $self->retrieve_project_by_id($validated_params);
 
-    my $update_params = {slice_exists $validated_params, qw(effort_concluded recovery_class_id recovery_comment priority)};
+    my $update_params = {slice_exists $validated_params, qw(effort_concluded recovery_class_id recovery_comment )};
 
     $project->update( $update_params );
+
+    if(defined (my $sponsors_priority = $validated_params->{sponsors_priority}) ){
+        foreach my $sponsor_id (keys %$sponsors_priority){
+            $self->update_or_create_project_sponsor({
+                project_id => $validated_params->{id},
+                sponsor_id => $sponsor_id,
+                priority   => $sponsors_priority->{$sponsor_id},
+            });
+        }
+    }
 
     return $project;
 }
@@ -159,9 +170,8 @@ sub _pspec_create_project{
         htgt_project_id   => { validate => 'integer', optional => 1},
         effort_concluded  => { validate => 'boolean', optional => 1},
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
-        priority          => { validate => 'non_empty_string', optional => 1 },
+        sponsors_priority => { optional => 1 },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
-        sponsors          => { validate => 'existing_sponsor', optional => 1 },
     };
 }
 
@@ -170,15 +180,15 @@ sub create_project {
 
     my $validated_params = $self->check_params( $params, $self->_pspec_create_project);
 
-    my $sponsors = delete $validated_params->{sponsors};
-    $sponsors = $self->_add_sponsor_all_if_appropriate($sponsors,$validated_params->{species_id});
+    my $sponsors_priority = delete $validated_params->{sponsors_priority};
 
     my $project = $self->schema->resultset('Project')->create($validated_params);
 
-    foreach my $sponsor(@$sponsors){
-        $self->add_project_sponsor({
+    foreach my $sponsor(keys %{ $sponsors_priority || {} }){
+        $self->update_or_create_project_sponsor({
             project_id => $project->id,
             sponsor_id => $sponsor,
+            priority   => $sponsors_priority->{$sponsor},
         });
     }
 
@@ -195,34 +205,18 @@ sub delete_project{
     return $project->delete;
 }
 
-sub _pspec_add_project_sponsor{
-    return {
-        project_id => { validate => 'integer' },
-        sponsor_id => { validate => 'existing_sponsor' },
-    };
-}
-
-sub add_project_sponsor{
-    my ($self, $params) = @_;
-
-    my $validated_params = $self->check_params( $params, $self->_pspec_add_project_sponsor);
-
-    my $project_sponsor_link = $self->schema->resultset('ProjectSponsor')->create($validated_params);
-
-    return $project_sponsor_link;
-}
-
 sub _pspec_update_project_sponsors{
     return {
-        project_id => { validate => 'integer' },
-        sponsor_list => { validate => 'existing_sponsor', optional => 1 },
+        project_id        => { validate => 'integer' },
+        sponsors_priority => { optional => 1 },
         MISSING_OPTIONAL_VALID => 1,
     };
 }
 
 ## NB: This method deletes all existing project-sponsor links and replaces
 ## them with the sponsors provided in sponsor_list
-## If you just want to add to the list of existing sponsors use add_project_sponsor
+## This is because it is used by a  web form where users can unselect sponsors to remove them
+## If you just want to add to the list of existing sponsors use update_or_create_project_sponsor
 sub update_project_sponsors{
     my ($self, $params) = @_;
 
@@ -231,14 +225,48 @@ sub update_project_sponsors{
 
     $project->delete_related('project_sponsors');
 
-    my $sponsors = $self->_add_sponsor_all_if_appropriate( $validated_params->{sponsor_list}, $project->species_id );
-    foreach my $sponsor (@{ $sponsors }){
-        $self->schema->resultset('ProjectSponsor')->create({
+    foreach my $sponsor(keys %{ $validated_params->{sponsors_priority} || {} }){
+        $self->update_or_create_project_sponsor({
             project_id => $project->id,
             sponsor_id => $sponsor,
+            priority   => $validated_params->{sponsors_priority}->{$sponsor},
         });
     }
+
     return $project;
+}
+
+sub _pspec_update_create_project_sponsor{
+    return {
+        project_id => { validate => 'integer' },
+        sponsor_id => { validate => 'existing_sponsor' },
+        priority   => { validate => 'non_empty_string', optional => 1 },
+        MISSING_OPTIONAL_VALID => 1,
+    }
+}
+
+sub update_or_create_project_sponsor{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->_pspec_update_create_project_sponsor);
+
+    my $project_sponsor = $self->schema->resultset('ProjectSponsor')->find({
+        project_id => $validated_params->{project_id},
+        sponsor_id => $validated_params->{sponsor_id},
+    });
+
+    if($project_sponsor){
+        if($project_sponsor->priority ne $validated_params->{priority}){
+            $$project_sponsor->update({ priority => $validated_params->{priority} });
+        }
+    }
+    else{
+        $project_sponsor = $self->schema->resultset('ProjectSponsor')->create($validated_params);
+    }
+
+    $self->_add_sponsor_all_if_appropriate($project_sponsor->project);
+
+    return $project_sponsor;
 }
 
 sub _pspec_retrieve_experiment{
@@ -284,26 +312,31 @@ sub delete_experiment{
 }
 
 sub _add_sponsor_all_if_appropriate{
-    my ($self, $sponsor_list, $species) = @_;
+    my ($self, $project) = @_;
 
-    return unless $sponsor_list;
+    return unless $project;
 
     # Only do this for Human
-    return $sponsor_list unless $species eq 'Human';
+    return unless $project->species_id eq 'Human';
 
-    my @sponsors = @{ $sponsor_list  };
-    return [] unless(@sponsors);
+    my @sponsors = map { $_->sponsor_id } $project->project_sponsors;
+
+    return unless @sponsors;
 
     if (@sponsors == 1 and $sponsors[0] eq 'Transfacs'){
         # We don't add the All sponsor
         # All == All except Transfacs
     }
     else{
-        push @sponsors, "All";
+        # Add All unless we already have it
+        unless(grep { $_ eq 'All'} @sponsors){
+            $self->schema->resultset('ProjectSponsor')->create({
+                sponsor_id => 'All',
+                project_id => $project->id,
+            });
+        }
     }
-
-    # Unique it before return in case "All" was already on list
-    return [ uniq @sponsors ];
+    return;
 }
 
 1;
