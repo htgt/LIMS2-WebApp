@@ -105,7 +105,7 @@ sub manage_projects_tests : Test(23) {
 
 }
 
-sub view_edit_project_tests : Test(21){
+sub view_edit_project_tests : Test(25){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -126,6 +126,16 @@ sub view_edit_project_tests : Test(21){
     $mech->click_button( name => 'update_sponsors' );
     $mech->content_contains('Project sponsor list updated');
     is_deeply(_selected_sponsors($mech), [ 'Core' ], 'correct sponsors selected');
+
+    $mech->tick('sponsors','Syboss');
+    $mech->select('Syboss_priority','medium');
+    $mech->click_button( name => 'update_sponsors' );
+    $mech->content_contains('Project sponsor list updated');
+    is_deeply(_selected_sponsors($mech), [ 'Core','Syboss' ], 'correct sponsors selected');
+
+    is $mech->current_form->value('Syboss_priority'), 'medium', 'Syboss priority set to medium';
+    is $mech->current_form->value('Core_priority'), '', 'Core priority not set';
+
 
     # Test add experiment
     $mech->form_name('add_experiment_form');

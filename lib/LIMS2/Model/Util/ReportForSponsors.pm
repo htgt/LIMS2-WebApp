@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.363';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.365';
 }
 ## use critic
 
@@ -915,7 +915,7 @@ sub genes {
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority_array = map { $_->priority } @gene_projects;
+            my @priority_array = map { $_->priority($sponsor_id) } @gene_projects;
 
             my $index = 0;
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
