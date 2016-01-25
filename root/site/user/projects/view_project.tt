@@ -106,11 +106,29 @@
       <div class="accordion-inner">
 		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form" id="sponsors_form">
 		  <input type="hidden" name="project_id" value="[% project.id %]">
+      <table>
+      <tr>
+       <th>Sponsor</th>
+       <th>Priority</th>
+      </tr>
 		  [% FOREACH sponsor IN all_sponsors %]
+      <tr>
+      <td>
       <label class="checkbox">
 		    <input type="checkbox" name="sponsors" value="[% sponsor %]" [% IF project_sponsors.defined(sponsor) %]checked[% END %]> [% sponsor %]
       </label>
+      </td>
+      <td>
+         <select name="[% sponsor %]_priority">
+           <option value="" [% IF !sponsors_priority.$sponsor %]selected[% END %]>-</option>
+           <option value="low" [% IF sponsors_priority.$sponsor == 'low' %]selected[% END %]>low</option>
+           <option value="medium" [% IF sponsors_priority.$sponsor == 'medium' %]selected[% END %]>medium</option>
+           <option value="high" [% IF sponsors_priority.$sponsor == 'high' %]selected[% END %]>high</option>
+         </select>
+      </td>
+      </tr>
 		  [% END %]
+      </table>
 		  <br>
 		  <button type="submit" class="btn" name="update_sponsors" value="1">Update Project Sponsors</button>
 		</form>
