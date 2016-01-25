@@ -1,0 +1,1 @@
+ALTER TABLE audit.projects DROP COLUMN priority;
