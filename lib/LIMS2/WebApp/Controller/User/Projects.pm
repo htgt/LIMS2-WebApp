@@ -71,7 +71,8 @@ sub manage_projects :Path('/user/manage_projects'){
             # Create a new project
             if(my $sponsor = $c->req->param('sponsor')){
                 $c->stash->{sponsor} = $sponsor;
-                $search->{sponsors} = [ $sponsor ];
+                # Priority is undef for now. User can set priority on the view project page
+                $search->{sponsors_priority} = { $sponsor => undef };
             }
             my $project;
             $c->model('Golgi')->txn_do(
@@ -178,13 +179,17 @@ sub view_project :Path('/user/view_project'){
 
     if($c->req->param('update_sponsors')){
         $c->assert_user_roles('edit');
-        my @new_sponsors = $c->req->param('sponsors');
+        my $sponsors_priority = {};
+        foreach my $sponsor_id ($c->req->param('sponsors')){
+            my $priority = $c->req->param($sponsor_id."_priority");
+            $sponsors_priority->{$sponsor_id} = $priority;
+        }
         $c->model('Golgi')->txn_do(
             sub {
                 try{
                     $c->model('Golgi')->update_project_sponsors({
                         project_id => $project->id,
-                        sponsor_list => \@new_sponsors,
+                        sponsors_priority => $sponsors_priority,
                     });
                     $c->stash->{success_msg} = 'Project sponsor list updated';
                 }
@@ -237,6 +242,7 @@ sub view_project :Path('/user/view_project'){
         $c->stash->{gene_symbol} = $gene_info->{gene_symbol};
     }
     $c->stash->{project_sponsors} = { map { $_ => 1 } $project->sponsor_ids };
+    $c->stash->{sponsors_priority} = { map { $_->sponsor_id => $_->priority } $project->project_sponsors };
     $c->stash->{all_sponsors} = \@sponsors;
     $c->stash->{experiments} = [ sort { $a->id <=> $b->id } $project->experiments ];
     $c->stash->{design_suggest} = \@design_suggest;
@@ -305,7 +311,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->effort_concluded,
         $_->recovery_class_name // '',
         $_->recovery_comment // '',
-        $_->priority // '',
+        $_->priority($sel_sponsor) // '',
     ] } @projects;
 
 
