@@ -71,7 +71,8 @@ sub manage_projects :Path('/user/manage_projects'){
             # Create a new project
             if(my $sponsor = $c->req->param('sponsor')){
                 $c->stash->{sponsor} = $sponsor;
-                $search->{sponsors} = [ $sponsor ];
+                # Priority is undef for now. User can set priority on the view project page
+                $search->{sponsors_priority} = { $sponsor => undef };
             }
             my $project;
             $c->model('Golgi')->txn_do(
