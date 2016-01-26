@@ -54,20 +54,10 @@ document.title = "[%- sponsor_id %]";
   <thead>
     <tr>
       [%- FOR disp_col IN display_columns %]
-        [%- IF disp_col == "PCR-passing design oligos" || disp_col == "info" %]
-          [%- IF c.user %]
-            <th>[%- disp_col %]</th>
-          [%- END %]
-        [%- ELSIF disp_col == '# colonies'           ||
-                  disp_col == '# wt clones'          ||
-                  disp_col == '# mosaic clones'      ||
-                  disp_col == '# in-frame clones'    ||
-                  disp_col == '# frame-shift clones' ||
-                  disp_col == '# no-call clones' %]
-            <th>[%- disp_col %]</th>
-        [%- ELSE %]
-            <th>[%- disp_col %]</th>
-        [%- END %]
+        [% IF hide_from_public.$disp_col == 1 && !c.user %]
+          [% NEXT %]
+        [% END %]
+          <th>[% disp_col %]</th>
       [%- END %]
     </tr>
   </thead>
@@ -76,6 +66,10 @@ document.title = "[%- sponsor_id %]";
         <tr>
       [% first_col = 1 %]
       [%- FOREACH col IN display_columns %]
+        [% IF hide_from_public.$col == 1 && !c.user %]
+          [% NEXT %]
+        [% END %]
+
         [% IF first_col %]
           [% colval = row %]
           [% first_col = 0 %]

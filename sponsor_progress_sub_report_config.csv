@@ -1,42 +1,43 @@
-report_id,SponsSubReport,,,,
-category_name,Stage,,,,
-item_name,gene id,,,,
-categories_as_columns,1,,,,
+report_id,SponsSubReport,,,,,
+category_name,Stage,,,,,
+item_name,gene id,,,,,
+categories_as_columns,1,,,,,
 items:SQL,"SELECT distinct(p.gene_id)
 FROM projects p, project_sponsors ps
 WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species'
-ORDER BY p.gene_id",,,,
-helper_module,LIMS2::Model::Util::ReportForSponsors::SubReport,,,,
-helper_tt,sponsor_sub_report_formatting.tt,,,,
-item_formatter,external_gene_link,,,,
-sort_by,distributable clones;frame-shift clones;het clones;total genotyped clones;electroporation of iPSCs;donor vectors constructed;crispr plasmids constructed;ordered crispr primers,,,,
-,,,,,
-,,,,,
-,,,,,
-!RULES,,,,,
-Category,do_not_display,category_base:METHOD,category_modifier:METHOD,category_modifier:METHOD_ARGS,formatter
-gene symbol,,get_gene,gene_symbol,,gene_symbol_page_link
-chr,,get_gene,chr_name,,
-sponsors,,get_gene,sponsors,,
-ordered crispr primers,,get_crispr_summaries,count_crispr_wells,,
-crispr plasmids constructed,,get_crispr_summaries,count_accepted_crispr_v,,green
-ordered vector primers,,get_summaries_to_report,count_designs,,grey_if_concluded
-PCR-passing design oligos,,get_summaries_to_report,count_design_pcr_passes,,grey_if_value
-donor vectors constructed,,get_summaries_to_report,count_final_pick_accepted,,green_unless_concluded
-electroporation of iPSCs,,get_summaries_to_report,count_ep_wells,,display_row_link
-# colonies,,get_summaries_to_report,colony_counts_by_gene_and_ep,,grey_if_total
-iPSC colonies picked,,get_summaries_to_report,ep_pick_counts_by_gene_and_ep,,grey_if_total
-total genotyped clones,,get_summaries_to_report,genotyped_clone_counts_by_gene_and_ep,,genotyped_clones
-frame-shift clones,,get_summaries_to_report,clone_counts_by_gene_and_ep,frameshift,grey_if_genotyped_clones
-in-frame clones,,get_summaries_to_report,clone_counts_by_gene_and_ep,in-frame,grey_if_genotyped_clones
-wt clones,,get_summaries_to_report,clone_counts_by_gene_and_ep,wild_type,grey_if_genotyped_clones
-mosaic clones,,get_summaries_to_report,clone_counts_by_gene_and_ep,mosaic,grey_if_genotyped_clones
-no-call clones,,get_summaries_to_report,clone_counts_by_gene_and_ep,no-call,grey_if_genotyped_clones
-het clones,,get_summaries_to_report,het_clone_counts_by_gene_and_ep,,grey_if_genotyped_clones
-distributable clones,,get_summaries_to_report,count_piq_accepted,,distributable_report_link
-priority,,get_gene,priority,,priority
-effort_concluded,1,get_gene,effort_concluded,,
-gene_id,1,get_gene,gene_id,,
+ORDER BY p.gene_id",,,,,
+helper_module,LIMS2::Model::Util::ReportForSponsors::SubReport,,,,,
+helper_tt,sponsor_sub_report_formatting.tt,,,,,
+item_formatter,external_gene_link,,,,,
+sort_by,distributable clones;frame-shift clones;het clones;total genotyped clones;electroporation of iPSCs;donor vectors constructed;crispr plasmids constructed;ordered crispr primers,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+!RULES,,,,,,
+Category,do_not_display,hide_from_public,category_base:METHOD,category_modifier:METHOD,category_modifier:METHOD_ARGS,formatter
+gene symbol,,,get_gene,gene_symbol,,gene_symbol_page_link
+chr,,,get_gene,chr_name,,
+sponsors,,,get_gene,sponsors,,
+ordered crispr primers,,,get_crispr_summaries,count_crispr_wells,,grey_if_value
+crispr plasmids constructed,,,get_crispr_summaries,count_accepted_crispr_v,,green_if_value
+ordered vector primers,,,get_summaries_to_report,count_designs,,grey_if_value
+PCR-passing design oligos,,1,get_summaries_to_report,count_design_pcr_passes,,grey_if_value
+donor vectors constructed,,,get_summaries_to_report,count_final_pick_accepted,,green_unless_concluded
+electroporation of iPSCs,,,get_summaries_to_report,count_ep_wells,,display_row_link
+# colonies,,,get_summaries_to_report,colony_counts_by_gene_and_ep,,grey_if_total
+iPSC colonies picked,,,get_summaries_to_report,ep_pick_counts_by_gene_and_ep,,grey_if_total
+total genotyped clones,,,get_summaries_to_report,genotyped_clone_counts_by_gene_and_ep,,genotyped_clones
+frame-shift clones,,,get_summaries_to_report,clone_counts_by_gene_and_ep,frameshift,grey_if_genotyped_clones
+in-frame clones,,,get_summaries_to_report,clone_counts_by_gene_and_ep,in-frame,grey_if_genotyped_clones
+wt clones,,,get_summaries_to_report,clone_counts_by_gene_and_ep,wild_type,grey_if_genotyped_clones
+mosaic clones,,,get_summaries_to_report,clone_counts_by_gene_and_ep,mosaic,grey_if_genotyped_clones
+no-call clones,,,get_summaries_to_report,clone_counts_by_gene_and_ep,no-call,grey_if_genotyped_clones
+het clones,,,get_summaries_to_report,het_clone_counts_by_gene_and_ep,,grey_if_genotyped_clones_dash_undef
+distributable clones,,,get_summaries_to_report,count_piq_accepted,,distributable_report_link
+priority,,,get_gene,priority,,priority
+info,,1,get_gene,recovery_class,,recovery_class
+effort_concluded,1,,get_gene,effort_concluded,,
+gene_id,1,,get_gene,gene_id,,

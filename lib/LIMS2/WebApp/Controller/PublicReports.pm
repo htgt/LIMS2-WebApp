@@ -243,6 +243,7 @@ sub _generate_front_page_report {
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
+        'hide_from_public' => $sponsor_report->hide_from_public,
     );
 
     return;
@@ -463,6 +464,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'rows'                 => $report_params->{rows},
             'helper_tt'            => $sponsor_report->helper_tt,
             'formatter'            => $sponsor_report->category_formatter,
+            'hide_from_public'     => $sponsor_report->hide_from_public,
         );
     }
 

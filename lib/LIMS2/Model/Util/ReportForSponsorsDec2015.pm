@@ -142,6 +142,13 @@ has do_not_display_category => (
     default    => sub{ {} },
 );
 
+has hide_from_public => (
+    is         => 'rw',
+    isa        => 'HashRef',
+    required   => 0,
+    default    => sub{ {} },
+);
+
 has categories_for_sort => (
     is        => 'rw',
     isa       => 'ArrayRef',
@@ -377,6 +384,7 @@ my $RULES_DISPATCH = {
     'category_modifier:METHOD_ARGS' => sub { my ($self,$cat,$val) = @_; $self->set_modifier_method_args_for_category($cat,$val) },
     'formatter'              => sub { my ($self,$cat,$val) = @_; $self->category_formatter->{$cat} = $val },
     'do_not_display'         => sub{ my ($self,$cat,$val) = @_; if($val){ $self->do_not_display_category->{$cat} = $val } },
+    'hide_from_public'       => sub{ my ($self,$cat,$val) = @_; if($val){ $self->hide_from_public->{$cat} = $val } },
 };
 
 sub _process_rules{

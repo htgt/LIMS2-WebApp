@@ -133,7 +133,10 @@ sub _generate_ep_pick_info{
         my $is_het = ep_pick_is_het($self->model, $ep_pick_id, $chromosome, $damage_call);
 
         if ( defined $is_het) {
-            $ep_pick_info->{het} += $is_het;
+            $ep_pick_info->{het} //= 0;
+            if($is_het){
+                $ep_pick_info->{het}++;
+            }
         }
     }
     return $ep_pick_info;
@@ -156,22 +159,14 @@ sub get_gene{
         $self->log->error('Failed to fetch gene symbol for gene id : ' . $gene_id . ' and species : ' . $self->species);
     };
 
+    # Store projects for gene so we can get priority and recovery info from them
     my @projects = $self->model->schema->resultset('Project')->search({
         gene_id => $gene_id,
         targeting_type => $self->targeting_type,
         species_id => $self->species,
     });
 
-    my @priority = uniq grep { $_ } map { $_->priority } @projects;
-    $gene_info->{priority} = join ";", @priority;
-    if( grep { !$_->effort_concluded } @projects){
-        $gene_info->{effort_concluded} = '';
-    }
-    else{
-        $gene_info->{effort_concluded} = 'yes';
-    }
-
-    $self->log->debug("Gene info: ".Dumper($gene_info));
+    $gene_info->{projects} = \@projects;
 
     # We need to store the chromosome so it can be passed to the ep_pick_is_het method
     # This assumes the gene_info will be generated before the is het score
@@ -302,12 +297,32 @@ sub sponsors{
 
 sub priority{
     my ($self,$gene) = @_;
-    return $gene->{priority};
+    my @projects = @{ $gene->{projects} || [] };
+    my @priority = uniq grep { $_ } map { $_->priority($self->custom_params->{sponsor_id}) } @projects;
+    my $priority_str = join ";", @priority;
+    return $priority_str;
 }
 
 sub effort_concluded{
     my ($self,$gene) = @_;
-    return $gene->{effort_concluded};
+    my @projects = @{ $gene->{projects} || [] };
+    my $effort_concluded;
+    if( grep { !$_->effort_concluded } @projects){
+        $effort_concluded = '';
+    }
+    else{
+        $effort_concluded = 'yes';
+    }
+    return $effort_concluded;
+}
+
+sub recovery_class{
+    my ($self,$gene) = @_;
+    my @projects = @{ $gene->{projects} || [] };
+    my @recovery_classes = uniq map { $_->recovery_class->name }
+                           grep { $_->recovery_class } @projects;
+    my $recovery_str = join ";", @recovery_classes;
+    return $recovery_str;
 }
 
 sub count_crispr_wells{
@@ -456,10 +471,10 @@ sub genotyped_clone_counts_by_gene_and_ep{
     foreach my $ep (@$eps){
         my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
         my $ep_pick_info = $self->_fetch_ep_pick_info($summaries,$ep);
-        my $genotyped_count = $ep_pick_info->{'wild_type'}
-                            + $ep_pick_info->{'in-frame'}
-                            + $ep_pick_info->{'frameshift'}
-                            + $ep_pick_info->{'mosaic'};
+        my $genotyped_count = ($ep_pick_info->{'wild_type'} // 0)
+                            + ($ep_pick_info->{'in-frame'} // 0)
+                            + ($ep_pick_info->{'frameshift'} // 0)
+                            + ($ep_pick_info->{'mosaic'} // 0);
 
         $counts->{total} += $genotyped_count;
         $counts->{by_ep_well}->{$ep_well_id} = $genotyped_count;
@@ -471,7 +486,7 @@ sub clone_counts_by_gene_and_ep{
     my ($self, $summaries, $damage_call) = @_;
 
     my $counts = {
-        total      => 0,
+        total      => undef,
         by_ep_well => {},
     };
 
@@ -480,9 +495,13 @@ sub clone_counts_by_gene_and_ep{
     foreach my $ep (@$eps){
         my $ep_well_id = $ep->ep_well_id || $ep->crispr_ep_well_id;
         my $ep_pick_info = $self->_fetch_ep_pick_info($summaries,$ep);
-        $counts->{total} += $ep_pick_info->{$damage_call};
-        $counts->{by_ep_well}->{$ep_well_id} = $ep_pick_info->{$damage_call};
+        if(defined $ep_pick_info->{$damage_call} ){
+            $counts->{total} //= 0;
+            $counts->{total} += $ep_pick_info->{$damage_call};
+            $counts->{by_ep_well}->{$ep_well_id} = $ep_pick_info->{$damage_call};
+        }
     }
+
     return $counts;
 }
 
