@@ -78,11 +78,16 @@ document.title = "[%- sponsor_id %]";
         [% END %]
         <!-- row: [% row %], col: [% col %], colval: [% colval %] -->
 
+        [% simple = 0 %]
+        [% IF type=='simple' && simple_convert.$col %]
+          [% simple = '✔' %]
+        [% END %]
+
         [% IF formatter.$col %]
           [% INCLUDE $formatter.$col rowdata = data.$row %]
           [% NEXT %]
         [% ELSE %]
-          <td>[% colval %]</td>
+          <td>[% simple || colval %]</td>
           [% NEXT %]
         [% END %]
 

@@ -363,14 +363,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->session->{display_type} = 'default';
     }
 
-    # Call ReportForSponsors plugin to generate report
-    #my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
-    #        'species' => $species,
-    #        'model' => $c->model( 'Golgi' ),
-    #        'targeting_type' => $targeting_type,
-    #    });
-
-    #my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
 
     my $report_specific_params = {
         sponsor_id    => $sponsor_id,
@@ -436,9 +428,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
             $type = $c->request->params->{type};
 
-            if ($type eq 'simple') {
-                $data = $self->_simple_transform( $data );
-            }
         }
 
         my $template = 'publicreports/sponsor_sub_report.tt';
@@ -465,37 +454,13 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'helper_tt'            => $sponsor_report->helper_tt,
             'formatter'            => $sponsor_report->category_formatter,
             'hide_from_public'     => $sponsor_report->hide_from_public,
+            'simple_convert'       => $sponsor_report->simple_convert,
         );
     }
 
     return;
 }
 
-
-
-sub _simple_transform {
-    my $self = shift;
-    my $data = shift;
-
-    foreach my $column ( @{$data} ) {
-        while ( my ($key, $value) = each %{$column} ) {
-            if (! ${$column}{$key}) {
-                ${$column}{$key} = '';
-            }
-            else {
-                ${$column}{$key} = '✔'
-                unless ($key eq 'gene_id'
-                    || $key eq 'gene_symbol'
-                    || $key eq 'sponsors'
-                    || $key eq 'ep_data'
-                    || $key eq 'recovery_class'
-                    || $key eq 'effort_concluded'
-                    || $key eq 'chromosome' );
-            }
-        }
-    }
-    return $data;
-}
 
 sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;

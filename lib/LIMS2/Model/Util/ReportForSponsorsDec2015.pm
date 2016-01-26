@@ -149,6 +149,15 @@ has hide_from_public => (
     default    => sub{ {} },
 );
 
+# Hash of columns which should have their values converted to
+# a tick for simple reports
+has simple_convert => (
+    is         => 'rw',
+    isa        => 'HashRef',
+    required   => 0,
+    default    => sub{ {} },
+);
+
 has categories_for_sort => (
     is        => 'rw',
     isa       => 'ArrayRef',
@@ -385,6 +394,8 @@ my $RULES_DISPATCH = {
     'formatter'              => sub { my ($self,$cat,$val) = @_; $self->category_formatter->{$cat} = $val },
     'do_not_display'         => sub{ my ($self,$cat,$val) = @_; if($val){ $self->do_not_display_category->{$cat} = $val } },
     'hide_from_public'       => sub{ my ($self,$cat,$val) = @_; if($val){ $self->hide_from_public->{$cat} = $val } },
+    'simple_report_convert'  => sub{ my ($self,$cat,$val) = @_; if($val){ $self->simple_convert->{$cat} = $val } },
+
 };
 
 sub _process_rules{
