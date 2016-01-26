@@ -909,7 +909,7 @@ sub genes {
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority_array = map { $_->priority } @gene_projects;
+            my @priority_array = map { $_->priority($sponsor_id) } @gene_projects;
 
             my $index = 0;
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
