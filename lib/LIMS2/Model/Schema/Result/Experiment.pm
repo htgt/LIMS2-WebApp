@@ -237,10 +237,19 @@ sub as_hash_with_detail{
     if(@crisprs){
         my @crispr_info;
         foreach my $crispr (@crisprs){
-            push @crispr_info, {
-                id  => $crispr->id,
-                seq => $crispr->seq,
+            my $crispr_detail =  {
+                id        => $crispr->id,
+                seq       => $crispr->seq,
+                pam_right => !defined $crispr->pam_right ? '' : $crispr->pam_right == 1 ? 'true' : 'false',
             };
+
+            if(my $locus = $crispr->current_locus){
+                $crispr_detail->{chr_name}  = $locus->chr->name;
+                $crispr_detail->{chr_start} = $locus->chr_start;
+                $crispr_detail->{chr_end}   = $locus->chr_end;
+                $crispr_detail->{assembly}  = $locus->assembly_id;
+            }
+            push @crispr_info, $crispr_detail;
         }
         $info->{crisprs} = \@crispr_info;
     }
