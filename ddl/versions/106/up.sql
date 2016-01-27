@@ -1,3 +1,2 @@
 ALTER TABLE sponsors ADD COLUMN abbr text;
 ALTER TABLE sponsors ADD UNIQUE (abbr);
-ALTER TABLE sponsors ALTER COLUMN abbr SET NOT NULL;
