@@ -32,7 +32,8 @@ function extract_sequence(elem) {
 
             /* really we only want to draw once, not per series */
             var x = plot.getAxes().xaxis;
-
+            
+            plot._pos = x.min;
             var reads = [];
             for ( var i = 0; i < plot.labels.length; i++ ) {
                 var label = plot.labels[i];
@@ -65,7 +66,7 @@ function extract_sequence(elem) {
 
             var read = "";
             $.each(reads, function(i,label){ read += label.nuc });
-
+            plot._read = read;
             // If we can find the trace_sequence preceding the plot highlight the
             // search sequence string within it
             var seq_td = plot.getPlaceholder().parents("tr").prev().children(".trace_sequence");
@@ -79,8 +80,10 @@ function extract_sequence(elem) {
               else{
                 var highlighted = "<span class='traceviewer_highlight'>" + read + "</span>";
                 var new_html = context.join(highlighted);
+
                 seq_td.html(new_html);
               }
+              //console.log(new_html + " new_html");
             }
 
             // If we have coloured_seq spans above the plot then highlight this
@@ -184,6 +187,9 @@ function extract_sequence(elem) {
                 ctx.fillText(nuc, x, y);
             }
         }
+       
+
+
 
         var options = {
             labels: [],
@@ -212,6 +218,8 @@ function TraceViewer(trace_url, button, full_trace) {
         return;
     }
 
+    this._pos = 250;
+    this._read = 'A';
     this.url = trace_url;
     this.show_traces(button, full_trace);
 }
@@ -299,6 +307,7 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
 //function that actually creates the plot
 TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
     var set = graph_data.series[0]["data"];
+
     var left_boundary = parseInt(set[0][0]);
     var right_boundary = set[set.length - 1][0];
 
@@ -375,3 +384,14 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
     //make world accessible
     this.plot = plot;
 };
+
+TraceViewer.prototype.moveToPoint = function (plot, first, last) {
+    var xaxis = plot.getAxes().xaxis;
+    xaxis.min = first;
+    xaxis.max = last;
+
+    plot.draw(); //Leaves TV blank until page updates
+    plot.pan(0); //Forces an update
+};
+
+
