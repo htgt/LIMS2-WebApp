@@ -49,6 +49,11 @@ __PACKAGE__->table("sponsors");
   default_value: (empty string)
   is_nullable: 0
 
+=head2 abbr
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -56,6 +61,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "description",
   { data_type => "text", default_value => "", is_nullable => 0 },
+  "abbr",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -69,6 +76,20 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<sponsors_abbr_key>
+
+=over 4
+
+=item * L</abbr>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("sponsors_abbr_key", ["abbr"]);
 
 =head1 RELATIONS
 
@@ -118,8 +139,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J3V+oz9WVkO/KrXCnf8pCg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-27 14:35:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NAfdR/zY2Nd6ntCBrOY/mQ
 
 __PACKAGE__->many_to_many(
     projects => 'project_sponsors',

@@ -895,17 +895,8 @@ sub genes {
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( ';', @sponsors );
-        $sponsors_str =~ s/Pathogen Group 1/PG1/;
-        $sponsors_str =~ s/Pathogen Group 2/PG2/;
-        $sponsors_str =~ s/Pathogen Group 3/PG3/;
-        $sponsors_str =~ s/Mutation/MSP/;
-        $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
-        $sponsors_str =~ s/Transfacs/TF/;
-        $sponsors_str =~ s/Pathogen/PG/;
-        $sponsors_str =~ s/PGs/Pathogens/;
-        $sponsors_str =~ s/Stem Cell Engineering/SCE/;
-        $sponsors_str =~ s/Human Genetics/HG/;
+        my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
+        my $sponsors_str = join  ( ';', @sponsors_abbr );
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
@@ -916,6 +907,7 @@ sub genes {
             splice(@priority_array, $index, 1);
 
             $priority = shift @priority_array;
+
         };
         if (! $priority) {$priority = '-'}
 
