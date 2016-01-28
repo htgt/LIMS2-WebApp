@@ -290,8 +290,7 @@ sub sponsors{
 
     my @gene_projects = $self->model->schema->resultset('Project')->search($search)->all;
 
-    # FIXME: use sponsor abbreviated names. Tiago is adding this info to the DB at the moment
-    my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
+    my @sponsors = sort grep { $_ ne 'All' } uniq map { $_->sponsor_abbrs } @gene_projects;
     return join ";", @sponsors;
 }
 

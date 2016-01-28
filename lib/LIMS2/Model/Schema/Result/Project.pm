@@ -306,6 +306,14 @@ sub sponsor_ids{
     return @sorted;
 }
 
+sub sponsor_abbrs{
+    my $self = shift;
+
+    my @sponsors = map { $_->sponsor->abbr } $self->project_sponsors;
+    my @sorted = sort @sponsors;
+    return @sorted;
+}
+
 # removed direct link between experiments and projects so recreate
 # the relationship using shared gene_id
 sub experiments{
