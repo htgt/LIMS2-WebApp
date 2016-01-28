@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.366     2016-01-27 17:04:13 Europe/London
+
+    sponsor abbreviation moved into database
+
 0.365     2016-01-25 15:14:32 Europe/London
 
     project priority now set sponsor by sponsor
