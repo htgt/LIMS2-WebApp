@@ -129,6 +129,7 @@ sub bulk_designs_for_design_targets {
                 -or => [
                     'design.design_type_id' => 'gibson',
                     'design.design_type_id' => 'gibson-deletion',
+                    'design.design_type_id' => 'fusion-deletion',
                 ],
             ],
         },
