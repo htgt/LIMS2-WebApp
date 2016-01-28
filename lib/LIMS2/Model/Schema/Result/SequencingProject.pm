@@ -188,6 +188,23 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-05 16:17:49
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cBwNx/xxXA6y6zPpOcPDSw
 
+sub as_hash {
+    my ( $self, $options ) = @_;
+
+    my %h = (
+        id                  => $self->id,
+        name                => $self->name,
+        created_by_id       => $self->created_by_id,
+        created_at          => $self->created_at,
+        sub_projects        => $self->sub_projects,
+        available_results   => $self->available_results,
+        abandoned           => $self->abandoned,
+        qc                  => $self->qc,
+        is_384              => $self->is_384,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

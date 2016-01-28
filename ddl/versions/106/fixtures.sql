@@ -1,0 +1,22 @@
+INSERT INTO schema_versions(version) VALUES (106);
+
+update sponsors set abbr='C' where id='Core';
+update sponsors set abbr='S' where id='Syboss';
+update sponsors set abbr='P' where id='Pathogens';
+update sponsors set abbr='CKI' where id='Cre Knockin';
+update sponsors set abbr='CBAC' where id='Cre BAC';
+update sponsors set abbr='H' where id='Human';
+update sponsors set abbr='ETR' where id='EUCOMMTools Recovery';
+update sponsors set abbr='BSAR' where id='Barry Short Arm Recovery';
+update sponsors set abbr='MGPR' where id='MGP Recovery';
+update sponsors set abbr='DDD' where id='Decipher';
+update sponsors set abbr='All' where id='All';
+update sponsors set abbr='PG1' where id='Pathogen Group 1';
+update sponsors set abbr='PG2' where id='Pathogen Group 2';
+update sponsors set abbr='PG3' where id='Pathogen Group 3';
+update sponsors set abbr='MSP' where id='Mutation';
+update sponsors set abbr='ECG' where id='Experimental Cancer Genetics';
+update sponsors set abbr='TF' where id='Transfacs';
+update sponsors set abbr='PG' where id='Pathogen';
+update sponsors set abbr='SCE' where id='Stem Cell Engineering';
+update sponsors set abbr='HG' where id='Human Genetics';
