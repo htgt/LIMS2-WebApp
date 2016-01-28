@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.364';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.366';
 }
 ## use critic
 
@@ -109,20 +109,24 @@ sub project_priority_GET{
 
     $c->assert_user_roles('read');
 
-    my $project = $c->model( 'Golgi' )->txn_do(
+    my $project_sponsor = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->retrieve_project_by_id( { id => $c->request->param( 'id' ) } );
+            shift->retrieve_project_sponsor( {
+                project_id => $c->request->param( 'id' ),
+                sponsor_id => $c->request->param( 'sponsor_id' ),
+                });
         }
     );
+
     my $priority = $c->request->param( 'priority' );
     if($priority eq '-'){
-        $project->update( { priority => undef });
+        $project_sponsor->update( { priority => undef });
     }
     else{
-        $project->update( { priority =>  $priority } );
+        $project_sponsor->update( { priority =>  $priority } );
     }
 
-    return $self->status_ok( $c, entity => $project->as_hash );
+    return $self->status_ok( $c, entity => $project_sponsor->project->as_hash );
 }
 
 1;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.364';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.366';
 }
 ## use critic
 
@@ -888,6 +888,21 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
     $c->stash->{primer_data} = $c->req->param('primer_data');
+    #Create recently added list
+    my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
+        { },
+        {
+            rows => 20,
+            order_by => {-desc => 'created_at'},
+        }
+    );
+
+    my @results;
+
+    while (my $focus = $recent->next) {
+        push(@results, $focus->{_column_data});
+    }
+    $c->stash->{recent_results} = \@results;
 
     if($c->req->param('get_reads')){
         # Fetch the sequence fasta and parse it

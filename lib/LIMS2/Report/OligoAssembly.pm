@@ -1,7 +1,7 @@
 package LIMS2::Report::OligoAssembly;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::OligoAssembly::VERSION = '0.364';
+    $LIMS2::Report::OligoAssembly::VERSION = '0.366';
 }
 ## use critic
 
@@ -28,6 +28,7 @@ override _build_columns => sub {
     return [
         'Well ID', 'Well Name', 'Gene ID', 'Gene Symbol', 'Gene Sponsors',
         'Design ID', 'Design Type', 'Design Well', 'Crispr ID', 'Crispr Well','Genoverse View',
+        'CRISPR Tracker RNA',
         'Created By','Created At', 'Report?'
     ];
 };
@@ -95,7 +96,7 @@ override iterator => sub {
             $crispr ? $crispr->id . " ($crisprs_data->{type})" : 'N/A',
             $well_data->{well_ancestors}{CRISPR}{well_name},
             $genoverse_button,
-
+            $well_data->{crispr_tracker_rna},
             $well_data->{created_by},
             $well_data->{created_at},
             $well_data->{to_report} ? 'true' : 'false',

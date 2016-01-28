@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPDetail::VERSION = '0.364';
+    $LIMS2::Report::CrisprEPDetail::VERSION = '0.366';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ override iterator => sub {
 
 };
 
-## no critic(ProhibitDeepNests)
+## no critic(ProhibitDeepNests, ProhibitExcessComplexity)
 sub build_ep_detail {
     my ( $self ) = @_;
 
@@ -112,6 +112,9 @@ sub build_ep_detail {
                 my @dna_process = $dna_well->parent_processes;
                 my @vector = $dna_process[0]->input_wells;
                 my $vector_well = shift @vector;
+
+                next if !$vector_well;
+
                 my $vector_well_type = $vector_well->plate->type_id;
                 if ($vector_well->plate->type_id eq 'FINAL_PICK') {
                     $wells->{'vector'} = $vector_well;
@@ -178,10 +181,10 @@ sub build_ep_detail {
                 $gene_id,
                 $gene_symbol,
                 $design_id,
-                $wells->{'crispr_ep'}->plate->name . "_" . $wells->{'crispr_ep'}->name,
-                $wells->{'assembly'}->plate->name . "_" . $wells->{'assembly'}->name,
-                $wells->{'vector'}->plate->name . "_" . $wells->{'vector'}->name,
-                $wells->{'vector_dna'}->plate->name . "_" . $wells->{'vector_dna'}->name,
+                $wells->{'crispr_ep'} ? $wells->{'crispr_ep'}->plate->name . "_" . $wells->{'crispr_ep'}->name : '',
+                $wells->{'assembly'} ? $wells->{'assembly'}->plate->name . "_" . $wells->{'assembly'}->name : '',
+                $wells->{'vector'} ? $wells->{'vector'}->plate->name . "_" . $wells->{'vector'}->name : '',
+                $wells->{'vector_dna'} ? $wells->{'vector_dna'}->plate->name . "_" . $wells->{'vector_dna'}->name : '',
                 $wells->{'l_vector'} ? $wells->{'l_vector'}->plate->name .'_'. $wells->{'l_vector'}->name : '',
                 $wells->{'l_dna'} ? $wells->{'l_dna'}->plate->name .'_'. $wells->{'l_dna'}->name : '',
                 $wells->{'r_vector'} ? $wells->{'r_vector'}->plate->name .'_'. $wells->{'r_vector'}->name : '',

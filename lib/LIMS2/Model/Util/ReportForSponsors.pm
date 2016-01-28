@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.364';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.366';
 }
 ## use critic
 
@@ -901,27 +901,19 @@ sub genes {
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( ';', @sponsors );
-        $sponsors_str =~ s/Pathogen Group 1/PG1/;
-        $sponsors_str =~ s/Pathogen Group 2/PG2/;
-        $sponsors_str =~ s/Pathogen Group 3/PG3/;
-        $sponsors_str =~ s/Mutation/MSP/;
-        $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
-        $sponsors_str =~ s/Transfacs/TF/;
-        $sponsors_str =~ s/Pathogen/PG/;
-        $sponsors_str =~ s/PGs/Pathogens/;
-        $sponsors_str =~ s/Stem Cell Engineering/SCE/;
-        $sponsors_str =~ s/Human Genetics/HG/;
+        my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
+        my $sponsors_str = join  ( ';', @sponsors_abbr );
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority_array = map { $_->priority } @gene_projects;
+            my @priority_array = map { $_->priority($sponsor_id) } @gene_projects;
 
             my $index = 0;
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
             splice(@priority_array, $index, 1);
 
             $priority = shift @priority_array;
+
         };
         if (! $priority) {$priority = '-'}
 

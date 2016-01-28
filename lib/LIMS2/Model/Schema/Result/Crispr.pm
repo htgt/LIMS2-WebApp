@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.364';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.366';
 }
 ## use critic
 
@@ -424,13 +424,12 @@ sub as_hash {
     if ( my $default_assembly = $self->species->default_assembly ) {
         $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
-    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
 
     my %h = (
         id             => $self->id,
         type           => $self->crispr_loci_type_id,
         seq            => $self->seq,
-        fwd_seq        => $fwd_seq,
+        fwd_seq        => $self->fwd_seq,
         species        => $self->species_id,
         comment        => $self->comment,
         locus          => $locus ? $locus->as_hash : undef,
@@ -446,6 +445,12 @@ sub as_hash {
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
+}
+
+sub fwd_seq {
+    my $self = shift;
+    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
+    return $fwd_seq;
 }
 
 sub current_locus {
