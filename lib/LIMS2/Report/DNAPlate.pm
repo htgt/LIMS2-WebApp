@@ -71,7 +71,7 @@ override iterator => sub {
                     id => $well_data->{crispr_ids}[0],
                 },
                 {
-                    prefetch => { 'crispr_designs' => { 'design' => 'genes' } },
+                    prefetch => { 'experiments' => { 'design' => 'genes' } },
                 }
             );
             @base_data = $self->base_data_crispr_quick( $well_data, $crispr );

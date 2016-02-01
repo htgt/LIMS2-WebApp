@@ -107,12 +107,12 @@ sub get_crispr_summaries_for_designs{
         }
     }
 
-    my $crispr_design_rs = $self->schema->resultset('CrisprDesign')->search(
+    my $experiment_rs = $self->schema->resultset('Experiment')->search(
         {
             design_id => { -in => $params->{id_list} }
         }
     );
-    while (my $link = $crispr_design_rs->next){
+    while (my $link = $experiment_rs->next){
         my @crispr_ids;
 
         if ($link->crispr_id){
@@ -252,12 +252,12 @@ sub get_crispr_wells_for_design {
     my @crispr_id_list;
     DEBUG "Finding crisprs for design";
 
-    my $crispr_design_rs = $self->schema->resultset('CrisprDesign')->search(
+    my $experiment_rs = $self->schema->resultset('Experiment')->search(
         {
             design_id => { -in => $design_id }
         }
     );
-    while (my $link = $crispr_design_rs->next){
+    while (my $link = $experiment_rs->next){
         my @crispr_ids;
 
         if ($link->crispr_id){

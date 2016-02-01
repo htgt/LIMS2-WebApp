@@ -137,21 +137,6 @@ __PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"
 
 =head1 RELATIONS
 
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_group_crisprs
 
 Type: has_many
@@ -398,10 +383,15 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hPnkSJo9fDmtCBDVnkJDyg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GIN/wPTy3OPMYQUGLX4oLQ
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 use Bio::Perl qw( revcom );
 
