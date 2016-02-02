@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::ResultSet::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.365';
+    $LIMS2::Model::Schema::ResultSet::PlateReport::VERSION = '0.368';
 }
 ## use critic
 
@@ -152,6 +152,7 @@ sub _consolidate_well_data {
         }
         elsif ( $assembly_process = first{ $_->{process_type} =~ /oligo_assembly$/  } @rows ) {
             $well_data{crispr_assembly_process} = $assembly_process->{process_type};
+            $well_data{crispr_tracker_rna} = _get_first_process_data(\@rows, 'crispr_tracker_rna');
         }
     }
 

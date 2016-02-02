@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.365';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.368';
 }
 ## use critic
 
@@ -142,21 +142,6 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"]);
 
 =head1 RELATIONS
-
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
 
 =head2 crispr_group_crisprs
 
@@ -404,10 +389,15 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hPnkSJo9fDmtCBDVnkJDyg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GIN/wPTy3OPMYQUGLX4oLQ
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 use Bio::Perl qw( revcom );
 
@@ -424,13 +414,12 @@ sub as_hash {
     if ( my $default_assembly = $self->species->default_assembly ) {
         $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
-    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
 
     my %h = (
         id             => $self->id,
         type           => $self->crispr_loci_type_id,
         seq            => $self->seq,
-        fwd_seq        => $fwd_seq,
+        fwd_seq        => $self->fwd_seq,
         species        => $self->species_id,
         comment        => $self->comment,
         locus          => $locus ? $locus->as_hash : undef,
@@ -446,6 +435,12 @@ sub as_hash {
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
+}
+
+sub fwd_seq {
+    my $self = shift;
+    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
+    return $fwd_seq;
 }
 
 sub current_locus {

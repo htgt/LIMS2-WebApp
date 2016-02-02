@@ -1,7 +1,7 @@
 package LIMS2::Report::DNAPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::DNAPlate::VERSION = '0.365';
+    $LIMS2::Report::DNAPlate::VERSION = '0.368';
 }
 ## use critic
 
@@ -77,7 +77,7 @@ override iterator => sub {
                     id => $well_data->{crispr_ids}[0],
                 },
                 {
-                    prefetch => { 'crispr_designs' => { 'design' => 'genes' } },
+                    prefetch => { 'experiments' => { 'design' => 'genes' } },
                 }
             );
             @base_data = $self->base_data_crispr_quick( $well_data, $crispr );

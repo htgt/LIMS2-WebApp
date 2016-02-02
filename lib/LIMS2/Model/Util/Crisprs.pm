@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.365';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.368';
 }
 ## use critic
 
@@ -189,13 +189,15 @@ sub create_crispr_group_design_links {
 
         next unless crispr_group_hits_design( $design, $crispr_group, $default_assembly, \@fail_log );
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
             {
                 design_id      => $design->id,
                 crispr_group_id => $crispr_group->id,
+                gene_id         => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+        INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr group ' . p(%$datum);
     }
@@ -224,13 +226,15 @@ sub create_crispr_pair_design_links {
 
         next unless crispr_pair_hits_design( $design, $crispr_pair, $default_assembly, \@fail_log );
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
             {
                 design_id      => $design->id,
                 crispr_pair_id => $crispr_pair->id,
+                gene_id        => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+        INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr pair ' . p(%$datum);
     }
@@ -264,13 +268,15 @@ sub create_crispr_design_links {
             next;
         }
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
             {
                 design_id => $design->id,
                 crispr_id => $crispr->id,
+                gene_id   => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+        INFO('Experiment record created: ' . $experiment->id );
         push @create_log, 'Linked design & crispr ' . p(%$datum);
     }
 
@@ -287,18 +293,18 @@ sub delete_crispr_design_links {
     my ( @delete_log, @fail_log );
 
     for my $datum ( @{ $delete_links } ) {
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find( $datum );
-        unless ( $crispr_design ) {
-            ERROR( 'Unable to find crispr_design link ' . p(%$datum) );
+        my $experiment = $model->schema->resultset( 'Experiment' )->find( $datum );
+        unless ( $experiment) {
+            ERROR( 'Unable to find experiment linking ' . p(%$datum) );
             push @fail_log, 'Failed to find design & crispr link: ' . p(%$datum);
             next;
         }
-        if ( $crispr_design->delete ) {
-            INFO( 'Deleted crispr_design record ' . $crispr_design->id );
+        if ( $experiment->delete ) {
+            INFO( 'Deleted experiment record ' . $experiment->id );
             push @delete_log, 'Deleted link between design & crispr: ' . p(%$datum);
         }
         else {
-            ERROR( 'Failed to delete crispr_design record ' . $crispr_design->id );
+            ERROR( 'Failed to delete experiment record ' . $experiment->id );
             push @fail_log, 'Failed to delete design & crisprlink ' . p(%$datum);
         }
     }

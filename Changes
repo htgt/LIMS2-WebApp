@@ -1,3 +1,13 @@
+0.368     2016-02-02 09:56:12 Europe/London
+
+    crispr_designs merged into experiments table and crispr_designs table dropped
+
+0.367     2016-01-28 09:57:06 Europe/London
+
+0.366     2016-01-27 17:04:13 Europe/London
+
+    sponsor abbreviation moved into database
+
 0.365     2016-01-25 15:14:32 Europe/London
 
     project priority now set sponsor by sponsor

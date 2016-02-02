@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.365';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.368';
 }
 ## use critic
 
@@ -311,6 +311,7 @@ sub _pspec_create_experiment{
         crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
         crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
         crispr_group_id => { validate => 'existing_crispr_group_id', optional => 1},
+        plated          => { validate => 'boolean', default => 0 },
         REQUIRE_SOME    => { design_or_crisprs => [ 1, qw( design_id crispr_id crispr_pair_id crispr_group_id ) ] },
     }
 }
