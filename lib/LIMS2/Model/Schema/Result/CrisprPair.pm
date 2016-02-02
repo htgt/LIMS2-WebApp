@@ -117,21 +117,6 @@ __PACKAGE__->add_unique_constraint("unique_pair", ["left_crispr_id", "right_cris
 
 =head1 RELATIONS
 
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.crispr_pair_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_primers
 
 Type: has_many
@@ -193,8 +178,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MBXpihnogswuzG3K/d08fQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A2tsZ8t0hBSmL1Ewqq+Nxw
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 sub as_hash {
     my ( $self ) = @_;

@@ -319,7 +319,7 @@ sub load_dynamic_files {
             DesignOligo
             DesignOligoLocus
             GeneDesign
-            CrisprDesign
+            Experiment
             BacClone
             BacCloneLocus
             Process

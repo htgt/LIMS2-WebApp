@@ -874,6 +874,7 @@ sub genes {
             $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
+                    { design_type => 'fusion-deletion' },
                 ];
         }
 
@@ -1397,13 +1398,13 @@ SQL_END
         ## no critic (ProhibitCascadingIfElse)
         my $targeting_profile;
         if ($self->species eq 'Human') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         if ($sponsor_id eq 'Pathogen Group 2') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         if ($sponsor_id eq 'Pathogen Group 3') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         elsif ($sponsor_id eq 'Pathogen Group 1') {
             $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
@@ -2468,10 +2469,10 @@ sub sql_count_st_vectors {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2588,10 +2589,10 @@ sub sql_count_st_dna {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2707,10 +2708,10 @@ sub sql_count_st_eps {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2826,10 +2827,10 @@ sub sql_count_st_accepted_clones {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2953,10 +2954,10 @@ sub sql_select_st_vectors {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3083,10 +3084,10 @@ sub sql_select_st_dna {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3216,10 +3217,10 @@ sub sql_select_st_electroporations {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3345,10 +3346,10 @@ sub sql_select_st_accepted_clones {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -5562,7 +5563,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
@@ -5603,7 +5604,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
@@ -5644,7 +5645,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
@@ -5686,7 +5687,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
