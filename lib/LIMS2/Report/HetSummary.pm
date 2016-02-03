@@ -1,7 +1,7 @@
 package LIMS2::Report::HetSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::HetSummary::VERSION = '0.369';
+    $LIMS2::Report::HetSummary::VERSION = '0.370';
 }
 ## use critic
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligoAppend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.369';
+    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.370';
 }
 ## use critic
 
