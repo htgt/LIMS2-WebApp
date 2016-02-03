@@ -51,8 +51,8 @@ sub retrieve_well {
         $search{'plate.version'} = $data->{plate_version};
     }
     if ( $data->{barcode} ) {
-        $search{'well_barcode.barcode'} = $data->{barcode};
-        $joins{join} = [ 'plate', 'well_barcode' ];
+        $search{'me.barcode'} = $data->{barcode};
+        $joins{join} = [ 'plate' ];
     }
 
     return $self->retrieve( Well => \%search, \%joins );
@@ -163,15 +163,15 @@ sub delete_well {
     }
 
     # Delete any related barcode events
-    if (my $barcode = $well->well_barcode){
-        $barcode->search_related_rs('barcode_events')->delete;
+    if ($well->barcode){
+        $well->search_related_rs('barcode_events')->delete;
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts
                                  well_primer_bands well_chromosome_fail well_genotyping_results
                                  well_targeting_pass well_targeting_puro_pass well_targeting_neo_pass
-                                 well_lab_number well_barcode
+                                 well_lab_number
                                );
 
     for my $rs ( @related_resultsets ) {

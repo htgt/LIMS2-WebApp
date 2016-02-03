@@ -49,12 +49,12 @@ __PACKAGE__->table("wells");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 name
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 created_by_id
 
@@ -96,6 +96,18 @@ __PACKAGE__->table("wells");
   default_value: true
   is_nullable: 0
 
+=head2 barcode
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 40
+
+=head2 barcode_state
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -107,9 +119,9 @@ __PACKAGE__->add_columns(
     sequence          => "wells_id_seq",
   },
   "plate_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -129,6 +141,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "to_report",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "barcode",
+  { data_type => "varchar", is_nullable => 1, size => 40 },
+  "barcode_state",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -144,6 +160,18 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
+
+=head2 C<wells_barcode_key>
+
+=over 4
+
+=item * L</barcode>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("wells_barcode_key", ["barcode"]);
 
 =head2 C<wells_plate_id_name_key>
 
@@ -161,7 +189,7 @@ __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name
 
 =head1 RELATIONS
 
-=head2 barcode_events_new_wells
+=head2 barcode_events
 
 Type: has_many
 
@@ -170,25 +198,30 @@ Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
 =cut
 
 __PACKAGE__->has_many(
-  "barcode_events_new_wells",
+  "barcode_events",
   "LIMS2::Model::Schema::Result::BarcodeEvent",
-  { "foreign.new_well_id" => "self.id" },
+  { "foreign.barcode" => "self.barcode" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 barcode_events_old_wells
+=head2 barcode_state
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+Related object: L<LIMS2::Model::Schema::Result::BarcodeState>
 
 =cut
 
-__PACKAGE__->has_many(
-  "barcode_events_old_wells",
-  "LIMS2::Model::Schema::Result::BarcodeEvent",
-  { "foreign.old_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "barcode_state",
+  "LIMS2::Model::Schema::Result::BarcodeState",
+  { id => "barcode_state" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 created_by
@@ -221,6 +254,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 fp_picking_list_well_barcodes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingListWellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_list_well_barcodes",
+  "LIMS2::Model::Schema::Result::FpPickingListWellBarcode",
+  { "foreign.well_barcode" => "self.barcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -233,7 +281,12 @@ __PACKAGE__->belongs_to(
   "plate",
   "LIMS2::Model::Schema::Result::Plate",
   { id => "plate_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 process_input_wells
@@ -308,36 +361,6 @@ __PACKAGE__->has_many(
   "well_assembly_qcs",
   "LIMS2::Model::Schema::Result::WellAssemblyQc",
   { "foreign.assembly_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 well_barcode
-
-Type: might_have
-
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
-
-=cut
-
-__PACKAGE__->might_have(
-  "well_barcode",
-  "LIMS2::Model::Schema::Result::WellBarcode",
-  { "foreign.well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 well_barcodes_root_piqs_well
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
-
-=cut
-
-__PACKAGE__->has_many(
-  "well_barcodes_root_piqs_well",
-  "LIMS2::Model::Schema::Result::WellBarcode",
-  { "foreign.root_piq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -572,8 +595,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mydeTrbl+IRZGKndI3lQtw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wwmY0jGQQOTQvpz06fYT0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1249,7 +1272,7 @@ sub barcoded_descendant_of_type{
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ){
       while( my $descendant = $descendants->next ){
-        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+        if( ($descendant->plate->type_id eq $type) and $descendant->barcode ){
           return $descendant;
         }
       }
@@ -1263,7 +1286,7 @@ sub barcoded_descendants{
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ){
       while( my $descendant = $descendants->next ){
-        if( $descendant->well_barcode ){
+        if( $descendant->barcode ){
           push @barcoded_descendants, $descendant;
         }
       }
@@ -1587,9 +1610,9 @@ sub distributable_child_barcodes{
 
     # Find all child wells which have a barcode and are distributable (accepted)
     foreach my $well ( $self->child_wells_skip_versioned_plates ){
-        next unless $well->well_barcode;
+        next unless $well->barcode;
         next unless $well->is_accepted;
-        push @barcodes, $well->well_barcode->barcode;
+        push @barcodes, $well->barcode;
     }
     return \@barcodes;
 }
@@ -1950,5 +1973,28 @@ sub assembly_well_qc_verified{
     return $is_good;
 }
 
+# Find most recent event for the barcode.
+# If state is provided find the most recent event which *changed* the state to the one specified
+sub most_recent_barcode_event{
+    my ($self, $state) = @_;
+
+    my $search_criteria = {};
+
+    if($state){
+        $search_criteria = {
+            new_state => $state,
+            old_state => {'!=' => $state }
+        };
+    }
+
+    my $event = $self->search_related('barcode_events',
+        $search_criteria,
+        {
+            order_by => { -desc => [qw/created_at/] }
+        }
+    )->first;
+
+    return $event;
+}
 __PACKAGE__->meta->make_immutable;
 1;

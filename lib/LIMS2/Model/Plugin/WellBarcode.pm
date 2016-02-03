@@ -24,10 +24,7 @@ sub retrieve_well_barcode {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_barcode, ignore_unknown => 1 );
 
-    return $self->retrieve(
-    	WellBarcode => { slice_def $validated_params, qw( well_id barcode ) },
-    	$search_opts,
-    );
+    return $self->retrieve_well($validated_params);
 }
 
 sub delete_well_barcode {
@@ -45,6 +42,9 @@ sub pspec_create_well_barcode {
     };
 }
 
+# The well_barcodes table has now been dropped and barcode and state added to wells
+# This method has been kept for legacy reasons but it now just updates the well
+# with barcode details and creates a barcode event
 sub create_well_barcode {
     my ( $self, $params ) = @_;
 
@@ -57,21 +57,7 @@ sub create_well_barcode {
         barcode_state => $validated_params->{state},
     };
 
-    # Store PIQ well id on barcode so we do not have to traverse lengthy well heirarchy
-    # to get back to root PIQ well when generating plate reports, etc
-    if ($well->plate->type->id eq 'PIQ'){
-        # parent well is probably the QC piq made by freeze_back so use this as root
-        # but if the parent is not a piq then set current well as the root piq
-        my ($parent) = $well->parent_wells;
-        if($parent and $parent->plate->type->id eq 'PIQ'){
-            $create_params->{root_piq_well_id} = $parent->id;
-        }
-        else{
-            $create_params->{root_piq_well_id} = $well->id;
-        }
-    }
-
-    my $well_barcode = $well->create_related( well_barcode => $create_params);
+    my $well_barcode = $well->update($create_params);
 
     # Optionally create event with comment about new well barcode
     if($validated_params->{user}){
@@ -84,7 +70,7 @@ sub create_well_barcode {
         });
     }
 
-    return $well_barcode;
+    return $well;
 }
 
 sub pspec_update_well_barcode {
@@ -163,9 +149,11 @@ sub historical_barcodes_for_plate{
 
     # find current plate
     my $plate = $self->retrieve_plate($params);
-    my @current_barcodes = map { $_->well_barcode->barcode } grep {$_->well_barcode} $plate->wells;
+    my @current_barcodes = grep { $_ } map { $_->barcode } $plate->wells;
     $self->log->debug(scalar(@current_barcodes)." barcodes found");
 
+    # FIXME: for now we need to look for events linked to old versions of the
+    # plate but this can be removed when plate versions have been deleted
     # find old versions of plates
     my @previous_versions = $self->schema->resultset('Plate')->search({
         name    => $plate->name,
@@ -173,16 +161,15 @@ sub historical_barcodes_for_plate{
     });
     $self->log->debug(scalar(@previous_versions)." previous plate versions found");
 
-    # find all wells on all versions
-    my @wells = map { $_->wells } @previous_versions;
-    $self->log->debug(scalar(@wells)." wells found");
+    # find all barcodes ever linked to this plate in barcode_events
+    my @events = map { $_->barcode_events_new_plates, $_->barcode_events_old_plates } ($plate, @previous_versions);
 
-    # find all barcodes ever linked to these wells in barcode_events
-    my @events = map { $_->barcode_events_old_wells, $_->barcode_events_new_wells } @wells;
     $self->log->debug(scalar(@events)." events found");
 
     # return all barcodes which are not on current plate version
     my @all_barcodes = uniq map { $_->barcode->barcode } @events;
+    $self->log->debug(scalar(@all_barcodes)." barcodes found");
+
     my @historical_barcodes;
 
     foreach my $barcode (@all_barcodes){
