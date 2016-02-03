@@ -1169,7 +1169,7 @@ sub retrieve_sequencing_project{
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_sequencing_project );
 
     my $project_params = { slice_def( $validated_params, qw( name id ) ) };
-    return $self->retrieve( SequencingProject => { id => $validated_params->{id} } );
+    return $self->retrieve( SequencingProject => $project_params );
 }
 
 1;
