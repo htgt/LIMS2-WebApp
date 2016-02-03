@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.369     2016-02-02 18:04:15 Europe/London
+
+    Gene Summary page retrieve_well now uses well_id
+
 0.368     2016-02-02 09:56:12 Europe/London
 
     crispr_designs merged into experiments table and crispr_designs table dropped
