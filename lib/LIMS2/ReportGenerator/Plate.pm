@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.367';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.369';
 }
 ## use critic
 
@@ -395,7 +395,7 @@ sub accepted_crispr_data {
         my @right_accepted = $self->$find_method(\@right_cr_wells);
         if (@left_accepted and @right_accepted){
             # Fetch the pair ID to display
-            my $pair_id = $self->model->schema->resultset('CrisprDesign')->find({
+            my $pair_id = $self->model->schema->resultset('Experiment')->find({
                 id => $crispr_design_id,
             })->crispr_pair_id;
 
