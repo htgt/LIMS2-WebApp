@@ -44,12 +44,18 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         $c->flash->{error_msg} = 'You must specify a process type';
         return $c->res->redirect('/user/plate_upload_step1');
     }
-
+$DB::single=1;
+    my $cell_lines = $c->model('Golgi')->schema->resultset('SourceDnaCellLine')->search();
+    my @lines;
+    while (my $line = $cell_lines->next){
+        push(@lines, $line->as_string);
+    }
     $c->stash(
         process_type   => $process_type,
         process_fields => $c->model('Golgi')->get_process_fields( { process_type => $process_type } ),
         plate_types    => $c->model('Golgi')->get_process_plate_types( { process_type => $process_type } ),
         plate_help     => $c->model('Golgi')->plate_help_info,
+        cell_lines     => \@lines,
     );
 
     my $step = $c->request->params->{plate_upload_step};
@@ -84,7 +90,7 @@ sub process_plate_upload_form :Private {
         $c->stash->{error_msg} = 'Must specify a plate type';
         return;
     }
-
+$DB::single=1;
     my $comment;
     if ( $params->{process_type} eq 'int_recom' ) {
         unless ( $params->{planned_wells} ) {

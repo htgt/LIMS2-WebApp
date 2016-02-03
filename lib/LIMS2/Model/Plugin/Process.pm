@@ -16,7 +16,8 @@ sub pspec_create_process {
     return {
         type         => { validate => 'existing_process_type' },
         input_wells  => { optional => 1 },
-        output_wells => { optional => 1 }
+        output_wells => { optional => 1 },
+        source_cell_line    => { optional => 1 }, #TODO Change to existing_cell_line 
     };
 }
 
@@ -24,9 +25,8 @@ sub create_process {
     my ( $self, $params ) = @_;
     my $validated_params
         = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
-
     my $process
-        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type} } );
+        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type}, source_cell_line => $validated_params->{source_cell_line} } );
 
     link_process_wells( $self, $process, $validated_params );
 

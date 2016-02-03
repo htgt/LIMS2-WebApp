@@ -51,6 +51,12 @@ __PACKAGE__->table("processes");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 source_cell_line
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +69,8 @@ __PACKAGE__->add_columns(
   },
   "type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "source_cell_line",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -274,6 +282,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 source_cell_line
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::SourceDnaCellLine>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "source_cell_line",
+  "LIMS2::Model::Schema::Result::SourceDnaCellLine",
+  { id => "source_cell_line" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 type
 
 Type: belongs_to
@@ -310,8 +338,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-27 13:02:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1zcz5+TATfgl/qXftTzhbg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-28 10:26:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:beQFEctTsZ/hiQEQNbz5rw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

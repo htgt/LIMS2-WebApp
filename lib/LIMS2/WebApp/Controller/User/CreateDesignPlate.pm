@@ -66,10 +66,21 @@ sub _build_base_dir {
 
 sub create_design_plate :Path( '/user/create_design_plate' ) :Args(0){
     my ( $self, $c ) = @_;
+
+    my $cell_lines = $c->model('Golgi')->schema->resultset('SourceDnaCellLine')->search();
+    my @lines;
+    while (my $line = $cell_lines->next){
+        push(@lines, $line->as_string);
+    }
+    $c->stash->{cell_lines} = \@lines;
     my $req_plate_name = $c->req->param('plate_name');
     my $req_primers = $c->req->param('primers');
     my $plate_data = $c->request->upload('datafile');
     if ($plate_data){
+        unless ($c->req->param('source_dna')){
+            $c->stash->{error_msg} = "Please select a cell line.";
+            return;
+        }
         if ($req_plate_name){
             build_design_plate_data($c, $plate_data, $req_plate_name);
         }
@@ -299,6 +310,7 @@ sub _build_well_data {
     $well_data{well_name}    = $data->{well_name};
     $well_data{design_id}    = $data->{design_id};
     $well_data{process_type} = 'create_di';
+    $well_data{source_cell_line}    = $c->req->param("source_dna");
 
     if ( $c->req->param('bacs') ) {
         my $bac_data = _build_bac_data( $c, $design );
