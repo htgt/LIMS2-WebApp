@@ -1140,6 +1140,7 @@ sub pspec_update_sequencing_project{
         name        => { validate => 'non_empty_string', optional => 1},
         abandoned   => { validate => 'boolean', optional => 1},
         available_results => { validate => 'boolean', optional => 1},
+        results_imported_date => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
     };
 }
@@ -1150,7 +1151,7 @@ sub pspec_update_sequencing_project{
 
     my $seq_proj = $self->retrieve_sequencing_project( { slice_def( $validated_params, qw( name id ) ) });
 
-    my $update_params = { slice_def( $validated_params, qw( abandoned available_results ) ) };
+    my $update_params = { slice_def( $validated_params, qw( abandoned available_results results_imported_date ) ) };
     $seq_proj->update( $update_params );
 
     return;
