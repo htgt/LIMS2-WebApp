@@ -74,6 +74,12 @@ __PACKAGE__->table("experiments");
   data_type: 'text'
   is_nullable: 1
 
+=head2 plated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -94,6 +100,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
+  "plated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -107,6 +115,29 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<unique_exp_crispr_design>
+
+=over 4
+
+=item * L</design_id>
+
+=item * L</crispr_id>
+
+=item * L</crispr_pair_id>
+
+=item * L</crispr_group_id>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint(
+  "unique_exp_crispr_design",
+  ["design_id", "crispr_id", "crispr_pair_id", "crispr_group_id"],
+);
 
 =head1 RELATIONS
 
@@ -191,8 +222,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QgWIYcrPa7OKm/ShOybg/g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-28 12:51:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oYj8t7UZZc8DQHYfC6BAjw
 
 sub as_hash{
     my $self = shift;
@@ -237,10 +268,19 @@ sub as_hash_with_detail{
     if(@crisprs){
         my @crispr_info;
         foreach my $crispr (@crisprs){
-            push @crispr_info, {
-                id  => $crispr->id,
-                seq => $crispr->seq,
+            my $crispr_detail =  {
+                id        => $crispr->id,
+                seq       => $crispr->seq,
+                pam_right => !defined $crispr->pam_right ? '' : $crispr->pam_right == 1 ? 'true' : 'false',
             };
+
+            if(my $locus = $crispr->current_locus){
+                $crispr_detail->{chr_name}  = $locus->chr->name;
+                $crispr_detail->{chr_start} = $locus->chr_start;
+                $crispr_detail->{chr_end}   = $locus->chr_end;
+                $crispr_detail->{assembly}  = $locus->assembly_id;
+            }
+            push @crispr_info, $crispr_detail;
         }
         $info->{crisprs} = \@crispr_info;
     }

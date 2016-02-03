@@ -205,21 +205,6 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.design_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 designs
 
 Type: has_many
@@ -396,8 +381,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rEg/Qmh+J1NoGFmuARMF7w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dccE/Jb8/VJNAYtYWRq2vw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -413,6 +398,11 @@ __PACKAGE__->many_to_many(
     "process_designs",
     "process"
 );
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 has 'info' => (
     is      => 'ro',
