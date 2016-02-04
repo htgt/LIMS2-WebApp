@@ -682,6 +682,10 @@ sub plate_species{
     return $self->last_known_plate->species;
 }
 
+sub plate_sponsor{
+    my $self = shift;
+    return $self->last_known_plate->sponsor_id;
+}
 has ancestors => (
     is         => 'ro',
     isa        => 'LIMS2::Model::ProcessGraph',
