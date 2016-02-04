@@ -239,7 +239,7 @@ sub render_crispr {
             $pgraph->log->debug( "Adding $well to GraphViz" );
             $graph->add_node(
                 name   => $well->as_string,
-                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate_type, LIMS2::Model::ProcessGraph::process_data_for($well) ],
                 URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
                 target => '_blank',
             );

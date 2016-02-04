@@ -30,7 +30,7 @@ sub update_assembly_qc_well{
 
     my $well = $self->retrieve_well({ id => $validated_params->{well_id} });
 
-    my $plate_type = $well->plate->type_id;
+    my $plate_type = $well->plate_type;
     unless($plate_type eq 'ASSEMBLY'){
     	die "Cannot add assembly well QC to well $well on $plate_type plate";
     }

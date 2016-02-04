@@ -544,7 +544,7 @@ sub start_doubling_well_barcode{
     my $validated_params = $model->check_params($params, pspec_start_doubling_well_barcode);
 
     my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
-    my $plate_type = $well_barcode->well->plate->type_id;
+    my $plate_type = $well_barcode->well->plate_type;
 
     die "Cannot start doubling well from $plate_type plate (must be PIQ)\n" unless $plate_type eq "PIQ";
 
@@ -834,7 +834,7 @@ sub create_barcoded_plate_copy{
 
 sub _check_consistent_type{
     my ($plate_type, $well) = @_;
-    my $type = $well->plate->type_id;
+    my $type = $well->plate_type;
     $$plate_type ||= $type;
     die "All wells on plate must be of the same type" unless $type eq $$plate_type;
     return;

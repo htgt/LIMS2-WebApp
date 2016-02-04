@@ -808,7 +808,7 @@ sub update_well_colony_picks{
         }
     );
     $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+    unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
     foreach my $colony_type (@colony_types){
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
@@ -864,7 +864,7 @@ sub get_well_colony_pick_fields_values {
         my $well = $self->retrieve_well( $params );
 
         $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+        unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
         @colony_data = $well->well_colony_counts;
 
@@ -1366,9 +1366,9 @@ sub create_well_lab_number {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     # check plate type is PIQ
-    if ( $well->plate->type_id ne 'PIQ' ) {
+    if ( $well->plate_type ne 'PIQ' ) {
         $self->throw( Validation => 'Well' . $well . ' must have a plate type of PIQ, this plate is type '
-                    . $well->plate->type_id );
+                    . $well->plate_type );
     }
 
     # check that well does not already have an attached lab number

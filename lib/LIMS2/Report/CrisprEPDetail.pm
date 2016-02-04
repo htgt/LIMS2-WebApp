@@ -109,8 +109,8 @@ sub build_ep_detail {
 
                 next if !$vector_well;
 
-                my $vector_well_type = $vector_well->plate->type_id;
-                if ($vector_well->plate->type_id eq 'FINAL_PICK') {
+                my $vector_well_type = $vector_well->plate_type;
+                if ($vector_well->plate_type eq 'FINAL_PICK') {
                     $wells->{'vector'} = $vector_well;
                     $wells->{'vector_dna'} = $dna_well;
                 } else {

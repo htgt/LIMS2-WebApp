@@ -238,7 +238,7 @@ sub _process_concentration_data{
         );
     }
     my ($input_well) = $well->ancestors->input_wells($well);
-    my $plate_type = $input_well->plate->type_id;
+    my $plate_type = $input_well->plate_type;
     my $species = $input_well->plate->species_id;
     my $minimum;
     try{
