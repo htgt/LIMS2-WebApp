@@ -198,8 +198,8 @@ sub _freeze_back_fp_barcodes{
     foreach my $well ($plate->wells){
         my ($parent_well) = $well->parent_wells;
         next unless $parent_well->plate_type eq 'FP';
-        if($parent_well->well_barcode){
-            push @barcodes, $parent_well->well_barcode->barcode;
+        if($parent_well->barcode){
+            push @barcodes, $parent_well->barcode;
         }
     }
 

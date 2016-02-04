@@ -449,8 +449,8 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
                 $child_piq_count += $tmp_piq_plate->wells;
             }
 
-            if($output->{qc_well}->well_barcode){
-                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->well_barcode->barcode;
+            if($output->{qc_well}->barcode){
+                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->barcode;
             }
         }
 
