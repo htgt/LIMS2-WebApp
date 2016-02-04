@@ -151,7 +151,7 @@ sub generate_summary_rows_for_all_trails {
 sub add_to_output_for_well {
     my $params = shift;
 
-    my $curr_plate_type_id = $params->{ curr_well }->plate->type->id;
+    my $curr_plate_type_id = $params->{ curr_well }->last_known_plate->type->id;
 
     # dispatch table
     my $dispatch_fetch_values = {

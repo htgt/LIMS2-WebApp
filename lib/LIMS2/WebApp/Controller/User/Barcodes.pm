@@ -1194,6 +1194,8 @@ sub _basic_well_display_details{
                                                                       : "" );
     $well_details->{barcode} = $well->barcode;
 
+    $well_details->{last_known_location} = $well->last_known_location_str;
+
     if($well->well_lab_number){
         $well_details->{lab_number} = $well->well_lab_number->lab_number;
     }

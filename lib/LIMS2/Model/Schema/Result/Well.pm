@@ -629,10 +629,16 @@ use overload '""' => \&as_string;
 sub as_string {
     my $self = shift;
 
-    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name;
+    if($self->plate){
+        $name = sprintf( '%s_%s', $self->plate->name, $self->name );
 
-    if($self->plate->version){
-        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+        if($self->plate->version){
+            $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+        }
+    }
+    else{
+        $name = 'Barcode:'.$self->barcode.'('.$self->barcode_state->id.')';
     }
     return $name;
 }
@@ -642,20 +648,23 @@ sub as_hash {
 
     return {
         id             => $self->id,
-        plate_name     => $self->plate->name,
-        plate_type     => $self->plate->type_id,
-        well_name      => $self->name,
+        plate_name     => $self->plate_name,
+        plate_type     => $self->last_known_plate->type_id,
+        well_name      => $self->name // '',
         created_by     => $self->created_by->name,
         created_at     => $self->created_at->iso8601,
         assay_pending  => $self->assay_pending ? $self->assay_pending->iso8601 : undef,
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
-        accepted       => $self->is_accepted
+        accepted       => $self->is_accepted,
+        barcode        => $self->barcode,
+        barcode_state  => $self->barcode_state->id,
+        last_known_location => $self->last_known_location_str,
     };
 }
 
 sub plate_name {
     my $self = shift;
-    return $self->plate->name;
+    return $self->plate ? $self->plate->name : '';
 }
 
 has ancestors => (
@@ -699,12 +708,63 @@ sub _build_is_double_targeted {
 
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while ( my $well = $it->next ) {
-        if ( $well->plate->type_id eq 'SEP' ) {
+        if ( $well->last_known_plate->type_id eq 'SEP' ) {
             return 1;
         }
     }
 
     return 0;
+}
+
+
+sub last_known_plate{
+    my $self = shift;
+
+    my $plate = $self->plate;
+    unless($plate){
+        # Well no longer on a plate so fetch last related
+        # plate from the barcode_events table
+        $plate = $self->last_known_location_event->old_plate;
+    }
+    return $plate;
+}
+
+sub last_known_well_name{
+    my $self = shift;
+
+    my $well_name = $self->name;
+    unless($well_name){
+        # Well no longer on a plate so fetch last related
+        # plate from the barcode_events table
+        $well_name = $self->last_known_location_event->old_well_name;
+    }
+    return $well_name;
+}
+
+sub last_known_location_str{
+    my $self = shift;
+
+    if(my $event = $self->last_known_location_event){
+        return sprintf( '%s_%s', $event->old_plate->name, $event->old_well_name );
+    }
+    return '';
+}
+
+sub last_known_location_event{
+    my $self = shift;
+    my $event;
+    if($self->barcode){
+        ($event) = $self->search_related('barcode_events',
+            {
+                old_plate_id => { '!=' => undef },
+                new_plate_id => undef,
+            },
+            {
+                order_by => { -desc => [qw/created_at id/] }
+            }
+        );
+    }
+    return $event;
 }
 
 # if this well has a global arm shortened design then
@@ -820,7 +880,7 @@ sub vector_recombinases {
 
     while( my $this_well = $it->next ) {
         # check plate type
-        my $this_well_plate_type = $this_well->plate->type_id;
+        my $this_well_plate_type = $this_well->last_known_plate->type_id;
         #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
         if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
             for my $process ( $self->ancestors->input_processes( $this_well ) ) {
@@ -847,7 +907,7 @@ sub cell_recombinases {
 
     while( my $this_well = $it->next ) {
         # check plate type
-        my $this_well_plate_type = $this_well->plate->type_id;
+        my $this_well_plate_type = $this_well->last_known_plate->type_id;
         #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
         if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
             for my $process ( $self->ancestors->input_processes( $this_well ) ) {
@@ -1005,7 +1065,7 @@ sub first_allele {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id eq 'XEP' ) {
+        if ( $input->last_known_plate->type_id eq 'XEP' ) {
             return $input;
         }
     }
@@ -1022,7 +1082,7 @@ sub second_allele {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id ne 'XEP' ) {
+        if ( $input->last_known_plate->type_id ne 'XEP' ) {
             return $input;
         }
     }
@@ -1040,7 +1100,7 @@ sub final_vector {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if (  $ancestor->plate->type_id eq 'FINAL' || $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+        if (  $ancestor->last_known_plate->type_id eq 'FINAL' || $ancestor->last_known_plate->type_id eq 'FINAL_PICK' ) {
             return $ancestor;
         }
     }
@@ -1061,7 +1121,7 @@ sub first_dna {
     else {
         my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
         while( my $ancestor = $ancestors->next ) {
-            if ( $ancestor->plate->type_id eq 'DNA' ) {
+            if ( $ancestor->last_known_plate->type_id eq 'DNA' ) {
                 return $ancestor;
             }
         }
@@ -1078,7 +1138,7 @@ sub second_dna {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id eq 'DNA' ) {
+        if ( $input->last_known_plate->type_id eq 'DNA' ) {
             return $input;
         }
     }
@@ -1097,7 +1157,7 @@ sub first_ep {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'EP' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'EP' ) {
             return $ancestor;
         }
     }
@@ -1113,7 +1173,7 @@ sub first_ep_pick {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'EP_PICK' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'EP_PICK' ) {
             return $ancestor;
         }
     }
@@ -1129,11 +1189,11 @@ sub is_epd_or_later {
   my $self = shift;
 
   #epd is ok with us
-  return $self if $self->plate->type_id eq 'EP_PICK';
+  return $self if $self->last_known_plate->type_id eq 'EP_PICK';
 
   my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
   while ( my $ancestor = $ancestors->next ) {
-    return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
+    return $ancestor if $ancestor->last_known_plate->type_id eq 'EP_PICK';
   }
 
   #we didn't find any ep picks further up so its not
@@ -1159,7 +1219,7 @@ sub second_ep {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SEP' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'SEP' ) {
             return $ancestor;
         }
     }
@@ -1176,7 +1236,7 @@ sub get_input_wells_as_string {
 
     foreach my $process ($well->parent_processes){
         foreach my $input ($process->input_wells){
-	    		my $plate_name = $input->plate->name;
+	    		my $plate_name = $input->plate_name;
                 my $well_name = $input->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
                 $parents = !$parents ? $specification : join q{ }, ( $parents, $specification );
@@ -1192,7 +1252,7 @@ sub get_output_wells_as_string {
 
     foreach my $process ($well->child_processes){
         foreach my $output ($process->output_wells){
-          my $plate_name = $output->plate->name;
+          my $plate_name = $output->plate_name;
                 my $well_name = $output->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
                 $children = !$children ? $specification : join q{ }, ( $children, $specification );
@@ -1207,7 +1267,7 @@ sub second_ep_pick {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SEP_PICK' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'SEP_PICK' ) {
             return $ancestor;
         }
     }
@@ -1223,7 +1283,7 @@ sub freezer_instance {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SFP' ||  $ancestor->plate->type_id eq 'FP' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'SFP' ||  $ancestor->last_known_plate->type_id eq 'FP' ) {
             return $ancestor;
         }
     }
@@ -1240,7 +1300,7 @@ sub descendant_piq {
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
   		while( my $descendant = $descendants->next ) {
-  			if ( $descendant->plate->type_id eq 'PIQ' ) {
+  			if ( $descendant->last_known_plate->type_id eq 'PIQ' ) {
   				return $descendant;
   			}
   		}
@@ -1257,7 +1317,7 @@ sub ancestor_piq {
     if ( defined $ancestors ) {
       $ancestors->next;
       while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'PIQ' ) {
           return $ancestor;
         }
       }
@@ -1272,7 +1332,7 @@ sub barcoded_descendant_of_type{
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ){
       while( my $descendant = $descendants->next ){
-        if( ($descendant->plate->type_id eq $type) and $descendant->barcode ){
+        if( ($descendant->last_known_plate->type_id eq $type) and $descendant->barcode ){
           return $descendant;
         }
       }
@@ -1309,7 +1369,7 @@ sub descendants_of_type{
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
       while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq $type ) {
+        if ( $descendant->last_known_plate->type_id eq $type ) {
           push @results, $descendant;
         }
       }
@@ -1329,7 +1389,7 @@ sub parent_crispr_wells {
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     if ( defined $ancestors ) {
       while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'CRISPR' ) {
           push @crisprs, $ancestor;
         }
       }
@@ -1351,10 +1411,10 @@ sub parent_crispr_vectors {
     my @parents;
     my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'CRISPR_V' ) {
 
             # Ignore CRISPR_V well if it does not have any DNA child wells..
-            if ( grep { $_->plate->type_id eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
+            if ( grep { $_->last_known_plate->type_id eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
                 push ( @parents, $ancestor );
             }
         }
@@ -1371,14 +1431,14 @@ sub parent_crispr_vectors {
 
 sub parent_assembly_well{
     my $self = shift;
-    if ( $self->plate->type_id eq 'ASSEMBLY' || $self->plate->type_id eq 'OLIGO_ASSEMBLY' ) {
+    if ( $self->last_known_plate->type_id eq 'ASSEMBLY' || $self->last_known_plate->type_id eq 'OLIGO_ASSEMBLY' ) {
         return $self;
     }
     else{
         my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
         while( my $ancestor = $ancestors->next ) {
-            if (   $ancestor->plate->type_id eq 'ASSEMBLY'
-                || $ancestor->plate->type_id eq 'OLIGO_ASSEMBLY' )
+            if (   $ancestor->last_known_plate->type_id eq 'ASSEMBLY'
+                || $ancestor->last_known_plate->type_id eq 'OLIGO_ASSEMBLY' )
             {
                 return $ancestor;
             }
@@ -1635,7 +1695,7 @@ sub input_process_parameters_skip_versioned_plates{
     $parameters ||= {};
     foreach my $process ($self->parent_processes){
         my ($input_well) = $process->input_wells;
-        if($input_well->plate->version and $process->type_id eq 'rearray'){
+        if($input_well->last_known_plate->version and $process->type_id eq 'rearray'){
             DEBUG ("process input well $input_well is versioned."
                     ."skipping this process in search for process parameters");
             $input_well->input_process_parameters_skip_versioned_plates($parameters);
@@ -1683,9 +1743,9 @@ sub genotyping_info {
   my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
   # Add some extra info about which well the reported QC comes from
-  $qc_info->{qc_plate_name} = $parent_qc_well->plate->name;
+  $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
   $qc_info->{qc_well_name} = $parent_qc_well->name;
-  $qc_info->{qc_plate_type} = $parent_qc_well->plate->type_id;
+  $qc_info->{qc_plate_type} = $parent_qc_well->last_known_plate->type_id;
   if($qc_info->{qc_plate_type} eq 'EP_PICK'){
       $qc_info->{qc_type} = 'Primary QC';
   }
@@ -1729,10 +1789,10 @@ sub genotyping_info {
       design_id        => $design->id,
       well_id          => $self->id,
       well_name        => $self->name,
-      plate_name       => $self->plate->name,
-      epd_plate_name   => $epd->plate->name,
+      plate_name       => $self->plate_name,
+      epd_plate_name   => $epd->plate_name,
       accepted         => $epd->accepted,
-      targeting_vector => $vector_well->plate->name,
+      targeting_vector => $vector_well->plate_name,
       vector_cassette  => $vector_well->cassette->name,
       primers          => \%primers,
       species          => $design->species_id,
@@ -1755,7 +1815,7 @@ sub ms_qc_data{
 
     my @ms_parent_child_wells = $ms_parent->child_wells_skip_versioned_plates;
     # Get QC results for MS_QC plates produced from the parent well
-    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } @ms_parent_child_wells;
+    my @ms_qc_wells = grep { $_->last_known_plate->type_id eq 'MS_QC' } @ms_parent_child_wells;
     foreach my $qc_well (@ms_qc_wells){
         DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
         my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
@@ -1882,7 +1942,7 @@ sub egel_pass_string {
 sub compute_final_pick_dna_well_accepted {
     my ( $self ) = @_;
 
-    return unless $self->plate->type_id eq 'DNA';
+    return unless $self->last_known_plate->type_id eq 'DNA';
 
     my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
 
@@ -1890,10 +1950,10 @@ sub compute_final_pick_dna_well_accepted {
     while ( my $ancestor = $ancestors->next ) {
 
         # Allow for rearraying of DNA plates
-        next if $ancestor->plate->type_id eq 'DNA';
+        next if $ancestor->last_known_plate->type_id eq 'DNA';
 
         # Check plate type of parent well
-        if ( $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+        if ( $ancestor->last_known_plate->type_id eq 'FINAL_PICK' ) {
             $final_pick_parent = $ancestor;
             DEBUG("Found final pick parent ".$ancestor->as_string);
             last;

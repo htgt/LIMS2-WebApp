@@ -35,7 +35,7 @@ sub pspec_create_well_barcode {
     return {
         well_id => { validate => 'integer' },
         barcode => { validate => 'well_barcode' },
-        state   => { validate => 'alphanumeric_string' },
+        state   => { validate => 'alphanumeric_string', rename => 'barcode_state' },
         comment => { validate => 'non_empty_string', optional => 1 },
         user    => { validate => 'existing_user', optional => 1 },
         DEPENDENCY_GROUPS => { comment_group => [qw( comment user )] },
@@ -75,12 +75,14 @@ sub create_well_barcode {
 
 sub pspec_update_well_barcode {
     return {
-        barcode      => { validate => 'well_barcode'},
-        new_well_id  => { validate => 'integer', optional => 1 },
-        new_state    => { validate => 'alphanumeric_string', optional => 1 },
-        comment      => { validate => 'non_empty_string', optional => 1 },
-        user         => { validate => 'existing_user' },
-        REQUIRE_SOME => { new_well_id_or_state => [1, qw(new_well_id new_state)]},
+        barcode       => { validate => 'well_barcode'},
+        new_well_name => { validate => 'well_name', optional => 1 },
+        new_plate_id  => { validate => 'existing_plate_id', optional => 1 },
+        new_state     => { validate => 'alphanumeric_string', optional => 1 },
+        comment       => { validate => 'non_empty_string', optional => 1 },
+        user          => { validate => 'existing_user' },
+        REQUIRE_SOME  => { new_well_name_or_state => [1, qw(new_well_name new_state)]},
+        MISSING_OPTIONAL_VALID => 1,
     };
 }
 
@@ -90,31 +92,37 @@ sub update_well_barcode {
 
     my $validated_params = $self->check_params( $params, $self->pspec_update_well_barcode );
 
-    my $barcode = $self->retrieve_well_barcode({ barcode => $validated_params->{barcode}})
-        or $self->throw( NotFound => { entity_class => 'WellBarcode', search_params => $params } );
+    my $well = $self->retrieve_well_barcode({ barcode => $validated_params->{barcode}})
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $params } );
 
-    my $old_state = $barcode->barcode_state->id;
-    my $old_well_id = $barcode->well_id;
+    my $old_state = $well->barcode_state->id;
+    my $old_well_name = $well->name;
+    my $old_plate_id = $well->plate_id;
 
-    if(defined $validated_params->{new_well_id}){
-        $barcode->update({ well_id => $validated_params->{new_well_id} });
+    if(exists $validated_params->{new_well_name}){
+        $well->update({
+            name     => $validated_params->{new_well_id},
+            plate_id => $validated_params->{new_plate_id},
+        });
     }
 
     if(defined $validated_params->{new_state}){
-        $barcode->update({ barcode_state => $validated_params->{new_state} });
+        $well->update({ barcode_state => $validated_params->{new_state} });
     }
 
     $self->create_well_barcode_event({
         barcode     => $validated_params->{barcode},
         old_state   => $old_state,
-        new_state   => $barcode->barcode_state->id,
-        old_well_id => $old_well_id,
-        new_well_id => $barcode->well_id,
-        user        => $validated_params->{user},
-        comment     => $validated_params->{comment},
+        new_state   => $well->barcode_state->id,
+        old_well_name => $old_well_name,
+        new_well_name => $well->name,
+        old_plate_id  => $old_plate_id,
+        new_plate_id  => $well->plate_id,
+        user          => $validated_params->{user},
+        comment       => $validated_params->{comment},
     });
 
-    return $barcode;
+    return $well;
 }
 
 sub pspec_create_well_barcode_event {
@@ -122,8 +130,10 @@ sub pspec_create_well_barcode_event {
         barcode      => { validate => 'well_barcode'},
         old_state    => { validate => 'alphanumeric_string', optional => 1 },
         new_state    => { validate => 'alphanumeric_string', optional => 1 },
-        old_well_id  => { validate => 'integer', optional => 1 },
-        new_well_id  => { validate => 'integer', optional => 1 },
+        old_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        new_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        old_well_name => { validate => 'well_name', optional => 1 },
+        new_well_name => { validate => 'well_name', optional => 1 },
         comment      => { validate => 'non_empty_string', optional => 1 },
         user         => { validate => 'existing_user', rename => 'created_by', post_filter => 'user_id_for' },
     };
@@ -134,12 +144,7 @@ sub create_well_barcode_event {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_barcode_event );
 
-    my $event = $self->schema->resultset('BarcodeEvent')->create({
-        slice_def(
-            $validated_params,
-            qw( barcode old_state new_state old_well_id new_well_id comment created_by )
-        )
-    });
+    my $event = $self->schema->resultset('BarcodeEvent')->create($validated_params);
 
     return $event;
 }

@@ -53,23 +53,23 @@ sub add_barcodes_to_wells{
 
         die "No barcode provided for well $well_name\n" unless $barcode;
 
-        my $existing_barcode = $model->schema->resultset('WellBarcode')->search({
+        my $existing_barcode_well = $model->schema->resultset('Well')->search({
             barcode => $barcode,
         })->first;
 
-        if($existing_barcode){
-            die "Barcode $barcode entered for $well_name already exists at ".$existing_barcode->well->as_string;
+        if($existing_barcode_well){
+            die "Barcode $barcode entered for $well_name already exists at ".$existing_barcode_well->as_string;
         }
 
-        my $well_barcode = $model->create_well_barcode({
+        $well = $model->create_well_barcode({
             well_id => $well_id,
             barcode => $barcode,
             state   => $state,
         });
 
-        push @messages, "Barcode ".$well_barcode->barcode
+        push @messages, "Barcode ".$well->barcode
                         ." added to well $well_name"
-                        ." with state ".$well_barcode->barcode_state->id;
+                        ." with state ".$well->barcode_state->id;
     }
 
     return \@messages;
@@ -89,23 +89,15 @@ sub checkout_well_barcode{
 
     # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
 
-    my $well_bc = $model->update_well_barcode({
-        barcode   => $validated_params->{barcode},
-        new_state => 'checked_out',
-        user      => $validated_params->{user},
+    my $well = $model->update_well_barcode({
+        barcode       => $validated_params->{barcode},
+        new_state     => 'checked_out',
+        user          => $validated_params->{user},
+        new_well_name => undef,
+        new_plate_id  => undef,
     });
 
-    my $plate = $well_bc->well->plate;
-    unless($plate->is_virtual){
-        remove_well_barcodes_from_plate(
-            $model,
-            [ $validated_params->{barcode} ],
-            $plate,
-            $validated_params->{user}
-        );
-    }
-
-    return $well_bc;
+    return $well;
 }
 
 sub pspec_checkout_well_barcode_list{
@@ -122,7 +114,6 @@ sub checkout_well_barcode_list{
 
     # FIXME: check barcode is "in_freezer" before doing checkout? or is this too strict
 
-    # checkout one by one then remove from source plates in batch
     my $barcode_list = [];
     if (ref $validated_params->{barcode_list} eq ref []){
         $barcode_list = $validated_params->{barcode_list};
@@ -132,40 +123,23 @@ sub checkout_well_barcode_list{
     }
 
     my @messages;
-    my $barcodes_to_remove_from_plate = {};
 
     foreach my $barcode (@$barcode_list){
         DEBUG("checking out barcode $barcode");
-        my $well_bc = $model->update_well_barcode({
+        my $well = $model->retrieve_well({ barcode => $barcode });
+        my $orig_well_location = $well->as_string;
+
+        $model->checkout_well_barcode({
             barcode   => $barcode,
-            new_state => 'checked_out',
             user      => $validated_params->{user},
         });
 
-        push @messages, "Barcode $barcode checked out from well ".$well_bc->well->as_string;
-
-        # Store list of barcodes to remove from each non-virtual plate
-        my $plate = $well_bc->well->plate;
-        unless($plate->is_virtual){
-            $barcodes_to_remove_from_plate->{$plate->id} ||= [];
-            push @{ $barcodes_to_remove_from_plate->{$plate->id} }, $barcode;
-        }
-    }
-
-    foreach my $plate_id (keys %$barcodes_to_remove_from_plate){
-        my $plate = $model->retrieve_plate({ id => $plate_id });
-        DEBUG("removing checked out barcodes from plate ".$plate->as_string);
-        remove_well_barcodes_from_plate(
-            $model,
-            $barcodes_to_remove_from_plate->{$plate_id},
-            $plate,
-            $validated_params->{user}
-        );
-        push @messages, "Plate ".$plate->name." layout updated";
+        push @messages, "Barcode $barcode checked out from well $orig_well_location";
     }
 
     return \@messages;
 }
+
 sub pspec_do_picklist_checkout{
     return {
         id    => { validate => 'integer' },
@@ -254,25 +228,25 @@ sub freeze_back_fp_barcode{
     my $barcode = $validated_params->{barcode};
 
     # Fetch FP well_barcode
-    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+    my $bc_well = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
 
     my @freeze_back_outputs;
     foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
         $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_fp_barcode_qc_well);
 
         # Fetch QC PIQ plate or create it if not found
-        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc_well,$validated_params);
 
         # Create the QC PIQ well
         my $process_data = {
             type        => 'dist_qc',
-            input_wells => [ { id => $bc->well->id } ],
+            input_wells => [ { id => $bc_well->id } ],
         };
         if($validated_params->{lab_number}){
             $process_data->{lab_number} = $validated_params->{lab_number};
         }
 
-        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc_well, $process_data, $validated_params);
         push @freeze_back_outputs, {
             qc_well => $qc_well,
             tmp_piq_plate => $tmp_piq_plate,
@@ -290,25 +264,25 @@ sub piq_expand_freeze_back_barcode{
     my $barcode = $validated_params->{barcode};
 
     # Fetch well_barcode
-    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+    my $bc_well = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
 
     my @freeze_back_outputs;
     foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
         $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_barcode_common);
 
         # Fetch QC PIQ plate or create it if not found
-        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc_well,$validated_params);
 
         # Create the QC PIQ well
         my $process_data = {
             type        => 'rearray',
-            input_wells => [ { id => $bc->well->id } ],
+            input_wells => [ { id => $bc_well->id } ],
         };
         if($validated_params->{lab_number}){
             $process_data->{lab_number} = $validated_params->{lab_number};
         }
 
-        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc_well, $process_data, $validated_params);
         push @freeze_back_outputs, {
             qc_well => $qc_well,
             tmp_piq_plate => $tmp_piq_plate,
@@ -324,11 +298,11 @@ sub freeze_back_piq_barcode{
 
     my $barcode = $validated_params->{barcode};
 
-    my $bc = _fetch_barcode_for_freeze_back($model,$barcode,'doubling_in_progress');
+    my $bc_well = _fetch_barcode_for_freeze_back($model,$barcode,'doubling_in_progress');
 
     # Find the incomplete doubling process, get the oxygen condition
     # then delete the process
-    my $incomplete_doubling = _get_incomplete_doubling_process($bc);
+    my $incomplete_doubling = _get_incomplete_doubling_process($bc_well);
 
     my $oxygen_condition = $incomplete_doubling->get_parameter_value('oxygen_condition');
     DEBUG "Deleting incomplete doubling process with oxygen condition $oxygen_condition";
@@ -340,12 +314,12 @@ sub freeze_back_piq_barcode{
     foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
         $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_piq_barcode_qc_well);
 
-        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc_well,$validated_params);
 
         # Create the QC PIQ well as output of a new doubling process
         my $process_data = {
             type             => 'doubling',
-            input_wells      => [ { id => $bc->well->id } ],
+            input_wells      => [ { id => $bc_well->id } ],
             oxygen_condition => $oxygen_condition,
             doublings        => $number_of_doublings,
         };
@@ -353,7 +327,7 @@ sub freeze_back_piq_barcode{
             $process_data->{lab_number} = $validated_params->{lab_number};
         }
 
-        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc, $process_data, $validated_params);
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc_well, $process_data, $validated_params);
 
         # Add barcode to the QC PIQ well
         # FIXME: what should the barcode state be for the QC PIQ pellet
@@ -374,22 +348,22 @@ sub freeze_back_piq_barcode{
 sub _fetch_barcode_for_freeze_back{
     my ($model, $barcode, $expected_state) = @_;
 
-    my $bc = $model->retrieve_well_barcode({
+    my $well = $model->retrieve_well_barcode({
         barcode => $barcode,
     });
 
-    die "Barcode $barcode not found\n" unless $bc;
+    die "Barcode $barcode not found\n" unless $well;
 
-    my $state = $bc->barcode_state->id;
+    my $state = $well->barcode_state->id;
     unless ($state eq $expected_state){
         die "Cannot freeze back barcode $barcode as it is not $expected_state (state: $state)\n"
     }
 
-    return $bc;
+    return $well;
 }
 
 sub _fetch_qc_piq_for_freeze_back{
-    my ($model, $bc, $validated_params) = @_;
+    my ($model, $well, $validated_params) = @_;
 
     my $qc_plate = $model->schema->resultset('Plate')->search({
         name => $validated_params->{qc_piq_plate_name},
@@ -405,7 +379,7 @@ sub _fetch_qc_piq_for_freeze_back{
     else{
         $qc_plate = $model->create_plate({
             name       => $validated_params->{qc_piq_plate_name},
-            species    => $bc->well->plate->species_id,
+            species    => $well->last_known_plate->species_id,
             type       => 'PIQ',
             created_by => $validated_params->{user},
         });
@@ -415,11 +389,11 @@ sub _fetch_qc_piq_for_freeze_back{
 }
 
 sub _get_incomplete_doubling_process{
-    my ($bc) = @_;
+    my ($bc_well) = @_;
 
-    my $barcode = $bc->barcode;
+    my $barcode = $bc_well->barcode;
     my $incomplete_doubling;
-    foreach my $process (_get_doubling_processes($bc)){
+    foreach my $process (_get_doubling_processes($bc_well)){
         my @output_wells = $process->output_wells;
         next if @output_wells;
 
@@ -435,9 +409,9 @@ sub _get_incomplete_doubling_process{
 }
 
 sub _get_doubling_processes{
-    my ($bc) = @_;
+    my ($bc_well) = @_;
     my @doubling_processes;
-    foreach my $process ($bc->well->child_processes){
+    foreach my $process ($bc_well->child_processes){
         next unless $process->type_id eq 'doubling';
         push @doubling_processes, $process;
     }
@@ -445,8 +419,8 @@ sub _get_doubling_processes{
 }
 
 sub _create_qc_piq_and_child_wells{
-    my ($model, $qc_plate, $bc, $process_data, $validated_params) = @_;
-DEBUG Dumper($validated_params);
+    my ($model, $qc_plate, $bc_well, $process_data, $validated_params) = @_;
+
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
@@ -479,7 +453,7 @@ DEBUG Dumper($validated_params);
         my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
         $tmp_piq_plate = $model->create_plate({
             name       => $random_name,
-            species    => $bc->well->plate->species_id,
+            species    => $bc_well->last_known_plate->species_id,
             type       => 'PIQ',
             created_by => $validated_params->{user},
             wells      => \@child_well_data,
@@ -492,18 +466,9 @@ DEBUG Dumper($validated_params);
         barcode   => $validated_params->{barcode},
         new_state => 'frozen_back',
         user      => $validated_params->{user},
+        new_plate_id  => undef,
+        new_well_name => undef,
     });
-
-    # remove frozen_back barcode from original plate (by creating new version)
-    # unless well was already on a virtual plate
-    unless($bc->well->plate->is_virtual){
-        remove_well_barcodes_from_plate(
-            $model,
-            [ $validated_params->{barcode} ],
-            $bc->well->plate,
-            $validated_params->{user}
-        );
-    }
 
     return ($qc_well, $tmp_piq_plate);
 }
@@ -523,29 +488,16 @@ sub discard_well_barcode{
     my $validated_params = $model->check_params($params, pspec_discard_well_barcode);
 
 	  # set well barcode state to "discarded" (use update_well_barcode from model plugin)
-    my $bc = $model->update_well_barcode({
+    my $well = $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'discarded',
         user      => $validated_params->{user},
         comment   => $validated_params->{reason},
+        new_plate_id  => undef,
+        new_well_name => undef,
     });
 
-	  # find plate on which barcode well resides
-    my $plate = $bc->well->plate;
-
-	# remove_well_barcodes_from_plate(wells,plate,comment,user)
-    # unless it was already on virtual plate
-    my $new_plate = $plate;
-    unless($plate->is_virtual){
-        $new_plate = remove_well_barcodes_from_plate(
-            $model,
-            [ $validated_params->{barcode} ],
-            $plate,
-            $validated_params->{user}
-        );
-    }
-
-    return $new_plate;
+    return $well;
 }
 
 sub pspec_send_out_well_barcode{
@@ -561,35 +513,23 @@ sub send_out_well_barcode{
 
     my $validated_params = $model->check_params($params, pspec_send_out_well_barcode);
 
-    my $well_barcode = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
-    my $plate_type = $well_barcode->well->plate->type_id;
+    my $well = $model->retrieve_well_barcode({ barcode => $validated_params->{barcode} });
+    my $plate_type = $well->last_known_plate->type_id;
 
     die "Cannot send out well from $plate_type plate (must be PIQ)\n" unless $plate_type eq "PIQ";
 
-    my $bc = $model->update_well_barcode({
+    $well = $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'sent_out',
         user      => $validated_params->{user},
         comment   => $validated_params->{comment},
+        new_well_name => undef,
+        new_plate_id  => undef,
     });
 
-    my $plate = $bc->well->plate;
-
-    # remove_well_barcodes_from_plate(wells,plate,comment,user)
-    # unless it was already on virtual plate
-    my $new_plate = $plate;
-    unless($plate->is_virtual){
-        $new_plate = remove_well_barcodes_from_plate(
-            $model,
-            [ $validated_params->{barcode} ],
-            $plate,
-            $validated_params->{user}
-        );
-    }
-
-    return $new_plate;
+    return $well;
 }
-
+################################ Continue refactoring barcoding from here
 sub pspec_start_doubling_well_barcode{
     return {
         barcode  => { validate => 'well_barcode' },
