@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.368';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.369';
 }
 ## use critic
 
@@ -207,9 +207,9 @@ sub build_eng_seq_params_from_loci{
         #fusion added
         elsif ( $type eq 'fusion-deletion') {
             $params->{five_arm_start}  = $loci->{'f5F'}->{chr_start};
-            $params->{five_arm_end}    = $loci->{'f3R'}->{chr_end};
-            $params->{three_arm_start} = $loci->{'U5'}->{chr_start};
-            $params->{three_arm_end}   = $loci->{'D3'}->{chr_end};
+            $params->{five_arm_end}    = $loci->{'U5'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'D3'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'f3R'}->{chr_end};
         }
         #End of
         else {
@@ -228,10 +228,10 @@ sub build_eng_seq_params_from_loci{
         }
         #fusion added
         elsif ( $type eq 'fusion-deletion') {
-            $params->{five_arm_start}  = $loci->{'f3R'}->{chr_start};
+            $params->{five_arm_start}  = $loci->{'U5'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'f5F'}->{chr_end};
-            $params->{three_arm_start} = $loci->{'D3'}->{chr_start};
-            $params->{three_arm_end}   = $loci->{'U5'}->{chr_end};
+            $params->{three_arm_start} = $loci->{'f3R'}->{chr_start};
+            $params->{three_arm_end}   = $loci->{'D3'}->{chr_end};
         }
         #End of
         else {
