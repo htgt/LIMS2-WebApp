@@ -111,7 +111,7 @@
         <tr>
             <th class="span2">ID</th>
             <th class="span3">Name</th>
-            <th>Created At</th>
+            <th>Results Imported Date</th>
         </tr>
     </thead>
     <tbody>
@@ -119,7 +119,7 @@
             <tr>
                 <th>[% result.id %]</th>
                 <th class=seqName>[% result.name %]</font></th>
-                <th>[% result.created_at %]</th>
+                <th>[% result.results_imported_date %]</th>
             </tr>
         [% END %]
     </tbody>
@@ -143,17 +143,12 @@ var tv;
 
 $(document).ready(function() {
   $(".seqName").click( function(e) {
-    console.log("Reach");
-    console.log(e.target.innerHTML);
     $("#sequencing_project").val(e.target.innerHTML);
     $("#sequencing_project").autocomplete("search");
   });
 
   $("#sequencing_sub_project").change(function() {
     var primer_data = $("#sequencing_sub_project option:selected").data();
-    console.log("selected option: " + $("#sequencing_sub_project option:selected").val() );
-    console.log("primer data for selected option:");
-    console.log(primer_data);
 
     if ( primer_data ) {
       var names = Object.keys(primer_data);
@@ -221,7 +216,6 @@ $(document).ready(function() {
        '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
        { term: ui.item.value },
        function (data) {
-          console.log(data);
 
           // remove any existing primer data form field and replace with new one
           $("#primer_data").remove();
@@ -274,18 +268,16 @@ $(document).click(function(event) {
     var text = $(event.target);
     
     if (window.getSelection && tv) {
-        adjustPane(userRange, text);
+        adjustPane(text);
     }
 
 });
 
-function adjustPane(userRange, text) {
+function adjustPane(text) {
     var userRange = window.getSelection().getRangeAt(0);
     var selection = userRange.startContainer.textContent;
     
-    text.closest("tr").css({"color": "red", "border": "2px solid red"});
     var tr = text.closest("tr");
-    console.log(tr);
     tr = tr.html();
     tr = tr.replace(/-/g,'N');
     var regex = /[ACTGN]+/g;

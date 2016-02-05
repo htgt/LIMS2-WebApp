@@ -48,11 +48,21 @@
         [%- END %]
           </select>
         [%- END %]
+        
+        
+        <label>Source DNA Cell Line</label>
+          <select name="source_dna">
+            <option value="" selected="selected">-</option>
+              [%- FOR line IN cell_lines %]
+                <option value="[% line %]">[% line %]</option>
+              [%- END %]
+          </select>
 
         [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
         <label>Well Data File</label>
         <input name="datafile" type="file">
+
 
         <label>Description</label>
         <input name="description" id="description" type="text"

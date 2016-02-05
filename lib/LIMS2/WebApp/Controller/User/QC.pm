@@ -884,7 +884,9 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{primer_data} = $c->req->param('primer_data');
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
-        { },
+        {
+            available_results => 'y'
+        },
         {
             rows => 20,
             order_by => {-desc => 'created_at'},
