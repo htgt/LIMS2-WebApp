@@ -67,7 +67,7 @@ sub _build_base_dir {
 sub create_design_plate :Path( '/user/create_design_plate' ) :Args(0){
     my ( $self, $c ) = @_;
 
-    my $cell_lines = $c->model('Golgi')->schema->resultset('SourceDnaCellLine')->search();
+    my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();
     my @lines;
     while (my $line = $cell_lines->next){
         push(@lines, $line->as_string);
@@ -310,7 +310,7 @@ sub _build_well_data {
     $well_data{well_name}    = $data->{well_name};
     $well_data{design_id}    = $data->{design_id};
     $well_data{process_type} = 'create_di';
-    $well_data{source_cell_line}    = $c->req->param("source_dna");
+    $well_data{dna_template}    = $c->req->param("source_dna");
 
     if ( $c->req->param('bacs') ) {
         my $bac_data = _build_bac_data( $c, $design );

@@ -111,7 +111,7 @@
         <tr>
             <th class="span2">ID</th>
             <th class="span3">Name</th>
-            <th>Created At</th>
+            <th>Results Imported Date</th>
         </tr>
     </thead>
     <tbody>
@@ -119,7 +119,7 @@
             <tr>
                 <th>[% result.id %]</th>
                 <th class=seqName>[% result.name %]</font></th>
-                <th>[% result.created_at %]</th>
+                <th>[% result.results_imported_date %]</th>
             </tr>
         [% END %]
     </tbody>

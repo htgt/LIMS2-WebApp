@@ -888,7 +888,7 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
-=head2 source_cell_line
+=head2 dna_template
 
   data_type: 'text'
   is_foreign_key: 1
@@ -1240,7 +1240,7 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "experiments",
   { data_type => "text", is_nullable => 1 },
-  "source_cell_line",
+  "dna_template",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -1258,18 +1258,18 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 source_cell_line
+=head2 dna_template
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::SourceDnaCellLine>
+Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "source_cell_line",
-  "LIMS2::Model::Schema::Result::SourceDnaCellLine",
-  { id => "source_cell_line" },
+  "dna_template",
+  "LIMS2::Model::Schema::Result::DnaTemplate",
+  { id => "dna_template" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -1279,8 +1279,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-28 10:26:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BfNkg8drxQ4v9qtKEJiA4g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 15:36:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:34Omhid/nOTAkd80kpDIUA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

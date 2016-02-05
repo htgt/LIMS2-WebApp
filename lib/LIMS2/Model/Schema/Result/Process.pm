@@ -51,7 +51,7 @@ __PACKAGE__->table("processes");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 source_cell_line
+=head2 dna_template
 
   data_type: 'text'
   is_foreign_key: 1
@@ -69,7 +69,7 @@ __PACKAGE__->add_columns(
   },
   "type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "source_cell_line",
+  "dna_template",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -86,6 +86,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 dna_template
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "dna_template",
+  "LIMS2::Model::Schema::Result::DnaTemplate",
+  { id => "dna_template" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 process_backbone
 
@@ -282,26 +302,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 source_cell_line
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::SourceDnaCellLine>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "source_cell_line",
-  "LIMS2::Model::Schema::Result::SourceDnaCellLine",
-  { id => "source_cell_line" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
 =head2 type
 
 Type: belongs_to
@@ -338,8 +338,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-28 10:26:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:beQFEctTsZ/hiQEQNbz5rw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 15:36:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z1vl6OgrpWG5QvFVcN7CoA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

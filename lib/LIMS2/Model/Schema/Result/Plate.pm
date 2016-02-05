@@ -305,6 +305,7 @@ sub as_hash {
     my $self = shift;
 
     return {
+        id          => $self->id,
         name        => $self->name,
         description => $self->description,
         type        => $self->type_id,
