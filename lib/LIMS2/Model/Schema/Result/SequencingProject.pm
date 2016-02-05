@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.362';
+    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.372';
 }
 ## use critic
 
@@ -191,9 +191,26 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-05 16:17:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cBwNx/xxXA6y6zPpOcPDSw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-04 16:10:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MdKvOOOkGfWTTxLczeaPaw
 
+sub as_hash {
+    my ( $self, $options ) = @_;
+
+    my %h = (
+        id                  => $self->id,
+        name                => $self->name,
+        created_by_id       => $self->created_by_id,
+        created_at          => $self->created_at,
+        sub_projects        => $self->sub_projects,
+        available_results   => $self->available_results,
+        abandoned           => $self->abandoned,
+        qc                  => $self->qc,
+        is_384              => $self->is_384,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.362';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.372';
 }
 ## use critic
 
@@ -460,7 +460,7 @@ sub crispr {
   my ( $rs, $prefetch );
   if ( $json->{is_pair} ) {
       $rs = 'CrisprPair';
-      $prefetch = [ 'left_crispr', 'right_crispr', 'crispr_designs' ];
+      $prefetch = [ 'left_crispr', 'right_crispr', 'experiments' ];
   }
   elsif ( $json->{is_group} ) {
       $rs = 'CrisprGroup';
@@ -468,7 +468,7 @@ sub crispr {
   }
   else {
       $rs = 'Crispr';
-      $prefetch = [ 'crispr_designs' ];
+      $prefetch = [ 'experiments' ];
   }
 
   $crispr = $self->result_source->schema->resultset($rs)->find(

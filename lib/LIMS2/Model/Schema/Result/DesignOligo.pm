@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.362';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.372';
 }
 ## use critic
 
@@ -230,6 +230,8 @@ my %OLIGO_STRAND_VS_DESIGN_STRAND = (
     "ER" => -1,
     "3F" => 1,
     "3R" => -1,
+    "f5F" => 1,
+    "f3R" => -1,
 );
 
 =head2 revcomp_seq
@@ -320,7 +322,6 @@ sub oligo_order_seq {
     my ( $self, $design_strand, $design_type ) = @_;
     $design_strand ||= $self->design->chr_strand;
     $design_type   ||= $self->design->design_type_id;
-
     # See comment above %OLIGO_STRAND_VS_DESIGN_STRAND for explanation
     my $oligo_strand = $OLIGO_STRAND_VS_DESIGN_STRAND{ $self->design_oligo_type_id };
     my $seq = $design_strand != $oligo_strand ? $self->revcomp_seq : $self->seq;
@@ -332,7 +333,7 @@ sub oligo_order_seq {
         $oligo_seq = $self->append_seq( $design_type ) . $seq;
     }
     elsif ( $design_type eq 'fusion-deletion' ) {
-        if ($self->design_oligo_type_id eq 'f5F' || $self->design_oligo_type_id eq 'D3') {
+        if ($self->design_oligo_type_id eq 'f5F' || $self->design_oligo_type_id eq 'f3R') {
             $oligo_seq = $self->append_seq( $design_type ) . $seq;
         }
         else {

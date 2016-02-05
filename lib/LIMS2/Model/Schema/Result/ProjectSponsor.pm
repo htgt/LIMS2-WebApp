@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProjectSponsor;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProjectSponsor::VERSION = '0.362';
+    $LIMS2::Model::Schema::Result::ProjectSponsor::VERSION = '0.372';
 }
 ## use critic
 
@@ -56,6 +56,11 @@ __PACKAGE__->table("project_sponsors");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 priority
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +68,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "sponsor_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "priority",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 UNIQUE CONSTRAINTS
@@ -114,8 +121,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-25 11:07:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mOv9J9/n9jSNDT/orHSBZg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 10:31:19
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3WOM8Z0i0NsiZHr924/6rQ
 
 __PACKAGE__->set_primary_key( qw/sponsor_id project_id/);
 

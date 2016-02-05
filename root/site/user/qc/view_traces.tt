@@ -1,5 +1,13 @@
 [% META title="View Sequencing Traces"; META tab_name = 'QC' %]
 
+<style type="text/css">
+.seqName {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+</style>
+
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css', {id=1} ) %]">
 
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
@@ -94,6 +102,29 @@
         [% END %]
     </tbody>
 </table>
+
+[% ELSE %]
+
+<table class="table span6 offset3" style="table-layout:fixed" align="center">
+    <thead>
+        <tr><th><h4>Recently Added</h4></th></tr>
+        <tr>
+            <th class="span2">ID</th>
+            <th class="span3">Name</th>
+            <th>Results Imported Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR result IN recent_results %]
+            <tr>
+                <th>[% result.id %]</th>
+                <th class=seqName>[% result.name %]</font></th>
+                <th>[% result.results_imported_date %]</th>
+            </tr>
+        [% END %]
+    </tbody>
+</table>
+
 [% END %]
 
 <script type="text/javascript" charset="utf-8">
@@ -108,13 +139,16 @@ if ( ! Object.keys ) {
   }
 }
 
+var tv;
+
 $(document).ready(function() {
+  $(".seqName").click( function(e) {
+    $("#sequencing_project").val(e.target.innerHTML);
+    $("#sequencing_project").autocomplete("search");
+  });
 
   $("#sequencing_sub_project").change(function() {
     var primer_data = $("#sequencing_sub_project option:selected").data();
-    console.log("selected option: " + $("#sequencing_sub_project option:selected").val() );
-    console.log("primer data for selected option:");
-    console.log(primer_data);
 
     if ( primer_data ) {
       var names = Object.keys(primer_data);
@@ -182,7 +216,6 @@ $(document).ready(function() {
        '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
        { term: ui.item.value },
        function (data) {
-          console.log(data);
 
           // remove any existing primer data form field and replace with new one
           $("#primer_data").remove();
@@ -205,9 +238,8 @@ $(document).ready(function() {
 
   $(".traces").click(function(e) {
     e.preventDefault();
-
     //the code for this is inside jquery.flot.traceviewer.js
-    var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
+    tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
   });
 
   // Decided not to do this as it takes ages to get them all
@@ -232,4 +264,80 @@ $(document).ready(function() {
   });
 
 });
+$(document).click(function(event) {
+    var text = $(event.target);
+    
+    if (window.getSelection && tv) {
+        adjustPane(text);
+    }
+
+});
+
+function adjustPane(text) {
+    var userRange = window.getSelection().getRangeAt(0);
+    var selection = userRange.startContainer.textContent;
+    
+    var tr = text.closest("tr");
+    tr = tr.html();
+    tr = tr.replace(/-/g,'N');
+    var regex = /[ACTGN]+/g;
+    var match;
+    var result = tr.match(regex);
+    result.shift(); result.shift();
+
+    var referencePoint = tv.plot._pos;
+    
+    var customSelection = window.getSelection().toString();
+    
+    var loc = findCoords(result, referencePoint, selection, userRange.startOffset);
+
+    if (customSelection) {
+        var customLength;
+        if (result.length > 1) {
+            customLength = loc + (customSelection.length * 12);
+            tv.moveToPoint(tv.plot, loc, customLength);
+        } else {
+            loc = (userRange.startOffset * 12) + 200;
+            customLength = loc + (customSelection.length * 12);
+            tv.moveToPoint(tv.plot, loc, customLength);
+        }
+    } else if (result.length > 1) {
+        tv.moveToPoint(tv.plot, loc - 125, loc + 125);  
+    } else {
+        loc = (userRange.startOffset * 12) + 200;
+        tv.moveToPoint(tv.plot, loc - 125, loc + 125);
+    }
+}
+
+function findCoords(seqs, point, selectedSeq, offset) {
+    var read = tv.plot._read;
+    var index;
+    seqs.forEach( function(seq, i) {
+        if (seq === selectedSeq) {
+            index = i;
+        }
+    });
+    var sizes = getSeqLengths(seqs);
+    var refLoc = sizes[0];
+    var total = 0;
+    while (index > 0) {
+        index--;
+        total += sizes[index];
+    }
+    total += offset;
+   
+    var cost = (total - refLoc) * 12;
+    cost = cost + Math.round(point);
+    return cost;
+}
+
+function getSeqLengths(seqs){
+    var sizes = [];
+    seqs.forEach( function(seq) { 
+        sizes.push(seq.length);
+    });
+    return sizes; 
+}
+
+
 </script>

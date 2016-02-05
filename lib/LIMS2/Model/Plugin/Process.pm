@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.362';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.372';
 }
 ## use critic
 
@@ -22,7 +22,8 @@ sub pspec_create_process {
     return {
         type         => { validate => 'existing_process_type' },
         input_wells  => { optional => 1 },
-        output_wells => { optional => 1 }
+        output_wells => { optional => 1 },
+        dna_template => { optional => 1 }, #TODO Change to existing_cell_line 
     };
 }
 
@@ -30,9 +31,8 @@ sub create_process {
     my ( $self, $params ) = @_;
     my $validated_params
         = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
-
     my $process
-        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type} } );
+        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type}, dna_template => $validated_params->{dna_template} } );
 
     link_process_wells( $self, $process, $validated_params );
 

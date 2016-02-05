@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.362';
+    $LIMS2::Test::VERSION = '0.372';
 }
 ## use critic
 
@@ -295,6 +295,7 @@ sub load_static_files {
             SequencingPrimerType
             SequencingProjectPrimer
             SequencingProjectTemplate
+            DnaTemplate
             )
     );
 
@@ -325,7 +326,7 @@ sub load_dynamic_files {
             DesignOligo
             DesignOligoLocus
             GeneDesign
-            CrisprDesign
+            Experiment
             BacClone
             BacCloneLocus
             Process
