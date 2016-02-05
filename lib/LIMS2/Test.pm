@@ -289,6 +289,7 @@ sub load_static_files {
             SequencingPrimerType
             SequencingProjectPrimer
             SequencingProjectTemplate
+            DnaTemplate
             )
     );
 
