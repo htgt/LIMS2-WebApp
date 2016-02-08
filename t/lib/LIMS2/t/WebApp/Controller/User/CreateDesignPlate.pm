@@ -27,7 +27,8 @@ sub all_tests  : Test(32)
 	ok my $res = $mech->submit_form(
 	    form_id => 'design_plate_create',
 	    fields  => {
-		plate_name   => 'DESIGN_TEST',
+            plate_name   => 'DESIGN_TEST',
+            source_dna  => 'BOB',
 	    },
 	    button  => 'create_plate'
 	), 'submit form without file';
@@ -47,7 +48,8 @@ sub all_tests  : Test(32)
 	ok my $res = $mech->submit_form(
 	    form_id => 'design_plate_create',
 	    fields  => {
-			datafile   => $test_file->filename
+			datafile   => $test_file->filename,
+            source_dna  => 'BOB',
 	    },
 	    button  => 'create_plate'
 	), 'submit form without plate name';
@@ -67,8 +69,9 @@ sub all_tests  : Test(32)
 	ok my $res = $mech->submit_form(
 	    form_id => 'design_plate_create',
 	    fields  => {
-		plate_name => 'DESIGN_TEST',
-		datafile   => $test_file->filename
+            plate_name => 'DESIGN_TEST',
+            datafile   => $test_file->filename,
+            source_dna  => 'BOB',
 	    },
 	    button  => 'create_plate'
 	), 'submit form with empty csv file';
@@ -92,8 +95,9 @@ sub all_tests  : Test(32)
 	ok my $res = $mech->submit_form(
 	    form_id => 'design_plate_create',
 	    fields  => {
-		plate_name => 'DESIGN_TEST',
-		datafile   => $test_file->filename
+            plate_name => 'DESIGN_TEST',
+            datafile   => $test_file->filename,
+            source_dna  => 'BOB',
 	    },
 	    button  => 'create_plate'
 	), 'submit form with valid well data file';
@@ -129,8 +133,9 @@ sub all_tests  : Test(32)
     ok my $res = $mech->submit_form(
     form_id => 'design_plate_create',
     fields => {
-    plate_name => 'DESIGN_TEST',
-    datafile => $test_file->filename
+        plate_name => 'DESIGN_TEST',
+        datafile => $test_file->filename,
+        source_dna  => 'BOB',
     },
     button => 'create_plate'
     ), 'submit form with valid well data file';
