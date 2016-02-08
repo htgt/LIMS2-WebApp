@@ -29,7 +29,7 @@ use LIMS2::Exception;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
 use Data::Dumper;
-use Array::Utils qw(array_minus);
+#use Array::Utils qw(array_minus);
 
 # Input: model, params from web form, state to create new barcodes with
 # Where form sends params named "barcode_<well_id>"
@@ -565,7 +565,7 @@ sub start_doubling_well_barcode{
         oxygen_condition => $validated_params->{oxygen_condition},
     });
 
-    return $new_plate;
+    return $well;
 }
 
 sub pspec_create_barcoded_plate{
@@ -597,8 +597,8 @@ sub create_barcoded_plate{
             or die "Method create_barcoded_plate cannot be used to add unknown barcode $barcode to plate ".$validated_params->{new_plate_name} ;
 
         # Some sanity checking to make sure we don't put different types and species on same plate
-        _check_consistent_type(\$plate_type,$bc->well);
-        _check_consistent_species(\$plate_species,$bc->well);
+        _check_consistent_type(\$plate_type,$well);
+        _check_consistent_species(\$plate_species,$well);
 
         unless($new_plate){
             my $create_params = {
@@ -661,10 +661,12 @@ sub update_barcoded_plate{
     my $plate_species = $plate->species_id;
 
     my @list_messages;
-    my @barcodes_on_orig_plate = grep { $_ } map { $_->barcode } $plate->wells;
-    my @barcodes_on_new_plate = values %{ $validated_params->{barcode_for_well} };
 
-    my @barcodes_to_remove = array_minus(@barcodes_on_orig_plate,@barcodes_on_new_plate);
+    # Identify barcodes which were on the orig plate but are not in the new scan
+    # Set these as checked_out and remove from plate
+    my @barcodes_on_orig_plate = grep { $_ } map { $_->barcode } $plate->wells;
+    my %barcodes_on_new_plate = map { $_ => 1 } values %{ $validated_params->{barcode_for_well} };
+    my @barcodes_to_remove = grep { !$barcodes_on_new_plate{$_} } @barcodes_on_orig_plate;
     foreach my $remove (@barcodes_to_remove){
         my $orig_well = $model->retrieve_well({ barcode => $remove });
         my $orig_well_name = $orig_well->as_string;
@@ -699,7 +701,7 @@ sub update_barcoded_plate{
 sub create_barcoded_plate_copy{
     my ($model, $params) = @_;
 
-    my $validated_params = $model->check_params($params, pspec_create_barcoded_plate_copy);
+    my $validated_params = $model->check_params($params);
 
     # Create the new plate with new wells parented by wells that each barcode is currently linked to
     my @wells;
