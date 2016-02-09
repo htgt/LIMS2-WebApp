@@ -27,6 +27,7 @@
             </a>
             </td>
         </tr>
+
 [% END %]
          <tr>
           <td>
@@ -88,7 +89,7 @@
           <td></td>
         </tr>
 [% END %]
-[% IF plate.type_id == 'DESIGN' %]
+[% IF plate.type_id == 'INT' %]
         <tr>
           <td>
             <strong>DNA Template</strong>
