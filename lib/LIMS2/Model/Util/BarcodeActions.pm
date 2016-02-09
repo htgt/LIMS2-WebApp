@@ -29,7 +29,6 @@ use LIMS2::Exception;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
 use Data::Dumper;
-#use Array::Utils qw(array_minus);
 
 # Input: model, params from web form, state to create new barcodes with
 # Where form sends params named "barcode_<well_id>"
@@ -574,7 +573,7 @@ sub pspec_create_barcoded_plate{
         barcode_for_well => { validate => 'hashref' },
         user             => { validate => 'existing_user' },
         comment          => { validate => 'non_empty_string', optional => 1 },
-        new_state        => { validate => 'non_empty_string', optional => 1 },
+        new_state        => { validate => 'non_empty_string', optional => 1, default => 'in_freezer' },
     }
 }
 
@@ -622,7 +621,7 @@ sub create_barcoded_plate{
 
         $model->update_well_barcode({
             barcode   => $barcode,
-            new_state => 'in_freezer',
+            new_state => $validated_params->{new_state},
             new_well_name => $well_name,
             new_plate_id  => $new_plate->id,
             user          => $validated_params->{user},
@@ -645,9 +644,8 @@ sub pspec_update_barcoded_plate{
         barcode_for_well => { validate => 'hashref' },
         user             => { validate => 'existing_user' },
         comment          => { validate => 'non_empty_string', optional => 1 },
-        wells_without_barcode  => { optional => 1 },
-        new_state        => { validate => 'non_empty_string', optional => 1 },
-    }
+        new_state        => { validate => 'non_empty_string', optional => 1, default => 'in_freezer' },
+    };
 }
 
 sub update_barcoded_plate{
@@ -686,186 +684,37 @@ sub update_barcoded_plate{
         };
     }
 
-    foreach my $well (keys %$barcode_for_well){
+    foreach my $well_name (keys %$barcode_for_well){
+        my $barcode = $barcode_for_well->{$well_name};
 
-        my $barcode = $barcode_for_well->{$well};
-    }
-}
-## no critic (ProhibitExcessComplexity)
+        # If the well does not have a barcode just leave it as is
+        next unless $barcode;
 
-# Generic method to create a new plate with barcodes at specified positions
-# Each barcode's current well location will be identified
-# New wells will be parented off them
-# Process is always rearray
-# well_barcode table will be updated (can provide comment for the barcode event table at this point if needed)
-sub create_barcoded_plate_copy{
-    my ($model, $params) = @_;
+        my $orig_well = $model->retrieve_well({ barcode => $barcode });
+        # Check if the barcode has moved from existing location
+        if($orig_well->name ne $well_name or $orig_well->plate_id != $plate->id){
 
-    my $validated_params = $model->check_params($params);
+            my $orig_well_name = $orig_well->as_string;
+            $model->update_well_barcode({
+                barcode       => $barcode,
+                new_state     => $validated_params->{new_state},
+                new_well_name => $well_name,
+                new_plate_id  => $plate->id,
+                displace_existing => 1,
+                user          => $validated_params->{user},
+                comment       => 'barcode has new location in latest scan of plate '.$plate->name,
+            });
 
-    # Create the new plate with new wells parented by wells that each barcode is currently linked to
-    my @wells;
-    my $barcode_for_well = $validated_params->{barcode_for_well};
-    my $plate_type;
-    my $plate_species;
-    my $child_processes = {};
-    my @list_messages;
-    my $barcodes_to_remove_from_plate = {};
-
-    # Handle parenting of barcoded wells
-    foreach my $well (keys %$barcode_for_well){
-
-        my $barcode = $barcode_for_well->{$well};
-        # NB: if we are using input from full FP plate scan unknown barcodes (empty tubes)
-        # need to be removed before this point
-        # If unknown barcodes are seen on a PIQ plate this is an error
-        my $bc = $model->retrieve_well_barcode({ barcode => $barcode })
-            or die "Method create_barcoded_plate_copy cannot be used to add unknown barcode $barcode to plate ".$validated_params->{new_plate_name} ;
-
-        # Provide a message if a well has changed position
-        # or come from a plate which is not an older version of this one
-        my $parent_plate = $bc->well->plate;
-        if( $parent_plate->name ne $validated_params->{new_plate_name} ){
-            # Check if parent plate is virtual
-            # If it is real we need to reversion it without this well
-            unless($parent_plate->is_virtual){
-                $barcodes_to_remove_from_plate->{$parent_plate} ||= [];
-                push @{ $barcodes_to_remove_from_plate->{$parent_plate} }, $bc->barcode;
-                push @list_messages, {
-                    'well_name' => $well,
-                    'error'     => 0,
-                    'message'   => "Barcode $barcode moved from plate ".$parent_plate->name.' well '.$bc->well->name,
-                };
-            }
-        }
-        elsif($well ne $bc->well->name){
             push @list_messages, {
-                'well_name' => $well,
+                'well_name' => $well_name,
                 'error'     => 0,
-                'message'   => "Barcode $barcode moved from position ".$bc->well->name,
+                'message'   => "Barcode $barcode moved from $orig_well_name",
             };
         }
-
-        my $new_well_details = _get_new_well_details($well,$bc->well);
-
-        push @wells, $new_well_details;
-
-        $child_processes->{$well} = [ $bc->well->child_processes ];
-
-        # Some sanity checking
-        _check_consistent_type(\$plate_type,$bc->well);
-        _check_consistent_species(\$plate_species,$bc->well);
     }
 
-    # Handle copy of wells which have no barcode, always e.g. A01->A01
-    if ( $validated_params->{wells_without_barcode} ){
-        foreach my $well ( @{ $validated_params->{wells_without_barcode} || [] } ){
-
-            my $new_well_details = _get_new_well_details($well->name, $well);
-
-            push @wells, $new_well_details;
-
-            $child_processes->{$well->name} = [ $well->child_processes ];
-
-            # Some sanity checking
-            _check_consistent_type(\$plate_type,$well);
-            _check_consistent_species(\$plate_species,$well);
-        }
-    }
-
-    my $create_params = {
-        name       => $validated_params->{new_plate_name},
-        species    => $plate_species,
-        type       => $plate_type,
-        created_by => $validated_params->{user},
-        wells      => \@wells,
-    };
-
-    if($validated_params->{comment}){
-        $create_params->{comments} = [
-            {
-                comment_text => $validated_params->{comment},
-                created_by   => $validated_params->{user},
-            },
-        ]
-    }
-
-    # Special case. When the last barcode is removed from a plate this method will create
-    # an empty plate so we can't get to the previous plate's type and species via the wells
-    # We need to find the previous plate by name to get type and species.
-    unless(@wells){
-        my $new_plate_name = $validated_params->{new_plate_name};
-
-        DEBUG "Plate $new_plate_name has no wells. Getting species and type from old plate version.";
-
-        my $previous_plate = $model->schema->resultset('Plate')->search({
-            name => $new_plate_name,
-        })->first;
-
-        die "Cannot find parent wells or parent plate for plate $new_plate_name"
-            unless $previous_plate;
-
-        $create_params->{species} = $previous_plate->species_id;
-        $create_params->{type} = $previous_plate->type_id;
-    }
-
-    my $new_plate = $model->create_plate($create_params);
-
-    # If tubes have been transferred from other (non virtual) plates then
-    # these must be reversioned
-    # NB: must do this before updating barcodes to link to new wells
-    foreach my $source_plate (keys %$barcodes_to_remove_from_plate){
-        my $plate = $model->retrieve_plate({ name => $source_plate });
-        remove_well_barcodes_from_plate(
-            $model,
-            $barcodes_to_remove_from_plate->{$source_plate},
-            $plate,
-            $validated_params->{user}
-        );
-    }
-
-    # Update well_barcodes to point barcodes to new wells
-    foreach my $well (keys %$barcode_for_well){
-        my $barcode = $barcode_for_well->{$well};
-        my $new_well = $new_plate->search_related('wells',{name => $well})->first
-            or die "Cannot find well $well on new plate ".$new_plate->name;
-        my $update_params = {
-            barcode     => $barcode,
-            new_well_id => $new_well->id,
-            user        => $validated_params->{user},
-            comment     => "barcode moved to plate ".$new_plate->name,
-        };
-
-        if($validated_params->{new_state}){
-            $update_params->{new_state} = $validated_params->{new_state};
-            my $bc = $model->retrieve_well_barcode({ barcode => $barcode });
-            if( $bc->barcode_state->id ne $validated_params->{new_state} ){
-                push @list_messages, {
-                    'well_name' => $well,
-                    'error'     => 0,
-                    'message'   => 'Barcode state changed from '.$bc->barcode_state->id.' to '.$validated_params->{new_state},
-                };
-            }
-        }
-
-        $model->update_well_barcode($update_params);
-    }
-
-    # Update processes to use new wells as input
-    foreach my $new_well ($new_plate->wells){
-        my $processes = $child_processes->{$new_well->name};
-        foreach my $process (@$processes){
-            foreach my $process_input ($process->process_input_wells){
-                $process_input->update({
-                  well_id => $new_well->id,
-                });
-            }
-        }
-    }
-
-    return wantarray ? ($new_plate, \@list_messages) : $new_plate;
+    return wantarray ? ($plate, \@list_messages) : $plate;
 }
-## use critic
 
 sub _check_consistent_type{
     my ($plate_type, $well) = @_;
@@ -877,7 +726,7 @@ sub _check_consistent_type{
 
 sub _check_consistent_species{
     my ($plate_species, $well) = @_;
-    my $species = $well->plate->species_id;
+    my $species = $well->plate_species->id;
     $$plate_species ||= $species;
     die "All wells on plate must have same species" unless $species eq $$plate_species;
     return;
@@ -919,10 +768,12 @@ sub upload_plate_scan{
         DEBUG 'Creating new plate '.$validated_params->{new_plate_name};
 
         my $plate_create_params = {
-            slice_def($validated_params, qw(new_plate_name user comment))
+            plate_name => $validated_params->{new_plate_name},
+            barcode_for_well => $csv_data,
+            new_state  => 'in_freezer',
+            user       => $validated_params->{user},
+            comment    => $validated_params->{comment},
         };
-        $plate_create_params->{barcode_for_well} = $csv_data;
-        $plate_create_params->{new_state} = 'in_freezer';
         $new_plate = create_barcoded_plate($model,$plate_create_params);
     }
     else{
@@ -930,7 +781,7 @@ sub upload_plate_scan{
             name => $validated_params->{existing_plate_name}
         });
 
-        my @barcoded_wells = grep { $_->well_barcode } $existing_plate->wells;
+        my @barcoded_wells = grep { $_->barcode } $existing_plate->wells;
 
         if(@barcoded_wells){
             # Error if some but not all wells have barcodes
@@ -962,46 +813,25 @@ sub upload_plate_scan{
                 return ($existing_plate, \@list_messages);
             }
 
-            # Otherwise create new plate version
-
-            my $versioned_plate = version_plate($model, $existing_plate);
-
-            my $plate_create_params = {
+            # Otherwise update plate
+            my $plate_update_params = {
                 slice_def($validated_params, qw(user comment))
             };
-            $plate_create_params->{barcode_for_well} = $csv_data;
-            $plate_create_params->{new_plate_name} = $validated_params->{existing_plate_name};
-            $plate_create_params->{new_state} = 'in_freezer';
+            $plate_update_params->{barcode_for_well} = $csv_data;
+            $plate_update_params->{plate_name} = $validated_params->{existing_plate_name};
+            $plate_update_params->{new_state} = 'in_freezer';
             my $messages;
-            ($new_plate, $messages) = create_barcoded_plate_copy($model, $plate_create_params);
+            ($new_plate, $messages) = update_barcoded_plate($model, $plate_update_params);
 
-            DEBUG "New plate layout created for ".$new_plate->name;
+            DEBUG "Plate layout updated for ".$new_plate->name;
 
             push @list_messages, {
                 'well_name' => '_',
                 'error' => 0,
-                'message' => 'New plate layout created for '.$new_plate->name,
+                'message' => 'Plate layout updated for '.$new_plate->name,
             };
 
             push @list_messages, @$messages;
-
-            # any barcodes remaining on existing plate should be set to 'checked_out'
-            foreach my $well ($existing_plate->wells){
-                my $well_bc = $well->well_barcode;
-                next unless $well_bc;
-                $model->update_well_barcode({
-                    barcode     => $well_bc->barcode,
-                    new_state   => 'checked_out',
-                    user        => $validated_params->{user},
-                    comment     => 'barcode not on latest scan of '.$new_plate->name,
-                });
-
-                push @list_messages, {
-                    'well_name' => $well->name,
-                    'error'     => 2,
-                    'message'   => 'Barcode '.$well_bc->barcode.' has been checked_out as it is not present in latest scan',
-                };
-            }
         }
         else{
 
@@ -1032,8 +862,7 @@ sub pspec_upload_qc_plate{
 # Use this method to create a plate for QC using barcodes which
 # are no longer "in_freezer", e.g. when material comes back from CGAP for QC.
 # The new plate will not have barcodes on it. The wells on the new plate will
-# be parented by the well that is linked to the barcode in LIMS2, e.g. last
-# known location on a versioned plate
+# be parented by the well that is linked to the barcode in LIMS2
 sub upload_qc_plate{
     my ($model, $params) = @_;
 
@@ -1047,7 +876,7 @@ sub upload_qc_plate{
         my $barcode = $csv_data->{$well_name};
         my $well_barcode;
         try{
-            $well_barcode = $model->retrieve_well_barcode({
+            $well_barcode = $model->retrieve_well({
                 barcode => $barcode,
             });
         }
@@ -1061,17 +890,15 @@ sub upload_qc_plate{
                 ."QC plates can only be created for wells which are no longer in the freezer\n";
         }
 
-        unless($well_barcode->well->plate->species_id eq $validated_params->{species}){
+        unless($well_barcode->plate_species->id eq $validated_params->{species}){
             die "Barcode $barcode does not have the expected species (expected: "
-                .$validated_params->{species}.", got: ".$well_barcode->well->plate->species_id;
+                .$validated_params->{species}.", got: ".$well_barcode->plate_species->id;
         }
 
         my $well_data = {
-            well_name    => $well_name,
-            parent_plate => $well_barcode->well->plate->name,
-            parent_plate_version => $well_barcode->well->plate->version,
-            parent_well  => $well_barcode->well->name,
-            process_type => $validated_params->{process_type},
+            well_name      => $well_name,
+            parent_well_id => $well_barcode->id,
+            process_type   => $validated_params->{process_type},
         };
 
         if($validated_params->{process_type} eq 'ms_qc'){
@@ -1082,7 +909,7 @@ sub upload_qc_plate{
             foreach my $process (@processes){
                 my $this_ox_condition = $process->get_parameter_value('oxygen_condition');
                 if($oxygen_condition and $oxygen_condition ne $this_ox_condition){
-                    my $well = $well_barcode->well;
+                    my $well = $well_barcode;
                     die "Inconsistent oxygen conditions on doubling processes for input well $well";
                 }
                 $oxygen_condition = $this_ox_condition;
@@ -1093,7 +920,7 @@ sub upload_qc_plate{
             $well_data->{doublings} = $validated_params->{doublings};
         }
 
-        DEBUG "Well $well_name has parent well ".$well_barcode->well->as_string;
+        DEBUG "Well $well_name has parent well ".$well_barcode->as_string;
         push @wells, $well_data;
     }
 
@@ -1109,37 +936,15 @@ sub upload_qc_plate{
     return $plate;
 }
 
-sub _get_new_well_details{
-    my ($new_well_name, $parent_well) = @_;
-
-    my $new_well_details = {};
-
-    $new_well_details->{well_name}    = $new_well_name;
-    $new_well_details->{parent_well}  = $parent_well->name;
-    $new_well_details->{parent_plate} = $parent_well->plate->name;
-    $new_well_details->{parent_plate_version} = $parent_well->plate->version;
-    $new_well_details->{accepted}     = $parent_well->accepted;
-    $new_well_details->{process_type} = 'rearray';
-
-    if($parent_well->well_lab_number){
-        $new_well_details->{lab_number} = $parent_well->well_lab_number->lab_number;
-        $parent_well->delete_related('well_lab_number');
-    }
-
-    return $new_well_details;
-}
-
 sub _remove_empty_tube_barcodes{
     my($model,$existing_plate,$csv_data,$list_messages) = @_;
     DEBUG "Removing any extra barcodes from upload";
     my $removed_count = 0;
-    my %existing_barcode_for_well = map { $_->name => $_->well_barcode->barcode } $existing_plate->wells;
+    my %existing_barcode_for_well = map { $_->name => $_->barcode } $existing_plate->wells;
     foreach my $well_name (keys %$csv_data){
         unless (exists $existing_barcode_for_well{$well_name}){
             my $barcode = $csv_data->{$well_name};
-            my $well_barcode = $model->schema->resultset('WellBarcode')->search({
-                barcode => $barcode
-            })->first;
+            my $well_barcode = $model->schema->resultset('Well')->find({ barcode => $barcode });
             unless($well_barcode){
                 delete $csv_data->{$well_name};
                 $removed_count++;
@@ -1158,7 +963,7 @@ sub _remove_empty_tube_barcodes{
 sub _csv_barcodes_match_existing{
     my ($plate, $barcode_for_well) = @_;
 
-    my %existing_barcode_for_well = map { $_->name => $_->well_barcode->barcode } $plate->wells;
+    my %existing_barcode_for_well = map { $_->name => $_->barcode } $plate->wells;
 
     my $well_count = scalar $plate->wells;
     my $uploaded_well_count = scalar keys %$barcode_for_well;
@@ -1236,7 +1041,7 @@ sub _add_csv_barcodes_to_plate{
         unless ( exists $well_list{ $uploaded_well_name } ) {
 
             # check the barcode is not already in LIMS2 as it should be an empty tube
-            my $existing_barcode = $model->schema->resultset('WellBarcode')->search({
+            my $existing_barcode = $model->schema->resultset('Well')->search({
                 barcode => $barcode_for_well->{$uploaded_well_name}
             })->first;
 

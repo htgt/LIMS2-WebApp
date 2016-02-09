@@ -657,7 +657,7 @@ sub as_hash {
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
         accepted       => $self->is_accepted,
         barcode        => $self->barcode,
-        barcode_state  => $self->barcode_state->id,
+        barcode_state  => ( $self->barcode_state ? $self->barcode_state->id : undef ),
         last_known_location => $self->last_known_location_str,
     };
 }

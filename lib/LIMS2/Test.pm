@@ -342,7 +342,6 @@ sub load_dynamic_files {
             Project
             ProjectSponsor
             Summary
-            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
             CrisprPlateAppendsType

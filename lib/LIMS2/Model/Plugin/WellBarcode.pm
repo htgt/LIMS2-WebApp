@@ -35,7 +35,7 @@ sub pspec_create_well_barcode {
     return {
         well_id => { validate => 'integer' },
         barcode => { validate => 'well_barcode' },
-        state   => { validate => 'alphanumeric_string', rename => 'barcode_state' },
+        state   => { validate => 'alphanumeric_string' },
         comment => { validate => 'non_empty_string', optional => 1 },
         user    => { validate => 'existing_user', optional => 1 },
         DEPENDENCY_GROUPS => { comment_group => [qw( comment user )] },
@@ -81,6 +81,7 @@ sub pspec_update_well_barcode {
         new_state     => { validate => 'alphanumeric_string', optional => 1 },
         comment       => { validate => 'non_empty_string', optional => 1 },
         user          => { validate => 'existing_user' },
+        displace_existing => { validate => 'boolean', optional => 1, default => 0},
         REQUIRE_SOME  => { new_well_name_or_state => [1, qw(new_well_name new_state)]},
         MISSING_OPTIONAL_VALID => 1,
     };
@@ -100,10 +101,46 @@ sub update_well_barcode {
     my $old_plate_id = $well->plate_id;
 
     if(exists $validated_params->{new_well_name}){
-        $well->update({
-            name     => $validated_params->{new_well_id},
+        my $existing;
+        my $new_location = {
+            name     => $validated_params->{new_well_name},
             plate_id => $validated_params->{new_plate_id},
-        });
+        };
+        if(defined $new_location->{name}){
+            # Check if there is another well already at the destination
+            $existing = $self->schema->resultset('Well')->find( $new_location );
+        }
+
+        if($existing and $existing->id != $well->id){
+            if($validated_params->{displace_existing}){
+                if($existing->barcode){
+                    # Move the existing barcoded well out of the way before updating
+                    # the barcode to the new location
+                    # We'll need to do this if wells have been swapped around on a plate
+                    $self->update_well_barcode({
+                        barcode       => $existing->barcode,
+                        new_plate_id  => undef,
+                        new_well_name => undef,
+                        new_state     => 'checked_out',
+                        comment       =>'barcode checked out to make space for '.$validated_params->barcode,
+                        user          => $validated_params->user,
+                    });
+                    $well->update($new_location);
+                }
+                else{
+                    $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
+                                                ." to $existing because there is already a well here with no barcode" );
+                }
+            }
+            else{
+                $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
+                                              ." to $existing because there is already a well here" );
+            }
+        }
+        else{
+            # There is nothing at the new location so we can safely make the update
+            $well->update($new_location);
+        }
     }
 
     if(defined $validated_params->{new_state}){

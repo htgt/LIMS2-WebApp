@@ -72,7 +72,6 @@ DELETE FROM well_assembly_qc;
 DELETE FROM barcode_events;
 DELETE FROM fp_picking_list_well_barcode;
 DELETE FROM fp_picking_list;
-DELETE FROM well_barcodes;
 DELETE FROM wells;
 DELETE FROM plate_comments;
 DELETE FROM crispr_plate_appends;

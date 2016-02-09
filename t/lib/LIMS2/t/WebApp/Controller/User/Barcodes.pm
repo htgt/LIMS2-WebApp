@@ -2,6 +2,7 @@ package LIMS2::t::WebApp::Controller::User::Barcodes;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::Barcodes;
+use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 
 use LIMS2::Test;
 use File::Temp ':seekable';
@@ -14,7 +15,7 @@ BEGIN
     Log::Log4perl->easy_init( $FATAL );
 };
 
-sub mutation_signatures_workflow_test : Test(10){
+sub mutation_signatures_workflow_test : Test(11){
     my $mech = mech();
     my $model = model();
 
@@ -58,6 +59,7 @@ sub mutation_signatures_workflow_test : Test(10){
     );
     $mech->click_button(name => 'submit_barcode');
     $mech->base_like(qr{/user/scan_barcode});
+    $mech->content_contains($barcode);
     $mech->content_contains('doubling_in_progress');
 
     note("Create an MS_QC plate at 12 doublings");
@@ -72,7 +74,7 @@ sub mutation_signatures_workflow_test : Test(10){
 
 }
 
-sub all_tests  : Test(24)
+sub all_tests  : Test(25)
 {
     my $mech = mech();
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
@@ -151,11 +153,8 @@ sub all_tests  : Test(24)
     $mech->base_like(qr{/user/create_qc_plate});
     $mech->content_contains('Barcode mybarcode state: in_freezer');
 
-    # FIXME: should checkout the well properly but can't as it is last well on plate
-    # see ticket 12089
-    #use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
-    #ok checkout_well_barcode(model,{ barcode => 'mybarcode', user => 'test_user@example.org' });
-    $well->well_barcode->update({ barcode_state => 'checked_out' });
+
+    ok checkout_well_barcode(model,{ barcode => 'mybarcode', user => 'test_user@example.org' });
 
     # file has no header (works)
     $mech->set_fields(
@@ -190,11 +189,11 @@ sub all_tests  : Test(24)
     is $process->type_id, 'cgap_qc','process has correct type';
 
     # well on new plate has no barcode
-    is $new_well->well_barcode, undef, 'new well has no barcode';
+    is $new_well->barcode, undef, 'new well has no barcode';
 
     # well on new plate has correct parent well
     ok my ($parent_well) = $new_well->parent_wells, 'can find parent well';
-    is $parent_well->well_barcode->barcode, 'mybarcode','parent well has correct barcode';
+    is $parent_well->barcode, 'mybarcode','parent well has correct barcode';
 
 }
 
