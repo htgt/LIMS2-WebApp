@@ -27,7 +27,7 @@ sub create_process {
         = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
     my $process
         = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type}, dna_template => $validated_params->{dna_template} } );
-
+    $self->log->info("Id: " . $process->{_column_data}->{id});
     link_process_wells( $self, $process, $validated_params );
 
     delete @{$params}{qw( type input_wells output_wells )};

@@ -47,10 +47,9 @@
               [% total = total + 4 %]
         [%- END %]
           </select>
-        [%- END %]
         
         
-        <label>Source DNA Cell Line</label>
+        <label>DNA Template</label>
           <select name="source_dna">
             <option value="" selected="selected">-</option>
               [%- FOR line IN cell_lines %]
@@ -58,6 +57,7 @@
               [%- END %]
           </select>
 
+        [%- END %]
         [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
         <label>Well Data File</label>
