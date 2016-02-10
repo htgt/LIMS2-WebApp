@@ -353,6 +353,7 @@ sub all_tests  : Test(112)
 		plate_name => 'VTEST',
 		datafile   => $test_file->filename,
 		is_virtual => 1,
+        source_dna => 'BOB',
 		plate_type => 'INT',
 	    },
 	    button  => 'create_plate'
