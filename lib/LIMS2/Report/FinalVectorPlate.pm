@@ -1,7 +1,7 @@
 package LIMS2::Report::FinalVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FinalVectorPlate::VERSION = '0.373';
+    $LIMS2::Report::FinalVectorPlate::VERSION = '0.374';
 }
 ## use critic
 

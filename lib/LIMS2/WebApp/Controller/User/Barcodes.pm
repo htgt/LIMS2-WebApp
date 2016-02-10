@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.373';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.374';
 }
 ## use critic
 

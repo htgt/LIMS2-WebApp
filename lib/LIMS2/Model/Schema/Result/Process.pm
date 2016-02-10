@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.373';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.374';
 }
 ## use critic
 
@@ -344,8 +344,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 15:36:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z1vl6OgrpWG5QvFVcN7CoA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:25:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2r9LKuhgtjvvUvmUDoy90Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
