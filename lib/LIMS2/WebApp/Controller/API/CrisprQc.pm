@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::CrisprQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.372';
+    $LIMS2::WebApp::Controller::API::CrisprQc::VERSION = '0.373';
 }
 ## use critic
 

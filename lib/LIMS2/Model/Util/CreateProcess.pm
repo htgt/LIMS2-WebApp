@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.372';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.373';
 }
 ## use critic
 
@@ -880,13 +880,13 @@ sub pspec__create_process_aux_data_int_recom {
     ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
+        dna_template => { optional => 1 },
     };
 }
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
-
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
     my $species_id = $input_well->well->plate->species_id;

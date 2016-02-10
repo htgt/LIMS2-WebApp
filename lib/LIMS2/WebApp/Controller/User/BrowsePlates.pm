@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.372';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.373';
 }
 ## use critic
 
@@ -94,8 +94,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
     my $hash_plate = $plate->as_hash;
     my $dna_template;
-
-    if ($hash_plate->{type} eq 'DESIGN') {
+    if ($hash_plate->{type} eq 'INT') {
         my $plate_process = $c->model('Golgi')->schema->resultset('PlateProcess')->search(
             {},
             {

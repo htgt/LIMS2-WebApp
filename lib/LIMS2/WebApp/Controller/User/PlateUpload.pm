@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.372';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.373';
 }
 ## use critic
 
@@ -61,6 +61,7 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         plate_types    => $c->model('Golgi')->get_process_plate_types( { process_type => $process_type } ),
         plate_help     => $c->model('Golgi')->plate_help_info,
         cell_lines     => \@lines,
+        dna_template   => $c->request->params->{source_dna},
     );
 
     my $step = $c->request->params->{plate_upload_step};
@@ -79,7 +80,6 @@ sub process_plate_upload_form :Private {
 
     $c->stash( $c->request->params );
     my $params = $c->request->params;
-
     my $well_data = $c->request->upload('datafile');
     unless ( $well_data ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
@@ -95,6 +95,11 @@ sub process_plate_upload_form :Private {
         $c->stash->{error_msg} = 'Must specify a plate type';
         return;
     }
+    if ( $params->{plate_type} eq 'INT' && $params->{source_dna} eq '' ) {
+        $c->stash->{error_msg} = 'Must specify a DNA template for INT vectors';
+        return;
+    }
+
     my $comment;
     if ( $params->{process_type} eq 'int_recom' ) {
         unless ( $params->{planned_wells} ) {

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.372';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.373';
 }
 ## use critic
 
@@ -450,7 +450,7 @@ sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
     #validation done of create_plate, not needed here
     my %plate_data = map { $_ => $params->{$_} }
-        qw( plate_name species plate_type description created_by is_virtual process_type);
+        qw( plate_name species plate_type description created_by is_virtual process_type );
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
 
@@ -468,7 +468,9 @@ sub create_plate_csv_upload {
     my %plate_process_data = map { $_ => $params->{$_} }
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
-
+    if ( $params->{plate_type} eq 'INT' ) {
+        $plate_process_data{dna_template} = $params->{source_dna};
+    }
     my $expected_csv_headers;
     if ( $params->{process_type} eq 'second_electroporation' ) {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];

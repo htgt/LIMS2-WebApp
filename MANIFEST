@@ -2313,8 +2313,6 @@ root/static/extjs/src/window/Window.js
 root/static/extjs/version.properties
 root/static/files/cells/update_colony_counts.csv
 root/static/files/coding_test/horses.tsv
-root/static/files/misc/human.zip
-root/static/files/misc/mouse.zip
 root/static/files/plate_upload/crispr_ep_template_es.csv
 root/static/files/plate_upload/crispr_ep_template_vector.csv
 root/static/files/plate_upload/dna_template.csv

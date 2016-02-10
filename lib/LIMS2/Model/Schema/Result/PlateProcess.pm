@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::PlateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PlateProcess::VERSION = '0.372';
+    $LIMS2::Model::Schema::Result::PlateProcess::VERSION = '0.373';
 }
 ## use critic
 
@@ -37,10 +37,10 @@ WITH RECURSIVE process_hierarchy(id, type_id, dna_template) AS (
         FROM process_input_well
         FULL OUTER JOIN process_output_well
         ON process_input_well.process_id=process_output_well.process_id
-        WHERE process_input_well.process_id IN (
+        WHERE process_input_well.well_id IN (
             SELECT id FROM wells WHERE plate_id = ?
         )
-        OR process_output_well.process_id IN (
+        OR process_output_well.well_id IN (
             SELECT id FROM wells WHERE plate_id = ?
         )
     )
