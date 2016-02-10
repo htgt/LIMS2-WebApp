@@ -183,7 +183,6 @@ sub render :Path( '/user/graph/render' )  :Args(1) {
 
 sub _write_plate_graph{
 	my ($self, $plate_name, $type)  = @_;
-
     my $uuid = Data::UUID->new->create_str;
     my $output_dir = $self->graph_dir->subdir( $uuid );
     $output_dir->mkpath;

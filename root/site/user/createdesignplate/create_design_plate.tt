@@ -21,15 +21,6 @@
         <input name="datafile" type="file" >
         <br>
         <br>
-        <label>DNA Template</label>
-          <select name="source_dna">
-            <option value="" selected="selected">-</option>
-              [%- FOR line IN cell_lines %]
-                <option value="[% line %]">[% line %]</option>
-              [%- END %]
-          </select>
-        
-        <br><br>
         <input type="checkbox" name="primers" id="check_primers" enabled />
             Generate primers
         <input type="checkbox" name="bacs" id="check_bacs" enabled />
