@@ -888,12 +888,6 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
-=head2 dna_template
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -1240,8 +1234,6 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "experiments",
   { data_type => "text", is_nullable => 1 },
-  "dna_template",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1256,31 +1248,9 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 RELATIONS
 
-=head2 dna_template
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "dna_template",
-  "LIMS2::Model::Schema::Result::DnaTemplate",
-  { id => "dna_template" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 15:36:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:34Omhid/nOTAkd80kpDIUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EPJB5+vD5Df9aZZKFASnHw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

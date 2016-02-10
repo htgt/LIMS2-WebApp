@@ -92,6 +92,11 @@ __PACKAGE__->table("sequencing_projects");
   default_value: false
   is_nullable: 1
 
+=head2 results_imported_date
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -123,6 +128,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "is_384",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
+  "results_imported_date",
+  { data_type => "timestamp", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -185,8 +192,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-04 16:10:59
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MdKvOOOkGfWTTxLczeaPaw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UutyMmosEgooyTF+tG8fiQ
 
 sub as_hash {
     my ( $self, $options ) = @_;
