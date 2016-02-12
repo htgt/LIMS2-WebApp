@@ -616,7 +616,8 @@ sub related_designs {
 
     foreach my $group ( $self->crispr_groups->all ) {
         foreach my $group_design ( $group->crispr_designs ) {
-            push @designs, $group_design->design;
+            my $crispr_group_design = $group_design->design;
+            push @designs, $crispr_group_design unless !defined($crispr_group_design);
         }
     }
 
