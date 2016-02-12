@@ -84,13 +84,13 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;
     $c->log->debug( "Report class: $report_class" );
-
+    
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
     my $dna_template;
-    if ($hash_plate->{type} eq 'INT') {
+    if ($plate->as_hash->{type} eq 'INT') {
         $dna_template = get_template($c, $plate);
     }
-    if ($hash_plate->{type} eq 'FINAL_PICK') {
+    if ($plate->as_hash->{type} eq 'FINAL_PICK') {
         my $focus = $plate;
         while ($focus->type_id ne 'INT') {
             my @parents = @{$focus->parent_names};
