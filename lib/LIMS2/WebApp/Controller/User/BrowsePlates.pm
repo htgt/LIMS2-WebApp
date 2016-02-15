@@ -84,7 +84,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;
     $c->log->debug( "Report class: $report_class" );
-    
+
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
     my $dna_template;
     if ($plate->as_hash->{type} eq 'INT') {
