@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.370';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.375';
 }
 ## use critic
 
@@ -180,7 +180,8 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
-
+    my ( $qc, $res ) = $c->model( 'Golgi' )->qc_run_results(
+        { qc_run_id => $c->req->params->{qc_run_id} } );
     my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
         {
             qc_run_id  => $c->req->params->{qc_run_id},
@@ -224,7 +225,8 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             $error_msg = "Failed to generate plasmid view: $_";
         };
     }
-
+    my $species_id = $c->session->{selected_species};
+    my $gene = $c->model('Golgi')->find_gene( { search_term => $c->req->params->{gene_symbol}, species => $species_id } );
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
@@ -234,6 +236,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
         error_msg   => $error_msg,
+        gene => $gene,
     );
 
     return;
@@ -890,7 +893,9 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{primer_data} = $c->req->param('primer_data');
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
-        { },
+        {
+            available_results => 'y'
+        },
         {
             rows => 20,
             order_by => {-desc => 'created_at'},

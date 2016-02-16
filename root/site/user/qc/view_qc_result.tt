@@ -19,6 +19,8 @@
       <dl>
         <dt>QC Run</dt>
         <dd><a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a></dd>
+        <dt>Qc Template</dt>
+        <dd>[% qc_run.qc_template %] (best match well: [% qc_template_well.name %])</dd>
         <dt>Run Date</dt>
         <dd>[% qc_run.created_at %]</dd>
       </dl>
@@ -28,10 +30,12 @@
   <div class="span6">
     <div class="well">
       <dl>
-        <dt>Qc Template</dt>
-        <dd>[% qc_run.qc_template %] (best match well: [% qc_template_well.name %])</dd>
         <dt>Sequencing Project(s)</dt>
         <dd>[%  qc_run.sequencing_projects.join(' - ') %]</dd>
+        <dt>Gene ID</dt>
+        <dd>[% gene.gene_id %]</dd>
+        <dt>Gene Symbol</dt>
+        <dd>[% gene.gene_symbol %]</dd>
       </dl>
     </div>
   </div>

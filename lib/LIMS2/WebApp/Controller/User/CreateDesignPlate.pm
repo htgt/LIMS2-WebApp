@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesignPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesignPlate::VERSION = '0.370';
+    $LIMS2::WebApp::Controller::User::CreateDesignPlate::VERSION = '0.375';
 }
 ## use critic
 
@@ -72,6 +72,7 @@ sub _build_base_dir {
 
 sub create_design_plate :Path( '/user/create_design_plate' ) :Args(0){
     my ( $self, $c ) = @_;
+
     my $req_plate_name = $c->req->param('plate_name');
     my $req_primers = $c->req->param('primers');
     my $plate_data = $c->request->upload('datafile');
@@ -305,6 +306,7 @@ sub _build_well_data {
     $well_data{well_name}    = $data->{well_name};
     $well_data{design_id}    = $data->{design_id};
     $well_data{process_type} = 'create_di';
+    $well_data{dna_template}    = $c->req->param("source_dna");
 
     if ( $c->req->param('bacs') ) {
         my $bac_data = _build_bac_data( $c, $design );

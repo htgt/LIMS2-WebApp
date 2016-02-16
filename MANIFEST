@@ -103,6 +103,7 @@ lib/LIMS2/Model/Schema/Result/DesignOligoType.pm
 lib/LIMS2/Model/Schema/Result/DesignTarget.pm
 lib/LIMS2/Model/Schema/Result/DesignTargetCrisprs.pm
 lib/LIMS2/Model/Schema/Result/DesignType.pm
+lib/LIMS2/Model/Schema/Result/DnaTemplate.pm
 lib/LIMS2/Model/Schema/Result/ExonCrisprs.pm
 lib/LIMS2/Model/Schema/Result/Experiment.pm
 lib/LIMS2/Model/Schema/Result/FpPickingList.pm
@@ -122,6 +123,7 @@ lib/LIMS2/Model/Schema/Result/OldProjectAllele.pm
 lib/LIMS2/Model/Schema/Result/Plate.pm
 lib/LIMS2/Model/Schema/Result/PlateChildWells.pm
 lib/LIMS2/Model/Schema/Result/PlateComment.pm
+lib/LIMS2/Model/Schema/Result/PlateProcess.pm
 lib/LIMS2/Model/Schema/Result/PlateReport.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
 lib/LIMS2/Model/Schema/Result/PrimerBandType.pm
@@ -2637,6 +2639,7 @@ root/static/test/fixtures/reference_data/CrisprTrackerRna.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
 root/static/test/fixtures/reference_data/DesignOligoType.csv
 root/static/test/fixtures/reference_data/DesignType.csv
+root/static/test/fixtures/reference_data/DnaTemplate.csv
 root/static/test/fixtures/reference_data/GeneType.csv
 root/static/test/fixtures/reference_data/GenotypingPrimerType.csv
 root/static/test/fixtures/reference_data/GenotypingResultType.csv

@@ -9,6 +9,7 @@ use Pod::Usage;
 use Config::Tiny;
 use LIMS2::Model::Util::ImportSequencing qw(extract_eurofins_data);
 use LIMS2::Model;
+use POSIX;
 
 GetOptions(
     'help'      => sub { pod2usage( -verbose => 1 ) },
@@ -35,15 +36,17 @@ if($db_update){
     my $model = LIMS2::Model->new( user => 'lims2' );
     foreach my $project (@all_projects){
         # update in db
+        my $now = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
         $model->schema->txn_do( sub{
           try{
               $model->update_sequencing_project({
                   name              => $project,
                   available_results => 1,
+                  results_imported_date => $now,
               });
           }
           catch{
-              warn "Could not update data availability flag for project $project: $_";
+              warn "Could not update data availability info for project $project: $_";
               $model->schema->txn_rollback;
           };
         });

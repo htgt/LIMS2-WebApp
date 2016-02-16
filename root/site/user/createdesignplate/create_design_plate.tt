@@ -19,8 +19,8 @@
 
         <label>Well Data File</label>
         <input name="datafile" type="file" >
-        
-        <br><br>
+        <br>
+        <br>
         <input type="checkbox" name="primers" id="check_primers" enabled />
             Generate primers
         <input type="checkbox" name="bacs" id="check_bacs" enabled />

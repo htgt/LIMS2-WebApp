@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.370';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.375';
 }
 ## use critic
 
@@ -622,7 +622,8 @@ sub related_designs {
 
     foreach my $group ( $self->crispr_groups->all ) {
         foreach my $group_design ( $group->crispr_designs ) {
-            push @designs, $group_design->design;
+            my $crispr_group_design = $group_design->design;
+            push @designs, $crispr_group_design unless !defined($crispr_group_design);
         }
     }
 
