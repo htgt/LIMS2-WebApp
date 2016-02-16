@@ -86,22 +86,17 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     $c->log->debug( "Report class: $report_class" );
 
     my $additional_plate_reports = $self->get_additional_plate_reports( $c, $plate );
-    my $hash_plate = $plate->as_hash;
     my $dna_template;
-    if ($hash_plate->{type} eq 'INT') {
-        my $plate_process = $c->model('Golgi')->schema->resultset('PlateProcess')->search(
-            {},
-            {
-                bind => [ $hash_plate->{id}, $hash_plate->{id} ],
-            }
-        );
-
-        while (my $process = $plate_process->next) {
-            $process = $process->as_hash;
-            if ($process->{dna_template}) {
-                $dna_template = $process->{dna_template};
-            }
+    if ($plate->as_hash->{type} eq 'INT') {
+        $dna_template = get_template($c, $plate);
+    }
+    if ($plate->as_hash->{type} eq 'FINAL_PICK') {
+        my $focus = $plate;
+        while ($focus->type_id ne 'INT') {
+            my @parents = @{$focus->parent_names};
+            $focus = $c->model('Golgi')->retrieve_plate({ name => $parents[0]->{name} });
         }
+        $dna_template = get_template($c, $focus);
     }
     $c->stash(
         plate                    => $plate,
@@ -115,6 +110,25 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     return;
 }
 
+sub get_template {
+    my ( $c, $focus) = @_;
+    my $dna_template;
+    my $plate_process = $c->model('Golgi')->schema->resultset('PlateProcess')->search(
+        {},
+        {
+            bind => [ $focus->id, $focus->id ],
+        }
+    );
+
+    while (my $process = $plate_process->next) {
+        $process = $process->as_hash;
+        if ($process->{dna_template}) {
+            $dna_template = $process->{dna_template};
+        }
+    }
+
+    return $dna_template;
+}
 sub get_additional_plate_reports : Private {
     my ( $self, $c, $plate ) = @_;
 
