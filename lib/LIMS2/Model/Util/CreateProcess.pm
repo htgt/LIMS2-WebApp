@@ -797,7 +797,6 @@ my %process_aux_data = (
 
 sub create_process_aux_data {
     my ( $model, $process, $params ) = @_;
-
     my $process_type = $process->type_id;
     LIMS2::Exception::Implementation->throw(
         "Don't know how to create auxiliary data for process type $process_type"
@@ -811,6 +810,7 @@ sub create_process_aux_data {
 sub pspec__create_process_aux_data_create_di {
     return {
         design_id => { validate => 'existing_design_id' },
+        dna_template => { optional => 1 },
         bacs =>
             { validate => 'hashref', optional => 1 } # validate called on each element of bacs array
     };
@@ -819,7 +819,6 @@ sub pspec__create_process_aux_data_create_di {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_create_di {
     my ( $model, $params, $process ) = @_;
-
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_create_di() );
 
@@ -875,13 +874,13 @@ sub pspec__create_process_aux_data_int_recom {
     ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
+        dna_template => { optional => 1 },
     };
 }
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
-
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
     my $species_id = $input_well->well->plate->species_id;

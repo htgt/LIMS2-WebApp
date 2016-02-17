@@ -169,7 +169,7 @@
     <td>[% exp.crispr_description %]</td>
     <td>
       <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form" id="delete_experiment_[% exp.id %]">
-        <button type="submit" class="btn btn-danger" name="delete_experiment" value="[% exp.id %]" href="#DeleteExperimentModal" data-toggle="modal">
+        <button type="submit" class="btn btn-danger delete_experiment_btn" name="delete_experiment" value="[% exp.id %]" href="#DeleteExperimentModal" data-toggle="modal" data-exp-id="[% exp.id %]">
           <i class="icon-remove icon-white"></i>
         </button>
       </form>
@@ -190,12 +190,12 @@ No experiments for this project
       </div>
 
       <div class="modal-body" align="center">
-        Are you sure you want to delete experiment <strong>[% exp.id %]</strong>?
+        Are you sure you want to delete experiment <strong id="delete_exp_id_display"></strong>?
       </div>
 
       <div class="modal-footer">
         <button class="btn" data-dismiss="modal">Cancel</button>
-        <button type="submit" name="delete_experiment" class="btn btn-danger" value="[% exp.id %]">
+        <button type="submit" name="delete_experiment" class="btn btn-danger" value="" id="delete_exp_id_value">
           <i class="icon-remove icon-white"></i> Confirm Delete Experiment
         </button>
       </div>
@@ -251,6 +251,12 @@ No experiments for this project
 
 $( document ).ready(function() {
   $("#update_sponsors_form").collapse('hide');
+
+  $(".delete_experiment_btn").click(function(e){
+    var exp_id = $(this).data("exp-id");
+    $("#delete_exp_id_value").val(exp_id);
+    $("#delete_exp_id_display").text(exp_id);
+  });
 
   $("#recovery_comment_btn").click(function(e){
     e.preventDefault();

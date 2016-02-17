@@ -183,9 +183,15 @@ sub gibson_design_gene_pick : Path('/user/gibson_design_gene_pick') : Args(0) {
     $c->assert_user_roles( 'edit' );
     if ($c->req->param('gibson_id')) {
         my $id = $c->req->param('gibson_id');
+
         my $design = $c->model('Golgi')->schema->resultset('Design')->find({ id => $id });
-        unless ($design->{_column_data}->{design_type_id} eq 'gibson-deletion' || $design->as_hash->{type} eq 'gibson' ) {
+        unless ($design->as_hash->{type} eq 'gibson-deletion' || $design->as_hash->{type} eq 'gibson' ) {
             $c->stash->{error_msg} = 'Please enter a valid gibson-deletion design';
+            return;
+        }
+        my $gibsons = $c->model('Golgi')->schema->resultset('Design')->search({ parent_id => $id });
+        while (my $gibson = $gibsons->next) {
+            $c->stash->{error_msg} = 'Design ' . $id . ' has already been converted: ' . $gibson->as_hash->{id};
             return;
         }
         &LIMS2::Model::Util::CreateDesign::convert_gibson_to_fusion($self, $c, $id);

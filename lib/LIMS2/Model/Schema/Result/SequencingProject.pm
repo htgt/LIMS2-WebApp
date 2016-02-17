@@ -191,9 +191,8 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0S7+Wi0fldAwdCJek1TIKw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UutyMmosEgooyTF+tG8fiQ
 
 sub as_hash {
     my ( $self, $options ) = @_;

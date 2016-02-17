@@ -27,6 +27,7 @@
             </a>
             </td>
         </tr>
+
 [% END %]
          <tr>
           <td>
@@ -88,7 +89,17 @@
           <td></td>
         </tr>
 [% END %]
-
+[% IF plate.type_id == 'INT' || plate.type_id == 'FINAL_PICK' %]
+        <tr>
+          <td>
+            <strong>DNA Template</strong>
+          </td>
+          <td>
+              [% dna_template %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
         <tr>
           <td>
             <strong>Description</strong>
