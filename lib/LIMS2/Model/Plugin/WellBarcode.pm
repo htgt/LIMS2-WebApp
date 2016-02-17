@@ -82,7 +82,6 @@ sub pspec_update_well_barcode {
         comment       => { validate => 'non_empty_string', optional => 1 },
         user          => { validate => 'existing_user' },
         displace_existing => { validate => 'boolean', optional => 1, default => 0},
-        REQUIRE_SOME  => { new_well_name_or_state => [1, qw(new_well_name new_state)]},
         MISSING_OPTIONAL_VALID => 1,
     };
 }

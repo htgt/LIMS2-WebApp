@@ -9,6 +9,7 @@ use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
+use Data::Dumper;
 
 with "MooseX::Log::Log4perl";
 
@@ -288,11 +289,12 @@ sub mutation_signatures_info_GET{
         my $data = {
             well_id    => $well->id,
             well_name  => $well->name,
-            plate_name => $well->plate->name,
+            plate_name => $well->plate_name,
             parameters => $well->input_process_parameters_skip_versioned_plates,
             child_barcodes => $well->distributable_child_barcodes,
-            ms_qc_data => $well->ms_qc_data($gene_finder),
+            ms_qc_data => ( $well->ms_qc_data($gene_finder) // [] ),
         };
+
         my $design = try{ $well->design };
         if($design){
             my @gene_ids = $design->gene_ids;

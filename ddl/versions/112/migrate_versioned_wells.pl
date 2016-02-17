@@ -11,7 +11,7 @@ use TryCatch;
 my $model = LIMS2::Model->new({ user => 'tasks' });
 
 my @wells_with_barcodes = $model->schema->resultset('Well')->search({
-	'me.barcode' => { '!=' => undef },
+    'me.barcode' => { '!=' => undef },
 },
 {
 	prefetch => 'plate'
@@ -24,6 +24,7 @@ my %plates_with_current_wells;
 
 foreach my $bc_well (@wells_with_barcodes){
 
+    my $barcode = $bc_well->barcode;
 	my $ancestor_it = $bc_well->ancestors->depth_first_traversal( $bc_well, 'in' );
 
 	my @old_versions;
@@ -54,7 +55,7 @@ foreach my $bc_well (@wells_with_barcodes){
     if($earliest_version and $earliest_version->id != $bc_well->id){
         $model->schema->txn_do(sub{
             say "--------------------------------------------";
-            say "Merging old versions of well $bc_well";
+            say "Merging old versions of well $bc_well (barcode: $barcode)";
             try{
             	# Link other attributes to $bc_well
                 foreach my $relation (keys %$related_things){
@@ -96,10 +97,13 @@ foreach my $bc_well (@wells_with_barcodes){
 
             	# If $bc_well is on a versioned plate delete well name and plate_id
                 if($bc_well->plate and $bc_well->plate->version){
-                    say "Removing well name and plate ID from barcode on versioned plate";
-                    $bc_well->update({
-                        name     => undef,
-                        plate_id => undef,
+                    say "Removing well name and plate ID from barcode $barcode on versioned plate";
+                    $model->update_well_barcode({
+                        barcode       => $barcode,
+                        new_well_name => undef,
+                        new_plate_id  => undef,
+                        comment       => 'old well versions moved off plates',
+                        user          => 'af11@sanger.ac.uk',
                     });
                 }
             }
@@ -108,6 +112,18 @@ foreach my $bc_well (@wells_with_barcodes){
                 say "ERROR: could not merge versioned wells for $bc_well (barcode: ".$bc_well->barcode.")";
                 say "ERROR MESSAGE: $err";
             }
+        });
+    }
+    elsif($bc_well->plate->version){
+        # There is only one version of the well but it is on an old plate version
+        # So well name and plate ID must be removed
+        say "Removing well name and plate ID from barcode $barcode on versioned plate";
+        $model->update_well_barcode({
+            barcode       => $barcode,
+            new_well_name => undef,
+            new_plate_id  => undef,
+            comment       => 'old well versions moved off plates',
+            user          => 'af11@sanger.ac.uk',
         });
     }
 }
