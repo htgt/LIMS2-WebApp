@@ -88,7 +88,6 @@ sub generate_summary_rows_for_all_trails {
             TRACE caller()." Well ID $design_well_id : Path well ID $curr_well_id";
 
             my $curr_well;
-
             # check wells hash to see if we already retrieved this well object previously
             if (exists $wells_retrieved{$curr_well_id}) {
 
@@ -110,6 +109,12 @@ sub generate_summary_rows_for_all_trails {
             }
 
             if (defined $curr_well) {
+                foreach my $process ($curr_well->parent_processes){
+                    my $type = $process->type_id;
+                    if ($type eq 'int_recom') {
+                        $curr_well->{dna_template} = $process->dna_template->id;
+                    }
+                }
                 my $params = {
                     'summary_row_values' => \%summary_row_values,
                     'done'               => \%done,
@@ -269,7 +274,9 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_backbone_name' }        = try{ $curr_well->backbone->name };   # backbone name
         $stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
+$DB::single=1;
         $stored_values->{ 'stored_int_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
+        $stored_values->{ 'stored_dna_template' }             = try{ $curr_well->{dna_template} };
         # is well the output of a global_arm_shortening process
         if ( my $short_arm_design = $curr_well->global_arm_shortened_design ) {
             $stored_values->{ 'stored_int_global_arm_shortening_design' } = $short_arm_design->id;
@@ -292,6 +299,7 @@ sub fetch_values_for_type_INT {
     $summary_row_values->{ 'int_backbone_name' }        = $stored_values->{ stored_int_backbone_name };
     $summary_row_values->{ 'int_well_assay_complete' }  = $stored_values->{ stored_int_well_assay_complete };
     $summary_row_values->{ 'int_well_accepted' }        = $stored_values->{ stored_int_well_accepted };
+    $summary_row_values->{ 'dna_template' }             = $stored_values->{ stored_dna_template };
     if ($stored_values->{ 'stored_int_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_int_sponsor } };
 
     $summary_row_values->{'int_well_global_arm_shortening_design'}

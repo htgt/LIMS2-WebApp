@@ -721,7 +721,7 @@ sub _build_sub_report_data {
     my ($self, $sponsor_id, $stage) = @_;
 
     DEBUG 'Building sub-summary report for sponsor = '.$sponsor_id.', stage = '.$stage.', targeting_type = '.$self->targeting_type.' and species = '.$self->species;
-
+$DB::single=1;
     my $query_type = 'select';
     my $sub_report_data;
 
@@ -1210,8 +1210,22 @@ sub genes {
 
         my $piq_pass_count = scalar @piq;
 
-
-
+        my $int = $summary_rs->search(
+            {
+                dna_template => { '!=', undef },
+                to_report => 't',
+            },
+            {
+                select => [ qw/design_gene_symbol int_plate_name dna_template/ ],
+                as => [ qw/design_gene_symbol int_plate_name dna_template/ ],
+                distinct => 1,
+            }
+        );
+        my $dna_template;
+$DB::single=1;
+        if ($int->count > 0) {
+            $dna_template = $int->first->get_column('dna_template');
+        }   
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
@@ -1243,6 +1257,8 @@ sub genes {
             'recovery_class'         => $recovery_class,
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,
+
+            'dna_template'           => $dna_template,
         };
 
     }

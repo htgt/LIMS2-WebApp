@@ -250,6 +250,8 @@ No experiments for this project
 <script type="text/javascript">
 
 $( document ).ready(function() {
+
+  document.title = 'Project: [% project.id %]';
   $("#update_sponsors_form").collapse('hide');
 
   $("#recovery_comment_btn").click(function(e){

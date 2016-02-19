@@ -231,3 +231,9 @@ Typically only off targets with 3 or less mismatches are stored</p>
     </tbody>
   </table>
 [% END %]
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Crispr: [% crispr_data.id %]';
+  });
+</script>

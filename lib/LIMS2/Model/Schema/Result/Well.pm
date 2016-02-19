@@ -899,7 +899,6 @@ sub designs {
 
 sub parent_processes{
 	my $self = shift;
-
 	# Fetch processes of which this well is an output
 	my @parent_processes = map { $_->process } $self->process_output_wells->all;
 
@@ -922,6 +921,7 @@ sub child_processes{
 
 	return @child_processes;
 }
+
 
 sub child_wells {
     my $self = shift;
