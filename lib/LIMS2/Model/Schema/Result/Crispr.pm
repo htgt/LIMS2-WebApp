@@ -391,7 +391,8 @@ __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_gro
 __PACKAGE__->has_many(
   "experiments",
   "LIMS2::Model::Schema::Result::Experiment",
-  { "foreign.crispr_id" => "self.id", where => { "foreign.deleted" => 0 } },
+  { "foreign.crispr_id" => "self.id" },
+  { where => { "deleted" => 0 } },
 );
 
 # crispr_designs table merged into experiments table
