@@ -551,15 +551,13 @@ sub get_crispr_group_by_crispr_ids{
 
 =head2 crispr_groups_for_crispr
 
-Given a crispr ID returns a list of crispr group ids that contain it.
+Given a crispr ID returns a list of crispr groups that contain it.
 
 =cut
 sub crispr_groups_for_crispr {
     my ($schema, $params) = @_;
     my $crispr_id = $params->{crispr_id}
         or die "No crispr_id provided to crispr_groups_for_crispr";
-
-    my @crispr_groups_ids;
 
     my @crispr_groups = $schema->resultset('CrisprGroup')->search(
         {
@@ -569,27 +567,20 @@ sub crispr_groups_for_crispr {
             join     => 'crispr_group_crisprs',
             distinct => 1,
         }
-    )->all;
+    );
 
-    foreach my $group (@crispr_groups){
-        my $group_id = $group->id;
-        push @crispr_groups_ids, $group_id;
-    }
-
-    return @crispr_groups_ids;
+    return @crispr_groups;
 }
 
 =head2 crispr_pairs_for_crispr
 
-Given a crispr ID returns a list of crispr pair ids that contain it.
+Given a crispr ID returns a list of crispr pairs that contain it.
 
 =cut
 sub crispr_pairs_for_crispr {
     my ($schema, $params) = @_;
     my $crispr_id = $params->{crispr_id}
         or die "No crispr_id provided to crispr_pairs_for_crispr";
-
-    my @crispr_pairs_ids;
 
     my @crispr_pairs = $schema->resultset('CrisprPair')->search(
         {
@@ -601,14 +592,9 @@ sub crispr_pairs_for_crispr {
         {
             distinct => 1,
         }
-    )->all;
+    );
 
-    foreach my $pair (@crispr_pairs){
-        my $pair_id = $pair->id;
-        push @crispr_pairs_ids, $pair_id;
-    }
-
-    return @crispr_pairs_ids;
+    return @crispr_pairs;
 }
 
 
