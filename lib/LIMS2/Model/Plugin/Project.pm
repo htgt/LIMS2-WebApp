@@ -9,6 +9,7 @@ use TryCatch;
 use LIMS2::Exception;
 use namespace::autoclean;
 use List::MoreUtils qw(uniq);
+use Data::Dumper;
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -334,9 +335,14 @@ sub create_experiment{
         $experiment = $self->retrieve_experiment($search_params);
     };
 
-    if($experiment and $experiment->deleted){
-        # Un-delete the existing experiment
-        $experiment->update({ deleted => 0});
+    if($experiment){
+        if($experiment->deleted){
+            # Un-delete the existing experiment
+            $experiment->update({ deleted => 0});
+        }
+        else{
+            die "Experiment already exists with id ".$experiment->id."\n";
+        }
     }
     else{
         $experiment = $self->schema->resultset('Experiment')->create($validated_params);
