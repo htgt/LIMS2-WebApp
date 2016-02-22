@@ -421,6 +421,7 @@ sub generate_sub_report {
                                             'gene_symbol',
                                             'chromosome',
                                             'sponsors',
+                                            'source_cell_line',
                                             # 'crispr_pairs',
                                             'crispr_wells',
                                             # 'crispr_vector_wells',
@@ -462,6 +463,7 @@ sub generate_sub_report {
                                             'gene symbol',
                                             'chr',
                                             'sponsor(s)',
+                                            'source cell line',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
                                             # 'crispr vectors',
@@ -721,7 +723,6 @@ sub _build_sub_report_data {
     my ($self, $sponsor_id, $stage) = @_;
 
     DEBUG 'Building sub-summary report for sponsor = '.$sponsor_id.', stage = '.$stage.', targeting_type = '.$self->targeting_type.' and species = '.$self->species;
-$DB::single=1;
     my $query_type = 'select';
     my $sub_report_data;
 
@@ -1210,28 +1211,37 @@ sub genes {
 
         my $piq_pass_count = scalar @piq;
 
-        my $int = $summary_rs->search(
+        my @int_plates = $summary_rs->search(
             {
                 dna_template => { '!=', undef },
                 to_report => 't',
             },
             {
-                select => [ qw/design_gene_symbol int_plate_name dna_template/ ],
-                as => [ qw/design_gene_symbol int_plate_name dna_template/ ],
+                select => [ qw/dna_template/ ],
+                as => [ qw/dna_template/ ],
                 distinct => 1,
             }
         );
         my $dna_template;
-$DB::single=1;
-        if ($int->count > 0) {
-            $dna_template = $int->first->get_column('dna_template');
-        }   
+        if (@int_plates){
+            my @templates;
+            foreach my $focus (@int_plates){
+                push (@templates, $focus->get_column('dna_template'));
+            }
+            if (keys %{{ map {$_, 1} @templates}} == 1) {
+                $dna_template = $templates[0];
+            }
+            else {
+                $dna_template = $templates[0] . ";" . $templates[1];
+            }
+        }
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
             'gene_symbol'            => $gene_symbol,
             'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
+            'source_cell_line'           => $dna_template,
 
             # 'vector_wells'           => scalar @design_ids,
 
@@ -1258,7 +1268,6 @@ $DB::single=1;
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,
 
-            'dna_template'           => $dna_template,
         };
 
     }
@@ -1291,7 +1300,6 @@ $DB::single=1;
             $b->{ 'crispr_wells' }             <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }            cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
-
     return \@sorted_genes_for_display;
 }
 ## use critic
