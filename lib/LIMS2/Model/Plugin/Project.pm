@@ -286,7 +286,14 @@ sub update_or_create_project_sponsor{
 
 sub _pspec_retrieve_experiment{
     return {
-        id => { validate => 'integer' },
+        id              => { validate => 'integer', optional => 1 },
+        design_id       => { validate => 'existing_design_id', optional => 1 },
+        crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
+        crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
+        crispr_group_id => { validate => 'existing_crispr_group_id', optional => 1},
+        gene_id         => { validate => 'non_empty_string', optional => 1 },
+        REQUIRE_SOME    => { id_or_design_or_crisprs => [ 1, qw( id design_id crispr_id crispr_pair_id crispr_group_id ) ] },
+        MISSING_OPTIONAL_VALID => 1,
     }
 }
 
@@ -315,7 +322,25 @@ sub create_experiment{
 
     my $validated_params = $self->check_params( $params, $self->_pspec_create_experiment);
 
-    my $experiment  = $self->schema->resultset('Experiment')->create($validated_params);
+    my $search_params = {
+        gene_id   => $validated_params->{gene_id},
+        design_id => ($validated_params->{design_id} // undef),
+        crispr_id => ($validated_params->{crispr_id} // undef),
+        crispr_pair_id => ($validated_params->{crispr_pair_id} // undef),
+        crispr_group_id => ($validated_params->{crispr_group_id} // undef),
+    };
+    my $experiment;
+    try{
+        $experiment = $self->retrieve_experiment($search_params);
+    };
+
+    if($experiment and $experiment->deleted){
+        # Un-delete the existing experiment
+        $experiment->update({ deleted => 0});
+    }
+    else{
+        $experiment = $self->schema->resultset('Experiment')->create($validated_params);
+    }
     return $experiment;
 }
 
@@ -323,7 +348,7 @@ sub delete_experiment{
     my ($self,$params) = @_;
 
     my $experiment = $self->retrieve_experiment($params);
-    $experiment->delete;
+    $experiment->update({ deleted => 1});
     return;
 }
 
