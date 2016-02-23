@@ -1465,7 +1465,7 @@ sub experiments {
         die "No crispr entity or design found for $self. Cannot identify related experiments";
     }
 
-    my $search = {};
+    my $search = { deleted => 0};
     if($crispr_entity){
         $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
     }

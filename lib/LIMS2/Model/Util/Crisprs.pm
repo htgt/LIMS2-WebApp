@@ -184,7 +184,7 @@ sub create_crispr_group_design_links {
         next unless crispr_group_hits_design( $design, $crispr_group, $default_assembly, \@fail_log );
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_group_id => $crispr_group->id,
@@ -221,7 +221,7 @@ sub create_crispr_pair_design_links {
         next unless crispr_pair_hits_design( $design, $crispr_pair, $default_assembly, \@fail_log );
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_pair_id => $crispr_pair->id,
@@ -263,13 +263,14 @@ sub create_crispr_design_links {
         }
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id => $design->id,
                 crispr_id => $crispr->id,
                 gene_id   => $gene_id,
             }
         );
+
         INFO('Experiment record created: ' . $experiment->id );
         push @create_log, 'Linked design & crispr ' . p(%$datum);
     }
@@ -293,7 +294,7 @@ sub delete_crispr_design_links {
             push @fail_log, 'Failed to find design & crispr link: ' . p(%$datum);
             next;
         }
-        if ( $experiment->delete ) {
+        if ( $experiment->update({ deleted => 1 }) ) {
             INFO( 'Deleted experiment record ' . $experiment->id );
             push @delete_log, 'Deleted link between design & crispr: ' . p(%$datum);
         }
@@ -550,15 +551,13 @@ sub get_crispr_group_by_crispr_ids{
 
 =head2 crispr_groups_for_crispr
 
-Given a crispr ID returns a list of crispr group ids that contain it.
+Given a crispr ID returns a list of crispr groups that contain it.
 
 =cut
 sub crispr_groups_for_crispr {
     my ($schema, $params) = @_;
     my $crispr_id = $params->{crispr_id}
         or die "No crispr_id provided to crispr_groups_for_crispr";
-
-    my @crispr_groups_ids;
 
     my @crispr_groups = $schema->resultset('CrisprGroup')->search(
         {
@@ -568,27 +567,20 @@ sub crispr_groups_for_crispr {
             join     => 'crispr_group_crisprs',
             distinct => 1,
         }
-    )->all;
+    );
 
-    foreach my $group (@crispr_groups){
-        my $group_id = $group->id;
-        push @crispr_groups_ids, $group_id;
-    }
-
-    return @crispr_groups_ids;
+    return @crispr_groups;
 }
 
 =head2 crispr_pairs_for_crispr
 
-Given a crispr ID returns a list of crispr pair ids that contain it.
+Given a crispr ID returns a list of crispr pairs that contain it.
 
 =cut
 sub crispr_pairs_for_crispr {
     my ($schema, $params) = @_;
     my $crispr_id = $params->{crispr_id}
         or die "No crispr_id provided to crispr_pairs_for_crispr";
-
-    my @crispr_pairs_ids;
 
     my @crispr_pairs = $schema->resultset('CrisprPair')->search(
         {
@@ -600,14 +592,9 @@ sub crispr_pairs_for_crispr {
         {
             distinct => 1,
         }
-    )->all;
+    );
 
-    foreach my $pair (@crispr_pairs){
-        my $pair_id = $pair->id;
-        push @crispr_pairs_ids, $pair_id;
-    }
-
-    return @crispr_pairs_ids;
+    return @crispr_pairs;
 }
 
 

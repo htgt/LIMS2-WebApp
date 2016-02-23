@@ -69,7 +69,7 @@ sub create_crispr_design_links : Test(6) {
         'link fails if crispr does not hit design'
     );
     is model->schema->resultset('Experiment')
-        ->search( { design_id => 1002582, crispr_id => 69907 } )->count, 0,
+        ->search( { design_id => 1002582, crispr_id => 69907, deleted => 0 } )->count, 0,
         'no link created between crispr and design';
 
     ok LIMS2::Model::Util::Crisprs::create_crispr_design_links(
@@ -81,7 +81,8 @@ sub create_crispr_design_links : Test(6) {
     ok my $crispr_design = model->schema->resultset( 'Experiment' )->find(
         {
             design_id => 1002582,
-            crispr_id => 69844
+            crispr_id => 69844,
+            deleted => 0
         }
     ), 'can grab newly created crispr_design link';
 
@@ -110,7 +111,7 @@ sub create_crispr_pair_design_links : Test(6) {
         'link fails if crispr_pair does not hit design'
     );
     is model->schema->resultset('Experiment')
-        ->search( { design_id => 1002582, crispr_pair_id => 4475 } )->count, 0,
+        ->search( { design_id => 1002582, crispr_pair_id => 4475, deleted => 0 } )->count, 0,
         'no link created between crispr pair and design';
 
     ok LIMS2::Model::Util::Crisprs::create_crispr_pair_design_links(
@@ -122,7 +123,8 @@ sub create_crispr_pair_design_links : Test(6) {
     ok my $crispr_design = model->schema->resultset( 'Experiment' )->find(
         {
             design_id => 1002582,
-            crispr_pair_id => 4423
+            crispr_pair_id => 4423,
+            deleted => 0,
         }
     ), 'can grab newly created crispr_design link';
 
@@ -143,7 +145,7 @@ sub delete_crispr_design_links : Test(7) {
         $default_assembly
     ), 'can create new crispr design link';
 
-    is model->schema->resultset('Experiment')->search( { design_id => 1002582 } )->count, 2,
+    is model->schema->resultset('Experiment')->search( { design_id => 1002582, deleted => 0 } )->count, 2,
         'we have 2 links with design 1002582';
 
     ok my ( $delete_log, $fail_log ) = LIMS2::Model::Util::Crisprs::delete_crispr_design_links(
@@ -156,7 +158,7 @@ sub delete_crispr_design_links : Test(7) {
     like( $delete_log->[0], qr/Deleted link between design & crispr/, 'log message says first link deleted' );
     like( $delete_log->[1], qr/Deleted link between design & crispr/, 'log message says second link deleted' );
 
-    is model->schema->resultset('Experiment')->search( { design_id => 1002582 } )->count, 0,
+    is model->schema->resultset('Experiment')->search( { design_id => 1002582, deleted => 0 } )->count, 0,
         'we no longer have any links with design 1002582';
 
 }
@@ -204,7 +206,7 @@ sub crispr_pick : Test(8) {
 
     my $species_id = 'Mouse';
 
-    my $crispr_design_rs = model->schema->resultset('Experiment');
+    my $crispr_design_rs = model->schema->resultset('Experiment')->search({ deleted => 0 });
     ok $crispr_design_rs->search_rs( {} )->delete, 'delete all existing links';
     ok $crispr_design_rs->create( { design_id => 1002582, crispr_id => 69854 } ), 'create crispr design link';
 
