@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.377     2016-02-23 14:16:46 Europe/London
+
+    experiments now flagged as deleted and can be restored
+    temporary restriction of access to some public reports
+
 0.376     2016-02-17 15:28:10 Europe/London
 
     added crispr pairs and groups to the crispr page
