@@ -1,3 +1,24 @@
+0.377     2016-02-23 14:16:46 Europe/London
+
+    experiments now flagged as deleted and can be restored
+    temporary restriction of access to some public reports
+
+0.376     2016-02-17 15:28:10 Europe/London
+
+    added crispr pairs and groups to the crispr page
+    experient management updates
+
+0.375     2016-02-16 11:09:47 Europe/London
+
+    Added duplicate checking to gibson convertor
+    bugfix CRISPR plate reports
+
+0.374     2016-02-10 14:28:44 Europe/London
+    Schema file regen
+0.373     2016-02-10 10:18:59 Europe/London
+    Moved dna_template to the int plates
+0.372     2016-02-05 15:43:43 Europe/London
+    Added Dna_template to the design plates
 0.371     2016-02-05 12:35:32 Europe/London
 
 0.369     2016-02-05 11:44:33 Europe/London

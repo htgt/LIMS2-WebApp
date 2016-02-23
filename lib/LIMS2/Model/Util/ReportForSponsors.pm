@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.371';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.377';
 }
 ## use critic
 
@@ -5576,6 +5576,7 @@ and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_id=prc.crispr_id
+and cd.deleted=false
 and pro.process_id=prc.process_id
 )
     UNION ALL
@@ -5617,6 +5618,7 @@ and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_id=prc.crispr_id
+and cd.deleted=false
 and pro.process_id=prc.process_id
 )
     UNION ALL
@@ -5658,6 +5660,7 @@ and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_pair_id=cp.id
+and cd.deleted=false
 and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
@@ -5700,6 +5703,7 @@ and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_pair_id=cp.id
+and cd.deleted=false
 and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )

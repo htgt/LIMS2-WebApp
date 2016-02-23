@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.371';
+    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.377';
 }
 ## use critic
 
@@ -198,8 +198,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 10:41:21
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fVX1R+V9u9DzblYt7m79mA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UutyMmosEgooyTF+tG8fiQ
 
 sub as_hash {
     my ( $self, $options ) = @_;

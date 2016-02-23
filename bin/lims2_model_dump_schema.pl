@@ -30,6 +30,9 @@ my %MONIKER_MAP = (
 );
 
 my %REL_NAME_MAP = (
+    # Classes related to experiments must define an 'experiments'
+    # method which filters out those flagged as deleted
+    experiments => 'experiments_including_deleted',
     # Bad plurals, prefer shorter method name
     Assembly => {
         design_oligo_locis  => 'design_oligo_loci',

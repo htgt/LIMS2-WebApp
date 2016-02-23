@@ -88,5 +88,5 @@ DELETE FROM crispr_es_qc_runs;
 DELETE FROM crispr_es_qc_wells;
 DELETE FROM barcode_states;
 DELETE FROM cell_lines;
-
+DELETE FROM dna_templates;
 

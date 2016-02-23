@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Experiments;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.371';
+    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.377';
 }
 ## use critic
 
@@ -36,13 +36,32 @@ sub view_experiment :Path('/user/view_experiment'){
         species => $exp->species_id,
     } ) };
 
+    my $exp_hash = $exp->as_hash_with_detail;
+
     $c->stash(
         experiment_id => $exp_id,
-        experiment => $exp->as_hash_with_detail,
+        experiment => $exp_hash,
         gene_symbol => $gene_info->{'gene_symbol'},
     );
 
     return;
 }
+
+sub restore_experiment :Path('/user/restore_experiment'){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles('edit');
+    my $exp_id = $c->req->param('experiment_id');
+    my $exp = $c->model( 'Golgi' )->retrieve_experiment( { id => $exp_id } );
+    my $deleted = $exp->deleted;
+
+    if($deleted){
+        $exp->update({deleted => 0});
+        $c->flash->{success_msg} = "Experiment $exp_id has been restored";
+    }
+    $c->res->redirect( $c->uri_for('/user/view_experiment', { experiment_id => $exp_id}) );
+    return;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

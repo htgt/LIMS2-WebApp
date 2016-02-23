@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprGroup;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.371';
+    $LIMS2::Model::Schema::Result::CrisprGroup::VERSION = '0.377';
 }
 ## use critic
 
@@ -122,7 +122,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 experiments
+=head2 experiments_including_deleted
 
 Type: has_many
 
@@ -131,7 +131,7 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
+  "experiments_including_deleted",
   "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.crispr_group_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -158,8 +158,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UTx6dIGfSx89vft8URwcNQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k1J27j84/wlQQfgZqNcH4w
 #
 =head2 crisprs
 
@@ -170,6 +170,13 @@ Composing rels: L</crispr_group_crisprs> -> crispr
 =cut
 
 __PACKAGE__->many_to_many("crisprs", "crispr_group_crisprs", "crispr");
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_group_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
 
 # crispr_designs table merged into experiments table
 sub crispr_designs{

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.371';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.377';
 }
 ## use critic
 
@@ -1471,7 +1471,7 @@ sub experiments {
         die "No crispr entity or design found for $self. Cannot identify related experiments";
     }
 
-    my $search = {};
+    my $search = { deleted => 0};
     if($crispr_entity){
         $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
     }

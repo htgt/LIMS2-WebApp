@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.371';
+    $LIMS2::Test::VERSION = '0.377';
 }
 ## use critic
 
@@ -295,6 +295,7 @@ sub load_static_files {
             SequencingPrimerType
             SequencingProjectPrimer
             SequencingProjectTemplate
+            DnaTemplate
             )
     );
 
