@@ -305,6 +305,7 @@ sub as_hash {
     my $self = shift;
 
     return {
+        id          => $self->id,
         name        => $self->name,
         description => $self->description,
         type        => $self->type_id,
@@ -326,7 +327,6 @@ sub has_child_wells {
 
 sub parent_plates_by_process_type{
 	my $self = shift;
-
 	my $parents;
 
 	for my $well ( $self->wells ){
@@ -341,6 +341,24 @@ sub parent_plates_by_process_type{
 	}
 
 	return $parents;
+}
+
+sub parent_names {
+    my $self = shift;
+    my @ancestors;
+    for my $well ( $self->wells ){
+	    foreach my $process ($well->parent_processes){
+	    	foreach my $input ($process->input_wells){
+                my $plate = {
+                    name => $input->plate->name,
+                    type_id => $input->plate->type_id,
+                };
+                push (@ancestors, $plate);
+	        }
+	    }
+	}
+
+    return \@ancestors;
 }
 
 sub child_plates_by_process_type{

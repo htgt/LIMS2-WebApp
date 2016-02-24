@@ -289,6 +289,7 @@ sub load_static_files {
             SequencingPrimerType
             SequencingProjectPrimer
             SequencingProjectTemplate
+            DnaTemplate
             )
     );
 
@@ -319,7 +320,7 @@ sub load_dynamic_files {
             DesignOligo
             DesignOligoLocus
             GeneDesign
-            CrisprDesign
+            Experiment
             BacClone
             BacCloneLocus
             Process

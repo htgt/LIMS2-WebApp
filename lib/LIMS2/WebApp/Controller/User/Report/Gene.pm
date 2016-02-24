@@ -571,6 +571,7 @@ sub fetch_values_for_type_assembly {
 
         my $plate_name     = $summary_row->assembly_plate_name;
         my $well_name      = $summary_row->assembly_well_name;
+        my $well_id      = $summary_row->assembly_well_id;
         my $well_id_string = $plate_name . '_' . $well_name;
 
         return if exists $wells_hash->{ 'assembly' }->{ $well_id_string };
@@ -583,7 +584,7 @@ sub fetch_values_for_type_assembly {
             $well_is_accepted = 'no';
         }
 
-        my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        my $well = $model->retrieve_well( { id => $well_id } );
 
         my $crispr_entity = $well->crispr_entity;
         my $crispr_type = !$crispr_entity          ? 'NA'
@@ -656,6 +657,7 @@ sub fetch_values_for_type_ep {
     } elsif ( defined $summary_row->crispr_ep_well_id && $summary_row->crispr_ep_well_id > 0 ) {
         my $plate_name     = $summary_row->crispr_ep_plate_name;
         my $well_name      = $summary_row->crispr_ep_well_name;
+        my $well_id        = $summary_row->crispr_ep_well_id;
         my $well_id_string = $plate_name . '_' . $well_name;
 
         return if exists $wells_hash->{ 'ep' }->{ $well_id_string };
@@ -670,13 +672,13 @@ sub fetch_values_for_type_ep {
         my $final_pick_plate_name     = $summary_row->final_pick_plate_name ? $summary_row->final_pick_plate_name : '';
         my $final_pick_well_name      = $summary_row->final_pick_well_name ? $summary_row->final_pick_well_name : '';
         my $final_pick_well = $final_pick_plate_name . '_' . $final_pick_well_name;
-        my $dna_plate_name     = $summary_row->dna_plate_name;
-        my $dna_well_name      = $summary_row->dna_well_name;
+        my $dna_plate_name     = $summary_row->dna_plate_name // '?';
+        my $dna_well_name      = $summary_row->dna_well_name // '?';
         my $dna_well = $dna_plate_name . '_' . $dna_well_name;
         my $assembly_plate_name = $summary_row->assembly_plate_name ? $summary_row->assembly_plate_name : '';
         my $assembly_well_name  = $summary_row->assembly_well_name ? $summary_row->assembly_well_name : '';
         my $assembly_well = $assembly_plate_name . '_' . $assembly_well_name;
-        my $well = $model->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        my $well = $model->retrieve_well( { id => $well_id } );
         my @crisprs = map { $_->id } $well->crisprs;
 
         my $well_hash = {

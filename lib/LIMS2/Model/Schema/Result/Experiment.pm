@@ -74,6 +74,18 @@ __PACKAGE__->table("experiments");
   data_type: 'text'
   is_nullable: 1
 
+=head2 plated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 deleted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -94,6 +106,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
+  "plated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "deleted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -191,8 +207,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QgWIYcrPa7OKm/ShOybg/g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 12:24:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1V5OvWyV0Ze3tthsOkhBg
 
 sub as_hash{
     my $self = shift;
@@ -204,6 +220,7 @@ sub as_hash{
         crispr_id       => $self->crispr_id,
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_group_id => $self->crispr_group_id,
+        deleted         => $self->deleted,
     };
 }
 
