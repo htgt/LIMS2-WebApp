@@ -907,12 +907,19 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{recent_results} = \@results;
 
     if($c->req->param('get_reads')){
+
+        unless($ENV{LIMS2_SEQ_FILE_DIR}){
+            $c->stash->{error_msg} = "Cannot fetch reads - LIMS2_SEQ_FILE_DIR environment variable not set!";
+            return;
+        }
+
         my $project = $c->req->param('sequencing_project');
         my $sub_project = $c->req->param('sequencing_sub_project');
         if(my $well_name = $c->req->param('well_name')){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");
+
             my $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR},$project);
 
             unless (-r $project_dir){
@@ -925,10 +932,9 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
 
             unless(@well_files){
                 $c->stash->{error_msg} = "Could not find any reads for $sub_project well $well_name";
+                return;
             }
-foreach my $file (@well_files){
-    $c->log->debug("Found file: ".$file->basename);
-}
+
             my @reads;
             foreach my $file (@well_files){
                 my $input = $file->slurp;
@@ -953,7 +959,6 @@ foreach my $file (@well_files){
             # Fetch the sequence fasta and parse it
             my $script_name = 'fetch-seq-reads.sh';
             my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
-
             my $fasta_input = join "", capturex( $fetch_cmd, $project );
             my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
             my $seq_by_name = {};
