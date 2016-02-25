@@ -27,7 +27,7 @@ FROM summaries s
 INNER JOIN project_requests pr ON s.design_gene_id = pr.gene_id
 ",,,,,
 ,,,,,,
-modifier:SQL:gibson_only,AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' ),,,,,
+modifier:SQL:gibson_only,AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'gibson_fusion' ),,,,,
 modifier:SQL:cre_knockin,FIXME: this is a different query really,,,,,
 modifier:SQL:summary_sponsor_id,AND s.sponsor_id = $item,,,,,
 ,,,,,,

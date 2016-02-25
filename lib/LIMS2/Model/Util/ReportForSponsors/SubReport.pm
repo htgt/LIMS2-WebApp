@@ -222,6 +222,7 @@ sub get_summaries_to_report{
         $search{'-or'} = [
             { design_type => 'gibson' },
             { design_type => 'gibson-deletion' },
+            { design_type => 'gibson-fusion' },
         ];
     }
 
