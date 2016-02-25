@@ -947,8 +947,19 @@ sub child_wells_skip_versioned_plates{
             push @real_child_wells, $well;
         }
     }
-
     return @real_child_wells;
+}
+
+sub sibling_wells{
+    my ($self) = @_;
+
+    # Includes "half-siblings", i.e. those that share any parent
+    # with the parents of the current well
+    my @parent_wells = $self->parent_wells;
+    my @siblings = map { $_->child_wells } @parent_wells;
+
+    my @siblings_not_self = grep { $_->id != $self->id } @siblings;
+    return @siblings_not_self;
 }
 
 has second_electroporation_process => (
