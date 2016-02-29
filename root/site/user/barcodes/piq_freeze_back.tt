@@ -1,5 +1,7 @@
 [% META title = "PIQ Well Freeze Back", tab_name = 'Barcodes' -%]
 
+[% number_of_subclones = 3 %]
+
 <h1>PIQ Well Freeze Back</h1>
 [% barcode_state_error = (well_details.barcode_state != 'doubling_in_progress') %]
 
@@ -14,8 +16,9 @@
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="hidden" name="freeze_back_type" value="PIQ"/>
-    <input type="hidden" name="number_of_qc_wells" value="2"/>
-    [% FOREACH num IN [1,2] %]
+    <input type="hidden" name="number_of_qc_wells" value="[% number_of_subclones %]"/>
+    [% FOREACH num IN [1..number_of_subclones] %]
+      [% NEXT UNLESS ${"qc_piq_plate_name_$num"} %]
     <h4>Freeze Back [% num %]</h4>
   QC PIQ well has been added to plate [% ${"qc_piq_plate_name_$num"} %] at well [% ${"qc_piq_well_name_$num"} %] with barcode [% ${"qc_piq_well_barcode_$num"} %]<br><br>
   PIQ wells with the following lab numbers have been created on temporary plate [% ${"piq_plate_name_$num"} %]. Please enter barcodes.
@@ -49,7 +52,7 @@
   <fieldset>
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <input type="hidden" name="freeze_back_type" value="PIQ"/>
-    <input type="hidden" name="number_of_qc_wells" value="2"/>
+    <input type="hidden" name="number_of_qc_wells" value="[% number_of_subclones %]"/>
     <table>
     <tr>
      <td>
@@ -58,7 +61,7 @@
      </td>
     </tr>
     </table>
-    [% FOREACH num IN [1,2] %]
+    [% FOREACH num IN [1..number_of_subclones] %]
     <table>
     <tr>
       <td><h4>Freeze Back [% num %]</h4></td>

@@ -21,6 +21,7 @@ use JSON;
 
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 use LIMS2::Model::Util::CGAP;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -455,7 +456,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             }
         }
 
-        if($child_piq_count == 0){
+        if(@freeze_back_outputs and $child_piq_count == 0){
             $c->flash->{success_msg} = ("Barcode $barcode frozen back. QC PIQ well has been added to "
                 .$c->stash->{qc_piq_plate_name_1}." well ".$c->stash->{qc_piq_well_name_1});
             $c->res->redirect( $redirect_on_completion );
@@ -1275,3 +1276,4 @@ sub _pick_list_display_data{
 }
 
 1;
+                                             

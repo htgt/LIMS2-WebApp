@@ -8,4 +8,4 @@ CREATE UNIQUE INDEX design_crispr_combo ON experiments (
 	COALESCE(crispr_group_id,-1)
 );
 
-
+CREATE RULE flag_delete_experiment AS ON DELETE TO experiments DO INSTEAD (UPDATE experiments SET deleted=TRUE where id=OLD.id);
