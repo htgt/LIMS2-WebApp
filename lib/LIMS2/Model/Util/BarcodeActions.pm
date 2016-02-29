@@ -278,7 +278,7 @@ sub freeze_back_fp_barcode{
             tmp_piq_plate => $tmp_piq_plate,
         };
     }
-
+    die "No QC wells provided for freeze back" unless @freeze_back_outputs;
     return @freeze_back_outputs;
 }
 
@@ -338,6 +338,12 @@ sub freeze_back_piq_barcode{
 
     my @freeze_back_outputs;
     foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        # check we have some info about this QC well. If not we can skip it.
+        # this allows user to create fewer than the default number of subclones
+        my $well_defined = grep { $qc_well_params->{$_} }
+                           qw(number_of_wells lab_number qc_piq_plate_name qc_piq_well_name qc_piq_well_barcode);
+        next unless $well_defined;
+
         $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_piq_barcode_qc_well);
 
         my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc,$validated_params);
