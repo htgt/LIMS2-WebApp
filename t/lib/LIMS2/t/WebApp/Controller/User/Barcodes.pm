@@ -17,7 +17,7 @@ BEGIN
 };
 
 
-sub mutation_signatures_workflow_test : Test(15){
+sub mutation_signatures_workflow_test : Test(16){
     my $mech = mech();
     my $model = model();
 

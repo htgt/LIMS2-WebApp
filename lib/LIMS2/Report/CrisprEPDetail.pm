@@ -135,8 +135,8 @@ sub build_ep_detail {
             foreach my $process ($crispr_ep_well->child_processes){
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
-                    my $plate_name = $output->plate->name;
-                    my $well_name = $output->name;
+                    my $plate_name = $output->plate_name;
+                    my $well_name = $output->well_name;
                     my $specification = $plate_name . '[' . $well_name . ']';
                     $ep_pick_list = !$ep_pick_list ? $specification : join q{ }, ( $ep_pick_list, $specification );
 
@@ -175,14 +175,14 @@ sub build_ep_detail {
                 $gene_id,
                 $gene_symbol,
                 $design_id,
-                $wells->{'crispr_ep'} ? $wells->{'crispr_ep'}->plate->name . "_" . $wells->{'crispr_ep'}->name : '',
-                $wells->{'assembly'} ? $wells->{'assembly'}->plate->name . "_" . $wells->{'assembly'}->name : '',
-                $wells->{'vector'} ? $wells->{'vector'}->plate->name . "_" . $wells->{'vector'}->name : '',
-                $wells->{'vector_dna'} ? $wells->{'vector_dna'}->plate->name . "_" . $wells->{'vector_dna'}->name : '',
-                $wells->{'l_vector'} ? $wells->{'l_vector'}->plate->name .'_'. $wells->{'l_vector'}->name : '',
-                $wells->{'l_dna'} ? $wells->{'l_dna'}->plate->name .'_'. $wells->{'l_dna'}->name : '',
-                $wells->{'r_vector'} ? $wells->{'r_vector'}->plate->name .'_'. $wells->{'r_vector'}->name : '',
-                $wells->{'r_dna'} ? $wells->{'r_dna'}->plate->name .'_'. $wells->{'r_dna'}->name : '',
+                $wells->{'crispr_ep'} ? $wells->{'crispr_ep'}->plate_name . "_" . $wells->{'crispr_ep'}->well_name : '',
+                $wells->{'assembly'} ? $wells->{'assembly'}->plate_name . "_" . $wells->{'assembly'}->well_name : '',
+                $wells->{'vector'} ? $wells->{'vector'}->plate_name . "_" . $wells->{'vector'}->well_name : '',
+                $wells->{'vector_dna'} ? $wells->{'vector_dna'}->plate_name . "_" . $wells->{'vector_dna'}->well_name : '',
+                $wells->{'l_vector'} ? $wells->{'l_vector'}->plate_name .'_'. $wells->{'l_vector'}->well_name : '',
+                $wells->{'l_dna'} ? $wells->{'l_dna'}->plate_name .'_'. $wells->{'l_dna'}->well_name : '',
+                $wells->{'r_vector'} ? $wells->{'r_vector'}->plate_name .'_'. $wells->{'r_vector'}->well_name : '',
+                $wells->{'r_dna'} ? $wells->{'r_dna'}->plate_name .'_'. $wells->{'r_dna'}->well_name : '',
                 $ep_pick_count,
                 $ep_pick_list,
                 $ep_pick_pass_count,

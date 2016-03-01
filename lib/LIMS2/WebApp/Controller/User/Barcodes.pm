@@ -199,8 +199,8 @@ sub get_barcode_information : Path('/user/get_barcode_information/') : Args(1){
         $c->stash->{json_data} = { message => "Barcode $barcode not in freezer.<br>State: "
                                               .$well->barcode_state->id
                                               ."<br>Last known freezer location: plate "
-                                              .$well->plate->as_string
-                                              ." well ".$well->name };
+                                              .$well->last_known_plate->as_string
+                                              ." well ".$well->last_known_well_name };
     }
 
     $c->forward('View::JSON');
@@ -1012,8 +1012,8 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
             barcode => $well->barcode,
             state   => $well->barcode_state->id,
             events  => \@events,
-            current_plate => $well->plate->as_string,
-            current_well  => $well->name,
+            current_plate => $well->plate_name,
+            current_well  => $well->well_name,
         };
 
         if(@events){

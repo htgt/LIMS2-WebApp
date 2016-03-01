@@ -73,7 +73,7 @@ sub get_mutation_signatures_barcode_data{
 
         if($child_well){
             # Skip child wells on old plate versions
-            next if $child_well->plate->version;
+            next if ($child_well->plate and $child_well->plate->version);
         }
 
 		my $state = $parent_well->barcode_state->id;

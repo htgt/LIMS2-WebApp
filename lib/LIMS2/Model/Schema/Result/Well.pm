@@ -650,7 +650,7 @@ sub as_hash {
         id             => $self->id,
         plate_name     => $self->plate_name,
         plate_type     => $self->plate_type,
-        well_name      => $self->name // '',
+        well_name      => $self->well_name,
         created_by     => $self->created_by->name,
         created_at     => $self->created_at->iso8601,
         assay_pending  => $self->assay_pending ? $self->assay_pending->iso8601 : undef,
@@ -670,6 +670,11 @@ sub plate_id {
 sub plate_name {
     my $self = shift;
     return $self->plate ? $self->plate->name : '';
+}
+
+sub well_name {
+    my $self = shift;
+    return $self->name // '';
 }
 
 sub plate_type{
@@ -1042,7 +1047,7 @@ sub child_wells_skip_versioned_plates{
 
     my @child_wells = $self->child_wells;
     foreach my $well (@child_wells){
-        if($well->plate->version){
+        if($well->plate and $well->plate->version){
             push @real_child_wells, $well->child_wells_skip_versioned_plates;
         }
         else{
@@ -1920,7 +1925,7 @@ sub old_versions{
       next if $ancestor->id == $self->id;
         # FIXME: this will break if user changes the name of the current plate
         # as the old version of the plate will no longer have the same name
-        if($ancestor->plate->version and $ancestor->plate->name eq $self->plate->name){
+        if($ancestor->plate and $ancestor->plate->version and $ancestor->plate->name eq $self->plate->name){
             DEBUG "Found old version of well: $ancestor";
             push @versioned_parents, $ancestor;
         }

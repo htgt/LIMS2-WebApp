@@ -239,7 +239,7 @@ sub _process_concentration_data{
     }
     my ($input_well) = $well->ancestors->input_wells($well);
     my $plate_type = $input_well->plate_type;
-    my $species = $input_well->plate->species_id;
+    my $species = $input_well->plate_species->id;
     my $minimum;
     try{
         $minimum = $VECTOR_DNA_CONCENTRATION{$species}->{$plate_type};

@@ -380,8 +380,8 @@ sub parent_names {
 	    foreach my $process ($well->parent_processes){
 	    	foreach my $input ($process->input_wells){
                 my $plate = {
-                    name => $input->plate->name,
-                    type_id => $input->plate->type_id,
+                    name => $input->plate_name,
+                    type_id => $input->plate_type,
                 };
                 push (@ancestors, $plate);
 	        }

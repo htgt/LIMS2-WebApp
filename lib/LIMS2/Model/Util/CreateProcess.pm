@@ -883,7 +883,7 @@ sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
-    my $species_id = $input_well->well->plate->species_id;
+    my $species_id = $input_well->well->plate_species->id;
 
     # allow any type of backbone for int_recom process now...
     # backbone puc19_RV_GIBSON is used in both int and final wells
