@@ -123,21 +123,21 @@
 [% END %]
 
 <h2>Crispr Pairs</h2>
-[% IF pairs.size > 0 %]
-  <table class="table">
+[% IF pairs.size %]
+  <table class="table table-striped">
     <thead>
-      <tr>
-        <th>Pair</th>
-      </tr>
+      <th>ID</th>
+      <th>Left Crispr</th>
+      <th>Right Crispr</th>
+      <th>Spacer</th>
     </thead>
     <tbody>
-      [%- FOR id IN pairs %]
+      [%- FOR cp IN pairs %]
       <tr>
-        <td>
-          <a href="[% c.uri_for( '/user/crispr_pair', id, 'view'  ) %]">
-            [% id %]
-          </a>
-        </td>
+        <td><a href="[% c.uri_for( '/user/crispr_pair', cp.id , 'view'  ) %]" target="_blank"> [% cp.id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.left_crispr_id , 'view'  ) %]" target="_blank"> [% cp.left_crispr_id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.right_crispr_id , 'view'  ) %]" target="_blank"> [% cp.right_crispr_id %]</a></td>
+        <td>[% cp.spacer %]</td>
       </tr>
       [%- END %]
     </tbody>
@@ -147,21 +147,21 @@
 [% END %]
 
 <h2>Crispr Groups</h2>
-[% IF groups.size > 0 %]
-  <table class="table">
+[% IF groups.size %]
+  <table class="table table-striped">
     <thead>
-      <tr>
-        <th>Group</th>
-      </tr>
+      <th>ID</th>
+      <th>Group Target</th>
+      <th>Num Crisprs</th>
+      <th>Crisprs</th>
     </thead>
     <tbody>
-      [%- FOR id IN groups %]
+      [%- FOR cg IN groups %]
       <tr>
-        <td>
-          <a href="[% c.uri_for( '/user/crispr_group', id, 'view'  ) %]">
-            [% id %]
-          </a>
-        </td>
+        <td><a href="[% c.uri_for( '/user/crispr_group', cg.id , 'view'  ) %]" target="_blank"> [% cg.id %]</a></td>
+        <td>[% cg.gene_id %]</td>
+        <td>[% cg.crispr_ids.size %]</td>
+        <td>[% cg.crispr_ids.join(', ') %]</td>
       </tr>
       [%- END %]
     </tbody>

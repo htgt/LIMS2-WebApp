@@ -6,6 +6,7 @@ use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 
 use LIMS2::Test;
 use File::Temp ':seekable';
+use JSON;
 
 use strict;
 
@@ -15,7 +16,8 @@ BEGIN
     Log::Log4perl->easy_init( $FATAL );
 };
 
-sub mutation_signatures_workflow_test : Test(11){
+
+sub mutation_signatures_workflow_test : Test(15){
     my $mech = mech();
     my $model = model();
 
@@ -62,13 +64,43 @@ sub mutation_signatures_workflow_test : Test(11){
     $mech->content_contains($barcode);
     $mech->content_contains('doubling_in_progress');
 
-    note("Create an MS_QC plate at 12 doublings");
+    #note("Create an MS_QC plate at 12 doublings");
 
-    note("Create an MS_QC plate at 24 doublings");
+    #note("Create an MS_QC plate at 24 doublings");
 
     note("Freeze back at 24 doublings");
+    $mech->follow_link(url_regex => qr/freeze_back/);
+    $mech->set_fields(
+        number_of_doublings   => 24,
+        qc_piq_plate_name_1   => 'PIQ_QC',
+        qc_piq_well_name_1    => 'A01',
+        qc_piq_well_barcode_1 => 'FRTEST1',
+        number_of_wells_1     => 3,
+        qc_piq_plate_name_2   => 'PIQ_QC',
+        qc_piq_well_name_2    => 'A02',
+        qc_piq_well_barcode_2 => 'FRTEST2',
+        number_of_wells_2     => 3
+    );
+    $mech->click_button( name => 'create_piq_wells' );
+    $mech->content_contains('QC PIQ well has been added to plate PIQ_QC');
+    my ($form) = $mech->forms;
+    my @inputs = grep { $_->type eq 'text' } $form->inputs;
+    my %fields;
+    foreach my $input (@inputs){
+        my $bc = $input->name;
+        $bc =~ s/barcode_/BC/;
+        $fields{ $input->name } = $bc;
+    }
+    $mech->set_fields( %fields );
+    $mech->click_button( name => 'submit_piq_barcodes' );
+    $mech->content_contains('added to well');
+
 
     note("Use API to retrieve original barcode");
+    $mech->get_ok('/public_api/mutation_signatures_info/FRTEST1');
+    ok my $json = from_json($mech->content), "can parse JSON from mutation signatures API";
+    my ($sibling) = @{ $json->{sibling_barcodes} || [] };
+    is $sibling, 'FRTEST2', 'sibling barcode retrieved by mutation signatures API';
 
     note("Use API to retrieve child barcode");
 
