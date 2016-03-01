@@ -9,6 +9,7 @@ use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
+use Data::Dumper;
 
 with "MooseX::Log::Log4perl";
 
@@ -286,7 +287,7 @@ sub mutation_signatures_info_GET{
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
 
         my @sibling_barcodes = grep { $_ }
-                               map { $_->well_barcode ? $_->well_barcode->barcode : undef }
+                               map { $_->barcode }
                                $well->sibling_wells;
         my $data = {
             well_id          => $well->id,
@@ -295,8 +296,9 @@ sub mutation_signatures_info_GET{
             parameters       => $well->input_process_parameters_skip_versioned_plates,
             child_barcodes   => $well->distributable_child_barcodes,
             sibling_barcodes => \@sibling_barcodes,
-            ms_qc_data       => $well->ms_qc_data($gene_finder),
+            ms_qc_data       => ( $well->ms_qc_data($gene_finder) // [] ),
         };
+
         my $design = try{ $well->design };
         if($design){
             my @gene_ids = $design->gene_ids;
@@ -306,7 +308,7 @@ sub mutation_signatures_info_GET{
 
             # damaged required to check if clone is het. clone qc_data hash seems to be inside an array (of max size 1)?
             my $damage = $data->{ms_qc_data}->[0]->{qc_data}->{damage_type};
-            my $species = $c->model('Golgi')->schema->resultset('Species')->find({ id => $well->plate->species_id});
+            my $species = $c->model('Golgi')->schema->resultset('Species')->find({ id => $well->plate_species->id});
             my $assembly_id = $species->default_assembly->assembly_id;
             my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
             my $chromosome = $design_oligo_locus->chr->name;

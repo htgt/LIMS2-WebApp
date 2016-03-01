@@ -137,7 +137,7 @@ sub fmt_bool {
 sub _well_name {
     my $well = shift;
 
-    return $well ? $well->plate->name . "[" . $well->name . "]" : "";
+    return $well ? $well->plate_name . "[" . $well->well_name . "]" : "";
 }
 
 sub build_ep_detail {

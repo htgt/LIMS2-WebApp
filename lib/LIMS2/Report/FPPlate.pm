@@ -39,7 +39,7 @@ override iterator => sub {
         }
     );
 
-    my @wells_data = @{ $rs->consolidate( $self->plate_id, [ 'well_barcode' ] ) };
+    my @wells_data = @{ $rs->consolidate( $self->plate_id ) };
     @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
 
     my $well_data = shift @wells_data;
@@ -51,7 +51,7 @@ override iterator => sub {
 
         my @data = (
             $self->base_data_quick( $well_data ),
-            ( $well->well_barcode ? $well->well_barcode->barcode : '' ),
+            ( $well->barcode || '' ),
         );
 
         $well_data = shift @wells_data;

@@ -73,7 +73,6 @@ well_assembly_qc,
 barcode_events,
 fp_picking_list_well_barcode,
 fp_picking_list,
-well_barcodes,
 wells,
 plate_comments,
 crispr_plate_appends,
@@ -96,4 +95,5 @@ qc_template_well_crispr_primers,
 qc_template_well_genotyping_primers,
 well_het_status
  CASCADE;
+
 
