@@ -5,6 +5,7 @@ META.yml
 Makefile.PL
 README
 README.md
+audit-up.sql~
 bin/add_cell_lines_to_projects.pl
 bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
@@ -2894,6 +2895,17 @@ t/author-critic.t
 t/data/create_design_targets.yaml
 t/data/design_targets_util.yaml
 t/data/dist_qc_process.yaml
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a01.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a01.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a02.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a02.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a03.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a03.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a04.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a04.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a05.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a05.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/archive_names.txt
 t/lib/LIMS2/t/AlleleRequest.pm
 t/lib/LIMS2/t/AlleleRequest/DoubleTargeted.pm
 t/lib/LIMS2/t/AlleleRequest/SingleTargeted.pm
@@ -3117,3 +3129,4 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
+test.pl~
