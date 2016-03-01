@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.378';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.379';
 }
 ## use critic
 
@@ -129,8 +129,8 @@ sub qc_template_display_data {
 
         my $cassette_first;
         if ( my $source = $well->source_well ) {
-            $info{source_plate} = $source->plate->name;
-            $info{source_well} = $source->name;
+            $info{source_plate} = $source->plate_name;
+            $info{source_well} = $source->well_name;
 
             if ( my $design_id = $es_params->{design_id} ) {
                 my $design = try{ $model->c_retrieve_design( { id => $design_id } ) };

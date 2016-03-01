@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.378';
+    $LIMS2::Test::VERSION = '0.379';
 }
 ## use critic
 
@@ -349,7 +349,6 @@ sub load_dynamic_files {
             Project
             ProjectSponsor
             Summary
-            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
             CrisprPlateAppendsType

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::BarcodeEvent;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::BarcodeEvent::VERSION = '0.378';
+    $LIMS2::Model::Schema::Result::BarcodeEvent::VERSION = '0.379';
 }
 ## use critic
 
@@ -69,18 +69,6 @@ __PACKAGE__->table("barcode_events");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 old_well_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 new_well_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =head2 comment
 
   data_type: 'text'
@@ -99,6 +87,28 @@ __PACKAGE__->table("barcode_events");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 old_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 new_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 old_plate_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 new_plate_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -115,10 +125,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
   "new_state",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
-  "old_well_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "new_well_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "comment",
   { data_type => "text", is_nullable => 1 },
   "created_by",
@@ -130,6 +136,14 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "old_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "new_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "old_plate_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "new_plate_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -150,13 +164,13 @@ __PACKAGE__->set_primary_key("id");
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+Related object: L<LIMS2::Model::Schema::Result::Well>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "barcode",
-  "LIMS2::Model::Schema::Result::WellBarcode",
+  "LIMS2::Model::Schema::Result::Well",
   { barcode => "barcode" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -173,6 +187,26 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 new_plate
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "new_plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "new_plate_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -201,18 +235,18 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 new_well
+=head2 old_plate
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Well>
+Related object: L<LIMS2::Model::Schema::Result::Plate>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "new_well",
-  "LIMS2::Model::Schema::Result::Well",
-  { id => "new_well_id" },
+  "old_plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "old_plate_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -241,31 +275,22 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 old_well
 
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::Well>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "old_well",
-  "LIMS2::Model::Schema::Result::Well",
-  { id => "old_well_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-06 15:08:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9/F3r3tcKV9NZXgoimonFQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qxvT4MUpYEW/wKByi5RfGw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+sub old_well_as_str{
+    my $self = shift;
+    return $self->old_plate->name."_".$self->old_well_name;
+}
+
+sub new_well_as_str{
+    my $self = shift;
+    return $self->new_plate->name."_".$self->new_well_name;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

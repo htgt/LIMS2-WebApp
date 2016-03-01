@@ -185,7 +185,6 @@ lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm
 lib/LIMS2/Model/Schema/Result/WellAssemblyQc.pm
-lib/LIMS2/Model/Schema/Result/WellBarcode.pm
 lib/LIMS2/Model/Schema/Result/WellChromosomeFail.pm
 lib/LIMS2/Model/Schema/Result/WellColonyCount.pm
 lib/LIMS2/Model/Schema/Result/WellComment.pm

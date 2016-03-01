@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPSummary::VERSION = '0.378';
+    $LIMS2::Report::CrisprEPSummary::VERSION = '0.379';
 }
 ## use critic
 
@@ -143,7 +143,7 @@ sub fmt_bool {
 sub _well_name {
     my $well = shift;
 
-    return $well ? $well->plate->name . "[" . $well->name . "]" : "";
+    return $well ? $well->plate_name . "[" . $well->well_name . "]" : "";
 }
 
 sub build_ep_detail {

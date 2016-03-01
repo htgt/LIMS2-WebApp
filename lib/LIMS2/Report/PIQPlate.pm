@@ -1,7 +1,7 @@
 package LIMS2::Report::PIQPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PIQPlate::VERSION = '0.378';
+    $LIMS2::Report::PIQPlate::VERSION = '0.379';
 }
 ## use critic
 
@@ -50,7 +50,7 @@ override iterator => sub {
     );
 
     my @wells_data = @{ $rs->consolidate( $self->plate_id,
-            [ 'well_qc_sequencing_result', 'well_barcode', 'well_lab_number' ] ) };
+            [ 'well_qc_sequencing_result', 'well_lab_number' ] ) };
     @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
 
     my $well_data = shift @wells_data;
@@ -68,7 +68,7 @@ override iterator => sub {
             $ep_pick_well_name,
             $fp_well_name,
             ( $well->well_lab_number ? $well->well_lab_number->lab_number : '' ),
-            ( $well->well_barcode ? $well->well_barcode->barcode : '' ),
+            ( $well->barcode || '' ),
         );
 
         $well_data = shift @wells_data;
