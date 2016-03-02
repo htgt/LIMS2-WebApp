@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.379';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.380';
 }
 ## use critic
 
@@ -297,8 +297,8 @@ sub mutation_signatures_info_GET{
                                $well->sibling_wells;
         my $data = {
             well_id          => $well->id,
-            well_name        => $well->name,
-            plate_name       => $well->plate->name,
+            well_name        => $well->well_name,
+            plate_name       => $well->plate_name,
             parameters       => $well->input_process_parameters_skip_versioned_plates,
             child_barcodes   => $well->distributable_child_barcodes,
             sibling_barcodes => \@sibling_barcodes,

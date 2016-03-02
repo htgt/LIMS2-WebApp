@@ -1,3 +1,7 @@
+0.380     2016-03-02 15:46:38 Europe/London
+
+   bugfix to mutation_signatures_info API
+
 0.379     2016-03-01 14:53:57 Europe/London
 
    Allow well locations to change or be null so we can handle barcodes without plate versioning

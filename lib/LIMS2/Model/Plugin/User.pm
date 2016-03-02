@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.379';
+    $LIMS2::Model::Plugin::User::VERSION = '0.380';
 }
 ## use critic
 
