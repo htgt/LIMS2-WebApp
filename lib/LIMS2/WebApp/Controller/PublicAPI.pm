@@ -291,8 +291,8 @@ sub mutation_signatures_info_GET{
                                $well->sibling_wells;
         my $data = {
             well_id          => $well->id,
-            well_name        => $well->name,
-            plate_name       => $well->plate->name,
+            well_name        => $well->well_name,
+            plate_name       => $well->plate_name,
             parameters       => $well->input_process_parameters_skip_versioned_plates,
             child_barcodes   => $well->distributable_child_barcodes,
             sibling_barcodes => \@sibling_barcodes,
