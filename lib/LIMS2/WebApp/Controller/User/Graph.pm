@@ -109,7 +109,7 @@ sub index :Path :Args(0) {
     }
 
     # Or generate a well relation graph
-    if ( (! $plate_name || ! $well_name) and !$barcode ) {
+    if ( (! $plate_name || ! $well_name) && !$barcode ) {
         $c->stash( error_msg => 'Please enter a plate name and well name, or barcode' );
         return;
     }
