@@ -661,7 +661,7 @@ sub build_qc_data {
         $qc_data{crispr_start}    = $crispr->start;
         $qc_data{crispr_end}      = $crispr->end;
         $qc_data{crispr_chr_name} = $crispr->chr_name;
-        if ( $self->plate_type eq 'EP_PICK' && $crispr_ids ) {
+        if ( $self->plate->type eq 'EP_PICK' && $crispr_ids ) {
             $qc_data{crisprs_to_validate} = $crispr_ids;
         }
     }
