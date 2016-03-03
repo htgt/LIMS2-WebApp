@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.380';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.381';
 }
 ## use critic
 

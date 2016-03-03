@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.380';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.381';
 }
 ## use critic
 
@@ -319,13 +319,11 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     my @checked_out = $c->model('Golgi')->schema->resultset('Well')->search(
         {
             'me.barcode_state' => 'checked_out',
-            'plate.species_id' => $c->session->{selected_species},
-            'plate.type_id'    => $plate_type,
         },
-        {
-            join => 'plate' ,
-        }
     );
+
+    @checked_out = grep { $_->plate_species->id eq $c->session->{selected_species} and $_->plate_type eq $plate_type }
+                   @checked_out;
 
     my $display_details = $self->_multiple_well_display_details($c,\@checked_out);
 
