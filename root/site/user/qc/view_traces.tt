@@ -285,7 +285,7 @@ function adjustPane(text) {
     var result = tr.match(regex);
     result.shift(); result.shift();
 
-    var referencePoint = tv.plot._pos;
+    var referencePoint = tv.fwd_plot._pos;
     
     var customSelection = window.getSelection().toString();
     
@@ -295,22 +295,22 @@ function adjustPane(text) {
         var customLength;
         if (result.length > 1) {
             customLength = loc + (customSelection.length * 12);
-            tv.moveToPoint(tv.plot, loc, customLength);
+            tv.moveToPoint(tv.fwd_plot, loc, customLength);
         } else {
             loc = (userRange.startOffset * 12) + 200;
             customLength = loc + (customSelection.length * 12);
-            tv.moveToPoint(tv.plot, loc, customLength);
+            tv.moveToPoint(tv.fwd_plot, loc, customLength);
         }
     } else if (result.length > 1) {
-        tv.moveToPoint(tv.plot, loc - 125, loc + 125);  
+        tv.moveToPoint(tv.fwd_plot, loc - 125, loc + 125);  
     } else {
         loc = (userRange.startOffset * 12) + 200;
-        tv.moveToPoint(tv.plot, loc - 125, loc + 125);
+        tv.moveToPoint(tv.fwd_plot, loc - 125, loc + 125);
     }
 }
 
 function findCoords(seqs, point, selectedSeq, offset) {
-    var read = tv.plot._read;
+    var read = tv.fwd_plot._read;
     var index;
     seqs.forEach( function(seq, i) {
         if (seq === selectedSeq) {
