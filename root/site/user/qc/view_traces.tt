@@ -306,7 +306,7 @@ $(document).click(function(event) {
         else { 
             console.log(wellName + dir.attr('id') + " not found");
         }    
-
+    }
 });
 
 function adjustPane(text) {
