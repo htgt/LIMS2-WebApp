@@ -285,14 +285,11 @@ $(document).ready(function() {
 
 var focusTrace;
 var wellTrace;
-var click;
-var dir;
-var wellName;
 
 $(document).click(function(event) {
-    click = $(event.target);
-    dir = click.children();
-    wellName = click.parents('tr[class^="well_tr"]').attr('id');
+    var click = $(event.target);
+    var dir = click.children();
+    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
     if (typeof(wellName) != "undefined") {
         traceviewers.forEach( function(trace) {
             if (trace.well == wellName) {

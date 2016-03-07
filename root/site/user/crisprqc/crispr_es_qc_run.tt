@@ -179,13 +179,12 @@ $(document).ready(function() {
 
 });
 
-var click;
 var focusTrace;
 var wellTrace;
 
 
 $(document).click(function(event) {
-    click = $(event.target);
+    var click = $(event.target);
     var dir = click.children();
     var wellName = click.parents('tr[class^="well_tr"]').attr('id');
     if (typeof(dir.attr('id')) != "undefined") {
