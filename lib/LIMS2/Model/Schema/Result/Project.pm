@@ -313,6 +313,7 @@ sub experiments{
 
     my @experiments = $self->result_source->schema->resultset('Experiment')->search({
         gene_id => $self->gene_id,
+        deleted => 0,
     });
 
     return @experiments;

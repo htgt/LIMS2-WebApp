@@ -184,7 +184,7 @@ sub create_crispr_group_design_links {
         next unless crispr_group_hits_design( $design, $crispr_group, $default_assembly, \@fail_log );
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_group_id => $crispr_group->id,
@@ -221,7 +221,7 @@ sub create_crispr_pair_design_links {
         next unless crispr_pair_hits_design( $design, $crispr_pair, $default_assembly, \@fail_log );
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_pair_id => $crispr_pair->id,
@@ -263,13 +263,14 @@ sub create_crispr_design_links {
         }
 
         my ($gene_id) = $design->gene_ids;
-        my $experiment = $model->schema->resultset( 'Experiment' )->find_or_create(
+        my $experiment = $model->create_experiment(
             {
                 design_id => $design->id,
                 crispr_id => $crispr->id,
                 gene_id   => $gene_id,
             }
         );
+
         INFO('Experiment record created: ' . $experiment->id );
         push @create_log, 'Linked design & crispr ' . p(%$datum);
     }
@@ -293,7 +294,7 @@ sub delete_crispr_design_links {
             push @fail_log, 'Failed to find design & crispr link: ' . p(%$datum);
             next;
         }
-        if ( $experiment->delete ) {
+        if ( $experiment->update({ deleted => 1 }) ) {
             INFO( 'Deleted experiment record ' . $experiment->id );
             push @delete_log, 'Deleted link between design & crispr: ' . p(%$datum);
         }

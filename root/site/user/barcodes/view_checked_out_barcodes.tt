@@ -20,7 +20,7 @@
   <td>[% bc.checkout_user %]</td>
   <td>[% bc.design_gene_symbol %]</td>
   <td>[% bc.parent_epd %]</td>
-  <td>[% bc.well_as_string %]</td>
+  <td>[% bc.last_known_location %]</td>
   <td>[% bc.barcode %]</td>
   <td>[% bc.lab_number %]</td>
   <td>

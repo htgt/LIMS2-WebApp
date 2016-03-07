@@ -135,8 +135,9 @@ sub as_hash {
     my $self = shift;
 
     return {
-        plate_name => $self->well->plate->name,
-        well_name  => $self->well->name,
+        well_id    => $self->well->id,
+        plate_name => $self->well->plate_name,
+        well_name  => $self->well->well_name,
         accepted   => $self->accepted,
         created_by => $self->created_by->name,
         created_at => $self->created_at->iso8601

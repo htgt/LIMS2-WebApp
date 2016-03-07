@@ -185,6 +185,7 @@ sub fetch_existing_design_crispr_links {
     my @experiments = $schema->resultset( 'Experiment' )->search(
         {
             design_id => { 'IN' => $design_ids },
+            deleted   => 0,
         },
         {
             prefetch => 'crispr_pair',

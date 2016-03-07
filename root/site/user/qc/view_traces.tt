@@ -67,6 +67,13 @@
     </div>
 
     <div class="control-group">
+      <label class="control-label" for="well_name">Well Name (optional)</label>
+      <div class="controls">
+          <input id="well_name" name="well_name" value="[% well_name %]"/>
+      </div>
+    </div>
+
+    <div class="control-group">
       <div class="controls">
       <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn btn-primary">
         Fetch Reads <i class="icon-arrow-right icon-white"></i>
@@ -299,14 +306,13 @@ $(document).click(function(event) {
         else { 
             console.log(wellName + dir.attr('id') + " not found");
         }    
-    }
 
 });
 
 function adjustPane(text) {
     var userRange = window.getSelection().getRangeAt(0);
     var selection = userRange.startContainer.textContent;
-    
+
     var tr = text.closest("tr");
 
     tr = tr.html();
@@ -317,9 +323,9 @@ function adjustPane(text) {
     result.shift(); result.shift();
 
     var referencePoint = focusTrace._pos;
-    
+
     var customSelection = window.getSelection().toString();
-    
+
     var loc = findCoords(result, referencePoint, selection, userRange.startOffset);
 
     if (customSelection) {
@@ -356,7 +362,7 @@ function findCoords(seqs, point, selectedSeq, offset) {
         total += sizes[index];
     }
     total += offset;
-   
+
     var cost = (total - refLoc) * 12;
     cost = cost + Math.round(point);
     return cost;
@@ -364,10 +370,10 @@ function findCoords(seqs, point, selectedSeq, offset) {
 
 function getSeqLengths(seqs){
     var sizes = [];
-    seqs.forEach( function(seq) { 
+    seqs.forEach( function(seq) {
         sizes.push(seq.length);
     });
-    return sizes; 
+    return sizes;
 }
 
 

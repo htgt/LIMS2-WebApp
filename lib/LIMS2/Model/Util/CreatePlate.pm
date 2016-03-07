@@ -62,6 +62,7 @@ sub pspec_find_parent_well_ids {
         parent_plate         => { validate => 'plate_name', optional => 1 },
         parent_plate_version => { validate => 'integer',    optional => 1 },
         parent_well          => { validate => 'well_name',  optional => 1 },
+        parent_well_id       => { validate => 'integer',    optional => 1 },
         xep_plate            => { validate => 'plate_name', optional => 1 },
         xep_well             => { validate => 'well_name',  optional => 1 },
         dna_plate            => { validate => 'plate_name', optional => 1 },
@@ -293,15 +294,25 @@ sub other_parents {
 
     my @parent_well_ids;
 
-    push @parent_well_ids, well_id_for(
-        $model, {
-            plate_name => $params->{parent_plate},
+    my $well_params = {};
+
+
+    if($params->{parent_well_id}){
+        $well_params = { id => $params->{parent_well_id} };
+    }
+    else{
+        $well_params = {
+            plate_name    => $params->{parent_plate},
             plate_version => $params->{parent_plate_version},
-            well_name  => substr( $params->{parent_well}, -3 ),
-        }
+            well_name     => substr( $params->{parent_well}, -3 ),
+        };
+    }
+
+    push @parent_well_ids, well_id_for(
+        $model, $well_params,
     );
 
-    delete @{$params}{qw( parent_plate parent_well )};
+    delete @{$params}{qw( parent_plate parent_well parent_well_id )};
 
     return @parent_well_ids;
 }

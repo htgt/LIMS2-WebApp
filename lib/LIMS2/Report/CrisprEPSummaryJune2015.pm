@@ -213,7 +213,10 @@ sub build_ep_detail {
 
         # Fetch project related info for all matching experiments
         DEBUG "Fetching projects for experiments ".$data{experiment_id};
-        my @projects = map { $_->project } @experiments;
+        my @projects;
+        try {
+            @projects = map { $_->project } @experiments;
+        };
         # Skip if not relevant to requested sponsor
         my @sponsor_ids_unsorted = map { $_->sponsor_ids } @projects;
         if($self->has_sponsor){

@@ -80,6 +80,12 @@ __PACKAGE__->table("experiments");
   default_value: false
   is_nullable: 0
 
+=head2 deleted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -102,6 +108,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "plated",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "deleted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -115,29 +123,6 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<unique_exp_crispr_design>
-
-=over 4
-
-=item * L</design_id>
-
-=item * L</crispr_id>
-
-=item * L</crispr_pair_id>
-
-=item * L</crispr_group_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "unique_exp_crispr_design",
-  ["design_id", "crispr_id", "crispr_pair_id", "crispr_group_id"],
-);
 
 =head1 RELATIONS
 
@@ -222,8 +207,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-28 12:51:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oYj8t7UZZc8DQHYfC6BAjw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 12:24:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1V5OvWyV0Ze3tthsOkhBg
 
 sub as_hash{
     my $self = shift;
@@ -235,6 +220,7 @@ sub as_hash{
         crispr_id       => $self->crispr_id,
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_group_id => $self->crispr_group_id,
+        deleted         => $self->deleted,
     };
 }
 
