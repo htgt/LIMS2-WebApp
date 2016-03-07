@@ -182,7 +182,6 @@ $(document).ready(function() {
 var click;
 var focusTrace;
 var wellTrace;
-var test;
 
 
 $(document).click(function(event) {
@@ -263,7 +262,6 @@ function getMouseOffset(seq, selection){
     }
 }
 
-var traceCopy;
 
 function findCoords(seqs, point, selection, dir) {
     var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq 
@@ -273,7 +271,6 @@ function findCoords(seqs, point, selection, dir) {
     //Init position is outside of the boundaries
     if (getSliderOffset(traceSeq) == -1) {
         focusTrace._initPos = focusTrace._pos;
-        traceCopy = focusTrace;
     }
 
     //Allow for an average
