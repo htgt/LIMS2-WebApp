@@ -16,7 +16,7 @@ use Perl6::Slurp;
 #  Variables
 #------------------------------------------------------------------
 const my $DEFAULT_NUM_CONC_PROCS => 10;     # Default number of concurrent processes
-my $num_concurrent_processes;               # Number of concurrent processes to create 
+my $num_concurrent_processes;               # Number of concurrent processes to create
 my $processes_succeeded = 0;                # Successful design well sub-processes
 my $processes_failed = 0;                   # Failed design well sub-processes
 my @design_well_ids;                        # Array of design wells
@@ -95,6 +95,7 @@ INFO "LIMS2 Summary data generation: ".scalar(@design_well_ids)." design well id
 my $stop_run = 0;
 my $design_well_index = 0;
 my $design_wells_total = scalar(@design_well_ids);
+my $model = LIMS2::Model->new( user => 'lims2' );
 
 # Max processes for parallel download
 my $pm = Parallel::ForkManager->new($num_concurrent_processes);
@@ -147,7 +148,7 @@ foreach my $design_well_id (@design_well_ids) {
     # Alternate solution, add insert_ts column into table so can delete old rows as part of job.
 
     # run the summary data generation for one design well per process
-    my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
+    my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,$model);
 
 	my $exit_code = $results->{exit_code};
 

@@ -13,17 +13,14 @@ use Log::Log4perl ':easy';                  # TRACE to INFO to WARN to ERROR to 
 # Given a design well id, generate summaries for all leaf nodes in well hierarchy and return result counts
 sub generate_summary_rows_for_design_well {
 
-    # passed design well ID, output LOG filepath
-    my $design_well_id = shift;
+    # passed design well ID, model
+    my ($design_well_id, $model) = @_;
 
     INFO caller()." Well ID $design_well_id passed in";
 
     my %results = ();
 
-    # initialise variables
-    # TODO: be better if model was passed in from calling module, same as other LIMS2 modules
-#    my $model = LIMS2::Model->new( user => 'tasks' );  # DB connection
-    my $model = LIMS2::Model->new( user => 'lims2' );  # DB connection
+    $model ||= LIMS2::Model->new( user => 'lims2' );  # DB connection
 
     my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
     my $wells_deleted = 0; # count of deleted wells
