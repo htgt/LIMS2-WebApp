@@ -1,5 +1,5 @@
 {{$NEXT}}
-
+    Added traceviewer update to crispr QC results
 0.381     2016-03-03 16:09:43 Europe/London
 
    bugfix to crispr ES QC and checked out barcode lists

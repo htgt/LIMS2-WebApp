@@ -5,8 +5,6 @@ use namespace::autoclean;
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use Try::Tiny;
 
-use Smart::Comments;
-
 extends qw( LIMS2::ReportGenerator );
 
 has species => (
