@@ -96,7 +96,7 @@ Code to execute all tests
 sub all_tests  : Tests
 {
     my $mech = mech();
-
+$DB::single=1
     note "Testing sequence trace view page";
     $mech->get_ok('/user/qc/view_traces');
     ok $mech->submit_form(
@@ -104,7 +104,7 @@ sub all_tests  : Tests
         fields  => {
         	sequencing_project => 'HUEDQ0044',
         	sequencing_sub_project => 'HUEDQ0044_1',
-
+            well_name => '',
         },
         button => 'get_reads',
     );
