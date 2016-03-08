@@ -103,7 +103,6 @@ sub all_tests  : Tests
         fields  => {
         	sequencing_project => 'HUEDQ0044',
         	sequencing_sub_project => 'HUEDQ0044_1',
-            well_name => '',
         },
         button => 'get_reads',
     );
@@ -120,7 +119,6 @@ sub all_tests  : Tests
         	sequencing_project => 'HUEDQ0044',
         	sequencing_sub_project => 'HUEDQ0044_1',
         	well_name => 'A01',
-
         },
         button => 'get_reads',
     );
