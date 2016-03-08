@@ -879,7 +879,6 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
 
 sub view_traces :Path('/user/qc/view_traces') :Args(0){
     my ($self, $c) = @_;
-
     $c->assert_user_roles('read');
 
     # Store form values

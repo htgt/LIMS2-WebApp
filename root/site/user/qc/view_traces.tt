@@ -96,11 +96,12 @@
     </thead>
     <tbody>
         [% FOR read IN reads %]
-            <tr>
+            [% SET well_id = read.well_name _ read.primer %]
+            <tr id=[% well_id %] class="well_tr">
               <td rowspan="2">[% read.orig_read_name %]</td>
               <td style="word-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
             </tr>
-            <tr>
+            <tr id=[% well_id %] class="trace_tr">
                <td>
                <div class="forward_full" style="display:none"></div>
         <a class="btn traces" href="#" data-fwd="[% read.orig_read_name %]" data-context="15" >View Traces</a>
@@ -146,8 +147,8 @@ if ( ! Object.keys ) {
   }
 }
 
+var traceviewers = [];
 var tv;
-
 $(document).ready(function() {
   $(".seqName").click( function(e) {
     $("#sequencing_project").val(e.target.innerHTML);
@@ -247,6 +248,16 @@ $(document).ready(function() {
     e.preventDefault();
     //the code for this is inside jquery.flot.traceviewer.js
     tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
+    tv.well = (tv.fwd_container.closest('tr[class^="trace_tr"]')) ? tv.fwd_container.closest('tr[class^="trace_tr"]').attr('id') : tv.rev_container.closest('tr[class^="trace_tr"]').attr('id');
+
+    for(var index = 0; index < traceviewers.length; index++) {
+        if (tv.well == traceviewers[index].well) {
+            traceviewers[index] = tv;
+            return;
+        }
+    };
+      
+    traceviewers.push(tv);
   });
 
   // Decided not to do this as it takes ages to get them all
@@ -271,13 +282,28 @@ $(document).ready(function() {
   });
 
 });
+
+var focusTrace;
+var wellTrace;
+
 $(document).click(function(event) {
-    var text = $(event.target);
-
-    if (window.getSelection && tv) {
-        adjustPane(text);
+    var click = $(event.target);
+    var dir = click.children();
+    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
+    if (typeof(wellName) != "undefined") {
+        traceviewers.forEach( function(trace) {
+            if (trace.well == wellName) {
+                wellTrace = trace;
+            }
+        });
+        if (wellTrace) {
+            focusTrace = wellTrace["fwd_plot"];
+            adjustPane(click);
+        }
+        else { 
+            console.log(wellName + dir.attr('id') + " not found");
+        }    
     }
-
 });
 
 function adjustPane(text) {
@@ -285,6 +311,7 @@ function adjustPane(text) {
     var selection = userRange.startContainer.textContent;
 
     var tr = text.closest("tr");
+
     tr = tr.html();
     tr = tr.replace(/-/g,'N');
     var regex = /[ACTGN]+/g;
@@ -292,7 +319,7 @@ function adjustPane(text) {
     var result = tr.match(regex);
     result.shift(); result.shift();
 
-    var referencePoint = tv.plot._pos;
+    var referencePoint = focusTrace._pos;
 
     var customSelection = window.getSelection().toString();
 
@@ -302,22 +329,22 @@ function adjustPane(text) {
         var customLength;
         if (result.length > 1) {
             customLength = loc + (customSelection.length * 12);
-            tv.moveToPoint(tv.plot, loc, customLength);
+            wellTrace.moveToPoint(focusTrace, loc, customLength);
         } else {
             loc = (userRange.startOffset * 12) + 200;
             customLength = loc + (customSelection.length * 12);
-            tv.moveToPoint(tv.plot, loc, customLength);
+            wellTrace.moveToPoint(focusTrace, loc, customLength);
         }
     } else if (result.length > 1) {
-        tv.moveToPoint(tv.plot, loc - 125, loc + 125);
+        wellTrace.moveToPoint(focusTrace, loc - 125, loc + 125);  
     } else {
         loc = (userRange.startOffset * 12) + 200;
-        tv.moveToPoint(tv.plot, loc - 125, loc + 125);
+        wellTrace.moveToPoint(focusTrace, loc - 125, loc + 125);
     }
 }
 
 function findCoords(seqs, point, selectedSeq, offset) {
-    var read = tv.plot._read;
+    var read = focusTrace._read;
     var index;
     seqs.forEach( function(seq, i) {
         if (seq === selectedSeq) {
