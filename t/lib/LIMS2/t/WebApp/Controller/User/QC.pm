@@ -8,6 +8,7 @@ use JSON qw( encode_json decode_json );
 use HTTP::Request::Common;
 use HTTP::Status qw( :constants );
 use Path::Class;
+use Data::Dumper;
 
 use strict;
 
@@ -95,10 +96,9 @@ Code to execute all tests
 
 sub all_tests  : Tests
 {
+$DB::single=1;
     my $mech = mech();
-    
     note "Testing sequence trace view page";
-=head Forcing release as issue is not found in local. This will be looked at before next release
     $mech->get_ok('/user/qc/view_traces');
     ok $mech->submit_form(
         form_id => 'view_traces',
@@ -108,12 +108,11 @@ sub all_tests  : Tests
         },
         button => 'get_reads',
     );
-
+    print Dumper $mech;
     $mech->content_contains("HUEDQ0044_1a01.p1kSF1");
     $mech->content_contains("CTTATTACAGCGGAATGGCCAAAGACTATGACGGGTCTTCCTAGCACATCAGGGACAAC");
     $mech->content_contains("HUEDQ0044_1a02.p1kSR1");
     $mech->content_contains("HUEDQ0044_1a03.p1kSF1");
-=cut
     $mech->get_ok('/user/qc/view_traces');
     ok $mech->submit_form(
         form_id => 'view_traces',
