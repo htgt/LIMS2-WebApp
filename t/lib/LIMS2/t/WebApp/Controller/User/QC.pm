@@ -95,6 +95,7 @@ Code to execute all tests
 
 sub all_tests  : Tests
 {
+$DB::single=1;
     my $mech = mech();
     note "Testing sequence trace view page";
     $mech->get_ok('/user/qc/view_traces');
