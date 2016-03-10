@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Primers;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.374';
+    $LIMS2::WebApp::Controller::User::Primers::VERSION = '0.382';
 }
 ## use critic
 
@@ -161,7 +161,7 @@ sub generate_primers :Path( '/user/generate_primers' ) :Args(0){
         if($type eq 'DNA'){
             # DNA could be from design or crispr so check parent well type instead
             my ($parent) = $wells[0]->parent_wells;
-            $type = $parent->plate->type_id;
+            $type = $parent->plate_type;
         }
 
         if(grep { $_ eq $type } @crispr_plate_types){

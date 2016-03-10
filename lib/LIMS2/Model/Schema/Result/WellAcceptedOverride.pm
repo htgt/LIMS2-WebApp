@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellAcceptedOverride;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellAcceptedOverride::VERSION = '0.374';
+    $LIMS2::Model::Schema::Result::WellAcceptedOverride::VERSION = '0.382';
 }
 ## use critic
 
@@ -141,8 +141,9 @@ sub as_hash {
     my $self = shift;
 
     return {
-        plate_name => $self->well->plate->name,
-        well_name  => $self->well->name,
+        well_id    => $self->well->id,
+        plate_name => $self->well->plate_name,
+        well_name  => $self->well->well_name,
         accepted   => $self->accepted,
         created_by => $self->created_by->name,
         created_at => $self->created_at->iso8601

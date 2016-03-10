@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.374';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.382';
 }
 ## use critic
 
@@ -191,6 +191,7 @@ sub fetch_existing_design_crispr_links {
     my @experiments = $schema->resultset( 'Experiment' )->search(
         {
             design_id => { 'IN' => $design_ids },
+            deleted   => 0,
         },
         {
             prefetch => 'crispr_pair',

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DataUpload::VERSION = '0.374';
+    $LIMS2::Model::Util::DataUpload::VERSION = '0.382';
 }
 ## use critic
 
@@ -244,8 +244,8 @@ sub _process_concentration_data{
         );
     }
     my ($input_well) = $well->ancestors->input_wells($well);
-    my $plate_type = $input_well->plate->type_id;
-    my $species = $input_well->plate->species_id;
+    my $plate_type = $input_well->plate_type;
+    my $species = $input_well->plate_species->id;
     my $minimum;
     try{
         $minimum = $VECTOR_DNA_CONCENTRATION{$species}->{$plate_type};

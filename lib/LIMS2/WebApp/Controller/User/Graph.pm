@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Graph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.374';
+    $LIMS2::WebApp::Controller::User::Graph::VERSION = '0.382';
 }
 ## use critic
 
@@ -61,6 +61,7 @@ sub index :Path :Args(0) {
 
     my $plate_name  = $c->req->param('plate_name');
     my $well_name   = $c->req->param('well_name');
+    my $barcode     = $c->req->param('barcode');
     my $graph_type  = $c->req->param('graph_type') || 'descendants';
     my $crisprs     = $c->req->param('crisprs');
 
@@ -70,6 +71,7 @@ sub index :Path :Args(0) {
     $c->stash(
         plate_name  => $plate_name,
         well_name   => $well_name,
+        barcode     => $barcode,
         graph_type  => $graph_type,
         pr_plate_name => $pr_plate_name,
         pr_graph_type => $pr_graph_type,
@@ -102,7 +104,8 @@ sub index :Path :Args(0) {
 
     	try{
     	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
-    	    $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
+    	    $c->stash->{graph_uri} = $c->uri_for( "/user/graph/render/$uuid" );
+            $c->stash->{info_msg} = "Plate $pr_plate_name process graph generated";
     	}
     	catch{
     		$c->stash( error_msg => 'Error generating plate relation graph for plate: ' . $_);
@@ -112,9 +115,24 @@ sub index :Path :Args(0) {
     }
 
     # Or generate a well relation graph
-    if ( ! $plate_name || ! $well_name ) {
-        $c->stash( error_msg => 'Please enter a plate name and well name' );
+    if ( (! $plate_name || ! $well_name) && !$barcode ) {
+        $c->stash( error_msg => 'Please enter a plate name and well name, or barcode' );
         return;
+    }
+
+    my ($search_params, $info, $error);
+    if($barcode){
+        $search_params = { barcode => $barcode };
+        $info = "Barcode $barcode process graph generated";
+        $error = "Barcode $barcode not found";
+    }
+    else{
+        $search_params = {
+            plate_name => $plate_name,
+            well_name  => $well_name,
+        };
+        $info = "Well $plate_name $well_name process graph generated";
+        $error = "Well $plate_name $well_name not found";
     }
 
     if ( $graph_type ne 'ancestors' && $graph_type ne 'descendants' ) {
@@ -124,12 +142,13 @@ sub index :Path :Args(0) {
 
     my $well;
     try{
-        $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        $well = $c->model('Golgi')->retrieve_well( $search_params );
         $c->stash( 'genes' =>  [ $well->design->gene_ids ] );
+        $c->stash->{info_msg} = $info;
     };
 
     unless($well){
-        $c->stash( error_msg => "Well $well_name not found on plate $plate_name");
+        $c->stash->{error_msg} = $error;
         return;
     }
 
@@ -244,8 +263,8 @@ sub render_crispr {
             $pgraph->log->debug( "Adding $well to GraphViz" );
             $graph->add_node(
                 name   => $well->as_string,
-                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
-                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate_type, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate_id,
                 target => '_blank',
             );
         }

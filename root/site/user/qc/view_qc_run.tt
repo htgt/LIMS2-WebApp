@@ -149,7 +149,7 @@
       <td>[% r.valid_primers.join( "," ) %]</td>
       <td>
         <a href="[% c.uri_for( '/user/view_qc_result',
-          { 'qc_run_id' => qc_run.id, 'plate_name' => r.plate_name, 'well_name' => r.well_name } ) %]">
+          { 'qc_run_id' => qc_run.id, 'plate_name' => r.plate_name, 'well_name' => r.well_name, 'gene_symbol' => r.gene_symbol } ) %]">
           Details
         </a>
       </td>

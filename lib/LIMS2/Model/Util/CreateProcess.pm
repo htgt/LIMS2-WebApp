@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.374';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.382';
 }
 ## use critic
 
@@ -205,7 +205,7 @@ sub check_input_wells {
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
-    my @types = uniq map { $_->plate->type_id } @input_wells;
+    my @types = uniq map { $_->plate_type } @input_wells;
     my %expected_input_process_types
         = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
 
@@ -234,7 +234,7 @@ sub check_output_wells {
 
     return unless exists $PROCESS_PLATE_TYPES{$process_type};
 
-    my @types = uniq map { $_->plate->type_id } @output_wells;
+    my @types = uniq map { $_->plate_type } @output_wells;
     my %expected_output_process_types
         = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
 
@@ -359,8 +359,8 @@ sub _check_wells_rearray {
     my @input_wells = $process->input_wells;
 
     # Output well type must be the same as the input well type
-    my $in_type = $input_wells[0]->plate->type_id;
-    my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
+    my $in_type = $input_wells[0]->plate_type;
+    my @output_types = uniq map { $_->plate_type } $process->output_wells;
 
     my @invalid_types = grep { $_ ne $in_type } @output_types;
 
@@ -424,7 +424,7 @@ sub _check_wells_second_electroporation {
     check_output_wells( $model, $process);
 
     #two input wells, one must be xep, other dna
-    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+    my @input_well_types = map{ $_->plate_type } $process->input_wells;
 
     if ( ( none { $_ eq 'XEP' } @input_well_types ) || ( none { $_ eq 'DNA' } @input_well_types ) ) {
         LIMS2::Exception::Validation->throw(
@@ -560,7 +560,7 @@ sub _check_wells_single_crispr_assembly {
     my $final_pick = 0;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
@@ -568,7 +568,7 @@ sub _check_wells_single_crispr_assembly {
             }
 
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
@@ -598,7 +598,7 @@ sub _check_wells_paired_crispr_assembly {
     my $pamleft;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             my $crispr = $_->crispr; # single crispr
             unless (defined $crispr) {
@@ -615,7 +615,7 @@ sub _check_wells_paired_crispr_assembly {
                 $pamleft = 1;
             }
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
@@ -655,7 +655,7 @@ sub _check_wells_group_crispr_assembly {
     my @crispr_ids;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             my $crispr = $_->crispr; # single crispr
             unless (defined $crispr) {
@@ -664,7 +664,7 @@ sub _check_wells_group_crispr_assembly {
             }
             push @crispr_ids, $crispr;
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
 
     @crispr_ids = uniq @crispr_ids;
@@ -708,10 +708,10 @@ sub _check_wells_oligo_assembly {
 
     my ( $design, $crispr );
     foreach ( $process->input_wells ) {
-        if ($_->plate->type_id eq 'DESIGN') {
+        if ($_->plate_type eq 'DESIGN') {
             $design = $_->design;
         }
-        elsif ($_->plate->type_id eq 'CRISPR') {
+        elsif ($_->plate_type eq 'CRISPR') {
             $crispr = $_->crispr;
         }
     }
@@ -889,7 +889,7 @@ sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
-    my $species_id = $input_well->well->plate->species_id;
+    my $species_id = $input_well->well->plate_species->id;
 
     # allow any type of backbone for int_recom process now...
     # backbone puc19_RV_GIBSON is used in both int and final wells

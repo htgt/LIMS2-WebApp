@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ComputeAcceptedStatus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ComputeAcceptedStatus::VERSION = '0.374';
+    $LIMS2::Model::Util::ComputeAcceptedStatus::VERSION = '0.382';
 }
 ## use critic
 
@@ -31,7 +31,7 @@ my %HANDLER_FOR = (
 sub compute_accepted_status {
     my ( $model, $well ) = @_;
 
-    my $plate_type = $well->plate->type_id;
+    my $plate_type = $well->plate_type;
 
     my $handler;
     if ( exists $HANDLER_FOR{$plate_type} ) {

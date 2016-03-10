@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.374';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.382';
 }
 ## use critic
 
@@ -24,6 +24,7 @@ use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
+use Path::Class;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -180,7 +181,8 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
-
+    my ( $qc, $res ) = $c->model( 'Golgi' )->qc_run_results(
+        { qc_run_id => $c->req->params->{qc_run_id} } );
     my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
         {
             qc_run_id  => $c->req->params->{qc_run_id},
@@ -224,7 +226,8 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
             $error_msg = "Failed to generate plasmid view: $_";
         };
     }
-
+    my $species_id = $c->session->{selected_species};
+    my $gene = $c->model('Golgi')->find_gene( { search_term => $c->req->params->{gene_symbol}, species => $species_id } );
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
@@ -234,6 +237,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
         error_msg   => $error_msg,
+        gene => $gene,
     );
 
     return;
@@ -881,13 +885,14 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
 
 sub view_traces :Path('/user/qc/view_traces') :Args(0){
     my ($self, $c) = @_;
-
     $c->assert_user_roles('read');
 
     # Store form values
     $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
     $c->stash->{primer_data} = $c->req->param('primer_data');
+    $c->stash->{well_name} = $c->req->param('well_name');
+
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
         {
@@ -907,30 +912,77 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{recent_results} = \@results;
 
     if($c->req->param('get_reads')){
-        # Fetch the sequence fasta and parse it
-        my $script_name = 'fetch-seq-reads.sh';
-        my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
 
-        my $fasta_input = join "", capturex( $fetch_cmd, $c->req->param('sequencing_project') );
-        my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
-        my $seq_by_name = {};
-        while (my $seq = $seqIO->next_seq() ){
-            $seq_by_name->{ $seq->display_id } = $seq->seq;
+        unless($ENV{LIMS2_SEQ_FILE_DIR}){
+            $c->stash->{error_msg} = "Cannot fetch reads - LIMS2_SEQ_FILE_DIR environment variable not set!";
+            return;
         }
 
-        # Parse all read names for the project
-        # and store along with read sequence
-        my $reads_by_sub;
-        foreach my $read ( get_parsed_reads($c->request->params->{sequencing_project}) ){
-            $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
+        my $project = $c->req->param('sequencing_project');
+        my $sub_project = $c->req->param('sequencing_sub_project');
+        my $well_name = $c->req->param('well_name');
+        if ($well_name && $well_name ne ' '){
+            # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
+            # This will not work for older internally sequenced data
+            $c->log->debug("Fetching reads for $sub_project well $well_name");
 
-            $reads_by_sub->{ $read->{plate_name} } ||= [];
-            push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+            my $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR},$project);
+
+            unless (-r $project_dir){
+                $c->stash->{error_msg} = "Cannot fetch reads as directory $project_dir is not available";
+                return;
+            }
+
+            my $file_prefix = $sub_project.lc($well_name);
+            my @well_files = grep { $_->basename =~ /^$file_prefix\..*\.seq$/ } $project_dir->children;
+
+            unless(@well_files){
+                $c->stash->{error_msg} = "Could not find any reads for $sub_project well $well_name";
+                return;
+            }
+
+            my @reads;
+            foreach my $file (@well_files){
+                my $input = $file->slurp;
+                my $seqIO = Bio::SeqIO->new(-string => $input, -format => 'fasta');
+                my $seq = $seqIO->next_seq();
+                my $read_name = $seq->display_id;
+                my ($primer) = ( $read_name =~ /^$file_prefix\.p1k(.*)$/ );
+
+                my $read = {
+                    well_name      => uc($well_name),
+                    primer         => $primer,
+                    plate_name     => $sub_project,
+                    seq            => $seq->seq,
+                    orig_read_name => $read_name,
+                };
+                push @reads, $read;
+            }
+            $c->stash->{reads} = \@reads;
+
         }
+        else{
+            # Fetch the sequence fasta and parse it
+            my $script_name = 'fetch-seq-reads.sh';
+            my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+            my $fasta_input = join "", capturex( $fetch_cmd, $project );
+            my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
+            my $seq_by_name = {};
+            while (my $seq = $seqIO->next_seq() ){
+                $seq_by_name->{ $seq->display_id } = $seq->seq;
+            }
 
-        $c->stash(
-            reads            => $reads_by_sub->{ $c->req->param('sequencing_sub_project') },
-        );
+            # Parse all read names for the project
+            # and store along with read sequence
+            my $reads_by_sub;
+            foreach my $read ( get_parsed_reads($project) ){
+                $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
+
+                $reads_by_sub->{ $read->{plate_name} } ||= [];
+                push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+            }
+            $c->stash->{reads} = $reads_by_sub->{ $sub_project };
+        }
     }
 
     return;

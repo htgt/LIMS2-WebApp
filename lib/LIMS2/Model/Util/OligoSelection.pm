@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.374';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.382';
 }
 ## use critic
 

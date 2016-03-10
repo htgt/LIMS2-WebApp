@@ -31,4 +31,7 @@
   <th>Barcode State</th><td>[% well_details.barcode_state %]</td>
  </tr>
  [% END %]
+ <tr>
+   <th>Last Known Location</th><td>[% well_details.last_known_location %]</td>
+ </tr>
 </table>

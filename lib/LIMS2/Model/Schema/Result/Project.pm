@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.374';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.382';
 }
 ## use critic
 
@@ -319,6 +319,7 @@ sub experiments{
 
     my @experiments = $self->result_source->schema->resultset('Experiment')->search({
         gene_id => $self->gene_id,
+        deleted => 0,
     });
 
     return @experiments;

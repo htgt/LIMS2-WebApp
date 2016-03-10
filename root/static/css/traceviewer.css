@@ -1,13 +1,15 @@
 .traceviewer_highlight {
     color: white;
     background: slategray;
+    word-wrap: break-word;
 }
 
 .alignment {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
     font-size: 11px;
     display: block;
-    font-weight: bold
+    font-weight: bold;
+
 }
 .indel_sequence {
     font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
@@ -51,4 +53,9 @@
     color: #999;
     background-color: #eee;
     padding: 2px;
+}
+
+div.rev {
+    width: 200px;
+    word-break: break-all;
 }

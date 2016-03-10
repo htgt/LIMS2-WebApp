@@ -105,7 +105,7 @@ sub manage_projects_tests : Test(23) {
 
 }
 
-sub view_edit_project_tests : Test(25){
+sub view_edit_project_tests : Test(34){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -160,6 +160,21 @@ sub view_edit_project_tests : Test(25){
     $mech->click_button( name => 'add_experiment');
     $mech->content_contains('Experiment created');
 
+    # Cannot create the same experiment again through webapp
+    $mech->form_name('add_experiment_form');
+    $mech->set_fields(
+        crispr_id => 69848,
+        design_id => 1002582,
+    );
+    $mech->click_button( name => 'add_experiment');
+    $mech->content_contains('Experiment already exists');
+
+    # Cannot directly create duplicate experiment due to DB constraint
+    throws_ok( sub{ model->schema->resultset('Experiment')->create({
+        crispr_id => 69848,
+        design_id => 1002582,
+    }) }, qr/design_crispr_combo/, 'create duplicate experiment in DB throws index error');
+
     # Test view experiment page link
     $mech->follow_link( url_regex => qr/\/user\/view_experiment\?experiment_id=\d+/ );
     $mech->title_is("View Experiment");
@@ -168,26 +183,32 @@ sub view_edit_project_tests : Test(25){
 
     # Reload project view and test delete experiment
     $mech->get_ok('/user/view_project?project_id=12');
-    my @delete_forms;
-    foreach my $form ( $mech->forms ) {
-        if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
-            push @delete_forms, $form;
-        }
-    }
+    my @delete_forms = _delete_experiment_forms($mech);
     is (scalar @delete_forms, 2, '2 experiments listed');
 
     # Set form to the first delete_experiment_form
-    $mech->form_id($delete_forms[0]->attr('id'));
+    my $form_id = $delete_forms[0]->attr('id');
+    my ($exp_id) = ( $form_id =~ /delete_experiment_(\d*)/g );
+    $mech->form_id($form_id);
     $mech->click_button( name => 'delete_experiment');
     $mech->content_contains('Deleted experiment');
-
-    undef @delete_forms;
-    foreach my $form ( $mech->forms ) {
-        if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
-            push @delete_forms, $form;
-        }
-    }
+    @delete_forms = _delete_experiment_forms($mech);
     is (scalar @delete_forms, 1, '1 experiment listed');
+
+    # We should be able to see the deleted experiment but with warning that it is deleted
+    $mech->get_ok("/user/view_experiment?experiment_id=$exp_id");
+    $mech->content_contains("has been deleted");
+
+    # Restore the experiment
+    $mech->follow_link( url_regex => qr/restore_experiment/ );
+    $mech->content_contains("has been restored");
+
+    $mech->get_ok("/user/view_experiment?id=$exp_id");
+    $mech->content_lacks("has been deleted");
+
+    $mech->get_ok('/user/view_project?project_id=12');
+    @delete_forms = _delete_experiment_forms($mech);
+    is (scalar @delete_forms, 2, '2 experiments listed');
 
 }
 
@@ -222,6 +243,17 @@ sub _selected_sponsors{
     my @all = $sponsor_form->find_input('sponsors','checkbox');
     my @selected = map { $_->value } grep { $_->{current} } @all;
     return [ sort @selected ];
+}
+
+sub _delete_experiment_forms{
+    my ($mech) = @_;
+    my @delete_forms;
+    foreach my $form ( $mech->forms ) {
+        if ( defined $form->attr('name') && $form->attr('name') eq 'delete_experiment_form') {
+            push @delete_forms, $form;
+        }
+    }
+    return @delete_forms;
 }
 
 #sub view_experiment_page{

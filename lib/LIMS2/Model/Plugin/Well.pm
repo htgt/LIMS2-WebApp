@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.374';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.382';
 }
 ## use critic
 
@@ -57,8 +57,8 @@ sub retrieve_well {
         $search{'plate.version'} = $data->{plate_version};
     }
     if ( $data->{barcode} ) {
-        $search{'well_barcode.barcode'} = $data->{barcode};
-        $joins{join} = [ 'plate', 'well_barcode' ];
+        $search{'me.barcode'} = $data->{barcode};
+        $joins{join} = [ 'plate' ];
     }
 
     return $self->retrieve( Well => \%search, \%joins );
@@ -169,15 +169,15 @@ sub delete_well {
     }
 
     # Delete any related barcode events
-    if (my $barcode = $well->well_barcode){
-        $barcode->search_related_rs('barcode_events')->delete;
+    if ($well->barcode){
+        $well->search_related_rs('barcode_events')->delete;
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts
                                  well_primer_bands well_chromosome_fail well_genotyping_results
                                  well_targeting_pass well_targeting_puro_pass well_targeting_neo_pass
-                                 well_lab_number well_barcode
+                                 well_lab_number
                                );
 
     for my $rs ( @related_resultsets ) {
@@ -814,7 +814,7 @@ sub update_well_colony_picks{
         }
     );
     $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+    unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
     foreach my $colony_type (@colony_types){
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
@@ -870,7 +870,7 @@ sub get_well_colony_pick_fields_values {
         my $well = $self->retrieve_well( $params );
 
         $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+        unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
         @colony_data = $well->well_colony_counts;
 
@@ -1372,9 +1372,9 @@ sub create_well_lab_number {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     # check plate type is PIQ
-    if ( $well->plate->type_id ne 'PIQ' ) {
+    if ( $well->plate_type ne 'PIQ' ) {
         $self->throw( Validation => 'Well' . $well . ' must have a plate type of PIQ, this plate is type '
-                    . $well->plate->type_id );
+                    . $well->plate_type );
     }
 
     # check that well does not already have an attached lab number

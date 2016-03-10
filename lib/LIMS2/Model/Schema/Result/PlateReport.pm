@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::PlateReport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::PlateReport::VERSION = '0.374';
+    $LIMS2::Model::Schema::Result::PlateReport::VERSION = '0.382';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ WITH RECURSIVE well_hierarchy(root_well_id, process_id, process_type, input_well
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     JOIN wells output_well ON output_well.id = pr_out.well_id
-    JOIN plates output_plate ON output_plate.id = output_well.plate_id
+    LEFT OUTER JOIN plates output_plate ON output_plate.id = output_well.plate_id
     WHERE pr_out.well_id IN (
         SELECT starting_well FROM well_list
     )
@@ -53,7 +53,7 @@ UNION ALL
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     JOIN wells output_well ON output_well.id = pr_out.well_id
-    JOIN plates output_plate ON output_plate.id = output_well.plate_id
+    LEFT OUTER JOIN plates output_plate ON output_plate.id = output_well.plate_id
     JOIN well_hierarchy wh ON wh.input_well_id = pr_out.well_id
 ),
 process_data ( id, type, cassette, cassette_resistance, cassette_promoter, backbone, design_id, design_type, short_arm_design_id, cell_line, recombinase, crispr_tracker_rna, gene_id, gene_symbol, crispr_id, nuclease ) as (

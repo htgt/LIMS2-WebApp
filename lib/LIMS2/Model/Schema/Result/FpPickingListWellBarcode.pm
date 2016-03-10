@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::FpPickingListWellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::FpPickingListWellBarcode::VERSION = '0.374';
+    $LIMS2::Model::Schema::Result::FpPickingListWellBarcode::VERSION = '0.382';
 }
 ## use critic
 
@@ -107,20 +107,20 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+Related object: L<LIMS2::Model::Schema::Result::Well>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "well_barcode",
-  "LIMS2::Model::Schema::Result::WellBarcode",
+  "LIMS2::Model::Schema::Result::Well",
   { barcode => "well_barcode" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-28 16:05:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MiiIp59Sgvh1QJwnNOtSTQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fb3fNOkmpxKZ0iI/I2qDIQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

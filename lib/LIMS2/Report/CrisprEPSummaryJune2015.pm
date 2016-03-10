@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPSummaryJune2015;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPSummaryJune2015::VERSION = '0.374';
+    $LIMS2::Report::CrisprEPSummaryJune2015::VERSION = '0.382';
 }
 ## use critic
 
@@ -219,7 +219,10 @@ sub build_ep_detail {
 
         # Fetch project related info for all matching experiments
         DEBUG "Fetching projects for experiments ".$data{experiment_id};
-        my @projects = map { $_->project } @experiments;
+        my @projects;
+        try {
+            @projects = map { $_->project } @experiments;
+        };
         # Skip if not relevant to requested sponsor
         my @sponsor_ids_unsorted = map { $_->sponsor_ids } @projects;
         if($self->has_sponsor){
