@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -d
+#!/usr/bin/env perl
 # 10_LIMS2_WebApp_Controller_User_QC.t
 
 use strict;
