@@ -96,8 +96,8 @@ Code to execute all tests
 sub all_tests  : Tests
 {
     my $mech = mech();
+=head causing issues in dzil release but unable to replicate in dzil test, prove or local
     note "Testing sequence trace view page";
-=head issue in release but doesn't appear in dzil test, local nor prove. To be looked at next release
     $mech->get_ok('/user/qc/view_traces');
     ok $mech->submit_form(
         form_id => 'view_traces',
