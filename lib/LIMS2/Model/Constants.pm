@@ -58,6 +58,7 @@ const our %PROCESS_PLATE_TYPES => (
     'cgap_qc'                => [qw( CGAP_QC )],
     'ms_qc'                  => [qw( MS_QC )],
     'doubling'               => [qw( PIQ )],
+    'vector_cloning'         => [qw( PREINT )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -75,6 +76,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'crispr_vector'          => [qw( backbone )],
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
+    'vector_cloning'         => [qw( backbone )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -99,6 +101,7 @@ const our %PROCESS_TEMPLATE => (
     'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
     'oligo_assembly'         => 'oligo_assembly',
+    'vector_cloning'         => 'vector_cloning_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -107,7 +110,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'create_di' => { number => 0 },
     'create_crispr' => { number => 0 },
     'int_recom' => {
-        type   => [qw( DESIGN )],
+        type   => [qw( DESIGN PREINT )],
         number => 1,
     },
     '2w_gateway' => {
@@ -207,7 +210,11 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'doubling' => {
         type   => [qw( PIQ )],
         number => 1,
-    }
+    },
+    'vector_cloning' => {
+        type   => [qw( DESIGN )],
+        number => 1,
+    },
 );
 
 const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (
