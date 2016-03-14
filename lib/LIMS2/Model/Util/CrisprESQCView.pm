@@ -183,7 +183,7 @@ sub ep_pick_wells_for_gene {
         my $descendants = $design_well->descendants->depth_first_traversal( $design_well, 'out' );
         next unless $descendants;
         while( my $descendant = $descendants->next ) {
-            if ( $descendant->plate->type_id eq 'EP_PICK' ) {
+            if ( $descendant->plate_type eq 'EP_PICK' ) {
                 push @ep_pick_wells, $descendant if $descendant->is_accepted;
             }
         }
@@ -243,7 +243,7 @@ sub piq_crispr_es_qc_data {
 
     my @piq_wells;
     while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq 'PIQ' ) {
+        if ( $descendant->plate_type eq 'PIQ' ) {
             push @piq_wells, $descendant;
         }
     }

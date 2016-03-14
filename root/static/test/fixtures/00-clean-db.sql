@@ -1,92 +1,99 @@
-DELETE FROM fixture_md5;
-DELETE FROM well_dna_status;
-DELETE FROM well_dna_quality;
-DELETE FROM well_recombineering_results;
-DELETE FROM well_qc_sequencing_result;
-DELETE FROM process_bac;
-DELETE FROM process_recombinase;
-DELETE FROM process_output_well;
-DELETE FROM process_input_well;
-DELETE FROM process_design;
-DELETE FROM process_crispr;
-DELETE FROM process_cassette;
-DELETE FROM process_backbone;
-DELETE FROM process_cell_line;
-DELETE FROM process_nuclease;
-DELETE FROM process_global_arm_shortening_design;
-DELETE FROM process_crispr_tracker_rna;
-DELETE FROM process_parameters;
-DELETE FROM processes;
-DELETE FROM genotyping_primers;
-DELETE FROM design_comments;
-DELETE FROM design_oligo_loci;
-DELETE FROM design_oligos;
-DELETE FROM design_targets;
-DELETE FROM gene_design;
-DELETE FROM experiments;
-DELETE FROM designs;
-DELETE FROM bac_clone_loci;
-DELETE FROM bac_clones;
-DELETE FROM crispr_off_targets;
-DELETE FROM crispr_off_target_summaries;
-DELETE FROM crispr_loci;
-DELETE FROM crispr_primers;
-DELETE FROM crispr_pairs;
-DELETE FROM crispr_group_crisprs;
-DELETE FROM crispr_groups;
-DELETE FROM crisprs;
-DELETE FROM crispr_es_qc_wells;
-DELETE FROM crispr_es_qc_runs;
-DELETE FROM qc_alignment_regions;
-DELETE FROM qc_alignments;
-DELETE FROM qc_test_results;
-DELETE FROM qc_run_seq_project;
-DELETE FROM qc_run_seq_well_qc_seq_read;
-DELETE FROM qc_seq_reads;
-DELETE FROM qc_run_seq_wells;
-DELETE FROM qc_seq_projects;
-DELETE FROM qc_runs;
-DELETE FROM qc_template_well_cassette;
-DELETE FROM qc_template_well_backbone;
-DELETE FROM qc_template_well_recombinase;
-DELETE FROM qc_template_wells;
-DELETE FROM sequencing_project_templates;
-DELETE FROM qc_templates;
-DELETE FROM qc_eng_seqs;
-DELETE FROM sequencing_project_primers;
-DELETE FROM sequencing_project_templates;
-DELETE FROM sequencing_primer_types;
-DELETE FROM sequencing_projects;
-DELETE FROM well_accepted_override;
-DELETE FROM well_comments;
-DELETE FROM well_chromosome_fail;
-DELETE FROM well_targeting_pass;
-DELETE FROM well_targeting_puro_pass;
-DELETE FROM well_targeting_neo_pass;
-DELETE FROM well_genotyping_results;
-DELETE FROM well_recombineering_results;
-DELETE FROM well_colony_counts;
-DELETE FROM well_primer_bands;
-DELETE FROM well_lab_number;
-DELETE FROM well_assembly_qc;
-DELETE FROM barcode_events;
-DELETE FROM fp_picking_list_well_barcode;
-DELETE FROM fp_picking_list;
-DELETE FROM well_barcodes;
-DELETE FROM wells;
-DELETE FROM plate_comments;
-DELETE FROM crispr_plate_appends;
-DELETE FROM plates;
-DELETE FROM project_sponsors;
-DELETE FROM projects;
-DELETE FROM user_preferences;
-DELETE FROM user_role;
-DELETE FROM users;
-DELETE FROM summaries;
-DELETE FROM nucleases;
-DELETE FROM crispr_es_qc_runs;
-DELETE FROM crispr_es_qc_wells;
-DELETE FROM barcode_states;
-DELETE FROM cell_lines;
-DELETE FROM dna_templates;
+TRUNCATE
+fixture_md5,
+well_dna_status,
+well_dna_quality,
+well_recombineering_results,
+well_qc_sequencing_result,
+process_bac,
+process_recombinase,
+process_output_well,
+process_input_well,
+process_design,
+process_crispr,
+process_cassette,
+process_backbone,
+process_cell_line,
+process_nuclease,
+process_global_arm_shortening_design,
+process_crispr_tracker_rna,
+process_parameters,
+processes,
+genotyping_primers,
+design_comments,
+design_oligo_loci,
+design_oligos,
+design_targets,
+gene_design,
+experiments,
+designs,
+bac_clone_loci,
+bac_clones,
+crispr_off_targets,
+crispr_off_target_summaries,
+crispr_loci,
+crispr_primers,
+crispr_pairs,
+crispr_group_crisprs,
+crispr_groups,
+crisprs,
+crispr_es_qc_wells,
+crispr_es_qc_runs,
+qc_alignment_regions,
+qc_alignments,
+qc_test_results,
+qc_run_seq_project,
+qc_run_seq_well_qc_seq_read,
+qc_seq_reads,
+qc_run_seq_wells,
+qc_seq_projects,
+qc_runs,
+qc_template_well_cassette,
+qc_template_well_backbone,
+qc_template_well_recombinase,
+qc_template_wells,
+sequencing_project_templates,
+qc_templates,
+qc_eng_seqs,
+sequencing_project_primers,
+sequencing_project_templates,
+sequencing_primer_types,
+sequencing_projects,
+well_accepted_override,
+well_comments,
+well_chromosome_fail,
+well_targeting_pass,
+well_targeting_puro_pass,
+well_targeting_neo_pass,
+well_genotyping_results,
+well_recombineering_results,
+well_colony_counts,
+well_primer_bands,
+well_lab_number,
+well_assembly_qc,
+barcode_events,
+fp_picking_list_well_barcode,
+fp_picking_list,
+wells,
+plate_comments,
+crispr_plate_appends,
+plates,
+project_sponsors,
+projects,
+user_preferences,
+user_role,
+users,
+summaries,
+nucleases,
+crispr_es_qc_runs,
+crispr_es_qc_wells,
+barcode_states,
+cell_lines,
+dna_templates,
+crispr_validation,
+design_attempts,
+qc_template_well_crispr_primers,
+qc_template_well_genotyping_primers,
+well_het_status
+ CASCADE;
+
 

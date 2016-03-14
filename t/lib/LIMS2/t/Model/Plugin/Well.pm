@@ -51,11 +51,11 @@ sub all_tests : Tests {
         is $well->plate->name, 'PCS00177_A', '.. on correct plate';
 
         note("Test retrieving well by barcode");
-        ok $well->create_related( well_barcode => { barcode => 'DOF123045' } ), 'can add barcode to well';
+        ok $well->update({ barcode => 'DOF123045' }), 'can add barcode to well';
         ok my $well2 = model->retrieve_well( $well_data->{well_retrieve_barcode} ),
             'retrieve_plate by barcode should succeed';
         is $well->id, $well2->id, 'and we have the correct well';
-        #is $well->well->barcode->
+
     }
 
     {

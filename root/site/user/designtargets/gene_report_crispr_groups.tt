@@ -134,7 +134,7 @@
       <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" class="btn btn-info">
         Filter Crisprs</a>
     [% END %]
-    <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" />
+    <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" id="make_picks_btn"/>
   </div>
 </div>
 
@@ -168,8 +168,61 @@
 
 $('.crispr-info').popover();
 
+$( document ).ready(function() {
+  $("#make_picks_btn").click(function(e){
+    e.preventDefault();
+    var deleted_links = 0;
+    $("#delete_link_list").html('');
+    $(".checked_on_load").each(function(i,item){
+      var link = $(item).val();
+      console.log(link);
+      console.log(" was checked on load");
+      if($(item).prop("checked")){
+        //no change
+      }
+      else{
+        console.log("link " + link + " will be removed");
+        var ids = link.split(":");
+        $("#delete_link_list").append("<li>Design " + ids[1] + " with Crispr Group " + ids[0] + "</li>");
+        deleted_links++;
+      }
+    });
+
+    if(deleted_links){
+      $("#DeleteExperimentModal").modal('show');
+    }
+    else{
+      $("#crispr_pick").submit();
+    }
+  });
+
+  $("#confirm_crispr_pick_btn").click(function(e){
+    $("#crispr_pick").submit();
+  });
+});
 </script>
 
+<div class="modal hide fade" id="DeleteExperimentModal">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Confirm Crispr Pick</h3>
+      </div>
+
+      <div class="modal-body" align="center">
+        This action will delete some existing experiments:
+        <ul id="delete_link_list"></ul>
+        <br>
+        Continue?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button type="submit" name="delete_experiment" class="btn btn-danger" id="confirm_crispr_pick_btn">
+          Confirm Crispr Pick
+        </button>
+      </div>
+    </form>
+</div>
 
 [% BLOCK display_crisprs %]
   <td class="crispr">
@@ -221,7 +274,7 @@ $('.crispr-info').popover();
         <!-- we have a crispr already linked to a design -->
         [% IF crispr_group.id == crispr_id %]
           [% linked = 1 %]
-          <input type="checkbox" name="crispr_group_pick" value="[% crispr_group.id %]:[% design.design_id %]" checked />
+          <input type="checkbox" name="crispr_group_pick" value="[% crispr_group.id %]:[% design.design_id %]" checked class="checked_on_load" />
           <input type="hidden"  name="design_crispr_group_link" value="[% crispr_group.id %]:[% design.design_id %]" />
         [% END %]
       [% END %]

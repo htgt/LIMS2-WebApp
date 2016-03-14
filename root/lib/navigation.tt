@@ -213,6 +213,11 @@
               </a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPWellSummary' ) %]">
+                Crispr Electroporation Well Summary
+              </a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
                 Crispr Electroporation Detail
               </a>

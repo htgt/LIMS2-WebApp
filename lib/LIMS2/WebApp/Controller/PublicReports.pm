@@ -721,6 +721,10 @@ Public gene report, only show targeted clone details:
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
 
+    # FIXME: temporarily require logged in user for this page
+    # to stop robot access
+    $c->assert_user_roles('read');
+
     # by default type is Targeted, Distributable as an option
     my $type = 'Targeted';
     if ($c->request->param('type') eq 'distributable') {
@@ -855,6 +859,10 @@ Generate Genbank file for a well
 =cut
 sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
     my ( $self, $c, $well_id ) = @_;
+
+    # FIXME: temporarily require logged in user for this page
+    # to stop robot access
+    $c->assert_user_roles('read');
 
     my $model = $c->model('Golgi');
     my $well =  $model->retrieve_well( { id => $well_id } );

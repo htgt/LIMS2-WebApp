@@ -12,9 +12,11 @@
 </script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
-<script type="text/javascript">
-$(document).ready(function() {
 
+<script type="text/javascript">
+var traceviewers = [];
+var tv;
+$(document).ready(function() {
     if ( [% run_validated %] ) {
         $("#validate_run").hide();
     }
@@ -27,7 +29,18 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) [% IF truncate == 0 %], 1 [% END %] );
+        tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) [% IF truncate == 0 %], 1 [% END %] );
+        tv.well = (tv.fwd_container.closest('tr[class^="well_tr"]')) ? tv.fwd_container.closest('tr[class^="well_tr"]').attr('id') : tv.rev_container.closest('tr[class^="well_tr"]').attr('id');
+
+        for(var index = 0; index < traceviewers.length; index++) {
+            if (tv.well == traceviewers[index].well) {
+                traceviewers[index] = tv;
+                return;
+            }
+        };
+  
+        traceviewers.push(tv);
+ 
     });
 
     // validate or invalidate run
@@ -165,6 +178,127 @@ $(document).ready(function() {
     });
 
 });
+
+var focusTrace;
+var wellTrace;
+
+
+$(document).click(function(event) {
+    var click = $(event.target);
+    var dir = click.children();
+    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
+    if (typeof(dir.attr('id')) != "undefined") {
+        traceviewers.forEach( function(trace) {
+            if (trace.well == wellName) {
+                wellTrace = trace;
+            }
+        });
+        if (wellTrace) {
+            focusTrace = wellTrace[dir.attr('id') + "_plot"];
+            adjustPane(dir, dir.text());
+        }
+        else {
+            console.log(wellName + dir.attr('id') + " not found");
+        }
+    }
+});
+
+
+var result;
+
+function adjustPane(text, dir) {
+    var selection = window.getSelection();
+
+    //Using Jquery mouse target $(event.target)
+
+    var tr = text.closest("tr");
+    var well_name = tr.attr('id');
+    //Get table row nearest to mouse location
+
+
+    tr = tr[0].getElementsByTagName('div');
+
+    var div;
+    for (var counter = 0; counter < tr.length; counter++) {
+        if (tr[counter].id == "seqs" + well_name && tr[counter].className == "alignment_inner") {
+            div = tr[counter];
+        }
+    }
+    //HTMLcollection must not be iterated through by foreach
+    //Find the div inside the HTMLcollection containing the two sequences
+    div = $(div).text();
+    //Remove HTML tags
+    div = div.replace(/-/g,'N');
+    
+    var regex = /[ACTGNn]+/g;
+   
+    var match;
+    result = div.match(regex);
+    //Remove everything not relating to the sequence 
+    var customSelection = selection.toString();
+    var referencePoint = focusTrace._pos;
+    
+    for (var index = 0; index < result.length; index++) {
+        if (result[index].search(focusTrace._read) != -1) {
+            dir = index;
+        }
+    }
+
+    var loc = findCoords(result, referencePoint, selection, dir);
+    wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
+}
+
+function getSliderOffset(seq){
+    var read = focusTrace._read;
+    return seq.search(read);
+}
+
+function getMouseOffset(seq, selection){
+    if (selection.toString().length > 1) {
+        return seq.search(selection.toString());
+    } else {
+        return seq.search(selection.focusNode.data) + selection.focusOffset;
+    }
+}
+
+
+function findCoords(seqs, point, selection, dir) {
+    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq 
+    var target = selection.toString();
+    var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
+
+    //Init position is outside of the boundaries
+    if (getSliderOffset(traceSeq) == -1) {
+        focusTrace._initPos = focusTrace._pos;
+    }
+
+    //Allow for an average
+    if (focusTrace._pos == focusTrace._initPos) {
+        forceUpdate();
+    }
+
+    var sliderOffset = getSliderOffset(traceSeq); //Position of traceviewer slider in the seq
+    var positionDiff = Math.round(focusTrace._pos - focusTrace._initPos); 
+    var rate = Math.round( positionDiff / sliderOffset * 100) / 100; //Get rate to 2 decimal places
+
+    var cost = (mouseOffset - sliderOffset) * rate;
+    //Hueristic to mouse point
+
+    if (target.length < 5) {
+        return [cost + focusTrace._pos - 125, cost + focusTrace._pos + 125];
+    } else {
+        var endCost = cost + (target.length * rate);
+        return [cost + focusTrace._pos, endCost + focusTrace._pos]; 
+    }
+}
+
+function forceUpdate() {
+    var newPos = focusTrace._pos + 300;
+    wellTrace.moveToPoint(focusTrace, newPos - 125, newPos + 125);
+    //Move the traceviewer to allow for an average of the spacing between bases
+
+}
+
 </script>
 
 <div class="well">
@@ -251,7 +385,7 @@ $(document).ready(function() {
     </thead>
     <tbody>
         [% FOR row IN wells %]
-            <tr>
+            <tr id="[% row.well_name %]" class="well_tr">
 
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = row
@@ -279,3 +413,4 @@ $(document).ready(function() {
     document.title = 'Crispr QC: [% sub_project %]';
   });
 </script>
+

@@ -11,7 +11,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
-use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr crispr_groups_for_crispr crispr_pairs_for_crispr );
 use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
@@ -217,10 +217,15 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
         };
     }
 
+    my @pairs = crispr_pairs_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
+    my @groups = crispr_groups_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
+
     $c->stash(
         crispr_data             => $crispr->as_hash,
         ots                     => \@off_target_summaries,
         designs                 => [ $crispr->crispr_designs->all ],
+        pairs                   => [ map{ $_->as_hash } @pairs ],
+        groups                  => [ map{ $_->as_hash } @groups ],
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
         genes                   => \@genes,
     );
