@@ -93,6 +93,7 @@ lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
+lib/LIMS2/Model/Schema/Result/DesignAppendAlias.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
 lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
@@ -2636,7 +2637,9 @@ root/static/test/fixtures/reference_data/CrisprDamageType.csv
 root/static/test/fixtures/reference_data/CrisprLociType.csv
 root/static/test/fixtures/reference_data/CrisprPrimerType.csv
 root/static/test/fixtures/reference_data/CrisprTrackerRna.csv
+root/static/test/fixtures/reference_data/DesignAppendAlias.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
+root/static/test/fixtures/reference_data/DesignOligoAppend.csv
 root/static/test/fixtures/reference_data/DesignOligoType.csv
 root/static/test/fixtures/reference_data/DesignType.csv
 root/static/test/fixtures/reference_data/DnaTemplate.csv

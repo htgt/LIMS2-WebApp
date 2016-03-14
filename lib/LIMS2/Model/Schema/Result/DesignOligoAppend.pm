@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligoAppend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.382';
+    $LIMS2::Model::Schema::Result::DesignOligoAppend::VERSION = '0.383';
 }
 ## use critic
 
@@ -92,6 +92,22 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+y8pKKQ+Sl/Czz63sA+8Hw
 
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        id      => $self->id,
+        oligo   => $self->design_oligo_type_id,
+        seq     => $self->seq,
+    );
+
+    return \%h;
+}
+
+sub get_seq {
+    my $self = shift;
+    return $self->seq;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

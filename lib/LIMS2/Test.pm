@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.382';
+    $LIMS2::Test::VERSION = '0.383';
 }
 ## use critic
 
@@ -272,6 +272,8 @@ sub load_static_files {
             DesignCommentCategory
             DesignOligoType
             DesignType
+            DesignOligoAppend
+            DesignAppendAlias
             GeneType
             GenotypingPrimerType
             GenotypingResultType
@@ -296,6 +298,7 @@ sub load_static_files {
             SequencingProjectPrimer
             SequencingProjectTemplate
             DnaTemplate
+
             )
     );
 
