@@ -24,26 +24,29 @@ override _build_name => sub {
 override _build_columns => sub {
     return [
         'Gene ID',
-        'Gene Symbol',
-        'EP Plate',
+        'Gene symbol',
+        'EP plate',
         'EP well',
         'To report',
         'Cell line',
         'Design ID',
-        'Assembly',
+        'Design well',
+        'Method',
+        'DNA template',
+        'Assembly well',
         'Final pick vector',
         'CRISPR entity id',
         'CRISPR entity type',
         '# colonies',
         'iPSC colonies picked',
-        'total genotyped clones',
+        'Total genotyped clones',
         '# frame-shift clones',
         '# in-frame clones',
         '# wt clones',
         '# mosaic clones',
         '# no-call clones',
-        'het clones',
-        'distributable clones',
+        'Het clones',
+        'Distributable clones',
     ];
 };
 
@@ -78,7 +81,7 @@ override iterator => sub {
 
     my @crispr_ep_wells = $summary_rs->search(
         { }, {
-            select => [ qw/crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
+            select => [ qw/design_type design_plate_name design_well_name dna_template crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
             order_by => 'crispr_ep_well_id',
             distinct => 1
         }
@@ -106,6 +109,12 @@ override iterator => sub {
             my $design_id= $crispr_ep_well->design_id;
 
             my $cell_line= $crispr_ep_well->crispr_ep_well_cell_line;
+
+            my $design_type = $crispr_ep_well->design_type;
+
+            my $design_well = $crispr_ep_well->design_plate_name . '_' . $crispr_ep_well->design_well_name;
+
+            my $dna_template = $crispr_ep_well->dna_template // '';
 
             my $assembly = $crispr_ep_well->assembly_plate_name . '_' . $crispr_ep_well->assembly_well_name;
 
@@ -228,6 +237,9 @@ override iterator => sub {
                 "$to_report",
                 "$cell_line",
                 "$design_id",
+                "$design_well",
+                "$design_type",
+                "$dna_template",
                 "$assembly",
                 "$final_pick",
                 "$crispr_id",
