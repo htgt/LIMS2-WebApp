@@ -121,6 +121,36 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
     return;
 }
 
+
+sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
+    my ($self, $c) = @_;
+    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
+    
+    #Create recently added list
+    my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
+        { },
+        {
+            rows => 15,
+            order_by => {-desc => 'created_at'},
+        }
+    );
+
+    my @results;
+
+    while (my $focus = $recent->next) {
+        push(@results, $focus->as_hash);
+    }
+    $c->stash->{recent_results} = \@results;
+    
+    handle_primers($c, $secondary_rs); 
+
+    if ($c->req->params){
+        search_results($self, $c);
+    }
+
+    return;
+}
+
 sub check_params{
     my $c = shift;
     my $params = $c->req->params;
@@ -246,20 +276,6 @@ sub update_status {
     } catch {
         $c->stash->{error_msg} = "Error creating sequencing project: " . $_;
     };
-    return;
-}
-
-sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
-    my ($self, $c) = @_;
-
-    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
-
-    handle_primers($c, $secondary_rs);
-
-    if ($c->req->params){
-        search_results($self, $c);
-    }
-
     return;
 }
 

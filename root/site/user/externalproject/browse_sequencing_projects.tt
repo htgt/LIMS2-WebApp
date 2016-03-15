@@ -57,4 +57,37 @@
     [% END %]
   </table>
 </form>
+[% ELSE %]
+
+<table class="table span6 offset3" style="table-layout:fixed" align="center">
+    <thead>
+        <h4 align="center">Recently Added</h4>
+        <tr>
+            <th class="span2">ID</th>
+            <th class="span3">Name</th>
+            <th class="span3">Created</th>
+            <th class="span1">Results Available</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR result IN recent_results %]
+            <tr>
+                <th>      
+                    <a class="brand" href="[% c.uri_for('/user/view_sequencing_project/' , { seq_id => result.id }) %]">
+                        [% result.id %]
+                    </a>
+                </th>
+                <th class=seqName>[% result.name %]</font></th>
+                <th>[% result.created_at %]</th>
+                [% IF result.available_results == 1 %]
+                    <th>Yes</th>
+                [% ELSE %]
+                    <th>No</th>
+                [% END %]
+            </tr>
+        [% END %]
+    </tbody>
+</table>
+
+
 [% END %]
