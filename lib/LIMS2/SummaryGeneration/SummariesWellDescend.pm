@@ -112,7 +112,9 @@ sub generate_summary_rows_for_all_trails {
                 foreach my $process ($curr_well->parent_processes){
                     my $type = $process->type_id;
                     if ($type eq 'int_recom') {
-                        $curr_well->{dna_template} = $process->dna_template->id;
+                        try {
+                            $curr_well->{dna_template} = $process->dna_template->id;
+                        };
                     }
                 }
                 my $params = {
@@ -274,7 +276,7 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_backbone_name' }        = try{ $curr_well->backbone->name };   # backbone name
         $stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
-        $stored_values->{ 'stored_int_sponsor' }              = try{ $curr_well->plate->sponsor_id }; # sponsor
+        $stored_values->{ 'stored_int_sponsor' }              = try{ $curr_well->plate_sponsor }; # sponsor
         $stored_values->{ 'stored_dna_template' }             = try{ $curr_well->{dna_template} };
 
         # is well the output of a global_arm_shortening process

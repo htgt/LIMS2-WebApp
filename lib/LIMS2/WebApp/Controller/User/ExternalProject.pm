@@ -125,7 +125,7 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
 sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
     my ($self, $c) = @_;
     my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
-    
+
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
         { },
@@ -141,8 +141,8 @@ sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
         push(@results, $focus->as_hash);
     }
     $c->stash->{recent_results} = \@results;
-    
-    handle_primers($c, $secondary_rs); 
+
+    handle_primers($c, $secondary_rs);
 
     if ($c->req->params){
         search_results($self, $c);

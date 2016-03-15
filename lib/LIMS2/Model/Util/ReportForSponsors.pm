@@ -1228,7 +1228,7 @@ sub genes {
             foreach my $focus (@int_plates){
                 push (@templates, $focus->get_column('dna_template'));
             }
-            if (keys %{{ map {$_, 1} @templates}} == 1) {
+            if (scalar(@templates) == 1) {
                 $dna_template = $templates[0];
             }
             else {

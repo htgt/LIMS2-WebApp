@@ -360,7 +360,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         });
 
     my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
-$DB::single=1;
      # Fetch details from returned report parameters
     my $report_id = $report_params->{ 'report_id' };
     my $disp_target_type = $report_params->{ 'disp_target_type' };
@@ -418,7 +417,6 @@ $DB::single=1;
         if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-$DB::single=1;
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,
@@ -511,7 +509,6 @@ sub _view_cached_lines {
     }
     close $html_handle
         or die "unable to close cached file: $!";
-$DB::single=1;
     return $c->response->body( join( '', @lines_out ));
 }
 
