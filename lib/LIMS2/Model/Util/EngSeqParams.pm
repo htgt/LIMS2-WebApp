@@ -301,7 +301,7 @@ sub fetch_well_eng_seq_params {
 
     # We always need a cassette
     LIMS2::Exception->throw( "No cassette found for well ". $well->id )
-        unless $params->{cassette};
+        unless ($params->{cassette} || $well->plate->type_id eq 'PREINT');
 
     LIMS2::Exception->throw( "No backbone found for well ". $well->id )
         if $params->{stage} eq 'vector' && !$params->{backbone};

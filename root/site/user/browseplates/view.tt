@@ -378,3 +378,9 @@
 </div>
 
 [% END %]
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Plate: [% plate.name %]';
+  });
+</script>

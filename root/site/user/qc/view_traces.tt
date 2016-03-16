@@ -150,6 +150,10 @@ if ( ! Object.keys ) {
 var traceviewers = [];
 var tv;
 $(document).ready(function() {
+  if ('[% sequencing_sub_project %]') {
+    document.title = 'Traces: [% sequencing_sub_project %]';
+  }
+
   $(".seqName").click( function(e) {
     $("#sequencing_project").val(e.target.innerHTML);
     $("#sequencing_project").autocomplete("search");

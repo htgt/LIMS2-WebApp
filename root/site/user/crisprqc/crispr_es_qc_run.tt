@@ -408,4 +408,9 @@ function forceUpdate() {
     </tbody>
 </table>
 
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Crispr QC: [% sub_project %]';
+  });
+</script>
 

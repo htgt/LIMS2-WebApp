@@ -229,7 +229,6 @@ sub _generate_front_page_report {
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
-
     # Store report values in stash for display onscreen
     $c->stash(
         'report_id'      => $report_id,
@@ -418,7 +417,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,
@@ -511,7 +509,6 @@ sub _view_cached_lines {
     }
     close $html_handle
         or die "unable to close cached file: $!";
-
     return $c->response->body( join( '', @lines_out ));
 }
 
