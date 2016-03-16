@@ -1013,7 +1013,7 @@ sub fetch_cassette{
         DEBUG "using cached cassette";
     }
     else{
-        $cassette = $curr_well->cassette;
+        try{ $cassette = $curr_well->cassette };
         $cassette_cache->{ $curr_well->id } = $cassette;
         DEBUG "using newly found cassette";
     }
@@ -1024,12 +1024,12 @@ sub fetch_cassette{
 my $experiments_cache;
 sub fetch_experiments{
     my ($curr_well) = @_;
-    my $experiments;
+    my $experiments = [];
     if(exists $experiments_cache->{ $curr_well->id }){
         $experiments = $experiments_cache->{ $curr_well->id };
     }
     else{
-        $experiments = [ $curr_well->experiments ];
+        try{ $experiments = [ $curr_well->experiments ] };
         $experiments_cache->{ $curr_well->id } = $experiments;
     }
     return $experiments;
