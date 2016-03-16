@@ -1,5 +1,5 @@
 [% UNLESS hide_well_name %]
-    <td>[% row.well_name %]</td>
+    <td id="[% row.well_name %]" class="well_name">[% row.well_name %]</td>
 [% END %]
 
 [% UNLESS hide_crispr_well_id %]
@@ -162,7 +162,8 @@
     </td>
 
     <td>
-      [% IF row.fwd_read %]
+      [% IF row.fwd_read %]>
+
         <a href="[% c.uri_for( '/user/crispr_qc_well', row.es_qc_well_id, 'read', 'fwd' ) %]" target="_blank" >fwd_read</a>
       [% END %]
       <br>

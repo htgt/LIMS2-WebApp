@@ -90,12 +90,15 @@ function extract_sequence(elem) {
             var seqs = plot.getPlaceholder().parents("td").find(".coloured_seq");
             if(seqs){
                 var seq;
+                var direction;
                 if( plot.getPlaceholder().hasClass("reverse") ){
                     seq = seqs.last();
+                    direction = "rev";
                 }
                 else{
                     // default is to link to forward read
                     seq = seqs.first();
+                    direction = "fwd";
                 }
 
                 var seq_string = extract_sequence($(seq));
@@ -130,7 +133,7 @@ function extract_sequence(elem) {
                                     style+="border-left-style:none";
                                 }
 
-                                span_html+="<span style='" + style + "'>"
+                                span_html+="<span id='" + direction + "' style='" + style + "'>"
                                            + read + "</span>";
                             }
                             if(after.length){
@@ -220,6 +223,7 @@ function TraceViewer(trace_url, button, full_trace) {
 
     this._pos = 250;
     this._read = 'A';
+    this._initPos = 250;
     this.url = trace_url;
     this.show_traces(button, full_trace);
 }
@@ -249,8 +253,8 @@ TraceViewer.prototype.show_traces = function(button, full_trace) {
         rev_seq = "";
     }
 
-    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"));
-    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"));
+    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"), "fwd");
+    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"), "rev");
 
     // create button to hide the traces and restore the "View Traces" button
     var hide_button = $("<a>",{
@@ -285,7 +289,7 @@ TraceViewer.prototype.show_traces = function(button, full_trace) {
 };
 
 //wait for data then give it to the real plot creation method
-TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context) {
+TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context, dir) {
     if ( ! name ) { placeholder.parent().hide(); return }; //skip if we do not have a read name
 
     //create local var for this, as "this" in getJSON is different
@@ -296,7 +300,7 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
         this.url,
         { "name": name, "search_seq": search_seq, "reverse": reverse, "context": context },
         function(data) {
-            parent._create_plot(placeholder, data);
+            parent._create_plot(placeholder, data, dir);
         }
     )
     .fail(function( jqxhr, textStatus, error ) {
@@ -305,10 +309,11 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
 };
 
 //function that actually creates the plot
-TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
+TraceViewer.prototype._create_plot = function(placeholder, graph_data, dir) {
     var set = graph_data.series[0]["data"];
 
     var left_boundary = parseInt(set[0][0]);
+
     var right_boundary = set[set.length - 1][0];
 
     var plot = $.plot(placeholder, graph_data.series, {
@@ -344,7 +349,7 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
             position: "nw"
         }
     });
-
+    plot._initPos = left_boundary;
     function addZoom(text, left, top, args) {
         $("<div class='button' style='left:" + left + "px;top:" + top + "px;width:7px;text-align:center'>" + text + "</div>")
         .appendTo(placeholder)
@@ -382,14 +387,18 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data) {
     });
 
     //make world accessible
-    this.plot = plot;
+    if (dir == "fwd") {
+        this.fwd_plot = plot;
+    } else {
+        this.rev_plot = plot;
+    }
 };
 
 TraceViewer.prototype.moveToPoint = function (plot, first, last) {
     var xaxis = plot.getAxes().xaxis;
     xaxis.min = first;
     xaxis.max = last;
-
+    plot._pos = first;
     plot.draw(); //Leaves TV blank until page updates
     plot.pan(0); //Forces an update
 };

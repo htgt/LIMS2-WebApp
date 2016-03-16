@@ -358,5 +358,14 @@ sub get_parameter_value{
     return $value;
 }
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+        id           => $self->id,
+        type         => $self->type_id,
+        dna_template => $self->dna_template->id,
+    };
+}
 __PACKAGE__->meta->make_immutable;
 1;
