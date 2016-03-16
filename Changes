@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.384     2016-03-16 16:27:19 Europe/London
+
+    Added new PREINT plate type and vector_cloning process
+
 0.383     2016-03-14 13:44:45 Europe/London
     Moved appends to the DB
 0.382     2016-03-10 12:51:06 Europe/London
