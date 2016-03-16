@@ -914,7 +914,8 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
 
         my $project = $c->req->param('sequencing_project');
         my $sub_project = $c->req->param('sequencing_sub_project');
-        if(my $well_name = $c->req->param('well_name')){
+        my $well_name = $c->req->param('well_name');
+        if ($well_name && $well_name ne ' '){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");

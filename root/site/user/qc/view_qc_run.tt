@@ -157,3 +157,9 @@
     [% END -%]
   </tbody>
 </table>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'QC Run: [% qc_run.sequencing_projects.join(' - ') %]';
+  });
+</script>

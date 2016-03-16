@@ -104,11 +104,10 @@ sub all_tests  : Tests
         fields  => {
         	sequencing_project => 'HUEDQ0044',
         	sequencing_sub_project => 'HUEDQ0044_1',
-
+            well_name => ' ',
         },
         button => 'get_reads',
     );
-
     $mech->content_contains("HUEDQ0044_1a01.p1kSF1");
     $mech->content_contains("CTTATTACAGCGGAATGGCCAAAGACTATGACGGGTCTTCCTAGCACATCAGGGACAAC");
     $mech->content_contains("HUEDQ0044_1a02.p1kSR1");
@@ -121,7 +120,6 @@ sub all_tests  : Tests
         	sequencing_project => 'HUEDQ0044',
         	sequencing_sub_project => 'HUEDQ0044_1',
         	well_name => 'A01',
-
         },
         button => 'get_reads',
     );

@@ -1,5 +1,11 @@
 {{$NEXT}}
-    Added traceviewer update to crispr QC results
+
+0.383     2016-03-14 13:44:45 Europe/London
+    Moved appends to the DB
+0.382     2016-03-10 12:51:06 Europe/London
+    
+    Added traceviewer modifications to crispr QC
+
 0.381     2016-03-03 16:09:43 Europe/London
 
    bugfix to crispr ES QC and checked out barcode lists
