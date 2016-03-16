@@ -6,6 +6,7 @@ use LIMS2::Model;
 use List::MoreUtils qw(uniq any);
 use Try::Tiny;                              # Exception handling
 use Log::Log4perl ':easy';                  # TRACE to INFO to WARN to ERROR to LOGDIE
+use Time::HiRes;
 
 #------------------------------------------------------------------
 #  Accessible methods
@@ -65,7 +66,9 @@ sub generate_summary_rows_for_all_trails {
     }
 
     # Call ProcessTree to fetch paths
+    DEBUG "getting well process path";
     my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
+    DEBUG "well process path done";
 
     # initialise hash of previously retrieved wells
     my %wells_retrieved = ();
@@ -74,6 +77,7 @@ sub generate_summary_rows_for_all_trails {
     $wells_retrieved{ $design_well_id } = $design_well;
 
     my $trails_index = 0;
+    my @summaries_to_insert = ();
     while ( $design_well_trails->[$trails_index] ) {
 
         my %summary_row_values; # hash to contain column values for a single row
@@ -81,7 +85,7 @@ sub generate_summary_rows_for_all_trails {
 
         # Loop through the wells in the trail
         foreach my $curr_well_id (reverse @{$design_well_trails->[$trails_index]}){
-
+            DEBUG "Generating summary values for well $curr_well_id, trail $trails_index";
             TRACE caller()." Well ID $design_well_id : Path well ID $curr_well_id";
 
             my $curr_well;
@@ -107,6 +111,7 @@ sub generate_summary_rows_for_all_trails {
             }
 
             if (defined $curr_well) {
+                DEBUG "well type: ".$curr_well->plate_type;
                 my $params = {
                     'summary_row_values' => \%summary_row_values,
                     'done'               => \%done,
@@ -123,21 +128,33 @@ sub generate_summary_rows_for_all_trails {
                 LOGDIE caller()." Well ID $design_well_id : No well object found for path well id : $curr_well_id, cannot continue";
             }
         }
+        DEBUG "summary values done";
 
-        # insert to DB
-        my $inserts = insert_summary_row_via_dbix ( $model, \%summary_row_values ) or WARN caller()." Insert failed for well ID $design_well_id";
-
-        if($inserts) {
-            $$well_inserts_succeeded += 1;
-        } else {
-            $$well_inserts_failed += 1;
-        }
-
+        # Add the insert timestamp and set to_report to default of true
+        # as this is not done automatically by populate
+        $summary_row_values{ 'insert_timestamp' } = 'now()';
+        $summary_row_values{ 'to_report' } //= 1;
+        push @summaries_to_insert, \%summary_row_values;
         %done = ();
 
         # increment index
         $trails_index++;
     }
+
+    # Attempt to insert the rows into the summaries table using populate for efficiency
+    my @summary_row_count = scalar @summaries_to_insert;
+    DEBUG "Inserting $summary_row_count new summary rows";
+    if(@summaries_to_insert){
+        try{
+            $model->schema->resultset('Summary')->populate(\@summaries_to_insert);
+            $$well_inserts_succeeded = $summary_row_count;
+        }
+        catch{
+            INFO "Summary table populate failed with error $!";
+            $$well_inserts_failed = $summary_row_count;
+        }
+    }
+    DEBUG "summary rows inserted";
 
     INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = ".$$wells_deleted."/".$$well_inserts_succeeded."/".$$well_inserts_failed;
     return;
@@ -250,6 +267,7 @@ sub fetch_values_for_type_INT {
 
     if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
+        my $cassette = fetch_cassette($curr_well);
         TRACE caller()." Fetching new values for INT well : ".$curr_well->id;
         $stored_values->{ 'stored_int_plate_name' }           = try{ $curr_well->plate_name }; # plate name e.g. MOHSAQ60001_C_1
         $stored_values->{ 'stored_int_plate_id' }             = try{ $curr_well->plate_id }; # plate id
@@ -258,11 +276,11 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_well_created_ts' }      = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_int_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
         $stored_values->{ 'stored_int_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values->{ 'stored_int_cassette_name' }        = try{ $curr_well->cassette->name }; # cassette name
-        $stored_values->{ 'stored_int_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # cassette_promoter
-        $stored_values->{ 'stored_int_cassette_cre' }         = try{ $curr_well->cassette->cre }; # cassette_cre
-        $stored_values->{ 'stored_int_cassette_conditional' } = try{ $curr_well->cassette->conditional }; # cassette_conditional
-        $stored_values->{ 'stored_int_cassette_resistance' }  = try{ $curr_well->cassette->resistance }; # cassette_resistance, e.g. neoR
+        $stored_values->{ 'stored_int_cassette_name' }        = try{ $cassette->name }; # cassette name
+        $stored_values->{ 'stored_int_cassette_promoter' }    = try{ $cassette->promoter }; # cassette_promoter
+        $stored_values->{ 'stored_int_cassette_cre' }         = try{ $cassette->cre }; # cassette_cre
+        $stored_values->{ 'stored_int_cassette_conditional' } = try{ $cassette->conditional }; # cassette_conditional
+        $stored_values->{ 'stored_int_cassette_resistance' }  = try{ $cassette->resistance }; # cassette_resistance, e.g. neoR
         $stored_values->{ 'stored_int_backbone_name' }        = try{ $curr_well->backbone->name };   # backbone name
         $stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
@@ -310,6 +328,22 @@ sub fetch_values_for_type_FINAL {
 
     if( (not exists $stored_values->{ stored_final_well_id }) || ($curr_well->id != $stored_values->{ stored_final_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
+        DEBUG "finding cassette";
+        my $cassette = fetch_cassette($curr_well);
+        DEBUG "cassette found";
+
+        DEBUG "finding backbone";
+        my $backbone = $curr_well->backbone;
+        DEBUG "backbone found";
+
+        DEBUG "finding recombinases";
+        my $recombinases = $curr_well->recombinases;
+        DEBUG "recombinases found";
+
+        DEBUG "finding sequencing";
+        my $seq = $curr_well->well_qc_sequencing_result;
+        DEBUG "sequencing found";
+
         TRACE caller()." Fetching new values for FINAL well : ".$curr_well->id;
         $stored_values->{ 'stored_final_well_id' }              = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_final_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
@@ -318,14 +352,14 @@ sub fetch_values_for_type_FINAL {
         $stored_values->{ 'stored_final_well_created_ts' }      = try{ $curr_well->created_at->iso8601 }; # well created timestamp
         $stored_values->{ 'stored_final_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_final_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
-        $stored_values->{ 'stored_final_backbone_name' }        = try{ $curr_well->backbone->name }; # backbone name
-        $stored_values->{ 'stored_final_cassette_name' }        = try{ $curr_well->cassette->name }; # cassette name
+        $stored_values->{ 'stored_final_backbone_name' }        = try{ $backbone->name }; # backbone name
+        $stored_values->{ 'stored_final_cassette_name' }        = try{ $cassette->name }; # cassette name
         $stored_values->{ 'stored_final_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values->{ 'stored_final_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
-        $stored_values->{ 'stored_final_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
-        $stored_values->{ 'stored_final_cassette_conditional' } = try{ $curr_well->cassette->conditional };      # final_cassette_conditional
-        $stored_values->{ 'stored_final_cassette_resistance' }  = try{ $curr_well->cassette->resistance };      # final_cassette_resistance, e.g. neoR
-        $stored_values->{ 'stored_final_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
+        $stored_values->{ 'stored_final_cassette_promoter' }    = try{ $cassette->promoter }; # final_cassette_promoter
+        $stored_values->{ 'stored_final_cassette_cre' }         = try{ $cassette->cre }; # final_cassette_cre
+        $stored_values->{ 'stored_final_cassette_conditional' } = try{ $cassette->conditional };      # final_cassette_conditional
+        $stored_values->{ 'stored_final_cassette_resistance' }  = try{ $cassette->resistance };      # final_cassette_resistance, e.g. neoR
+        $stored_values->{ 'stored_final_recombinase_id' }       = join( '_', @$recombinases); # process recombinase
         $stored_values->{ 'stored_final_sponsor' }              = try{ $curr_well->plate_sponsor }; # sponsor
     }
 
@@ -360,6 +394,7 @@ sub fetch_values_for_type_FINAL_PICK {
 
     if( (not exists $stored_values->{ stored_final_pick_well_id }) || ($curr_well->id != $stored_values->{ stored_final_pick_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
+        my $cassette = fetch_cassette($curr_well);
         TRACE caller()." Fetching new values for FINAL_PICK well : ".$curr_well->id;
         $stored_values->{ 'stored_final_pick_well_id' }              = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_final_pick_well_name' }            = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
@@ -369,12 +404,12 @@ sub fetch_values_for_type_FINAL_PICK {
         $stored_values->{ 'stored_final_pick_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_final_pick_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_final_pick_backbone_name' }        = try{ $curr_well->backbone->name }; # backbone name
-        $stored_values->{ 'stored_final_pick_cassette_name' }        = try{ $curr_well->cassette->name }; # cassette name
+        $stored_values->{ 'stored_final_pick_cassette_name' }        = try{ $cassette->name }; # cassette name
         $stored_values->{ 'stored_final_pick_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
-        $stored_values->{ 'stored_final_pick_cassette_promoter' }    = try{ $curr_well->cassette->promoter }; # final_cassette_promoter
-        $stored_values->{ 'stored_final_pick_cassette_cre' }         = try{ $curr_well->cassette->cre }; # final_cassette_cre
-        $stored_values->{ 'stored_final_pick_cassette_conditional' } = try{ $curr_well->cassette->conditional }; # final_cassette_conditional
-        $stored_values->{ 'stored_final_pick_cassette_resistance' }  = try{ $curr_well->cassette->resistance }; # final_pick_cassette_resistance, e.g. neoR
+        $stored_values->{ 'stored_final_pick_cassette_promoter' }    = try{ $cassette->promoter }; # final_cassette_promoter
+        $stored_values->{ 'stored_final_pick_cassette_cre' }         = try{ $cassette->cre }; # final_cassette_cre
+        $stored_values->{ 'stored_final_pick_cassette_conditional' } = try{ $cassette->conditional }; # final_cassette_conditional
+        $stored_values->{ 'stored_final_pick_cassette_resistance' }  = try{ $cassette->resistance }; # final_pick_cassette_resistance, e.g. neoR
         $stored_values->{ 'stored_final_pick_recombinase_id' }       = join( '_', @{$curr_well->recombinases}); # process recombinase
         $stored_values->{ 'stored_final_pick_sponsor' }              = try{ $curr_well->plate_sponsor }; # sponsor
     }
@@ -463,7 +498,7 @@ sub fetch_values_for_type_EP {
         $stored_values->{ 'stored_ep_first_cell_line_name' }   = try { $curr_well->first_cell_line->name }; # first cell line name
         $stored_values->{ 'stored_ep_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
         $stored_values->{ 'stored_ep_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
-        $stored_values->{ 'stored_to_report' }                 = try{ $curr_well->to_report }; # to_report flag
+        $stored_values->{ 'stored_to_report' }                 = try{ $curr_well->to_report // 1 }; # to_report flag
     }
 
     $summary_row_values->{ 'ep_well_id' }                = $stored_values->{ stored_ep_well_id };
@@ -758,6 +793,9 @@ sub fetch_values_for_type_ASSEMBLY {
 
     if( (not exists $stored_values->{ stored_assembly_well_id }) || ($curr_well->id != $stored_values->{ stored_assembly_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
+        DEBUG "finding experiments";
+        my @experiments = @{ fetch_experiments($curr_well) };
+        DEBUG "found experiments";
         TRACE caller()." Fetching new values for ASSEMBLY well : ".$curr_well->id;
         $stored_values->{ 'stored_assembly_well_id' }                = try{ $curr_well->id }; # well id
         $stored_values->{ 'stored_assembly_well_name' }              = try{ $curr_well->name }; # well name e.g. A01 to H12 (or P24 for 384-well plates)
@@ -767,7 +805,7 @@ sub fetch_values_for_type_ASSEMBLY {
         $stored_values->{ 'stored_assembly_well_assay_complete' }    = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_assembly_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
-        $stored_values->{ 'stored_experiments' }                     = try{ join ",", map { $_->id } $curr_well->experiments }; # experiment
+        $stored_values->{ 'stored_experiments' }                     = try{ join ",", map { $_->id } @experiments }; # experiment
     }
 
     $summary_row_values->{ 'assembly_well_id' }               = $stored_values->{ stored_assembly_well_id };
@@ -806,7 +844,7 @@ sub fetch_values_for_type_CRISPR_EP {
         $stored_values->{ 'stored_crispr_ep_well_nuclease' }          = try{ $curr_well->nuclease->name };
         $stored_values->{ 'stored_crispr_ep_well_cell_line' }         = try{ $curr_well->first_cell_line->name };
         $stored_values->{ 'stored_crispr_ep_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
-        $stored_values->{ 'stored_to_report' }                        = try{ $curr_well->to_report }; # to_report flag
+        $stored_values->{ 'stored_to_report' }                        = try{ $curr_well->to_report // 1}; # to_report flag
     }
 
     $summary_row_values->{ 'crispr_ep_well_id' }               = $stored_values->{ stored_crispr_ep_well_id };
@@ -929,22 +967,11 @@ sub fetch_well_process_recombinases {
     return $return_string;
 }
 
-# insert row into database
-sub insert_summary_row_via_dbix {
-    my ( $model, $summary_row_values ) = @_;
-
-    # set the insert timestamp
-    $summary_row_values->{ 'insert_timestamp' }         = 'now()';
-
-    my $result = try { $model->schema->resultset('Summary')->create($summary_row_values) } catch { ERROR "Error inserting well, Exception:".$_};
-
-    return defined $result ? 1 : 0; # if defined return 1 else 0
-}
-
 # select the rows for this design well and delete them
 sub delete_summary_rows_for_design_well {
     my ( $well_id, $model ) = @_;
 
+    DEBUG "deleting summaries for design well $well_id";
     my $wells_rs = $model->schema->resultset('Summary')->search({
         design_well_id => $well_id,
     });
@@ -952,8 +979,35 @@ sub delete_summary_rows_for_design_well {
     my $number_deletes;
 
     try { $number_deletes = $wells_rs->delete() };
-
+    DEBUG "deletion done";
     return $number_deletes;
 }
 
+my $cassette_cache;
+sub fetch_cassette{
+    my ($curr_well) = @_;
+    my $cassette;
+    if(exists $cassette_cache->{ $curr_well->id }){
+        $cassette = $cassette_cache->{ $curr_well->id };
+    }
+    else{
+        $cassette = $curr_well->cassette;
+        $cassette_cache->{ $curr_well->id } = $cassette;
+    }
+    return $cassette;
+}
+
+my $experiments_cache;
+sub fetch_experiments{
+    my ($curr_well) = @_;
+    my $experiments;
+    if(exists $experiments_cache->{ $curr_well->id }){
+        $experiments = $experiments_cache->{ $curr_well->id };
+    }
+    else{
+        $experiments = [ $curr_well->experiments ];
+        $experiments_cache->{ $curr_well->id } = $experiments;
+    }
+    return $experiments;
+}
 1;
