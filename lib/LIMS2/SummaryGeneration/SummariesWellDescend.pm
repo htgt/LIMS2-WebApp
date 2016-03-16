@@ -70,6 +70,12 @@ sub generate_summary_rows_for_all_trails {
     my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
     DEBUG "well process path done";
 
+    DEBUG "getting list of unique well ids";
+    my @well_ids = uniq map { @{$_} } @{ $design_well_trails };
+    DEBUG scalar(@well_ids)." unique well ids found";
+
+    my $well_ancestors = fast_get_well_ancestors($model, @well_ids);
+
     # initialise hash of previously retrieved wells
     my %wells_retrieved = ();
 
@@ -99,6 +105,9 @@ sub generate_summary_rows_for_all_trails {
             } else {
                 # otherwise fetch current well object for id
                 $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
+
+                # Add the ancestor edges to the well that we got in batch query
+                $curr_well->set_well_ancestors( $well_ancestors->{ $curr_well_id } );
 
                 # and insert into hash
                 $wells_retrieved{ $curr_well_id } = $curr_well;
@@ -1013,7 +1022,7 @@ sub fetch_cassette{
         DEBUG "using cached cassette";
     }
     else{
-        $cassette = $curr_well->cassette;
+        try{ $cassette = $curr_well->cassette };
         $cassette_cache->{ $curr_well->id } = $cassette;
         DEBUG "using newly found cassette";
     }
@@ -1024,12 +1033,12 @@ sub fetch_cassette{
 my $experiments_cache;
 sub fetch_experiments{
     my ($curr_well) = @_;
-    my $experiments;
+    my $experiments = [];
     if(exists $experiments_cache->{ $curr_well->id }){
         $experiments = $experiments_cache->{ $curr_well->id };
     }
     else{
-        $experiments = [ $curr_well->experiments ];
+        try{ $experiments = [ $curr_well->experiments ] };
         $experiments_cache->{ $curr_well->id } = $experiments;
     }
     return $experiments;
@@ -1051,5 +1060,47 @@ sub fetch_dna_template{
         $template_cache->{ $curr_well->id } = $template;
     }
     return $template;
+}
+
+sub fast_get_well_ancestors{
+    my ($model, @well_id_list) = @_;
+    my $well_list = join q{,}, @well_id_list;
+
+    my $query << "QUERY_END";
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     WHERE pr_out.well_id in ($well_list)
+     UNION
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
+     FROM processes pr
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
+)
+SELECT process_id, input_well_id, output_well_id,path[1]
+FROM well_hierarchy;
+QUERY_END
+
+    DEBUG "Running batch well ancestor query";
+    my $sql_result =  $model->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached( $query );
+            $sth->execute();
+            $sth->fetchall_arrayref();
+        }
+    );
+    DEBUG "ancestor query done";
+
+    my $edges_for_well = {};
+    foreach my $edge (@{ $sql_result }){
+        my $well_id = $edge->[3];
+        $edges_for_well->{$wel_id} ||= [];
+        push @{ $edges_for_well }, $edge->[0,1,2];
+    }
+    return $edges_for_well;
 }
 1;

@@ -706,6 +706,19 @@ sub _build_ancestors {
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
 }
 
+# Use this to set the well's ancestors using results of a batch ancestor query
+sub set_well_ancestors{
+    my ($self, $edges) = shift;
+
+    my $graph = LIMS2::Model::ProcessGraph->new(
+      start_with => $self,
+      type => 'ancestors',
+      edges => $edges
+    );
+
+    $self->ancestors($graph);
+}
+
 has descendants => (
     is         => 'ro',
     isa        => 'LIMS2::Model::ProcessGraph',
