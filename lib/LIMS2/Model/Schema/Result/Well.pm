@@ -692,7 +692,7 @@ sub plate_sponsor{
     return $self->last_known_plate->sponsor_id;
 }
 has ancestors => (
-    is         => 'ro',
+    is         => 'rw',
     isa        => 'LIMS2::Model::ProcessGraph',
     init_arg   => undef,
     lazy_build => 1
@@ -707,8 +707,8 @@ sub _build_ancestors {
 }
 
 # Use this to set the well's ancestors using results of a batch ancestor query
-sub set_well_ancestors{
-    my ($self, $edges) = shift;
+sub set_ancestors{
+    my ($self, $edges) = @_;
 
     my $graph = LIMS2::Model::ProcessGraph->new(
       start_with => $self,

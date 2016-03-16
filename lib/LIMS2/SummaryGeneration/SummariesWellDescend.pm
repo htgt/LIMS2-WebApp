@@ -7,6 +7,7 @@ use List::MoreUtils qw(uniq any);
 use Try::Tiny;                              # Exception handling
 use Log::Log4perl ':easy';                  # TRACE to INFO to WARN to ERROR to LOGDIE
 use Time::HiRes;
+use Data::Dumper;
 
 #------------------------------------------------------------------
 #  Accessible methods
@@ -107,7 +108,7 @@ sub generate_summary_rows_for_all_trails {
                 $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
 
                 # Add the ancestor edges to the well that we got in batch query
-                $curr_well->set_well_ancestors( $well_ancestors->{ $curr_well_id } );
+                $curr_well->set_ancestors( $well_ancestors->{ $curr_well_id } );
 
                 # and insert into hash
                 $wells_retrieved{ $curr_well_id } = $curr_well;
@@ -1066,7 +1067,7 @@ sub fast_get_well_ancestors{
     my ($model, @well_id_list) = @_;
     my $well_list = join q{,}, @well_id_list;
 
-    my $query << "QUERY_END";
+    my $query = << "QUERY_END";
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
      SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
      FROM processes pr
@@ -1098,8 +1099,8 @@ QUERY_END
     my $edges_for_well = {};
     foreach my $edge (@{ $sql_result }){
         my $well_id = $edge->[3];
-        $edges_for_well->{$wel_id} ||= [];
-        push @{ $edges_for_well }, $edge->[0,1,2];
+        $edges_for_well->{$well_id} ||= [];
+        push @{ $edges_for_well->{$well_id} }, [ $edge->[0,1,2] ];
     }
     return $edges_for_well;
 }
