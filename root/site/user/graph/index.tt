@@ -4,6 +4,7 @@
     <legend>Show Well Relations</legend>
     <input type="text" id="plate_name_field" name="plate_name" placeholder="Plate Name" autocomplete="off" value="[% plate_name %]">
     <input type="text" name="well_name" placeholder="Well Name" value="[% well_name %]">
+    <input type="text" name="barcode" placeholder="Barcode" value="[% barcode %]">
     <input type="radio" name="graph_type" value="ancestors"[% IF graph_type == 'ancestors' %] checked="checked"[% END %]> ancestors
     <input type="radio" name="graph_type" value="descendants"[% IF graph_type == 'descendants' %] checked="checked"[% END %]> descendants
     <input type="checkbox" name="crisprs" value="crisprs"[% IF crisprs == 'crisprs' %] checked="checked"[% END %]> include crisprs

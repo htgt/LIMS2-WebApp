@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.376';
+    $LIMS2::Test::VERSION = '0.384';
 }
 ## use critic
 
@@ -272,6 +272,8 @@ sub load_static_files {
             DesignCommentCategory
             DesignOligoType
             DesignType
+            DesignOligoAppend
+            DesignAppendAlias
             GeneType
             GenotypingPrimerType
             GenotypingResultType
@@ -296,6 +298,7 @@ sub load_static_files {
             SequencingProjectPrimer
             SequencingProjectTemplate
             DnaTemplate
+
             )
     );
 
@@ -349,7 +352,6 @@ sub load_dynamic_files {
             Project
             ProjectSponsor
             Summary
-            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
             CrisprPlateAppendsType

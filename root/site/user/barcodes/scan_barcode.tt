@@ -87,3 +87,11 @@ Actions:
       <i class="icon-arrow-right icon-white"></i><i class="icon-trash icon-white"></i>
     </button>
 [% END %]
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    if ('[% well_details %]') {
+      document.title = 'Barcode: [% well_details.barcode %]';
+    }
+  });
+</script>

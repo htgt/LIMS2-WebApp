@@ -1,7 +1,7 @@
 package LIMS2::AlleleRequest;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::AlleleRequest::VERSION = '0.376';
+    $LIMS2::AlleleRequest::VERSION = '0.384';
 }
 ## use critic
 
@@ -88,7 +88,7 @@ sub final_vector_wells {
         my $it = $design_well->descendants->depth_first_traversal($design_well, 'out');
         while ( my $well = $it->next ) {
             push @final_vector_wells, $well
-                if $well->plate->type_id eq 'FINAL' && satisfies_cassette_function( $cassette_function, $well );
+                if $well->plate_type eq 'FINAL' && satisfies_cassette_function( $cassette_function, $well );
         }
     }
 
@@ -104,7 +104,7 @@ sub dna_wells {
         my $it = $vector_well->descendants->depth_first_traversal($vector_well, 'out');
         while ( my $well = $it->next ) {
             push @dna_wells, $well
-                if $well->plate->type_id eq 'DNA';
+                if $well->plate_type eq 'DNA';
         }
     }
 
@@ -119,7 +119,7 @@ sub electroporation_wells {
         my $it = $vector_well->descendants->depth_first_traversal($vector_well, 'out');
         while ( my $well = $it->next ) {
             push @electroporation_wells, $well
-                if $well->plate->type_id eq $plate_type;
+                if $well->plate_type eq $plate_type;
         }
     }
 
@@ -134,7 +134,7 @@ sub pick_wells {
         my $it = $ep_well->descendants->depth_first_traversal($ep_well, 'out');
         while ( my $well = $it->next ) {
             push @pick_wells, $well
-                if $well->plate->type_id eq $plate_type;
+                if $well->plate_type eq $plate_type;
         }
     }
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.376';
+    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.384';
 }
 ## use critic
 
@@ -30,10 +30,7 @@ sub retrieve_well_barcode {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_barcode, ignore_unknown => 1 );
 
-    return $self->retrieve(
-    	WellBarcode => { slice_def $validated_params, qw( well_id barcode ) },
-    	$search_opts,
-    );
+    return $self->retrieve_well($validated_params);
 }
 
 sub delete_well_barcode {
@@ -51,6 +48,9 @@ sub pspec_create_well_barcode {
     };
 }
 
+# The well_barcodes table has now been dropped and barcode and state added to wells
+# This method has been kept for legacy reasons but it now just updates the well
+# with barcode details and creates a barcode event
 sub create_well_barcode {
     my ( $self, $params ) = @_;
 
@@ -63,21 +63,7 @@ sub create_well_barcode {
         barcode_state => $validated_params->{state},
     };
 
-    # Store PIQ well id on barcode so we do not have to traverse lengthy well heirarchy
-    # to get back to root PIQ well when generating plate reports, etc
-    if ($well->plate->type->id eq 'PIQ'){
-        # parent well is probably the QC piq made by freeze_back so use this as root
-        # but if the parent is not a piq then set current well as the root piq
-        my ($parent) = $well->parent_wells;
-        if($parent and $parent->plate->type->id eq 'PIQ'){
-            $create_params->{root_piq_well_id} = $parent->id;
-        }
-        else{
-            $create_params->{root_piq_well_id} = $well->id;
-        }
-    }
-
-    my $well_barcode = $well->create_related( well_barcode => $create_params);
+    my $well_barcode = $well->update($create_params);
 
     # Optionally create event with comment about new well barcode
     if($validated_params->{user}){
@@ -90,17 +76,19 @@ sub create_well_barcode {
         });
     }
 
-    return $well_barcode;
+    return $well;
 }
 
 sub pspec_update_well_barcode {
     return {
-        barcode      => { validate => 'well_barcode'},
-        new_well_id  => { validate => 'integer', optional => 1 },
-        new_state    => { validate => 'alphanumeric_string', optional => 1 },
-        comment      => { validate => 'non_empty_string', optional => 1 },
-        user         => { validate => 'existing_user' },
-        REQUIRE_SOME => { new_well_id_or_state => [1, qw(new_well_id new_state)]},
+        barcode       => { validate => 'well_barcode'},
+        new_well_name => { validate => 'well_name', optional => 1 },
+        new_plate_id  => { validate => 'existing_plate_id', optional => 1 },
+        new_state     => { validate => 'alphanumeric_string', optional => 1 },
+        comment       => { validate => 'non_empty_string', optional => 1 },
+        user          => { validate => 'existing_user' },
+        displace_existing => { validate => 'boolean', optional => 1, default => 0},
+        MISSING_OPTIONAL_VALID => 1,
     };
 }
 
@@ -110,31 +98,73 @@ sub update_well_barcode {
 
     my $validated_params = $self->check_params( $params, $self->pspec_update_well_barcode );
 
-    my $barcode = $self->retrieve_well_barcode({ barcode => $validated_params->{barcode}})
-        or $self->throw( NotFound => { entity_class => 'WellBarcode', search_params => $params } );
+    my $well = $self->retrieve_well_barcode({ barcode => $validated_params->{barcode}})
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $params } );
 
-    my $old_state = $barcode->barcode_state->id;
-    my $old_well_id = $barcode->well_id;
+    my $old_state = $well->barcode_state->id;
+    my $old_well_name = $well->name;
+    my $old_plate_id = $well->plate_id;
 
-    if(defined $validated_params->{new_well_id}){
-        $barcode->update({ well_id => $validated_params->{new_well_id} });
+    if(exists $validated_params->{new_well_name}){
+        my $existing;
+        my $new_location = {
+            name     => $validated_params->{new_well_name},
+            plate_id => $validated_params->{new_plate_id},
+        };
+        if(defined $new_location->{name}){
+            # Check if there is another well already at the destination
+            $existing = $self->schema->resultset('Well')->find( $new_location );
+        }
+
+        if($existing and $existing->id != $well->id){
+            if($validated_params->{displace_existing}){
+                if($existing->barcode){
+                    # Move the existing barcoded well out of the way before updating
+                    # the barcode to the new location
+                    # We'll need to do this if wells have been swapped around on a plate
+                    $self->update_well_barcode({
+                        barcode       => $existing->barcode,
+                        new_plate_id  => undef,
+                        new_well_name => undef,
+                        new_state     => 'checked_out',
+                        comment       =>'barcode checked out to make space for '.$validated_params->barcode,
+                        user          => $validated_params->user,
+                    });
+                    $well->update($new_location);
+                }
+                else{
+                    $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
+                                                ." to $existing because there is already a well here with no barcode" );
+                }
+            }
+            else{
+                $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
+                                              ." to $existing because there is already a well here" );
+            }
+        }
+        else{
+            # There is nothing at the new location so we can safely make the update
+            $well->update($new_location);
+        }
     }
 
     if(defined $validated_params->{new_state}){
-        $barcode->update({ barcode_state => $validated_params->{new_state} });
+        $well->update({ barcode_state => $validated_params->{new_state} });
     }
 
     $self->create_well_barcode_event({
         barcode     => $validated_params->{barcode},
         old_state   => $old_state,
-        new_state   => $barcode->barcode_state->id,
-        old_well_id => $old_well_id,
-        new_well_id => $barcode->well_id,
-        user        => $validated_params->{user},
-        comment     => $validated_params->{comment},
+        new_state   => $well->barcode_state->id,
+        old_well_name => $old_well_name,
+        new_well_name => $well->name,
+        old_plate_id  => $old_plate_id,
+        new_plate_id  => $well->plate_id,
+        user          => $validated_params->{user},
+        comment       => $validated_params->{comment},
     });
 
-    return $barcode;
+    return $well;
 }
 
 sub pspec_create_well_barcode_event {
@@ -142,8 +172,10 @@ sub pspec_create_well_barcode_event {
         barcode      => { validate => 'well_barcode'},
         old_state    => { validate => 'alphanumeric_string', optional => 1 },
         new_state    => { validate => 'alphanumeric_string', optional => 1 },
-        old_well_id  => { validate => 'integer', optional => 1 },
-        new_well_id  => { validate => 'integer', optional => 1 },
+        old_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        new_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        old_well_name => { validate => 'well_name', optional => 1 },
+        new_well_name => { validate => 'well_name', optional => 1 },
         comment      => { validate => 'non_empty_string', optional => 1 },
         user         => { validate => 'existing_user', rename => 'created_by', post_filter => 'user_id_for' },
     };
@@ -154,12 +186,7 @@ sub create_well_barcode_event {
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_barcode_event );
 
-    my $event = $self->schema->resultset('BarcodeEvent')->create({
-        slice_def(
-            $validated_params,
-            qw( barcode old_state new_state old_well_id new_well_id comment created_by )
-        )
-    });
+    my $event = $self->schema->resultset('BarcodeEvent')->create($validated_params);
 
     return $event;
 }
@@ -169,9 +196,11 @@ sub historical_barcodes_for_plate{
 
     # find current plate
     my $plate = $self->retrieve_plate($params);
-    my @current_barcodes = map { $_->well_barcode->barcode } grep {$_->well_barcode} $plate->wells;
+    my @current_barcodes = grep { $_ } map { $_->barcode } $plate->wells;
     $self->log->debug(scalar(@current_barcodes)." barcodes found");
 
+    # FIXME: for now we need to look for events linked to old versions of the
+    # plate but this can be removed when plate versions have been deleted
     # find old versions of plates
     my @previous_versions = $self->schema->resultset('Plate')->search({
         name    => $plate->name,
@@ -179,16 +208,15 @@ sub historical_barcodes_for_plate{
     });
     $self->log->debug(scalar(@previous_versions)." previous plate versions found");
 
-    # find all wells on all versions
-    my @wells = map { $_->wells } @previous_versions;
-    $self->log->debug(scalar(@wells)." wells found");
+    # find all barcodes ever linked to this plate in barcode_events
+    my @events = map { $_->barcode_events_new_plates, $_->barcode_events_old_plates } ($plate, @previous_versions);
 
-    # find all barcodes ever linked to these wells in barcode_events
-    my @events = map { $_->barcode_events_old_wells, $_->barcode_events_new_wells } @wells;
     $self->log->debug(scalar(@events)." events found");
 
     # return all barcodes which are not on current plate version
     my @all_barcodes = uniq map { $_->barcode->barcode } @events;
+    $self->log->debug(scalar(@all_barcodes)." barcodes found");
+
     my @historical_barcodes;
 
     foreach my $barcode (@all_barcodes){

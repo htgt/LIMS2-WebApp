@@ -2,9 +2,11 @@ package LIMS2::t::WebApp::Controller::User::Barcodes;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::Barcodes;
+use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 
 use LIMS2::Test;
 use File::Temp ':seekable';
+use JSON;
 
 use strict;
 
@@ -14,7 +16,8 @@ BEGIN
     Log::Log4perl->easy_init( $FATAL );
 };
 
-sub mutation_signatures_workflow_test : Test(10){
+
+sub mutation_signatures_workflow_test : Test(16){
     my $mech = mech();
     my $model = model();
 
@@ -58,21 +61,52 @@ sub mutation_signatures_workflow_test : Test(10){
     );
     $mech->click_button(name => 'submit_barcode');
     $mech->base_like(qr{/user/scan_barcode});
+    $mech->content_contains($barcode);
     $mech->content_contains('doubling_in_progress');
 
-    note("Create an MS_QC plate at 12 doublings");
+    #note("Create an MS_QC plate at 12 doublings");
 
-    note("Create an MS_QC plate at 24 doublings");
+    #note("Create an MS_QC plate at 24 doublings");
 
     note("Freeze back at 24 doublings");
+    $mech->follow_link(url_regex => qr/freeze_back/);
+    $mech->set_fields(
+        number_of_doublings   => 24,
+        qc_piq_plate_name_1   => 'PIQ_QC',
+        qc_piq_well_name_1    => 'A01',
+        qc_piq_well_barcode_1 => 'FRTEST1',
+        number_of_wells_1     => 3,
+        qc_piq_plate_name_2   => 'PIQ_QC',
+        qc_piq_well_name_2    => 'A02',
+        qc_piq_well_barcode_2 => 'FRTEST2',
+        number_of_wells_2     => 3
+    );
+    $mech->click_button( name => 'create_piq_wells' );
+    $mech->content_contains('QC PIQ well has been added to plate PIQ_QC');
+    my ($form) = $mech->forms;
+    my @inputs = grep { $_->type eq 'text' } $form->inputs;
+    my %fields;
+    foreach my $input (@inputs){
+        my $bc = $input->name;
+        $bc =~ s/barcode_/BC/;
+        $fields{ $input->name } = $bc;
+    }
+    $mech->set_fields( %fields );
+    $mech->click_button( name => 'submit_piq_barcodes' );
+    $mech->content_contains('added to well');
+
 
     note("Use API to retrieve original barcode");
+    $mech->get_ok('/public_api/mutation_signatures_info/FRTEST1');
+    ok my $json = from_json($mech->content), "can parse JSON from mutation signatures API";
+    my ($sibling) = @{ $json->{sibling_barcodes} || [] };
+    is $sibling, 'FRTEST2', 'sibling barcode retrieved by mutation signatures API';
 
     note("Use API to retrieve child barcode");
 
 }
 
-sub all_tests  : Test(24)
+sub all_tests  : Test(25)
 {
     my $mech = mech();
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
@@ -151,11 +185,8 @@ sub all_tests  : Test(24)
     $mech->base_like(qr{/user/create_qc_plate});
     $mech->content_contains('Barcode mybarcode state: in_freezer');
 
-    # FIXME: should checkout the well properly but can't as it is last well on plate
-    # see ticket 12089
-    #use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
-    #ok checkout_well_barcode(model,{ barcode => 'mybarcode', user => 'test_user@example.org' });
-    $well->well_barcode->update({ barcode_state => 'checked_out' });
+
+    ok checkout_well_barcode(model,{ barcode => 'mybarcode', user => 'test_user@example.org' });
 
     # file has no header (works)
     $mech->set_fields(
@@ -190,11 +221,11 @@ sub all_tests  : Test(24)
     is $process->type_id, 'cgap_qc','process has correct type';
 
     # well on new plate has no barcode
-    is $new_well->well_barcode, undef, 'new well has no barcode';
+    is $new_well->barcode, undef, 'new well has no barcode';
 
     # well on new plate has correct parent well
     ok my ($parent_well) = $new_well->parent_wells, 'can find parent well';
-    is $parent_well->well_barcode->barcode, 'mybarcode','parent well has correct barcode';
+    is $parent_well->barcode, 'mybarcode','parent well has correct barcode';
 
 }
 

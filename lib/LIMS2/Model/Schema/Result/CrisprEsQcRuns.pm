@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.376';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.384';
 }
 ## use critic
 
@@ -187,7 +187,7 @@ sub as_hash {
     #wells might not exist yet, so for now just show a -
     #TODO: make this work even without a well
     my $qc_well = $self->crispr_es_qc_wells->first;
-    $data->{plate_name} = $qc_well ? $qc_well->well->plate->name : "-";
+    $data->{plate_name} = $qc_well ? $qc_well->well->plate_name : "-";
   }
 
   return $data;

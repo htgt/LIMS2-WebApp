@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.376';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.384';
 }
 ## use critic
 
@@ -175,6 +175,36 @@ __PACKAGE__->add_unique_constraint("plates_name_version_key", ["name", "version"
 
 =head1 RELATIONS
 
+=head2 barcode_events_new_plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_new_plates",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_events_old_plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_old_plates",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 created_by
 
 Type: belongs_to
@@ -286,8 +316,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-12 11:46:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nzreu9hhRtZYe5kJAXGjfw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FwSGsovECFvj2EVxMP3SPw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -356,8 +386,8 @@ sub parent_names {
 	    foreach my $process ($well->parent_processes){
 	    	foreach my $input ($process->input_wells){
                 my $plate = {
-                    name => $input->plate->name,
-                    type_id => $input->plate->type_id,
+                    name => $input->plate_name,
+                    type_id => $input->plate_type,
                 };
                 push (@ancestors, $plate);
 	        }
@@ -402,7 +432,7 @@ sub number_of_wells_with_barcodes {
 
     my $count = 0;
     for my $well ( $self->wells ){
-      if( $well->well_barcode ) {
+      if( $well->barcode ) {
         $count += 1;
       }
     }

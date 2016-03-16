@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.376';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.384';
 }
 ## use critic
 
@@ -69,7 +69,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my $hide_crispr_validation = 1;
     my $hide_het_validation = 0;
     if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
-        my $plate_type  = $qc_well->well->plate->type_id;
+        my $plate_type  = $qc_well->well->plate_type;
         if ( $plate_type eq 'EP_PICK' ) {
             # only do crispr validation of ES cells in EP_PICK plates
             $hide_crispr_validation = 0;

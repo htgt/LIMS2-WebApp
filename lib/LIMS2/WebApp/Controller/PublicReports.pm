@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.376';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.384';
 }
 ## use critic
 
@@ -235,7 +235,6 @@ sub _generate_front_page_report {
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
-
     # Store report values in stash for display onscreen
     $c->stash(
         'report_id'      => $report_id,
@@ -424,7 +423,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-
         # Store report values in stash for display onscreen
         $c->stash(
             'template'             => $template,
@@ -517,7 +515,6 @@ sub _view_cached_lines {
     }
     close $html_handle
         or die "unable to close cached file: $!";
-
     return $c->response->body( join( '', @lines_out ));
 }
 
@@ -727,6 +724,10 @@ Public gene report, only show targeted clone details:
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
 
+    # FIXME: temporarily require logged in user for this page
+    # to stop robot access
+    $c->assert_user_roles('read');
+
     # by default type is Targeted, Distributable as an option
     my $type = 'Targeted';
     if ($c->request->param('type') eq 'distributable') {
@@ -861,6 +862,10 @@ Generate Genbank file for a well
 =cut
 sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
     my ( $self, $c, $well_id ) = @_;
+
+    # FIXME: temporarily require logged in user for this page
+    # to stop robot access
+    $c->assert_user_roles('read');
 
     my $model = $c->model('Golgi');
     my $well =  $model->retrieve_well( { id => $well_id } );

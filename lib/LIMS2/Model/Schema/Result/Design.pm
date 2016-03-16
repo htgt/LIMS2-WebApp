@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.376';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.384';
 }
 ## use critic
 
@@ -226,7 +226,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 experiments
+=head2 experiments_including_deleted
 
 Type: has_many
 
@@ -235,7 +235,7 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
+  "experiments_including_deleted",
   "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -387,8 +387,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-01 12:20:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dccE/Jb8/VJNAYtYWRq2vw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pP6TbTvP1aYUiLhUOZF9DQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -403,6 +403,13 @@ __PACKAGE__->many_to_many(
     "processes",
     "process_designs",
     "process"
+);
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.design_id" => "self.id" },
+  { where => { "deleted" => 0 } },
 );
 
 # crispr_designs table merged into experiments table

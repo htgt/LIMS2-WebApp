@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.376';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.384';
 }
 ## use critic
 
@@ -449,7 +449,7 @@ sub ancestor_cols {
     my $ancestors = $well->ancestors->depth_first_traversal($well, 'in');
 
     while ( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq $plate_type ) {
+        if ( $ancestor->plate_type eq $plate_type ) {
             return (
                 $ancestor->as_string,
                 $self->qc_result_cols( $ancestor )
@@ -492,7 +492,7 @@ sub pick_counts {
 
     # XXX This assumes the picked wells are immediate descendants of
     # $well: we aren't doing a full traversal.
-    my @picks = grep { $_->plate->type_id eq $pick_type }
+    my @picks = grep { $_->plate_type eq $pick_type }
         $well->descendants->output_wells( $well );
 
     my $picked   = scalar @picks;

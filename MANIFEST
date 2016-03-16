@@ -93,6 +93,7 @@ lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
+lib/LIMS2/Model/Schema/Result/DesignAppendAlias.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
 lib/LIMS2/Model/Schema/Result/DesignCommentCategory.pm
@@ -184,7 +185,6 @@ lib/LIMS2/Model/Schema/Result/UserRole.pm
 lib/LIMS2/Model/Schema/Result/Well.pm
 lib/LIMS2/Model/Schema/Result/WellAcceptedOverride.pm
 lib/LIMS2/Model/Schema/Result/WellAssemblyQc.pm
-lib/LIMS2/Model/Schema/Result/WellBarcode.pm
 lib/LIMS2/Model/Schema/Result/WellChromosomeFail.pm
 lib/LIMS2/Model/Schema/Result/WellColonyCount.pm
 lib/LIMS2/Model/Schema/Result/WellComment.pm
@@ -249,6 +249,7 @@ lib/LIMS2/Report/CrisprEPDetail.pm
 lib/LIMS2/Report/CrisprEPPlate.pm
 lib/LIMS2/Report/CrisprEPSummary.pm
 lib/LIMS2/Report/CrisprEPSummaryJune2015.pm
+lib/LIMS2/Report/CrisprEPWellSummary.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
 lib/LIMS2/Report/CrisprVectorPlate.pm
@@ -270,6 +271,7 @@ lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PIQPlate.pm
 lib/LIMS2/Report/PlateList.pm
 lib/LIMS2/Report/PostIntermediateVectorPlate.pm
+lib/LIMS2/Report/PreIntermediateVectorPlate.pm
 lib/LIMS2/Report/QcRun.pm
 lib/LIMS2/Report/QcRunSummary.pm
 lib/LIMS2/Report/RecoveryDetail.pm
@@ -2341,6 +2343,8 @@ root/static/files/plate_upload/single_crispr_assembly_template_es.csv
 root/static/files/plate_upload/single_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/standard_template_es.csv
 root/static/files/plate_upload/standard_template_vector.csv
+root/static/files/plate_upload/vector_cloning_template_es.csv
+root/static/files/plate_upload/vector_cloning_template_vector.csv
 root/static/files/qc_upload/dna_concentrations.xlsx
 root/static/files/qc_upload/dna_egel_status_upload_template.csv
 root/static/files/qc_upload/dna_status_upload_template.csv
@@ -2636,7 +2640,9 @@ root/static/test/fixtures/reference_data/CrisprDamageType.csv
 root/static/test/fixtures/reference_data/CrisprLociType.csv
 root/static/test/fixtures/reference_data/CrisprPrimerType.csv
 root/static/test/fixtures/reference_data/CrisprTrackerRna.csv
+root/static/test/fixtures/reference_data/DesignAppendAlias.csv
 root/static/test/fixtures/reference_data/DesignCommentCategory.csv
+root/static/test/fixtures/reference_data/DesignOligoAppend.csv
 root/static/test/fixtures/reference_data/DesignOligoType.csv
 root/static/test/fixtures/reference_data/DesignType.csv
 root/static/test/fixtures/reference_data/DnaTemplate.csv
@@ -2894,6 +2900,17 @@ t/author-critic.t
 t/data/create_design_targets.yaml
 t/data/design_targets_util.yaml
 t/data/dist_qc_process.yaml
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a01.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a01.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a02.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a02.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a03.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a03.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a04.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a04.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a05.p1kSF1.seq
+t/data/sequencing/HUEDQ0044/HUEDQ0044_1a05.p1kSR1.seq
+t/data/sequencing/HUEDQ0044/archive_names.txt
 t/lib/LIMS2/t/AlleleRequest.pm
 t/lib/LIMS2/t/AlleleRequest/DoubleTargeted.pm
 t/lib/LIMS2/t/AlleleRequest/SingleTargeted.pm

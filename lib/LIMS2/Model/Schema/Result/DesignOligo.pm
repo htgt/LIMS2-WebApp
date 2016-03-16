@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DesignOligo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.376';
+    $LIMS2::Model::Schema::Result::DesignOligo::VERSION = '0.384';
 }
 ## use critic
 
@@ -172,14 +172,7 @@ __PACKAGE__->has_many(
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use Try::Tiny;
-use LIMS2::Model::Constants qw(
-%ARTIFICIAL_INTRON_OLIGO_APPENDS
-%STANDARD_KO_OLIGO_APPENDS
-%STANDARD_INS_DEL_OLIGO_APPENDS
-%GIBSON_OLIGO_APPENDS
-%FUSION_OLIGO_APPENDS
-%GLOBAL_SHORTENED_OLIGO_APPEND
-);
+
 
 sub as_hash {
     my $self = shift;
@@ -272,37 +265,35 @@ sub append_seq {
     my $shortened_global_arm = $self->design->global_arm_shortened;
     my $oligo_type = $self->design_oligo_type_id;
 
-    ## no critic (ProhibitCascadingIfElse)
+    my $schema = $self->result_source->schema;
     # TODO add tests for global arm shortened design oligo appends
     if ( $shortened_global_arm && $oligo_type =~ /G[5|3]/ ) {
-        $append_seq = $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type }
-            if exists $GLOBAL_SHORTENED_OLIGO_APPEND{ $oligo_type };
+        $append_seq = $schema->resultset('DesignOligoAppend')->find({
+            id => 'global_shortened',
+            design_oligo_type_id => $oligo_type,
+        })->get_seq;
     }
-    elsif ( $design_type eq 'deletion' || $design_type eq 'insertion' ) {
-        $append_seq = $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type }
-            if exists $STANDARD_INS_DEL_OLIGO_APPENDS{ $oligo_type };
-    }
-    elsif ( $design_type eq 'conditional' ) {
-        $append_seq = $STANDARD_KO_OLIGO_APPENDS{ $oligo_type }
-            if exists $STANDARD_KO_OLIGO_APPENDS{ $oligo_type };
-
-    }
-    elsif ( $design_type eq 'artificial-intron' || $design_type eq 'intron-replacement' ) {
-        $append_seq = $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type }
-            if exists $ARTIFICIAL_INTRON_OLIGO_APPENDS{ $oligo_type };
-    }
-    elsif ( $design_type eq 'gibson' || $design_type eq 'gibson-deletion' ) {
-        $append_seq = $GIBSON_OLIGO_APPENDS{ $oligo_type }
-            if exists $GIBSON_OLIGO_APPENDS{ $oligo_type };
-    }
-    elsif ( $design_type eq 'fusion-deletion' ) {
-        $append_seq = $FUSION_OLIGO_APPENDS{ $oligo_type }
-            if exists $FUSION_OLIGO_APPENDS{ $oligo_type };
+    elsif ( $design_type ) {
+        my $alias;
+        my $check;
+        try{
+            $check = $schema->resultset('DesignType')->find({ id => $design_type })->as_string;
+        }
+        catch {
+            LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
+        };
+        try {
+            $alias = $schema->resultset('DesignAppendAlias')->find({ design_type => $design_type })->get_alias;
+            $append_seq = $schema->resultset('DesignOligoAppend')->find({
+                id => $alias,
+                design_oligo_type_id => $oligo_type,
+            })->get_seq;
+        };
     }
     else {
         LIMS2::Exception->throw( "Do not know append sequences for $design_type designs" );
     }
-    ## use critic
+
 
     LIMS2::Exception->throw( "Undefined append sequence for $oligo_type oligo on $design_type design" )
         unless $append_seq;

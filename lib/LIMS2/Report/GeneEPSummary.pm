@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.376';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.384';
 }
 ## use critic
 
@@ -314,7 +314,7 @@ sub crispr_acc_wells {
     if (scalar (@crispr_design_wells) > 0 ) {
         my @crispr_well_names;
         foreach my $crispr_well ( @crispr_design_wells ) {
-            push @crispr_well_names, $crispr_well->plate->name . '[' . $crispr_well->name . ']';
+            push @crispr_well_names, $crispr_well->plate_name . '[' . $crispr_well->well_name . ']';
         }
         $crispr_acc_wells = join($self->concat_str, @crispr_well_names);
     }

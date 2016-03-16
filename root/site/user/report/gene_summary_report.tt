@@ -29,7 +29,9 @@ span0 {
 <script type="text/javascript">
 
 $(document).ready(function() {
-
+    if ('[% info.defined %]') {
+        document.title = 'Gene: [% info.gene_symbol %]';
+    }
     // add labels to assembly qc verification using js to ensure they look the same
     // across different pages
     $(".assembly_qc_verified").each(function(){

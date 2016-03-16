@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.376';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.384';
 }
 ## use critic
 
@@ -63,7 +63,7 @@ sub add_recombinase_data {
 
     $self->throw( NotFound => "could not retrieve process" ) unless @process;
     $self->throw( Validation => "cannot apply recombinase to this well" ) unless scalar(@process) == 1;
-    $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate->type_id eq 'EP_PICK';
+    $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate_type eq 'EP_PICK';
 
     # converts recombinase to an array to satisfy create_process_aux_data_recombinase method
     $validated_params->{recombinase} = [$validated_params->{recombinase}];

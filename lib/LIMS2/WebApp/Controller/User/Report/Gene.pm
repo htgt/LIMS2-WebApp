@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.376';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.384';
 }
 ## use critic
 
@@ -227,8 +227,8 @@ sub _add_crispr_well_values {
                 my $crispr_well_info = {
                     well_id_string => $crispr_well->as_string,
                     well_name      => $crispr_well->name,
-                    plate_id       => $crispr_well->plate->id,
-                    plate_name     => $crispr_well->plate->name,
+                    plate_id       => $crispr_well->plate_id,
+                    plate_name     => $crispr_well->plate_name,
                     created_at     => $crispr_well->created_at->ymd,
                     crispr_id      => $crispr_id,
                     design_id      => $design_id,
@@ -244,8 +244,8 @@ sub _add_crispr_well_values {
                         well_id        => $vector_well->id,
                         well_id_string => $vector_well->as_string,
                         well_name      => $vector_well->name,
-                        plate_id       => $vector_well->plate->id,
-                        plate_name     => $vector_well->plate->name,
+                        plate_id       => $vector_well->plate_id,
+                        plate_name     => $vector_well->plate_name,
                         created_at     => $vector_well->created_at->ymd,
                         is_accepted    => _accepted_as_text( $vector_well->is_accepted ),
                         crispr_id      => $crispr_id,
@@ -259,8 +259,8 @@ sub _add_crispr_well_values {
                         well_id        => $dna_well->id,
                         well_id_string => $dna_well->as_string,
                         well_name      => $dna_well->name,
-                        plate_id       => $dna_well->plate->id,
-                        plate_name     => $dna_well->plate->name,
+                        plate_id       => $dna_well->plate_id,
+                        plate_name     => $dna_well->plate_name,
                         created_at     => $dna_well->created_at->ymd,
                         status_pass    => _status_as_text( $dna_well->well_dna_status ),
                         is_accepted    => _accepted_as_text( $dna_well->is_accepted ),
