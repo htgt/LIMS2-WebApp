@@ -111,18 +111,7 @@ sub generate_summary_rows_for_all_trails {
 
             if (defined $curr_well) {
 
-                DEBUG "well type: ".$curr_well->plate_type;
-
-                DEBUG "Searching for DNA template";
-                foreach my $process ($curr_well->parent_processes){
-                    my $type = $process->type_id;
-                    if ($type eq 'int_recom') {
-                        try {
-                            $curr_well->{dna_template} = $process->dna_template->id;
-                        };
-                    }
-                }
-                DEBUG "DNA template search complete";
+                DEBUG "well id: ".$curr_well->id;
 
                 my $params = {
                     'summary_row_values' => \%summary_row_values,
@@ -154,7 +143,7 @@ sub generate_summary_rows_for_all_trails {
     }
 
     # Attempt to insert the rows into the summaries table using populate for efficiency
-    my @summary_row_count = scalar @summaries_to_insert;
+    my $summary_row_count = scalar @summaries_to_insert;
     DEBUG "Inserting $summary_row_count new summary rows";
     if(@summaries_to_insert){
         try{
@@ -178,6 +167,7 @@ sub add_to_output_for_well {
     my $params = shift;
 
     my $curr_plate_type_id = $params->{ curr_well }->last_known_plate->type->id;
+    DEBUG "plate type: $curr_plate_type_id";
 
     # dispatch table
     my $dispatch_fetch_values = {
@@ -279,6 +269,11 @@ sub fetch_values_for_type_INT {
 
     if( (not exists $stored_values->{ stored_int_well_id }) || ($curr_well->id != $stored_values->{ stored_int_well_id }) ) {
         # different well to previous cycle, so must fetch and store new values
+
+        DEBUG "Searching for DNA template";
+        my $dna_template = fetch_dna_template($curr_well);
+        DEBUG "DNA template search complete";
+
         my $cassette = fetch_cassette($curr_well);
         TRACE caller()." Fetching new values for INT well : ".$curr_well->id;
         $stored_values->{ 'stored_int_plate_name' }           = try{ $curr_well->plate_name }; # plate name e.g. MOHSAQ60001_C_1
@@ -297,7 +292,7 @@ sub fetch_values_for_type_INT {
         $stored_values->{ 'stored_int_well_assay_complete' }  = try{ $curr_well->assay_complete->iso8601 }; # assay complete timestamp
         $stored_values->{ 'stored_int_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_int_sponsor' }              = try{ $curr_well->plate_sponsor }; # sponsor
-        $stored_values->{ 'stored_dna_template' }             = try{ $curr_well->{dna_template} };
+        $stored_values->{ 'stored_dna_template' }             = $dna_template;
 
         # is well the output of a global_arm_shortening process
         if ( my $short_arm_design = $curr_well->global_arm_shortened_design ) {
@@ -369,7 +364,7 @@ sub fetch_values_for_type_FINAL {
         $stored_values->{ 'stored_final_well_accepted' }        = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_final_backbone_name' }        = try{ $backbone->name }; # backbone name
         $stored_values->{ 'stored_final_cassette_name' }        = try{ $cassette->name }; # cassette name
-        $stored_values->{ 'stored_final_qc_seq_pass' }          = try{ $curr_well->well_qc_sequencing_result->pass }; # qc sequencing test result
+        $stored_values->{ 'stored_final_qc_seq_pass' }          = try{ $seq->pass }; # qc sequencing test result
         $stored_values->{ 'stored_final_cassette_promoter' }    = try{ $cassette->promoter }; # final_cassette_promoter
         $stored_values->{ 'stored_final_cassette_cre' }         = try{ $cassette->cre }; # final_cassette_cre
         $stored_values->{ 'stored_final_cassette_conditional' } = try{ $cassette->conditional };      # final_cassette_conditional
@@ -998,19 +993,33 @@ sub delete_summary_rows_for_design_well {
     return $number_deletes;
 }
 
+
+# Caching cassettes probably won't speed things up much
+# I suspect that the lazy_build of the well's ancestor ProcessGraph is
+# the bit that takes time and since the well is already cached any
+# repeat call of well->cassette will be fast.
+# (well->backbone calls in this module are very fast - I think this is becasue
+# we always do the backbone search after the ancestor ProcessGraph has been built)
+
+# Caching experiments and dna_templates should increase speed
+
 my $cassette_cache;
 sub fetch_cassette{
     my ($curr_well) = @_;
+    DEBUG "finding cassette for well id: ".$curr_well->id;
     my $cassette;
     if(exists $cassette_cache->{ $curr_well->id }){
         $cassette = $cassette_cache->{ $curr_well->id };
+        DEBUG "using cached cassette";
     }
     else{
         $cassette = $curr_well->cassette;
         $cassette_cache->{ $curr_well->id } = $cassette;
+        DEBUG "using newly found cassette";
     }
     return $cassette;
 }
+
 
 my $experiments_cache;
 sub fetch_experiments{
@@ -1024,5 +1033,23 @@ sub fetch_experiments{
         $experiments_cache->{ $curr_well->id } = $experiments;
     }
     return $experiments;
+}
+
+my $template_cache;
+sub fetch_dna_template{
+    my ($curr_well) = @_;
+    my $template;
+    if(exists $template_cache->{ $curr_well->id }){
+        $template = $template_cache->{ $curr_well->id }
+    }
+    else{
+        foreach my $process ($curr_well->parent_processes){
+            try {
+                    $template = $process->dna_template->id;
+                };
+        }
+        $template_cache->{ $curr_well->id } = $template;
+    }
+    return $template;
 }
 1;
