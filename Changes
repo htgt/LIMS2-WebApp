@@ -1,5 +1,33 @@
 {{$NEXT}}
 
+0.383     2016-03-14 13:44:45 Europe/London
+    Moved appends to the DB
+0.382     2016-03-10 12:51:06 Europe/London
+    
+    Added traceviewer modifications to crispr QC
+
+0.381     2016-03-03 16:09:43 Europe/London
+
+   bugfix to crispr ES QC and checked out barcode lists
+
+0.380     2016-03-02 15:46:38 Europe/London
+
+   bugfix to mutation_signatures_info API
+
+0.379     2016-03-01 14:53:57 Europe/London
+
+   Allow well locations to change or be null so we can handle barcodes without plate versioning
+
+0.378     2016-03-01 10:02:17 Europe/London
+
+    can view seqeuncing traces for a specified well
+    mutation signatures: 3 PIQ subclones frozen back, sibling_barcodes provided in JSON API 
+
+0.377     2016-02-23 14:16:46 Europe/London
+
+    experiments now flagged as deleted and can be restored
+    temporary restriction of access to some public reports
+
 0.376     2016-02-17 15:28:10 Europe/London
 
     added crispr pairs and groups to the crispr page

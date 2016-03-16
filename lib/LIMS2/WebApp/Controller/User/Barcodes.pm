@@ -180,27 +180,27 @@ sub get_barcode_information : Path('/user/get_barcode_information/') : Args(1){
 
     $c->assert_user_roles('read');
 
-    my $well_barcode = $c->model('Golgi')->schema->resultset('WellBarcode')->search({
+    my $well = $c->model('Golgi')->schema->resultset('Well')->search({
                            barcode => $barcode
                         })->first;
 
-    unless($well_barcode){
+    unless($well){
         $c->stash->{json_data} = { message => "Barcode $barcode not found in LIMS2" };
         $c->forward('View::JSON');
         return;
     }
 
-    if($well_barcode->barcode_state->id eq 'in_freezer'){
+    if($well->barcode_state->id eq 'in_freezer'){
         $c->stash->{json_data} = { message => "Barcode $barcode found in freezer on plate "
-                                              .$well_barcode->well->plate->as_string
-                                              ." well ".$well_barcode->well->name };
+                                              .$well->plate->as_string
+                                              ." well ".$well->name };
     }
     else{
         $c->stash->{json_data} = { message => "Barcode $barcode not in freezer.<br>State: "
-                                              .$well_barcode->barcode_state->id
+                                              .$well->barcode_state->id
                                               ."<br>Last known freezer location: plate "
-                                              .$well_barcode->well->plate->as_string
-                                              ." well ".$well_barcode->well->name };
+                                              .$well->last_known_plate->as_string
+                                              ." well ".$well->last_known_well_name };
     }
 
     $c->forward('View::JSON');
@@ -281,11 +281,11 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
         # User Confirms checkout
         # Well status updated and new plate version created
         my $bc = $c->request->param('barcode');
-        my $well_barcode;
+        my $well;
 
         $c->model('Golgi')->txn_do( sub {
             try{
-                $well_barcode = checkout_well_barcode($c->model('Golgi'),{
+                $well = checkout_well_barcode($c->model('Golgi'),{
                     barcode => $bc,
                     user    => $c->user->name,
                 });
@@ -297,8 +297,8 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
             };
         });
 
-        if($well_barcode){
-            my $well_name = $well_barcode->well->as_string;
+        if($well){
+            my $well_name = $well->as_string;
             $c->stash->{success_msg} = "Well $well_name (Barcode: $bc) has been checked out of the freezer";
         }
     }
@@ -310,19 +310,16 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
 
     $c->assert_user_roles( 'read' );
 
-    my @checked_out = $c->model('Golgi')->schema->resultset('WellBarcode')->search(
+    my @checked_out = $c->model('Golgi')->schema->resultset('Well')->search(
         {
             'me.barcode_state' => 'checked_out',
-            'plate.species_id' => $c->session->{selected_species},
-            'plate.type_id'    => $plate_type,
         },
-        {
-            join => { well => 'plate' },
-        }
     );
 
-    my @wells = map { $_->well } @checked_out;
-    my $display_details = $self->_multiple_well_display_details($c,\@wells);
+    @checked_out = grep { $_->plate_species->id eq $c->session->{selected_species} and $_->plate_type eq $plate_type }
+                   @checked_out;
+
+    my $display_details = $self->_multiple_well_display_details($c,\@checked_out);
 
     my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @$display_details;
     $c->stash->{plate_type} = $plate_type;
@@ -451,8 +448,8 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
                 $child_piq_count += $tmp_piq_plate->wells;
             }
 
-            if($output->{qc_well}->well_barcode){
-                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->well_barcode->barcode;
+            if($output->{qc_well}->barcode){
+                $c->stash->{"qc_piq_well_barcode_$num"} = $output->{qc_well}->barcode;
             }
         }
 
@@ -591,7 +588,7 @@ sub undiscard_barcode : Path( '/user/undiscard_barcode' ) : Args(0){
             barcode => $barcode,
         });
         if($well){
-            my $state = $well->well_barcode->barcode_state->id;
+            my $state = $well->barcode_state->id;
             if( $state eq "discarded"){
                 try{
                     $c->model('Golgi')->update_well_barcode({
@@ -978,9 +975,9 @@ sub well_barcode_history : Path( '/user/well_barcode_history' ) : Args(1){
         return;
     }
 
-    my $bc = $c->model('Golgi')->retrieve_well_barcode({ barcode => $barcode });
+    my $well = $c->model('Golgi')->retrieve_well({ barcode => $barcode });
 
-    my @events = $bc->search_related('barcode_events',
+    my @events = $well->search_related('barcode_events',
             {},
             {
                 order_by => { -desc => [qw/created_at id/] }
@@ -1001,8 +998,8 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
     my $historical_barcodes = $c->model('Golgi')->historical_barcodes_for_plate({ id => $plate_id });
 
     my @barcode_data;
-    foreach my $barcode (@$historical_barcodes){
-        my @events = $barcode->search_related('barcode_events',
+    foreach my $well (@$historical_barcodes){
+        my @events = $well->search_related('barcode_events',
             {},
             {
                 order_by => { -desc => [qw/created_at/] }
@@ -1010,20 +1007,20 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
         );
 
         my $details = {
-            barcode => $barcode->barcode,
-            state   => $barcode->barcode_state->id,
+            barcode => $well->barcode,
+            state   => $well->barcode_state->id,
             events  => \@events,
-            current_plate => $barcode->well->plate->as_string,
-            current_well  => $barcode->well->name,
+            current_plate => $well->plate_name,
+            current_well  => $well->well_name,
         };
 
         if(@events){
             my $most_recent_event = $events[0];
             my @changes;
 
-            if($most_recent_event->old_well->id != $most_recent_event->new_well->id){
-                push @changes, 'Barcode moved from well '.$most_recent_event->old_well->as_string
-                           .' to well '.$most_recent_event->new_well->as_string;
+            if( $most_recent_event->old_well_as_str != $most_recent_event->new_well_as_str ){
+                push @changes, 'Barcode moved from well '.$most_recent_event->old_well_as_str
+                           .' to well '.$most_recent_event->new_well_as_str;
             }
 
             if($most_recent_event->old_state->id ne $most_recent_event->new_state->id){
@@ -1192,9 +1189,11 @@ sub _basic_well_display_details{
 
     $well_details->{well_as_string} = $well->as_string;
 
-    $well_details->{barcode_state} = ( $well->well_barcode->barcode_state ? $well->well_barcode->barcode_state->id
+    $well_details->{barcode_state} = ( $well->barcode_state ? $well->barcode_state->id
                                                                       : "" );
-    $well_details->{barcode} = $well->well_barcode->barcode;
+    $well_details->{barcode} = $well->barcode;
+
+    $well_details->{last_known_location} = $well->last_known_location_str;
 
     if($well->well_lab_number){
         $well_details->{lab_number} = $well->well_lab_number->lab_number;
@@ -1202,7 +1201,7 @@ sub _basic_well_display_details{
 
     if($well_details->{barcode_state} eq "checked_out"){
         # Find most recent checkout date
-        my $checkout = $well->well_barcode->most_recent_event('checked_out');
+        my $checkout = $well->most_recent_barcode_event('checked_out');
 
         if($checkout){
             $well_details->{checkout_date} = $checkout->created_at;
@@ -1225,11 +1224,11 @@ sub _pick_list_display_data{
 
     my @data;
     foreach my $list_bc ($pick_list->fp_picking_list_well_barcodes){
-        my $bc = $list_bc->well_barcode;
+        my $well = $list_bc->well_barcode;
         my $picked = ($list_bc->picked ? 'TRUE' : '');
 
         my @summaries = $schema->resultset('Summary')->search({
-            fp_well_id => $bc->well_id,
+            fp_well_id => $well->id,
         })->all;
 
         my $parent_epd;
@@ -1244,7 +1243,7 @@ sub _pick_list_display_data{
         else{
             # If this well ID is not yet in the summaries table
             # get gene symbols using design ID
-            my $design_id = $bc->well->design->id;
+            my $design_id = $well->design->id;
             my $design_summaries = $schema->resultset('Summary')->search({
                 design_id => $design_id
             })->first;
@@ -1253,16 +1252,16 @@ sub _pick_list_display_data{
             $gene_symbols = $design_summaries->design_gene_symbol;
             my $ep_pick;
             try{
-               $ep_pick = $bc->well->first_ep_pick;
+               $ep_pick = $well->first_ep_pick;
             };
             $parent_epd = ($ep_pick ? $ep_pick->as_string : "");
         }
 
         my @datum = (
             $gene_symbols,
-            $bc->well->plate->name,
-            $bc->well->name,
-            $bc->barcode,
+            $well->plate->name,
+            $well->name,
+            $well->barcode,
             $parent_epd,
             "",
             $picked,
@@ -1276,4 +1275,3 @@ sub _pick_list_display_data{
 }
 
 1;
-                                             

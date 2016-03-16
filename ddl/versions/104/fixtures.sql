@@ -10,7 +10,7 @@ INSERT INTO design_oligo_appends(id, design_oligo_type_id, seq)
     ('artificial-intron','D3','TGAACTGATGGCGAGCTCAGACC'),
     ('artificial-intron','U3','CTGAAGGAAATTAGATGTAAGGAGC'),
     ('artificial-intron','D5','GAGATGGCGCAACGCAATTAATG'),
-    ('artificial-intron','U5','TGAGTGTGCTAGAGGGGGTG'),
+    ('artificial-intron','U5','GTGAGTGTGCTAGAGGGGGTG'),
     ('standard-ko','G5','TCCTGTGTGAAATTGTTATCCGC'),
     ('standard-ko','G3','CCACTGGCCGTCGTTTTACA'),
     ('standard-ko','U5','AAGGCGCATAACGATACCAC'),

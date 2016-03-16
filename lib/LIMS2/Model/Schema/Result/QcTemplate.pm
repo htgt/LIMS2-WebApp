@@ -204,7 +204,7 @@ sub parent_plate_type {
     my $first_well = $self->qc_template_wells->first;
 
     if ( my $source_well = $first_well->source_well ) {
-        return $source_well->plate->type_id;
+        return $source_well->plate_type;
     }
 
     return;

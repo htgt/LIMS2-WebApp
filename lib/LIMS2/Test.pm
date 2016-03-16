@@ -266,6 +266,8 @@ sub load_static_files {
             DesignCommentCategory
             DesignOligoType
             DesignType
+            DesignOligoAppend
+            DesignAppendAlias
             GeneType
             GenotypingPrimerType
             GenotypingResultType
@@ -290,6 +292,7 @@ sub load_static_files {
             SequencingProjectPrimer
             SequencingProjectTemplate
             DnaTemplate
+
             )
     );
 
@@ -343,7 +346,6 @@ sub load_dynamic_files {
             Project
             ProjectSponsor
             Summary
-            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
             CrisprPlateAppendsType

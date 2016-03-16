@@ -963,7 +963,7 @@ sub create_plate_from_qc{
             $well_params{process_type} = infer_qc_process_type(
                 \%well_params,
                 $validated_params->{plate_type},
-                $source_well->plate->type_id,
+                $source_well->plate_type,
             );
 
             push @new_wells, \%well_params;

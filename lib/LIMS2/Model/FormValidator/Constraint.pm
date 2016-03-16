@@ -116,7 +116,7 @@ sub bac_plate {
 }
 
 sub existing_well_barcode {
-    return shift->in_resultset( 'WellBarcode', 'barcode' );
+    return shift->in_resultset( 'Well', 'barcode' );
 }
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
@@ -168,6 +168,10 @@ sub existing_sponsor {
 
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
+}
+
+sub existing_plate_id {
+    return shift->existing_row( 'Plate', 'id' );
 }
 
 sub existing_qc_run_id {

@@ -16,10 +16,10 @@
 <tr>
 <td>[% event.created_at %]</td>
 <td>[% event.created_by.name %]</td>
-<td>[% event.old_well.plate.as_string %]</td>
-<td>[% event.new_well.plate.as_string %]</td>
-<td>[% event.old_well.name %]</td>
-<td>[% event.new_well.name %]</td>
+<td>[% event.old_plate.name %]</td>
+<td>[% event.new_plate.name %]</td>
+<td>[% event.old_well_name %]</td>
+<td>[% event.new_well_name %]</td>
 <td>[% event.old_state.id %]</td>
 <td>[% event.new_state.id %]</td>
 <td>[% event.comment %]</td>

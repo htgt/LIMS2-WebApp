@@ -269,7 +269,7 @@ sub link_primers_to_qc_run_template{
     my $primer_filter = { is_validated => 1, is_rejected => [ 0, undef ] };
     foreach my $template_well ($qc_run->qc_template->qc_template_wells){
         if(my $source_well = $template_well->source_well){
-            next unless $source_well->plate->type_id eq 'ASSEMBLY';
+            next unless $source_well->plate_type eq 'ASSEMBLY';
             my $design = $source_well->design;
             # Find validated genotyping primers for this design and add qc_template_well_genotyping_primers
             foreach my $gt_primer ($design->genotyping_primers($primer_filter)){
