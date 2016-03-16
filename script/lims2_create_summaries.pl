@@ -11,6 +11,7 @@ use Const::Fast;                            # Constant variables
 use Getopt::Long;                           # Command line options
 use Log::Log4perl ':easy';                  # DEBUG to INFO to WARN to ERROR to LOGDIE
 use Perl6::Slurp;
+use Time::HiRes;
 
 #------------------------------------------------------------------
 #  Variables
@@ -38,7 +39,7 @@ GetOptions(
 );
 
 # initialise logging
-Log::Log4perl->easy_init( { level => $loglevel, layout => '%p %m%n' } );
+Log::Log4perl->easy_init( { level => $loglevel, layout => '%d [%P] %p %m (%R)%n' } );
 
 $num_concurrent_processes //= $DEFAULT_NUM_CONC_PROCS; # if not defined populate with default
 
