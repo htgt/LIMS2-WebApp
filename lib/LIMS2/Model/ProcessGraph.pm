@@ -102,7 +102,7 @@ sub schema {
 has edges => (
     is         => 'ro',
     isa        => 'ArrayRef',
-    init_arg   => undef,
+    init_arg   => 'edges',
     lazy_build => 1
 );
 
