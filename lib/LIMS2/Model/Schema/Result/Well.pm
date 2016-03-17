@@ -717,6 +717,7 @@ sub set_ancestors{
     );
 
     $self->ancestors($graph);
+    return;
 }
 
 has descendants => (

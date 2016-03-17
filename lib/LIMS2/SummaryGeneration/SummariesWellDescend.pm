@@ -1100,7 +1100,7 @@ QUERY_END
     foreach my $edge (@{ $sql_result }){
         my $well_id = $edge->[3];
         $edges_for_well->{$well_id} ||= [];
-        push @{ $edges_for_well->{$well_id} }, [ $edge->[0,1,2] ];
+        push @{ $edges_for_well->{$well_id} }, [ @{ $edge }[0,1,2] ];
     }
     return $edges_for_well;
 }
