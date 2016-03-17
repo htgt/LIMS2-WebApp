@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# 10_LIMS2_SummaryGeneration_SummariesWellDescend_Legacy.t
+## 10_LIMS2_SummaryGeneration_SummariesWellDescend_Legacy.t
 
 use strict;
 use warnings FATAL => 'all';

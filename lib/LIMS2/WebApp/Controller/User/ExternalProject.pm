@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::ExternalProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.381';
+    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.385';
 }
 ## use critic
 
@@ -123,6 +123,36 @@ sub view_sequencing_project :Path('/user/view_sequencing_project'){
         primers             => \@primers,
         user                => $user_rs->{name},
     });
+
+    return;
+}
+
+
+sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
+    my ($self, $c) = @_;
+    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
+
+    #Create recently added list
+    my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
+        { },
+        {
+            rows => 15,
+            order_by => {-desc => 'created_at'},
+        }
+    );
+
+    my @results;
+
+    while (my $focus = $recent->next) {
+        push(@results, $focus->as_hash);
+    }
+    $c->stash->{recent_results} = \@results;
+
+    handle_primers($c, $secondary_rs);
+
+    if ($c->req->params){
+        search_results($self, $c);
+    }
 
     return;
 }
@@ -252,20 +282,6 @@ sub update_status {
     } catch {
         $c->stash->{error_msg} = "Error creating sequencing project: " . $_;
     };
-    return;
-}
-
-sub browse_sequencing_projects :Path('/user/browse_sequencing_projects'){
-    my ($self, $c) = @_;
-
-    my $secondary_rs = $c->model('Golgi')->schema->resultset('SequencingPrimerType')->search({ id => {'!=', undef} },{ distinct => 1});
-
-    handle_primers($c, $secondary_rs);
-
-    if ($c->req->params){
-        search_results($self, $c);
-    }
-
     return;
 }
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.381';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.385';
 }
 ## use critic
 
@@ -698,7 +698,7 @@ sub plate_sponsor{
     return $self->last_known_plate->sponsor_id;
 }
 has ancestors => (
-    is         => 'ro',
+    is         => 'rw',
     isa        => 'LIMS2::Model::ProcessGraph',
     init_arg   => undef,
     lazy_build => 1
@@ -710,6 +710,20 @@ sub _build_ancestors {
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
+}
+
+# Use this to set the well's ancestors using results of a batch ancestor query
+sub set_ancestors{
+    my ($self, $edges) = @_;
+
+    my $graph = LIMS2::Model::ProcessGraph->new(
+      start_with => $self,
+      type => 'ancestors',
+      edges => $edges
+    );
+
+    $self->ancestors($graph);
+    return;
 }
 
 has descendants => (
@@ -1012,7 +1026,6 @@ sub designs {
 
 sub parent_processes{
 	my $self = shift;
-
 	# Fetch processes of which this well is an output
 	my @parent_processes = map { $_->process } $self->process_output_wells->all;
 
@@ -1035,6 +1048,7 @@ sub child_processes{
 
 	return @child_processes;
 }
+
 
 sub child_wells {
     my $self = shift;

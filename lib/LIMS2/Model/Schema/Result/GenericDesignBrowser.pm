@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::GenericDesignBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenericDesignBrowser::VERSION = '0.381';
+    $LIMS2::Model::Schema::Result::GenericDesignBrowser::VERSION = '0.385';
 }
 ## use critic
 

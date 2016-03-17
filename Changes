@@ -1,3 +1,17 @@
+0.385     2016-03-17 15:41:16 Europe/London
+
+    Optimization of summaries generation
+
+0.384     2016-03-16 16:27:19 Europe/London
+
+    Added new PREINT plate type and vector_cloning process
+
+0.383     2016-03-14 13:44:45 Europe/London
+    Moved appends to the DB
+0.382     2016-03-10 12:51:06 Europe/London
+    
+    Added traceviewer modifications to crispr QC
+
 0.381     2016-03-03 16:09:43 Europe/London
 
    bugfix to crispr ES QC and checked out barcode lists

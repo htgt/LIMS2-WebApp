@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.381';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.385';
 }
 ## use critic
 
@@ -175,6 +175,7 @@ my %process_check_well = (
     'cgap_qc'                => \&_check_wells_cgap_qc,
     'ms_qc'                  => \&_check_wells_ms_qc,
     'doubling'               => \&_check_wells_doubling,
+    'vector_cloning'         => \&_check_wells_vector_cloning,
 );
 
 sub check_process_wells {
@@ -271,6 +272,16 @@ sub _check_wells_create_crispr {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_int_recom {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_vector_cloning {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -799,6 +810,7 @@ my %process_aux_data = (
     'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
     'doubling'               => \&_create_process_aux_data_doubling,
+    'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
 );
 
 sub create_process_aux_data {
@@ -900,6 +912,34 @@ sub _create_process_aux_data_int_recom {
     my $validated_params = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_vector_cloning {
+    ## Backbone constraint must be set depending on species
+    return {
+        dna_template => { optional => 1 },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_vector_cloning {
+    my ( $model, $params, $process ) = @_;
+    my $pspec = pspec__create_process_aux_data_vector_cloning;
+    my ($input_well) = $process->process_input_wells;
+    my $species_id = $input_well->well->plate_species->id;
+
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
+
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
 
     return;

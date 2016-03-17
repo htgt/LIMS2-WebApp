@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.381';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.385';
 }
 ## use critic
 
@@ -885,7 +885,6 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
 
 sub view_traces :Path('/user/qc/view_traces') :Args(0){
     my ($self, $c) = @_;
-
     $c->assert_user_roles('read');
 
     # Store form values
@@ -921,7 +920,8 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
 
         my $project = $c->req->param('sequencing_project');
         my $sub_project = $c->req->param('sequencing_sub_project');
-        if(my $well_name = $c->req->param('well_name')){
+        my $well_name = $c->req->param('well_name');
+        if ($well_name && $well_name ne ' '){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");
