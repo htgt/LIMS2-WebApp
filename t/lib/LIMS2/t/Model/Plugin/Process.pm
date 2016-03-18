@@ -199,7 +199,7 @@ sub int_recom_process : Tests() {
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
     }
-    qr/int_recom process input well should be type DESIGN \(got EP\)/;
+    qr/int_recom process input well should be type PREINT,DESIGN \(got EP\)/;
 
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_output_well} );

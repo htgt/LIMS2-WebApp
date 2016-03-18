@@ -271,6 +271,7 @@ lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PIQPlate.pm
 lib/LIMS2/Report/PlateList.pm
 lib/LIMS2/Report/PostIntermediateVectorPlate.pm
+lib/LIMS2/Report/PreIntermediateVectorPlate.pm
 lib/LIMS2/Report/QcRun.pm
 lib/LIMS2/Report/QcRunSummary.pm
 lib/LIMS2/Report/RecoveryDetail.pm
@@ -2342,6 +2343,8 @@ root/static/files/plate_upload/single_crispr_assembly_template_es.csv
 root/static/files/plate_upload/single_crispr_assembly_template_vector.csv
 root/static/files/plate_upload/standard_template_es.csv
 root/static/files/plate_upload/standard_template_vector.csv
+root/static/files/plate_upload/vector_cloning_template_es.csv
+root/static/files/plate_upload/vector_cloning_template_vector.csv
 root/static/files/qc_upload/dna_concentrations.xlsx
 root/static/files/qc_upload/dna_egel_status_upload_template.csv
 root/static/files/qc_upload/dna_status_upload_template.csv

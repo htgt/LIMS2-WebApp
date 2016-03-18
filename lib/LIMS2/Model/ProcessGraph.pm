@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.383';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.386';
 }
 ## use critic
 
@@ -108,7 +108,7 @@ sub schema {
 has edges => (
     is         => 'ro',
     isa        => 'ArrayRef',
-    init_arg   => undef,
+    init_arg   => 'edges',
     lazy_build => 1
 );
 

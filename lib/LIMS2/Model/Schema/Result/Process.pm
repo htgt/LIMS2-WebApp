@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.383';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.386';
 }
 ## use critic
 
@@ -364,5 +364,14 @@ sub get_parameter_value{
     return $value;
 }
 
+sub as_hash {
+    my $self = shift;
+
+    return {
+        id           => $self->id,
+        type         => $self->type_id,
+        dna_template => $self->dna_template->id,
+    };
+}
 __PACKAGE__->meta->make_immutable;
 1;
