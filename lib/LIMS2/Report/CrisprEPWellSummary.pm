@@ -25,8 +25,8 @@ override _build_columns => sub {
     return [
         'Gene ID',
         'Gene symbol',
-        'EP plate',
         'EP well',
+        'EP timestamp',
         'To report',
         'Cell line',
         'Design ID',
@@ -81,7 +81,7 @@ override iterator => sub {
 
     my @crispr_ep_wells = $summary_rs->search(
         { }, {
-            select => [ qw/design_type design_plate_name design_well_name dna_template crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
+            select => [ qw/design_type design_plate_name design_well_name dna_template crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name crispr_ep_well_created_ts design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
             order_by => 'crispr_ep_well_id',
             distinct => 1
         }
@@ -98,9 +98,9 @@ override iterator => sub {
 
             #Basic and CRISPR_EP info
 
-            my $ep_plate = $crispr_ep_well->crispr_ep_plate_name;
+            my $ep_well = $crispr_ep_well->crispr_ep_plate_name . '_' . $crispr_ep_well->crispr_ep_well_name;
 
-            my $ep_well = $crispr_ep_well->crispr_ep_well_name;
+            my $ep_well_ts = $crispr_ep_well->crispr_ep_well_created_ts;
 
             my $gene_symbol = $crispr_ep_well->design_gene_symbol;
 
@@ -232,8 +232,8 @@ override iterator => sub {
             my @row = (
                 "$gene_id",
                 "$gene_symbol",
-                "$ep_plate",
                 "$ep_well",
+                "$ep_well_ts",
                 "$to_report",
                 "$cell_line",
                 "$design_id",
