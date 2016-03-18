@@ -189,6 +189,7 @@ function retrieve_file(flag) {
     console.log(link);
 
     OpenInNewTab(link);
+    $('#primerModal').modal('hide');
 }
 
 function OpenInNewTab(url) {
