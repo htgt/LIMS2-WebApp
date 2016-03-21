@@ -18,7 +18,7 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
-    return 'Gene Electroporation Summary';
+    return 'Gene Electroporation Well Summary';
 };
 
 override _build_columns => sub {
