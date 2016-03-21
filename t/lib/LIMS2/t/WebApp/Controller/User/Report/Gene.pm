@@ -31,6 +31,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init($OFF);
 };
 
 =head2 before
@@ -88,7 +90,7 @@ sub all_tests  : Tests
 {
     my @design_wells = ('1883','1877','935');
     foreach my $design_well_id (@design_wells) {
-        my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
+        my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,model);
         my $exit_code = $results->{exit_code};
         ok( defined $results,                "Returned results hash defined for design well id : ".$design_well_id );
         ok( defined $results->{exit_code},   "Returned exit code defined for design well id : ".$design_well_id );

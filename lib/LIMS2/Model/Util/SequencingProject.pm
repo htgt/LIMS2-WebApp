@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::SequencingProject::VERSION = '0.384';
+    $LIMS2::Model::Util::SequencingProject::VERSION = '0.387';
 }
 ## use critic
 
@@ -26,7 +26,7 @@ use MooseX::Types::Path::Class::MoreCoercions qw/AbsDir/;
 use LIMS2::Model::Util::WellName qw/to384/;
 
 sub build_seq_data {
-    my ( $self, $c, $id, $primer_req, $sub_number) = @_;
+    my ( $self, $c, $id, $primer_req, $sub_number, $mixFlag) = @_;
     $c->assert_user_roles('read');
 
     my $seq_project = $c->model( 'Golgi' )->txn_do(
@@ -36,7 +36,10 @@ sub build_seq_data {
     );
 
     #Generate data for spreedsheet
-    my @data = generate_rows($seq_project, $sub_number, $primer_req, 1);
+
+    $seq_project->{primer_flag} = $mixFlag;
+
+    my @data = generate_rows($seq_project, $sub_number, $primer_req, 1, $mixFlag);
 
     my $data_hash = ({
         project_data    => $seq_project,
@@ -93,7 +96,12 @@ sub generate_rows {
 
 sub construct_row {
     my ($letter, $well_number, $seq_project, $primer_req, $sub_number, $quad) = @_;
-    my $primer_name = 'premix w. temp';
+    my $primer_name;
+    if ($seq_project->{primer_flag} == 1){
+        $primer_name = 'premix w. temp';
+    } else {
+        $primer_name = $primer_req;
+    }
     my $qcwell = (lc $letter) . sprintf("%02d",$well_number);
     my $well;
     my $sample;

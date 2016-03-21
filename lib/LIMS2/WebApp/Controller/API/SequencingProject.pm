@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::SequencingProject::VERSION = '0.384';
+    $LIMS2::WebApp::Controller::API::SequencingProject::VERSION = '0.387';
 }
 ## use critic
 
@@ -24,8 +24,9 @@ sub seq_project_GET {
     my $seq_id = $c->request->param( 'seq_id' );
     my $seq_primer = $c->request->param( 'primer' );
     my $sub_number = $c->request->param( 'sub' );
+    my $mix        = $c->request->param( 'mix' );
 
-    my $file = LIMS2::Model::Util::SequencingProject::build_seq_data($self, $c, $seq_id, $seq_primer, $sub_number);
+    my $file = LIMS2::Model::Util::SequencingProject::build_seq_data($self, $c, $seq_id, $seq_primer, $sub_number, $mix);
     $c->response->status( 200 );
     $c->response->content_type( 'application/xlsx' );
     $c->response->content_encoding( 'binary' );
