@@ -270,7 +270,7 @@ sub build_ep_detail {
 
         my $crispr_ep_well = $crispr_ep_wells_by_id->{$summary->crispr_ep_well_id};
         my $colony_count = $crispr_ep_well->search_related('well_colony_counts',{
-            colony_count_type_id => 'remaining_unstained_colonies'
+            colony_count_type_id => 'total_colonies'
         })->first;
         $data{colony_numbers} = $colony_count ? $colony_count->colony_count : undef;
 
