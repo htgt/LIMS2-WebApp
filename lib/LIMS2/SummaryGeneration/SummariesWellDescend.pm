@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.385';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.386';
 }
 ## use critic
 
@@ -22,25 +22,33 @@ use Data::Dumper;
 sub generate_summary_rows_for_design_well {
 
     # passed design well ID, model
-    my ($design_well_id, $model) = @_;
+    my ($design_well_id, $model, $paths, $well_ancestors) = @_;
 
     INFO caller()." Well ID $design_well_id passed in";
 
     my %results = ();
 
-    $model ||= LIMS2::Model->new( user => 'lims2' );  # DB connection
+    if($model){
+        DEBUG "Model passed in";
+    }
+    else{
+        DEBUG "Creating LIMS2 model";
+        $model = LIMS2::Model->new( user => 'lims2' );  # DB connection
+    }
 
     my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
-    my $wells_deleted = 0; # count of deleted wells
-    my $well_inserts_succeeded = 0; # count of inserts
-    my $well_inserts_failed = 0; # count of failures
+    my $status_counts = {
+        wells_deleted => 0,
+        well_inserts_succeeded => 0,
+        well_inserts_failed => 0,
+    };
 
     try {
-        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, \$wells_deleted, \$well_inserts_succeeded, \$well_inserts_failed);
+        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, $status_counts, $paths, $well_ancestors);
         $results{ exit_code } = 0;
-        $results{ count_deletes } = $wells_deleted;
-        $results{ count_inserts } = $well_inserts_succeeded;
-        $results{ count_fails } = $well_inserts_failed;
+        $results{ count_deletes } = $status_counts->{wells_deleted};
+        $results{ count_inserts } = $status_counts->{well_inserts_succeeded};
+        $results{ count_fails } = $status_counts->{well_inserts_failed};
     } catch {
         # error
         WARN caller()." Well ID $design_well_id : Exception caught:\nException message : $_";
@@ -57,7 +65,7 @@ sub generate_summary_rows_for_design_well {
 # in that design well hierarchy
 sub generate_summary_rows_for_all_trails {
 
-    my ($design_well_id, $model, $stored_values, $wells_deleted, $well_inserts_succeeded, $well_inserts_failed) = @_;
+    my ($design_well_id, $model, $stored_values, $status_counts, $paths, $well_ancestors) = @_;
 
     my $design_well = try { $model->retrieve_well( { id => $design_well_id } ) };
 
@@ -65,23 +73,29 @@ sub generate_summary_rows_for_all_trails {
         # delete existing rows for this design well (if any)
         my $rows_deleted = delete_summary_rows_for_design_well($design_well_id, $model);
         if(defined $rows_deleted && $rows_deleted > 0) {
-            $$wells_deleted = $rows_deleted;
+            $status_counts->{wells_deleted} = $rows_deleted;
         }
     } else {
         # no design well exists for that ID, error
         LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails";
     }
 
-    # Call ProcessTree to fetch paths
-    DEBUG "getting well process path";
-    my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
-    DEBUG "well process path done";
+    $paths ||= {};
+    my $design_well_trails = $paths->{$design_well_id};
+    unless($design_well_trails){
+        # Call ProcessTree to fetch paths
+        DEBUG "getting well process path";
+        $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
+        DEBUG "well process path done";
+    }
 
-    DEBUG "getting list of unique well ids";
-    my @well_ids = uniq map { @{$_} } @{ $design_well_trails };
-    DEBUG scalar(@well_ids)." unique well ids found";
+    if(!$well_ancestors){
+        DEBUG "getting list of unique well ids";
+        my @well_ids = uniq map { @{$_} } @{ $design_well_trails };
+        DEBUG scalar(@well_ids)." unique well ids found";
 
-    my $well_ancestors = fast_get_well_ancestors($model, @well_ids);
+        $well_ancestors = $model->fast_get_well_ancestors(@well_ids);
+    }
 
     # initialise hash of previously retrieved wells
     my %wells_retrieved = ();
@@ -114,7 +128,9 @@ sub generate_summary_rows_for_all_trails {
                 $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
 
                 # Add the ancestor edges to the well that we got in batch query
-                $curr_well->set_ancestors( $well_ancestors->{ $curr_well_id } );
+                if($well_ancestors->{$curr_well_id}){
+                    $curr_well->set_ancestors( $well_ancestors->{ $curr_well_id } );
+                }
 
                 # and insert into hash
                 $wells_retrieved{ $curr_well_id } = $curr_well;
@@ -164,16 +180,19 @@ sub generate_summary_rows_for_all_trails {
     if(@summaries_to_insert){
         try{
             $model->schema->resultset('Summary')->populate(\@summaries_to_insert);
-            $$well_inserts_succeeded = $summary_row_count;
+            $status_counts->{well_inserts_succeeded} = $summary_row_count;
         }
         catch{
             INFO "Summary table populate failed with error $!";
-            $$well_inserts_failed = $summary_row_count;
+            $status_counts->{well_inserts_failed} = $summary_row_count;
         }
     }
     DEBUG "summary rows inserted";
 
-    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = ".$$wells_deleted."/".$$well_inserts_succeeded."/".$$well_inserts_failed;
+    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = "
+                 .$status_counts->{wells_deleted}."/"
+                 .$status_counts->{well_inserts_succeeded}."/"
+                 .$status_counts->{well_inserts_failed};
     return;
 }
 
@@ -1069,45 +1088,4 @@ sub fetch_dna_template{
     return $template;
 }
 
-sub fast_get_well_ancestors{
-    my ($model, @well_id_list) = @_;
-    my $well_list = join q{,}, @well_id_list;
-
-    my $query = << "QUERY_END";
-WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
-     FROM processes pr
-     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     WHERE pr_out.well_id in ($well_list)
-     UNION
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
-     FROM processes pr
-     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
-)
-SELECT process_id, input_well_id, output_well_id,path[1]
-FROM well_hierarchy;
-QUERY_END
-
-    DEBUG "Running batch well ancestor query";
-    my $sql_result =  $model->schema->storage->dbh_do(
-        sub {
-            my ( $storage, $dbh ) = @_;
-            my $sth = $dbh->prepare_cached( $query );
-            $sth->execute();
-            $sth->fetchall_arrayref();
-        }
-    );
-    DEBUG "ancestor query done";
-
-    my $edges_for_well = {};
-    foreach my $edge (@{ $sql_result }){
-        my $well_id = $edge->[3];
-        $edges_for_well->{$well_id} ||= [];
-        push @{ $edges_for_well->{$well_id} }, [ @{ $edge }[0,1,2] ];
-    }
-    return $edges_for_well;
-}
 1;

@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPSummaryJune2015;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPSummaryJune2015::VERSION = '0.385';
+    $LIMS2::Report::CrisprEPSummaryJune2015::VERSION = '0.386';
 }
 ## use critic
 
@@ -59,6 +59,10 @@ sub _build_summary_fields {
             design_gene_id
             design_gene_symbol
             design_id
+            design_plate_name
+            design_well_name
+            design_type
+            dna_template
             int_plate_name
             final_pick_plate_name
             final_pick_well_name
@@ -73,6 +77,8 @@ sub _build_summary_fields {
             crispr_ep_well_name
             crispr_ep_well_cell_line
             crispr_ep_well_nuclease
+            crispr_ep_well_created_ts
+            to_report
         )
     ];
 
@@ -97,6 +103,9 @@ sub _build_column_map {
         { design_gene_symbol       => "Design Gene Symbol" },
         { chromosome               => "Chromosome" },
         { sponsor_id               => "Sponsor ID" },
+        { design_plate_well_name   => "Design Plate_Well" },
+        { dna_template             => "DNA Template" },
+        { design_type              => "Design Method" },
         { vector_id                => "Vector ID" },
         { crispr_1_id              => "CRISPR 1 ID" },
         { crispr_2_id              => "CRISPR 2 ID" },
@@ -107,6 +116,7 @@ sub _build_column_map {
         { crispr_ep_well_cell_line => "Human iPS Cell Line" },
         { crispr_ep_well_nuclease  => "Nuclease" },
         { crispr_ep_plate_well_name => "HUEP Plate_Well" },
+        { crispr_ep_well_created_ts => "EP Timestamp" },
         { colony_numbers           => "Colony Numbers" },
         { ep_colonies_picked       => "Clones Screened" }, # number of EP pick wells
         { nhej_of_second_allele    => "NHEJ of Second Allele" },
@@ -117,6 +127,7 @@ sub _build_column_map {
         { 'no-call'                => "No Calls" },
         { 'het'                    => "Het Clones" },
         { targeting_efficiency     => "Biallelic Targeting Efficiency" },
+        { to_report                => "To report" },
         { recovery_comment         => "Recovery Comment" },
     ];
 }
@@ -167,6 +178,8 @@ sub resultset_by_id{
     return \%results_by_id;
 }
 
+
+## no critic(ProhibitExcessComplexity)
 sub build_ep_detail {
     my ( $self ) = @_;
 
@@ -178,7 +191,6 @@ sub build_ep_detail {
     my @summary = $self->model->schema->resultset('Summary')->search({
             crispr_ep_plate_name => { '!=', undef },
             design_species_id    => $self->species,
-            to_report            => 'true',
         },
         {
             select   => $self->summary_fields,
@@ -208,6 +220,7 @@ sub build_ep_detail {
 
         $data{$_} = $summary->$_ for @{ $self->summary_fields };
 
+        $data{design_plate_well_name} = $summary->design_plate_name."_".$summary->design_well_name;
         $data{crispr_ep_plate_well_name} = $summary->crispr_ep_plate_name."_".$summary->crispr_ep_well_name;
         $data{vector_id} = $summary->final_pick_plate_name."_".$summary->final_pick_well_name;
 
@@ -215,23 +228,22 @@ sub build_ep_detail {
 
         # Get experiments matching assembly well
         my @experiments = $assembly_well->experiments;
-        $data{experiment_id} = join ", ", map { $_->id } @experiments;
+        $data{experiment_id} = join "; ", map { $_->id } @experiments;
 
-        # Fetch project related info for all matching experiments
-        DEBUG "Fetching projects for experiments ".$data{experiment_id};
-        my @projects;
+        my @gene_projects = $self->model->schema->resultset('Project')->search({ gene_id => $summary->design_gene_id, targeting_type => 'single_targeted' })->all;
+
+        $data{recovery_comment} = join "; ", grep { $_ } map { $_->recovery_comment } @gene_projects;
+
+        my @sponsors = uniq map { $_->sponsor_ids } @gene_projects;
+
         try {
-            @projects = map { $_->project } @experiments;
+            my $index = 0;
+            $index++ until ( $index >= scalar @sponsors || $sponsors[$index] eq 'All' );
+            splice(@sponsors, $index, 1);
         };
-        # Skip if not relevant to requested sponsor
-        my @sponsor_ids_unsorted = map { $_->sponsor_ids } @projects;
-        if($self->has_sponsor){
-            next unless any { $_ eq $self->sponsor } @sponsor_ids_unsorted;
-        }
-        my @sponsor_ids = sort { $a cmp $b } uniq @sponsor_ids_unsorted;
 
-        $data{sponsor_id} = join "/", @sponsor_ids;
-        $data{recovery_comment} = join ", ", grep { $_ } map { $_->recovery_comment } @projects;
+        my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
+        $data{sponsor_id} = join  ( '; ', @sponsors_abbr );
 
         # Get chromosome number from design
         my $design = $self->model->schema->resultset('Design')->find({
@@ -251,6 +263,16 @@ sub build_ep_detail {
         # Work out assembly well QC verification result (true or false). NB: in future we may be storing
         # this as the well_accepted flag in which case can get it from summaries
         $data{assembly_well_seq_verified} = fmt_bool($assembly_well->assembly_well_qc_verified);
+
+        $data{dna_template} = '';
+        try {
+            $data{dna_template} = $summary->dna_template->id;
+        };
+
+        $data{to_report} = 'no';
+        if ( $summary->to_report ) {
+            $data{to_report} = 'yes';
+        }
 
         # New summary to get downstream ep pick wells
         my @epds = $self->model->schema->resultset('Summary')->search(
@@ -276,7 +298,7 @@ sub build_ep_detail {
 
         my $crispr_ep_well = $crispr_ep_wells_by_id->{$summary->crispr_ep_well_id};
         my $colony_count = $crispr_ep_well->search_related('well_colony_counts',{
-            colony_count_type_id => 'remaining_unstained_colonies'
+            colony_count_type_id => 'total_colonies'
         })->first;
         $data{colony_numbers} = $colony_count ? $colony_count->colony_count : undef;
 
@@ -326,6 +348,8 @@ sub build_ep_detail {
     return \@row;
 
 }
+## use critic
+
 
 __PACKAGE__->meta->make_immutable;
 

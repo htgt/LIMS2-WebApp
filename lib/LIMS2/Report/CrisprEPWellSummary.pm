@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPWellSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPWellSummary::VERSION = '0.385';
+    $LIMS2::Report::CrisprEPWellSummary::VERSION = '0.386';
 }
 ## use critic
 
@@ -24,15 +24,16 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
-    return 'Gene Electroporation Summary';
+    return 'Gene Electroporation Well Summary';
 };
 
 override _build_columns => sub {
     return [
         'Gene ID',
         'Gene symbol',
-        'EP plate',
+        'Chromosome',
         'EP well',
+        'EP timestamp',
         'To report',
         'Cell line',
         'Design ID',
@@ -87,7 +88,7 @@ override iterator => sub {
 
     my @crispr_ep_wells = $summary_rs->search(
         { }, {
-            select => [ qw/design_type design_plate_name design_well_name dna_template crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
+            select => [ qw/design_type design_plate_name design_well_name dna_template crispr_ep_plate_name crispr_ep_well_id crispr_ep_well_name crispr_ep_well_created_ts design_id design_gene_id design_gene_symbol assembly_plate_name assembly_well_name assembly_well_id final_pick_plate_name final_pick_well_name crispr_ep_well_cell_line to_report/ ],
             order_by => 'crispr_ep_well_id',
             distinct => 1
         }
@@ -104,23 +105,26 @@ override iterator => sub {
 
             #Basic and CRISPR_EP info
 
-            my $ep_plate = $crispr_ep_well->crispr_ep_plate_name;
+            my $ep_well = $crispr_ep_well->crispr_ep_plate_name . '_' . $crispr_ep_well->crispr_ep_well_name;
 
-            my $ep_well = $crispr_ep_well->crispr_ep_well_name;
+            my $ep_well_ts = $crispr_ep_well->crispr_ep_well_created_ts;
 
             my $gene_symbol = $crispr_ep_well->design_gene_symbol;
 
             my $gene_id = $crispr_ep_well->design_gene_id;
 
-            my $design_id= $crispr_ep_well->design_id;
+            my $design_id = $crispr_ep_well->design_id;
 
-            my $cell_line= $crispr_ep_well->crispr_ep_well_cell_line;
+            my $cell_line = $crispr_ep_well->crispr_ep_well_cell_line;
 
             my $design_type = $crispr_ep_well->design_type;
 
             my $design_well = $crispr_ep_well->design_plate_name . '_' . $crispr_ep_well->design_well_name;
 
-            my $dna_template = $crispr_ep_well->dna_template // '';
+            my $dna_template = '';
+            try {
+                $dna_template = $crispr_ep_well->dna_template->id;
+            };
 
             my $assembly = $crispr_ep_well->assembly_plate_name . '_' . $crispr_ep_well->assembly_well_name;
 
@@ -199,7 +203,7 @@ override iterator => sub {
             $damage_counts{'frameshift'} += $damage_counts{'splice_acceptor'} unless (!$damage_counts{'splice_acceptor'});
             my $ep_pick_pass_count = $damage_counts{'wild_type'} + $damage_counts{'in-frame'} + $damage_counts{'frameshift'} + $damage_counts{'mosaic'};
             if (!defined $het_count) {
-                $het_count = '-';
+                $het_count = '';
             }
 
             # PIQ wells
@@ -238,8 +242,9 @@ override iterator => sub {
             my @row = (
                 "$gene_id",
                 "$gene_symbol",
-                "$ep_plate",
+                "$chromosome",
                 "$ep_well",
+                "$ep_well_ts",
                 "$to_report",
                 "$cell_line",
                 "$design_id",

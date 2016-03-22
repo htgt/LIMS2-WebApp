@@ -88,7 +88,7 @@
           <td>[% primer %]</td>
           <td>[% sub_counter %]</td>
           <td>
-            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% sub_counter %]');>
+            <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-primerModal btn btn-primary" href="#primerModal">
               <i class="icon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
             </button>
           </td>
@@ -107,7 +107,7 @@
           <td>[% primer %]</td>
           <td>[% 1 + adjustment %] - [% 4 + adjustment %]</td>
           <td>
-            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% 1 + adjustment %]');>
+            <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
               <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
             </button>
           </td>
@@ -123,15 +123,15 @@
         [% IF modulus ==  1 %]
           <td>[% seq_project.sub_projects %]</td>
           <td>
-            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% seq_project.sub_projects %]');>
-              <i class="icon-download"></i> Download [% seq_project.name %] [% seq_project.sub_projects %] : [% primer %]
+            <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_projects %] class="open-primerModal btn btn-primary" href="#primerModal">
+                <i class="icon-download"></i> Download [% seq_project.name %] [% seq_project.sub_projects %] : [% primer %]
             </button>
           </td>
         [% ELSE %]
           <td>[% 1 + adjustment %] - [% modulus + adjustment %]</td>
           <td>
-            <button type="button" class="btn btn-primary" style="float: right;" onclick=retrieve_file('[% primer %]','[% 1 + adjustment %]');>
-              <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
+            <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
+                <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
             </button>
           </td>
         [% END %]
@@ -142,18 +142,54 @@
 
 </table>
 
+
+<div class="modal hide" id="primerModal">
+ <div class="modal-header">
+    <button class="close" data-dismiss="modal">×</button>
+    <h3 id=modalTitle>Modal header</h3>
+  </div>
+    <div class="modal-body">
+        <p hidden id="modalPrimer"></p>
+        <p hidden id="modalAdj"></p>
+        <p align="center">How will you send the samples?</p>
+        <div align="center">
+            <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('1');>
+              <i class="icon-download"></i> Premixed
+            </button>
+            <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('0');>
+              <i class="icon-download"></i> Eurofins to add primers
+            </button>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
+$(document).on("click", ".open-primerModal", function () {
+    var name = $(this).data('name');
+    var adj = $(this).data('adjustment');
+    var primer = $(this).data('primer');
+    var title = name + " - " + adj + " : " + primer; 
+    console.log(title);
+    document.getElementById("modalTitle").innerHTML = title;
+    document.getElementById("modalAdj").innerHTML = adj;
+    document.getElementById("modalPrimer").innerHTML = primer;
+
+});
+
 $(document).ready(function () {
     var id = '[% seq_project.id %]';
 })
-function retrieve_file(primer, sub, size) {
+function retrieve_file(flag) {
+    var primer = document.getElementById("modalPrimer").innerHTML;
+    var sub = document.getElementById("modalAdj").innerHTML;
     console.log("reached");
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
-    var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub='+ sub);
+    var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub=' + sub + '&mix=' + flag);
     console.log(link);
 
     OpenInNewTab(link);
+    $('#primerModal').modal('hide');
 }
 
 function OpenInNewTab(url) {
