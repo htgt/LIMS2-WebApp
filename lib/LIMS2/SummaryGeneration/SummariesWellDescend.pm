@@ -31,16 +31,18 @@ sub generate_summary_rows_for_design_well {
     }
 
     my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
-    my $wells_deleted = 0; # count of deleted wells
-    my $well_inserts_succeeded = 0; # count of inserts
-    my $well_inserts_failed = 0; # count of failures
+    my $status_counts = {
+        wells_deleted => 0,
+        well_inserts_succeeded => 0,
+        well_inserts_failed => 0,
+    };
 
     try {
-        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, \$wells_deleted, \$well_inserts_succeeded, \$well_inserts_failed, $paths, $well_ancestors);
+        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, $status_counts, $paths, $well_ancestors);
         $results{ exit_code } = 0;
-        $results{ count_deletes } = $wells_deleted;
-        $results{ count_inserts } = $well_inserts_succeeded;
-        $results{ count_fails } = $well_inserts_failed;
+        $results{ count_deletes } = $status_counts->{wells_deleted};
+        $results{ count_inserts } = $status_counts->{well_inserts_succeeded};
+        $results{ count_fails } = $status_counts->{well_inserts_failed};
     } catch {
         # error
         WARN caller()." Well ID $design_well_id : Exception caught:\nException message : $_";
@@ -57,7 +59,7 @@ sub generate_summary_rows_for_design_well {
 # in that design well hierarchy
 sub generate_summary_rows_for_all_trails {
 
-    my ($design_well_id, $model, $stored_values, $wells_deleted, $well_inserts_succeeded, $well_inserts_failed, $paths, $well_ancestors) = @_;
+    my ($design_well_id, $model, $stored_values, $status_counts, $paths, $well_ancestors) = @_;
 
     my $design_well = try { $model->retrieve_well( { id => $design_well_id } ) };
 
@@ -65,18 +67,19 @@ sub generate_summary_rows_for_all_trails {
         # delete existing rows for this design well (if any)
         my $rows_deleted = delete_summary_rows_for_design_well($design_well_id, $model);
         if(defined $rows_deleted && $rows_deleted > 0) {
-            $$wells_deleted = $rows_deleted;
+            $status_counts->{wells_deleted} = $rows_deleted;
         }
     } else {
         # no design well exists for that ID, error
         LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails";
     }
 
+    $paths ||= {};
     my $design_well_trails = $paths->{$design_well_id};
     unless($design_well_trails){
         # Call ProcessTree to fetch paths
         DEBUG "getting well process path";
-        my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
+        $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
         DEBUG "well process path done";
     }
 
@@ -171,16 +174,19 @@ sub generate_summary_rows_for_all_trails {
     if(@summaries_to_insert){
         try{
             $model->schema->resultset('Summary')->populate(\@summaries_to_insert);
-            $$well_inserts_succeeded = $summary_row_count;
+            $status_counts->{well_inserts_succeeded} = $summary_row_count;
         }
         catch{
             INFO "Summary table populate failed with error $!";
-            $$well_inserts_failed = $summary_row_count;
+            $status_counts->{well_inserts_failed} = $summary_row_count;
         }
     }
     DEBUG "summary rows inserted";
 
-    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = ".$$wells_deleted."/".$$well_inserts_succeeded."/".$$well_inserts_failed;
+    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = "
+                 .$status_counts->{wells_deleted}."/"
+                 .$status_counts->{well_inserts_succeeded}."/"
+                 .$status_counts->{well_inserts_failed};
     return;
 }
 
