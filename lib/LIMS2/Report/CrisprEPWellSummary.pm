@@ -115,7 +115,10 @@ override iterator => sub {
 
             my $design_well = $crispr_ep_well->design_plate_name . '_' . $crispr_ep_well->design_well_name;
 
-            my $dna_template = $crispr_ep_well->dna_template->id // '';
+            my $dna_template = '';
+            try {
+                $dna_template = $crispr_ep_well->dna_template->id;
+            };
 
             my $assembly = $crispr_ep_well->assembly_plate_name . '_' . $crispr_ep_well->assembly_well_name;
 
