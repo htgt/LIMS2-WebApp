@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::VERSION = '0.386';
+    $LIMS2::Model::FormValidator::VERSION = '0.388';
 }
 ## use critic
 
