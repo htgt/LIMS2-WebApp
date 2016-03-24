@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.389     2016-03-24 14:02:34 Europe/London
+
+   Update to front page report queries to allow for wells without plates
+
 0.388     2016-03-23 09:30:07 Europe/London
 
    Another attempt to speed up summary generation
