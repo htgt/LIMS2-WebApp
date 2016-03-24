@@ -24,7 +24,6 @@ function extract_sequence(elem) {
             ctx.save();
 
             var all_series = plot.getData();
-
             //ctx.fillStyle = series[0].cColor;
             ctx.font = plot.labelFont;
 
@@ -37,7 +36,6 @@ function extract_sequence(elem) {
             var reads = [];
             for ( var i = 0; i < plot.labels.length; i++ ) {
                 var label = plot.labels[i];
-
                 //only show values within the range we're looking
                 if ( label.x < x.min || label.x > x.max ) {
                     //console.log(label.x + " < " + x.min + " || " + label.x + " > " + x.max);
@@ -63,7 +61,7 @@ function extract_sequence(elem) {
               if(a.x == b.x) return 0;
               return a.x > b.x ? 1 : -1;
             });
-
+            console.log(reads);
             var read = "";
             $.each(reads, function(i,label){ read += label.nuc });
             plot._read = read;
@@ -224,6 +222,8 @@ function TraceViewer(trace_url, button, full_trace) {
     this._pos = 250;
     this._read = 'A';
     this._initPos = 250;
+    this._ref = [];
+    this._locHash = new Object();
     this.url = trace_url;
     this.show_traces(button, full_trace);
 }
@@ -294,13 +294,26 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
 
     //create local var for this, as "this" in getJSON is different
     var parent = this;
+    var ref = [];
 
     //fetch the users data and add a new graph when the data comes back
+    console.log(this.url);
     $.getJSON(
         this.url,
         { "name": name, "search_seq": search_seq, "reverse": reverse, "context": context },
         function(data) {
-            parent._create_plot(placeholder, data, dir);
+            for (var key in data.bases) {
+                //console.log(key);
+                ref.push(key);
+            }
+            console.log(ref);
+
+            for (i in ref) {
+                var key = ref[i];
+                var value = data.bases[key];
+                console.log(key + " = " + value + "\n");
+            }
+            parent._create_plot(placeholder, data, dir, ref);
         }
     )
     .fail(function( jqxhr, textStatus, error ) {
@@ -309,7 +322,7 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
 };
 
 //function that actually creates the plot
-TraceViewer.prototype._create_plot = function(placeholder, graph_data, dir) {
+TraceViewer.prototype._create_plot = function(placeholder, graph_data, dir, ref) {
     var set = graph_data.series[0]["data"];
 
     var left_boundary = parseInt(set[0][0]);
@@ -350,6 +363,8 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data, dir) {
         }
     });
     plot._initPos = left_boundary;
+    plot._locHash = graph_data.bases;
+    plot._ref = ref;
     function addZoom(text, left, top, args) {
         $("<div class='button' style='left:" + left + "px;top:" + top + "px;width:7px;text-align:center'>" + text + "</div>")
         .appendTo(placeholder)

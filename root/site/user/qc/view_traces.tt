@@ -99,7 +99,7 @@
             [% SET well_id = read.well_name _ read.primer %]
             <tr id=[% well_id %] class="well_tr">
               <td rowspan="2">[% read.orig_read_name %]</td>
-              <td style="word-wrap:break-word" class="trace_sequence">[% read.seq %]</td>
+              <td style="word-wrap:break-word" id="trace" class="trace_sequence">[% read.seq %]</td>
             </tr>
             <tr id=[% well_id %] class="trace_tr">
                <td>
@@ -310,71 +310,87 @@ $(document).click(function(event) {
     }
 });
 
+var tr;
+
 function adjustPane(text) {
-    var userRange = window.getSelection().getRangeAt(0);
-    var selection = userRange.startContainer.textContent;
+    var selection = window.getSelection();
 
-    var tr = text.closest("tr");
+    tr = text.closest("tr");
 
-    tr = tr.html();
+    tr = $(tr[0].getElementsByTagName('td').trace).text();
     tr = tr.replace(/-/g,'N');
-    var regex = /[ACTGN]+/g;
+
+    var regex = /[ACTGNn]+/g;
+   
     var match;
-    var result = tr.match(regex);
-    result.shift(); result.shift();
-
+    result = tr.match(regex);
+    //Remove everything not relating to the sequence 
+    
+    var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
-
-    var customSelection = window.getSelection().toString();
-
-    var loc = findCoords(result, referencePoint, selection, userRange.startOffset);
-
-    if (customSelection) {
-        var customLength;
-        if (result.length > 1) {
-            customLength = loc + (customSelection.length * 12);
-            wellTrace.moveToPoint(focusTrace, loc, customLength);
-        } else {
-            loc = (userRange.startOffset * 12) + 200;
-            customLength = loc + (customSelection.length * 12);
-            wellTrace.moveToPoint(focusTrace, loc, customLength);
-        }
-    } else if (result.length > 1) {
-        wellTrace.moveToPoint(focusTrace, loc - 125, loc + 125);  
-    } else {
-        loc = (userRange.startOffset * 12) + 200;
-        wellTrace.moveToPoint(focusTrace, loc - 125, loc + 125);
-    }
+    
+    var loc = findCoords(result, referencePoint, selection);
+    wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
 }
 
-function findCoords(seqs, point, selectedSeq, offset) {
+function getSliderOffset(seq){
+    //Not the nicest way. 'N' -> whitespace, ignore whitespaces to get actual loc
+    seq = seq.replace(/N/g,' ');
     var read = focusTrace._read;
-    var index;
-    seqs.forEach( function(seq, i) {
-        if (seq === selectedSeq) {
-            index = i;
-        }
-    });
-    var sizes = getSeqLengths(seqs);
-    var refLoc = sizes[0];
-    var total = 0;
-    while (index > 0) {
-        index--;
-        total += sizes[index];
+    var builder = '';
+    for (var count = 0; count < read.length; count++) {
+        builder = builder + read[count] + '\\s*';
     }
-    total += offset;
-
-    var cost = (total - refLoc) * 12;
-    cost = cost + Math.round(point);
-    return cost;
+    builder = new RegExp(builder);
+    return seq.search(builder);
 }
 
-function getSeqLengths(seqs){
-    var sizes = [];
-    seqs.forEach( function(seq) {
-        sizes.push(seq.length);
-    });
-    return sizes;
+function getMouseOffset(seq, selection){
+    if (selection.toString().length > 1) {
+        return seq.search(selection.toString());
+    } else {
+        return seq.search(selection.focusNode.data) + selection.focusOffset;
+    }
+}
+
+
+function findCoords(seqs, point, selection) {
+    var traceSeq = seqs[0];
+    console.log("length " + traceSeq.length);
+    var target = selection.toString();
+    var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
+
+    //Init position is outside of the boundaries
+    if (getSliderOffset(traceSeq) == -1) {
+        focusTrace._initPos = focusTrace._pos;
+    }
+
+    //Allow for an average
+    if (focusTrace._pos == focusTrace._initPos) {
+        forceUpdate();
+    }
+
+    var sliderOffset = getSliderOffset(traceSeq); //Position of traceviewer slider in the seq
+    var positionDiff = Math.round(focusTrace._pos - focusTrace._initPos); 
+    var rate = Math.round( positionDiff / sliderOffset * 100) / 100; //Get rate to 2 decimal places
+
+    var cost = (mouseOffset - sliderOffset) * rate;
+    
+    //Hueristic to mouse point
+
+    if (target.length < 5) {
+        return [cost + focusTrace._pos - 125, cost + focusTrace._pos + 125];
+    } else {
+        var endCost = cost + (target.length * rate);
+        return [cost + focusTrace._pos, endCost + focusTrace._pos]; 
+    }
+}
+
+function forceUpdate() {
+    var newPos = focusTrace._pos + 300;
+    wellTrace.moveToPoint(focusTrace, newPos - 125, newPos + 125);
+    //Move the traceviewer to allow for an average of the spacing between bases
+
 }
 
 
