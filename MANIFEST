@@ -368,6 +368,7 @@ root/site/admin/index.tt
 root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/publicreports/await_report.tt
+root/site/publicreports/clone_request.tt
 root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
 root/site/publicreports/sponsor_report.tt

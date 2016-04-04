@@ -1,3 +1,7 @@
+0.390     2016-04-04 15:14:33 Europe/London
+
+   Redirect not logged in users to clone request info page
+
 0.389     2016-03-24 14:02:34 Europe/London
 
    Update to front page report queries to allow for wells without plates
