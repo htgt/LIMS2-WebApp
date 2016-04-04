@@ -1,0 +1,4 @@
+[% META title="Clone Request"; META tab_name = "Cells" %]
+<p class="lead">For more information on clones available for gene [% gene_id %] please contact the Stem Cell Engineering team at the Welcome Trust Sanger Institute:</p>
+
+<p class="lead"><strong>Stem Cell Engineering: <a href="mailto:[% email %]?subject=[% gene_id %] clone request">[% email %]</a></strong></p>
