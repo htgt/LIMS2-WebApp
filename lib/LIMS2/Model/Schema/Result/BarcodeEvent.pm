@@ -278,12 +278,20 @@ __PACKAGE__->belongs_to(
 
 sub old_well_as_str{
     my $self = shift;
-    return $self->old_plate->name."_".$self->old_well_name;
+    my $name = "";
+    if($self->old_plate){
+      $name = $self->old_plate->name."_".$self->old_well_name;
+    }
+    return $name;
 }
 
 sub new_well_as_str{
     my $self = shift;
-    return $self->new_plate->name."_".$self->new_well_name;
+    my $name = "";
+    if($self->new_plate){
+      $name = $self->new_plate->name."_".$self->new_well_name;
+    }
+    return $name;
 }
 
 __PACKAGE__->meta->make_immutable;

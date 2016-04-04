@@ -29,10 +29,8 @@
 <th>Barcode</th>
 <th>Date</th>
 <th>User</th>
-<th>Old Plate</th>
-<th>New Plate</th>
-<th>Old Well</th>
-<th>New Well</th>
+<th>Old Location</th>
+<th>New Location</th>
 <th>Old State</th>
 <th>New State</th>
 <th>Comment</th>
@@ -47,10 +45,8 @@
  [% END %]
 <td>[% event.created_at %]</td>
 <td>[% event.created_by.name %]</td>
-<td>[% event.old_well.plate.as_string %]</td>
-<td>[% event.new_well.plate.as_string %]</td>
-<td>[% event.old_well.name %]</td>
-<td>[% event.new_well.name %]</td>
+<td>[% event.old_well_as_str %]</td>
+<td>[% event.new_well_as_str %]</td>
 <td>[% event.old_state.id %]</td>
 <td>[% event.new_state.id %]</td>
 <td>[% event.comment %]</td>

@@ -1018,7 +1018,7 @@ sub plate_well_barcode_history : Path( '/user/plate_well_barcode_history' ) : Ar
             my $most_recent_event = $events[0];
             my @changes;
 
-            if( $most_recent_event->old_well_as_str != $most_recent_event->new_well_as_str ){
+            if( $most_recent_event->old_well_as_str ne $most_recent_event->new_well_as_str ){
                 push @changes, 'Barcode moved from well '.$most_recent_event->old_well_as_str
                            .' to well '.$most_recent_event->new_well_as_str;
             }
