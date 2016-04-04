@@ -142,7 +142,7 @@ sub retrieve_qc_templates {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_templates );
 
-    my $search_params = build_qc_template_search_params( $validated_params );
+    my $search_params = build_qc_template_search_params( $validated_params, $self->schema );
 
     my @templates = $self->schema->resultset('QcTemplate')
         ->search( $search_params, { prefetch => { qc_template_wells => 'qc_eng_seq' } } );

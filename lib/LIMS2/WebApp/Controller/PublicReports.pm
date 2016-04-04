@@ -702,6 +702,20 @@ sub search_primers {
     }
     return;
 }
+
+sub clone_request :Path( '/public_reports/clone_request/' ) :Args(1){
+    my ($self, $c, $gene_id) = @_;
+
+    $ENV{ LIMS2_URL_CONFIG } or die "LIMS2_URL_CONFIG environment variable not set";
+    my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
+    my $email = $conf->{_}->{clone_request_email};
+
+    $c->stash->{gene_id} = $gene_id;
+    $c->stash->{email} = $email;
+
+    return;
+}
+
 =head2 public_gene_report
 
 Public gene report, only show targeted clone details:
@@ -718,9 +732,9 @@ Public gene report, only show targeted clone details:
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
 
-    # FIXME: temporarily require logged in user for this page
-    # to stop robot access
-    $c->assert_user_roles('read');
+    unless($c->user){
+        return $c->response->redirect( $c->uri_for('/public_reports/clone_request', $gene_id) );
+    }
 
     # by default type is Targeted, Distributable as an option
     my $type = 'Targeted';

@@ -30,7 +30,7 @@ override _build_columns => sub {
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
+    my @wells = $self->plate->search_related(
         wells => {},
         {
             prefetch => [
@@ -38,10 +38,10 @@ override iterator => sub {
             ],
             order_by => { -asc => 'me.name' }
         }
-    );
+    )->all;
 
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
+        my $well = shift @wells
             or return;
 
         my ( $crispr_data, $locus_data );
