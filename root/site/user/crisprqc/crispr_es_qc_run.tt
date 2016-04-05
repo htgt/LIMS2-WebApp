@@ -181,42 +181,76 @@ $(document).ready(function() {
 
 var focusTrace;
 var wellTrace;
+var click;
+var wellName;
+var parent;
 
 
 $(document).click(function(event) {
-    var click = $(event.target);
-    var dir = click.children();
-    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
-    if (typeof(dir.attr('id')) != "undefined") {
-        traceviewers.forEach( function(trace) {
-            if (trace.well == wellName) {
-                wellTrace = trace;
-            }
-        });
+    click = $(event.target);
+    children = click.children();
+    parent = click.parent()[0].getElementsByTagName('span');
+    well = click.parents('tr[class^="well_tr"]');
+    wellName = well.attr('id');
+    var id;
+    for (var pos = 0; pos < parent.length; pos++) {
+        if (parent[pos].id != "") {
+            id = parent[pos].id;
+            console.log(parent[pos].id);
+        }
+    }
+    traceviewers.forEach( function(trace) {
+        if (trace.well == wellName) {
+            wellTrace = trace;
+        }
+    });
+
+    console.log(id); 
+    if (id) {
         if (wellTrace) {
-            focusTrace = wellTrace[dir.attr('id') + "_plot"];
-            adjustPane(dir, dir.text());
+            console.log(id + "_plot");
+            focusTrace = wellTrace[id + "_plot"];
+            adjustPane(children, id, click);
         }
         else {
-            console.log(wellName + dir.attr('id') + " not found");
+            console.log(wellName + children.attr('id') + " not found");
+        }
+    }
+    else {
+        var reads = ['forward_full','reverse_full'];
+        var plots = ['fwd','rev'];
+        var query = click.text();
+        for (var count = 0; count < reads.length; count++) {
+            var read = well[0].getElementsByClassName(reads[count])[0].innerText;
+            var result = read.search(query.toUpperCase());
+            if (result != -1) {
+                console.log(plots[count]+ "_plot");
+                focusTrace = wellTrace[plots[count] + "_plot"];
+                adjustPane(children, plots[count], click);
+  
+            }
         }
     }
 });
 
-
+var test;
 var result;
+var test3;
+var test2;
 
-function adjustPane(text, dir) {
+function adjustPane(text, dir, target) {
+    console.log("adjustPane");
     var selection = window.getSelection();
 
     //Using Jquery mouse target $(event.target)
 
-    var tr = text.closest("tr");
+    var tr = target.closest("tr");
+    test = tr[0];
     var well_name = tr.attr('id');
     //Get table row nearest to mouse location
+    var alignmentInner = tr[0];
 
-
-    tr = tr[0].getElementsByTagName('div');
+    tr = alignmentInner.getElementsByTagName('div');
 
     var div;
     for (var counter = 0; counter < tr.length; counter++) {
@@ -224,79 +258,106 @@ function adjustPane(text, dir) {
             div = tr[counter];
         }
     }
-    //HTMLcollection must not be iterated through by foreach
-    //Find the div inside the HTMLcollection containing the two sequences
+
+    test3 = div;
     div = $(div).text();
-    //Remove HTML tags
-    div = div.replace(/-/g,'N');
-    
-    var regex = /[ACTGNn]+/g;
-   
-    var match;
-    result = div.match(regex);
+    var result = sanitise(div);
+    test2 = result;
     //Remove everything not relating to the sequence 
     var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
-    
-    for (var index = 0; index < result.length; index++) {
-        if (result[index].search(focusTrace._read) != -1) {
-            dir = index;
-        }
+    console.log("Read " + focusTrace._read);
+    console.log("Dir " + dir);
+    if (dir == 'fwd') {
+        dir = 0;
+    } else {
+        dir = 1;
+    }
+    console.log("Dir " + dir);
+    if (focusTrace._reduced != 1 && [% truncate %] == 0) {
+        console.log("reach");
+        cleanseReference(result[dir], alignmentInner, dir);
+        focusTrace._reduced = 1;
     }
 
     var loc = findCoords(result, referencePoint, selection, dir);
     wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
 }
 
-function getSliderOffset(seq){
-    var read = focusTrace._read;
-    return seq.search(read);
+function sanitise(text) {
+    text = text.replace(/-/g,'N');
+    
+    var regex = /[ACTGNn]+/g;
+   
+    var match;
+    result = text.match(regex);
+    return result;
 }
 
-function getMouseOffset(seq, selection){
-    if (selection.toString().length > 1) {
-        return seq.search(selection.toString());
+function cleanseReference(userString, row, dir) {
+    var read;
+    if (dir == 0) {
+        read = 'forward_full';
     } else {
-        return seq.search(selection.focusNode.data) + selection.focusOffset;
+        read = 'reverse_full';
     }
+    var fullSeq = row.getElementsByClassName(read)[0].innerText;
+    console.log(fullSeq);
+    console.log(userString.slice(0,10));
+    var offset = fullSeq.search(userString.slice(0,10)); 
+    console.log("Start: " + offset);
+    focusTrace._ref.splice(0,offset);
+    console.log(fullSeq.slice(offset, fullSeq.length));
+}
+var test4;
+function getMouseOffset(seq, selection){
+    var offset;
+    console.log(seq);
+    test4 = selection;
+    if (selection.toString().length > 1) {
+        offset = seq.search(selection.toString());
+    } else {
+        offset = seq.search(selection.focusNode.data) + selection.focusOffset;
+    }
+    console.log("Offset: " + offset);
+
+    return offset;
 }
 
 
 function findCoords(seqs, point, selection, dir) {
     var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq 
+
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
-
-    //Init position is outside of the boundaries
-    if (getSliderOffset(traceSeq) == -1) {
-        focusTrace._initPos = focusTrace._pos;
-    }
-
-    //Allow for an average
-    if (focusTrace._pos == focusTrace._initPos) {
-        forceUpdate();
-    }
-
-    var sliderOffset = getSliderOffset(traceSeq); //Position of traceviewer slider in the seq
-    var positionDiff = Math.round(focusTrace._pos - focusTrace._initPos); 
-    var rate = Math.round( positionDiff / sliderOffset * 100) / 100; //Get rate to 2 decimal places
-
-    var cost = (mouseOffset - sliderOffset) * rate;
-    //Hueristic to mouse point
+    console.log(mouseOffset); 
+    var ends = [];
 
     if (target.length < 5) {
-        return [cost + focusTrace._pos - 125, cost + focusTrace._pos + 125];
-    } else {
-        var endCost = cost + (target.length * rate);
-        return [cost + focusTrace._pos, endCost + focusTrace._pos]; 
+        if ([% truncate %] == 0) {
+            mouseOffset += 10;
+        }
+        ends.push(mouseOffset - 10);
+        ends.push(mouseOffset + 10);
+        if (ends[0] < 0) {
+            ends[0] = 0;
+        }
+        if (ends[1] > traceSeq.length){
+            ends[1] = traceSeq.length;
+        }
     }
-}
+    else {
+        ends.push(mouseOffset);
+        ends.push(mouseOffset + target.length);
+    }
+    
+    var loc = [];
 
-function forceUpdate() {
-    var newPos = focusTrace._pos + 300;
-    wellTrace.moveToPoint(focusTrace, newPos - 125, newPos + 125);
-    //Move the traceviewer to allow for an average of the spacing between bases
+    for (var point = 0; point < ends.length; point++){
+        loc.push(focusTrace._ref[ends[point]]);
+    }
 
+    return loc;
 }
 
 </script>

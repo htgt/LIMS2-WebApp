@@ -5,7 +5,7 @@
     </span><br/>
   </div>
   <div id="seqs[% qc.well_name %]" class="alignment_inner">
-       <span id="f[% qc.well_name %]" class="seq seq_a">
+       <span id="f" class="seq seq_a">
           [% IF qc.alignment.no_forward_read %]
             No Read
           [% ELSIF qc.alignment.no_forward_alignment %]
@@ -15,7 +15,7 @@
           [% END %]
        </span>(F)
     <span style="display: block">
-        <span id="r[% qc.well_name %]" class="seq seq_b">
+        <div id="r" class="seq seq_b">
           [% IF qc.alignment.no_reverse_read %]
             No Read
           [% ELSIF qc.alignment.no_reverse_alignment %]
@@ -23,7 +23,7 @@
           [% ELSE %]
             <div class="rev">[% qc.alignment.reverse %]</div>
           [% END %]
-        </span>(R)
+        </div>(R)
     </span>
   </div>
 </div>
