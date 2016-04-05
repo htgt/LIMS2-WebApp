@@ -356,34 +356,35 @@ function getMouseOffset(seq, selection){
 
 function findCoords(seqs, point, selection) {
     var traceSeq = seqs[0];
-    console.log("length " + traceSeq.length);
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
-
-    //Init position is outside of the boundaries
-    if (getSliderOffset(traceSeq) == -1) {
-        focusTrace._initPos = focusTrace._pos;
-    }
-
-    //Allow for an average
-    if (focusTrace._pos == focusTrace._initPos) {
-        forceUpdate();
-    }
-
-    var sliderOffset = getSliderOffset(traceSeq); //Position of traceviewer slider in the seq
-    var positionDiff = Math.round(focusTrace._pos - focusTrace._initPos); 
-    var rate = Math.round( positionDiff / sliderOffset * 100) / 100; //Get rate to 2 decimal places
-
-    var cost = (mouseOffset - sliderOffset) * rate;
     
-    //Hueristic to mouse point
+    var ends = [];
 
     if (target.length < 5) {
-        return [cost + focusTrace._pos - 125, cost + focusTrace._pos + 125];
-    } else {
-        var endCost = cost + (target.length * rate);
-        return [cost + focusTrace._pos, endCost + focusTrace._pos]; 
+        ends.push(mouseOffset - 10);
+        ends.push(mouseOffset + 10);
+        if (ends[0] < 0) {
+            ends[0] = 0;
+        }
+        if (ends[1] > traceSeq.length){
+            ends[1] = traceSeq.length;
+        }
     }
+    else {
+        mouseOffset = mouseOffset - 1;
+        ends.push(mouseOffset);
+        ends.push(mouseOffset + target.length - 1);
+    }
+    
+    var loc = [];
+
+    for (var point = 0; point < ends.length; point++){
+        loc.push(focusTrace._ref[ends[point]]);
+    }
+
+    return loc;
+
 }
 
 function forceUpdate() {
