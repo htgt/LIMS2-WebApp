@@ -81,7 +81,6 @@ sub trace_data_GET{
     }
 
     my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
-$DB::single=1;
     return $self->status_ok( $c, entity => $data );
 }
 
