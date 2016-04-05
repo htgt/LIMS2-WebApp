@@ -81,7 +81,7 @@ sub trace_data_GET{
     }
 
     my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
-
+$DB::single=1;
     return $self->status_ok( $c, entity => $data );
 }
 
@@ -179,7 +179,7 @@ sub _extract_region {
         };
     }
 
-    return { labels => \@labels, series => \@series, length => $length };
+    return { labels => \@labels, series => \@series, length => $length, bases => \%sample_to_base };
 }
 
 =head1 NAME
