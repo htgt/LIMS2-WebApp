@@ -1,3 +1,23 @@
+0.391     2016-04-05 12:25:32 Europe/London
+   Improved the accuracy of the traceviewer
+
+0.390     2016-04-04 15:14:33 Europe/London
+
+   Redirect not logged in users to clone request info page
+
+0.389     2016-03-24 14:02:34 Europe/London
+
+   Update to front page report queries to allow for wells without plates
+
+0.388     2016-03-23 09:30:07 Europe/London
+
+   Another attempt to speed up summary generation
+   More report fixes
+
+0.387     2016-03-21 16:29:00 Europe/London
+
+    Updates to the EP reports
+
 0.386     2016-03-18 11:29:46 Europe/London
     Sequencing project xls primer option added
 0.385     2016-03-17 15:41:16 Europe/London

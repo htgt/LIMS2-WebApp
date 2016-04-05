@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.386';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.391';
 }
 ## use critic
 

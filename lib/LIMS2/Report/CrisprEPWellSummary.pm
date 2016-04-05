@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPWellSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPWellSummary::VERSION = '0.386';
+    $LIMS2::Report::CrisprEPWellSummary::VERSION = '0.391';
 }
 ## use critic
 
@@ -24,13 +24,14 @@ has '+param_names' => (
 );
 
 override _build_name => sub {
-    return 'Gene Electroporation Summary';
+    return 'Gene Electroporation Well Summary';
 };
 
 override _build_columns => sub {
     return [
         'Gene ID',
         'Gene symbol',
+        'Chromosome',
         'EP well',
         'EP timestamp',
         'To report',
@@ -112,15 +113,18 @@ override iterator => sub {
 
             my $gene_id = $crispr_ep_well->design_gene_id;
 
-            my $design_id= $crispr_ep_well->design_id;
+            my $design_id = $crispr_ep_well->design_id;
 
-            my $cell_line= $crispr_ep_well->crispr_ep_well_cell_line;
+            my $cell_line = $crispr_ep_well->crispr_ep_well_cell_line;
 
             my $design_type = $crispr_ep_well->design_type;
 
             my $design_well = $crispr_ep_well->design_plate_name . '_' . $crispr_ep_well->design_well_name;
 
-            my $dna_template = $crispr_ep_well->dna_template // '';
+            my $dna_template = '';
+            try {
+                $dna_template = $crispr_ep_well->dna_template->id;
+            };
 
             my $assembly = $crispr_ep_well->assembly_plate_name . '_' . $crispr_ep_well->assembly_well_name;
 
@@ -199,7 +203,7 @@ override iterator => sub {
             $damage_counts{'frameshift'} += $damage_counts{'splice_acceptor'} unless (!$damage_counts{'splice_acceptor'});
             my $ep_pick_pass_count = $damage_counts{'wild_type'} + $damage_counts{'in-frame'} + $damage_counts{'frameshift'} + $damage_counts{'mosaic'};
             if (!defined $het_count) {
-                $het_count = '-';
+                $het_count = '';
             }
 
             # PIQ wells
@@ -238,6 +242,7 @@ override iterator => sub {
             my @row = (
                 "$gene_id",
                 "$gene_symbol",
+                "$chromosome",
                 "$ep_well",
                 "$ep_well_ts",
                 "$to_report",

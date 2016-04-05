@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.386';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.391';
 }
 ## use critic
 
@@ -1043,8 +1043,8 @@ sub genes {
         my @ep = $summary_rs->search(
             {
                 -or => [
-                    { ep_plate_name => { '!=', undef } },
-                    { crispr_ep_plate_name => { '!=', undef } },
+                    { ep_well_id => { '!=', undef } },
+                    { crispr_ep_well_id => { '!=', undef } },
                 ],
                 to_report => 't',
             },
@@ -1103,7 +1103,7 @@ sub genes {
             # EP_PICK wells
             my @ep_pick = $summary_rs->search(
                 {
-                    ep_pick_plate_name => { '!=', undef },
+                    ep_pick_well_id => { '!=', undef },
                    -or => [
                         { ep_well_id => $ep_id },
                         { crispr_ep_well_id => $ep_id },
@@ -1194,7 +1194,7 @@ sub genes {
 
         # PIQ wells
         my @piq = $summary_rs->search(
-            {   piq_plate_name => { '!=', undef },
+            {   piq_well_id => { '!=', undef },
                 piq_well_accepted=> 't',
                 to_report => 't' },
             {
@@ -1205,7 +1205,7 @@ sub genes {
         );
 
         push @piq, $summary_rs->search(
-            {   ancestor_piq_plate_name => { '!=', undef },
+            {   ancestor_piq_well_id=> { '!=', undef },
                 ancestor_piq_well_accepted=> 't',
                 to_report => 't' },
             {
