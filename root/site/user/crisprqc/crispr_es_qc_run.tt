@@ -185,6 +185,7 @@ var click;
 var wellName;
 var parent;
 
+var copy;
 
 $(document).click(function(event) {
     click = $(event.target);
@@ -196,7 +197,6 @@ $(document).click(function(event) {
     for (var pos = 0; pos < parent.length; pos++) {
         if (parent[pos].id != "") {
             id = parent[pos].id;
-            console.log(parent[pos].id);
         }
     }
     traceviewers.forEach( function(trace) {
@@ -205,10 +205,8 @@ $(document).click(function(event) {
         }
     });
 
-    console.log(id); 
     if (id) {
         if (wellTrace) {
-            console.log(id + "_plot");
             focusTrace = wellTrace[id + "_plot"];
             adjustPane(children, id, click);
         }
@@ -220,11 +218,11 @@ $(document).click(function(event) {
         var reads = ['forward_full','reverse_full'];
         var plots = ['fwd','rev'];
         var query = click.text();
+        copy = query;
         for (var count = 0; count < reads.length; count++) {
             var read = well[0].getElementsByClassName(reads[count])[0].innerText;
             var result = read.search(query.toUpperCase());
-            if (result != -1) {
-                console.log(plots[count]+ "_plot");
+            if (result > 0) {
                 focusTrace = wellTrace[plots[count] + "_plot"];
                 adjustPane(children, plots[count], click);
   
@@ -233,19 +231,18 @@ $(document).click(function(event) {
     }
 });
 
-var test;
 var result;
-var test3;
-var test2;
 
 function adjustPane(text, dir, target) {
-    console.log("adjustPane");
     var selection = window.getSelection();
 
+    if (typeof(selection.focusNode.data) == 'undefined') {
+        console.log("False click");
+        return;
+    }
     //Using Jquery mouse target $(event.target)
 
     var tr = target.closest("tr");
-    test = tr[0];
     var well_name = tr.attr('id');
     //Get table row nearest to mouse location
     var alignmentInner = tr[0];
@@ -259,36 +256,30 @@ function adjustPane(text, dir, target) {
         }
     }
 
-    test3 = div;
     div = $(div).text();
     var result = sanitise(div);
-    test2 = result;
     //Remove everything not relating to the sequence 
     var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
-    console.log("Read " + focusTrace._read);
-    console.log("Dir " + dir);
     if (dir == 'fwd') {
         dir = 0;
     } else {
         dir = 1;
     }
-    console.log("Dir " + dir);
     if (focusTrace._reduced != 1 && [% truncate %] == 0) {
-        console.log("reach");
         cleanseReference(result[dir], alignmentInner, dir);
         focusTrace._reduced = 1;
     }
 
     var loc = findCoords(result, referencePoint, selection, dir);
     wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
+
 }
 
 function sanitise(text) {
-    text = text.replace(/-/g,'N');
+    text = text.replace("No alignment to target region",'N');
     
-    var regex = /[ACTGNn]+/g;
-   
+    var regex = /[ACTGNn\-]+/g;
     var match;
     result = text.match(regex);
     return result;
@@ -301,25 +292,41 @@ function cleanseReference(userString, row, dir) {
     } else {
         read = 'reverse_full';
     }
-    var fullSeq = row.getElementsByClassName(read)[0].innerText;
-    console.log(fullSeq);
-    console.log(userString.slice(0,10));
-    var offset = fullSeq.search(userString.slice(0,10)); 
-    console.log("Start: " + offset);
-    focusTrace._ref.splice(0,offset);
-    console.log(fullSeq.slice(offset, fullSeq.length));
+
+    var query = "";
+    var bases = ['A','C','T','G'];
+    var explored;
+
+    for (var base = 0; base < focusTrace._labels.length; base++) {
+        if (bases.indexOf(userString[base]) != -1){
+            query += userString[base];
+        } else {  
+            console.log("reset - " + query.length);
+            query = "";
+        }
+
+        if (query.length >= 10) {
+            explored = base;
+            break;
+        }
+    }
+
+    var offset = focusTrace._labels.search(query);
+    offset = offset - (explored - query.length);
+    if (offset > 0) {
+        focusTrace._indices = focusTrace._indices.splice(offset, focusTrace._indices.length);
+        focusTrace._ref = focusTrace._indices;
+    }
 }
-var test4;
+
 function getMouseOffset(seq, selection){
     var offset;
-    console.log(seq);
-    test4 = selection;
+    seq = seq.replace(/-/g,'');
     if (selection.toString().length > 1) {
         offset = seq.search(selection.toString());
     } else {
         offset = seq.search(selection.focusNode.data) + selection.focusOffset;
     }
-    console.log("Offset: " + offset);
 
     return offset;
 }
@@ -330,7 +337,6 @@ function findCoords(seqs, point, selection, dir) {
 
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
-    console.log(mouseOffset); 
     var ends = [];
 
     if (target.length < 5) {
@@ -349,6 +355,16 @@ function findCoords(seqs, point, selection, dir) {
     else {
         ends.push(mouseOffset);
         ends.push(mouseOffset + target.length);
+    }
+
+    if (mouseOffset == -1) {
+        ends[0] = 0;
+        ends[1] = 20;
+    }
+    
+    if (mouseOffset > focusTrace._ref.length) {
+        ends[0] = focusTrace._ref.length - 20;
+        ends[1] = focusTrace._ref.length;
     }
     
     var loc = [];

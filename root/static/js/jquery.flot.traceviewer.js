@@ -360,8 +360,11 @@ TraceViewer.prototype._create_plot = function(placeholder, graph_data, dir, ref)
         }
     });
     plot._initPos = left_boundary;
-    plot._locHash = graph_data.bases;
+    var refData = createReference(graph_data.labels);
+    plot._indices = refData[0];
+    plot._labels = refData[1];
     plot._ref = ref;
+    plot._dir = dir;
     function addZoom(text, left, top, args) {
         $("<div class='button' style='left:" + left + "px;top:" + top + "px;width:7px;text-align:center'>" + text + "</div>")
         .appendTo(placeholder)
@@ -415,4 +418,16 @@ TraceViewer.prototype.moveToPoint = function (plot, first, last) {
     plot.pan(0); //Forces an update
 };
 
-
+function createReference(labels){
+    var sorted_labels = labels.sort(function(a,b) {
+        return a['x'] > b['x']; 
+    });
+    var pos = [];
+    var ref = [];
+    sorted_labels.forEach(function(label) { 
+        pos.push(label.x);
+        ref.push(label.nuc);
+    });
+    ref = ref.join("");
+    return [pos,ref];
+}
