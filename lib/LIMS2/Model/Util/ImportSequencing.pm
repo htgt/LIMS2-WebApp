@@ -113,7 +113,7 @@ sub extract_eurofins_data{
 	        or LOGDIE "Cannot move archive file as LIMS2_SEQ_ARCHIVE_DIR is not set";
 	    INFO "Moving original archive $archive_file to $dir_path";
 	    my $archive_dir = dir($dir_path);
-	    my $archive_to = $archive_dir->file( $archive_file->basename );
+	    my $archive_to = $archive_dir->file( $archive_file->basename.".$time_stamp" );
 	    $archive_file->move_to( $archive_to ) or LOGDIE "Cannot move archive file $archive_file to $archive_to - $!";
     }
 
