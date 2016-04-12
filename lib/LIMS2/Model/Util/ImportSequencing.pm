@@ -19,8 +19,9 @@ use Path::Class;
 use POSIX;
 use File::Path qw(remove_tree);
 use Data::Dumper;
+use LIMS2::Model::Util qw( random_string );
 
-Log::Log4perl->easy_init( { level => $INFO } );
+Log::Log4perl->easy_init( { level => $DEBUG } );
 
 my $STRING_TO_REMOVE = qr/_premix-w\.-temp/;
 my $PROJECT_NAME_RX = qr/^(.*)_\d+[a-z]{1}\d{2}\./;
@@ -56,6 +57,9 @@ sub extract_eurofins_data{
 
 	# Keep track of which project we have found in archive
 	my %projects;
+	my %projects_modified;
+	my %project_versions;
+	my @moves;
 
 	# One directory per plate, e.g. plate_CGaP_EDQ0034_SF
 	# For each directory find scf and seq (not seq.clipped) files
@@ -64,7 +68,7 @@ sub extract_eurofins_data{
 	# Move fixed files to this directory
 	while( my $plate_dir = $temp_dir->next ){
 		next unless -d $plate_dir;
-		while(my $data_file = $plate_dir->next){
+		foreach my $data_file ($plate_dir->children){
 			my ($project_name, $fixed_file);
 	        #if ($data_file =~ /\.seq\.clipped$/){
 	        if($data_file =~ /\.seq$/){
@@ -88,10 +92,35 @@ sub extract_eurofins_data{
 	        	$projects{$project_name} = $project_dir;
 	        }
 
-            INFO "Moving $fixed_file to $project_dir";
-	        $fixed_file->move_to($project_dir) or LOGDIE "Could not move $fixed_file to $project_dir - $!";
+            # Store list of moves to make
+            # We might need to backup some project directories before we do this
+            my $move = {
+            	from => $fixed_file,
+            	to   => $project_dir,
+            };
+            push @moves, $move;
+
+            my $target_location = $project_dir->file( $fixed_file->basename );
+            if(-e $target_location){
+            	WARN "File already exists at $target_location. Will create backup of $project_dir";
+            	$projects_modified{$project_name} = $project_dir;
+            }
 		}
 
+	}
+
+	foreach my $modified_dir (values %projects_modified){
+		my $project = $modified_dir->basename;
+        my $version = backup_data($modified_dir);
+        # method returns project versions so db can be updated with this info
+        $project_versions{$project} = $version;
+	}
+
+	foreach my $move (@moves){
+		my $fixed_file = $move->{from};
+		my $project_dir = $move->{to};
+        INFO "Moving $fixed_file to $project_dir";
+	    $fixed_file->move_to($project_dir) or LOGDIE "Could not move $fixed_file to $project_dir - $!";
 	}
 
 	# Create file archive_names.txt in this dir if not exists
@@ -113,6 +142,7 @@ sub extract_eurofins_data{
 	        or LOGDIE "Cannot move archive file as LIMS2_SEQ_ARCHIVE_DIR is not set";
 	    INFO "Moving original archive $archive_file to $dir_path";
 	    my $archive_dir = dir($dir_path);
+	    $time_stamp =~ s/\s/_/g;
 	    my $archive_to = $archive_dir->file( $archive_file->basename.".$time_stamp" );
 	    $archive_file->move_to( $archive_to ) or LOGDIE "Cannot move archive file $archive_file to $archive_to - $!";
     }
@@ -122,7 +152,33 @@ sub extract_eurofins_data{
 
 	# Return list of projects seen
 	my @sorted_projects = sort keys %projects;
-	return @sorted_projects;
+	return (\@sorted_projects,\%project_versions);
+}
+
+sub backup_data{
+    my ($modified_dir) = @_;
+
+	my $version = random_string(6);
+	my $versioned_dir = $modified_dir->subdir($version);
+	$versioned_dir->mkpath
+	    or die "Could not create $versioned_dir - $!";
+
+    DEBUG "Copying all files from $modified_dir to $versioned_dir to avoid overwriting";
+
+    foreach my $file ($modified_dir->children){
+    	if($file =~/\.(seq|scf)$/){
+	        # Use cp -p command to preserve timestamps of original files
+            system('cp','-p', $file->stringify, $versioned_dir) == 0
+                or die "Could not copy $file to $versioned_dir - $!";
+    	}
+    }
+
+    if(-e $modified_dir->file('archive_names.txt')){
+        $modified_dir->file('archive_names.txt')->copy_to($versioned_dir)
+            or die "Could not copy archive_names.txt from $modified_dir to $versioned_dir - $!";
+    }
+
+    return $version;
 }
 
 # Remove "premix-w.-temp" from file names and read names:
