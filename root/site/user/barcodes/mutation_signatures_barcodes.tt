@@ -88,7 +88,7 @@ highlight {
 [% END %]
 </div>
 <script type="text/javascript">
-var accorfionClone;
+var accordionClone;
 
 window.onload = function () {
     accordionClone = $("#mutation_accordion").clone();
@@ -112,6 +112,7 @@ $(function() {
 function searchThroughAccordion() {
     var states = ['frozen_back', 'doubling_in_progress', 'discarded'];
 
+    removeStyles();
     states.forEach(function(state) {
         highlightSearch(state);
     });
@@ -138,14 +139,17 @@ function highlightSearch(state) {
         var ua = navigator.userAgent;
         var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
 
-        if (browser[1] != "Firefox") {
-            if (count > 0 ){
-                $("#" + state).collapse("show");
-            }
+        //if (browser[1] != "Firefox") {
+        //    if (count > 0 ){
+        $("#" + state).collapse("show");
+        
+        /*
+        }
             else {
                 $("#" + state).collapse("hide");
             }
-        }
+        } 
+        */
     }
 }	
 
