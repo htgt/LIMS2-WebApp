@@ -50,6 +50,17 @@ foreach my $archive(@archives){
 
 if($db_update){
     my $model = LIMS2::Model->new( user => 'lims2' );
+
+    # If import caused any project data to be updated then we need
+    # to add the identifier for the old version of the data to any
+    # QC runs which were done using it
+    foreach my $modified_project (keys %all_project_versions){
+        my @runs_updated = $model->update_qc_runs_with_data_version({
+            sequencing_project      => $modified_project,
+            sequencing_data_version => $all_project_versions{$modified_project},
+        });
+    }
+
     foreach my $project (@all_projects){
         # update in db
         my $now = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));

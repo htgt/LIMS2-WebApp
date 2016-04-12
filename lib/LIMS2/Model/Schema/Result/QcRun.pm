@@ -237,19 +237,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 qc_seq_projects
 
-Type: many_to_many
-
-Composing rels: L</qc_run_seq_projects> -> qc_seq_project
-
-=cut
-
-__PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8sx3uKbG4mH0cl+ftVPF+Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1kZn14JwLZscs+kFIpTzw
 
 use List::MoreUtils qw( uniq );
 

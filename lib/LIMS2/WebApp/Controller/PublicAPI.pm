@@ -37,7 +37,7 @@ sub trace_data_GET{
     my $trace;
     my $traceserver_error;
     try{
-        $trace = $self->traceserver->get_trace( $params->{name} );
+        $trace = $self->traceserver->get_trace( $params->{name}, $params->{version} );
     }
     catch{
         $traceserver_error = $_;
