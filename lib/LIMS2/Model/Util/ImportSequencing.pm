@@ -27,7 +27,7 @@ my $STRING_TO_REMOVE = qr/_premix-w\.-temp/;
 my $PROJECT_NAME_RX = qr/^(.*)_\d+[a-z]{1}\d{2}\./;
 
 sub extract_eurofins_data{
-	my ($archive, $move) = @_;
+	my ($archive, $move_archive) = @_;
 
 	# Unpack zip archive
 	my $tmp_dir_name = $archive;
@@ -116,27 +116,12 @@ sub extract_eurofins_data{
         $project_versions{$project} = $version;
 	}
 
-	foreach my $move (@moves){
-		my $fixed_file = $move->{from};
-		my $project_dir = $move->{to};
-        INFO "Moving $fixed_file to $project_dir";
-	    $fixed_file->move_to($project_dir) or LOGDIE "Could not move $fixed_file to $project_dir - $!";
-	}
-
-	# Create file archive_names.txt in this dir if not exists
-	# Append archive name to this file
-	my $time_stamp = strftime("%Y-%m-%d %H:%M:%S", localtime(time));
-	foreach my $project_dir (values %projects){
-		my $project_list = $project_dir->file('archive_names.txt');
-	    my $fh = $project_list->opena or die "Cannot open $project_list for appending - $!";
-	    my $archive_name = $archive_file->basename;
-	    print $fh "$time_stamp,$archive_name\n";
-	    close $fh;
-	    INFO "Sequencing data in project directory $project_dir updated\n";
-	}
+    perform_file_moves(@moves);
 
 
-    if($move){
+    my $time_stamp = update_archive_names_lists(\%projects,$archive_file);
+
+    if($move_archive){
 	    # Store orig archives in warehouse too
 	    my $dir_path = $ENV{LIMS2_SEQ_ARCHIVE_DIR}
 	        or LOGDIE "Cannot move archive file as LIMS2_SEQ_ARCHIVE_DIR is not set";
@@ -153,6 +138,34 @@ sub extract_eurofins_data{
 	# Return list of projects seen
 	my @sorted_projects = sort keys %projects;
 	return (\@sorted_projects,\%project_versions);
+}
+
+sub update_archive_names_lists{
+	my ($projects, $archive_file) = @_;
+
+	# Create file archive_names.txt in this dir if not exists
+	# Append archive name to this file
+	my $time_stamp = strftime("%Y-%m-%d %H:%M:%S", localtime(time));
+	foreach my $project_dir (values %$projects){
+		my $project_list = $project_dir->file('archive_names.txt');
+	    my $fh = $project_list->opena or die "Cannot open $project_list for appending - $!";
+	    my $archive_name = $archive_file->basename;
+	    print $fh "$time_stamp,$archive_name\n";
+	    close $fh;
+	    INFO "Sequencing data in project directory $project_dir updated\n";
+	}
+	return $time_stamp;
+}
+
+sub perform_file_moves{
+	my @moves = @_;
+	foreach my $move (@moves){
+		my $fixed_file = $move->{from};
+		my $project_dir = $move->{to};
+        INFO "Moving $fixed_file to $project_dir";
+	    $fixed_file->move_to($project_dir) or LOGDIE "Could not move $fixed_file to $project_dir - $!";
+	}
+    return;
 }
 
 sub backup_data{

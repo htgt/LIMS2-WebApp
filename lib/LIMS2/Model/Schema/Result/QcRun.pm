@@ -241,6 +241,16 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1kZn14JwLZscs+kFIpTzw
 
+# Restore many to many relationship which is no longer generated
+# automatically as extra field has been added to the linker table
+
+=head2 qc_seq_projects
+Type: many_to_many
+Composing rels: L</qc_run_seq_projects> -> qc_seq_project
+=cut
+
+__PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
+
 use List::MoreUtils qw( uniq );
 
 sub as_hash {
