@@ -10,6 +10,7 @@ use Sub::Exporter -setup => {
             upload_plate_dna_status
             upload_plate_dna_quality
             upload_plate_pcr_status
+            process_het_status_file
             spreadsheet_to_csv
             csv_to_spreadsheet
           )
@@ -30,6 +31,7 @@ use File::Temp;
 use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
 use LIMS2::Exception::System;
 use File::Slurp;
+use Data::Dumper;
 
 BEGIN {
     #try not to override the lims2 logger
@@ -269,6 +271,45 @@ sub _process_concentration_data{
     DEBUG("concentration: $concentration, minimum: $minimum, result: $result");
     $datum->{dna_status_result} = $result;
     return;
+}
+
+sub _pspec_het_status{
+    return{
+        parent_plate_name => { validate => 'plate_name' },
+        parent_well_name  => { validate => 'well_name' },
+        well_name         => { optional => 1 },
+        five_prime        => { validate => 'non_empty_string', optional => 1 },
+        three_prime       => { validate => 'non_empty_string', optional => 1 },
+    }
+}
+
+sub process_het_status_file{
+    my ( $model, $csv_fh, $user ) = @_;
+
+    my $data = parse_csv_file( $csv_fh );
+
+    my @messages;
+    foreach my $datum (@$data){
+        DEBUG Dumper($datum);
+        my $params = $model->check_params( $datum, _pspec_het_status() );
+
+        my $well = $model->retrieve_well({
+            well_name  => $params->{parent_well_name},
+            plate_name => $params->{parent_plate_name},
+        }) or die "Could not find well ".$params->{parent_plate_name}." ".$params->{parent_well_name};
+
+        my $het_status = $model->set_het_status({
+            well_id     => $well->id,
+            five_prime  => $params->{five_prime},
+            three_prime => $params->{three_prime},
+            user        => $user,
+        });
+
+        push @messages, "Well $well het status: three_prime = "
+                        .$het_status->three_prime.", five_prime: ".$het_status->five_prime;
+    }
+
+    return \@messages;
 }
 
 sub check_plate_type {

@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 use Try::Tiny;
 use LIMS2::Exception::Validation;
 use Sub::Exporter -setup => {
-    exports => [ qw( sanitize_like_expr well_id_for ) ]
+    exports => [ qw( sanitize_like_expr well_id_for random_string) ]
 };
 
 =head2 sanitize_like_expr
@@ -42,6 +42,20 @@ sub well_id_for {
     };
 
     return $well->id;
+}
+
+sub random_string{
+    my ( $length ) = @_;
+
+    $length ||= 6;
+    my @chars=('a'..'z','A'..'Z','0'..'9');
+    my $random_name;
+    for(1..$length){
+        # rand @chars will generate a random
+        # number between 0 and scalar @chars
+        $random_name.=$chars[rand @chars];
+    }
+    return $random_name;
 }
 
 1;

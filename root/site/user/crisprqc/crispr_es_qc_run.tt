@@ -29,7 +29,12 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) [% IF truncate == 0 %], 1 [% END %] );
+        tv = new TraceViewer(
+            "[% c.uri_for('/public_api/trace_data') %]",
+            $(this),
+            [% IF truncate == 0 %] 1 [% ELSE %] 0 [% END %]
+            [% IF sequencing_data_version %],"[% sequencing_data_version %]"[% END %]
+        );
         tv.well = (tv.fwd_container.closest('tr[class^="well_tr"]')) ? tv.fwd_container.closest('tr[class^="well_tr"]').attr('id') : tv.rev_container.closest('tr[class^="well_tr"]').attr('id');
 
         for(var index = 0; index < traceviewers.length; index++) {
@@ -38,9 +43,9 @@ $(document).ready(function() {
                 return;
             }
         };
-  
+
         traceviewers.push(tv);
- 
+
     });
 
     // validate or invalidate run
@@ -225,7 +230,7 @@ $(document).click(function(event) {
             if (result > 0) {
                 focusTrace = wellTrace[plots[count] + "_plot"];
                 adjustPane(children, plots[count], click);
-  
+
             }
         }
     }
@@ -258,7 +263,7 @@ function adjustPane(text, dir, target) {
 
     div = $(div).text();
     var result = sanitise(div);
-    //Remove everything not relating to the sequence 
+    //Remove everything not relating to the sequence
     var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
     if (dir == 'fwd') {
@@ -278,7 +283,7 @@ function adjustPane(text, dir, target) {
 
 function sanitise(text) {
     text = text.replace("No alignment to target region",'N');
-    
+
     var regex = /[ACTGNn\-]+/g;
     var match;
     result = text.match(regex);
@@ -300,7 +305,7 @@ function cleanseReference(userString, row, dir) {
     for (var base = 0; base < focusTrace._labels.length; base++) {
         if (bases.indexOf(userString[base]) != -1){
             query += userString[base];
-        } else {  
+        } else {
             console.log("reset - " + query.length);
             query = "";
         }
@@ -333,7 +338,7 @@ function getMouseOffset(seq, selection){
 
 
 function findCoords(seqs, point, selection, dir) {
-    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq 
+    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq
 
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
@@ -361,12 +366,12 @@ function findCoords(seqs, point, selection, dir) {
         ends[0] = 0;
         ends[1] = 20;
     }
-    
+
     if (mouseOffset > focusTrace._ref.length) {
         ends[0] = focusTrace._ref.length - 20;
         ends[1] = focusTrace._ref.length;
     }
-    
+
     var loc = [];
 
     for (var point = 0; point < ends.length; point++){
