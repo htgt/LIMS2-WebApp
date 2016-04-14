@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.390';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.394';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ sub trace_data_GET{
     my $trace;
     my $traceserver_error;
     try{
-        $trace = $self->traceserver->get_trace( $params->{name} );
+        $trace = $self->traceserver->get_trace( $params->{name}, $params->{version} );
     }
     catch{
         $traceserver_error = $_;
@@ -87,7 +87,6 @@ sub trace_data_GET{
     }
 
     my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
-
     return $self->status_ok( $c, entity => $data );
 }
 
@@ -185,7 +184,7 @@ sub _extract_region {
         };
     }
 
-    return { labels => \@labels, series => \@series, length => $length };
+    return { labels => \@labels, series => \@series, length => $length, bases => \%sample_to_base };
 }
 
 =head1 NAME

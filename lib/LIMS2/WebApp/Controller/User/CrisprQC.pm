@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.390';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.394';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
+use LIMS2::Model::Util::DataUpload qw(process_het_status_file);
 use TryCatch;
 use Log::Log4perl::Level;
 use Bio::Perl qw( revcom );
@@ -80,10 +81,18 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         }
     }
 
+    if($run->sequencing_data_version){
+        $c->stash->{info_msg} = "The data for sequencing project ".$run->sequencing_project
+                                ." has been updated since this QC run was performed."
+                                ." This page shows the old data used by the QC run which is stored as backup version "
+                                .$run->sequencing_data_version;
+    }
+
     $c->stash(
         qc_run_id              => $run->id,
         seq_project            => $run->sequencing_project,
         sub_project            => $run->sub_project,
+        sequencing_data_version => $run->sequencing_data_version,
         species                => $run->species_id,
         wells                  => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
         damage_types           => [ map{ $_->id } @crispr_damage_types ],
@@ -384,6 +393,36 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
     return;
 }
 
+sub upload_het_status_file :Path('/user/crisprqc/upload_het_status_file') :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    return unless $c->req->param('upload_het_status');
+
+    my $het_status = $c->request->upload('datafile');
+    unless ( $het_status ) {
+        $c->stash->{error_msg} = 'No csv file with het status data specified';
+        return;
+    }
+
+    my $model = $c->model('Golgi');
+    $model->txn_do(
+        sub{
+            try{
+                my $messages = process_het_status_file($model,$het_status->fh,$c->user->name);
+                $c->stash->{success_msg} = "Uploaded het status values from ".$het_status->basename.":<br>"
+                                           .join("<br>", @$messages);
+            }
+            catch ($err){
+               $c->stash->{error_msg} = "Error processing ".$het_status->basename.". Nothing has been updated.<br> Error message: $err";
+               $model->txn_rollback;
+            }
+        }
+    );
+
+    return;
+}
 
 
 __PACKAGE__->meta->make_immutable;

@@ -422,6 +422,7 @@ root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
 root/site/user/crisprqc/gene_crispr_es_qc.tt
 root/site/user/crisprqc/submit_crispr_es_qc.tt
+root/site/user/crisprqc/upload_het_status_file.tt
 root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt

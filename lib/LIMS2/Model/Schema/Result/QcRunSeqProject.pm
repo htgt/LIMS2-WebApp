@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcRunSeqProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcRunSeqProject::VERSION = '0.390';
+    $LIMS2::Model::Schema::Result::QcRunSeqProject::VERSION = '0.394';
 }
 ## use critic
 
@@ -57,6 +57,11 @@ __PACKAGE__->table("qc_run_seq_project");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 sequencing_data_version
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -64,6 +69,8 @@ __PACKAGE__->add_columns(
   { data_type => "char", is_foreign_key => 1, is_nullable => 0, size => 36 },
   "qc_seq_project_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "sequencing_data_version",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -113,10 +120,15 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lUI027YlcPmiIDBT1iEbHA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3YDCqvS6pvz9uLlWrVEeiw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+sub id{
+    my $self = shift;
+    return $self->qc_run_id;
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

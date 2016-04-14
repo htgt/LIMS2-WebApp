@@ -1,3 +1,14 @@
+0.394     2016-04-14 11:53:56 Europe/London
+
+    Handle multiple versions of sequencing data for a seq project
+
+0.393     2016-04-11 09:35:15 Europe/London
+    Traceviewer bug fixes
+0.392     2016-04-05 13:20:55 Europe/London
+
+0.391     2016-04-05 12:25:32 Europe/London
+   Improved the accuracy of the traceviewer
+
 0.390     2016-04-04 15:14:33 Europe/London
 
    Redirect not logged in users to clone request info page

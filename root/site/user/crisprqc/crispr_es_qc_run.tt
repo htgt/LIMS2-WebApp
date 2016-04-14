@@ -29,7 +29,12 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) [% IF truncate == 0 %], 1 [% END %] );
+        tv = new TraceViewer(
+            "[% c.uri_for('/public_api/trace_data') %]",
+            $(this),
+            [% IF truncate == 0 %] 1 [% ELSE %] 0 [% END %]
+            [% IF sequencing_data_version %],"[% sequencing_data_version %]"[% END %]
+        );
         tv.well = (tv.fwd_container.closest('tr[class^="well_tr"]')) ? tv.fwd_container.closest('tr[class^="well_tr"]').attr('id') : tv.rev_container.closest('tr[class^="well_tr"]').attr('id');
 
         for(var index = 0; index < traceviewers.length; index++) {
@@ -38,9 +43,9 @@ $(document).ready(function() {
                 return;
             }
         };
-  
+
         traceviewers.push(tv);
- 
+
     });
 
     // validate or invalidate run
@@ -181,42 +186,73 @@ $(document).ready(function() {
 
 var focusTrace;
 var wellTrace;
+var click;
+var wellName;
+var parent;
 
+var copy;
 
 $(document).click(function(event) {
-    var click = $(event.target);
-    var dir = click.children();
-    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
-    if (typeof(dir.attr('id')) != "undefined") {
-        traceviewers.forEach( function(trace) {
-            if (trace.well == wellName) {
-                wellTrace = trace;
-            }
-        });
+    click = $(event.target);
+    children = click.children();
+    parent = click.parent()[0].getElementsByTagName('span');
+    well = click.parents('tr[class^="well_tr"]');
+    wellName = well.attr('id');
+    var id;
+    for (var pos = 0; pos < parent.length; pos++) {
+        if (parent[pos].id != "") {
+            id = parent[pos].id;
+        }
+    }
+    traceviewers.forEach( function(trace) {
+        if (trace.well == wellName) {
+            wellTrace = trace;
+        }
+    });
+
+    if (id) {
         if (wellTrace) {
-            focusTrace = wellTrace[dir.attr('id') + "_plot"];
-            adjustPane(dir, dir.text());
+            focusTrace = wellTrace[id + "_plot"];
+            adjustPane(children, id, click);
         }
         else {
-            console.log(wellName + dir.attr('id') + " not found");
+            console.log(wellName + children.attr('id') + " not found");
+        }
+    }
+    else {
+        var reads = ['forward_full','reverse_full'];
+        var plots = ['fwd','rev'];
+        var query = click.text();
+        copy = query;
+        for (var count = 0; count < reads.length; count++) {
+            var read = well[0].getElementsByClassName(reads[count])[0].innerText;
+            var result = read.search(query.toUpperCase());
+            if (result > 0) {
+                focusTrace = wellTrace[plots[count] + "_plot"];
+                adjustPane(children, plots[count], click);
+
+            }
         }
     }
 });
 
-
 var result;
 
-function adjustPane(text, dir) {
+function adjustPane(text, dir, target) {
     var selection = window.getSelection();
 
+    if (typeof(selection.focusNode.data) == 'undefined') {
+        console.log("False click");
+        return;
+    }
     //Using Jquery mouse target $(event.target)
 
-    var tr = text.closest("tr");
+    var tr = target.closest("tr");
     var well_name = tr.attr('id');
     //Get table row nearest to mouse location
+    var alignmentInner = tr[0];
 
-
-    tr = tr[0].getElementsByTagName('div');
+    tr = alignmentInner.getElementsByTagName('div');
 
     var div;
     for (var counter = 0; counter < tr.length; counter++) {
@@ -224,79 +260,125 @@ function adjustPane(text, dir) {
             div = tr[counter];
         }
     }
-    //HTMLcollection must not be iterated through by foreach
-    //Find the div inside the HTMLcollection containing the two sequences
+
     div = $(div).text();
-    //Remove HTML tags
-    div = div.replace(/-/g,'N');
-    
-    var regex = /[ACTGNn]+/g;
-   
-    var match;
-    result = div.match(regex);
-    //Remove everything not relating to the sequence 
+    var result = sanitise(div);
+    //Remove everything not relating to the sequence
     var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
-    
-    for (var index = 0; index < result.length; index++) {
-        if (result[index].search(focusTrace._read) != -1) {
-            dir = index;
-        }
+    if (dir == 'fwd') {
+        dir = 0;
+    } else {
+        dir = 1;
+    }
+    if (focusTrace._reduced != 1 && [% truncate %] == 0) {
+        cleanseReference(result[dir], alignmentInner, dir);
+        focusTrace._reduced = 1;
     }
 
     var loc = findCoords(result, referencePoint, selection, dir);
     wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
+
 }
 
-function getSliderOffset(seq){
-    var read = focusTrace._read;
-    return seq.search(read);
+function sanitise(text) {
+    text = text.replace("No alignment to target region",'N');
+
+    var regex = /[ACTGNn\-]+/g;
+    var match;
+    result = text.match(regex);
+    return result;
+}
+
+function cleanseReference(userString, row, dir) {
+    var read;
+    if (dir == 0) {
+        read = 'forward_full';
+    } else {
+        read = 'reverse_full';
+    }
+
+    var query = "";
+    var bases = ['A','C','T','G'];
+    var explored;
+
+    for (var base = 0; base < focusTrace._labels.length; base++) {
+        if (bases.indexOf(userString[base]) != -1){
+            query += userString[base];
+        } else {
+            console.log("reset - " + query.length);
+            query = "";
+        }
+
+        if (query.length >= 10) {
+            explored = base;
+            break;
+        }
+    }
+
+    var offset = focusTrace._labels.search(query);
+    offset = offset - (explored - query.length);
+    if (offset > 0) {
+        focusTrace._indices = focusTrace._indices.splice(offset, focusTrace._indices.length);
+        focusTrace._ref = focusTrace._indices;
+    }
 }
 
 function getMouseOffset(seq, selection){
+    var offset;
+    seq = seq.replace(/-/g,'');
     if (selection.toString().length > 1) {
-        return seq.search(selection.toString());
+        offset = seq.search(selection.toString());
     } else {
-        return seq.search(selection.focusNode.data) + selection.focusOffset;
+        offset = seq.search(selection.focusNode.data) + selection.focusOffset;
     }
+
+    return offset;
 }
 
 
 function findCoords(seqs, point, selection, dir) {
-    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq 
+    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq
+
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
-
-    //Init position is outside of the boundaries
-    if (getSliderOffset(traceSeq) == -1) {
-        focusTrace._initPos = focusTrace._pos;
-    }
-
-    //Allow for an average
-    if (focusTrace._pos == focusTrace._initPos) {
-        forceUpdate();
-    }
-
-    var sliderOffset = getSliderOffset(traceSeq); //Position of traceviewer slider in the seq
-    var positionDiff = Math.round(focusTrace._pos - focusTrace._initPos); 
-    var rate = Math.round( positionDiff / sliderOffset * 100) / 100; //Get rate to 2 decimal places
-
-    var cost = (mouseOffset - sliderOffset) * rate;
-    //Hueristic to mouse point
+    var ends = [];
 
     if (target.length < 5) {
-        return [cost + focusTrace._pos - 125, cost + focusTrace._pos + 125];
-    } else {
-        var endCost = cost + (target.length * rate);
-        return [cost + focusTrace._pos, endCost + focusTrace._pos]; 
+        if ([% truncate %] == 0) {
+            mouseOffset += 10;
+        }
+        ends.push(mouseOffset - 10);
+        ends.push(mouseOffset + 10);
+        if (ends[0] < 0) {
+            ends[0] = 0;
+        }
+        if (ends[1] > traceSeq.length){
+            ends[1] = traceSeq.length;
+        }
     }
-}
+    else {
+        ends.push(mouseOffset);
+        ends.push(mouseOffset + target.length);
+    }
 
-function forceUpdate() {
-    var newPos = focusTrace._pos + 300;
-    wellTrace.moveToPoint(focusTrace, newPos - 125, newPos + 125);
-    //Move the traceviewer to allow for an average of the spacing between bases
+    if (mouseOffset == -1) {
+        ends[0] = 0;
+        ends[1] = 20;
+    }
 
+    if (mouseOffset > focusTrace._ref.length) {
+        ends[0] = focusTrace._ref.length - 20;
+        ends[1] = focusTrace._ref.length;
+    }
+
+    var loc = [];
+
+    for (var point = 0; point < ends.length; point++){
+        loc.push(focusTrace._ref[ends[point]]);
+    }
+
+    return loc;
 }
 
 </script>

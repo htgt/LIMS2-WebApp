@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.390';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.394';
 }
 ## use critic
 
@@ -455,6 +455,39 @@ sub list_crispr_es_qc_runs {
     return ( [ map { $_->as_hash({ include_plate_name => 1}) } $resultset->all ], $resultset->pager );
 }
 
+# All QC runs for the specified project which do not already have a data version
+# are updated to use the specified data version
+sub _pspec_update_qc_runs_with_data_version{
+    return {
+        sequencing_project => { validate => 'non_empty_string' },
+        sequencing_data_version => { validate => 'non_empty_string' },
+    };
+}
+
+sub update_qc_runs_with_data_version{
+    my ($self,$params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->_pspec_update_qc_runs_with_data_version);
+
+    my @qc_runs = $self->schema->resultset('QcRunSeqProject')->search({
+        qc_seq_project_id       => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    push @qc_runs, $self->schema->resultset('CrisprEsQcRuns')->search({
+        sequencing_project      => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    foreach my $run (@qc_runs){
+        my $version = $validated_params->{sequencing_data_version};
+
+        $self->log->debug("Adding sequencing_data_version $version to QC run ".$run->id);
+        $run->update({ sequencing_data_version => $version })->discard_changes;
+    }
+
+    return \@qc_runs;
+}
 1;
 
 __END__
