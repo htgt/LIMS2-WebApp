@@ -15,4 +15,16 @@ The High Throughput Gene Targeting (HTGT) lab tracking system.
   <div class="span6">
   </div>
 </div>
+[% FOREACH status IN high %]
+    [% INCLUDE message/warning_message.tt warning = status.message prior = 'warning' date = status.created sid = status.id %]
+[% END %]
+[% FOREACH status IN normal %]
+    [% INCLUDE message/warning_message.tt warning = status.message prior = 'info' date = status.created sid = status.id %]
+[% END %]
+<script type="text/javascript">
 
+$(".close").click(function(test) {
+    $.cookie(this.id, 'true', { expires: 7, path: '/' });
+});
+
+</script>
