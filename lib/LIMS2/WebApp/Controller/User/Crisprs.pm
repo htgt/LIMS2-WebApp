@@ -369,6 +369,12 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
         $c->assert_user_roles( 'edit' );
         _generate_primers_for_crispr_entity($c, $crispr_group);
     }
+    my $crispr_hash = $crispr_group->as_hash;
+    $crispr_group->{gene_symbol} = $c->model('Golgi')->retrieve_gene({ 
+            species => $crispr_hash->{group_crisprs}[0]->{species},
+            search_term => $crispr_hash->{gene_id},
+    })->{gene_symbol};
+
     $c->stash(
         cg           => $crispr_group,
         group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],
