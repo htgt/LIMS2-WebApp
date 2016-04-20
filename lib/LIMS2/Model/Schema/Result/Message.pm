@@ -43,7 +43,7 @@ __PACKAGE__->table("messages");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'info_message_id_seq'
+  sequence: 'messages_id_seq'
 
 =head2 message
 
@@ -92,7 +92,7 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "info_message_id_seq",
+    sequence          => "messages_id_seq",
   },
   "message",
   { data_type => "text", is_nullable => 1 },
@@ -145,8 +145,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-14 09:59:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HkS0TK6GlCzew3+/d+3jqQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-20 15:17:32
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48GHmHI2baow5zMxya+/ew
 
 sub as_hash {
     my $self = shift;
