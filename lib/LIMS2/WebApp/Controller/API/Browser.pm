@@ -262,13 +262,13 @@ sub announcements_GET {
     my $schema = $c->model( 'Golgi' )->schema;
 
     my $sys = $c->request->param( 'sys' );
-    
+
     my $feed = $schema->resultset('Message')->search({
         $sys => 1,
         expiry_date => { '>=', \'now()' }
     },
     {
-        order_by => { -desc => 'created_date' } 
+        order_by => { -desc => 'created_date' }
     });
     my @messages;
     my @high_prior;
