@@ -2,7 +2,7 @@ CREATE TABLE priorities (
     id text primary key
 );
 
-CREATE TABLE message (
+CREATE TABLE messages (
     id serial primary key NOT NULL,
     message text,
     created_date timestamp with time zone,
