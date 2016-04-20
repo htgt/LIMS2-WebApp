@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcSeqProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcSeqProject::VERSION = '0.393';
+    $LIMS2::Model::Schema::Result::QcSeqProject::VERSION = '0.395';
 }
 ## use critic
 
@@ -123,19 +123,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 qc_runs
 
-Type: many_to_many
-
-Composing rels: L</qc_run_seq_projects> -> qc_run
-
-=cut
-
-__PACKAGE__->many_to_many("qc_runs", "qc_run_seq_projects", "qc_run");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jFzzq3YClZ06tBnSbNU2vQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ADnZ0nVaWyrIcZqT6BGW1g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Root;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Root::VERSION = '0.393';
+    $LIMS2::WebApp::Controller::Root::VERSION = '0.395';
 }
 ## use critic
 
@@ -34,7 +34,27 @@ The root page (/)
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
-
+    my $feed = $c->model('Golgi')->schema->resultset('Message')->search({
+        lims => 1,
+        expiry_date => { '>=', \'now()' }
+    },
+    {
+        order_by => { -desc => 'created_date' }
+    });
+    my @messages;
+    my @high_prior;
+    while (my $status = $feed->next){
+        my $message = $status->as_hash;
+        if ($message->{priority} eq 'high'){
+            push @high_prior, $message;
+        } else {
+            push @messages, $message;
+        }
+    }
+    $c->stash(
+        high => \@high_prior,
+        normal => \@messages,
+    );
     return $c->go( 'User', 'index' );
 }
 

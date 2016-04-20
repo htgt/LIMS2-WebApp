@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.393';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.395';
 }
 ## use critic
 
@@ -11,7 +11,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
-use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util qw( sanitize_like_expr random_string );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status upload_plate_dna_quality parse_csv_file upload_plate_pcr_status );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
@@ -674,14 +674,8 @@ sub random_plate_name{
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_random_plate_name);
-    my @chars=('a'..'z','A'..'Z','0'..'9');
-    my $random_name;
-    for(1..6){
-        # rand @chars will generate a random
-        # number between 0 and scalar @chars
-        $random_name.=$chars[rand @chars];
-    }
 
+    my $random_name = random_string(6);
     $random_name = $validated_params->{prefix}.$random_name;
 
     if( try { $self->retrieve_plate({ name => $random_name }) }){

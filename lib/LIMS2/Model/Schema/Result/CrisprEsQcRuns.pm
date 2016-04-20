@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.393';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.395';
 }
 ## use critic
 
@@ -85,6 +85,11 @@ __PACKAGE__->table("crispr_es_qc_runs");
   default_value: false
   is_nullable: 1
 
+=head2 sequencing_data_version
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -107,6 +112,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "validated",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
+  "sequencing_data_version",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -169,8 +176,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-12-01 11:39:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A7ZSinww6G/DqZs50j+0+w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k4uLyw7hX35QuOQetfMr5g
 
 sub as_hash {
   my ( $self, $options ) = @_;

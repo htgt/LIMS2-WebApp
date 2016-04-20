@@ -117,6 +117,7 @@ lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
+lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Nuclease.pm
 lib/LIMS2/Model/Schema/Result/OldProject.pm
@@ -128,6 +129,7 @@ lib/LIMS2/Model/Schema/Result/PlateProcess.pm
 lib/LIMS2/Model/Schema/Result/PlateReport.pm
 lib/LIMS2/Model/Schema/Result/PlateType.pm
 lib/LIMS2/Model/Schema/Result/PrimerBandType.pm
+lib/LIMS2/Model/Schema/Result/Priority.pm
 lib/LIMS2/Model/Schema/Result/Process.pm
 lib/LIMS2/Model/Schema/Result/ProcessBac.pm
 lib/LIMS2/Model/Schema/Result/ProcessBackbone.pm
@@ -422,6 +424,7 @@ root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
 root/site/user/crisprqc/gene_crispr_es_qc.tt
 root/site/user/crisprqc/submit_crispr_es_qc.tt
+root/site/user/crisprqc/upload_het_status_file.tt
 root/site/user/crisprs/browse_crisprs.tt
 root/site/user/crisprs/crispr_group_ucsc_blat.tt
 root/site/user/crisprs/crispr_pair_ucsc_blat.tt
@@ -2385,6 +2388,7 @@ root/static/js/crispr-qc.js
 root/static/js/crisprs.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.7.2.min.js
+root/static/js/jquery.cookie.js
 root/static/js/jquery.flot.min.js
 root/static/js/jquery.flot.navigate.min.js
 root/static/js/jquery.flot.traceviewer.js

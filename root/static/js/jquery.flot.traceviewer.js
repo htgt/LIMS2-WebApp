@@ -31,7 +31,7 @@ function extract_sequence(elem) {
 
             /* really we only want to draw once, not per series */
             var x = plot.getAxes().xaxis;
-            
+
             plot._pos = x.min;
             var reads = [];
             for ( var i = 0; i < plot.labels.length; i++ ) {
@@ -187,7 +187,7 @@ function extract_sequence(elem) {
                 ctx.fillText(nuc, x, y);
             }
         }
-       
+
 
 
 
@@ -212,7 +212,7 @@ function extract_sequence(elem) {
 //add a TraceViewer object for easy creation of plots
 //this is incredibly specific to our layout, though.
 
-function TraceViewer(trace_url, button, full_trace) {
+function TraceViewer(trace_url, button, full_trace, version) {
     if ( ! button && trace_url ) {
         console.log("Please provide a trace button and trace URL");
         return;
@@ -224,12 +224,12 @@ function TraceViewer(trace_url, button, full_trace) {
     this._ref = [];
     this._locHash = new Object();
     this.url = trace_url;
-    this.show_traces(button, full_trace);
+    this.show_traces(button, full_trace, version);
 }
 
 TraceViewer.prototype.toString = function() { return "TraceViewer"; };
 
-TraceViewer.prototype.show_traces = function(button, full_trace) {
+TraceViewer.prototype.show_traces = function(button, full_trace, version) {
     //create container divs with placeholder divs inside to hold the required graphs
     //graphs. Placeholder is where the graph actually gets isnerted
     var fwd_placeholder = $("<div>", {"class":"demo-placeholder forward"});
@@ -252,8 +252,8 @@ TraceViewer.prototype.show_traces = function(button, full_trace) {
         rev_seq = "";
     }
 
-    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"), "fwd");
-    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"), "rev");
+    this.create_plot(fwd_placeholder, button.data("fwd"), fwd_seq, 0, button.data("context"), "fwd", version);
+    this.create_plot(rev_placeholder, button.data("rev"), rev_seq, 1, button.data("context"), "rev", version);
 
     // create button to hide the traces and restore the "View Traces" button
     var hide_button = $("<a>",{
@@ -288,7 +288,7 @@ TraceViewer.prototype.show_traces = function(button, full_trace) {
 };
 
 //wait for data then give it to the real plot creation method
-TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context, dir) {
+TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reverse, context, dir, version) {
     if ( ! name ) { placeholder.parent().hide(); return }; //skip if we do not have a read name
 
     //create local var for this, as "this" in getJSON is different
@@ -298,7 +298,13 @@ TraceViewer.prototype.create_plot = function(placeholder, name, search_seq, reve
     //fetch the users data and add a new graph when the data comes back
     $.getJSON(
         this.url,
-        { "name": name, "search_seq": search_seq, "reverse": reverse, "context": context },
+        {
+            "name": name,
+            "search_seq": search_seq,
+            "reverse": reverse,
+            "context": context,
+            "version": version
+        },
         function(data) {
             console.log(data.bases);
             for (var key in data.bases) {
@@ -420,11 +426,11 @@ TraceViewer.prototype.moveToPoint = function (plot, first, last) {
 
 function createReference(labels){
     var sorted_labels = labels.sort(function(a,b) {
-        return a['x'] > b['x']; 
+        return a['x'] > b['x'];
     });
     var pos = [];
     var ref = [];
-    sorted_labels.forEach(function(label) { 
+    sorted_labels.forEach(function(label) {
         pos.push(label.x);
         ref.push(label.nuc);
     });

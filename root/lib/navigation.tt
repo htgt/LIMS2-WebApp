@@ -160,6 +160,9 @@
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]">Upload het status</a>
+            </li>
 
             <li class="divider"></li>
             <li>
@@ -305,6 +308,8 @@
       <ul class="nav pull-right">
         <li class="divider-vertical"></li>
 
+        <li onclick="getAnnouncements()"><a><i class="icon-envelope"></i></a></li>
+
         [% IF c.session.display_type %]
             <li><a id="display_type_default" data-display-type="default"
                 [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
@@ -383,3 +388,12 @@
     [% END %]
   </div>
 </div>
+
+
+[% INCLUDE message/announcements.tt sys = 'lims' %]
+<script type="text/javascript">
+function getAnnouncements(){
+    $('#announceModal').modal({show: true});
+}
+
+</script>

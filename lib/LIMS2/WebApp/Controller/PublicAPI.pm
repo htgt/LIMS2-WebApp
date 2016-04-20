@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.393';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.395';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ sub trace_data_GET{
     my $trace;
     my $traceserver_error;
     try{
-        $trace = $self->traceserver->get_trace( $params->{name} );
+        $trace = $self->traceserver->get_trace( $params->{name}, $params->{version} );
     }
     catch{
         $traceserver_error = $_;
