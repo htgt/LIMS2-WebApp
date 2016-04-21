@@ -254,37 +254,5 @@ sub unique_crispr_GET {
     return $c->response->body( $body );
 }
 
-sub announcements :Path('/api/announcements') : Args(0) :ActionClass('REST') {
-}
 
-sub announcements_GET {
-    my ( $self, $c ) = @_;
-    my $schema = $c->model( 'Golgi' )->schema;
-
-    my $sys = $c->request->param( 'sys' );
-
-    my $feed = $schema->resultset('Message')->search({
-        $sys => 1,
-        expiry_date => { '>=', \'now()' }
-    },
-    {
-        order_by => { -desc => 'created_date' }
-    });
-    my @messages;
-    my @high_prior;
-    while (my $status = $feed->next){
-        my $message = $status->as_hash;
-        if ($message->{priority} eq 'high'){
-            push @high_prior, $message;
-        } else {
-            push @messages, $message;
-        }
-    }
-    my %body = (
-        high => \@high_prior,
-        normal => \@messages,
-    );
-    my $json = encode_json \%body;
-    return $c->response->body( $json );
-}
 1;
