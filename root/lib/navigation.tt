@@ -160,6 +160,9 @@
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]">Upload het status</a>
+            </li>
 
             <li class="divider"></li>
             <li>

@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.394     2016-04-14 11:53:56 Europe/London
+
+    Handle multiple versions of sequencing data for a seq project
+
 0.393     2016-04-11 09:35:15 Europe/London
     Traceviewer bug fixes
 0.392     2016-04-05 13:20:55 Europe/London
