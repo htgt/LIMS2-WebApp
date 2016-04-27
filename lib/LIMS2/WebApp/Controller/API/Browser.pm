@@ -18,6 +18,7 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_groups_for_region
     crispr_groups_to_gff
 /;
+use JSON;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -252,5 +253,6 @@ sub unique_crispr_GET {
     my $body = join "\n", @{$unique_crispr_data_gff};
     return $c->response->body( $body );
 }
+
 
 1;

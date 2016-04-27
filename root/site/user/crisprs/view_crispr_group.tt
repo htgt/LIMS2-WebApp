@@ -9,6 +9,7 @@
     <tr><th>ID</th> <td>[% cg.id %]</td></tr>
     <tr><th>Species</th> <td>[% cg.species %]</td></tr>
     <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
+    <tr><th>Gene Symbol</th> <td>[% cg.gene_symbol %]</td></tr>
   </table>
 </div>
 

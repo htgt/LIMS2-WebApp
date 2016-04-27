@@ -6,6 +6,7 @@
 <tr>
   <th>Checkout Date</th>
   <th>Checkout User</th>
+  <th>Gene ID</th>
   <th>Gene Symbol</th>
   <th>EPD parent</th>
   <th>Last Known Location</th>
@@ -18,6 +19,7 @@
 <tr>
   <td>[% bc.checkout_date %]</td>
   <td>[% bc.checkout_user %]</td>
+  <td>[% bc.design_gene_id %]</td>
   <td>[% bc.design_gene_symbol %]</td>
   <td>[% bc.parent_epd %]</td>
   <td>[% bc.last_known_location %]</td>
