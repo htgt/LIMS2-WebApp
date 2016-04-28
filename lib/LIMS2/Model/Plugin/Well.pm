@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.394';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.397';
 }
 ## use critic
 
@@ -230,7 +230,7 @@ sub create_well_accepted_override {
         = $self->check_params( $params, $self->pspec_create_well_accepted_override );
 
     my $well = $self->retrieve_well(
-        { slice_def $validated_params, qw( plate_name well_name well_id ) } );
+        { slice_def $validated_params, qw( plate_name well_name id ) } );
 
     my $override = $well->create_related( well_accepted_override =>
             { slice_def $validated_params, qw( created_by_id created_at accepted ) } );

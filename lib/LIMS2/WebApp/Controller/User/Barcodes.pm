@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.394';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.397';
 }
 ## use critic
 
@@ -328,6 +328,13 @@ sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args
     my $display_details = $self->_multiple_well_display_details($c,\@checked_out);
 
     my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @$display_details;
+    foreach my $barcode (@sorted){
+        my $gene = $c->model('Golgi')->retrieve_gene({
+            species => $c->session->{selected_species},
+            search_term => $barcode->{design_gene_symbol},
+        })->{gene_id};
+        $barcode->{design_gene_id} = $gene;
+    }
     $c->stash->{plate_type} = $plate_type;
     $c->stash->{barcodes} = \@sorted;
     $c->stash->{discard_reasons} = [ "contamination", "failed QC", "failed to recover",  "used for testing" ];

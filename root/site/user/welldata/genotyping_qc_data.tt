@@ -1,5 +1,7 @@
 [%- META title = 'Genotyping QC Results'; META tab_name = 'QC'  %]
-
+<style>
+.row-well-released .x-grid-cell{background-color: #ccffcc}
+</style>
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
 <script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js', {id=>1}) %]"></script>
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.394';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.397';
 }
 ## use critic
 
@@ -24,6 +24,7 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_groups_for_region
     crispr_groups_to_gff
 /;
+use JSON;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -258,5 +259,6 @@ sub unique_crispr_GET {
     my $body = join "\n", @{$unique_crispr_data_gff};
     return $c->response->body( $body );
 }
+
 
 1;
