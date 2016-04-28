@@ -33,7 +33,7 @@ sub index :Path :Args(0) {
         expiry_date => { '>=', \'now()' }
     },
     {
-        order_by => { -desc => 'created_date' } 
+        order_by => { -desc => 'created_date' }
     });
     my @messages;
     my @high_prior;
