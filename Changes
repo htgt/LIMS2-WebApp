@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.397     2016-04-28 11:27:05 Europe/London
+
+   Support manual release of PIQ barcoded wells to mutation signatures
+
 0.396     2016-04-21 16:48:37 Europe/London
     Moved announcements api to public
 0.395     2016-04-20 16:19:56 Europe/London
