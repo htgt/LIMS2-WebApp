@@ -188,7 +188,7 @@ sub retrieve_well_accepted_override {
     $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     my $well = $self->retrieve_well( $params );
     my $accepted_override = $well->well_accepted_override
-        or $self->throw( NotFound => { entity_class => 'WellChromosomeFail', search_params => $params } );;
+        or $self->throw( NotFound => { entity_class => 'WellAcceptedOverride', search_params => $params } );;
     return $accepted_override;
 }
 

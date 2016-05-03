@@ -131,6 +131,13 @@ __PACKAGE__->belongs_to(
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+    return ($self->accepted ? 'TRUE' : 'FALSE');
+}
+
 sub as_hash {
     my $self = shift;
 
