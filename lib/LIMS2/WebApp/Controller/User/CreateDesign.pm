@@ -272,6 +272,15 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         else {
             $stash_hash{five_prime_exon} = $exon_picks;
         }
+
+        my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $c->session->{selected_species} );
+        my $five_prime_exon = $ensembl_util->exon_adaptor->fetch_by_stable_id( $stash_hash{five_prime_exon} );
+        $stash_hash{browse_start} = $five_prime_exon->seq_region_start - 2000;
+        $stash_hash{browse_end} = $five_prime_exon->seq_region_end + 2000;
+        $stash_hash{chromosome} = $five_prime_exon->seq_region_name;
+        $stash_hash{species} = $c->session->{selected_species};
+        $stash_hash{assembly} = lc( $c->model('Golgi')->get_species_default_assembly($c->session->{selected_species}) );
+
         $c->stash( %stash_hash );
         $c->go( 'create_gibson_design' );
     }

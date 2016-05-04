@@ -41,6 +41,7 @@ Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
   model     : Genoverse.Track.Model.Transcript.GFF3,
   view      : Genoverse.Track.View.Transcript,
   controller : Genoverse.Track.Controller.DesignsLIMS2,
+  name_suffix : " oligo",
   populateMenu : function (f) {
     // get up to date feature object
     var feature = this.track.model.featuresById[f.id] || f;
@@ -52,7 +53,7 @@ Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
     console.log("LIMS2 genoverse custom tracks");
     if(feature.oligo_name){
       atts = {
-        Name  : (feature.oligo_name + " oligo"),
+        Name  : (feature.oligo_name + this.track.name_suffix),
         'Oligo Start' : feature.start,
         'Oligo End'   : feature.end,
         Strand : feature.strand,

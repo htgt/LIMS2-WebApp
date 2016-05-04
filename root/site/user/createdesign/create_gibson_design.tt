@@ -1,5 +1,121 @@
 [% META title = "Create Exon Target Gibson Design"; META tab_name = "Designs" %]
 
+<script type="text/javascript">
+
+var crispr_for_region_params = [
+    "assembly_id=[% assembly %]",
+    "species=[%c.session.selected_species%]"
+];
+
+var crispr_pairs_for_region_params = [
+    "assembly_id=[% assembly %]",
+    "species=[%c.session.selected_species%]"
+];
+
+var crispr_groups_for_region_params = [
+    "assembly_id=[% assembly %]",
+    "species=[%c.session.selected_species%]"
+];
+
+var generic_designs_params = [
+    "assembly_id=[% assembly %]",
+];
+
+var default_design_params = [
+    "five_prime_exon=[% five_prime_exon %]",
+    "three_prime_exon=[% three_prime_exon %]",
+    "assembly_id=[% assembly %]",
+    "species=[% species %]"
+];
+
+</script>
+
+<script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
+<script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 2} )%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 6})%]"></script>
+
+<script>
+      var species = '[% c.session.selected_species %]';
+      var ensembl_species = species.toLowerCase();
+      var ensembl_url = 'http://[% assembly == "GRCh37" ? "grch37." : "" %]rest.ensembl.org';
+
+      var genoverseConfig = {
+        width     : 1060,
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        [% USE String(genome) %]
+        genome    : '[% assembly %]', // see js/genomes/
+        chr       : '[% chromosome %]',
+        start     : [% browse_start %] - 500,
+        end       : [% browse_end %] + 500,
+        plugins   : [ 'controlPanelWGE', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        tracks    : [
+          Genoverse.Track.Scalebar,
+          Genoverse.Track.SequenceSelect.extend({
+            name      : 'Sequence',
+            id        : 'Sequence', //need this for tracksById
+            url       : ensembl_url + '/sequence/region/' + ensembl_species + '/__CHR__:__START__-__END__?content-type=text/plain',
+            resizable : 'auto',
+            100000    : false,
+            controls  : 'off',
+            unsortable : true
+          }),
+          Genoverse.Track.Genes.extend({
+            name   : 'Genes',
+            id     : 'Genes',
+            //FIXME: should pass species to this template so we do not rely on assembly
+            url    : ensembl_url + '/overlap/region/' + ensembl_species + '/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            height : 200,
+            controls  : 'off',
+            unsortable : true
+          }),
+          Genoverse.Track.DesignsLIMS2.extend({
+          	name      : 'Design Parameters',
+          	url       : "[% c.uri_for('/api/default_design_params') %]" + build_uri_params(default_design_params ),
+          	height    : 100,
+          	name_suffix : " region"
+          }),
+          Genoverse.Track.DesignsLIMS2.extend({
+            name      : 'Designs',
+            url       : "[% c.uri_for('/api/generic_designs')%]" + build_uri_params( generic_designs_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            design_report_uri : "[%  c.uri_for('/user/view_design') %]"
+          }),
+          Genoverse.Track.CrisprPairs.LIMS2.extend({
+            name      : 'Crispr_pairs',
+            url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
+          }),
+          Genoverse.Track.CrisprGroupsLIMS2.extend({
+            name      : 'Crispr_groups',
+            url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            group_report_uri : "[% c.uri_for('/user/crispr_group') %]"
+          }),
+          Genoverse.Track.Crisprs.LIMS2.extend({
+            name      : 'Crisprs',
+            url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
+            resizable : 'auto',
+            height    : 150,
+            crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
+          }),
+          Genoverse.Track.Scaleline
+        ]
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.genoverse = new Genoverse(genoverseConfig);
+      });
+</script>
+
+<div id="genoverse">
+</div>
+
 [% INCLUDE 'create_design/exon_target_gibson_parameter_diagram.tt' %]
 
 

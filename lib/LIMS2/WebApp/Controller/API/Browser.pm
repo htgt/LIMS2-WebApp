@@ -6,19 +6,21 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crisprs_for_region
     crisprs_to_gff
     crispr_pairs_for_region
-    crispr_pairs_to_gff 
+    crispr_pairs_to_gff
     gibson_designs_for_region
     design_oligos_to_gff
     generic_designs_for_region
     generic_design_oligos_to_gff
     primers_for_crispr_pair
     crispr_primers_to_gff
-    unique_crispr_data 
+    unique_crispr_data
     unique_crispr_data_to_gff
     crispr_groups_for_region
     crispr_groups_to_gff
+    design_params_to_gff
 /;
 use JSON;
+use WebAppCommon::Design::DesignParameters qw( c_get_default_design_params );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -254,5 +256,26 @@ sub unique_crispr_GET {
     return $c->response->body( $body );
 }
 
+=head default_design_params
+Given: target_start, target_end, assembly, (design_type - not yet implemented)
+Returns GFF containing default regions to search in for design oligo generation
+=cut
+
+sub default_design_params :Path('/api/default_design_params') :Args(0) :ActionClass('REST') {
+}
+
+sub default_design_params_GET{
+    my ( $self, $c ) = @_;
+    my $default_params = c_get_default_design_params($c->req->params);
+    my $general_params = {
+        chr_name    => $c->req->param('chr'),
+        design_type => 'gibson',
+    };
+
+    my $default_params_gff = design_params_to_gff($default_params, $general_params);
+    $c->response->content_type('text/plain');
+    my $body = join "\n", @{$default_params_gff};
+    return $c->response->body( $body );
+}
 
 1;

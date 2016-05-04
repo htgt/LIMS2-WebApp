@@ -28,6 +28,7 @@ use Sub::Exporter -setup => {
         unique_crispr_data_to_gff
         crispr_groups_for_region
         crispr_groups_to_gff
+        design_params_to_gff
     ) ]
 };
 
@@ -643,6 +644,55 @@ sub generic_design_oligos_to_gff {
 }
 
 
+sub design_params_to_gff{
+    my ($design_params, $general_params) = @_;
+
+    my @gff;
+
+    push @gff, "##gff-version 3";
+
+    my ($start,$end);
+    if($design_params->{'strand'} == 1){
+        $start = $design_params->{'5F_start'};
+        $end = $design_params->{'3R_end'};
+    }
+    else{
+        $start = $design_params->{'3R_start'};
+        $end = $design_params->{'5F_end'};
+    }
+
+    my $id = "design_oligo_regions";
+    my $parent_item = {
+        'seqid' => $general_params->{'chr_name'},
+        'source' => 'LIMS2',
+        'type' =>  $general_params->{'design_type'}." oligo search regions",
+        'start' => $start,
+        'end' => $end,
+        'score' => '.',
+        'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+        'phase' => '.',
+        'attributes' => "ID=$id;Name=$id;",
+    };
+    push @gff, prep_gff_datum($parent_item);
+
+    foreach my $region ( qw(5F 5R target 3F 3R)){
+        my $child_item = {
+            'seqid' => $general_params->{'chr_name'},
+            'source' => 'LIMS2',
+            'type' =>  'CDS',
+            'start' => $design_params->{$region.'_start'},
+            'end' => $design_params->{$region.'_end'},
+            'score' => '.',
+            'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+            'phase' => '.',
+            'attributes' => "Parent=$id;ID=$region;Name=$region;color=".gibson_colour($region),
+        };
+        push @gff, prep_gff_datum($child_item);
+    }
+
+    return \@gff;
+}
+
 =head parse_gibson_designs
 Given and GibsonDesignBrowser Resultset.
 Returns hashref of hashrefs keyd on design_id
@@ -791,6 +841,7 @@ sub gibson_colour {
         'ER' => '#589BDD',
         '3F' => '#BF249B',
         '3R' => '#BF249B',
+        'target' => '#000000',
     );
     return $colours{ $oligo_type_id };
 }
