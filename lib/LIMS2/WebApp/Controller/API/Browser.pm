@@ -20,7 +20,7 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     design_params_to_gff
 /;
 use JSON;
-use WebAppCommon::Design::DesignParameters qw( c_get_default_design_params );
+use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -256,25 +256,25 @@ sub unique_crispr_GET {
     return $c->response->body( $body );
 }
 
-=head default_design_params
-Given: target_start, target_end, assembly, (design_type - not yet implemented)
-Returns GFF containing default regions to search in for design oligo generation
+=head design_region_coords
+Given: target_start, target_end, chr, assembly, design_type, list of specified region lengths and offsets
+Returns GFF containing coords of regions to search in for design oligo generation
 =cut
 
-sub default_design_params :Path('/api/default_design_params') :Args(0) :ActionClass('REST') {
+sub design_region_coords :Path('/api/design_region_coords') :Args(0) :ActionClass('REST') {
 }
 
-sub default_design_params_GET{
+sub design_region_coords_GET{
     my ( $self, $c ) = @_;
-    my $default_params = c_get_default_design_params($c->req->params);
+    my $region_coords = c_get_design_region_coords($c->req->params);
     my $general_params = {
         chr_name    => $c->req->param('chr'),
-        design_type => 'gibson',
+        design_type => $c->req->param('design_type'),
     };
 
-    my $default_params_gff = design_params_to_gff($default_params, $general_params);
+    my $params_gff = design_params_to_gff($region_coords, $general_params);
     $c->response->content_type('text/plain');
-    my $body = join "\n", @{$default_params_gff};
+    my $body = join "\n", @{$params_gff};
     return $c->response->body( $body );
 }
 

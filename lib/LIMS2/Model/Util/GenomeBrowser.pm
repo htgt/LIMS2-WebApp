@@ -651,23 +651,13 @@ sub design_params_to_gff{
 
     push @gff, "##gff-version 3";
 
-    my ($start,$end);
-    if($design_params->{'strand'} == 1){
-        $start = $design_params->{'5F_start'};
-        $end = $design_params->{'3R_end'};
-    }
-    else{
-        $start = $design_params->{'3R_start'};
-        $end = $design_params->{'5F_end'};
-    }
-
     my $id = "design_oligo_regions";
     my $parent_item = {
         'seqid' => $general_params->{'chr_name'},
         'source' => 'LIMS2',
         'type' =>  $general_params->{'design_type'}." oligo search regions",
-        'start' => $start,
-        'end' => $end,
+        'start' => $design_params->{'start'},
+        'end' => $design_params->{'end'},
         'score' => '.',
         'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
         'phase' => '.',
@@ -675,7 +665,7 @@ sub design_params_to_gff{
     };
     push @gff, prep_gff_datum($parent_item);
 
-    foreach my $region ( qw(5F 5R target 3F 3R)){
+    foreach my $region ( @{ $design_params->{region_list} } ){
         my $child_item = {
             'seqid' => $general_params->{'chr_name'},
             'source' => 'LIMS2',
@@ -685,7 +675,7 @@ sub design_params_to_gff{
             'score' => '.',
             'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
             'phase' => '.',
-            'attributes' => "Parent=$id;ID=$region;Name=$region;color=".gibson_colour($region),
+            'attributes' => "Parent=$id;ID=$region;Name=$region;color=".generic_colour($region),
         };
         push @gff, prep_gff_datum($child_item);
     }
@@ -841,7 +831,6 @@ sub gibson_colour {
         'ER' => '#589BDD',
         '3F' => '#BF249B',
         '3R' => '#BF249B',
-        'target' => '#000000',
     );
     return $colours{ $oligo_type_id };
 }
@@ -866,6 +855,10 @@ sub generic_colour {
         'N' => '#18D6CD',
         'f5F' => '#68D310',
         'f3R' => '#BF249B',
+        # These are for design oligo search regions:
+        '5R_EF' => '#68D310',
+        'ER_3F' => '#BF249B',
+        'target' => '#000000',
     );
     return $colours{ $oligo_type_id };
 }

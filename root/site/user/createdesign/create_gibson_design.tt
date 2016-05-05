@@ -21,12 +21,29 @@ var generic_designs_params = [
     "assembly_id=[% assembly %]",
 ];
 
-var default_design_params = [
+var design_params = [
     "five_prime_exon=[% five_prime_exon %]",
     "three_prime_exon=[% three_prime_exon %]",
     "assembly_id=[% assembly %]",
     "species=[% species %]"
 ];
+
+function reload_design_params_track(){
+	var tracksById = $(window)[0].genoverse.tracksById;
+
+	var track = $(window)[0].genoverse.tracksById['Design Parameters'];
+	$("#diagram [type=text]").each(function(index){
+		var input_id = $(this).attr('id');
+        track.urlParams[input_id] = $(this).val();
+	});
+  track.urlParams.design_type = $( "input[name=design_type]:checked" ).val();
+
+	reload_track(track);
+}
+
+function get_diagram_params(){
+
+}
 
 </script>
 
@@ -72,9 +89,11 @@ var default_design_params = [
           }),
           Genoverse.Track.DesignsLIMS2.extend({
           	name      : 'Design Parameters',
-          	url       : "[% c.uri_for('/api/default_design_params') %]" + build_uri_params(default_design_params ),
+          	id        : 'Design Parameters',
+          	url       : "[% c.uri_for('/api/design_region_coords') %]" + build_uri_params(design_params ),
           	height    : 100,
-          	name_suffix : " region"
+          	name_suffix : " region",
+          	urlParams : {}
           }),
           Genoverse.Track.DesignsLIMS2.extend({
             name      : 'Designs',
@@ -109,7 +128,13 @@ var default_design_params = [
       };
 
       document.addEventListener('DOMContentLoaded', function () {
+      	$("#diagram").on('change','[type=text]', function(){
+            console.log("something changed");
+            reload_design_params_track();
+        });
+console.log('starting genoverse');
         window.genoverse = new Genoverse(genoverseConfig);
+        reload_design_params_track();
       });
 </script>
 
