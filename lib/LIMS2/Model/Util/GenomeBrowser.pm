@@ -675,7 +675,7 @@ sub design_params_to_gff{
             'score' => '.',
             'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
             'phase' => '.',
-            'attributes' => "Parent=$id;ID=$region;Name=$region;color=".generic_colour($region),
+            'attributes' => "ID=$region;Parent=$id;Name=$region;color=".generic_colour($region),
         };
         push @gff, prep_gff_datum($child_item);
     }

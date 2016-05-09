@@ -14,6 +14,9 @@ use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
+use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
+use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -330,6 +333,35 @@ sub generate_exon_pick_data : Private {
         $c->log->warn("Problem finding gene: $e");
         $c->stash( error_msg => "Problem finding gene: $e" );
     };
+
+    return;
+}
+
+sub design_params_ucsc : Path( '/user/design_params_ucsc') : Args {
+    my ( $self, $c ) = @_;
+
+    my $region_coords = c_get_design_region_coords($c->req->params);
+    my $general_params = {
+        chr_name    => $c->req->param('chr'),
+        design_type => $c->req->param('design_type'),
+    };
+    my $params_gff = design_params_to_gff($region_coords, $general_params);
+
+    # See docs here on info required to generate a custom annotation
+    # track in UCSC browser:
+    # https://genome.ucsc.edu/goldenpath/help/hgTracksHelp.html#CustomTracks
+    my $gff_string = join "\n", map { $_ =~ /^#/ ? $_ : "chr".$_ } @{$params_gff};
+    my $browser_options = "browser position chr".$general_params->{chr_name}
+                          .":".$region_coords->{start}."-".$region_coords->{end};
+    $browser_options .= "\ntrack name='LIMS2 design regions' visibility=full color=182,100,245";
+
+    $c->stash(
+        clade => "mammal",
+        org   => $c->session->{selected_species},
+        db    => ($c->session->{selected_species} eq "Human" ? "hg38" : "mm10"),
+        browser_options => $browser_options,
+        gff_string => $gff_string,
+    );
 
     return;
 }
