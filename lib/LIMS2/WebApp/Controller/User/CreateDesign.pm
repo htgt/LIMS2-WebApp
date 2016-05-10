@@ -351,8 +351,10 @@ sub design_params_ucsc : Path( '/user/design_params_ucsc') : Args {
     # track in UCSC browser:
     # https://genome.ucsc.edu/goldenpath/help/hgTracksHelp.html#CustomTracks
     my $gff_string = join "\n", map { $_ =~ /^#/ ? $_ : "chr".$_ } @{$params_gff};
+
     my $browser_options = "browser position chr".$general_params->{chr_name}
                           .":".$region_coords->{start}."-".$region_coords->{end};
+    $browser_options .= "\nbrowser dense gc5BaseBw"; # show GC content track
     $browser_options .= "\ntrack name='LIMS2 design regions' visibility=full color=182,100,245";
 
     $c->stash(
