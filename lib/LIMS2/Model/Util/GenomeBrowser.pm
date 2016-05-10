@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.397';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.398';
 }
 ## use critic
 
@@ -34,6 +34,7 @@ use Sub::Exporter -setup => {
         unique_crispr_data_to_gff
         crispr_groups_for_region
         crispr_groups_to_gff
+        design_params_to_gff
     ) ]
 };
 
@@ -649,6 +650,45 @@ sub generic_design_oligos_to_gff {
 }
 
 
+sub design_params_to_gff{
+    my ($design_params, $general_params) = @_;
+
+    my @gff;
+
+    push @gff, "##gff-version 3";
+
+    my $id = "design_oligo_regions";
+    my $parent_item = {
+        'seqid' => $general_params->{'chr_name'},
+        'source' => 'LIMS2',
+        'type' =>  $general_params->{'design_type'}." oligo search regions",
+        'start' => $design_params->{'start'},
+        'end' => $design_params->{'end'},
+        'score' => '.',
+        'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+        'phase' => '.',
+        'attributes' => "ID=$id;Name=$id;",
+    };
+    push @gff, prep_gff_datum($parent_item);
+
+    foreach my $region ( @{ $design_params->{region_list} } ){
+        my $child_item = {
+            'seqid' => $general_params->{'chr_name'},
+            'source' => 'LIMS2',
+            'type' =>  'CDS',
+            'start' => $design_params->{$region.'_start'},
+            'end' => $design_params->{$region.'_end'},
+            'score' => '.',
+            'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+            'phase' => '.',
+            'attributes' => "ID=$region;Parent=$id;Name=$region;color=".generic_colour($region),
+        };
+        push @gff, prep_gff_datum($child_item);
+    }
+
+    return \@gff;
+}
+
 =head parse_gibson_designs
 Given and GibsonDesignBrowser Resultset.
 Returns hashref of hashrefs keyd on design_id
@@ -821,6 +861,10 @@ sub generic_colour {
         'N' => '#18D6CD',
         'f5F' => '#68D310',
         'f3R' => '#BF249B',
+        # These are for design oligo search regions:
+        '5R_EF' => '#68D310',
+        'ER_3F' => '#BF249B',
+        'target' => '#000000',
     );
     return $colours{ $oligo_type_id };
 }

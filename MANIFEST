@@ -370,7 +370,6 @@ root/site/admin/index.tt
 root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/publicreports/await_report.tt
-root/site/publicreports/clone_request.tt
 root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
 root/site/publicreports/sponsor_report.tt
@@ -412,6 +411,7 @@ root/site/user/createdesign/create_custom_target_gibson_design.tt
 root/site/user/createdesign/create_gibson_design.tt
 root/site/user/createdesign/create_point_mutation_design.tt
 root/site/user/createdesign/design_attempts.tt
+root/site/user/createdesign/design_params_ucsc.tt
 root/site/user/createdesign/gibson_design_exon_pick.tt
 root/site/user/createdesign/gibson_design_gene_pick.tt
 root/site/user/createdesign/index.tt

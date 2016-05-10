@@ -1,3 +1,9 @@
+[% MACRO bool_to_text BLOCK %]
+  [% IF bool == 1 %]TRUE
+  [% ELSIF bool == 0 %]FALSE
+  [% ELSE %]
+  [% END %]
+[% END %]
 
 <h3>Well details for barcode [% well_details.barcode %]</h3>
 <table class="table table-bordered">
@@ -33,5 +39,21 @@
  [% END %]
  <tr>
    <th>Last Known Location</th><td>[% well_details.last_known_location %]</td>
+ </tr>
+ <tr>
+   <th>Auto Accept Status</th><td>[% bool_to_text(bool=well_details.well_accepted_flag) %]</td>
+ </tr>
+ <tr>
+   <th>Manual Accept Status</th>
+   <td>[% bool_to_text(bool=well_details.manual_accepted_flag) %]
+    [% IF can_edit %]
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 'reset'}) %]" class="btn btn-primary btn-small pull-right">Reset</a>
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 0}) %]" class="btn btn-primary btn-small pull-right">Withhold <i class="icon-ban-circle icon-white"></i></a>
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 1}) %]" class="btn btn-primary btn-small pull-right">Accept <i class="icon-ok-circle icon-white"></i></a>
+    [% END %]
+   </td>
+ </tr>
+ <tr>
+   <th>Released?</th><td>[% bool_to_text(bool=well_details.accepted) %]</td>
  </tr>
 </table>

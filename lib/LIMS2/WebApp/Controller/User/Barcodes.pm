@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.397';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.398';
 }
 ## use critic
 
@@ -631,6 +631,54 @@ sub undiscard_barcode : Path( '/user/undiscard_barcode' ) : Args(0){
     return;
 }
 
+sub set_barcode_accept : Path( '/user/set_barcode_accept' ) : Args(0){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $barcode = $c->request->param('barcode');
+
+    if($barcode){
+        $c->flash->{barcode} = $barcode;
+        # check barcode is currently discarded
+        my $well = $c->model('Golgi')->retrieve_well({
+            barcode => $barcode,
+        });
+        if($well){
+            try{
+                if($c->request->param('override') eq 'reset'){
+                    if($well->well_accepted_override){
+                        $c->model('Golgi')->delete_well_accepted_override({
+                            well_id => $well->id,
+                        });
+                    }
+                    $c->flash->{success_msg} = "Barcode $barcode manual accept status has been reset";
+                }
+                else{
+                    my $override = $c->model('Golgi')->update_or_create_well_accepted_override({
+                        well_id    => $well->id,
+                        created_by => $c->user->name,
+                        accepted   => $c->request->param('override'),
+                    });
+                    $c->flash->{success_msg} = "Barcode $barcode manual accept status set to $override";
+                }
+            }
+            catch($e){
+                $c->flash->{error_msg} = "Failed to update manual accept: $e";
+            };
+        }
+        else{
+            $c->flash->{error_msg} = "Could not retrieve barcode $barcode";
+        }
+    }
+    else{
+        $c->flash->{error_msg} = "No barcode provided";
+    }
+
+    $c->res->redirect( $c->uri_for("/user/scan_barcode", { barcode => $barcode }) );
+    return;
+}
+
 sub piq_send_out : Path( '/user/piq_send_out' ) : Args(0){
     my ($self, $c) = @_;
 
@@ -1221,6 +1269,11 @@ sub _basic_well_display_details{
             $well_details->{checkout_user} = $checkout->created_by->name;
         }
     }
+
+    # different from the combined is_accepted status provided by well->as_hash
+    $well_details->{well_accepted_flag} = $well->accepted;
+    my $manual_accept = ( $well->well_accepted_override ? $well->well_accepted_override->accepted : undef);
+    $well_details->{manual_accepted_flag} = $manual_accept;
 
     return $well_details;
 }

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::BarcodeEvent;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::BarcodeEvent::VERSION = '0.397';
+    $LIMS2::Model::Schema::Result::BarcodeEvent::VERSION = '0.398';
 }
 ## use critic
 

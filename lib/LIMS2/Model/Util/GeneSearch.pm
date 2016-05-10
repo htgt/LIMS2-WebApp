@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GeneSearch;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GeneSearch::VERSION = '0.397';
+    $LIMS2::Model::Util::GeneSearch::VERSION = '0.398';
 }
 ## use critic
 
