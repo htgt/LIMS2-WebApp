@@ -14,6 +14,9 @@ use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
+use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
+use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -272,6 +275,15 @@ sub gibson_design_exon_pick : Path( '/user/gibson_design_exon_pick' ) : Args(0) 
         else {
             $stash_hash{five_prime_exon} = $exon_picks;
         }
+
+        my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $c->session->{selected_species} );
+        my $five_prime_exon = $ensembl_util->exon_adaptor->fetch_by_stable_id( $stash_hash{five_prime_exon} );
+        $stash_hash{browse_start} = $five_prime_exon->seq_region_start - 2000;
+        $stash_hash{browse_end} = $five_prime_exon->seq_region_end + 2000;
+        $stash_hash{chromosome} = $five_prime_exon->seq_region_name;
+        $stash_hash{species} = $c->session->{selected_species};
+        $stash_hash{assembly} = lc( $c->model('Golgi')->get_species_default_assembly($c->session->{selected_species}) );
+
         $c->stash( %stash_hash );
         $c->go( 'create_gibson_design' );
     }
@@ -321,6 +333,37 @@ sub generate_exon_pick_data : Private {
         $c->log->warn("Problem finding gene: $e");
         $c->stash( error_msg => "Problem finding gene: $e" );
     };
+
+    return;
+}
+
+sub design_params_ucsc : Path( '/user/design_params_ucsc') : Args {
+    my ( $self, $c ) = @_;
+
+    my $region_coords = c_get_design_region_coords($c->req->params);
+    my $general_params = {
+        chr_name    => $c->req->param('chr'),
+        design_type => $c->req->param('design_type'),
+    };
+    my $params_gff = design_params_to_gff($region_coords, $general_params);
+
+    # See docs here on info required to generate a custom annotation
+    # track in UCSC browser:
+    # https://genome.ucsc.edu/goldenpath/help/hgTracksHelp.html#CustomTracks
+    my $gff_string = join "\n", map { $_ =~ /^#/ ? $_ : "chr".$_ } @{$params_gff};
+
+    my $browser_options = "browser position chr".$general_params->{chr_name}
+                          .":".$region_coords->{start}."-".$region_coords->{end};
+    $browser_options .= "\nbrowser dense gc5BaseBw"; # show GC content track
+    $browser_options .= "\ntrack name='LIMS2 design regions' visibility=full color=182,100,245";
+
+    $c->stash(
+        clade => "mammal",
+        org   => $c->session->{selected_species},
+        db    => ($c->session->{selected_species} eq "Human" ? "hg38" : "mm10"),
+        browser_options => $browser_options,
+        gff_string => $gff_string,
+    );
 
     return;
 }
