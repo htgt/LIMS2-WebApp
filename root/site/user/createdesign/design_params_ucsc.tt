@@ -1,0 +1,23 @@
+[% META title = "Create Exon Target Gibson Design"; META tab_name = "Designs" %]
+
+<p>This page should redirect to the UCSC browser. If it does not then click the submit button below:<p>
+
+ <form id="UCSC_CUSTOM" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgCustom" name="UCSC_CUSTOM">
+    <input type="hidden" name="clade" value="[% clade %]" />
+    <input type="hidden" name="org" value="[% org %]" />
+    <input type="hidden" name="db" value="[% db %]" />
+    <input type="submit" class="btn btn-primary" value="Submit" name="Submit" id="submit"/>
+    <br>
+    <textarea readonly="true" name="hgct_customText" style="width:1000px" rows="10">
+[% browser_options %]
+[% gff_string %]
+</textarea>
+</form>
+
+<script type="text/javascript">
+  $( document ).ready(function(){
+    console.log("submitting UCSC form...");
+    $("#submit").click();
+  })
+</script>
+

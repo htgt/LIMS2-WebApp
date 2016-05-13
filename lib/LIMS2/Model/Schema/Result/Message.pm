@@ -151,7 +151,7 @@ __PACKAGE__->belongs_to(
 sub as_hash {
     my $self = shift;
 
-    my %h = ( 
+    my %h = (
         id          => $self->id,
         created     => $self->created_date->dmy('/'),
         message     => $self->message,

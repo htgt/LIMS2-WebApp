@@ -188,7 +188,7 @@ sub retrieve_well_accepted_override {
     $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     my $well = $self->retrieve_well( $params );
     my $accepted_override = $well->well_accepted_override
-        or $self->throw( NotFound => { entity_class => 'WellChromosomeFail', search_params => $params } );;
+        or $self->throw( NotFound => { entity_class => 'WellAcceptedOverride', search_params => $params } );;
     return $accepted_override;
 }
 
@@ -224,7 +224,7 @@ sub create_well_accepted_override {
         = $self->check_params( $params, $self->pspec_create_well_accepted_override );
 
     my $well = $self->retrieve_well(
-        { slice_def $validated_params, qw( plate_name well_name well_id ) } );
+        { slice_def $validated_params, qw( plate_name well_name id ) } );
 
     my $override = $well->create_related( well_accepted_override =>
             { slice_def $validated_params, qw( created_by_id created_at accepted ) } );

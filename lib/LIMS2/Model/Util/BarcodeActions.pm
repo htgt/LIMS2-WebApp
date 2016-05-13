@@ -434,6 +434,16 @@ sub _create_qc_piq_and_child_wells{
         process_data => $process_data,
     });
 
+    # Create a well accepted override with value "FALSE"
+    # to prevent these wells being automatically released
+    # when they pass QC
+    # This is due to requirments change in April 2016
+    $model->create_well_accepted_override({
+       well_id    => $qc_well->id,
+       created_by => $validated_params->{user},
+       accepted   => 0,
+    });
+
     # Create temporary plate containing daughter PIQ wells
     my @child_well_data;
     foreach my $num (1..$validated_params->{number_of_wells}){
