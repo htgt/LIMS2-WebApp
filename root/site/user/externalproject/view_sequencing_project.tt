@@ -89,7 +89,7 @@
           <td>[% sub_counter %]</td>
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-primerModal btn btn-primary" href="#primerModal">
-              <i class="icon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
+              <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] - [% sub_counter %] : [% primer %]
             </button>
           </td>
         </tr>
@@ -108,7 +108,7 @@
           <td>[% 1 + adjustment %] - [% 4 + adjustment %]</td>
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
-              <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
+              <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
             </button>
           </td>
         </tr>
@@ -124,14 +124,14 @@
           <td>[% seq_project.sub_projects %]</td>
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_projects %] class="open-primerModal btn btn-primary" href="#primerModal">
-                <i class="icon-download"></i> Download [% seq_project.name %] [% seq_project.sub_projects %] : [% primer %]
+                <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% seq_project.sub_projects %] : [% primer %]
             </button>
           </td>
         [% ELSE %]
           <td>[% 1 + adjustment %] - [% modulus + adjustment %]</td>
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
-                <i class="icon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
+                <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
             </button>
           </td>
         [% END %]
@@ -154,10 +154,10 @@
         <p align="center">How will you send the samples?</p>
         <div align="center">
             <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('1');>
-              <i class="icon-download"></i> Premixed
+              <i class="glyphicon glyphicon-download"></i> Premixed
             </button>
             <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('0');>
-              <i class="icon-download"></i> Eurofins to add primers
+              <i class="glyphicon glyphicon-download"></i> Eurofins to add primers
             </button>
         </div>
     </div>

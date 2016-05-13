@@ -4,47 +4,53 @@
   <fieldset>
     <legend>Design Target Gene Search</legend>
 
-    <textarea class="input-xxlarge" rows="10" name="genes" placeholder="all genes" value="[% genes %]"></textarea>
+    <textarea class="col-md-4 form-control" rows="10" name="genes" placeholder="all genes" value="[% genes %]"></textarea>
     <span class="help-block">Valid search terms: HGNC IDs, MGI IDs, Ensembl Gene IDs and Marker Symbols</span>
+    <form class="form-horizontal">
+        <div class="col-md-2 form-group">
+            <label class="control-label"><strong>Report Type</strong></label>
+            <label class="radio">
+              <input type="radio" name="report_type" value="standard" checked>
+                Detailed
+              </label>
+            <label class="radio">
+              <input type="radio" name="report_type" value="simple">
+                Simple
+            </label>
+        </div>
 
-    <label><strong>Report Type</strong></label>
-    <label class="radio">
-      <input type="radio" name="report_type" value="standard" checked>
-      Detailed
-    </label>
-    <label class="radio">
-      <input type="radio" name="report_type" value="simple">
-      Simple
-    </label>
-
-    <label><strong>Off Target Algorithm Type</strong></label>
-    <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="exhaustive" checked>
-      Exhaustive
-    </label>
-    <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="bwa">
-      BWA
-    </label>
-    <label class="radio">
-      <input type="radio" name="off_target_algorithm" value="strict">
-      Strict
-    </label>
-
-    <label><strong>Show Crispr Type</strong></label>
-    <label class="radio">
-      <input type="radio" name="crispr_types" value="group" checked>
-      Group
-    </label>
-    <label class="radio">
-      <input type="radio" name="crispr_types" value="pair">
-      Pair
-    </label>
-    <label class="radio">
-      <input type="radio" name="crispr_types" value="single">
-      Single
-    </label>
-    <br>
-    <input type="submit" name="action" class="btn btn-primary" value="Generate Report" />
+        <div class="col-md-3 form-group">
+            <label class="control-label"><strong>Off Target Algorithm Type</strong></label>
+            <label class="radio">
+              <input type="radio" name="off_target_algorithm" value="exhaustive" checked>
+              Exhaustive
+            </label>
+            <label class="radio">
+              <input type="radio" name="off_target_algorithm" value="bwa">
+              BWA
+            </label>
+            <label class="radio">
+              <input type="radio" name="off_target_algorithm" value="strict">
+              Strict
+            </label>
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="control-label"><strong>Show Crispr Type</strong></label>
+            <label class="radio">
+              <input type="radio" name="crispr_types" value="group" checked>
+              Group
+            </label>
+            <label class="radio">
+              <input type="radio" name="crispr_types" value="pair">
+              Pair
+            </label>
+            <label class="radio">
+              <input type="radio" name="crispr_types" value="single">
+              Single
+          </label></br>
+        </div>
+    </form>
+    
+    <input type="submit" name="action" class="col-md-0 btn btn-primary" value="Generate Report" />
   </fieldset>
 </form>

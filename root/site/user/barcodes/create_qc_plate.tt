@@ -6,7 +6,7 @@
 </div>
 
 <div class="row">
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
 
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/create_qc_plate' ) %]" class="form well"  enctype="multipart/form-data" >
         Use this form to create a QC plate for barcodes which are no longer in the freezer, e.g. when samples have been sent out to an external resource and then returned to us for QC.
@@ -18,18 +18,26 @@
         contains the LIMS2 barcodes.
         <br>
         <br>
-        <label>New Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-         />
+        <div class="row">
+          <label class="col-md-4">New Plate Name</label>
+          <div class="col-md-6">
+            <input name="plate_name" class="form-control" id="plate_name" type="text"
+            [% IF plate_name %]value="[% plate_name %]"[% END %]
+            />
+          </div>
+        </div>
 
-        <label>New Plate Type</label>
-        <select name="plate_type" id="plate_type_select">
-          <option value=""></option>
-          [% FOREACH type IN plate_type_list %]
-          <option value="[% type %]" [% IF type == plate_type %]selected[% END %]>[% type %]</option>
-          [% END %]
-        </select>
+        <div class="row">
+          <label class="col-md-4">New Plate Type</label>
+          <div class="col-md-6">
+            <select name="plate_type" id="plate_type_select" class="form-control">
+              <option value=""></option>
+              [% FOREACH type IN plate_type_list %]
+                <option value="[% type %]" [% IF type == plate_type %]selected[% END %]>[% type %]</option>
+              [% END %]
+            </select>
+          </div>
+        </div>  
 
         <div id="ms_qc_params" [% UNLESS plate_type == 'MS_QC' %]class="hidden"[% END %]>
           <label>Number of Doublings</label>
@@ -37,10 +45,10 @@
         </div>
 
         <label>Well Barcode File</label>
-        <input name="wellbarcodesfile" type="file">
+        <input name="wellbarcodesfile" type="file"><br>
 
-        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
-            <i class="icon-upload"></i> Create Plate
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Create Plate
         </button>
     </form>
   </div>

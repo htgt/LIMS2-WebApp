@@ -107,8 +107,8 @@
     <tr>
       <th>Genbank Files</th>
       <td>
-          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="icon-file"></i> Allele</a> <br>
-          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="icon-file"></i> Vector</a>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="glyphicon glyphicon-file"></i> Allele</a> <br>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="glyphicon glyphicon-file"></i> Vector</a>
       </td>
     </tr>
     <tr>
@@ -234,7 +234,7 @@
     <tr>
       <th>VEP Output</th>
       <td>
-        <a onclick="toggle_id(vep_output);" target="_blank" class="btn">Show / Hide</a>
+        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-default">Show / Hide</a>
         [% IF data.qc_data.has_vep_file %]
             <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
@@ -245,7 +245,7 @@
     <tr>
       <th>VCF</th>
       <td>
-        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn">Show / Hide</a>
+        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-default">Show / Hide</a>
         <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
       </td>
     </tr>
@@ -263,9 +263,9 @@
 </div>
 
 <div class="data.qc_data">
-  <div class="span3">
-    <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn">
-    <i class="icon-hand-left"></i> Back to search </a>
+  <div class="col-md-3">
+    <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary">
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
 </div>
 

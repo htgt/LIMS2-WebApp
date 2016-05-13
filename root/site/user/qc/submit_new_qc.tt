@@ -6,49 +6,58 @@
 
 <div class="row">
 
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_new_qc' ) %]" class="form well"  enctype="multipart/form-data" >
       [% UNLESS plate_map_request %]
         <a class="add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</a>
       [% END %]
-      <div id="sequencingprojects">
+      <div class="col-md-12 row" id="sequencingprojects">
       [% IF sequencing_project AND sequencing_project.size %]     
         [% FOR sp IN sequencing_project %]
-          <label>Sequencing Project</label>
-          <input name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"
-          [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
-          />           
+          <label class="col-md-12">Sequencing Project</label><br>
+          <div class="col-md-7">
+            <input class="form-control" name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"
+              [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
+            /> 
+          </div>
         [%- END %]
       [% ELSE %]
-        <label>Sequencing Project</label>
-        <input name="sequencing_project" id="sequencing_project" type="text"
-        [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
-        />
+        <label class="col-md-12">Sequencing Project</label><br>
+        <div class="col-md-7">
+          <input name="sequencing_project" id="sequencing_project" type="text" class="form-control"
+          [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
+          />
+        </div>
       [% END %]
       </div>
-              
-        <label>Template Plate</label>
-        <input name="template_plate" id="template_plate" type="text"
-          [% IF template_plate %]value="[% template_plate %]"[% END %]
-          [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
-        />
-        [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
-
-        <label>Profile</label>
-
+      <div class="col-md-12 row">
+        <label class="col-md-12">Template Plate</label>
+        <div class="col-md-7">
+          <input name="template_plate" id="template_plate" type="text" class="form-control"
+            [% IF template_plate %]value="[% template_plate %]"[% END %]
+            [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
+          />
+          [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
+        </div>
+      </div>
+      <div class="col-md-12 row">  
+        <label class="col-md-12">Profile</label>
+        <div class="col-md-7">
         [% IF plate_map_request %]
           <input name="profile" id="profile" type="text" readonly="readonly" class="form-readonly" value="[% profile %]" />
         [% ELSE %]
-          <select name="profile">
+          <select name="profile" class="form-control">
               [%- FOR prof IN profiles %]
                 <option [% IF profile == prof %] selected="selected"[% END %]>[% prof %]</option>
               [%- END %]
-          </select>
+          </select><br>
         [% END %]
-        
+        </div>
+      </div>  
         <br>
         
         [% IF plate_map_request %]
+        <div class="col-md-12 row">
           <h5>Plate Map</h5>
           <table>
           <tr><th>Plate Name</th><th>Canonical Name</th><tr>
@@ -59,15 +68,16 @@
             </tr>
           [% END %] 
           </table>       
-        
+        </div>
           <br>
           
-          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn">
-            <i class="icon-upload"></i> Submit QC - step 2
+          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn btn-default">
+            <i class="glyphicon glyphicon-upload"></i> Submit QC - step 2
           </button>      
         [% ELSE %]
-          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn">
-            <i class="icon-upload"></i> Submit QC - step 1
+
+          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn btn-default">
+            <i class="glyphicon glyphicon-upload"></i> Submit QC - step 1
           </button>
         [% END %]
     </form>
@@ -77,10 +87,9 @@
 
 <script type="text/javascript" charset="utf-8">
     /* Add new sequencing project field */
-    function addFormField() {
-        
+    function addFormField() {    
         $('div#sequencingprojects').after(
-          "<label for='sequencing_project'>Sequencing Project</label><input type='text' name='sequencing_project' id='sequencing_project'/>"
+            "<br><div class='col-md-12 row'><label class='col-md-6' for='sequencing_project'>Sequencing Project</label><br><div class='col-md-7'><input type='text' name='sequencing_project' id='sequencing_project' class='form-control'/></div></div>"
         );
     }
 
