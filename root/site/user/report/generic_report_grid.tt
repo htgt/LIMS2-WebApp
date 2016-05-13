@@ -378,7 +378,7 @@
                 [% IF printable %]
                 tbar: [{
                     text: 'Printer Friendly View',
-                    iconCls: 'icon-ext-print',
+                    iconCls: 'glyphicon glyphicon-print',
                     handler : function(){
                         Ext.ux.grid.Printer.printAutomatically = false;
                         Ext.ux.grid.Printer.print(grid);

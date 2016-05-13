@@ -3,34 +3,53 @@
 </div>
 
 
-<form method="POST" action="[% c.uri_for( "/user/report/cache/${report_name}" ) %]" class="well">
+<form method="POST" action="[% c.uri_for( "/user/report/cache/${report_name}" ) %]" class="col-md-8 col-md-offset-2 well">
   <fieldset>
-    <label for="sponsor_field">Please select which sponsor you would like to view results for:</label>
-    <select name="sponsor" id="sponsor_field">
-      <option value = "All">All</option>
-      [% FOR sponsor IN sponsors %]
-      <option value="[% sponsor %]">[% sponsor %]</option>
-      [% END %]
-    </select>
+    <div class="row">
+      <div class="col-md-12">    
+        <label for="sponsor_field">Please select which sponsor you would like to view results for:</label><br>
+      </div>    
+      <div class="col-md-4">
+        <select name="sponsor" id="sponsor_field" class="form-control">
+          <option value = "All">All</option>
+          [% FOR sponsor IN sponsors %]
+            <option value="[% sponsor %]">[% sponsor %]</option>
+          [% END %]
+        </select>
+      </div>
+    </div>
     
-    <br />
-    Use the following optional filters to refine your results:
-    <br />
+    <div class="row">
+      <div class="col-md-12"><br>
+        Use the following optional filters to refine your results:
+        </div>
+    </div>
     
-    <label for="plate_type">Plate Type:</label>
-    <select name="plate_type" id="plate_type">
-      <option value = ""></option>
-      <option value = "FINAL">FINAL</option>
-      <option value = "FINAL_PICK">FINAL_PICK</option>
-    </select>
+    <div class="row">
+      <div class="col-md-12">  
+        <label for="plate_type">Plate Type:</label>
+      </div>    
+      <div class="col-md-4">
+        <select name="plate_type" class="form-control" id="plate_type">
+          <option value = ""></option>
+          <option value = "FINAL">FINAL</option>
+          <option value = "FINAL_PICK">FINAL_PICK</option>
+        </select>
+      </div>
+    </div>
 
-    <label for="promoter_status">Cassette Promoter Status:</label>
-    <select name="promoter_status" id="promoter_status">
-      <option value = ""></option>
-      <option value = "promoter">promoter</option>
-      <option value = "promoterless">promoterless</option>
-    </select>        
-    
+    <div class="row">
+      <div class="col-md-12">
+          <br><label for="promoter_status">Cassette Promoter Status:</label>
+      </div>
+      <div class="col-md-4">
+        <select name="promoter_status" id="promoter_status" class="form-control">
+          <option value = ""></option>
+          <option value = "promoter">promoter</option>
+          <option value = "promoterless">promoterless</option>
+        </select>
+      </div>
+    </div>
     <br />
          
     <input type="submit" name="list_assigned_designs" class="btn btn-primary" value="View report" />

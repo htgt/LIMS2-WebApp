@@ -1,16 +1,16 @@
 [%- META title = 'Genotyping QC Results'; META tab_name = 'QC'  %]
    
 <div class="page-header">
-  <h1>Plate Genotyping QC Results <small>Search<small></h1>
+  <h1>Plate Genotyping QC Results <small>Search</small></h1>
   <div id="my_results"></div>
 </div>
 
-<div class="span6 offset3" align="center">
+<div class="col-md-6 col-md-offset-3" align="center">
 <form method="GET" action="[% c.uri_for( '/user/genotyping_qc_data' ) %]" class="form well">
-  <label>Plate Name</label>
-  <input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]" autocomplete="off">
-  <br/>
-  <button name="search" id="search" type="submit" value="search" class="btn"><i class="icon-list-alt"></i>Search</button>  
+  <label>Plate Name</label><br>
+  <input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]" autocomplete="off"><br><br>
+  
+  <button name="search" id="search" type="submit" value="search" class="btn btn-primary"><i class="glyphicon glyphicon-list-alt"></i> Search</button>  
 </form>
 </div>
 

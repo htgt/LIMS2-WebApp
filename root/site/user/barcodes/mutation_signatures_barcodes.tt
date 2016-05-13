@@ -33,22 +33,23 @@ highlight {
 }
 </style>
 
-
-<input type="text" class="span3" id="query"  placeholder="Find in page" autocomplete="on" />
+<div class="col-md-3">
+<input type="text" class="form-control" id="query"  placeholder="Find in page" autocomplete="on" />
+</div>
 <button class="btn btn-primary" onclick=searchThroughAccordion();>Find</button>
-<button class="btn" onclick=removeStyles();>Clear</button>
+<button class="btn btn-default" onclick=removeStyles();>Clear</button>
 [% SET row = 0 %]
-<div class="accordion" id="mutation_accordion">
+<div class="panel-group" id="mutation_accordion">
 [% FOREACH state IN ['frozen_back', 'doubling_in_progress', 'discarded'] %]
     <p id="[% state %]_id"></p>
-    <div class="accordion-group">
-      <div class="accordion-heading">
+    <div class="panel panel-default">
+      <div class="panel-heading">
         <h4>
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#mutation_accordion" href=#[% state %] >Barcodes with state [% state %]:</a>
+          <a class="panel-toggle" data-toggle="collapse" data-parent="#mutation_accordion" href=#[% state %] >Barcodes with state [% state %]:</a>
         </h4>
       </div>
-      <div id=[% state %] class="accordion-body collapse">
-        <div class="accordion-inner">
+      <div id=[% state %] class="panel-body collapse">
+        <div class="panel-inner">
           <table class="table table-striped">
             <thead>
                 <tr>
@@ -99,12 +100,12 @@ function removeStyles() {
 }
 
 $(function() {
-    $('.accordion').on('show', function (e) {
-         $(e.target).prev('.accordion-heading').find('.accordion-toggle').addClass('active');
+    $('.panel-group').on('show', function (e) {
+         $(e.target).prev('.panel-heading').find('.panel-toggle').addClass('active');
     });
     
-    $('.accordion').on('hide', function (e) {
-        $(this).find('.accordion-toggle').not($(e.target)).removeClass('active');
+    $('.panel-group').on('hide', function (e) {
+        $(this).find('.panel-toggle').not($(e.target)).removeClass('active');
     });
         
 });
