@@ -6,30 +6,30 @@
 
 <div class="form-horizontal">
 
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]" class="form well"  enctype="multipart/form-data" >
 
-    <div class="control-group">
-      <label class="control-label" for="plate_name">Plate Name</label>
-      <div class="controls">
-        <input name="plate_name" id="plate_name" type="text"
+    <div class="form-group">
+      <label class="col-md-7 form-label" for="plate_name">Plate Name</label>
+      <div class="col-md-7">
+        <input name="plate_name" class="form-control" id="plate_name" type="text"
           [% IF plate_name %]value="[% plate_name %]"[% END %] />
           <span class="help-block">EP_PICK, PIQ, CGAP_QC or MS_QC plates only</span>
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label" for="sequencing_project">Sequencing Project</label>
-      <div class="controls">
-          <input name="sequencing_project" id="sequencing_project" type="text"
+    <div class="form-group">
+      <label class="col-md-7 form-label" for="sequencing_project">Sequencing Project</label>
+      <div class="col-md-7">
+          <input name="sequencing_project" class="form-control" id="sequencing_project" type="text"
             [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] />
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label" for="sequencing_sub_project">Sequencing Sub Project</label>
-      <div class="controls">
-        <select name="sequencing_sub_project" id="sequencing_sub_project" type="text">
+    <div class="form-group">
+      <label class="form-label col-md-7" for="sequencing_sub_project">Sequencing Sub Project</label>
+      <div class="col-md-7">
+        <select name="sequencing_sub_project" class="form-control" id="sequencing_sub_project" type="text">
           [% IF sequencing_sub_project %]<option>[% sequencing_sub_project %]</option>[% END %]
         </select>
 
@@ -38,34 +38,34 @@
       </div>
     </div>
 
-    <div class="control-group" id="primer_group">
-      <label class="control-label" for="primer_names">Valid primers</label>
-      <div class="controls">
-        <input name="primer_names" id="primer_names" type="text" disabled="disabled" value="" />
+    <div class="form-group" id="primer_group">
+      <label class="col-md-7 form-label" for="primer_names">Valid primers</label>
+      <div class="col-md-7">
+        <input name="primer_names" class="form-control" id="primer_names" type="text" disabled="disabled" value="" />
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label" for="forward_primer_name">Forward Primer Name</label>
-      <div class="controls">
-          <input name="forward_primer_name" id="forward_primer_name" type="text"
+    <div class="form-group">
+      <label class="col-md-7 form-label" for="forward_primer_name">Forward Primer Name</label>
+      <div class="col-md-7">
+          <input name="forward_primer_name" class="form-control" id="forward_primer_name" type="text"
               value=[% IF reverse_primer_name %]"[% forward_primer_name %]"[% ELSE %]"SF1"[% END %] />
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label" for="reverse_primer_name">Reverse Primer Name</label>
-      <div class="controls">
-          <input name="reverse_primer_name" id="reverse_primer_name" type="text"
+    <div class="form-group">
+      <label class="col-md-7 form-label" for="reverse_primer_name">Reverse Primer Name</label>
+      <div class="col-md-7">
+          <input name="reverse_primer_name" class="form-control" id="reverse_primer_name" type="text"
               value=[% IF reverse_primer_name %]"[% reverse_primer_name %]"[% ELSE %]"SR1"[% END %] />
       </div>
     </div>
 
 
-    <div class="control-group">
-      <div class="controls">
-      <button name="submit_crispr_es_qc" id="submit_crispr_es_qc" type="submit" value="submit_crispr_es_qc" class="btn">
-        <i class="icon-upload"></i> Submit Crispr ES QC
+    <div class="form-group">
+      <div class="col-md-7">
+      <button name="submit_crispr_es_qc" id="submit_crispr_es_qc" type="submit" value="submit_crispr_es_qc" class="btn btn-primary">
+        <i class="glyphicon glyphicon-upload"></i> Submit Crispr ES QC
       </button>
       </div>
     </div>

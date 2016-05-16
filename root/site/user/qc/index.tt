@@ -1,23 +1,37 @@
 [% META title = "View Qc Runs"; META tab_name = 'QC' %]
-<form method="GET" class="well form-inline">
-  <fieldset>
-    <legend>Filter QC Runs</legend>
-    <label for="sequencing_project">Sequencing Project</label>
-    <input name="sequencing_project" id="sequencing_project" type="text" autocomplete="off" />
-    <label for="template_plate">Template Plate</label>
-    <input name="template_plate" id="template_plate" type="text" autocomplete="off" />
-    <label for="profile">Profile</label>
-    <select name="profile" id="profile">
-      <option>-</option>
-      [% FOR p IN profiles -%]
-      <option>[% p %]</option>
-      [% END -%]
-    </select>
-    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i> Filter</button>
-    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i> Show All</button>
-  </fieldset>
-</form>
-
+<div class="grid">
+  <form method="GET" class="well">
+    <fieldset>
+      <legend>Filter QC Runs</legend>
+      <div class="col-md-12 row">
+        <div class="col-md-4">
+          <label for="sequencing_project">Sequencing Project</label>
+          <input name="sequencing_project" id="sequencing_project" type="text" autocomplete="off" />
+        </div>
+        <div class="col-md-4">
+          <label for="template_plate">Template Plate</label>
+          <input name="template_plate" id="template_plate" type="text" autocomplete="off" />
+        </div>  
+        <div class="col-md-4">
+          <label class="col-md-2 col-md-offset-0" for="profile">Profile</label>
+          <div class="col-md-10">
+            <select name="profile" id="profile" class="form-control">
+              <option>-</option>
+              [% FOR p IN profiles -%]
+                <option>[% p %]</option>
+              [% END -%]
+            </select>
+          </div>
+        </div>
+      <div class="row">
+        <div class="col-md-12"><br>
+          <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="glyphicon glyphicon-filter"></i> Filter</button>
+          <button name="show_all" id="show_all" type="submit" value="Show All" class=" btn btn-default"><i class="glyphicon glyphicon-list-alt"></i> Show All</button>
+        </div>
+      </div>
+    </fieldset>
+  </form>
+</div>
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
 <table class="table table-striped">
@@ -52,7 +66,7 @@
                 <td>[% qc_run.expected_designs %]</td>
                 <td>[% qc_run.observed_designs %]</td>
                 <td>[% qc_run.valid_designs %]</td>
-                <td><a class="btn btn-info" href="[% c.uri_for( '/user/report/async/QcRun', { 'qc_run_id' => qc_run.id } ) %]"><i class="icon-download-alt icon-white"></i></a></td>
+                <td><a class="btn btn-info" href="[% c.uri_for( '/user/report/async/QcRun', { 'qc_run_id' => qc_run.id } ) %]"><i class="glyphicon glyphicon-download-alt"></i></a></td>
             </tr>
         [% END %]
     </tbody>

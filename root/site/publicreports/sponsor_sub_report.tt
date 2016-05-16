@@ -12,7 +12,7 @@ document.title = "[%- sponsor_id %]";
         cache_param => cache_param,
         type => 'simple'
     }
-  ) %]><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
+  ) %]><i class="glyphicon glyphicon-zoom-out"></i><b> Simple Report</b></a>
   [%- ELSIF type == 'simple' %]
   <a id='type_full' type='button' class='btn btn-primary btn-small'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
@@ -20,20 +20,20 @@ document.title = "[%- sponsor_id %]";
         cache_param => cache_param,
         type => 'full'
     }
-  ) %]><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
+  ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
   [%- END %]
   <a id='csv_download' type='button' class='btn btn-info btn-small' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         csv => 1
     }
-  ) %]><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
+  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-info btn-small' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         xlsx => 1
     }
-  ) %]><i class="icon-download-alt icon-white"></i><b> Download XLSX</b></a>
+  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
 </span>
 </span>
 <div class="page-header">

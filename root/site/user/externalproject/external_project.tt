@@ -4,76 +4,104 @@
   <h1>Create Sequencing Project</h1>
 </div>
 
-<div class="row">
-
-  <div class="span6 offset3">
+<div class="form-horizontal">
+  <div class="col-md-10 col-md-offset-1">
     <form method="POST" id="create_ext_project" action="[% c.uri_for( '/user/external_project' ) %]" class="form well"  enctype="multipart/form-data" >
-
-        <label>Project Name</label>
-        <input name="project_name" id="project_name" type="text"
-          [%IF project_name %]value="[% project_name %]"[% END %]
-        />
-
-        <div class="span3 pull-right">Naming guidance: use only letters, numbers and underscores. If you need to repeat some sequencing create a new project with additional characters at the end of the name, e.g. original: HUEPD0072, repeat: HUEPD0072_A</div>
-        <input type="checkbox" name="qc" id="check_qc" enabled />
+      <div class="col-md-6">
+        <label class="col-md-12">Project Name</label><br>
+        <div class="col-md-11">
+          <input name="project_name" id="project_name" class="form-control" type="text"
+            [%IF project_name %]value="[% project_name %]"[% END %]
+          /><br>
+        </div>
+        <br><div class="col-md-12">
+          <input type="checkbox" class="checkbox-inline" name="qc" id="check_qc" enabled />
             For LIMS2 QC?
-        <br>
-        <input type="checkbox" name="large_well" id="check_well" enabled/>
+          <input type="checkbox" class="checkbox-inline" name="large_well" id="check_well" enabled/>
             Is 384?
-        <br>
+        </div>
+        <div class="col-md-12 row">
+          <label class="col-md-12" id="qc_type_label">QC Type</label>
+          <div class="col-md-12">
+            <select name="qc_type" id="qc_type" class="form-control">
+              <option value="" selected="selected"></option>
+              <option value="Vector">Vector</option>
+              <option value="ES Cell">ES Cell</option>
+              <option value="Crispr">Crispr</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
+      <div class="col-md-6">
+        <div class="col-md-12">Naming guidance: use only letters, numbers and underscores. If you need to repeat some sequencing create a new project with additional characters at the end of the name, e.g. original: HUEPD0072, repeat: HUEPD0072_A</div>
+        <div class="col-md-12 row">
+          <br><label class="col-md-12" id="template_label">QC Template</label><br>
+          <div class="col-md-7"> 
+            <input type="text" class="form-control" id="template_input" name="template_id" placeholder="Template identifier" autocomplete="off" />
+          </div> 
+          <div class="col-md-4">
+            <button type="button" id="add_qc" class="btn btn-default" onclick="addTemplate()">
+              Create QC template
+            </button>
+          </div>
+        </div>
+      </div>    
+      
+      <div class="col-md-12 row">
+        <div class="col-md-6">  
+          <br><label class="col-md-12" id="primer_type_label">Primer Type</label>
+          <div class="col-md-6">
+            <select class="form-control" name="dd_primer" id="dd_primer">
+              <option value="" selected="selected"></option>
+              [%- FOR primer IN primer_list %]
+                <option value="[% primer %]">[% primer %]</option>
+              [%- END %]
+            </select>
+          </div>
+          <div class="col-md-6">
+            <button name="primer_button" type="button" class="btn btn-warning" onclick="addPrimer()">
+              Add Primer
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <br>
+          <table class="col-md-12 col-md-offset-1" id='primer_table'>
+            <th>
+              Primers
+            </th>
+          </table>
+          <br>
+        </div>
+      </div>
 
-        <label id="qc_type_label">QC Type</label><br>
-        <select name="qc_type" id="qc_type">
-            <option value="" selected="selected"></option>
-            <option value="Vector">Vector</option>
-            <option value="ES Cell">ES Cell</option>
-            <option value="Crispr">Crispr</option>
-        </select><br>
-        <label id="template_label">QC Template</label><br>
-        <input type="text" class="span3" id="template_input" name="template_id" placeholder="Template identifier" autocomplete="off" />
-        <button type="button" id="add_qc" class="btn btn-link" onclick="addTemplate()">
-          Create QC template
-        </button>
-
-
-
-        <label id="sub_label">Number of sub-projects</label>
-        <input type="text" name="sub_projects" id="sub_projects" value="1" maxlength="3" style="width: 50px;"/>
-        <p id="up" style="display:inline"><span class="icon-plus"></span></p>
-        <p id="down" style="display:inline"><span class="icon-minus"></span></p>
-
-
-        <label id="primer_type_label">Primer Type</label>
-        <select name="dd_primer" id="dd_primer">
-          <option value="" selected="selected"></option>
-          [%- FOR primer IN primer_list %]
-            <option value="[% primer %]">[% primer %]</option>
-          [%- END %]
-        </select>
-
-        <button name="primer_button" type="button" class="btn btn-default" onclick="addPrimer()">
-          Add Primer
-        </button>
-
-        <br>
-        <table id='primer_table'>
-          <th>
-            Primers
-          </th>
-        </table>
-        <br>
-
-        <button name="create_project" class="btn btn-primary" id="create_project" type="submit" value="create_project" class="btn">
-            <i class="icon-upload"></i> Create Project
-        </button>
+      <div class="col-md-12 row">
+        <div class="col-md-6"> 
+          <br><label class="col-md-12" id=" sub_label">Number of sub-projects</label>
+          <div class="col-md-6">
+            <input type="text" name="sub_projects" class="form-control" id="sub_projects" value="1" maxlength="3" style="width: 50px;"/>
+          </div> 
+          <div class="col-md-4">
+            <p id="up" style="display:inline"><span class="glyphicon glyphicon-plus"></span></p>
+            <p id="down" style="display:inline"><span class="glyphicon glyphicon-minus"></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <button name="create_project" class="col-md-offset-10 btn btn-primary" id="create_project" type="submit" value="create_project">
+            <i class="glyphicon glyphicon-upload"></i> Create Project
+          </button>
+        </div>
+      </div>
     </form>
   </div>
-
 </div>
 
+<div class="col-md-12 row">
 [% INCLUDE 'sequencing_project_creation_help.tt' seq_help = seq_help %]
-
+</div>
 <script type="text/javascript">
 window.onload = function () {
     switchVisilibityState("none");
@@ -157,7 +185,7 @@ function addPrimer() {
         var cell2 = row.insertCell(2);
 
 
-        var buttonHTML = '<input type="button" value="Delete" onclick="deleteRow(this)"/>';
+        var buttonHTML = '<input type="button" class="btn btn-default" value="Delete" onclick="deleteRow(this)"/>';
         var hidden = '<input type="hidden" id="primer'+ primerCount + '" name="primer'+ primerCount + '" value="' + primer + '">'
 
         primerCount++;

@@ -4,41 +4,43 @@
   <h1>Plate PCR Status Upload</h1>
 </div>
 
-<div class="row">
-
-  <div class="span6 offset3">
+<div class="grid">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="pcr_status_update" action="[% c.uri_for( '/user/pcr_status_update' ) %]" class="form well"  enctype="multipart/form-data" >
+      <div class="row">
+        <label class="col-md-12" >Plate Name</label>
+        <div class="col-md-6">
+          <input name="plate_name" class="form-control" id="plate_name" type="text"
+            [% IF plate_name %]value="[% plate_name %]"[% END %]
+          />
+        </div>
+      </div>
+      <br>
+      <label>PCR Status Data File</label>
+      <input name="datafile" type="file">
 
-        <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-        />
-
-        <label>PCR Status Data File</label>
-        <input name="datafile" type="file">
-
-        <br>
-        <br>
-        <button name="update_pcr_status" id="update_pcr_status" type="submit" value="update_pcr_status" class="btn">
-            <i class="icon-upload"></i> Upload PCR Status
-        </button>
+      <br>
+      <br>
+      <button name="update_pcr_status" id="update_pcr_status" type="submit" value="update_pcr_status" class="btn btn-primary">
+        <i class="glyphicon glyphicon-upload"></i> Upload PCR Status
+      </button>
     </form>
   </div>
 
 </div>
 
-<div class="accordion" id="accordian">
+<div class="col-md-12 panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate PCR Status Upload Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Plate PCR Status Upload Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to upload the pcr status value of the wells on a given plate, using a csv file.
         </p>

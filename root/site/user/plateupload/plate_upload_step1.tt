@@ -6,11 +6,11 @@
 
 <div class="row">
 
-  <div class="span4 offset4" align="center">
+  <div class="col-md-6 col-md-offset-3" align="center">
     <form method="GET" id="process_type_select" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form-inline well" >
 
       <label>Process Type</label>
-      <select name="process_type" id="process_type">
+      <select name="process_type" class="form-control" id="process_type">
         <option value="" selected="selected">-</option>
         [%- FOR process_type IN process_types %]
           <option value="[% process_type %]">[% process_type.replace( '_', ' ' ) %]</option>
