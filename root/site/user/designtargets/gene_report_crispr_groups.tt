@@ -13,7 +13,7 @@
 
 <form method"POST" id="crispr_pick" action="[% c.uri_for( '/user/design_target_report_crispr_pick' ) %]">
 <div class="row">
-<div class="span12" >
+<div class="col-md-12" >
   <table id="design-target-report" class="table table-bordered table-condensed" style="max-width: none">
     <thead>
       <tr>
@@ -39,7 +39,7 @@
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">
             <p> [% datum.marker_symbol %] </p>
             <p> [% datum.gene_id %] </p>
-            <p> <a href="[% datum.ensembl_gene_link %]" target="_blank" class="btn btn-mini">[% datum.ensembl_gene_id %]</a> </p>
+            <p> <a href="[% datum.ensembl_gene_link %]" target="_blank" class="btn btn-default btn-xs">[% datum.ensembl_gene_id %]</a> </p>
           </td>
           <td rowspan="[% datum.dt_rowspan %]" class="design-target">
             <p> <a href="[% c.uri_for( '/user/genoverse_browse',
@@ -51,17 +51,17 @@
                   view_single => 0,
                   view_paired => 1 }
                   )
-                  %]" target="_blank" class="btn btn-mini">[% datum.ensembl_exon_id %]</a> </p>
-            <p> Chromosome: <span class="label"> [% datum.chromosome %] </span> </p>
-            <p> Size: <span class="label"> [% datum.exon_size %] </span> </p>
-            <p> Rank: <span class="label"> [% datum.exon_rank %] </span> </p>
+                  %]" target="_blank" class="btn btn-default btn-xs">[% datum.ensembl_exon_id %]</a> </p>
+            <p> Chromosome: <span class="badge"> [% datum.chromosome %] </span> </p>
+            <p> Size: <span class="badge"> [% datum.exon_size %] </span> </p>
+            <p> Rank: <span class="badge"> [% datum.exon_rank %] </span> </p>
             <p>
               <a href="[% c.uri_for( '/user/create_gibson_design', {
                   gene_id         => datum.gene_id,
                   ensembl_gene_id => datum.ensembl_gene_id,
                   exon_pick       => datum.ensembl_exon_id,
                 } ) %]"
-                target="_blank" class="btn btn-mini">Create Design</a> </p>
+                target="_blank" class="btn btn-default btn-xs">Create Design</a> </p>
             </p>
           </td>
 
@@ -94,7 +94,7 @@
                 <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
                   [% design.design_id %]
                 </a>
-                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-mini btn-block">blat</a>
+                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-default btn-xs btn-block">blat</a>
               </td>
               [% IF datum.crisprs.size == 0 %]
                 <td class="crispr" colspan="[% crispr_col_span %]"></td>
@@ -121,11 +121,11 @@
 </div>
 
 <div class="row">
-  <div class="span3">
-    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
-    <i class="icon-hand-left"></i> Back to search </a>
+  <div class="col-md-3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-default">
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
-  <div class="span3 offset6" align="right">
+  <div class="col-md-3 col-md-offset-6" align="right">
     <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
     [% IF params.filter %]
       <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" class="btn btn-info">
@@ -142,7 +142,7 @@
 
 <div class="row">
 
-  <div class="span7 offset2 well">
+  <div class="col-md-7 col-md-offset-2 well">
     <h5 align="center"><strong>Search Terms</strong></h5>
     <table class="table table-condensed">
       <thead>
@@ -216,7 +216,7 @@ $( document ).ready(function() {
       </div>
 
       <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button type="submit" name="delete_experiment" class="btn btn-danger" id="confirm_crispr_pick_btn">
           Confirm Crispr Pick
         </button>
@@ -231,7 +231,7 @@ $( document ).ready(function() {
     </a>
     <br>
     Group Target: [% crispr_group.gene_id %]
-    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-mini btn-block">
+    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-xs btn-block">
     blat
     </a>
   </td>
@@ -248,7 +248,7 @@ $( document ).ready(function() {
           <br/>
           (WGE: [% crispr.wge_id %])
           [% END %]
-          <div class="btn crispr-info btn-mini btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
+          <div class="btn btn-default crispr-info btn-xs btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
         </td>
         <td class="crispr">
           <table>
