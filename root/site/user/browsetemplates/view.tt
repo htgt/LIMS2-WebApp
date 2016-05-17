@@ -132,7 +132,7 @@ in bold </p>
       <strong>[% well.recombinase_new %]</strong>
       </td>
 
-      <td>  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
+      <td>  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
             <i class="icon-download-alt icon-white"></i>Download</a> </td>
     </tr>
     [%- END %]

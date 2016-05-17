@@ -357,7 +357,7 @@
 [% IF additional_plate_reports %]
 <h3>Additional Reports</h3>
   [% FOREACH report IN additional_plate_reports %]
-<a class="btn btn-small" href="[% report.report_url %]"><i class="glyphicon glyphicon-list"></i> [% report.name %]</a><br /><br />
+<a class="btn btn-sm" href="[% report.report_url %]"><i class="glyphicon glyphicon-list"></i> [% report.name %]</a><br /><br />
   [% END %]
 [% END %]
 </div>
