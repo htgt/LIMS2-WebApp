@@ -511,7 +511,7 @@ sub crispr_design_and_gene_cols{
 
     my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
     my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr, $self->model ) };
 
     my @symbols;
     for my $gene_id ( @gene_ids ) {
