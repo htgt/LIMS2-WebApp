@@ -128,15 +128,15 @@
 <div class="row">
   <div class="col-md-3">
     <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-default">
-    <i class="icon-hand-left"></i> Back to search </a>
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
   <div class="col-md-3 col-md-offset-6" align="right">
     <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
     [% IF params.filter %]
-      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" class="btn btn-info">
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" class="btn btn-default btn-info">
         Show All Crisprs</a>
     [% ELSE %]
-      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" class="btn btn-info">
+      <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '1' } ) %]" class="btn btn-default btn-info">
         Filter Crisprs</a>
     [% END %]
     <input type="submit" name="action" class="btn btn-primary" value="Make Crispr Picks" id="make_picks_btn" />

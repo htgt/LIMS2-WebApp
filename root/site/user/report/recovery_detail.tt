@@ -24,12 +24,12 @@
     <tr>
       <td rowspan="[% gene.summary_count %]">
         [% gene.gene_symbol %]
-        <a href="[% c.uri_for('/user/report/gene', { gene_id => gene.gene_symbol}) %]" class="btn btn-default btn-mini" target="_blank">Gene Summary</a>
+        <a href="[% c.uri_for('/user/report/gene', { gene_id => gene.gene_symbol}) %]" class="btn btn-default btn-xs" target="_blank">Gene Summary</a>
         <br>
         [% FOR project IN gene.projects %]
           <br>Project [% project.id %] recovery class: [% project.recovery_class %]
           [% IF project.concluded %](concluded)[% END %]
-          <button class="btn btn-primary btn-mini show-modal" data-id="[% project.id %]" data-recovery-class="[% project.recovery_class_id %]" data-concluded="[% project.concluded %]" data-priority="[% project.priority %]" data-comment="[% project.comment %]">Edit</button>
+          <button class="btn btn-primary btn-xs show-modal" data-id="[% project.id %]" data-recovery-class="[% project.recovery_class_id %]" data-concluded="[% project.concluded %]" data-priority="[% project.priority %]" data-comment="[% project.comment %]">Edit</button>
           <br>
         [% END %]
       </td>

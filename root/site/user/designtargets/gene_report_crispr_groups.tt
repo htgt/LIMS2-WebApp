@@ -231,7 +231,9 @@ $( document ).ready(function() {
     </a>
     <br>
     Group Target: [% crispr_group.gene_id %]
-    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-xs btn-block">
+
+    <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-default btn-xs btn-block">
+
     blat
     </a>
   </td>
@@ -248,7 +250,7 @@ $( document ).ready(function() {
           <br/>
           (WGE: [% crispr.wge_id %])
           [% END %]
-          <div class="btn btn-default crispr-info btn-xs btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
+          <div class="btn crispr-info btn-xs btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
         </td>
         <td class="crispr">
           <table>

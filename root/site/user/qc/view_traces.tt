@@ -81,15 +81,15 @@
       </div>
   </div>
     </div>
-    
 
 
-    
+
+
     <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn btn-primary">
       Fetch Reads <i class="glyphicon glyphicon-arrow-right icon-white"></i>
     </button>
 
- 
+
 
     </form>
   </div>
@@ -101,7 +101,7 @@
     <thead>
         <tr>
             <th class="col-md-3">Read</th>
-            <th class="col-md-9">Trace <button class="btn btn-default btn-mini" id="hide_all_traces">Hide All Traces</button></th>
+            <th class="col-md-9">Trace <button class="btn btn-default btn-xs" id="hide_all_traces">Hide All Traces</button></th>
         </tr>
     </thead>
     <tbody>
@@ -123,7 +123,8 @@
 
 [% ELSE %]
 
-<table class="table col-md-6 col-md-offset-3" style="table-layout:fixed" align="center">
+<div class="col-md-6 col-md-offset-3">
+<table class="table" style="table-layout:fixed" align="center">
     <thead>
         <tr><th><h4>Recently Added</h4></th></tr>
         <tr>
@@ -142,7 +143,7 @@
         [% END %]
     </tbody>
 </table>
-
+</div>
 [% END %]
 
 <script type="text/javascript" charset="utf-8">
@@ -270,7 +271,7 @@ $(document).ready(function() {
             return;
         }
     };
-      
+
     traceviewers.push(tv);
   });
 
@@ -314,9 +315,9 @@ $(document).click(function(event) {
             focusTrace = wellTrace["fwd_plot"];
             adjustPane(click);
         }
-        else { 
+        else {
             console.log(wellName + dir.attr('id') + " not found");
-        }    
+        }
     }
 });
 
@@ -331,14 +332,14 @@ function adjustPane(text) {
     tr = tr.replace(/-/g,'N');
 
     var regex = /[ACTGNn]+/g;
-   
+
     var match;
     result = tr.match(regex);
-    //Remove everything not relating to the sequence 
-    
+    //Remove everything not relating to the sequence
+
     var customSelection = selection.toString();
     var referencePoint = focusTrace._pos;
-    
+
     var loc = findCoords(result, referencePoint, selection);
     wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
 }
@@ -368,7 +369,7 @@ function findCoords(seqs, point, selection) {
     var traceSeq = seqs[0];
     var target = selection.toString();
     var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
-    
+
     var ends = [];
 
     if (target.length < 5) {
@@ -386,7 +387,7 @@ function findCoords(seqs, point, selection) {
         ends.push(mouseOffset);
         ends.push(mouseOffset + target.length - 1);
     }
-    
+
     var loc = [];
 
     for (var point = 0; point < ends.length; point++){

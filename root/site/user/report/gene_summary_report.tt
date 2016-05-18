@@ -138,7 +138,7 @@ function toggle_btn(btn, show_or_hide) {
   <b>Sponsor: </b>
     [%- sponsor %]
   [%- END %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
+  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_gene_view', {
                gene_id => info.gene_id,
                browser_target => info.gene_symbol,
                gene_symbol => info.gene_symbol
@@ -675,7 +675,7 @@ function toggle_btn(btn, show_or_hide) {
               <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="label">[% well.crispr_type.replace('\_', ' ') %]</span></td>
               <td>[% well.created_at %]</td>
               <td class="assembly_qc_verified">[% well.qc_verified %]</td>
-              <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_primer_view', {
+              <td><a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_primer_view', {
                       crispr_type_id => well.crispr_type_id,
                       design_id => well.design_id,
                       crispr_type => well.crispr_type _ '_id',
@@ -998,7 +998,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.design_id %]</td>
               <td>[% well.recombineering_result %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-mini" type="submit">Show</a></td>
+              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-xs" type="submit">Show</a></td>
             </tr>
             [%- END %]
           </tbody>

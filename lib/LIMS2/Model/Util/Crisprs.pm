@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.399';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.400';
 }
 ## use critic
 
@@ -468,9 +468,10 @@ usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
 
 =cut
 sub gene_ids_for_crispr {
-    my ( $gene_finder, $crispr ) = @_;
+    my ( $gene_finder, $crispr, $model ) = @_;
     my @gene_ids;
 
+    # if a group, get it's gene id
     if ( $crispr->is_group ) {
         push @gene_ids, $crispr->gene_id;
     }
@@ -479,8 +480,22 @@ sub gene_ids_for_crispr {
         my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
         push @gene_ids, uniq @design_gene_ids;
     }
-    else {
-        # now we have a crispr or crispr pair and no linked designs, need to look at sequence
+    # not a group a no linked design? check if there is an experiment
+    elsif ( $model && (my @groups = $crispr->crispr_groups->all) ) {
+        my @groups_ids = map { $_->id } @groups;
+
+        my @experiments = $model->schema->resultset('Experiment')->search(
+            {
+                crispr_group_id => { -in => @groups_ids },
+                gene_id => { '!=', undef }
+            }
+        )->all;
+
+        @gene_ids = map { $_->gene_id } @experiments;
+    }
+
+    # if no gene_id yet, look at the genomic location
+    if (!@gene_ids) {
         my $slice = try{ $crispr->target_slice };
         return [] unless $slice;
         my @genes = @{ $slice->get_all_Genes };

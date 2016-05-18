@@ -34,13 +34,13 @@
         <td>[% datum.exon_rank %]</td>
         <td>[% datum.designs %]</td>
         <td>[% datum.crisprs %]
-            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'single', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm } ) %]" target="_blank" class="btn btn-info btn-mini pull-right">details</a>
+            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'single', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm } ) %]" target="_blank" class="btn btn-info btn-xs pull-right">details</a>
         </td>
         <td>[% datum.crispr_pairs %]
-            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" target="_blank" class="btn btn-info btn-mini pull-right">details</a>
+            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'pair', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" target="_blank" class="btn btn-info btn-xs pull-right">details</a>
         </td>
         <td>[% datum.crispr_groups %]
-            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'group', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" target="_blank" class="btn btn-info btn-mini pull-right">details</a>
+            <a href="[% c.uri_for( '/user/design_target_report' datum.marker_symbol, { 'crispr_types' => 'group', 'type' => params.type, 'off_target_algorithm' => params.off_target_algorithm, 'filter' => '0' } ) %]" target="_blank" class="btn btn-info btn-xs pull-right">details</a>
         </td>
       </tr>
     [% END %]

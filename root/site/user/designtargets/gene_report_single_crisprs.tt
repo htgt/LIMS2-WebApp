@@ -173,7 +173,7 @@
 <div class="row">
   <div class="col-md-3">
     <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-default">
-    <i class="icon-hand-left"></i> Back to search </a>
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
   <div class="col-md-3 col-md-offset-6" align="right">
     <input type="hidden"  name="crispr_types" value="[% params.crispr_types %]" />
