@@ -405,46 +405,50 @@ function findCoords(seqs, point, selection, dir) {
         </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
-        <i class="icon-remove icon-white"></i> Delete QC Run
+        <i class="glyphicon glyphicon-remove icon-white"></i> Delete QC Run
     </a>
 
     [% IF truncate %]
-        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
-            <i class="icon-resize-full"></i> Show Full Reads
+        <a id="truncate_toggle" class="btn btn-default" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
+            <i class="glyphicon glyphicon-resize-full"></i> Show Full Reads
         </a>
     [% ELSE %]
-        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
-            <i class="icon-resize-small"></i> Truncate Reads
+        <a id="truncate_toggle" class="btn btn-default" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
+            <i class="glyphicon glyphicon-resize-small"></i> Truncate Reads
         </a>
     [% END %]
 
     [% IF wells.size > 0 %]
         <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
-            <i class="icon-gift icon-white"></i> Validate QC Run
+            <i class="glyphicon glyphicon-gift"></i> Validate QC Run
         </a>
 
         <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
-            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
+            <i class="glyphicon glyphicon-ban-circle"></i> Invalidate Qc Run
         </a>
     [% END %]
 </div>
 
-<div class="modal hide fade" id="DeleteRunModal">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Delete QC Run</h3>
-    </div>
+<div class="modal fade" id="DeleteRunModal" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Delete QC Run</h3>
+      </div>
 
-    <div class="modal-body" align="center">
-      Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
-    </div>
+      <div class="modal-body" align="center">
+        Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
+      </div>
 
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
-        <i class="icon-remove icon-white"></i> Confirm Delete QC Run
-      </a>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
+          <i class="icon-remove icon-white"></i> Confirm Delete QC Run
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
 <table class="table table-striped">

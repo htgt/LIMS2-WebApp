@@ -257,7 +257,7 @@ TraceViewer.prototype.show_traces = function(button, full_trace, version) {
 
     // create button to hide the traces and restore the "View Traces" button
     var hide_button = $("<a>",{
-        "class":"btn btn-primary hide-traces",
+        "class":"btn btn-info hide-traces",
         "text":"Hide Traces",
         "click": function(){
             // remove sequence highlighting
