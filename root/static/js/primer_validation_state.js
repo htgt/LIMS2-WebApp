@@ -22,7 +22,7 @@ function getColumnIndexByName(column_name){
 
 var valid_label = '<span class="label label-success validation-status pull-right">Validated</span>';
 var not_valid_label = '<span class="label label-default validation-status pull-right">Not Validated</span>';
-var button_html = '<button class="btn btn-mini">Change validation state</button>';
+var button_html = '<button class="btn btn-xs">Change validation state</button>';
 
 function addPrimerValidationState(cell, api_url, object_id_param, object_id, primer_type, is_validated){
 

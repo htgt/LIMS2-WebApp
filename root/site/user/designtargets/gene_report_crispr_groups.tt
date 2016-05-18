@@ -231,7 +231,9 @@ $( document ).ready(function() {
     </a>
     <br>
     Group Target: [% crispr_group.gene_id %]
+
     <a href="[% c.uri_for( '/user/crispr_group' , crispr_group.id , 'blat' ) %]" target="_blank" class="btn btn-default btn-xs btn-block">
+
     blat
     </a>
   </td>

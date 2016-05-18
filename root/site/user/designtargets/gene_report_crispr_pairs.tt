@@ -99,7 +99,7 @@
                 <a href="[% c.uri_for( '/user/view_design', { design_id => design.design_id } ) %]">
                   [% design.design_id %]
                 </a>
-                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-xs btn-block">blat</a>
+                <a href="[% c.uri_for( '/user/design_ucsc_blat', { design_id => design.design_id } ) %]" target="_blank" class="btn btn-default btn-xs btn-block">blat</a>
               </td>
               [% IF datum.crisprs.size == 0 %]
                 <td class="crispr" colspan="[% crispr_col_span %]"></td>

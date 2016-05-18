@@ -49,8 +49,7 @@
               Single
           </label></br>
         </div>
-    </form>
-    
-    <input type="submit" name="action" class="col-md-0 btn btn-primary" value="Generate Report" />
+        <button type="submit" name="action" id="action" class="btn btn-primary" >Generate Report</button>
+     </form>
   </fieldset>
 </form>
