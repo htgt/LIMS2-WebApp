@@ -480,7 +480,7 @@ sub gene_ids_for_crispr {
 
         my @experiments = $model->schema->resultset('Experiment')->search(
             {
-                crispr_group_id => { -in => @groups_ids },
+                crispr_group_id => { -in => \@groups_ids },
                 gene_id => { '!=', undef }
             }
         )->all;
