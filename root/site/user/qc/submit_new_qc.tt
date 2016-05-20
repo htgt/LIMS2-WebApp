@@ -9,7 +9,7 @@
   <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_new_qc' ) %]" class="form well"  enctype="multipart/form-data" >
       [% UNLESS plate_map_request %]
-        <a class="add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</a>
+      <div class="col-md-12"> <button class="btn btn-default add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</button></div><br>
       [% END %]
       <div class="col-md-12 row" id="sequencingprojects">
       [% IF sequencing_project AND sequencing_project.size %]     
@@ -44,7 +44,7 @@
         <label class="col-md-12">Profile</label>
         <div class="col-md-7">
         [% IF plate_map_request %]
-          <input name="profile" id="profile" type="text" readonly="readonly" class="form-readonly" value="[% profile %]" />
+          <p class="form-control-static">[% profile %]</p>
         [% ELSE %]
           <select name="profile" class="form-control">
               [%- FOR prof IN profiles %]
@@ -58,25 +58,29 @@
         
         [% IF plate_map_request %]
         <div class="col-md-12 row">
-          <h5>Plate Map</h5>
-          <table>
-          <tr><th>Plate Name</th><th>Canonical Name</th><tr>
+            <br><b><h4 class="col-md-12">Plate Map</h4></b>
+          [% SET counter = 0 %]           
           [% FOR plate IN plate_map %]
-            <tr>
-              <td>[% plate.key %]</td>
-              <td><input name="[% plate.key %]_map" id="[% plate.key %]_map" type="text" value="[% plate.value %]"></td>
-            </tr>
+            <label class="col-md-12">
+              Plate Name
+            </label>
+            <p class="form-control-static col-md-12 ">[% plate.key %]</p>
+            <label class="col-md-12">
+              Canonical Name
+            </label>
+            <div class="col-md-4">
+                <div class="form-control" name="[% plate.key %]_map" id="[% plate.key %]_map">[% plate.value %]</div><br>
+            </div>
           [% END %] 
-          </table>       
         </div>
           <br>
           
-          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn btn-default">
+          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn btn-primary">
             <i class="glyphicon glyphicon-upload"></i> Submit QC - step 2
           </button>      
         [% ELSE %]
 
-          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn btn-default">
+          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn btn-primary">
             <i class="glyphicon glyphicon-upload"></i> Submit QC - step 1
           </button>
         [% END %]
