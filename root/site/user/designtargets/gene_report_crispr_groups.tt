@@ -202,7 +202,9 @@ $( document ).ready(function() {
 });
 </script>
 
-<div class="modal hide fade" id="DeleteExperimentModal">
+<div class="modal fade" id="DeleteExperimentModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
         <h3 id="myModalLabel">Confirm Crispr Pick</h3>
@@ -221,7 +223,8 @@ $( document ).ready(function() {
           Confirm Crispr Pick
         </button>
       </div>
-    </form>
+    </div>
+  </div>
 </div>
 
 [% BLOCK display_crisprs %]
