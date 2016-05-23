@@ -3,9 +3,9 @@
 <h1>Get Barcode Details</h1>
 
 [% IF well_details %]
-<a class="btn btn-default pull-right" href="[% c.uri_for('/user/scan_barcode')%]"><i class="icon-arrow-left"></i> Back to Scan Page</a><br>
+<a class="btn btn-default pull-right" href="[% c.uri_for('/user/scan_barcode')%]"><i class="glyphicon glyphicon-arrow-left"></i> Back to Scan Page</a><br>
   [% INCLUDE 'barcode_well_details.tt' %]
-<a href="[% c.uri_for('/user/well_barcode_history/') _ well_details.barcode %]">View Barcode Action History</a>
+<a class="btn btn-default" href="[% c.uri_for('/user/well_barcode_history/') _ well_details.barcode %]">View Barcode Action History</a>
   [% IF can_edit %]
    [% IF well_details.barcode_state == 'in_freezer' %]
 <form method="POST" action="[% c.uri_for( '/user/well_checkout' ) %]" class="well">
@@ -13,7 +13,7 @@
     <input type="hidden" name="barcode" value="[% barcode %]"/>
     <button type="submit" name="confirm_checkout" class="btn btn-primary" value="confirm_checkout">
       Checkout
-      <i class="icon-arrow-right icon-white"></i>
+      <i class="glyphicon glyphicon-arrow-right"></i>
     </button>
   </fieldset>
 </form>
@@ -61,7 +61,7 @@ Actions:
     <br><br>
     <a href="[% c.uri_for('/user/undiscard_barcode', barcode => well_details.barcode) %]" class="btn btn-primary">
     Un-discard
-    <i class="icon-arrow-left icon-white"></i><i class="icon-trash icon-white"></i>
+    <i class="glyphicon glyphicon-arrow-left"></i><i class="glyphicon glyphicon-trash"></i>
     </a><br>
     <small>(return the barcode state to checked out)</small>
     [% END %]
@@ -84,7 +84,7 @@ Actions:
     <input type="hidden" name="plate_type" value="[% well_details.plate_type %]"/>
     <button type="submit" name="confirm_discard" class="btn btn-danger" value="confirm_discard">
       Discard
-      <i class="icon-arrow-right icon-white"></i><i class="icon-trash icon-white"></i>
+      <i class="glyphicon glyphicon-arrow-right"></i><i class="glyphicon glyphicon-trash"></i>
     </button>
 [% END %]
 
