@@ -73,6 +73,25 @@
 
 <h2>Project Submission Files</h2>
 <p>Below are the spreadsheets needed to upload your submission to Eurofins. There is 1 spreadsheet per sub-project/primer combination. Each spreadsheet contains names for 96 samples. If your plate does not contain 96 samples edit the spreadsheet to remove sample names for empty wells or replace them with the word "empty". Do not make any other changes to the sample names. During submission you will be asked to enter a "plate name" - this must match the name written on the plate that you send to Eurofins. The Eurofins submission system is here: <a href="https://ecom.mwgdna.com/register/index.tcl" target="#_blank">Eurofins submissions</a>
+<h3>Custom Spreadsheet</h3>
+<div class="row">
+  <label class="col-md-1" for="sub">Sub project: </label>
+<div class="col-md-1 form-group">
+  <select class="form-control" id="sub">
+  [% SET sub_counter = 0 %]
+  [% WHILE sub_counter < seq_project.sub_projects %]
+    [% sub_counter = sub_counter + 1 %]
+    <option>[% sub_counter %]</option>
+  [% END %]
+  </select>
+</div>
+
+<button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-customModal btn btn-primary" href="#customModal">
+    <i class="glyphicon glyphicon-download"></i> Customise [% seq_project.name %]
+</button>
+</div>
+
+<h3>Standard Spreadsheet</h3>
 <table class="table primer" id="primer_table">
   <tr>
     <th>Primer Name</th>
@@ -109,7 +128,8 @@
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
               <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
-            </button>
+          </button>
+
           </td>
         </tr>
       [% counter = counter + 1 %]
@@ -132,6 +152,9 @@
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
                 <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
+            </button>
+            <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-customModal btn btn-primary" href="#customModal">
+                <i class="glyphicon glyphicon-download"></i> Customise [% seq_project.name %] [% 1 + adjustment %] - [% modulus + adjustment %] : [% primer %]
             </button>
           </td>
         [% END %]
@@ -167,6 +190,47 @@
   </div>
 </div>
 
+<div class="modal fade" role="dialog" aria-labelledby="basicModal" aria-hidden="true" id="customModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h4 id=modalTitle>Customise [% seq_project.name %]</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover table-condensed">
+          <tr>
+            <th>[% seq_project.name %]</th>
+            [% FOREACH primer IN primer_list %]
+              <th>[% primer %]</th>
+            [% END %]
+          </tr>
+          [% FOREACH a IN ['A','B','C','D','E','F','G','H'] %]
+            [% SET col = 0 %]
+            [% WHILE col < 12 %]
+              [% SET col = col + 1 %]
+              <tr>
+                <td>[% a %][% col %]</td>
+                [% FOREACH primer IN primer_list %]
+                <td>
+                  <div class="checkbox">
+                    <label><input type="checkbox" value="">[% primer %]</label>
+                  </div>
+                </td>
+                [% END %]
+              </tr> 
+            [% END %]
+          [% END %]
+          <tr>
+        </table>
+      </div>
+      <div class="modal-body">
+          <button class="btn btn-default"><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
+          <button class="btn btn-primary"><i class="glyphicon glyphicon-download"></i> Download</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <script type="text/javascript">
