@@ -5,7 +5,7 @@
 </div>
 
 <div class="row">
-  <div class="span6">
+  <div class="col-md-6">
       <table class="table">
 
         <tr>
@@ -35,42 +35,46 @@
 
 
   <div class="row">
-    <div class="span2">
+    <div class="col-md-2">
       <a id="delete_template_button" class="btn btn-danger" role="button" href="#DeleteTemplateModal" data-toggle="modal">
-        <i class="icon-remove icon-white"></i> Delete Template
+        <i class="glyphicon glyphicon-remove"></i> Delete Template
       </a>
     </div>
   </div>
 
-  <div class="modal hide fade" id="DeleteTemplateModal">
-    <form method="POST" id="template_delete" action="[% c.uri_for( '/user/delete_template' ) %]" class="modal-form"  enctype="multipart/form-data" >
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3 id="myModalLabel">Delete Template</h3>
-      </div>
+  <div class="modal fade" id="DeleteTemplateModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="POST" id="template_delete" action="[% c.uri_for( '/user/delete_template' ) %]" class="modal-form"  enctype="multipart/form-data" >
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3 id="myModalLabel">Delete Template</h3>
+          </div>
 
-      <div class="modal-body" align="center">
-        <input type="hidden" name="id" value="[% qc_template.id %]" />
-        <input type="hidden" name="name" value="[% qc_template.name %]" />
-        [% IF qc_run_ids.size %]
-        Deleting this template will also delete the QC runs which use this template:<br>
-         [% FOR run IN qc_run_ids %]
-         <strong>[% run %]</strong> <br>
-         [% END %]
-        Are you sure you want to delete template <strong>[% qc_template.name %]</strong>
-        and all related QC runs?
-        [% ELSE %]
-        Are you sure you want to delete template <strong>[% qc_template.name %]</strong>?
-        [% END %]
-      </div>
+          <div class="modal-body" align="center">
+            <input type="hidden" name="id" value="[% qc_template.id %]" />
+            <input type="hidden" name="name" value="[% qc_template.name %]" />
+            [% IF qc_run_ids.size %]
+              Deleting this template will also delete the QC runs which use this template:<br>
+            [% FOR run IN qc_run_ids %]
+            <strong>[% run %]</strong> <br>
+            [% END %]
+            Are you sure you want to delete template <strong>[% qc_template.name %]</strong>
+            and all related QC runs?
+            [% ELSE %]
+            Are you sure you want to delete template <strong>[% qc_template.name %]</strong>?
+            [% END %]
+          </div>
 
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
-        <button type="submit" value="delete_template" class="btn btn-danger" id="delete_template_button" >
-          <i class="icon-remove icon-white"></i> Confirm Delete Template
-        </button>
+          <div class="modal-footer">
+            <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="submit" value="delete_template" class="btn btn-danger" id="delete_template_button" >
+              <i class="icon-remove icon-white"></i> Confirm Delete Template
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
 
 
@@ -133,7 +137,7 @@ in bold </p>
       </td>
 
       <td>  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/view_template', { genbank_well_id => well.id, id => qc_template.id } ) %]">
-            <i class="icon-download-alt icon-white"></i>Download</a> </td>
+            <i class="glyphicon glyphicon-download-alt"></i> Download</a> </td>
     </tr>
     [%- END %]
   </tbody>
