@@ -20,14 +20,14 @@
             <br>
         </div>
         <div class="row">
-            <div class="col-md-12 form-group">
-                <label for="append_type">Appends</label></br>
+             <label class="col-md-12" for="append_type">Appends</label></br>
+             <div class="col-md-6">
                 <select class="form-control" name="append_type" id="append_type">
                   <option value="" selected="selected">-</option>
                   [%- FOR append IN append_list %]
                     <option value="[% append %]">[% append.replace( '_', ' ' ) %]</option>
                   [%- END %]
-                </select>
+                </select><br>
             </div>
         </div>
         <div class="row">

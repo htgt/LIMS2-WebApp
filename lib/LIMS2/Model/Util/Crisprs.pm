@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.400';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.401';
 }
 ## use critic
 
@@ -486,7 +486,7 @@ sub gene_ids_for_crispr {
 
         my @experiments = $model->schema->resultset('Experiment')->search(
             {
-                crispr_group_id => { -in => @groups_ids },
+                crispr_group_id => { -in => \@groups_ids },
                 gene_id => { '!=', undef }
             }
         )->all;
