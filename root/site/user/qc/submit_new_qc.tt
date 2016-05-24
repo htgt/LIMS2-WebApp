@@ -12,13 +12,13 @@
       <div class="col-md-12"> <button class="btn btn-default add" href="#" onClick="addFormField(); return false;">Add Sequencing Project</button></div><br>
       [% END %]
       <div class="col-md-12 row" id="sequencingprojects">
-      [% IF sequencing_project AND sequencing_project.size %]     
+      [% IF sequencing_project AND sequencing_project.size %]
         [% FOR sp IN sequencing_project %]
           <label class="col-md-12">Sequencing Project</label><br>
           <div class="col-md-7">
             <input class="form-control" name="sequencing_project" id="sequencing_project" type="text" value="[% sp %]"
               [% IF plate_map_request %] class="form-readonly" readonly="readonly"[% END %]
-            /> 
+            />
           </div>
         [%- END %]
       [% ELSE %]
@@ -40,11 +40,11 @@
           [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
         </div>
       </div>
-      <div class="col-md-12 row">  
+      <div class="col-md-12 row">
         <label class="col-md-12">Profile</label>
         <div class="col-md-7">
         [% IF plate_map_request %]
-          <p class="form-control-static">[% profile %]</p>
+          <input name="profile" id="profile" type="text" readonly class="form-control" value="[% profile %]" />
         [% ELSE %]
           <select name="profile" class="form-control">
               [%- FOR prof IN profiles %]
@@ -53,31 +53,35 @@
           </select><br>
         [% END %]
         </div>
-      </div>  
+      </div>
         <br>
-        
+
         [% IF plate_map_request %]
         <div class="col-md-12 row">
             <br><b><h4 class="col-md-12">Plate Map</h4></b>
-          [% SET counter = 0 %]           
+            <table>
+            <tr>
+              <th>Plate Name</th>
+              <th>Canonical Name</th>
+            </tr>
+          [% SET counter = 0 %]
           [% FOR plate IN plate_map %]
-            <label class="col-md-12">
-              Plate Name
-            </label>
-            <p class="form-control-static col-md-12 ">[% plate.key %]</p>
-            <label class="col-md-12">
-              Canonical Name
-            </label>
-            <div class="col-md-4">
-                <div class="form-control" name="[% plate.key %]_map" id="[% plate.key %]_map">[% plate.value %]</div><br>
-            </div>
-          [% END %] 
+            <tr>
+              <td>
+                <p class="form-control-static col-md-4 ">[% plate.key %]</p>
+              </td>
+              <td>
+                <input class="form-control" type="text" name="[% plate.key %]_map" id="[% plate.key %]_map" value="[% plate.value %]"></input>
+              </td>
+            </tr>
+          [% END %]
+          </table>
         </div>
           <br>
-          
+
           <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn btn-primary">
             <i class="glyphicon glyphicon-upload"></i> Submit QC - step 2
-          </button>      
+          </button>
         [% ELSE %]
 
           <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn btn-primary">
@@ -86,12 +90,12 @@
         [% END %]
     </form>
   </div>
-  
+
 </div>
 
 <script type="text/javascript" charset="utf-8">
     /* Add new sequencing project field */
-    function addFormField() {    
+    function addFormField() {
         $('div#sequencingprojects').after(
             "<br><div class='col-md-12 row'><label class='col-md-6' for='sequencing_project'>Sequencing Project</label><br><div class='col-md-7'><input type='text' name='sequencing_project' id='sequencing_project' class='form-control'/></div></div>"
         );
@@ -105,6 +109,6 @@
     $("#sequencing_project").autocomplete({
        source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
        minLength: 5,
-     });     
-   
+     });
+
 </script>
