@@ -51,7 +51,7 @@
         </a>
     [% END %]
 
-    <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
+    <a id="delete_run_button" class="btn btn-danger" role="button" data-target="#DeleteRunModal" data-toggle="modal">
       <i class="glyphicon glyphicon-remove"></i> Delete QC Run
     </a>
 
@@ -83,7 +83,9 @@
   </form>
 </div>
 
-<div class="modal hide fade" id="DeleteRunModal">
+<div class="modal fade" id="DeleteRunModal" role="dialog">
+ <div class="modal-dialog" role="document">
+  <div class="modal-content">;
   <form method="POST" id="qc_run_delete" action="[% c.uri_for( '/user/delete_qc_run' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
@@ -102,6 +104,8 @@
       </button>
     </div>
   </form>
+  </div>
+ </div>
 </div>
 
 <table class="table table-striped table-condensed">
