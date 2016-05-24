@@ -13,7 +13,7 @@
         <input type= "hidden" name="well_name" value="[% well_name %]" >
         <span class="input uneditable-input">[% well_name %]</span>
         [% INCLUDE 'well_specific_fields.tt' well_fields = colony_pick_fields %]
-        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i>Save</button>
+        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-arrow-right"></i>Save</button>
       </fieldset>
     </form>
 </div>
@@ -22,7 +22,7 @@
   <fieldset>
     <legend>Or Upload Well Data from File</legend>
         <input name="datafile" type="file">
-    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="glyphicon glyphicon-arrow-right"></i> Go</button>
   </fieldset>
 </form>
 

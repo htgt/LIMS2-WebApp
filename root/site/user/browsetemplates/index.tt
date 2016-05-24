@@ -3,8 +3,8 @@
   <fieldset>
     <legend>List QC Templates</legend>
     <input type="text" id="template_name" name="template_name" placeholder="Template Name" value="[% template_name %]">
-    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
-    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="glyphicon glyphicon-filter"></i> Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn btn-default"><i class="glyphicon glyphicon-list-alt"></i> Show All</button>
   </fieldset>
 </form>
 

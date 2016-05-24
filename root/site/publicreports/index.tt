@@ -3,7 +3,7 @@
 </div>
 
 <div class="row">
-  <div class="span8 offset1">
+  <div class="col-md-8 col-md-offset-1">
     <ul>
       <li>
         <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre KnockIn Project Status</a>

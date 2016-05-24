@@ -1,15 +1,15 @@
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Create Sequencing Project
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Create Sequencing Project
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           The purpose of this page is to create projects for external sequencing at Eurofins. Please enter the relevant data to your project. Each data type is explained below. 
           Once you have successfully created your project, you will be redirected to the view sequencing project page.

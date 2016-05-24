@@ -47,9 +47,9 @@
    <th>Manual Accept Status</th>
    <td>[% bool_to_text(bool=well_details.manual_accepted_flag) %]
     [% IF can_edit %]
-      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 'reset'}) %]" class="btn btn-primary btn-small pull-right">Reset</a>
-      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 0}) %]" class="btn btn-primary btn-small pull-right">Withhold <i class="icon-ban-circle icon-white"></i></a>
-      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 1}) %]" class="btn btn-primary btn-small pull-right">Accept <i class="icon-ok-circle icon-white"></i></a>
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 'reset'}) %]" class="btn btn-primary btn-sm pull-right">Reset</a>
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 0}) %]" class="btn btn-primary btn-sm pull-right">Withhold <i class="glyphicon glyphicon-ban-circle"></i></a>
+      <a href="[% c.uri_for('/user/set_barcode_accept', {barcode => barcode, override => 1}) %]" class="btn btn-primary btn-sm pull-right">Accept <i class="glyphicon glyphicon-ok-circle"></i></a>
     [% END %]
    </td>
  </tr>

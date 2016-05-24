@@ -1,3 +1,13 @@
+0.402     2016-05-24 14:27:53 Europe/London
+
+    Fixes to bootstrap migration on QC submission and QC view pages
+
+0.401     2016-05-23 15:04:35 Europe/London
+    Bootstrap fixes: Qc Template
+0.400     2016-05-18 12:31:14 Europe/London
+    Bootstrap fixes
+0.399     2016-05-16 12:27:42 Europe/London
+    Bootstrap V3
 0.398     2016-05-10 11:59:11 Europe/London
 
    Display design oligo search regions in genoverse and UCSC

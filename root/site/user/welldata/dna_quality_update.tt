@@ -4,41 +4,44 @@
   <h1>Plate DNA EGel Status Update</h1>
 </div>
 
-<div class="row">
+<div class="grid">
 
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="dna_quality_update" action="[% c.uri_for( '/user/dna_quality_update' ) %]" class="form well"  enctype="multipart/form-data" >
-
-        <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-        />
-
-        <label>DNA EGel Status File</label>
+        <div class="row">
+          <label class="col-md-12">Plate Name</label>
+          <div class="col-md-6">
+            <input class="form-control" name="plate_name" id="plate_name" type="text"
+              [% IF plate_name %]value="[% plate_name %]"[% END %]
+            />
+          </div>
+        </div>
+        <br><label>DNA EGel Status File</label>
         <input name="datafile" type="file">
 
         <br>
         <br>
-        <button name="update_dna_quality" id="update_dna_quality" type="submit" value="update_dna_quality" class="btn">
-            <i class="icon-upload"></i> Update DNA EGel Status
+        <button name="update_dna_quality" id="update_dna_quality" type="submit" value="update_dna_quality" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Update DNA EGel Status
         </button>
     </form>
   </div>
 
 </div>
 
-<div class="accordion" id="accordian">
 
-  <div class="accordion-group">
+<div class="col-md-12 panel-group" id="accordian">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate DNA EGel Status Update Help
+  <div class="panel panel-default">
+
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Plate DNA EGel Status Update Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to update the DNA EGel pass status for the wells on a given plate, using a csv file.
         </p>

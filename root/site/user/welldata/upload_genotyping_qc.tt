@@ -6,7 +6,7 @@
 
 <div class="row">
 
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="upload_genotyping_qc" action="[% c.uri_for( '/user/upload_genotyping_qc' ) %]" class="form well"  enctype="multipart/form-data" >
 
         <label>Genotyping QC Data File</label>
@@ -14,26 +14,26 @@
 
         <br>
         <br>
-        <button name="submit_genotyping_qc" id="submit_genotyping_qc" type="submit" value="submit_genotyping_qc" class="btn">
-            <i class="icon-upload"></i> Upload Genotyping QC
+        <button name="submit_genotyping_qc" id="submit_genotyping_qc" type="submit" value="submit_genotyping_qc" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Upload Genotyping QC
         </button>
     </form>
   </div>
 
 </div>
 
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Genotyping QC Data Upload Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Genotyping QC Data Upload Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to update genotyping QC results, using a csv file.
         </p>
@@ -47,6 +47,7 @@
 
           <h6>Genotyping QC Data File</h6>
           <p>
+            <div class="row">
             A csv file with some or all of these column headers is used to upload the data:
             <dl class="dl-horizontal">
               <dt>well_name</dt>
@@ -66,6 +67,8 @@
                <dt>[% assay %]</dt>
               [% END %]
             </dl>
+            </div>
+            <div class="row">
             For each of these types you can provide the following data:
             <dl class="dl-horizontal">
              <dt>pass</dt>
@@ -87,6 +90,7 @@
              <dt>bsd_confidence</dt>
              <dt>bsd_vic</dt>
             </dl> 
+            </div>
             LRPCR bands can be blank if no test was performed, otherwise:
             <dl class="dl-horizontal">
              <dt>gr / gf bands</dt>

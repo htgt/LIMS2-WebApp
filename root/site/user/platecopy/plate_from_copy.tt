@@ -4,32 +4,32 @@
   <h1>Create Copy Plate <small>Copy a CRISPR_V, FINAL or FINAL PICK plate to a new DNA plate using dna_prep process</small></h1>
 </div>
 
-<div class="row">
+<div class="grid">
 
-  <div class="span4 offset4" align="center">
+  <div class="col-md-4 col-md-offset-4" align="center">
     <form method="POST" id="plate_copy" action="[% c.uri_for( '/user/plate_from_copy_process' ) %]" class="form well"  enctype="multipart/form-data" >
 
-    <label>Plate Name (from)</label>
+        <label>Plate Name (from)</label><br>
         <input name="from_plate_name" id="from_plate_name" type="text" placeholder="Input Plate Name" value="[% from_plate_name %]" 
           [% IF from_plate_name %]value="[% from_plate_name %]"[% END %]
-        />
+          /><br><br>
 
-    <label>New Plate Name (to)</label>
+        <label>New Plate Name (to)</label><br>
         <input name="to_plate_name" id="to_plate_name" type="text" placeholder="Output Plate Name"
           [% IF to_plate_name %]value="[% to_plate_name %]"[% END %]
-        />
+          /><br>
     <br>
-        <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn">
-            <i class="icon-ok-sign"></i> Copy Plate
+        <button name="copy_plate" id="copy_plate" type="submit" value="copy_plate" class="btn btn-primary">
+            <i class="glyphicon glyphicon-ok-sign"></i> Copy Plate
         </button>
 
     </form>
   </div>
 
 </div>
-
+<div class="col-md-12">
 [% INCLUDE 'plate_copy_help.tt' %]
-
+</div>
 <script type="text/javascript">
 
 $("#from_plate_name").autocomplete({

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ImportSequencing;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.398';
+    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.402';
 }
 ## use critic
 
@@ -253,6 +253,11 @@ sub _get_new_name{
     # tmp fix to convert SF -> SF1
     $new_name =~ s/p1kSF\b/p1kSF1/;
     $new_name =~ s/p1kSR\b/p1kSR1/;
+
+    # Remove underscore from names which have "_<primer>" added by EF
+    # because the plate was sequenced with more than one primer
+    # e.g. HFP0015_B_1e06.p1k_PNF.scf
+    $new_name =~ s/p1k_/p1k/;
 
     return $new_name;
 }
