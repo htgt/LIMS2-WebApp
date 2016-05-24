@@ -46,7 +46,7 @@
     </a>
 
     [% IF show_accept_ep_pick_well_button %]
-        <a id="update_ep_pick_well_accepted_button" class="btn btn-success" href="#UpdateEP_PICKWellAcceptedModal" data-toggle="modal" role="button">
+        <a id="update_ep_pick_well_accepted_button" class="btn btn-success" data-target="#UpdateEP_PICKWellAcceptedModal" data-toggle="modal" role="button">
           <i class="glyphicon glyphicon-ok"></i> Mark EP_PICK Wells Accepted
         </a>
     [% END %]
@@ -58,7 +58,9 @@
   </div>
 </div>
 
-<div class="modal hide fade" id="UpdateEP_PICKWellAcceptedModal">
+<div class="modal fade" id="UpdateEP_PICKWellAcceptedModal" role="dialog">
+ <div class="modal-dialog" role="document">
+  <div class="modal-content">
   <form method="POST" id="update_ep_pick_well_accepted" action="[% c.uri_for( '/user/mark_ep_pick_wells_accepted' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
@@ -81,11 +83,13 @@
       </button>
     </div>
   </form>
+  </div>
+ </div>
 </div>
 
 <div class="modal fade" id="DeleteRunModal" role="dialog">
  <div class="modal-dialog" role="document">
-  <div class="modal-content">;
+  <div class="modal-content">
   <form method="POST" id="qc_run_delete" action="[% c.uri_for( '/user/delete_qc_run' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
