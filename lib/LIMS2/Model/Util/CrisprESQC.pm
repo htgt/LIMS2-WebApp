@@ -304,7 +304,8 @@ sub _build_chrom_sizes {
     my $fh = $file->openr or die "Could not open chrom sizes file $file_name for reading - $!";
 
     my $sizes = {};
-    foreach my $line (<$fh>){
+    my @lines = <$fh>;
+    foreach my $line (@lines){
         chomp $line;
         my ($chr,$size) = split "\t", $line;
         $chr =~ s/chr//;
