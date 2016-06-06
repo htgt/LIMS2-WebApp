@@ -1,5 +1,11 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
+<style type="text/css"> 
+.label-as-badge {
+    border-radius: 1em;
+}
+</style>
+
 <form method="GET" class="well form-inline">
   <fieldset>
     <legend>Filter QC Runs</legend>
@@ -7,8 +13,8 @@
     <input name="plate_name" id="plate_name" type="text" value="[% plate_name %]" autocomplete="off" />
     <label for="sequencing_project">Sequencing Project: </label>
     <input name="sequencing_project" id="sequencing_project" type="text" value="[% sequencing_project %]" autocomplete="off" />
-    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i> Filter</button>
-    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i> Show All</button>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="glyphicon glyphicon-filter"></i> Filter</button>
+    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn btn-info"><i class="glyphicon glyphicon-list-alt"></i> Show All</button>
   </fieldset>
 </form>
 
@@ -34,7 +40,7 @@
             <td>[% run.sequencing_project %]</td>
             <td>
                 [% IF run.validated %]
-                     <span class="badge badge-success"><i class="icon-ok icon-white"></i></span>
+                     <span class="label label-success label-as-badge"><i class="glyphicon glyphicon-ok"></i></span>
                 [% END %]
             </td>
             <td>[% run.created_by %]</td>

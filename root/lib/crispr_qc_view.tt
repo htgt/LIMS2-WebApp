@@ -74,7 +74,7 @@
     [% END %]
 
     [% IF row.fwd_read or row.rev_read %]
-        <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+        <a class="btn btn-info traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
     [% END %]
 </td>
 
@@ -120,7 +120,7 @@
     <td>
         <div class="control-group">
           <div class="controls">
-           <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-mini" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
+           <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-xs" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
          </div>
        </div>
     </td>

@@ -207,7 +207,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
     }
 
     my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr, $c->model('Golgi') ) };
 
     my @genes;
     for my $gene_id ( @gene_ids ) {
@@ -303,7 +303,7 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my $cp_data = $crispr_pair->as_hash;
 
     my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair, $c->model('Golgi') ) };
 
     my @genes;
     for my $gene_id ( @gene_ids ) {

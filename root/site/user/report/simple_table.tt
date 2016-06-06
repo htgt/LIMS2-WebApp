@@ -1,7 +1,7 @@
 <div class="page-header">
   <h1>[% title %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/report/download', report_id ) %]">
-    <i class="icon-download-alt icon-white"></i>Download CSV</a>
+  <a class="btn btn-info" href="[% c.uri_for( '/user/report/download', report_id ) %]">
+    <i class="glyphicon glyphicon-download-alt"></i> Download CSV</a>
   </h1>
 </div>
 
@@ -17,7 +17,7 @@
         [%- button_label = v_json.lims2_custom.button_label %]
         [%- tab_target = v_json.lims2_custom.browser_target %]
         [%- api_url = v_json.lims2_custom.api_url %]
-<a class="btn btn-info btn-small"
+<a class="btn btn-info btn-sm"
         <a href="[% c.uri_for( api_url, v_json.lims2_custom )
                  %]" target="[% tab_target %]">[% button_label %]</a>
     [% ELSIF v.match( 'lims2_combo' ) %]

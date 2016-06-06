@@ -264,7 +264,7 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% crispr_data.fwd_seq %]</td>
         <td>[% crispr_data.type %]</td>
         <td> [% crispr_data.locus.chr_name %]:[% crispr_data.locus.chr_start %]-[% crispr_data.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- FOR datum IN crispr_data.off_targets %]
       <tr class="ots">
@@ -273,7 +273,7 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% datum.ot_crispr.fwd_seq %]</td>
         <td>[% datum.ot_crispr.type %]</td>
         <td> [% datum.ot_crispr.locus.chr_name %]:[% datum.ot_crispr.locus.chr_start %]-[% datum.ot_crispr.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- END %]
     </tbody>

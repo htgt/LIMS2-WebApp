@@ -19,7 +19,7 @@ multiple wells, e.g. from a het recovery plate. Note that this does not create a
 
 <div class="row">
 
-  <div class="span6 offset3">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="het_status_file" action="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]" class="form well"  enctype="multipart/form-data" >
 
         <label>Het Status File</label>
@@ -27,8 +27,8 @@ multiple wells, e.g. from a het recovery plate. Note that this does not create a
 
         <br>
         <br>
-        <button name="upload_het_status" id="upload_het_status" type="submit" value="upload_het_status" class="btn">
-            <i class="icon-upload"></i> Upload Het Status
+        <button name="upload_het_status" id="upload_het_status" type="submit" value="upload_het_status" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Upload Het Status
         </button>
     </form>
   </div>

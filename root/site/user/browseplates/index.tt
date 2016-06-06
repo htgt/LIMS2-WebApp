@@ -2,15 +2,25 @@
 <form method="GET" action="[% c.uri_for( '/user/browse_plates' ) %]" class="well">
   <fieldset>
     <legend>List Plates</legend>
-    <input type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]"  autocomplete="off">
-    <select name="plate_type">
-      <option[% IF ! selected_plate_type.defined %] selected="selected"[% END %]>-</option>
-      [%- FOR plate_type IN plate_types %]
-      <option[% IF plate_type == selected_plate_type %] selected="selected"[% END %]>[% plate_type %]</option>
-      [%- END %]
-    </select>
-    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i>Filter</button>
-    <button name="show_all" id="show_all" type="submit" value="Show All" class="btn"><i class="icon-list-alt"></i>Show All</button>
+    <div class="row">
+      <div class="col-md-3">
+        <input class="form-control" type="text" id="plate_name" name="plate_name" placeholder="Plate Name" value="[% plate_name %]"  autocomplete="off">
+      </div>
+      <div class="col-md-3">
+        <select name="plate_type" class="form-control">
+          <option[% IF ! selected_plate_type.defined %] selected="selected"[% END %]>-</option>
+          [%- FOR plate_type IN plate_types %]
+            <option[% IF plate_type == selected_plate_type %] selected="selected"[% END %]>[% plate_type %]</option>
+          [%- END %]
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="glyphicon glyphicon-filter icon-white"></i> Filter</button>
+      </div>
+      <div class="col-md-1">
+        <button name="show_all" id="show_all" type="submit" value="Show All" class="btn btn-default"><i class="glyphicon glyphicon-list-alt"></i> Show All</button>
+      </div>
+    </div>
   </fieldset>
 </form>
 
@@ -18,7 +28,7 @@
 
 [% IF plates.size %]
 <a class="btn btn-primary" href="[% c.uri_for('/user/report/sync/PlateList', {plate_type => selected_plate_type, plate_name => plate_name} ) %]">
-<i class="icon-download-alt icon-white"></i>Downloadable Report</a>
+<i class="glyphicon glyphicon-download-alt icon-white"></i> Downloadable Report</a>
 <table class="table table-striped">
   <thead>
     <tr>

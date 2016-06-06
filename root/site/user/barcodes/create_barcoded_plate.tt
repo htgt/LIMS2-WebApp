@@ -4,23 +4,25 @@
   <h1>Create Barcoded Plate</h1>
 </div>
 
-<div class="row">
-  <div class="span6 offset3">
+<div class="grid">
+  <div class="col-md-6 col-md-offset-3">
 
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/create_barcoded_plate' ) %]" class="form well"  enctype="multipart/form-data" >
         Use this form to create a new plate which contains barcoded tubes that have already been registered in LIMS2
         <br>
-        <br>
-        <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-         />
-
+        <div class="row">
+          <label class="col-md-12">Plate Name</label>
+          <div class="col-md-6">
+            <input name="plate_name" class="form-control" id="plate_name" type="text"
+              [% IF plate_name %]value="[% plate_name %]"[% END %]
+            />
+          </div>
+        </div>
         <label>Barcode Scanner File</label>
         <input name="wellbarcodesfile" type="file">
-
-        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
-            <i class="icon-upload"></i> Create Plate
+        <br>
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Create Plate
         </button>
     </form>
   </div>
