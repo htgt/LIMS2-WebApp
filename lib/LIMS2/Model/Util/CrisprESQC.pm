@@ -563,10 +563,18 @@ sub fix_no_header_sam{
     print $fh "\@HD\tVN:1.3\tSO:coordinate\n";
     print $fh "\@SQ\tSN:".$params->{chr_name}."\tLN:$length\n";
 
-    # Sort by start coord of alignment
-    my @sam_values_sorted = sort { $a->[3] <=> $b->[3] } @sam_values;
 
-    foreach my $value_array (@sam_values_sorted){
+    my $sam_values_unique = {};
+
+    foreach my $value_array (@sam_values){
+        # Only use the longest alignment for each read
+        my $read_name = $value_array->[0];
+        if(exists $sam_values_unique->{$read_name}){
+            my $exisiting_seq = $sam_values_unique->{$read_name}->[9];
+            my $this_seq = $value_array->[9];
+            next unless length($this_seq) > length($exisiting_seq);
+        }
+
         # replace region name with chromosome name
         $value_array->[2] = $params->{chr_name};
 
@@ -589,9 +597,16 @@ sub fix_no_header_sam{
         # CIGAR string so it reflects full length read
         $value_array->[5] =~ tr/H/S/;
 
+        $sam_values_unique->{$read_name} = $value_array;
+    }
+
+    # Sort by start coord of alignment
+    my @sam_values_sorted = sort { $a->[3] <=> $b->[3] } values %{ $sam_values_unique };
+    foreach my $value_array (@sam_values_sorted){
         print $fh join "\t", @{ $value_array };
         print $fh "\n";
     }
+
     close $fh;
     return $sam_new;
 }
