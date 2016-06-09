@@ -257,9 +257,9 @@
     <thead>
       <tr>
       [%- FOR well IN wells %]
-        <td>[% well.plate_name %]</td>
-        <td>[% well.well_id %]</td>
-        <td>[% well.well_name %]</td>
+        <td>[% well %]</td>
+        <td>[% well %]</td>
+        <td>[% well %]</td>
         </tr>
       [% END %]
       
