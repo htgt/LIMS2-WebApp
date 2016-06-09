@@ -623,24 +623,16 @@ sub crispr_wells_for_crispr {
         or die "No crispr_id provided to crispr_wells_for_crispr";
 
     my @crispr_process = $schema->resultset('ProcessCrispr')->search(
-        { 
-            'me.crispr_id' => [ $crispr_id ], 
+        {
+            'me.crispr_id' => [ $crispr_id ],
         },
     );
 
-use Smart::Comments;
-    my $crispr_process = scalar @crispr_process;
-    ### $crispr_process
-    #foreach (@crispr_process){
-    #    ### $_
-    #}
-
     my @well_id_all;
-
     foreach my $current_crispr_process (@crispr_process) {
         my @well_id = $schema->resultset('Well')->search(
             {
-                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},   #needs process_crispr.process_id from @crispr_process query
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
             },
             {
                 join => 'process_output_wells',

@@ -219,19 +219,8 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
 
     my @pairs = crispr_pairs_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
     my @groups = crispr_groups_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
-
-  
     my @wells = crispr_wells_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
 
-
-
-use Smart::Comments;
-    my $well_count = scalar @wells; 
-    ### $well_count
-
-
-
-  
     $c->stash(
         crispr_data             => $crispr->as_hash,
         ots                     => \@off_target_summaries,
@@ -242,7 +231,6 @@ use Smart::Comments;
         genes                   => \@genes,
         wells                   => [ map{ $_->as_hash } @wells ],
     );
-
 
     return;
 }
