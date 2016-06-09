@@ -242,6 +242,39 @@
   [% END %]
 [% END %]
 
+
+
+<h2>Crispr Wells</h2>
+[% IF wells.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Plate</th>
+        <th>Well Name</th>
+        <th>Well ID</th>
+      </tr>
+    </thead>
+    <thead>
+      <tr>
+      [%- FOR well IN wells %]
+        <td>[% well.plate_name %]</td>
+        <td>[% well.well_id %]</td>
+        <td>[% well.well_name %]</td>
+        </tr>
+      [% END %]
+      
+    </thead>
+    <tbody>
+
+[% ELSE %]
+  <p><em>No CRISPR wells with this crispr</em></p>
+[% END %]
+
+
+
+
+
+
 [% IF crispr_data.off_targets.size > 0 %]
 <h2>Crispr Off Targets</h2>
 <p class="text-warning">We only show off targets loaded in LIMS2, which may not be all the off targets.
