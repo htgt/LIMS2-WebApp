@@ -626,7 +626,7 @@ sub crispr_wells_for_crispr {
         { 
             'me.crispr_id' => [ $crispr_id ], 
         },
-        );
+    );
 
 use Smart::Comments;
     my $crispr_process = scalar @crispr_process;
@@ -636,21 +636,19 @@ use Smart::Comments;
     #}
 
     my @well_id_all;
-    my $i = 0;
 
-    foreach (@crispr_process){
+    foreach my $current_crispr_process (@crispr_process) {
         my @well_id = $schema->resultset('Well')->search(
             {
-                'process_output_wells.process_id' => { -in => $crispr_process[$i]->get_column('process_id')},   #needs process_crispr.process_id from @crispr_process query
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},   #needs process_crispr.process_id from @crispr_process query
             },
             {
                 join => 'process_output_wells',
                 distinct => 1,
             }
 
-            );
+        );
         push @well_id_all, @well_id;
-        $i++;
 
     }
 

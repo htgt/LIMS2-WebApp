@@ -223,10 +223,11 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
   
     my @wells = crispr_wells_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
 
+
+
 use Smart::Comments;
     my $well_count = scalar @wells; 
     ### $well_count
-
 
 
 
@@ -239,7 +240,7 @@ use Smart::Comments;
         groups                  => [ map{ $_->as_hash } @groups ],
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
         genes                   => \@genes,
-        wells                   => \@wells,
+        wells                   => [ map{ $_->as_hash } @wells ],
     );
 
 

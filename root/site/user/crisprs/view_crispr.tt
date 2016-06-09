@@ -242,38 +242,29 @@
   [% END %]
 [% END %]
 
-
-
 <h2>Crispr Wells</h2>
 [% IF wells.size > 0 %]
-  <table class="table">
+  <table class="table table-striped">
     <thead>
       <tr>
-        <th>Plate</th>
         <th>Well Name</th>
-        <th>Well ID</th>
+        <th>Plate Name</th>
+        <th>Well</th>
       </tr>
     </thead>
     <thead>
-      <tr>
       [%- FOR well IN wells %]
-        <td>[% well %]</td>
-        <td>[% well %]</td>
-        <td>[% well %]</td>
-        </tr>
+      <tr>
+        <td>[% well.plate_name %]_[% well.well_name %]</td>
+        <td><a href="[% c.uri_for( '/user/view_plate', { name => well.plate_name } ) %]"> [% well.plate_name %]</a></td>
+        <td>[% well.well_name %]</td>
+      </tr>
       [% END %]
-      
     </thead>
     <tbody>
-
 [% ELSE %]
   <p><em>No CRISPR wells with this crispr</em></p>
 [% END %]
-
-
-
-
-
 
 [% IF crispr_data.off_targets.size > 0 %]
 <h2>Crispr Off Targets</h2>
