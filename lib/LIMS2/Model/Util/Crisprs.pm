@@ -638,12 +638,11 @@ sub crispr_wells_for_crispr {
                 join => 'process_output_wells',
                 distinct => 1,
             }
-
         );
+
         push @well_id_all, @well_id;
 
     }
-
 
     return @well_id_all;
 }
