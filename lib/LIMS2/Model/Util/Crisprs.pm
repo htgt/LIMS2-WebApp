@@ -12,7 +12,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids', 'crispr_groups_for_crispr', 'crispr_pairs_for_crispr' ]
+    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids', 'crispr_groups_for_crispr', 'crispr_pairs_for_crispr', 'crispr_wells_for_crispr' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -610,6 +610,41 @@ sub crispr_pairs_for_crispr {
     );
 
     return @crispr_pairs;
+}
+
+=head2 crispr_wells_for_crispr
+
+Given a crispr ID returns a list of wells that contain it
+
+=cut
+sub crispr_wells_for_crispr {
+    my ($schema, $params) = @_;
+    my $crispr_id = $params->{crispr_id}
+        or die "No crispr_id provided to crispr_wells_for_crispr";
+
+    my @crispr_process = $schema->resultset('ProcessCrispr')->search(
+        {
+            'me.crispr_id' => [ $crispr_id ],
+        },
+    );
+
+    my @well_id_all;
+    foreach my $current_crispr_process (@crispr_process) {
+        my @well_id = $schema->resultset('Well')->search(
+            {
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
+            },
+            {
+                join => 'process_output_wells',
+                distinct => 1,
+            }
+        );
+
+        push @well_id_all, @well_id;
+
+    }
+
+    return @well_id_all;
 }
 
 
