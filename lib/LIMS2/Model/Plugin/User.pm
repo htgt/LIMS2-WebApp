@@ -75,7 +75,7 @@ sub list_roles {
 sub list_messages {
     my ($self) = @_;
 
-    my @messages = $self->schema->resultset('Message')->search( {}, { order_by => { -asc => 'me.id' } } );
+    my @messages = $self->schema->resultset('Message')->search( {}, { order_by => { -asc => 'me.expiry_date' } } );
 
     return \@messages;
 }

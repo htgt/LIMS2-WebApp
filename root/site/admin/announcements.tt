@@ -4,10 +4,14 @@
     <h1>Announcements</h1>
 </div>
 
+<a href="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" class="btn btn-primary">Create Announcements</a><br><br>
+
+
+
 <div>
 	<form method="POST" action="[% c.uri_for( '/admin/announcements' ) %]" name="announcements_form" class="well">
 		<h2>Messages</h2>
-		[% IF wells.size > 0 %]
+		[% IF messages.size > 0 %]
   			<table class="table table-condensed table-striped">
     			<thead>
       				<tr>
@@ -20,8 +24,8 @@
       			[%- FOR message IN messages %]
       				<tr>
         				<td>[% message.message %]</td>
-        				<td>[% message.created_on %]</td>
-        				<td>[% message.expires_on %]</td>
+        				<td><date> [% message.created_date.ymd %]</date></td>
+        				<td><date> [% message.expiry_date.ymd %]</date></td>
       				</tr>
       				[% END %]
     			</tbody>
