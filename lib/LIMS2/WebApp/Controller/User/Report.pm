@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::Report;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::Report::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use LIMS2::Report;
 use MooseX::Types::Path::Class;

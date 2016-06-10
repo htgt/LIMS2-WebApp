@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::CrisprESQC;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.404';
+}
+## use critic
+
 
 =head1 NAME
 

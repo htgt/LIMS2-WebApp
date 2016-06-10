@@ -1,4 +1,10 @@
 package LIMS2::Model::Constants;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Constants::VERSION = '0.404';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

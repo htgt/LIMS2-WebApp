@@ -1,4 +1,10 @@
 package LIMS2::Report::XEPPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::XEPPlate::VERSION = '0.404';
+}
+## use critic
+
 
 use Moose;
 use List::MoreUtils qw( apply );

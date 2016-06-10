@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::Experiments;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;

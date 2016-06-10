@@ -1,1 +1,0 @@
-ALTER TABLE crispr_designs ADD COLUMN crispr_group_id INTEGER REFERENCES crispr_groups(id);

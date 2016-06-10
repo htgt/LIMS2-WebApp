@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::Redmine;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::Redmine::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use LIMS2::Model::Util::RedmineAPI;
 use Data::Dumper;

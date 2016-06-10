@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::EngSeqs;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::EngSeqs::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use LIMS2::Model::Util::EngSeqParams qw( generate_custom_eng_seq_params );
 use Bio::SeqIO;

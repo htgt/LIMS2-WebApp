@@ -1,4 +1,10 @@
 package LIMS2::ReportGenerator::ColonyCounts;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::ReportGenerator::ColonyCounts::VERSION = '0.404';
+}
+## use critic
+
 
 use Moose::Role;
 use List::MoreUtils qw( apply );

@@ -1,4 +1,10 @@
 package LIMS2::Report::DesignPlateOrderSheet;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::DesignPlateOrderSheet::VERSION = '0.404';
+}
+## use critic
+
 
 =head1 NAME
 

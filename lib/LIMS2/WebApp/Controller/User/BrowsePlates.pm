@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use LIMS2::WebApp::Pageset;
 use LIMS2::ReportGenerator::Plate;

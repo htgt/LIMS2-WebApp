@@ -1,4 +1,10 @@
 package LIMS2::Report::DesignVectors;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::DesignVectors::VERSION = '0.404';
+}
+## use critic
+
 
 use Moose;
 

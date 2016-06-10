@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::Crispr;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::Crispr::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;

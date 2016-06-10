@@ -1,4 +1,10 @@
 package LIMS2::Report::FinalPickVectorPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::FinalPickVectorPlate::VERSION = '0.404';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;

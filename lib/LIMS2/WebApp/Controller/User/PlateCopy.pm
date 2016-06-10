@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::PlateCopy;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::PlateCopy::VERSION = '0.404';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;

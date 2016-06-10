@@ -1,4 +1,10 @@
 package LIMS2::Report::IntermediateVectorPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.404';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;
