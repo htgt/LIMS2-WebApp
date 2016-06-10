@@ -54,7 +54,7 @@ sub custom_sheet : Path( '/api/custom_sheet' ) : Args(0) : ActionClass( 'REST' )
 sub custom_sheet_GET {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('read');
-$DB::single=1;
+
     my $sheet = $c->request->param("data");
     my $name = $c->request->param("name");
     my $sub = $c->request->param("sub");
@@ -63,7 +63,7 @@ $DB::single=1;
     $sheet = from_json($sheet);
 
     my $file = LIMS2::Model::Util::SequencingProject::custom_sheet($sheet, $name, $sub, @primers);
-$DB::single=1;
+
     $c->response->status( 200 );
     $c->response->content_type( 'application/xlsx' );
     $c->response->content_encoding( 'binary' );

@@ -33,7 +33,7 @@ sub build_seq_data {
 
     $seq_project->{primer_flag} = $mixFlag;
 
-    my @data = generate_rows($seq_project, $sub_number, $primer_req, 1, $mixFlag);
+    my @data = generate_rows($seq_project, $sub_number, $primer_req);
 
     my $data_hash = ({
         project_data    => $seq_project,
@@ -70,10 +70,15 @@ sub generate_rows {
     my @well_letters = qw( A B C D E F G H );
     my @data;
     foreach my $letter (@well_letters) {
+        my $custom_details;
+        if ($custom) {
+            $custom_details = custom_row($letter, $primer_req);
+        }
+
         for (my $well_number = 1; $well_number < 13; $well_number++){
             my $row;
             if ($custom){
-                $row = custom_row($letter, $well_number, $seq_project, $primer_req, $sub_number);
+                $row = custom_well($letter, $well_number, $seq_project, $sub_number, $custom_details);
                 push @data, $row;
             }
             elsif ($seq_project->{is_384}) {
@@ -89,6 +94,48 @@ sub generate_rows {
         }
     }
     return @data;
+}
+sub custom_row {
+    my ($letter,  $layout) = @_;
+    my @primers = keys(%{$layout});
+    my $row_details;
+
+    foreach my $primer (@primers) {
+        foreach my $row_hash (@{$layout->{$primer}}) {
+            if ($row_hash->{row} eq $letter) {
+                $row_details = $row_hash;
+                $row_details->{primer} = $primer;
+            }
+        }
+    }
+
+    return $row_details;
+}
+
+sub custom_well {
+    my ($letter, $well_number, $seq_project, $sub_number, $row_details) = @_;
+
+    my $well = $letter . $well_number;
+    my $row;
+
+    if ($row_details->{primer} ne "EMPTY") {
+        my $qcwell = (lc $row_details->{primer_letter}) . sprintf("%02d",$well_number);
+        my $sample = $seq_project . '_' . $sub_number . $qcwell . '.p1k';
+        $row = ({
+            'well'          => $well,
+            'sample_name'   => $sample,
+            'primer_name'   => $row_details->{primer},
+        });
+    }
+    else {
+        $row = ({
+            'well'          => 'EMPTY',
+            'sample_name'   => "",
+            'primer_name'   => "",
+        });
+    }
+
+    return $row;
 }
 
 sub construct_row {
@@ -115,11 +162,20 @@ sub construct_row {
             return $row;
         }
         $well = to384('_' . $quad, $qcwell);
-        $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
+
+        if ($seq_project->{primer_flag} == 1){
+            $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
+        } else {
+            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k';
+        }
     }
     else {
         $well = $letter . $well_number;
-        $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
+        if ($seq_project->{primer_flag} == 1){
+            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
+        } else {
+            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k';
+        }
     }
     #Lowercase letter and single digit wells include leading zero so a01, a02. Required format for qc
     #e.g. Marshmallow_1a01.p1kLR
@@ -131,53 +187,11 @@ sub construct_row {
     return $row;
 }
 
-sub custom_row {
-    my ($letter, $well_number, $seq_project, $layout, $sub_number) = @_;
-    my $qcwell = (lc $letter) . sprintf("%02d",$well_number);
-    my $well = $letter . $well_number;
-    my $row;    
-
-    my @primers = keys(%{$layout});
-    my @results;
-
-    foreach my $primer (@primers) {
-        my %set = map { $_ => 1 } @{$layout->{$primer}};
-        if (exists($set{$well})) {
-            push @results, $primer;
-        }
-    }
-
-    if (@results) {
-        my $well_primers = "";
-        my $primer_name = 'premix w. temp';
-        foreach my $primer (@results) {
-            $well_primers = $well_primers . '_' . $primer;
-        }
-        
-        my $sample = $seq_project . '_' . $sub_number . $qcwell . '.p1k' . $well_primers;
-        $row = ({
-            'well'          => $well,
-            'sample_name'   => $sample,
-            'primer_name'   => $primer_name,
-        });
-    } 
-    else {
-        $row = ({
-            'well'          => 'EMPTY',
-            'sample_name'   => "",
-            'primer_name'   => "",
-        });
-    }
-
-    return $row;
-}
-
 
 sub build_xlsx_file {
     my ($wells, $primer_name, $sub_num, $seq_project) = @_;
     my $file_name;
     my @data;
-$DB::single=1;
     if (ref $primer_name eq 'ARRAY') {
         #Custom file - multiple primers
         my $suffix = "";
@@ -191,7 +205,7 @@ $DB::single=1;
         }
         $file_name = $seq_project . '_' . $sub_num . '_' . $suffix . '.xlsx';
         @data = @{$wells};
-    } 
+    }
     else {
         my $project = $wells->{project_data};
 
@@ -220,7 +234,7 @@ $DB::single=1;
 
 sub setup_spreadsheet {
     my ($dir, @data) = @_;
-    
+
     my $workbook = Excel::Writer::XLSX->new($dir);
 
     my $worksheet = $workbook->add_worksheet();
@@ -251,7 +265,7 @@ sub dir_build {
 
 sub custom_sheet {
     my ($wells, $name, $sub, @primers) = @_;
-$DB::single=1;
+
     my @data = generate_rows($name, $sub, $wells, 1);
     my $file_name = build_xlsx_file(\@data, \@primers, $sub, $name);
     my $dir = dir_build($file_name);
@@ -262,7 +276,6 @@ $DB::single=1;
         name    => $file_name,
     });
 
-$DB::single=1; 
     return $file_contents;
 }
 

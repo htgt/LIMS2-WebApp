@@ -1,4 +1,33 @@
 [%- META title = 'View Sequencing Project' %]
+<style type="text/css">
+.list-group-item {
+    text-align:center;
+}
+#primer_1 {
+    background-color: #1F78B4;
+}
+#primer_2 {
+    background-color: #33A02C;
+}
+#primer_3 {
+    background-color: #A6CEE3;
+}
+#primer_4 {
+    background-color: #B2DF8A;
+}
+#primer_5 {
+    background-color: #E69F00;
+}
+#primer_6 {
+    background-color: #F0D042;
+}
+#primer_7 {
+    background-color: #CC79A7;
+}
+#primer_8 {
+    background-color: #009E73;
+}
+</style>
 
 <div class="page-header">
   <h1>Sequencing Project <small>[% seq_project.name %]</small>
@@ -76,7 +105,7 @@
 
 <h3>Custom Spreadsheet</h3>
 <div class="row">
-  <label class="col-md-2" for="sub">Sub project: </label>
+  <label class="col-md-1" for="sub">Sub-project: </label>
 <div class="col-md-1 form-group">
   <select class="form-control" id="sub">
   [% SET sub_counter = 0 %]
@@ -197,69 +226,24 @@
       </div>
       <div class="modal-body">
         <div class="grid">
-          <div class="container">
-            [% FOREACH primer IN primer_list %]
-              <button class="btn btn-info" onclick=checkPrimer("[% primer %]","[% letter %]");>Select all [% primer %]</button>
-            [% END %]
-            <button class="btn btn-danger" onclick=clearPlate();>Clear all</button>
-          </div><br>
-          <div class="panel-group" id="accordion">
+          [% SET count = 1 %]
+          [% FOREACH primer IN primer_list %]
+            <button class="primers btn btn-info" id="primer_[% count %]">[% primer %]</button>
+            [% SET count = count + 1 %]
+          [% END %]
+          <p>Choose a primer then drag and select the rows containing that primer.</p>
+          <ul class="list-group" id="list_rows">
+            [% SET count = 0 %]
             [% FOREACH a IN ['A','B','C','D','E','F','G','H'] %]
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  <h4 class="panel-title">
-                    <a data-toggle="collapse" href="#collapse[% a %]">Row [% a %]</a>
-                  </h4>
-                </div>
-              </div>
-              <div id="collapse[% a %]" class="panel-collapse collapse">
-                <div class="panel-body">
-                  <table class="table table-striped">
-                    <thead>    
-                      <tr>
-                        <th>
-                          <label>Well </label>
-                        </th>
-                        [% FOREACH primer IN primer_list %]
-                          <th>  
-                            <button class="btn btn-info" onclick=checkPrimer('[% primer %]','[% a %]');>Select all [% primer %]</button>
-                          </th>
-                        [% END %]
-                      </tr>
-                    </thead>
-                    <tbody>
-                      [% SET col = 0 %]
-                      [% WHILE col < 12 %]
-                        [% SET col = col + 1 %]
-                        <tr>
-                          <td>
-                            <label>[% a %][% col %]</label>
-                          </td>
-                          [% FOREACH primer IN primer_list %]
-                            <td>
-                              <div class="checkbox-inline">
-                                <label><input type="checkbox" name="well" class="[% primer %]" id="[% primer %]_[% a %]_[% col %]" value="">[% primer %]</label>
-                              </div>
-                            </td>
-                        [% END %]
-                        </tr>
-                      [% END %]
-                      <tr>
-                        <td></td><td></td>
-                        <td>
-                          <button class="btn btn-danger" onclick=clearPlate("[% a %]");>Clear row</button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table> 
-                </div>
-              </div>
+              <li class="list-group-item" id="[% count %]">Empty - Row [% a %]</li>
+              [% SET count = count + 1 %]
             [% END %]
-          </div>
+          </ul>
         </div>
       </div>
-      <div class="modal-body">
-          <button class="btn btn-default"><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
+      <div class="modal-footer">
+          <button class="col-md-offset-1 btn btn-danger" onclick=clearPlate();>Clear all</button>
+          <button class="btn btn-default" onclick=quit_modal();><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
           <button class="btn btn-primary" onclick=customSheet();><i class="glyphicon glyphicon-download"></i> Download</button>
       </div>
     </div>
@@ -268,6 +252,19 @@
 
 
 <script type="text/javascript">
+var selection = {};
+var tracker = new Array(8);
+var primers = [];
+var letters = ['A','B','C','D','E','F','G','H'];
+
+$(document).ready(function () {
+    var id = '[% seq_project.id %]';
+    $('.primers').each(function(index) {
+        primers.push($('.primers')[index].innerText);
+    });
+})
+
+
 $(document).on("click", ".open-primerModal", function () {
     var name = $(this).data('name');
     var adj = $(this).data('adjustment');
@@ -280,9 +277,106 @@ $(document).on("click", ".open-primerModal", function () {
 
 });
 
-$(document).ready(function () {
-    var id = '[% seq_project.id %]';
-})
+$(document).on("click", ".primers", function() {
+    var colour = $(this).css("background-color");
+    var name = $(this).text();
+    selection['primer'] = name;
+    selection['colour'] = colour;
+});
+
+$(function () {
+    var isMouseDown = false;
+    $(".list-group-item")
+        .mousedown(function() {
+            if (selection) {
+                isMouseDown = true;
+                $(this).css("background-color", selection['colour']);
+                updateText($(this));
+                return false; // prevent text selection 
+            }
+        })
+        .mouseover(function() {
+            if (isMouseDown == true){
+                $(this).css("background-color", selection['colour']);
+                updateText($(this));
+            }
+        });
+
+    $(document).mouseup(function() {
+        isMouseDown = false;
+    });
+});
+
+function updateText(focus) {
+    tracker[focus.attr('id')] = selection["primer"];
+    var primerCounts = {};
+    for (var count = 0; count < primers.length; count++) {
+        primerCounts[primers[count]] = 0;
+    }
+    $('#list_rows').children().each(function(index) {
+        if (typeof tracker[index] != 'undefined') {
+            var num = primerCounts[tracker[index]];
+            $(this).text(tracker[index] + " - Row " + letters[num]);
+            primerCounts[tracker[index]]++;
+        }
+    });
+    return;
+}
+
+function clearPlate() {
+    $('#list_rows').children().each(function(index) {
+        $(this).text("Empty - Row " + letters[index]);
+        $(this).css('background-color','transparent');
+        tracker = [];
+    });
+}
+
+function customSheet() {
+    var sheet = {};
+
+    for (var count = 0; count < tracker.length; count++) {
+        if (sheet.hasOwnProperty(tracker[count]) == false) {
+            var primer;
+            if (primers.indexOf(tracker[count]) == -1) {
+                primer = "EMPTY";
+            }
+            else {
+                primer = tracker[count];
+            }
+            if (!(primer in sheet)) {
+                sheet[primer] = [];
+            }
+        }
+        var row = {};
+        row['row'] = letters[count];
+        row['primer_letter'] = $('#' + count).text().split('Row ')[1];
+
+        if (tracker[count]) {
+            sheet[tracker[count]].push(row);
+        } else {
+            sheet['EMPTY'].push(row);
+        }
+    }
+
+    var jsonSheet = JSON.stringify(sheet);
+    console.log(jsonSheet);
+    var name = '[% seq_project.name %]';
+    var sub = document.getElementById('sub').value; 
+
+    console.log(jsonSheet);
+
+    var half = '[% c.uri_for('/api/custom_sheet/') %]';
+    var link =  half + encodeURI('?data=' + jsonSheet + '&name=' + name + '&sub=' + sub + '&primers=' + primers);
+
+    OpenInNewTab(link);
+    $('#customModal').modal('hide');
+}
+
+function quit_modal() {
+    clearPlate();
+    $('#customModal').modal('hide');
+}
+
 function retrieve_file(flag) {
     var primer = document.getElementById("modalPrimer").innerHTML;
     var sub = document.getElementById("modalAdj").innerHTML;
@@ -354,70 +448,5 @@ function defaultCheck(box, value) {
     }
 }
 
-function checkPrimer(primer, letter) {
-    if (letter) {
-        for (var col = 1; col < 13; col++) {
-            $("#" + primer + "_" + letter + "_" + col)[0].checked = true;
-        }
-    } else {
-        var wells = document.getElementsByClassName(primer);
-        for (var well = 0; well < wells.length; well++) {
-            wells[well].checked = true;
-        }
-    }
-}
-
-function clearPlate(letter) {
-    var wells = document.getElementsByName("well");
-    for (var well = 0; well < wells.length; well++) {
-        if (letter) {
-            var loc = wells[well].id.split("_")[1];
-            if (loc == letter) {
-                wells[well].checked = false;
-            }
-        }
-        else {
-            wells[well].checked = false;
-        }
-    }
-}
-
-var x;
-
-function customSheet() {
-    var wells = document.getElementsByName("well");
-    var primers = [];
-    var sheet = {};
-    for (var well = 0; well < wells.length; well++) {
-        if (wells[well].checked == true) {
-            if (primers.indexOf(wells[well].className) == -1) {
-                primers.push(wells[well].className);
-                sheet[wells[well].className] = [];
-            }
-            var id = wells[well].id.split("_");
-            var loc = id[1] + id[2];
-            sheet[wells[well].className].push(loc);
-        }
-    }
-    console.log(sheet);
-    console.log(primers);
-    console.log(JSON.stringify(sheet));
-    
-    var jsonSheet = JSON.stringify(sheet);
-    
-    var name = '[% seq_project.name %]';
-    var sub = document.getElementById('sub').value; 
-
-    console.log(jsonSheet);
-     
-
-
-
-    var half = '[% c.uri_for('/api/custom_sheet/') %]';
-    var link =  half + encodeURI('?data=' + jsonSheet + '&name=' + name + '&sub=' + sub + '&primers=' + primers);
-
-    OpenInNewTab(link);
-    $('#customModal').modal('hide');
-}
 </script>
 
