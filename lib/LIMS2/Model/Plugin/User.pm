@@ -72,6 +72,14 @@ sub list_roles {
     return \@roles;
 }
 
+sub list_messages {
+    my ($self) = @_;
+
+    my @messages = $self->schema->resultset('Message')->search( {}, { order_by => { -asc => 'me.id' } } );
+
+    return \@messages;
+}
+
 sub pspec_create_user {
     return {
         name     => { validate => 'user_name' },

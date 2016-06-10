@@ -92,6 +92,21 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
     return $c->response->redirect( $c->uri_for('/admin') );
 }
 
+=head2 announcements
+
+=cut
+
+sub announcements : Path( '/admin/announcements' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+
+    $c->stash ( messages => $c->model('Golgi')->list_messages );
+
+    return unless $c->request->method eq 'POST';
+
+    return $c->response->redirect( $c->uri_for('/admin') );
+}
+
 =head2 update_user
 
 =cut

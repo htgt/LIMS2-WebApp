@@ -244,7 +244,7 @@
 
 <h2>Crispr Wells</h2>
 [% IF wells.size > 0 %]
-  <table class="table table-striped">
+  <table class="table table-condensed table-striped">
     <thead>
       <tr>
         <th>Well Name</th>
@@ -252,7 +252,7 @@
         <th>Well</th>
       </tr>
     </thead>
-    <thead>
+    <tbody>
       [%- FOR well IN wells %]
       <tr>
         <td>[% well.plate_name %]_[% well.well_name %]</td>
@@ -260,8 +260,8 @@
         <td>[% well.well_name %]</td>
       </tr>
       [% END %]
-    </thead>
-    <tbody>
+    </tbody>
+  </table>
 [% ELSE %]
   <p><em>No CRISPR wells with this crispr</em></p>
 [% END %]
