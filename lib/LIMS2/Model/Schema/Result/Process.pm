@@ -51,6 +51,12 @@ __PACKAGE__->table("processes");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 dna_template
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +69,8 @@ __PACKAGE__->add_columns(
   },
   "type_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "dna_template",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -78,6 +86,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 dna_template
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "dna_template",
+  "LIMS2::Model::Schema::Result::DnaTemplate",
+  { id => "dna_template" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 process_backbone
 
@@ -150,6 +178,21 @@ Related object: L<LIMS2::Model::Schema::Result::ProcessCrispr>
 __PACKAGE__->might_have(
   "process_crispr",
   "LIMS2::Model::Schema::Result::ProcessCrispr",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 process_crispr_tracker_rna
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprTrackerRna>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_crispr_tracker_rna",
+  "LIMS2::Model::Schema::Result::ProcessCrisprTrackerRna",
   { "foreign.process_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -229,6 +272,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_parameters
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessParameter>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_parameters",
+  "LIMS2::Model::Schema::Result::ProcessParameter",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_recombinases
 
 Type: has_many
@@ -280,8 +338,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-28 15:28:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hW7RnTKw29lsZSnZqM66xw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:25:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2r9LKuhgtjvvUvmUDoy90Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -292,5 +350,22 @@ sub as_string {
     return $self->type->description || $self->type_id;
 }
 
+sub get_parameter_value{
+    my ($self,$name) = @_;
+    my $parameter = $self->process_parameters->find({ parameter_name => $name });
+
+    my $value = $parameter ? $parameter->parameter_value : undef;
+    return $value;
+}
+
+sub as_hash {
+    my $self = shift;
+
+    return {
+        id           => $self->id,
+        type         => $self->type_id,
+        dna_template => $self->dna_template->id,
+    };
+}
 __PACKAGE__->meta->make_immutable;
 1;

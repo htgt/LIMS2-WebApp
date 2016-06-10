@@ -107,6 +107,21 @@ __PACKAGE__->add_unique_constraint("users_name_key", ["name"]);
 
 =head1 RELATIONS
 
+=head2 barcode_events
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_es_qcs_runs
 
 Type: has_many
@@ -167,6 +182,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 fp_picking_lists
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingList>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_lists",
+  "LIMS2::Model::Schema::Result::FpPickingList",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_designs
 
 Type: has_many
@@ -223,6 +253,21 @@ Related object: L<LIMS2::Model::Schema::Result::QcRun>
 __PACKAGE__->has_many(
   "qc_runs",
   "LIMS2::Model::Schema::Result::QcRun",
+  { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 sequencing_projects
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProject>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_projects",
+  "LIMS2::Model::Schema::Result::SequencingProject",
   { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -478,8 +523,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VUTNwLMb/+caQrbZ6FT+DQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-11-30 10:23:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tz8L7rtR2we19EctCc9o5Q
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -492,6 +537,15 @@ sub as_hash {
         active => $self->active,
         roles  => [ sort map { $_->name } $self->roles ]
     };
+}
+
+sub is_sanger{
+    my $self = shift;
+
+    if($self->name =~ /.*\@sanger\.ac\.uk/){
+        return 1;
+    }
+    return 0;
 }
 
 __PACKAGE__->meta->make_immutable;

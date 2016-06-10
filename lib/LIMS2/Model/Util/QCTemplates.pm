@@ -123,8 +123,8 @@ sub qc_template_display_data {
 
         my $cassette_first;
         if ( my $source = $well->source_well ) {
-            $info{source_plate} = $source->plate->name;
-            $info{source_well} = $source->name;
+            $info{source_plate} = $source->plate_name;
+            $info{source_well} = $source->well_name;
 
             if ( my $design_id = $es_params->{design_id} ) {
                 my $design = try{ $model->c_retrieve_design( { id => $design_id } ) };
@@ -159,14 +159,15 @@ sub design_data {
     my ( $model, $info, $design, $species ) = @_;
 
     $info->{design_id} = $design->id;
+    $info->{design_phase} = $design->phase;
     my @gene_ids = uniq map { $_->gene_id } $design->genes;
 
     my @gene_symbols;
     foreach my $gene_id ( @gene_ids ) {
-        my $genes = $model->search_genes(
+        my $gene = $model->find_gene(
             { search_term => $gene_id, species =>  $species } );
 
-        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+        push @gene_symbols, $gene->{gene_symbol};
     }
 
     $info->{gene_ids} = join q{/}, @gene_ids;
@@ -214,9 +215,22 @@ sub eng_seq_data {
     if (my $backbone = $well->qc_template_well_backbone) {
         $info->{backbone_new} = $backbone->backbone->name;
     }
-    if (my @recombinases = $well->qc_template_well_recombinases->all) {
-        # FIXME: what if some recombinases from source and some from template?
-        $info->{recombinase_new} = join ", ", map { $_->recombinase_id } @recombinases;
+    if (my @template_recombinases = $well->qc_template_well_recombinases->all) {
+        # eng_seq_params recombinase is a list of well recombinases + template recmobinase
+        # remove the template recombinases to generate the list of original well recombinases
+        if($es_params->{recombinase}){
+            my @eng_seq_recombinases = @{ $es_params->{recombinase} };
+            my @orig_recombinases;
+            foreach my $recombinase (@eng_seq_recombinases){
+                push @orig_recombinases, $recombinase unless grep { $recombinase eq lc($_) }
+                                                             map { $_->id }
+                                                             @template_recombinases ;
+            }
+            # Store list of orig recombinases
+            $info->{recombinase} = @orig_recombinases ? join ", ", @orig_recombinases : undef;
+        }
+        # Store list of template recombinases
+        $info->{recombinase_new} = join ", ", map { $_->recombinase_id } @template_recombinases;
     }
 
     return;

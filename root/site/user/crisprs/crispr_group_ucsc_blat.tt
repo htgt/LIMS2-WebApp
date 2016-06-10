@@ -1,0 +1,15 @@
+<form id="UCSC_BLAT" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgBlat" id="UCSC_BLAT">
+  <input type="hidden" name="org" value="[% species %]" />
+  <input type="hidden" name="db" value="[% ucsc_db %]" />
+  <input type="hidden" name="type" value="DNA" />
+  <input type="hidden" name="sort" value="query,score" />
+  <input type="hidden" name="output" value="hyperlink" />
+  <input type="hidden" name="userSeq" value="[% sequence %]"/>
+  <input type="hidden" name="Lucky" value="I'm feeling lucky" />
+</form>
+
+<strong>Redirecting to UCSC Blat</strong>
+
+<script type="text/javascript">
+document.getElementById("UCSC_BLAT").submit();
+</script>

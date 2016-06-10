@@ -1,0 +1,140 @@
+[% META title="Browse Crisprs"; META tab_name = 'Designs' %]
+<div class="page-header">
+  <h1>[%- gene_symbol -%]
+  <small>exon: <strong>[%exon_id%]</strong>
+  chr: [%- chromosome -%]
+  assembly: [%- genome -%]</small>
+  </h1>
+</div>
+
+<div>
+  <p style="font-size:25px">
+    <b>Displaying: Gibson designs</b>
+      [% IF view_single %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => 0,
+              view_paired => view_paired }
+              )
+              %]" class="btn btn-info" align="right">
+          Hide single crisprs</a>
+      [% ELSE %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => 1,
+              view_paired => view_paired }
+              )
+              %]" class="btn btn-info" align="right">
+          Show single crisprs</a>
+      [% END %]
+      [% IF view_paired %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => view_single,
+              view_paired => 0 }
+              )
+              %]" class="btn btn-info" align="right">
+          Hide paired crisprs</a>
+      [% ELSE %]
+        <a href="[% c.uri_for( '/user/genoverse_browse',
+            { genome => genome,
+              chromosome => chromosome,
+              symbol => gene_symbol,
+              gene_id => gene_id,
+              exon_id => exon_id,
+              view_single => view_single,
+              view_paired => 1 }
+              )
+              %]" class="btn btn-info" align="right">
+          Show paired crisprs</a>
+      [% END %]
+  </p>
+</div>
+
+
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 1} )%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 2})%]"></script>
+    <script>
+      var genoverseConfig = {
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        [% USE String(genome) %]
+        width: $( document ).width(),
+        genome    : '[% String.lower() %]', // see js/genomes/
+        chr       : '[% chromosome %]',
+        start     : [% exon_start %] - 2000,  // 2Kb context
+        end       : [% exon_end %] + 2000,
+        plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        //plugins   : [ 'controlPanel', 'trackControls', 'resizer', 'fileDrop' ],
+        tracks    : [
+          Genoverse.Track.Scalebar,
+          Genoverse.Track.SequenceSelect.extend({
+            name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% ELSE  %]
+            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]
+            resizable : 'auto',
+            100000    : false
+          }),
+          Genoverse.Track.DesignsLIMS2.extend({
+            name      : 'Designs',
+            url       : "[% c.uri_for('/api/gibson_designs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            resizable : 'auto',
+            height    : 150,
+            design_report_uri : "[%  c.uri_for('/user/view_design') %]"
+          }),
+[% IF view_single %]
+          Genoverse.Track.Crisprs.LIMS2.extend({
+            name      : 'Crisprs',
+            url       : "[% c.uri_for('/api/crispr')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            resizable : 'auto',
+            height    : 150,
+            crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
+          }),
+[% END %]
+[% IF view_paired %]
+          Genoverse.Track.CrisprPairs.LIMS2.extend({
+            name      : 'Crispr_pairs',
+            url       : "[% c.uri_for('/api/crispr_pairs')%]" + "?chr=__CHR__&start=__START__&end=__END__" ,
+            resizable : 'auto',
+            height    : 150,
+            pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
+          }),
+[% END %]
+          Genoverse.Track.Genes.extend({
+            name   : 'Genes',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% ELSE %]
+            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% END %]
+            height : 200
+          })
+        ]
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.genoverse = new Genoverse(genoverseConfig);
+
+        // From WebApp-Common/shared_static
+        [% INCLUDE 'genoverse_mods/selector_size_display.tt' %]
+      });
+    </script>
+
+    <div id="genoverse"></div>

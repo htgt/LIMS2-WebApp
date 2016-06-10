@@ -78,6 +78,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 crispr_groups
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_groups",
+  "LIMS2::Model::Schema::Result::CrisprGroup",
+  { "foreign.gene_type_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 gene_designs
 
 Type: has_many
@@ -94,8 +109,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:u6TnjsDnsvdahM5a4EKRPg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-08-05 11:24:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cfFwno8Q8VuzCEigo6hCgQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

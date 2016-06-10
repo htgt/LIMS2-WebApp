@@ -1,0 +1,103 @@
+[% META title = "Checkout Pick List Barcodes"; META tab_name = "Barcodes" -%]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css',{v=5}) %]" />
+
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+
+<form method="POST" action="[% c.uri_for( '/user/checkout_from_picklist' ) %]" class="well">
+  <fieldset>
+    <legend>Retrieve Pick List by ID</legend>
+    <input type="text" name="id" placeholder="Enter pick list ID" value="[% id %]" />
+    <input type="submit" name="retrieve" class="btn btn-primary" value="Retrieve Pick List" />
+  </fieldset>
+</form>
+
+[% IF pick_list %]
+<div class="row">
+ <div class="span6">
+  <h3>Pick List ID: [% pick_list.id %]</h3>
+  Status: [% IF pick_list.active %] Active [% ELSE %] Inactive [% END %], Created By: [% pick_list.created_by.name %], Created At: [% pick_list.created_at %]
+ </div>
+ <div class="span6">
+ <form method="POST" action="[% c.uri_for( '/user/checkout_from_picklist' ) %]" id="barcode_input_form" class="well">
+   <input type="hidden" name="id" value="[% pick_list.id %]">
+   <div class="control-group">
+    <div class="input-append">
+     <input type="text" id="barcode" name="barcode" value="[% barcode %]" placeholder="scan barcode">
+     <button class="btn btn-primary" id="add_barcode">Pick Tube</button>
+    </div>
+    <span class="help-block hidden"></span>
+   </div>
+   <button type="submit" class="btn btn-primary" name="checkout" value="checkout">Submit Picked Tubes For Checkout</button>
+ </form>
+ </div>
+</div>
+
+<div id="my_results"></div>
+
+<div class="modal hide fade" id="dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Barcode Not in Pick List!</h3>
+  </div>
+  <div class="modal-body" id="dialog_content">
+  </div>
+</div>
+
+[% printable = 1, hide_to_pick = 1 %]
+
+[% PROCESS 'user/barcodes/picklist_grid.tt' %]
+
+<script type="text/javascript" charset="utf-8">
+
+$( document ).ready(function() {
+  $('#add_barcode').click(function(event){
+    event.preventDefault();
+    var barcode = $('#barcode').val();
+    if($(".scanned_barcodes[value='" + barcode + "']").length){
+        console.log(barcode + ' already scanned');
+        return;
+    }
+
+    var listed_barcodes = $.map(grid.getStore().data.items, function(item){
+      return item.data.Barcode;
+    });
+
+    if($.inArray(barcode, listed_barcodes) == -1){
+      console.log(barcode + ' is not in this picklist');
+      var url = "[% c.uri_for('/user/get_barcode_information') %]/" + barcode;
+      $.ajax(url).done(function(data){
+        $("#dialog_content").html(data.message)
+        $("#dialog").modal();
+      });
+      return;
+    }
+
+    var url = "[% c.uri_for('/user/pick_barcode') %]?barcode=" + barcode + "&list_id=[% pick_list.id %]";
+    $.ajax(url).done(function(data){
+        console.log(data);
+        if(data.success){
+            $(".control-group").attr('class', 'control-group success');
+            $(".help-block").html('Barcode ' + barcode + ' picked');
+            $(".help-block").attr({ class: 'help-block text-success',style:''})
+            .delay(1000)
+            .fadeOut(function(){ $(".control-group").attr('class', 'control-group'); });
+
+            grid.getStore().each(function(record){
+                if(record.get('Barcode') == barcode){
+                    record.set('Picked', 'TRUE');
+                }
+            });
+            grid.view.refreshView();
+        }
+    });
+
+  });
+
+});
+
+
+</script>
+
+[% END %]

@@ -88,7 +88,7 @@ override _build_columns => sub {
 override iterator => sub {
     my ( $self ) = @_;
 
-    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model->schema, $self->is_crispr_run );
+    my $qc_results = retrieve_qc_run_results_fast( $self->qc_run, $self->model, $self->is_crispr_run );
 
     my $qc_result = shift @{ $qc_results };
 

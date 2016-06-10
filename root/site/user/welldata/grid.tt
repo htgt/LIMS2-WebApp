@@ -7,6 +7,7 @@
                     {name: 'id', type: 'integer' },
                     {name: 'plate_name', type: 'string'},
                     {name: 'well', type: 'string'},
+                    {name: 'barcode', type: 'string'},
                     {name: 'gene_name', type: 'string'},
                     {name: 'allele_type', type: 'string'},
                     {name: 'genotyping_pass', type: 'string' },
@@ -19,6 +20,7 @@
                     {name: 'assay_pattern', type: 'string'},
                     {name: 'accepted', type: 'string'},
                     {name: 'accepted_override', type: 'string'},
+                    {name: 'release_status', type: 'string'},
                     {name: 'gene_id', type: 'string'},
                     {name: 'design_id', type: 'string'},
                     {name: 'clone_id', type: 'string'},
@@ -93,7 +95,7 @@
                 {"call_label":"passb"},
                 {"call_label":"fail"},
                 {"call_label":"fa"},
-                {"call_label":"potential"}, 
+                {"call_label":"potential"},
                 {"call_label":"present"},
                 {"call_label":"absent"},
                 {"call_label":"na"},
@@ -111,7 +113,7 @@
                 {"call_label":"passb"},
                 {"call_label":"fail"},
                 {"call_label":"fa"},
-                {"call_label":"potential"}, 
+                {"call_label":"potential"},
                 {"call_label":"present"},
                 {"call_label":"absent"},
                 {"call_label":"na"},
@@ -145,7 +147,7 @@
             });
 
             var call_types_chromosome_fail_combo = Ext.create('Ext.form.ComboBox', {
-                queryMode: 'local', 
+                queryMode: 'local',
                 store: call_types_chromosome_fail,
                 displayField: 'call_label',
                 forceSelection: true
@@ -202,11 +204,13 @@
             [% IF PIQ %]
                 {header: "Clone ID", dataIndex: 'clone_id', locked: true, width: 110 },
                 {header: "Lab Number", dataIndex: 'lab_number', editor: lab_number_field, locked: true, width: 75 },
+                {header: "Barcode", dataIndex: 'barcode', locked: true, width: 75 },
+                {header: "Status", dataIndex: 'release_status', locked: true, width: 55 },
             [% END %]
                 {header: "Allele<br>Type", dataIndex: 'allele_type', locked: true, width: 40 },
                 {header: "Calculated<br>Pass", dataIndex: 'genotyping_pass', locked:true, width: 70 },
-                {header: "Distribute", dataIndex: 'accepted', locked: true, width: 60 },
-                {header: "Override", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
+                {header: "Auto<br>Accept", dataIndex: 'accepted', locked: true, width: 60 },
+                {header: "Manual<br>Accept", dataIndex: 'accepted_override', editor: override_combo, locked: true, width: 55 },
                 {header: "Allele Info", columns: [
                     {header: "Type",                             dataIndex: 'allele_type',                    hidden: true, width: 60 },
                     {header: "Full allele determination",        dataIndex: 'allele_determination',           hidden: true, width: 120 },
@@ -219,7 +223,7 @@
                 ]},
                 {header: "Chromosome<br>Fail", dataIndex: 'chromosome_fail', editor: call_types_chromosome_fail_combo, width: 80},
                 {header: "Targeting<br>Pass", dataIndex: 'targeting_pass', editor: call_types_lrpcr_combo, width: 70},
-                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo, width: 70}, 
+                {header: "Targeting<br>Control", dataIndex: "[% 'targeting_control' _ '#' _ 'call' %]", editor: call_types_targeting_combo, width: 70},
                 {header: "Targeting<br>Puro Pass", dataIndex: 'targeting_puro_pass', editor: call_types_targeting_combo, width: 70 },
                 {header: "Targeting<br>Neo Pass", dataIndex: 'targeting_neo_pass', editor: call_types_targeting_combo, width: 70 },
                 {header: "TRPCR<br>band", dataIndex: 'tr_pcr', editor: pcr_combo, width: 70 },
@@ -282,7 +286,12 @@
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
-                    stripeRows: true
+                    [% IF PIQ %]
+                    stripeRows: false, //row striping interferes with coloring by release status:
+                    getRowClass: function(record,rowIndex,rowParams,store){
+                        if(record.get('release_status')==='released') return 'row-well-released';
+                    }
+                    [% END %]
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,
@@ -306,6 +315,15 @@
                         minWidth  : '20',
                         handler   : function(event, toolEl, panel){
                             DownloadCsvFile();
+                        }
+                    },
+                    {
+                        id        : 'download_xlsx_file_btn',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            DownloadXlsxFile();
                         }
                     },
                     {
@@ -353,7 +371,7 @@
                    success: function(response, opts) {
 
                       // callback function on the store load to refresh the grid
-                      grid.store.load( function( records, operation, success ){ grid.getView().refresh(); } );                      
+                      grid.store.load( function( records, operation, success ){ grid.getView().refresh(); } );
                    },
                    failure: function(response, opts) {
                       console.log('server-side failure with status code ' + response.status);
@@ -374,7 +392,7 @@
                     }
                 );
 
-                [% formActionUrl = '/user/genotyping_qc_report/' %] 
+                [% formActionUrl = '/user/genotyping_qc_report/' %]
 
 
                 // create a hidden form with download as action
@@ -392,7 +410,39 @@
 
             }
 
-                
+            function DownloadXlsxFile() {
+                var body = Ext.getBody();
+
+                // create a hidden frame
+                var frame = body.createChild(
+                    {
+                        tag     : 'iframe',
+                        cls     : 'x-hidden',
+                        id      : 'iframe',
+                        name    : 'iframe'
+                    }
+                );
+
+                [% formActionUrl = '/user/genotyping_qc_report_xlsx/' %]
+
+
+                // create a hidden form with download as action
+                var form = body.createChild(
+                    {
+                        tag     : 'form',
+                        cls     : 'x-hidden',
+                        id      : 'form',
+                        action  : '[% c.uri_for( '/user/genotyping_qc_report_xlsx' ) %]' + '/' + plateName,
+                        target  : 'iframe'
+                    }
+                );
+
+                form.dom.submit();
+
+            }
+
+
+
 
 //                var gridHeight = Ext.getBody().getViewSize().height ;
 //                var gridWidth = Ext.getBody().getViewSize().width;

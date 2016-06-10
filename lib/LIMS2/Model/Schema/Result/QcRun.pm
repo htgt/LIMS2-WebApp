@@ -192,6 +192,36 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_crispr_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_genotyping_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_genotyping_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer",
+  { "foreign.qc_run_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_test_results
 
 Type: has_many
@@ -207,19 +237,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1kZn14JwLZscs+kFIpTzw
+
+# Restore many to many relationship which is no longer generated
+# automatically as extra field has been added to the linker table
+
 =head2 qc_seq_projects
-
 Type: many_to_many
-
 Composing rels: L</qc_run_seq_projects> -> qc_seq_project
-
 =cut
 
 __PACKAGE__->many_to_many("qc_seq_projects", "qc_run_seq_projects", "qc_seq_project");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:arxB+ah8TnB01l/dCHP+Ug
 
 use List::MoreUtils qw( uniq );
 

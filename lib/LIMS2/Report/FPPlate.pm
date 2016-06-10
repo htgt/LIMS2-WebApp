@@ -21,29 +21,41 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
+        'Barcode',
     ];
 };
 
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
+            prefetch => 'well',
+            bind => [ $self->plate->id ],
         }
     );
 
-    return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+    my @wells_data = @{ $rs->consolidate( $self->plate_id ) };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
 
-        return [
-            $self->base_data( $well ),
-        ];
+    my $well_data = shift @wells_data;
+
+    return Iterator::Simple::iter sub {
+        return unless $well_data;
+
+        my $well = $well_data->{well};
+
+        my @data = (
+            $self->base_data_quick( $well_data ),
+            ( $well->barcode || '' ),
+        );
+
+        $well_data = shift @wells_data;
+        return \@data;
     };
 };
 

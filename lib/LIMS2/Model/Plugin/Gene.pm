@@ -10,6 +10,7 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util::GeneSearch qw( retrieve_solr_gene retrieve_ensembl_gene normalize_solr_result );
 use WebAppCommon::Util::FindGene qw( c_find_gene c_autocomplete_gene);
 use TryCatch;
+use List::MoreUtils qw (uniq);
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -34,6 +35,7 @@ sub pspec_search_genes {
     };
 }
 
+# DEPRECATED. use find_gene / find_genes instead
 sub search_genes {
     my ( $self, $params ) = @_;
     my $validated_params = $self->check_params( $params, $self->pspec_search_genes );
@@ -51,7 +53,7 @@ sub search_genes {
      # Massive fudge to make this work while search_genes rewrite is in progress
      try{
         my $genes = $self->retrieve_gene( $validated_params ) || [];
-        DEBUG "Genes retrieved: ". pp $genes;
+        $self->log->trace( "Genes retrieved: ". pp $genes );
         if (ref($genes) eq "ARRAY"){
             @genes = @{ $genes };
         }
@@ -63,7 +65,7 @@ sub search_genes {
         }
       }
       catch($err){
-        DEBUG "retrieve_gene failed: $err";
+        $self->log->debug( "retrieve_gene failed: $err" );
         return \@genes;
       }
     }
@@ -118,43 +120,28 @@ sub check_for_local_symbol {
     return \@not_genes;
 }
 
-sub pspec_retrieve_gene {
+## no critic(RequireFinalReturn)
+sub retrieve_gene {
+
+    # Keep retrieve gene for compatibility but call the new solr find_gene method
+    my $ret_val =find_gene( @_ );
+    # Delete the ensembl_id and chromosome key/value pair because retrieve gene is not expected to include that
+    if ( defined $ret_val->{'ensembl_id'} ) {
+        delete $ret_val->{'ensembl_id'};
+    }
+    if ( defined $ret_val->{'chromosome'} ) {
+        delete $ret_val->{'chromosome'};
+    }
+    return $ret_val;
+}
+## use critic
+
+sub pspec_find_gene {
     return {
         species     => { validate => 'existing_species' },
         search_term => { validate => 'non_empty_string' },
-        show_all    => { optional => 1 }
     }
 }
-
-## no critic(RequireFinalReturn)
-sub retrieve_gene {
-    my ( $self, $params ) = @_;
-
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
-
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
-
-    my $species = $validated_params->{species};
-
-    if ( $species eq 'Mouse' ) {
-        return $self->_gene_cache_mouse->compute(
-            $validated_params->{search_term}, undef, sub {
-                retrieve_solr_gene( $self, $validated_params );
-            }
-        );
-    }
-
-    if ( $species eq 'Human' ) {
-        return $self->_gene_cache_human->compute(
-            $validated_params->{search_term}, undef, sub {
-                retrieve_ensembl_gene( $self, $validated_params );
-            }
-        );
-    }
-
-    $self->throw( Implementation => "retrieve_gene() for species '$species' not implemented" );
-}
-## use critic
 
 ## no critic(RequireFinalReturn)
 # argument is an hash with species and search term
@@ -164,9 +151,9 @@ sub retrieve_gene {
 sub find_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+    my $validated_params = $self->check_params( $params, $self->pspec_find_gene );
 
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+    $self->log->trace( "retrieve_gene: " . pp $validated_params );
 
     # check species, if not mouse or human, die
     my $species = $validated_params->{species};
@@ -174,7 +161,11 @@ sub find_gene {
     unless ($species eq 'Mouse' || $species eq 'Human');
 
     # search for a gene in the solr index
-    my $gene = c_find_gene( $validated_params );
+    my $gene;
+    try { $gene = c_find_gene( $validated_params ) };
+
+    $self->throw( Implementation => "find_gene() failed to reach solr" )
+    unless defined($gene);
 
     # if solr did not find a gene, search for local symbol
     my $not_gene;
@@ -216,9 +207,9 @@ sub find_genes {
 sub autocomplete_gene {
     my ( $self, $params ) = @_;
 
-    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_gene );
+    my $validated_params = $self->check_params( $params, $self->pspec_find_gene );
 
-    $self->log->debug( "retrieve_gene: " . pp $validated_params );
+    $self->log->trace( "retrieve_gene: " . pp $validated_params );
 
     # check species, if not mouse or human, die
     my $species = $validated_params->{species};
@@ -230,6 +221,32 @@ sub autocomplete_gene {
 
     return @genes;
 
+}
+
+sub pspec_design_genes {
+    return {
+        design_id   => { validate => 'integer'},
+    };
+}
+
+sub design_gene_ids_and_symbols {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_design_genes );
+
+    my $design = $self->c_retrieve_design({ id => $validated_params->{design_id} });
+
+    my @gene_ids      = uniq map { $_->gene_id } $design->genes;
+
+    my @gene_symbols;
+    try{
+        @gene_symbols  = uniq map {
+            $self->retrieve_gene( { species => $design->species_id, search_term => $_ } )->{gene_symbol}
+        } @gene_ids;
+    };
+
+    DEBUG("Gene symbols: ".join ",",@gene_symbols);
+    return (\@gene_ids, \@gene_symbols);
 }
 
 1;

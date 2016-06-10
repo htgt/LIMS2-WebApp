@@ -5,7 +5,7 @@
 </div>
 
 <div class="row">
-  <div class="span6">
+  <div class="col-md-6">
       <table class="table" [% IF plate.is_virtual %] style="background-color:#f2dede" [% END %]>
 
 [% IF plate.is_virtual %]
@@ -15,18 +15,19 @@
           </td>
            <td>
            <a class="btn btn-primary" role="button" href="#UnflagPlateVirtual" data-toggle="modal">
-             <i class="icon-pencil icon-white"></i> Unflag Virtual Plate
+             <i class="glyphicon glyphicon-pencil"></i> Unflag Virtual Plate
            </a>
            </td>
         </tr>
-[% ELSIF plate.type_id == 'INT' %]
+[% ELSIF plate.type_id == 'INT' || plate.type_id == 'POSTINT' %]
         <tr>
             <td>
             <a class="btn btn-primary" role="button" href="#FlagPlateVirtual" data-toggle="modal">
-              <i class="icon-pencil icon-white"></i> Flag Virtual Plate
+              <i class="glyphicon glyphicon-pencil"></i> Flag Virtual Plate
             </a>
             </td>
         </tr>
+
 [% END %]
          <tr>
           <td>
@@ -37,10 +38,31 @@
           </td>
           <td>
             <a class="btn btn-primary" role="button" href="#RenamePlateModal" data-toggle="modal">
-              <i class="icon-pencil icon-white"></i> Rename
+              <i class="glyphicon glyphicon-pencil"></i> Rename
             </a>
           </td>
         </tr>
+
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
+        <tr>
+          <td>
+            <strong>Plate Barcode</strong>
+          </td>
+          [% IF plate.barcode %]
+          <td>
+            [% plate.barcode %]
+          </td>
+          [% ELSE %]
+          <td>
+          </td>
+          [% END %]
+          <td>
+            <a class="btn btn-primary" role="button" href="#UpdatePlateBarcodeModal" data-toggle="modal">
+              <i class="glyphicon glyphicon-pencil"></i> Update
+            </a>
+          </td>
+        </tr>
+[% END %]
 
         <tr>
           <td>
@@ -52,6 +74,32 @@
           <td></td>
         </tr>
 
+[% IF plate.type_id == 'CRISPR' %]
+        <tr>
+          <td>
+            <strong>Appends</strong>
+          </td>
+          <td>
+            [% IF plate.crispr_plate_append.append_id %]
+              [% plate.crispr_plate_append.append_id %]
+            [% ELSE %]
+              not set
+            [% END %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
+[% IF plate.type_id == 'INT' || plate.type_id == 'FINAL_PICK' %]
+        <tr>
+          <td>
+            <strong>DNA Template</strong>
+          </td>
+          <td>
+              [% dna_template %]
+          </td>
+          <td></td>
+        </tr>
+[% END %]
         <tr>
           <td>
             <strong>Description</strong>
@@ -86,8 +134,8 @@
 
   </div>
 
-  <div class="span6">
-    <div class="well">
+  <div class="col-md-6">
+    <div class="well well-sm">
       <h2>Comments</h2>
       [% IF plate.plate_comments.size %]
       <dl>
@@ -104,164 +152,249 @@
       <p><em>No comments for this plate.</em></p>
       [% END %]
       <a class="btn btn-primary" role="button" href="#AddCommentModal" data-toggle="modal">
-       <i class="icon-pencil icon-white"></i> Add Comment
+       <i class="glyphicon glyphicon-pencil"></i> Add Comment
       </a>
       <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
-        <i class="icon-remove icon-white"></i> Delete Comment
+        <i class="glyphicon glyphicon-remove"></i> Delete Comment
       </a>
     </div>
   </div>
 </div>
 
 
-<div class="modal hide fade" id="RenamePlateModal">
-  <form method="POST" id="plate_rename" action="[% c.uri_for( '/user/rename_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Rename Plate</h3>
-    </div>
-
-    <div class="modal-body">
-      <input type="hidden" name="id" value="[% plate.id %]" />
-      <input type="hidden" name="name" value="[% plate.name %]" />
-      Rename plate from <strong>[% plate.name %]</strong> to <input name="new_name" id="new_name" type="text" />
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
-          <i class="icon-pencil icon-white"></i> Rename Plate
-      </button>
-    </div>
-  </form>
-</div>
-
-<div class="modal hide fade" id="FlagPlateVirtual">
-  <form method="POST" id="plate_virtual" action="[% c.uri_for( '/user/flag_virtual_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Flag Virtual Plate</h3>
-    </div>
-
-    <div class="modal-body">
-      <input type="hidden" name="id" value="[% plate.id %]" />
-      Are you sure you want to flag plate <strong>[% plate.name %]</strong> as a virtual plate?
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <button name="flag_virtual" id="flag_virtual" type="submit" value="flag_virtual" class="btn btn-primary">
-          <i class="icon-pencil icon-white"></i> Flag Virtual Plate
-      </button>
-    </div>
-  </form>
-</div>
-
-<div class="modal hide fade" id="UnflagPlateVirtual">
-  <form method="POST" id="plate_not_virtual" action="[% c.uri_for( '/user/unflag_virtual_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Unflag Virtual Plate</h3>
-    </div>
-
-    <div class="modal-body">
-      <input type="hidden" name="id" value="[% plate.id %]" />
-      Are you sure you want to remove virtual flag from plate <strong>[% plate.name %]</strong>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <button name="unflag_virtual" id="unflag_virtual" type="submit" value="unflag_virtual" class="btn btn-primary">
-          <i class="icon-pencil" icon-white></i> Unflag Virtual Plate
-      </button>
-    </div>
-  </form>
-</div>
-
-<div class="modal hide fade" id="AddCommentModal">
-  <form method="POST" id="add_comment" action="[% c.uri_for( '/user/add_comment_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Comments</h3>
-    </div>
-
-    <div class="modal-body" align="center">
-      <input type="hidden" name="id" value="[% plate.id %]" />
-      <input type="hidden" name="name" value="[% plate.name %]" />
-      Comment on plate <strong>[% plate.name %]</strong>: <input name="comment" id="comment" type="text" />
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <button type="submit" class="btn btn-primary">
-          <i class="icon-pencil icon-white"></i> Add Comment
-      </button>
-    </div>
-  </form>
-</div>
-
-  <div class="modal hide fade" id="DeleteCommentModal">
-    <form method="POST" id="delete_comment" action="[% c.uri_for( '/user/delete_comment_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
+<div class="modal fade" id="RenamePlateModal">
+  <form method="POST" id="plate_rename" action="[% c.uri_for( '/user/rename_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3 id="myModalLabel">Comments</h3>
+        <h3 id="myModalLabel">Rename Plate</h3>
       </div>
 
-      <div class="modal-body" align="center">
+      <div class="modal-body">
         <input type="hidden" name="id" value="[% plate.id %]" />
         <input type="hidden" name="name" value="[% plate.name %]" />
-        <input type="hidden" name="comment_id" value="[% comment.id %]" />
-        Are you sure you want to delete the comment "[% comment.comment_text %]" of plate <strong>[% plate.name %]</strong>?
+          Rename plate from <strong>[% plate.name %]</strong> to <input name="new_name" id="new_name" type="text" />
       </div>
 
       <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-danger" >
-          <i class="icon-remove icon-white"></i> Confirm Delete
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button name="plate_rename" id="plate_rename" type="submit" value="plate_rename" class="btn btn-primary">
+          <i class="glyphicon glyphicon-pencil"></i> Rename Plate
         </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal fade" id="UpdatePlateBarcodeModal">
+  <form method="POST" id="update_plate_barcode" action="[% c.uri_for( '/user/update_plate_barcode' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Update Plate Barcode</h3>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" name="id" value="[% plate.id %]" />
+        <input type="hidden" name="curr_barcode" value="[% plate.barcode %]" />
+        [% IF plate.barcode %]
+          Update plate barcode from <strong>[% plate.barcode %]</strong> to <input name="new_plate_barcode" id="new_plate_barcode" type="text" autofocus="autofocus" />
+        [% ELSE %]
+          Set plate barcode to <input name="new_plate_barcode" id="new_plate_barcode" type="text" autofocus="autofocus" />
+        [% END %]
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button name="update_plate_barcode" id="update_plate_barcode" type="submit" value="update_plate_barcode" class="btn btn-primary">
+          <i class="glyphicon glyphicon-pencil"></i> Update Plate Barcode
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal fade" id="FlagPlateVirtual">
+  <form method="POST" id="plate_virtual" action="[% c.uri_for( '/user/flag_virtual_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Flag Virtual Plate</h3>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" name="id" value="[% plate.id %]" />
+          Are you sure you want to flag plate <strong>[% plate.name %]</strong> as a virtual plate?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button name="flag_virtual" id="flag_virtual" type="submit" value="flag_virtual" class="btn btn-primary">
+          <i class="glyphicon glyphicon-pencil"></i> Flag Virtual Plate
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal fade" id="UnflagPlateVirtual">
+  <form method="POST" id="plate_not_virtual" action="[% c.uri_for( '/user/unflag_virtual_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h3 id="myModalLabel">Unflag Virtual Plate</h3>
+        </div>
+
+        <div class="modal-body">
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          Are you sure you want to remove virtual flag from plate <strong>[% plate.name %]</strong>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button name="unflag_virtual" id="unflag_virtual" type="submit" value="unflag_virtual" class="btn btn-primary">
+              <i class="glyphicon glyphicon-pencil" icon-white></i> Unflag Virtual Plate
+          </button>
+        </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal fade" id="AddCommentModal">
+  <form method="POST" id="add_comment" action="[% c.uri_for( '/user/add_comment_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <div class="modal-content">
+      <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h3 id="myModalLabel">Comments</h3>
+        </div>
+
+        <div class="modal-body" align="center">
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          <input type="hidden" name="name" value="[% plate.name %]" />
+          Comment on plate <strong>[% plate.name %]</strong>: <input name="comment" id="comment" type="text" />
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+              <i class="glyphicon glyphicon-pencil icon-white"></i> Add Comment
+          </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+  <div class="modal fade" id="DeleteCommentModal">
+    <form method="POST" id="delete_comment" action="[% c.uri_for( '/user/delete_comment_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h3 id="myModalLabel">Comments</h3>
+        </div>
+
+        <div class="modal-body" align="center">
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          <input type="hidden" name="name" value="[% plate.name %]" />
+          <input type="hidden" name="comment_id" value="[% comment.id %]" />
+            Are you sure you want to delete the comment "[% comment.comment_text %]" of plate <strong>[% plate.name %]</strong>?
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger" >
+            <i class="glyphicon glyphicon-remove"></i> Confirm Delete
+          </button>
+        </div>
       </div>
     </form>
   </div>
 
+
 [% UNLESS plate.has_child_wells %]
   <div class="row">
-    <div class="span2">
+    <div class="col-md-2">
       <a id="delete_plate_button" class="btn btn-danger" role="button" href="#DeletePlateModal" data-toggle="modal">
-        <i class="icon-remove icon-white"></i> Delete Plate
+        <i class="glyphicon glyphicon-remove"></i> Delete Plate
       </a>
     </div>
   </div>
   </br>
 
-  <div class="modal hide fade" id="DeletePlateModal">
-    <form method="POST" id="plate_delete" action="[% c.uri_for( '/user/delete_plate' ) %]" class="modal-form"  enctype="multipart/form-data" >
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3 id="myModalLabel">Delete Plate</h3>
-      </div>
+  <div class="modal fade" id="DeletePlateModal">
+    <form method="POST" id="plate_delete" action="[% c.uri_for( '/user/delete_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h3 id="myModalLabel">Delete Plate</h3>
+        </div>
 
-      <div class="modal-body" align="center">
-        <input type="hidden" name="id" value="[% plate.id %]" />
-        <input type="hidden" name="name" value="[% plate.name %]" />
-        Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
-      </div>
+        <div class="modal-body" align="center">
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          <input type="hidden" name="name" value="[% plate.name %]" />
+          [% IF plate.number_of_wells_with_barcodes > 0 %]
+            This plate contains barcoded tubes. Deleting the plate will also delete the tube barcodes and their history.<br>
+          [% END %]
+          Are you sure you want to delete plate <strong>[% plate.name %]</strong>?
+        </div>
 
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
-        <button type="submit" value="delete_plate" class="btn btn-danger" id="delete_plate_button" >
-          <i class="icon-remove icon-white"></i> Confirm Delete Plate
-        </button>
+        <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" value="delete_plate" class="btn btn-danger" id="delete_plate_button" >
+            <i class="glyphicon glyphicon-remove"></i> Confirm Delete Plate
+          </button>
+        </div>
       </div>
     </form>
   </div>
 [% END %]
 
+<div class="row">
+<div class="col-md-6">
 <h2>Wells</h2>
-<a class="btn btn-primary" href="[% well_report_uri %]"><i class="icon-list icon-white"></i> Well Details</a>
-<a class="btn btn-primary" href="[% grid_report_uri %]"><i class="icon-list icon-white"></i> Well Grid</a>
+<a class="btn btn-primary" href="[% well_report_uri %]"><i class="glyphicon glyphicon-list"></i> Well Details</a>
+<a class="btn btn-primary" href="[% grid_report_uri %]"><i class="glyphicon glyphicon-list"></i> Well Grid</a>
+
 [% IF additional_plate_reports %]
 <h3>Additional Reports</h3>
   [% FOREACH report IN additional_plate_reports %]
-<a class="btn btn-small" href="[% report.report_url %]"><i class="icon-list"></i> [% report.name %]</a><br /><br />
+<a class="btn btn-sm" href="[% report.report_url %]"><i class="glyphicon glyphicon-list"></i> [% report.name %]</a><br /><br />
   [% END %]
 [% END %]
+</div>
+
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
+  <div class="col-md-6">
+  <div class="well well-sm">
+    <h4>Tube Barcodes</h4>
+    <b>[% plate.number_of_wells_with_barcodes %]</b> tubes out of <b>[% plate.number_of_wells %]</b> in this plate currently have barcodes.
+    <br>
+    <a href="[% c.uri_for('/user/plate_well_barcode_history/') _ plate.id %]">Show fate of barcodes no longer on plate</a>
+    <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/update_plate_well_barcodes' ) %]" enctype="multipart/form-data" >
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
+      <table class="table">
+        <tr>
+          <td>
+            <label>Upload the barcode scanner file for the tubes rack (just as created by the scanner, no changes needed) : </label>
+          </td>
+          <td>
+              <input name="wellbarcodesfile" type="file">
+              <br>
+              <button class="btn btn-primary" name="btn_update_plate_well_barcodes" id="btn_update_plate_well_barcodes" type="submit" value="update_plate_well_barcodes">
+                <i class="glyphicon glyphicon-upload"></i> Upload Tube Barcodes
+              </button>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+  </div>
+</div>
+
+[% END %]
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Plate: [% plate.name %]';
+  });
+</script>

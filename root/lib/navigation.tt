@@ -1,13 +1,72 @@
-<div class="navbar navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
-  <div class="navbar-inner">
-    <div class="container">
-      <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+<style type="text/css">
+    body { padding-top: 70px; }
+
+.navbar .divider-vertical {
+    height: 50px;
+    margin: 0 9px;
+    border-right: 1px solid #ffffff;
+    border-left: 1px solid #f2f2f2;
+}
+
+.navbar-inverse .divider-vertical {
+    border-right-color: #222222;
+    border-left-color: #111111;
+}
+
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > .divider {
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-toggle {
+  border-color: #3691c8;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #3691c8;
+}
+
+@media (max-width: 767px) {
+    .navbar-collapse .nav > .divider-vertical {
+        display: none;
+     }
+}
+</style>
+
+<div class="navbar navbar-default navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="nav navbar-brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+      </div>
       [% IF template.title != 'Login' %]
-      <ul class="nav">
-
-
+      <ul class="nav navbar-nav">
+      
+      [% IF c.user %]
+        
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/report/gene' ) %]">
@@ -18,11 +77,19 @@
               <a href="[% c.uri_for( '/user/graph' ) %]">Well and Plate Relations</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/sponsor_report' ) %]">Sponsor Report</a>
+              <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Report</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/manage_projects' ) %]">Manage Projects</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/projects' ) %]">Project Efforts</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/report/sponsor/RecoveryOverview' ) %]">Recovery Overview</a>
             </li>
           </ul>
         </li>
-
 
         <li class="dropdown[% IF template.tab_name == "Designs" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
@@ -31,7 +98,7 @@
               <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Gibson Design</a>
+              <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Design</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/design_attempts' ) %]">Design Attempts</a>
@@ -40,14 +107,25 @@
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/view_design_targets' ) %]">Design Target Report</a>
-            </li>
-            <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
+            </li>
+
+            <li class="divider"></li>
+
+            <li>
+              <a href="[% c.uri_for( '/user/generate_primers' ) %]">Generate Primers</a>
+            </li>
+
           </ul>
         </li>
 
@@ -59,6 +137,17 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]">Import Crispr Pair From WGE</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_crispr_plate' ) %]">Upload Crispr Plate</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
           </ul>
         </li>
@@ -100,7 +189,10 @@
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit QC Job</a>
+              <a href="[% c.uri_for( '/user/submit_new_qc' ) %]">Submit Vector QC Job</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/submit_es_cell' ) %]">Submit ES Cell QC Job</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
@@ -122,7 +214,23 @@
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/submit_qc_run' ) %]">Submit CRISPR QC Job</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]">Upload het status</a>
+            </li>
 
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/external_project' ) %]">Create Sequencing Project</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_sequencing_projects' ) %]">Search Sequencing Projects</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
+            </li>
             [% END %]
           </ul>
         </li>
@@ -150,33 +258,23 @@
               <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/update_colony_picks' ) %]">Update Colony Counts</a>
+              <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
             <li>
               <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
             </li>
+
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/GenesToElectroporate' ) %]">
-                Genes To Electroporate
-              </a>
-            </li>
-
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/FirstElectroporationProductionDetail' ) %]">
-                First Allele Electroporation Detail
+              <a href="[% c.uri_for( '/user/report/sponsor/GeneEPSummary' ) %]">
+                Gene Electroporation Summary
               </a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/SecondElectroporationProductionDetail' ) %]">
-                Second Allele Electroporation Detail
-              </a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/EPSummary' ) %]">
-                Electroporation Summary
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPWellSummary' ) %]">
+                Crispr Electroporation Well Summary
               </a>
             </li>
             <li>
@@ -184,13 +282,12 @@
                 Crispr Electroporation Detail
               </a>
             </li>
-<!--
+            [% IF c.session.selected_species == "Mouse" %]
             <li>
-              <a href="[% c.uri_for( '/user/report/sponsor/ElectroporationProductionSummary' ) %]">
-                Electroporation Production Summary
-              </a>
+                <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummary' ) %]">
+                  Crispr Electroporation Summary
+                </a>
             </li>
--->
             <li>
               <a href="[% c.uri_for( '/user/report/sync/CreKiESDistributionSummary' ) %]">
                 Cre Knockin ES Distribution Summary
@@ -201,22 +298,95 @@
                 Cre Knockin ES Distribution Genes
               </a>
             </li>
+            [% ELSE %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPSummaryJune2015', { species => c.session.selected_species } ) %]">
+              Crispr Electroporation Summary
+              </a>
+            </li>
+            [% END %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/HetSummary' ) %]">
+              Het Summary
+              </a>
+            </li>
 
             <li class="divider"></li>
 
             <li>
-              <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]">
-                Well Genotyping Info
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">
+                Clone Genotyping Search
               </a>
             </li>
 
           </ul>
         </li>
-      </ul>
-      [% IF c.user %]
 
-      <ul class="nav pull-right">
+        <li class="dropdown[% IF template.tab_name == "Barcodes" %] active[% END %]">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Barcodes <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/user/generate_picklist' ) %]">Generate Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/checkout_from_picklist' ) %]">Checkout From Pick List</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/scan_barcode' ) %]">Scan Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_barcoded_plate' ) %]">Create Barcoded Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/mutation_signatures_barcodes' ) %]">Mutation Signatures Barcodes</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_cgap_friendly_name' ) %]">Search by CGAP Name</a>
+            </li>
+          </ul>
+        </li>
+
+
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right" style="align:right">
         <li class="divider-vertical"></li>
+
+        <li onclick="getAnnouncements()"><a><i class="glyphicon glyphicon-envelope"></i></a></li>
+
+        [% IF c.session.display_type %]
+            <li><a id="display_type_default" data-display-type="default"
+                [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="glyphicon glyphicon-resize-small"></i>
+                [% ELSE %]
+                    <i class="glyphicon glyphicon-resize-small"></i>
+                [% END %]
+                </a></li>
+            <li><a id="display_type_wide" data-display-type="wide"
+                [% IF c.session.display_type == 'wide' %]style="display: none"[% END %]>
+                [% IF c.session.selected_species == 'Human' %]
+                    <i class="glyphicon glyphicon-fullscreen"></i>
+                [% ELSE %]
+                    <i class="glyphicon glyphicon-fullscreen"></i>
+                [% END %]
+                </a></li>
+        [% END %]
+
         [% IF c.session.selected_species %]
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -227,7 +397,7 @@
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.request.uri } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -237,28 +407,48 @@
           </li>
         [% END %]
 
+
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
             [% IF c.check_user_roles( 'admin' ) %]
-            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
+            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="glyphicon glyphicon-user"></i> User Admin</a></li>
             [% END %]
-            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
+            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="glyphicon glyphicon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
-            <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
+            <li><a href="[% c.uri_for('/logout') %]"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
           </ul>
         </li>
-      </ul>
-
+      <!-- Non Logged in User -->
       [% ELSE %]
-
-      <p class="nav pull-right">
-        <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-      </p>
-
+        <li class="dropdown active">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
+            </li>
+          </ul>
+        </li>
+        </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="divider-vertical"></li>
+          <div class="col-md-3">
+            <a class="btn btn-default navbar-btn" href="[% c.uri_for('/login') %]">Login</a>
+          </div>
+      </ul>
+        <ul>
       [% END %]
-
+    </ul>
     </div>
     [% END %]
   </div>
 </div>
+
+
+[% INCLUDE message/announcements.tt sys = 'lims' %]
+<script type="text/javascript">
+function getAnnouncements(){
+    $('#announceModal').modal({show: true});
+}
+
+</script>

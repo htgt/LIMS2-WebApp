@@ -16,7 +16,8 @@ sub pspec_create_process {
     return {
         type         => { validate => 'existing_process_type' },
         input_wells  => { optional => 1 },
-        output_wells => { optional => 1 }
+        output_wells => { optional => 1 },
+        dna_template => { optional => 1 }, #TODO Change to existing_cell_line 
     };
 }
 
@@ -24,10 +25,9 @@ sub create_process {
     my ( $self, $params ) = @_;
     my $validated_params
         = $self->check_params( $params, $self->pspec_create_process, ignore_unknown => 1 );
-
     my $process
-        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type} } );
-
+        = $self->schema->resultset('Process')->create( { type_id => $validated_params->{type}, dna_template => $validated_params->{dna_template} } );
+    $self->log->info("Id: " . $process->{_column_data}->{id});
     link_process_wells( $self, $process, $validated_params );
 
     delete @{$params}{qw( type input_wells output_wells )};
@@ -57,7 +57,7 @@ sub add_recombinase_data {
 
     $self->throw( NotFound => "could not retrieve process" ) unless @process;
     $self->throw( Validation => "cannot apply recombinase to this well" ) unless scalar(@process) == 1;
-    $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate->type_id eq 'EP_PICK';
+    $self->throw( Validation => "invalid plate type; can only add recombinase to EP_PICK plates" ) unless $well->plate_type eq 'EP_PICK';
 
     # converts recombinase to an array to satisfy create_process_aux_data_recombinase method
     $validated_params->{recombinase} = [$validated_params->{recombinase}];
@@ -118,6 +118,8 @@ sub delete_process {
                                   process_input_wells process_output_wells process_recombinases
                                   process_cell_line process_crispr process_nuclease
                                   process_global_arm_shortening_design
+                                  process_crispr_tracker_rna
+                                  process_parameters
                                 );
 
     for my $rs ( @related_resultsets ) {

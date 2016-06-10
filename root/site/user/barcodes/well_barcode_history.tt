@@ -1,0 +1,28 @@
+[% META title = "Barcode History", tab_name = 'Barcodes' -%]
+
+<table class='table table-striped'>
+<tr>
+<th>Date</th>
+<th>User</th>
+<th>Old Plate</th>
+<th>New Plate</th>
+<th>Old Well</th>
+<th>New Well</th>
+<th>Old State</th>
+<th>New State</th>
+<th>Comment</th>
+</tr>
+[% FOREACH event IN events %]
+<tr>
+<td>[% event.created_at %]</td>
+<td>[% event.created_by.name %]</td>
+<td>[% event.old_plate.name %]</td>
+<td>[% event.new_plate.name %]</td>
+<td>[% event.old_well_name %]</td>
+<td>[% event.new_well_name %]</td>
+<td>[% event.old_state.id %]</td>
+<td>[% event.new_state.id %]</td>
+<td>[% event.comment %]</td>
+</tr>
+[% END %]
+</table>

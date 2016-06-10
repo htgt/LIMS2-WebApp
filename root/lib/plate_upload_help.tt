@@ -1,15 +1,15 @@
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate Create Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Plate Create Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to create plates using well data from csv files, it is broken up into 2 steps.
         </p>
@@ -19,7 +19,7 @@
           a view of the plate just created.
         </p>
 
-        <div class="well">
+        <div class="well well-sm">
           <h6>Step 1</h6>
           <p>
             A process type must first be selected, this customises the form in step 2.<br>
@@ -27,7 +27,7 @@
           </p>
         </div>
 
-        <div class="well">
+        <div class="well well-sm">
           <h6>Step 2</h6>
           <p>
             Fill in basic plate details in step two, the compulsory fields are.
@@ -73,16 +73,16 @@
     </div>
   </div>
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
-        <i class="icon-question-sign"></i> Plate Create Templates
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+        <i class="glyphicon glyphicon-question-sign"></i> Plate Create Templates
       </a>
     </div>
 
-    <div id="collapseTwo" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseTwo" class="panel-body collapse">
+      <div class="panel-body">
 
         <table class="table table-striped">
           <thead>
@@ -103,12 +103,12 @@
                 <td>[% plate_help.$process.data.join(' ') %]</td>
                 <td>
                   <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]_es.csv">
-                    <i class="icon-download"></i> Download
+                    <i class="glyphicon glyphicon-download"></i> Download
                   </a>
                 </td>
                 <td>
                   <a href="[% c.uri_for('/static/files/plate_upload/') %][% plate_help.$process.template %]_vector.csv">
-                    <i class="icon-download"></i> Download
+                    <i class="glyphicon glyphicon-download"></i> Download
                   </a>
                 </td>
               </tr>

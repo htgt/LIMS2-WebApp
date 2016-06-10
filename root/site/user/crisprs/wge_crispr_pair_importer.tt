@@ -1,17 +1,20 @@
 [% META title = "WGE Crispr Pair Importer"; META tab_name = "Crisprs" %]
 
 <form method="POST" action="[% c.uri_for( '/user/wge_crispr_pair_importer' ) %]" class="well form-inline">
-    <legend>WGE Crispr Pair Importer</legend>
-    <textarea class="input-xxlarge" name="wge_crispr_pair_id" placeholder="WGE crispr pair id"></textarea>
-    <span class="help-block">
-      More than one crispr pair can be imported if provided a list of WGE crispr pair ids separated by whitespace or commas.
-    </span>
-    <br />
-    <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr Pair" />
+    <fieldset class="form-group">
+        <legend>WGE Crispr Pair Importer</legend>
+        <textarea class="form-control" name="wge_crispr_pair_id" rows="3" placeholder="WGE crispr pair id"></textarea>
+        <span class="help-block">
+          More than one crispr pair can be imported if provided a list of WGE crispr pair ids separated by whitespace or commas.
+        </span>
+        <br />
+        <input type="submit" name="import_crispr" class="btn btn-primary" value="Import Crispr Pair" />
+        This may take a few minutes to generate the primers.
+    </fieldset>
 </form>
 
 [% IF crispr %]
-<div class="well">
+<div class="well well-sm">
   <legend>View Imported Crisprs</legend>
     <table class="table table-bordered table-striped table-condensed">
       <thead>

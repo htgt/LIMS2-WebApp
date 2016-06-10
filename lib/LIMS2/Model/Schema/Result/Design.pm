@@ -106,6 +106,18 @@ __PACKAGE__->table("designs");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 nonsense_design_crispr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 parent_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -143,6 +155,10 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
   "global_arm_shortened",
   { data_type => "integer", is_nullable => 1 },
+  "nonsense_design_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -189,17 +205,32 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_designs
+=head2 designs
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+Related object: L<LIMS2::Model::Schema::Result::Design>
 
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
+  "designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.parent_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 experiments_including_deleted
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments_including_deleted",
+  "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -234,6 +265,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 nonsense_design_crispr
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "nonsense_design_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "nonsense_design_crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 oligos
 
 Type: has_many
@@ -247,6 +298,26 @@ __PACKAGE__->has_many(
   "LIMS2::Model::Schema::Result::DesignOligo",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 parent
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "parent",
+  "LIMS2::Model::Schema::Result::Design",
+  { id => "parent_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 process_designs
@@ -310,8 +381,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 10:08:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y003qJa2tDYf+S/ExLwtUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pP6TbTvP1aYUiLhUOZF9DQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -328,6 +399,18 @@ __PACKAGE__->many_to_many(
     "process"
 );
 
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.design_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
+
 has 'info' => (
     is      => 'ro',
     isa     => 'LIMS2::Model::Util::DesignInfo',
@@ -341,6 +424,15 @@ has 'info' => (
     }
 );
 
+use Log::Log4perl qw(:easy);
+use List::MoreUtils qw( uniq );
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 sub _build_design_info {
     my $self = shift;
 
@@ -350,25 +442,26 @@ sub _build_design_info {
 
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;
-
     # updates design object with latest information from database
     # if not done then the created_at value which can default to the current
     # timestamp does not seem to be set and a error is thrown
     $self->discard_changes;
 
     my %h = (
-        id                      => $self->id,
-        name                    => $self->name,
-        type                    => $self->design_type_id,
-        created_at              => $self->created_at->iso8601,
-        created_by              => $self->created_by->name,
-        phase                   => $self->phase,
-        validated_by_annotation => $self->validated_by_annotation,
-        target_transcript       => $self->target_transcript,
-        species                 => $self->species_id,
-        assigned_genes          => [ map { $_->gene_id } $self->genes ],
-        cassette_first          => $self->cassette_first,
-        global_arm_shortened    => $self->global_arm_shortened,
+        id                        => $self->id,
+        name                      => $self->name,
+        type                      => $self->design_type_id,
+        created_at                => $self->created_at->iso8601,
+        created_by                => $self->created_by->name,
+        phase                     => $self->phase,
+        validated_by_annotation   => $self->validated_by_annotation,
+        target_transcript         => $self->target_transcript,
+        species                   => $self->species_id,
+        assigned_genes            => [ map { $_->gene_id } $self->genes ],
+        cassette_first            => $self->cassette_first,
+        global_arm_shortened      => $self->global_arm_shortened,
+        nonsense_design_crispr_id => $self->nonsense_design_crispr_id,
+        parent_id                 => $self->parent_id,
     );
 
     if ( ! $suppress_relations ) {
@@ -388,9 +481,12 @@ sub as_string {
     return shift->id;
 }
 
+sub oligos_sorted{
+    return shift->_sort_oligos;
+}
+
 sub _sort_oligos {
     my $self = shift;
-
     my @oligos = map { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
@@ -491,6 +587,56 @@ sub design_attempt {
     );
 
     return $design_attempts->first;
+}
+
+=head2 design_wells
+
+Gather all the design wells for the design.
+
+=cut
+sub design_wells {
+    my ( $self ) = @_;
+
+    my @design_wells;
+    for my $pd ( $self->process_designs ) {
+        my $well = $pd->process->output_wells->first;
+        push @design_wells, $well if $well;
+    }
+
+    return \@design_wells;
+}
+
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('genotyping_primers', { genotyping_primer_type_id => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
+
+sub gene_ids{
+    my ($self) = @_;
+
+    my @ids = uniq map { $_->gene_id } $self->genes;
+    return @ids;
+}
+
+# requires a method to find gene, e.g.
+# my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+sub gene_symbols{
+    my ($self, $gene_finder) = @_;
+
+    my @ids = $self->gene_ids;
+    my @symbols = map { $_->{gene_symbol} }
+                  values %{ $gene_finder->( $self->species_id, \@ids ) };
+    return @symbols;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -1,0 +1,116 @@
+OVERVIEW OF LIMS2::Model::Util::Oligoselection
+----------------------------------------------
+
+pick_crispr_PCR_primers
+-----------------------
+Find PCR primers for crispr ( i think pair )
+Retry up to 4 times, expanding primer search range
+Calls crispr_PCR_calculate
+
+crispr_PCR_calculate
+--------------------
+Runs Primer3 and  BWA to get primers for crispr
+
+get_crispr_PCR_EnsEmbl_region
+-----------------------------
+Generate bioseq object, plus target sequence mask for crispr
+crispr info sent it ( lots of it, not sure how this is setup )
+
+==================================================================
+
+pick_genotyping_primers
+-----------------------
+run this sub below 4 times till we have success
+
+genotyping_calculate
+--------------------
+create genotyping primers for a design ( gibson )
+
+get_genotyping_EnsEmbl_region
+-----------------------------
+Generate bioseq object, plus target sequence mask for design
+
+==================================================================
+COMMON
+
+pcr_genomic_check
+genomic_check
+-----------------
+Run genomic checks for primers for crispr / design
+
+generate_bwa_query_file
+generate_pcr_bwa_query_file
+---------------------------
+basically same, generate fasta file to run against bwa for crispr / design
+
+filter_oligo_hits
+-----------------
+remove primers that don't pass genomic specificity checks
+
+del_bad_pairs
+-------------
+remove primers that do not have a unique alignment flag
+
+get_repeat_masked_sequence
+--------------------------
+get masked seq from Ensembl
+
+
+==================================================================
+
+pick_crispr_primers
+-------------------
+same as pick_crispr_PCR_primers but no genomic check??
+gets strand from design_id ( seq region )
+also repeat masks seq
+
+crispr_primer_calculate
+-----------------------
+
+get_crispr_pair_EnsEmbl_region
+------------------------------
+not sure what diff to get_crispr_PCR_EnsEmbl_region is
+debugging only....
+
+oligos_for_crispr_pair
+----------------------
+pod does not align with code
+seems to just to populate hash with crispr into for crispr pair
+
+==================================================================
+
+pick_single_crispr_primers
+--------------------------
+single crispr pcr primers
+
+oligo_for_single_crispr
+-----------------------
+info on single crispr
+
+get_single_crispr_EnsEmbl_region
+--------------------------------
+
+==================================================================
+
+OTHERS
+
+parse_primer3_results
+parse_primer
+get_species_default_assembly
+gibson_design_oligos_rs
+primer_driver
+crispr_pair_oligos_rs
+crispr_oligo_rs
+retrieve_crispr_primers
+get_db_genotyping_primers_as_hash
+get_genotyping_primer_extent
+retrieve_crispr_data_for_id
+
+##############################
+
+NOT USED?
+
+get_EnsEmbl_sequence
+oligos_for_gibson : unfinished?
+update_primer_type
+get_crispr_EnsEmbl_region - Debug only

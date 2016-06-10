@@ -55,6 +55,7 @@ sub index :Path :Args(0) {
 
     my $plate_name  = $c->req->param('plate_name');
     my $well_name   = $c->req->param('well_name');
+    my $barcode     = $c->req->param('barcode');
     my $graph_type  = $c->req->param('graph_type') || 'descendants';
     my $crisprs     = $c->req->param('crisprs');
 
@@ -64,6 +65,7 @@ sub index :Path :Args(0) {
     $c->stash(
         plate_name  => $plate_name,
         well_name   => $well_name,
+        barcode     => $barcode,
         graph_type  => $graph_type,
         pr_plate_name => $pr_plate_name,
         pr_graph_type => $pr_graph_type,
@@ -84,9 +86,20 @@ sub index :Path :Args(0) {
     		return;
     	}
 
+        my $plate;
+        try{
+            $plate = $c->model('Golgi')->retrieve_plate({ name => $pr_plate_name });
+        };
+
+        unless($plate){
+            $c->stash( error_msg => "Plate $pr_plate_name not found" );
+            return;
+        }
+
     	try{
     	    my $uuid = $self->_write_plate_graph($pr_plate_name, $pr_graph_type);
-    	    $c->stash( graph_uri => $c->uri_for( "/user/graph/render/$uuid" ) );
+    	    $c->stash->{graph_uri} = $c->uri_for( "/user/graph/render/$uuid" );
+            $c->stash->{info_msg} = "Plate $pr_plate_name process graph generated";
     	}
     	catch{
     		$c->stash( error_msg => 'Error generating plate relation graph for plate: ' . $_);
@@ -96,9 +109,24 @@ sub index :Path :Args(0) {
     }
 
     # Or generate a well relation graph
-    if ( ! $plate_name || ! $well_name ) {
-        $c->stash( error_msg => 'Please enter a plate name and well name' );
+    if ( (! $plate_name || ! $well_name) && !$barcode ) {
+        $c->stash( error_msg => 'Please enter a plate name and well name, or barcode' );
         return;
+    }
+
+    my ($search_params, $info, $error);
+    if($barcode){
+        $search_params = { barcode => $barcode };
+        $info = "Barcode $barcode process graph generated";
+        $error = "Barcode $barcode not found";
+    }
+    else{
+        $search_params = {
+            plate_name => $plate_name,
+            well_name  => $well_name,
+        };
+        $info = "Well $plate_name $well_name process graph generated";
+        $error = "Well $plate_name $well_name not found";
     }
 
     if ( $graph_type ne 'ancestors' && $graph_type ne 'descendants' ) {
@@ -106,12 +134,32 @@ sub index :Path :Args(0) {
         return;
     }
 
-    my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+    my $well;
+    try{
+        $well = $c->model('Golgi')->retrieve_well( $search_params );
+        $c->stash( 'genes' =>  [ $well->design->gene_ids ] );
+        $c->stash->{info_msg} = $info;
+    };
+
+    unless($well){
+        $c->stash->{error_msg} = $error;
+        return;
+    }
+
+    # If the well has no design, it means its a crispr already, so no need to include crisprs
+    my $has_design;
+    try{
+        $well->design->id;
+        $has_design = 1;
+    }
+    catch{
+        $has_design = 0;
+    };
 
     my $uuid;
 
     # include crispr plates?
-    if ( $crisprs ) {
+    if ( $crisprs && $has_design) {
         $uuid = $self->_write_crispr_graph( $c, $well, $graph_type );
     } else {
         $uuid = $self->_write_graph( $c, $well, $graph_type );
@@ -154,7 +202,6 @@ sub render :Path( '/user/graph/render' )  :Args(1) {
 
 sub _write_plate_graph{
 	my ($self, $plate_name, $type)  = @_;
-
     my $uuid = Data::UUID->new->create_str;
     my $output_dir = $self->graph_dir->subdir( $uuid );
     $output_dir->mkpath;
@@ -210,8 +257,8 @@ sub render_crispr {
             $pgraph->log->debug( "Adding $well to GraphViz" );
             $graph->add_node(
                 name   => $well->as_string,
-                label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, LIMS2::Model::ProcessGraph::process_data_for($well) ],
-                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+                label  => [ $well->as_string, 'Plate Type: ' . $well->plate_type, LIMS2::Model::ProcessGraph::process_data_for($well) ],
+                URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate_id,
                 target => '_blank',
             );
         }

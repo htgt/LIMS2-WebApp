@@ -25,7 +25,7 @@ my %HANDLER_FOR = (
 sub compute_accepted_status {
     my ( $model, $well ) = @_;
 
-    my $plate_type = $well->plate->type_id;
+    my $plate_type = $well->plate_type;
 
     my $handler;
     if ( exists $HANDLER_FOR{$plate_type} ) {

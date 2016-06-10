@@ -3,10 +3,19 @@
 </div>
 
 <div class="row">
-  <div class="span8 offset1">
+  <div class="col-md-8 col-md-offset-1">
     <ul>
       <li>
         <a href="[% c.uri_for( '/public_reports/cre_knockin_project_status' ) %]">Cre KnockIn Project Status</a>
+      </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
+      </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/sponsor_report' ) %]">Sponsor Progress Report</a>
+      </li>
+      <li>
+        <a href="[% c.uri_for( '/public_reports/allele_dump' ) %]">Allele Dump</a>
       </li>
     </ul>
   </div>

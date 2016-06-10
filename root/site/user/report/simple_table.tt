@@ -1,7 +1,7 @@
 <div class="page-header">
   <h1>[% title %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/report/download', report_id ) %]">
-    <i class="icon-download-alt icon-white"></i>Download CSV</a>
+  <a class="btn btn-info" href="[% c.uri_for( '/user/report/download', report_id ) %]">
+    <i class="glyphicon glyphicon-download-alt"></i> Download CSV</a>
   </h1>
 </div>
 
@@ -9,31 +9,32 @@
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
 [%- MACRO linkify(v) BLOCK %]
-[% IF v.match( '^https?:' ) %]
-<a href="[% v %]">Test result</a>
-[% ELSIF v.match( '^custom:' ) %]
-    [%- USE String%]
-    [%- v_copy = String.new( text => v ) %]
-    [%- CALL v_copy.shift('custom:') %]
-    [%- FOREACH pair_val IN v_copy.split(';') %]
-        [%- pair_string = String.new ( text => pair_val) %]
-        [%- vals = pair_string.split('=', 2) %]
-        [%- left = vals.shift %]
-        [%- right = vals.shift %]
-        [%- custom.$left = right %]
-    [%- END %]
-    [%- button_label = custom.button_label %]
-    [%- tab_target = custom.browser_target %] 
-    [%- api_url = custom.api_url %]
-    [%- custom.delete( 'button_label', 'api_url') %]
-<a class="btn btn-info btn-small" 
-        <a href="[% c.uri_for( api_url, custom )
+    [% IF v.match( '^https?:' ) %]
+<a href="[% v %]">Link</a>
+    [% ELSIF v.match( 'lims2_custom' ) %]
+        [%- USE JSON %]
+        [%- v_json = JSON.json_decode( v ) %]
+        [%- button_label = v_json.lims2_custom.button_label %]
+        [%- tab_target = v_json.lims2_custom.browser_target %]
+        [%- api_url = v_json.lims2_custom.api_url %]
+<a class="btn btn-info btn-sm"
+        <a href="[% c.uri_for( api_url, v_json.lims2_custom )
                  %]" target="[% tab_target %]">[% button_label %]</a>
-[% ELSE %]
-[% v %]
+    [% ELSIF v.match( 'lims2_combo' ) %]
+        [%- USE JSON %]
+        [%- v_json = JSON.json_decode( v ) %]
+        [%- api_base = v_json.lims2_combo.api_base %]
+        [%- api_params = v_json.lims2_combo.api_params %]
+        [%- selected = v_json.lims2_combo.selected %]
+        <select class="lims2_combo span2" data-url="[% api_base %]" data-params="[% api_params %]">
+          [% FOREACH option IN v_json.lims2_combo.options %]
+            <option value="[% option.0 %]" [% IF option.0 == selected %]selected[% END %]>[% option.1 %]</option>
+          [% END %]
+        </select>
+    [% ELSE %]
+        [% v %]
+    [% END %]
 [% END %]
-[% END %]
-
 <br/>
 
 <table class="table table-striped table-bordered">
@@ -46,7 +47,7 @@
   </thead>
   <tbody>
     [%- FOR datum IN data %]
-    <tr>
+    <tr title="[% datum.0 %]">
       [%- FOR val IN datum %]
       <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% linkify( val ) | none %]</td>
       [%- END %]
@@ -56,3 +57,87 @@
 </table>
 
 [% INCLUDE 'pagination.tt' pageset = pageset %]
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js', {v => 1} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    // Add functionality to comboboxes
+    $(".lims2_combo").on("click focus keydown", function (){
+      $(this).data("previous",$(this).val());
+    });
+    $(".lims2_combo").change(function (){
+      var combo = $(this);
+      var new_value = combo.val();
+      var old_value = combo.data("previous");
+      var params_string = combo.data("params");
+      if( new_value != '-'){
+        params_string = params_string + '&value=' + new_value;
+      }
+      var uri = "[% c.uri_for('/') %]" + combo.data("url") + '?' + params_string;
+      $.getJSON( uri )
+
+      .fail(function (data){
+        console.log(data.responseText);
+        console.log("Update failed. Returning value to " + old_value);
+        combo.val(old_value);
+        combo.data("previous", old_value);
+      })
+      .done(function(data){
+        if('qc_verified' in data){
+          console.log(data.qc_verified);
+          label_cell = getCell('QC Verified?','Well Name',data.well_name);
+          addQCVerifiedLabel(label_cell,data.qc_verified);
+        }
+      });
+    });
+
+    // Add primer validation buttons and labels to Assembly plate
+    [%IF extra_data.plate_type == 'ASSEMBLY' %]
+      console.log('adding assembly plate functionality');
+
+      // Change verification score to label
+      var verification_col_index = getColumnIndexByName('QC Verified?') + 1;
+      $('table tr td:nth-child(' + verification_col_index + ')').each(function(){
+          var value = $(this).text();
+          addQCVerifiedLabel($(this),value);
+      });
+
+      [% genotyping = { primer_class => 'genotyping_primers', id_column => 'Design ID', id_param => 'design_id', url => '/user/toggle_genotyping_primer_validation_state' } %]
+
+      [% crispr = { primer_class => 'crispr_primers', id_column => 'Crispr ID', id_param => 'crispr_key', url => '/user/toggle_crispr_primer_validation_state' } %]
+
+      [% FOREACH profile IN [genotyping,crispr] %]
+
+        [% primer_class = profile.primer_class %]
+        [% url = profile.url %]
+        [% id_param = profile.id_param %]
+
+        // extra_data:
+        //   crispr_primers:         <- primer_class
+        //     <crispr_id>:          <- id
+        //       [<array of primers]
+        //   genotyping_primers:     <- primer_class
+        //     <design_id>:          <- id
+        //       [<array of primers>]
+        [% FOREACH id IN extra_data.$primer_class.keys %]
+          [% FOREACH primer IN extra_data.$primer_class.$id %]
+            var cell = getCell('[% primer.type %]','[% profile.id_column %]','[% id %]');
+
+            // add the validation state toggle button, ajax reqest and callback
+            addPrimerValidationState(
+              cell,
+              "[% c.uri_for(url) %]",
+              '[% id_param %]',
+              '[% id %]',
+              '[% primer.type %]',
+              [% IF primer.is_validated %]'1'[% ELSE %]''[% END %]
+            );
+
+          [% END %]
+        [% END %]
+      [% END %]
+    [% END %]
+  });
+</script>

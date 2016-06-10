@@ -10,7 +10,9 @@ use Sub::Exporter -setup => {
             upload_plate_dna_status
             upload_plate_dna_quality
             upload_plate_pcr_status
+            process_het_status_file
             spreadsheet_to_csv
+            csv_to_spreadsheet
           )
     ]
 };
@@ -24,8 +26,12 @@ use TryCatch;
 use Perl6::Slurp;
 use Text::Iconv;
 use Spreadsheet::XLSX;
+use Excel::Writer::XLSX;
 use File::Temp;
 use LIMS2::Model::Constants qw( %VECTOR_DNA_CONCENTRATION );
+use LIMS2::Exception::System;
+use File::Slurp;
+use Data::Dumper;
 
 BEGIN {
     #try not to override the lims2 logger
@@ -118,6 +124,12 @@ sub upload_plate_pcr_status {
     for my $datum ( @{$data} ) {
 
         # remove any whitespace and get it lowercased
+        if ( !$datum->{'l_pcr_result'} || !$datum->{'r_pcr_result'} ) {
+            LIMS2::Exception::Validation->throw(
+                $datum->{'well_name'} . ' - l_pcr_result and r_pcr_result both required, plese check csv file'
+            );
+        }
+
         $datum->{'l_pcr_result'} = lc trim_string($datum->{'l_pcr_result'});
         $datum->{'r_pcr_result'} = lc trim_string($datum->{'r_pcr_result'});
 
@@ -174,7 +186,7 @@ sub upload_plate_dna_quality {
     my $data = parse_csv_file( $params->{csv_fh} );
 
     my $plate = $model->retrieve_plate( { name => $params->{plate_name} } );
-    check_plate_type( $plate, [ qw(DNA) ]  );
+    check_plate_type( $plate, [ qw(DNA ASSEMBLY) ]  );
 
     for my $datum ( @{$data} ) {
         my $validated_params = $model->check_params( $datum, pspec__check_dna_quality() );
@@ -228,8 +240,8 @@ sub _process_concentration_data{
         );
     }
     my ($input_well) = $well->ancestors->input_wells($well);
-    my $plate_type = $input_well->plate->type_id;
-    my $species = $input_well->plate->species_id;
+    my $plate_type = $input_well->plate_type;
+    my $species = $input_well->plate_species->id;
     my $minimum;
     try{
         $minimum = $VECTOR_DNA_CONCENTRATION{$species}->{$plate_type};
@@ -259,6 +271,45 @@ sub _process_concentration_data{
     DEBUG("concentration: $concentration, minimum: $minimum, result: $result");
     $datum->{dna_status_result} = $result;
     return;
+}
+
+sub _pspec_het_status{
+    return{
+        parent_plate_name => { validate => 'plate_name' },
+        parent_well_name  => { validate => 'well_name' },
+        well_name         => { optional => 1 },
+        five_prime        => { validate => 'non_empty_string', optional => 1 },
+        three_prime       => { validate => 'non_empty_string', optional => 1 },
+    }
+}
+
+sub process_het_status_file{
+    my ( $model, $csv_fh, $user ) = @_;
+
+    my $data = parse_csv_file( $csv_fh );
+
+    my @messages;
+    foreach my $datum (@$data){
+        DEBUG Dumper($datum);
+        my $params = $model->check_params( $datum, _pspec_het_status() );
+
+        my $well = $model->retrieve_well({
+            well_name  => $params->{parent_well_name},
+            plate_name => $params->{parent_plate_name},
+        }) or die "Could not find well ".$params->{parent_plate_name}." ".$params->{parent_well_name};
+
+        my $het_status = $model->set_het_status({
+            well_id     => $well->id,
+            five_prime  => $params->{five_prime},
+            three_prime => $params->{three_prime},
+            user        => $user,
+        });
+
+        push @messages, "Well $well het status: three_prime = "
+                        .$het_status->three_prime.", five_prime: ".$het_status->five_prime;
+    }
+
+    return \@messages;
 }
 
 sub check_plate_type {
@@ -299,6 +350,36 @@ sub spreadsheet_to_csv {
     }
 
     return \%worksheets;
+}
+
+#Converts a CSV into XLSX format. Returns the file in raw format with file name
+sub csv_to_spreadsheet {
+    my ( $csv_name, $csv_fh ) = @_;
+    my $csv = Text::CSV_XS->new( { binary => 1, eol => "\n" } );
+
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
+    $csv_name = $csv_name . '.xlsx';
+    my $dir = $base . '/' . $csv_name;
+    my $workbook = Excel::Writer::XLSX->new($dir);
+    my $worksheet = $workbook->add_worksheet();
+
+    my @row;
+    my $row_number = 1;
+    my @body = @{$csv->getline_all($csv_fh)};
+    foreach my $body_line (@body) {
+        @row = @{$body_line};
+        $worksheet->write_row('A' . $row_number, \@row);
+        $row_number++;
+    }
+    $workbook->close;
+    my $file = read_file( $dir, {binmode => ':raw'} );
+    my $file_contents = ({
+        file    => $file,
+        name    => $csv_name,
+    });
+
+    return $file_contents;
 }
 
 # remove whitespace from beginning and end of string

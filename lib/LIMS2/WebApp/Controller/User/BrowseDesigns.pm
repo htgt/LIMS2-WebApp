@@ -57,7 +57,6 @@ const my @DISPLAY_DESIGN => (
 
 sub view_design : Path( '/user/view_design' ) : Args(0) {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles( 'read' );
 
     my $species_id = $c->request->param('species') || $c->session->{selected_species};
@@ -77,20 +76,30 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     }
 
     my $design_data = $design->as_hash;
+    $design_data->{assigned_genes} = [ map { $_->{gene_symbol} . ' (' . $_->{gene_id} . ')' }
+                      values %{ $c->model('Golgi')->find_genes( $species_id, $design_data->{assigned_genes} ) } ];
+
     $design_data->{assigned_genes} = join q{, }, @{ $design_data->{assigned_genes} || [] };
 
     my $ucsc_db = $UCSC_BLAT_DB{ lc( $species_id) };
 
-    my ( $crisprs, $crispr_pairs ) = crisprs_for_design( $c->model('Golgi'), $design );
+    my ( $crisprs, $crispr_pairs, $crispr_groups ) = ( [], [], [] );
+    # Only want to show the one linked crispr for nonsense designs
+    if ( $design_data->{type} ne 'nonsense' ) {
+        ( $crisprs, $crispr_pairs, $crispr_groups ) = crisprs_for_design( $c->model('Golgi'), $design );
+    }
     my $design_attempt = $design->design_attempt;
 
+    my $group_ids = join ", ", map { $_->id } @$crispr_groups;
+    $c->log->debug("crispr groups found: $group_ids" );
     $c->stash(
         design         => $design_data,
         display_design => \@DISPLAY_DESIGN,
         species        => $species_id,
-        uscs_db        => $ucsc_db,
+        ucsc_db        => $ucsc_db,
         crisprs        => [ map{ $_->as_hash } @{ $crisprs } ],
         crispr_pairs   => [ map{ $_->as_hash } @{ $crispr_pairs } ],
+        crispr_groups  => [ map{ $_->as_hash } @{ $crispr_groups } ],
         design_attempt => $design_attempt ? $design_attempt->id : undef,
     );
 
@@ -127,7 +136,7 @@ sub design_ucsc_blat : Path( '/user/design_ucsc_blat' ) : Args(0) {
     $c->stash(
         design  => $design,
         species => $species_id,
-        uscs_db => $ucsc_db,
+        ucsc_db => $ucsc_db,
     );
 
     return;

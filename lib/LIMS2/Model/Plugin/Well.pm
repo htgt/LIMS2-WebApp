@@ -20,6 +20,7 @@ sub pspec_retrieve_well {
     return {
         id                => { validate => 'integer', optional => 1 },
         plate_name        => { validate => 'plate_name', optional => 1 },
+        plate_version     => { validate => 'integer', optional => 1, default => undef },
         well_name         => { validate => 'well_name', optional => 1 },
         barcode           => { validate => 'alphanumeric_string', optional => 1 },
         DEPENDENCY_GROUPS => { name_group => [qw( plate_name well_name )] },
@@ -46,13 +47,48 @@ sub retrieve_well {
     }
     if ( $data->{plate_name} ) {
         $search{'plate.name'} = $data->{plate_name};
+        # Include plate version in search. undef indicates we want current version
+        $search{'plate.version'} = $data->{plate_version};
     }
     if ( $data->{barcode} ) {
-        $search{'well_barcode.barcode'} = $data->{barcode};
-        $joins{join} = [ 'plate', 'well_barcode' ];
+        $search{'me.barcode'} = $data->{barcode};
+        $joins{join} = [ 'plate' ];
     }
 
     return $self->retrieve( Well => \%search, \%joins );
+}
+
+sub pspec_retrieve_well_from_old_plate_version{
+    return {
+        plate_name        => { validate => 'plate_name' },
+        well_name         => { validate => 'well_name' },
+    };
+}
+
+# Search for a well which exists on an old version of the plate
+# Return the well on the latest version of the plate that can be found
+sub retrieve_well_from_old_plate_version{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_well_from_old_plate_version);
+
+    my $search = {
+        'me.name'    => $validated_params->{well_name},
+        'plate.name' => $validated_params->{plate_name},
+        'plate.version' => { '!=', undef },
+    };
+
+    my $attrs = {
+        join     => 'plate',
+        prefetch => 'plate',
+        order_by => { -desc => 'plate.version' },
+    };
+
+    my $well = $self->schema->resultset('Well')->search($search, $attrs)->first
+        or $self->throw( NotFound => { entity_class => 'Well', search_params => $search } );
+
+    $self->log->debug("Found well on version ".$well->plate->version." of plate");
+    return $well;
 }
 
 sub pspec_create_well {
@@ -90,7 +126,7 @@ sub create_well {
     $self->create_process($process_params);
 
     # add piq plate type lab number insert here
-    if ( $process_type eq 'dist_qc' ) {
+    if ( $process_type eq 'dist_qc' or $process_type eq 'rearray' ) {
         if ( defined $process_params->{ 'lab_number' } ) {
 
             my $created_well_id = $well->id;
@@ -126,11 +162,16 @@ sub delete_well {
         }
     }
 
+    # Delete any related barcode events
+    if ($well->barcode){
+        $well->search_related_rs('barcode_events')->delete;
+    }
+
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts
                                  well_primer_bands well_chromosome_fail well_genotyping_results
                                  well_targeting_pass well_targeting_puro_pass well_targeting_neo_pass
-                                 well_lab_number well_barcode
+                                 well_lab_number
                                );
 
     for my $rs ( @related_resultsets ) {
@@ -147,7 +188,7 @@ sub retrieve_well_accepted_override {
     $params->{'id'} = delete $params->{'well_id'} if exists $params->{'well_id'};
     my $well = $self->retrieve_well( $params );
     my $accepted_override = $well->well_accepted_override
-        or $self->throw( NotFound => { entity_class => 'WellChromosomeFail', search_params => $params } );;
+        or $self->throw( NotFound => { entity_class => 'WellAcceptedOverride', search_params => $params } );;
     return $accepted_override;
 }
 
@@ -183,7 +224,7 @@ sub create_well_accepted_override {
         = $self->check_params( $params, $self->pspec_create_well_accepted_override );
 
     my $well = $self->retrieve_well(
-        { slice_def $validated_params, qw( plate_name well_name well_id ) } );
+        { slice_def $validated_params, qw( plate_name well_name id ) } );
 
     my $override = $well->create_related( well_accepted_override =>
             { slice_def $validated_params, qw( created_by_id created_at accepted ) } );
@@ -452,6 +493,38 @@ sub update_or_create_well_dna_quality {
     return $dna_quality;
 }
 
+sub toggle_to_report {
+    my ( $self, $params ) = @_;
+
+    my $well = $self->retrieve_well({ id => $params->{'id'} });
+
+    my $to_report = $params->{'to_report'};
+
+    propagate_to_report($self, $well, $to_report);
+
+    return $well;
+}
+
+sub propagate_to_report {
+    my ( $self, $well, $to_report, $seen) = @_;
+
+    $self->log->info( "Setting to_report to $to_report on well " . $well->as_string  );
+    $well->update( { to_report => $to_report });
+
+    $seen ||= {};
+
+    return if $seen->{$well->as_string};
+
+    $seen->{$well->as_string}++;
+
+    foreach my $process ($well->child_processes){
+        foreach my $child ($process->output_wells){
+            propagate_to_report( $self, $child, $to_report, $seen);
+        }
+    }
+    return;
+}
+
 sub retrieve_well_dna_quality {
     my ( $self, $params ) = @_;
 
@@ -479,11 +552,11 @@ sub pspec_create_well_qc_sequencing_result {
 }
 
 sub create_well_qc_sequencing_result {
-    my ( $self, $params ) = @_;
+    my ( $self, $params, $well ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well_qc_sequencing_result );
 
-    my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
+    $well //= $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     my $qc_seq_result = $well->create_related(
         well_qc_sequencing_result => { slice_def $validated_params, qw( valid_primers mixed_reads pass test_result_url created_by_id created_at ) }
@@ -735,7 +808,7 @@ sub update_well_colony_picks{
         }
     );
     $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-    unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+    unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
     foreach my $colony_type (@colony_types){
         if (exists $params->{$colony_type} and $params->{$colony_type} =~ /^\d+$/){
@@ -791,7 +864,7 @@ sub get_well_colony_pick_fields_values {
         my $well = $self->retrieve_well( $params );
 
         $self->throw( Validation => "invalid plate type; can only add colony data to EP, SEP and XEP plates" )
-        unless any {$well->plate->type_id eq $_} qw(EP XEP SEP CRISPR_EP);
+        unless any {$well->plate_type eq $_} qw(EP XEP SEP CRISPR_EP);
 
         @colony_data = $well->well_colony_counts;
 
@@ -1293,9 +1366,9 @@ sub create_well_lab_number {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     # check plate type is PIQ
-    if ( $well->plate->type_id ne 'PIQ' ) {
+    if ( $well->plate_type ne 'PIQ' ) {
         $self->throw( Validation => 'Well' . $well . ' must have a plate type of PIQ, this plate is type '
-                    . $well->plate->type_id );
+                    . $well->plate_type );
     }
 
     # check that well does not already have an attached lab number

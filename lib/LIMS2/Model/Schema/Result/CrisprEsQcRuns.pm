@@ -73,6 +73,17 @@ __PACKAGE__->table("crispr_es_qc_runs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 validated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
+=head2 sequencing_data_version
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -92,6 +103,10 @@ __PACKAGE__->add_columns(
   "species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "sub_project",
+  { data_type => "text", is_nullable => 1 },
+  "validated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
+  "sequencing_data_version",
   { data_type => "text", is_nullable => 1 },
 );
 
@@ -155,8 +170,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-16 16:43:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KStXhk631rbpalREDS3uoA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k4uLyw7hX35QuOQetfMr5g
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -165,6 +180,7 @@ sub as_hash {
     created_by => $self->created_by->name,
     map { $_ => $self->$_ } $self->columns
   };
+  $data->{created_at} = $self->created_at->iso8601;
 
   #if you enable this you should do a prefetch with:
   #{'crispr_es_qc_wells' => { well => 'plate' }
@@ -172,7 +188,7 @@ sub as_hash {
     #wells might not exist yet, so for now just show a -
     #TODO: make this work even without a well
     my $qc_well = $self->crispr_es_qc_wells->first;
-    $data->{plate_name} = $qc_well ? $qc_well->well->plate->name : "-";
+    $data->{plate_name} = $qc_well ? $qc_well->well->plate_name : "-";
   }
 
   return $data;

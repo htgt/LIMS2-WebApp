@@ -51,46 +51,15 @@ __PACKAGE__->table("crispr_off_targets");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 crispr_loci_type_id
+=head2 off_target_crispr_id
 
-  data_type: 'text'
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 assembly_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 build_id
+=head2 mismatches
 
   data_type: 'integer'
-  is_nullable: 0
-
-=head2 chr_start
-
-  data_type: 'integer'
-  is_nullable: 0
-
-=head2 chr_end
-
-  data_type: 'integer'
-  is_nullable: 0
-
-=head2 chr_strand
-
-  data_type: 'integer'
-  is_nullable: 0
-
-=head2 chromosome
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 algorithm
-
-  data_type: 'text'
   is_nullable: 0
 
 =cut
@@ -105,22 +74,10 @@ __PACKAGE__->add_columns(
   },
   "crispr_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "crispr_loci_type_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "assembly_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "build_id",
+  "off_target_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "mismatches",
   { data_type => "integer", is_nullable => 0 },
-  "chr_start",
-  { data_type => "integer", is_nullable => 0 },
-  "chr_end",
-  { data_type => "integer", is_nullable => 0 },
-  "chr_strand",
-  { data_type => "integer", is_nullable => 0 },
-  "chromosome",
-  { data_type => "text", is_nullable => 1 },
-  "algorithm",
-  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -135,22 +92,26 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 RELATIONS
+=head1 UNIQUE CONSTRAINTS
 
-=head2 assembly
+=head2 C<unique_crispr_off_target>
 
-Type: belongs_to
+=over 4
 
-Related object: L<LIMS2::Model::Schema::Result::Assembly>
+=item * L</crispr_id>
+
+=item * L</off_target_crispr_id>
+
+=back
 
 =cut
 
-__PACKAGE__->belongs_to(
-  "assembly",
-  "LIMS2::Model::Schema::Result::Assembly",
-  { id => "assembly_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+__PACKAGE__->add_unique_constraint(
+  "unique_crispr_off_target",
+  ["crispr_id", "off_target_crispr_id"],
 );
+
+=head1 RELATIONS
 
 =head2 crispr
 
@@ -167,33 +128,34 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_loci_type
+=head2 off_target_crispr
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprLociType>
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "crispr_loci_type",
-  "LIMS2::Model::Schema::Result::CrisprLociType",
-  { id => "crispr_loci_type_id" },
+  "off_target_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "off_target_crispr_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ICGXBpczH8V0Nb35rLoLkA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zjMoP44vGOWErbXK6M8EOg
 
 sub as_hash {
     my $self = shift;
 
     return {
-        assembly => $self->assembly_id,
-        type     => $self->crispr_loci_type_id,
-        build    => $self->build_id,
-        map { $_ => $self->$_ } qw( chr_start chr_end chr_strand chromosome algorithm )
+        id                   => $self->id,
+        crispr_id            => $self->crispr_id,
+        off_target_crispr_id => $self->off_target_crispr_id,
+        ot_crispr            => $self->off_target_crispr->as_hash( { no_off_targets => 1 } ),
+        mismatches           => $self->mismatches,
     };
 }
 

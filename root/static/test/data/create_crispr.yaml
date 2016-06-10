@@ -14,20 +14,8 @@ valid_crispr:
        chr_end: 123468
        chr_strand: 1
     off_targets:
-        - assembly: GRCm38
-          build: 70
-          chr_name: 11
-          chr_start: 234234
-          chr_end: 234255
-          chr_strand: -1
-          type: Intronic
-        - assembly: GRCm38
-          build: 70
-          chr_name: 3
-          chr_start: 234234
-          chr_end: 234255
-          chr_strand: -1
-          type: Intergenic
+        - ot_crispr_id: 200
+          mismatches: 3
 species_assembly_mismatch:
     type: Exonic
     species: Human
@@ -69,14 +57,6 @@ duplicate_crispr_same_off_target_algorithm:
        chr_start: 123456
        chr_end: 123468
        chr_strand: 1
-    off_targets:
-        - assembly: GRCm38
-          build: 70
-          chr_name: 15
-          chr_start: 234234
-          chr_end: 234255
-          chr_strand: -1
-          type: Intronic
 duplicate_crispr_different_off_target_algorithm:
     type: Exonic
     species: Mouse
@@ -89,29 +69,12 @@ duplicate_crispr_different_off_target_algorithm:
        chr_start: 123456
        chr_end: 123468
        chr_strand: 1
-    off_targets:
-        - assembly: GRCm38
-          build: 70
-          chr_name: 15
-          chr_start: 234234
-          chr_end: 234255
-          chr_strand: -1
-          type: Intronic
 valid_crispr_locus:
    assembly: NCBIM37
    chr_name: 12
    chr_start: 123446
    chr_end: 123458
    chr_strand: 1
-valid_crispr_off_target:
-   assembly: GRCm38
-   build: 70
-   chr_name: 16
-   chr_start: 123446
-   chr_end: 123458
-   chr_strand: -1
-   type: Intronic
-   algorithm: strict
 crispr_off_target_non_standard_chromosome:
    assembly: GRCm38
    build: 70

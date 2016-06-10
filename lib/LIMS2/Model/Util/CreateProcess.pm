@@ -20,9 +20,11 @@ use Log::Log4perl qw( :easy );
 use Const::Fast;
 use List::MoreUtils qw( uniq notall none );
 use LIMS2::Model::Util qw( well_id_for );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use LIMS2::Exception::Implementation;
 use LIMS2::Exception::Validation;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_INPUT_WELL_CHECK );
+use TryCatch;
 
 my %process_field_data = (
     final_cassette => {
@@ -64,6 +66,11 @@ my %process_field_data = (
         values => sub{ return [ map{ $_->name } shift->schema->resultset('Backbone')->all ] },
         label  => 'Backbone',
         name   => 'backbone',
+    },
+    crispr_tracker_rna => {
+        values => sub{ return [ map{ $_->name } shift->schema->resultset('CrisprTrackerRna')->all ] },
+        label  => 'Tracker RNA',
+        name   => 'crispr_tracker_rna',
     },
 );
 
@@ -156,7 +163,13 @@ my %process_check_well = (
     'crispr_vector'          => \&_check_wells_crispr_vector,
     'single_crispr_assembly' => \&_check_wells_single_crispr_assembly,
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
+    'oligo_assembly'         => \&_check_wells_oligo_assembly,
+    'cgap_qc'                => \&_check_wells_cgap_qc,
+    'ms_qc'                  => \&_check_wells_ms_qc,
+    'doubling'               => \&_check_wells_doubling,
+    'vector_cloning'         => \&_check_wells_vector_cloning,
 );
 
 sub check_process_wells {
@@ -187,7 +200,7 @@ sub check_input_wells {
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
-    my @types = uniq map { $_->plate->type_id } @input_wells;
+    my @types = uniq map { $_->plate_type } @input_wells;
     my %expected_input_process_types
         = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
 
@@ -216,7 +229,7 @@ sub check_output_wells {
 
     return unless exists $PROCESS_PLATE_TYPES{$process_type};
 
-    my @types = uniq map { $_->plate->type_id } @output_wells;
+    my @types = uniq map { $_->plate_type } @output_wells;
     my %expected_output_process_types
         = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
 
@@ -253,6 +266,16 @@ sub _check_wells_create_crispr {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_int_recom {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_vector_cloning {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -341,8 +364,8 @@ sub _check_wells_rearray {
     my @input_wells = $process->input_wells;
 
     # Output well type must be the same as the input well type
-    my $in_type = $input_wells[0]->plate->type_id;
-    my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
+    my $in_type = $input_wells[0]->plate_type;
+    my @output_types = uniq map { $_->plate_type } $process->output_wells;
 
     my @invalid_types = grep { $_ ne $in_type } @output_types;
 
@@ -406,7 +429,7 @@ sub _check_wells_second_electroporation {
     check_output_wells( $model, $process);
 
     #two input wells, one must be xep, other dna
-    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+    my @input_well_types = map{ $_->plate_type } $process->input_wells;
 
     if ( ( none { $_ eq 'XEP' } @input_well_types ) || ( none { $_ eq 'DNA' } @input_well_types ) ) {
         LIMS2::Exception::Validation->throw(
@@ -542,15 +565,15 @@ sub _check_wells_single_crispr_assembly {
     my $final_pick = 0;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
 
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
@@ -580,23 +603,24 @@ sub _check_wells_paired_crispr_assembly {
     my $pamleft;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
-            unless (defined $_->crispr ) {
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
             LIMS2::Exception::Validation->throw(
                 "Well $_ is not a crispr." );
             }
-            unless ( defined $_->crispr->pam_right) {
+            unless ( defined $crispr->pam_right) {
             LIMS2::Exception::Validation->throw(
-                'Crispr '. $_->crispr->id . ' does not have direction' );
+                'Crispr '. $crispr->id . ' does not have direction' );
             }
-            if ($_->crispr->pam_right) {
+            if ($crispr->pam_right) {
                 $pamright = 1;
             } else {
                 $pamleft = 1;
             }
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
@@ -617,11 +641,136 @@ sub _check_wells_paired_crispr_assembly {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+## no critic(Subroutines::RequireFinalReturn)
+sub _check_wells_group_crispr_assembly {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    my ($new_well) = $process->process_output_wells;
+    my $new_well_name = $new_well->well->name;
+
+    # multiple DNA input wells, some must be from CRISPR_V, 1 from FINAL_PICK
+    my @input_wells = $process->input_wells;
+    my @input_parent_wells = map { $_->ancestors->input_wells($_) } @input_wells;
+
+    my $crispr_v = 0;
+    my $final_pick = 0;
+    my @crispr_ids;
+
+    foreach (@input_parent_wells) {
+        if ($_->plate_type eq 'CRISPR_V') {
+            $crispr_v++;
+            my $crispr = $_->crispr; # single crispr
+            unless (defined $crispr) {
+            LIMS2::Exception::Validation->throw(
+                "Well $_ is not a crispr." );
+            }
+            push @crispr_ids, $crispr;
+        }
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
+    }
+
+    @crispr_ids = uniq @crispr_ids;
+
+    unless ($crispr_v > 0 && $final_pick == 1 ) {
+        LIMS2::Exception::Validation->throw(
+            'group_crispr_assembly requires as input at least 1 DNA prepared from a CRISPR_V '
+            . 'and 1 DNA prepared from a FINAL_PICK'
+        );
+    }
+
+    try{
+        my $group = get_crispr_group_by_crispr_ids( $model->schema, { crispr_ids => \@crispr_ids } );
+    }
+    catch ($err) {
+        my $ids_list = join ", ",@crispr_ids;
+        LIMS2::Exception::Validation->throw("Could not create well $new_well_name: $err");
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_crispr_ep {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_oligo_assembly {
+    my ( $model, $process ) = @_;
+
+    # One DESIGN input well, one CRISPR input well
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    my ( $design, $crispr );
+    foreach ( $process->input_wells ) {
+        if ($_->plate_type eq 'DESIGN') {
+            $design = $_->design;
+        }
+        elsif ($_->plate_type eq 'CRISPR') {
+            $crispr = $_->crispr;
+        }
+    }
+
+    if ( $design->design_type_id eq 'nonsense' ) {
+        # check nonsense design and crispr match up
+        unless ( $design->nonsense_design_crispr_id == $crispr->id ) {
+            LIMS2::Exception::Validation->throw( 'nonsense design is linked to crispr '
+                    . $design->nonsense_design_crispr_id
+                    . ', not crispr ' . $crispr->id );
+        }
+    }
+    else {
+        LIMS2::Exception::Validation->throw(
+            'oligo_assembly can only use nonsense type designs, not: ' . $design->design_type_id );
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_cgap_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_ms_qc {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_doubling {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process );
+
+    # process can be created initially with no output wells
+    # as it takes weeks to complete
+    my @output_wells = $process->output_wells;
+    if(scalar @output_wells){
+        check_output_wells( $model, $process);
+    }
+
     return;
 }
 ## use critic
@@ -649,12 +798,17 @@ my %process_aux_data = (
     'crispr_vector'          => \&_create_process_aux_data_crispr_vector,
     'single_crispr_assembly' => \&_create_process_aux_data_single_crispr_assembly,
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
+    'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
+    'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
+    'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
+    'ms_qc'                  => \&_create_process_aux_data_ms_qc,
+    'doubling'               => \&_create_process_aux_data_doubling,
+    'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
 );
 
 sub create_process_aux_data {
     my ( $model, $process, $params ) = @_;
-
     my $process_type = $process->type_id;
     LIMS2::Exception::Implementation->throw(
         "Don't know how to create auxiliary data for process type $process_type"
@@ -668,6 +822,7 @@ sub create_process_aux_data {
 sub pspec__create_process_aux_data_create_di {
     return {
         design_id => { validate => 'existing_design_id' },
+        dna_template => { optional => 1 },
         bacs =>
             { validate => 'hashref', optional => 1 } # validate called on each element of bacs array
     };
@@ -676,7 +831,6 @@ sub pspec__create_process_aux_data_create_di {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_create_di {
     my ( $model, $params, $process ) = @_;
-
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_create_di() );
 
@@ -732,30 +886,54 @@ sub pspec__create_process_aux_data_int_recom {
     ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
+        dna_template => { optional => 1 },
     };
 }
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
-
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
-    my $species_id = $input_well->well->plate->species_id;
-    if($species_id eq "Human"){
-        # Allow any type of backbone
-        DEBUG("Allowing any backbone on human int_recom");
-        $pspec->{backbone} = { validate => 'existing_backbone' };
-    }
-    else{
-        # Must be an intermediate backbone
-        $pspec->{backbone} = { validate => 'existing_intermediate_backbone'};
-    }
+    my $species_id = $input_well->well->plate_species->id;
 
-    my $validated_params
-        = $model->check_params( $params, $pspec );
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_vector_cloning {
+    ## Backbone constraint must be set depending on species
+    return {
+        dna_template => { optional => 1 },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_vector_cloning {
+    my ( $model, $params, $process ) = @_;
+    my $pspec = pspec__create_process_aux_data_vector_cloning;
+    my ($input_well) = $process->process_input_wells;
+    my $species_id = $input_well->well->plate_species->id;
+
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
+
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
 
     return;
@@ -1108,6 +1286,12 @@ sub _create_process_aux_data_paired_crispr_assembly {
 }
 ## use critic
 
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_group_crispr_assembly {
+    return;
+}
+## use critic
+
 sub pspec__create_process_aux_data_crispr_ep {
     return {
         cell_line    => { validate => 'existing_cell_line' },
@@ -1124,6 +1308,82 @@ sub _create_process_aux_data_crispr_ep {
     $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) }  );
     $process->create_related( process_nuclease => { nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} ) } );
 
+    return;
+}
+## use critic
+#
+sub pspec__create_process_aux_data_oligo_assembly {
+    return {
+        crispr_tracker_rna => { validate => 'existing_crispr_tracker_rna' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_oligo_assembly {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_oligo_assembly, ignore_unknown => 1 );
+
+    $process->create_related( process_crispr_tracker_rna => { crispr_tracker_rna_id => _crispr_tracker_rna_id_for( $model, $validated_params->{crispr_tracker_rna} ) } );
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_cgap_qc {
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_ms_qc{
+    return {
+        oxygen_condition => { validate => 'oxygen_condition' },
+        doublings        => { validate => 'integer' }
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_ms_qc {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_ms_qc, ignore_unknown => 1 );
+    $process->create_related( process_parameters => {
+        parameter_name  => 'oxygen_condition',
+        parameter_value => $validated_params->{oxygen_condition}
+    });
+
+    $process->create_related( process_parameters => {
+            parameter_name  => 'doublings',
+            parameter_value => $validated_params->{doublings},
+    });
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_doubling {
+    return {
+        oxygen_condition => { validate => 'oxygen_condition' },
+        doublings        => { validate => 'integer', optional => 1 }
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_doubling {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_doubling, ignore_unknown => 1 );
+    $process->create_related( process_parameters => {
+        parameter_name  => 'oxygen_condition',
+        parameter_value => $validated_params->{oxygen_condition}
+    });
+
+    if(defined(my $doublings = $validated_params->{doublings})){
+        $process->create_related( process_parameters => {
+            parameter_name  => 'doublings',
+            parameter_value => $doublings,
+        });
+    }
     return;
 }
 ## use critic
@@ -1155,6 +1415,14 @@ sub _nuclease_id_for{
     my $nuclease = $model->retrieve( Nuclease => { name => $nuclease_name });
     return $nuclease->id;
 }
+
+sub _crispr_tracker_rna_id_for {
+    my ($model, $tracker_rna_name ) = @_;
+
+    my $crispr_tracker_rna = $model->retrieve( CrisprTrackerRna => { name => $tracker_rna_name });
+    return $crispr_tracker_rna->id;
+}
+
 1;
 
 __END__

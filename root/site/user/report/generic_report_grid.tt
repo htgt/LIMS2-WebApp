@@ -1,20 +1,44 @@
 <script type="text/javascript" charset="utf-8">
+
+    var grid;
+
         Ext.onReady( function() {
+
+            [% IF printable %]
+            Ext.Loader.setConfig({
+                enabled: true,
+                paths: {
+                    'Ext.ux': '../../../../static/extjs/src/ux'
+                }
+            });
+
+            Ext.require([
+                'Ext.ux.grid.Printer'
+            ]);
+            [% END %]
 
             Ext.define('Report', {
                 extend: 'Ext.data.Model',
                 fields: [
                     [%- FOREACH col IN columns %]
-                    { name: '[%- col %]', type: 'string' },
+                    [%#- we need some metadata to tell us the data type of the column so that it sorts properly %]
+                    [%#- for now, deisgn ids need to be treated as integers for sorting, not strings %]
+                        [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                            { name: '[%- col %]', type: 'int' },
+                        [%- ELSIF col.match( 'concluded\?' ) OR  col.match( 'Report\?' ) %]
+                            { name: '[%- col %]', type: 'boolean' },
+                        [%- ELSE %]
+                            { name: '[%- col %]', type: 'string' },
+                        [%- END %]
                     [%- END %]
                 ]
             });
 
+[%# first_time_outer is all about where to put the comma to avoid trailing commas that confuse some browsers %]
             var arrayData = [
                     [%- first_time_outer = 1 %]
                     [%- FOREACH datum IN data %]
                         [%- IF first_time_outer == 1 %]
-                            [% first_time_outer = 0 %]
                             {
                         [%- ELSE %]
                             ,{
@@ -27,11 +51,26 @@
                                     [%- first_time_inner = 0 %]
                                     "[%- columns.$index %]": "[%- val %]"
                                 [%- ELSE %]
-                                    ,"[%- columns.$index %]": "[%- val %]"
+                                    [%#- first time, check whether there is a 'custom:' flag
+                                        this will be rendered as a button so save it to the alt_render array
+                                    %]
+                                    [%- IF (first_time_outer == 1) && (val.match('lims2_custom')) %]
+                                    // string matched 'custom' specifier
+                                        [%- alt_render.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match( '^https?:' )) %]
+                                        [%- alt_render_link.${columns.$index} = 1 %]
+                                    [%- ELSIF (first_time_outer == 1) && ( val.match('lims2_combo')) %]
+                                        [%- alt_render_combo.${columns.$index} = 1 %]
+                                    [%- END %]
+                                    ,"[%- columns.$index %]": "[%- val.dquote | none%]"
+                                    [%#- This 'none' FILTER comes from Template::AutoFilter and is otherwise
+                                         undocumented. It prevents TT from the &quote quoting of strings
+                                         which confuses JSON.parse %]
                                 [%- END %]
                                 [%- index = index + 1 %]
                             [%- END %]
                         }
+                    [% first_time_outer = 0 %]
                     [%- END %]
                     ];
 
@@ -44,55 +83,310 @@
             });
 
             [% locked = {
-                "Well Name" = 1
-                "Design ID" = 1
-                "Gene ID" = 1
-                "Gene Symbol" = 1
+                "row id" = 1
+                "well name" = 1
+                "design id" = 1
+                "gene id" = 1
+                "gene symbol" = 1
                 } %]
-            [% alt_render = {
-                "Genoverse View" = 1
+            [% hidden = {
+                "gene id" = 1
+                "row id" = 1
+                "id" = 1
+                "well id" = 1
+                } %]
+
+
+
+
+
+            var recovery_class_store = Ext.create('Ext.data.Store',{
+                fields: ['recovery_class'],
+                data: [
+                    {"recovery_class":"-"}
+                    [%- FOREACH recovery_class IN recovery_classes %]
+                        ,{"recovery_class":"[% recovery_class %]"}
+                    [%- END %]
+
+                ]
+            });
+
+            var recovery_class_combo = Ext.create('Ext.form.ComboBox', {
+                typeAhead: true,
+                triggerAction: 'all',
+                editable: false,
+                store: recovery_class_store,
+                displayField: 'recovery_class',
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        console.log('recovery class listener' );
+                        var record = grid.getSelectionModel().getSelection()[0];
+
+                        console.log("Updating " + record.data.id + " with value " + field.getValue());
+                        var newRecord = field.findRecordByValue(newValue);
+
+                        $.getJSON( "[% c.uri_for('/api/project_recovery_class') %]", {id:record.data.id,recovery_class:field.getValue()}, function(){record.commit();});
+                    }
                 }
-            %]
+            });
 
             var columns = [
+                [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
+
+                [% IF first_column == 1 %]
                 {
+                [% first_column = 0 %]
+                [% ELSE %]
+                ,{
+                [% END %]
+
                     header: "[%- col %]",
-                    [%- IF locked.$col == 1 %]
+                    [%- IF locked.${col.lower} == 1 %]
                     locked: true,
                     [%- END %]
+                    [%- IF hidden.${col.lower} == 1 %]
+                    hidden: true,
+                    [%- END %]
+                    [%# alt_render values are case sensitive %]
                     [%- IF alt_render.$col == 1%]
-                    renderer: genoverse,
+                    renderer: lims2_action_button_json,
+                    [% ELSIF alt_render_link.$col == 1 %]
+                    renderer: lims2_action_link,
+                    [% ELSIF alt_render_combo.$col == 1 %]
+                    renderer: lims2_action_combo,
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
+                    [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                        renderer: function(val) {
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_design') %]" + '?design_id=' + val + "\">" + val + '</a>';
+                        },
+                    [%- END %]
+                    [%- IF col.match( '[Gg]ene[_\- ]([Ss]ymbol|[Ii][Dd])' ) %]
+                        renderer: function(val) {
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/report/gene') %]" + '?gene_id=' + val + "\">" + val + '</a>';
+                        },
+                    [%- END %]
+                    [%- IF col.match( '^[Cc]rispr[_\- ][Ii][Dd]' ) %]
+                        renderer: function(val) {
+                            var arr = /(\d*)\s*\((\w*)\)/.exec(val);
+                            if (arr) {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/') %]" + arr[2] + '/' + arr[1] + "/view\">" + arr[1] + '</a> (' + arr[2] + ')';
+                            } else {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/crispr/') %]" + val + "/view\">" + val;
+                            }
+                        },
+                    [%- END %]
+                    [%- IF col.match( 'concluded\?' ) %]
+                    xtype: 'checkcolumn',
+                    width: 65,
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
+                            var record = grid.store.getAt(recordIndex);
+                            $.getJSON( "[% c.uri_for('/api/project_toggle') %]", {id:record.get('id')}, function(){record.commit();});
+                        }
+                    },
+                    [%- END %]
+                    [%- IF col.match( 'recovery class' ) %]
+                    width: 120,
+                    editor: recovery_class_combo,
+                    [%- END %]
+
+                    [%- IF col.match( 'recovery comment' ) %]
+                    width: 400,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('recovery comment listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_recovery_comment') %]", {id:record.data.id,recovery_comment:field.getValue()}, function(){record.commit();});
+                            }
+                        }
+                    }),
+                    [%- END %]
+
+                    [%- IF col.match( 'priority' ) %]
+                    width: 120,
+                    editor: Ext.create('Ext.form.ComboBox', {
+                        typeAhead: true,
+                        triggerAction: 'all',
+                        editable: false,
+                        store: [
+                             ['-','-']
+                            [%- FOREACH priority_class IN priority_classes %]
+                            ,['[% priority_class %]','[% priority_class %]']
+                            [%- END %]
+                        ],
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('priority listener' );
+                                var record = grid.getSelectionModel().getSelection()[0];
+
+                                console.log("Updating " + record.data.id + " with value " + field.getValue());
+
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {
+                                    id:record.data.id,
+                                    priority:field.getValue(),
+                                    sponsor_id: "[% sel_sponsor %]"
+                                }, function(){record.commit();});
+                            }
+                        }
+
+                    }),
+
+                    [%- END %]
+
+
+                    [%- IF col.match( 'Report\?' ) %]
+                    xtype: 'checkcolumn',
+                    width: 65,
+                    listeners: {
+                        checkchange: function (column, recordIndex, checked) {
+                            console.log('checkbox class listener');
+                            var record = grid.store.getAt(recordIndex);
+                            console.log(record.get('Well ID'));
+                            console.log(checked);
+                            $.getJSON( "[% c.uri_for('/api/well/toggle_to_report') %]", {id:record.get('Well ID'), to_report:checked}, function(data){record.commit()})
+                        }
+                    },
+                    [%- END %]
+
                     dataIndex: '[%- col %]'
-                },
+                }
                 [%- END %]
             ];
 
-            function genoverse(val, meta, row) {
+            function lims2_action_combo(val){
+                var id = Ext.id();
+                Ext.defer(function(){
+                    console.log(val);
+                    var j_val = JSON.parse(val);
+                    var options = j_val.lims2_combo.options;
+                    var selected = j_val.lims2_combo.selected;
+                    var api_base = j_val.lims2_combo.api_base;
+
+                    console.log('combo options: ' + options);
+
+                    var combo = Ext.widget('combo', {
+                      renderTo: id,
+                      grow: true,
+                      typeAhead: true,
+                      triggerAction: 'all',
+                      editable: true,
+                      store: options,
+                      listeners: {
+                        change: function (field, newValue, oldValue) {
+                            var record = grid.getSelectionModel().getSelection()[0];
+
+                            if(record === undefined){
+                              return;
+                            }
+
+                            console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());
+
+                            var params_string = j_val.lims2_combo.api_params;
+                            if(field.getValue() != '-'){
+                              params_string = params_string + '&value=' + field.getValue();
+                            }
+                            var uri = "[% c.uri_for('/') %]" + api_base + '?' + params_string;
+                            $.getJSON( uri ).fail(function (data){
+                                console.log(data.responseText);
+                                console.log("Update failed. Returning value to " + oldValue);
+                                field.setRawValue(oldValue);
+                                // For some reason lastValue does not get updated by setRawValue
+                                // so we do it here to avoid wrong oldValue being sent to next change
+                                field.lastValue = oldValue;
+                            })
+                            .done(function(data){
+                                if('qc_verified' in data){
+                                  var qc_verified_col = grid.down('[dataIndex="QC Verified?"]');
+                                  var qc_verified_cell_class = 'x-grid-cell-' + qc_verified_col.id;
+
+                                  var combo_box = field.el.dom;
+                                  var row = $(combo_box).closest('tr.x-grid-row');
+                                  var div = row.find('.' + qc_verified_cell_class ).find('div');
+
+                                  console.log("Changing QC verified value from " + div.text() + " to " + data.qc_verified);
+                                  div.text(data.qc_verified);
+
+                                  // change the value in the record too in case grid is exported to csv
+                                  record.data['QC Verified?'] = data.qc_verified;
+
+                                  // can't do record.set because it reloads the entire record
+                                  // from original values thus overwriting changes to assembly QC
+                                  // grid.store.suspendEvents() stops the reload but also stops the value
+                                  // from being changed in grid!
+
+                                  //record.set('QC Verified?', data.qc_verified);
+                                }
+                            });
+                        }
+                      }
+                    });
+                    console.log('selecting value ' + selected);
+                    combo.setValue(selected);
+                },50);
+                return Ext.String.format('<div id="{0}"></div>', id);
+            };
+
+            function lims2_action_button_json(val) {
                     var id = Ext.id();
                     Ext.defer(function () {
-                        var api_url = row.get('Genoverse View').match( /api_url=(.*crispr_primers).(.*$)/ );
-                        console.log(api_url);
-                        var api_url_t = api_url[1] + '?'; 
-                        var api_replace = api_url[2].replace(/;/g , '&' );
-                        api_url_t = api_url_t + api_replace;
-                        console.log(api_url_t);
+                        console.log(val);
+                        var j_val = JSON.parse(val);
+                        var button_label = j_val.lims2_custom.button_label;
+                        var api_base = j_val.lims2_custom.api_url.substr(1); // remove the opening slash as c.uri_for provides it
+                        var api_params_array = [];
+                        for (var key in j_val.lims2_custom) {
+                          if (j_val.lims2_custom.hasOwnProperty(key)) {
+                                api_params_array.push( key + '=' + j_val.lims2_custom[key]);
+                            }
+                        }
+                        var api_params_string = api_params_array.join( '&' );
                         Ext.widget('button', {
                             renderTo: id,
-                            text: 'Genoverse',
+                            text: button_label,
                             width: 75,
-                            handler: function () { window.open( api_url_t ) }
+                            handler: function () { window.open( "[% c.uri_for('/') %]" + api_base + '?' + api_params_string ) }
                         });
                     }, 50);
                     return Ext.String.format('<div id="{0}"></div>', id);
                 };
 
-            var grid = Ext.create('Ext.grid.Panel', {
+            function lims2_action_link(val) {
+                    var id = Ext.id();
+                    Ext.defer(function () {
+                        console.log(val);
+                        Ext.widget('button', {
+                            renderTo: id,
+                            text: 'Link',
+                            width: 65,
+                            handler: function () { window.open( val ) }
+                        });
+                    }, 50);
+                    return Ext.String.format('<div id="{0}"></div>', id);
+                };
+
+            grid = Ext.create('Ext.grid.Panel', {
+                [% IF printable %]
+                tbar: [{
+                    text: 'Printer Friendly View',
+                    iconCls: 'glyphicon glyphicon-print',
+                    handler : function(){
+                        Ext.ux.grid.Printer.printAutomatically = false;
+                        Ext.ux.grid.Printer.print(grid);
+                    }
+                }],
+                forceFit : true,
+                [% END %]
                 height: 750,
-                width: 1200,
                 store: store,
                 columnLines: true,
                 columns: columns,
@@ -101,17 +395,119 @@
                 renderTo: 'my_results',
                 viewConfig: {
                     stripeRows: true,
-                    getRowClass: function(){
-                        return "lims2-cell-inner";
-                    },
+                     getRowClass: function(){
+                         return "lims2-cell-inner";
+                     },
                     firstCls: 'lims2-first-cell-format',
-                    enableTextSelection: true
+                    enableTextSelection: true,
+                    markDirty: false,
                 },
                 selType: 'cellmodel',
                 simpleSelect: true,
                 plugins: [
                     Ext.create('Ext.grid.plugin.CellEditing', { clicksToEdit: 2 })
-                ]
+                ],
+                listeners: {
+                    'afterlayout' : function(grid){
+                        if(grid.lockable){
+                            grid.syncRowHeights();
+                        }
+                    }
+                },
+                tools:[
+
+                    {
+                        id        : 'download_csv_file_btn',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            DownloadCsvFile(grid);
+                        }
+                    },
+
+                    ],
             });
+
+            var tooltips = [{
+                target   : 'download_csv_file_btn',
+                html     : 'Click to download the grid data as a CSV spreadsheet file'
+            }];
+
+            Ext.each(tooltips, function(config) {
+                Ext.create('Ext.tip.ToolTip', config);
+            });
+
+
+            function DownloadCsvFile(grid) {
+                var cols    = grid.columns;
+                var store   = grid.store;
+                var data    = '';
+
+                var that = this;
+                Ext.Array.each(cols, function(col, index) {
+                    if (col.hidden != true) {
+
+                        var text1;
+
+                        if (col.text == null || col.text == undefined) {
+                            text1 = '';
+                        } else {
+                            text1 = col.text;
+                        }
+                        if (text1.match(/,/)) {
+                            if (!text1.match(/"/)) {
+                                text1 = '"' + text1 + '"';
+                            } else {
+                                text1 = text1.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                            }
+                        }
+                        data += text1 + ',';
+                    }
+                });
+                data += "\n";
+
+                store.each(function(record) {
+                    var entry       = record.getData();
+                    Ext.Array.each(cols, function(col, index) {
+                        if (col.hidden != true) {
+                            var fieldName   = col.dataIndex;
+                            var text        = entry[fieldName];
+
+                            var text2;
+
+                            if (text == null || text == undefined) {
+                                text2 = '';
+                            } else if (!text.match) { // a checkcolumn object
+                                text2 = text;
+                            } else {
+                                text2 = text;
+                                if (text2.match(/,/)) {
+                                    if (!text2.match(/"/)) {
+                                        text2 = '"' + text2 + '"';
+                                    } else {
+                                        text2 = text2.replace(/,/g, ''); // comma's and quotes-- sorry, just loose the commas
+                                    }
+                                }
+                            }
+
+                            data += text2 + ',';
+                        }
+                    });
+                    data += "\n";
+                });
+
+                // window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
+
+                var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
+                var downloadLink = document.createElement("a");
+                downloadLink.href = uri;
+                downloadLink.download = "grid.csv";
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+            };
+
     });
 </script>

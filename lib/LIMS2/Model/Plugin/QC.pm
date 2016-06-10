@@ -12,7 +12,9 @@ use LIMS2::Model::Util::CreateQC qw(
     create_qc_run_seq_proj
     create_qc_test_result_alignment
     get_qc_run_seq_well_from_alignments
+    link_primers_to_qc_run_template
 );
+
 use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_run_results
     retrieve_qc_run_results_fast
@@ -21,6 +23,7 @@ use LIMS2::Model::Util::QCResults qw(
     retrieve_qc_alignment_results
     retrieve_qc_seq_read_sequences
     retrieve_qc_eng_seq_sequence
+    retrieve_qc_eng_seq_bioseq
     build_qc_runs_search_params
     infer_qc_process_type
 );
@@ -30,8 +33,9 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use HTGT::QC::Config;
-use TryCatch;
 use namespace::autoclean;
+use Try::Tiny;
+
 
 requires qw( schema check_params throw );
 
@@ -138,7 +142,7 @@ sub retrieve_qc_templates {
 
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_qc_templates );
 
-    my $search_params = build_qc_template_search_params( $validated_params );
+    my $search_params = build_qc_template_search_params( $validated_params, $self->schema );
 
     my @templates = $self->schema->resultset('QcTemplate')
         ->search( $search_params, { prefetch => { qc_template_wells => 'qc_eng_seq' } } );
@@ -395,6 +399,8 @@ sub create_qc_run {
         );
     }
 
+    link_primers_to_qc_run_template($qc_run);
+
     return $qc_run;
 }
 
@@ -552,40 +558,8 @@ sub qc_run_results {
     my $qc_run = $self->retrieve( 'QcRun' => { id => $validated_params->{qc_run_id} } );
     my $crispr_run = HTGT::QC::Config->new->profile( $qc_run->profile )->vector_stage eq "crispr";
 
-    my $results = retrieve_qc_run_results_fast($qc_run, $self->schema, $crispr_run);
+    my $results = retrieve_qc_run_results_fast($qc_run, $self, $crispr_run);
 
-    # retrieve_qc_run_results_fast looks up MGI accessions in the solr index 
-    # but for human qc runs we need to fetch gene symbols from ensembl
-    # TODO: When the human solr index is implemented we should search this in the
-    # retrieve_qc_run_results_fast method instead of doing ensembl query here
-    if($qc_run->qc_template->species_id eq 'Human'){
-        DEBUG "Human QC run - fetching gene symbols from ensembl";
-        foreach my $result (@{ $results || [] }){
-            my @designs;
-            if($crispr_run){
-                # get symbol for crispr
-                try{
-                    my $crispr = $self->retrieve( 'Crispr' => { id => $result->{crispr_id} });
-                    @designs = $crispr->related_designs;
-                }
-            }
-            else{
-                # get symbol for design
-                try{
-                    @designs = $self->retrieve( 'Design' => { id => $result->{design_id} });
-                }
-            }
-            my @genes = map { $_->genes } @designs;
-            my @gene_ids = uniq map { $_->gene_id } @genes;
-            my @symbols;
-            foreach my $gene (@gene_ids){
-                try{
-                    push @symbols, $self->retrieve_gene( { species => 'Human', search_term => $gene } )->{gene_symbol};
-                }
-            }
-            $result->{gene_symbol} = join( q{/}, uniq @symbols );
-        }
-    }
     return ( $qc_run, $results );
 }
 
@@ -607,6 +581,7 @@ sub pspec_qc_run_seq_well_results {
         qc_run_id  => { validate => 'uuid' },
         plate_name => { validate => 'plate_name' },
         well_name  => { validate => 'well_name' },
+        with_eng_seq => { validate => 'boolean', default => 0 },
     };
 }
 
@@ -614,9 +589,21 @@ sub qc_run_seq_well_results {
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_qc_run_seq_well_results );
+
+    my $with_eng_seq = delete $validated_params->{with_eng_seq};
+
     my $qc_seq_well = $self->retrieve_qc_run_seq_well($validated_params);
 
     my ( $seq_reads, $results ) = retrieve_qc_run_seq_well_results($params->{qc_run_id}, $qc_seq_well);
+
+    if($with_eng_seq == 1){
+        foreach my $result(@$results){
+            my $eng_seq = $self->qc_eng_seq_bioseq({
+                            qc_test_result_id => $result->{qc_test_result_id}
+                        });
+            $result->{eng_seq} = $eng_seq;
+        }
+    }
 
     return ( $qc_seq_well, $seq_reads, $results );
 }
@@ -675,6 +662,23 @@ sub qc_eng_seq_sequence {
         $validated_params->{format} );
 }
 
+sub pspec_qc_eng_seq_bioseq {
+    return {
+        qc_test_result_id => { validate => 'integer' },
+    };
+}
+
+sub qc_eng_seq_bioseq{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_qc_eng_seq_bioseq );
+
+    my $qc_test_result
+        = $self->retrieve( 'QcTestResult' => { id => $validated_params->{qc_test_result_id} }, );
+
+    return retrieve_qc_eng_seq_bioseq( $self->eng_seq_builder, $qc_test_result );
+}
+
 sub pass_to_boolean {
     my ( $self, $pass_or_fail ) = @_;
 
@@ -726,9 +730,13 @@ sub create_qc_template_from_plate {
 
 sub pspec_qc_template_from_csv{
     return{
-        template_name => { validate => 'plate_name'},
-        species       => { validate => 'existing_species'},
-        well_data_fh  => { validate => 'file_handle' },
+        template_name          => { validate => 'plate_name'},
+        species                => { validate => 'existing_species'},
+        well_data_fh           => { validate => 'file_handle' },
+        cassette               => { validate => 'existing_cassette', optional => 1},
+        backbone               => { validate => 'existing_backbone', optional => 1},
+        recombinase            => { validate => 'existing_recombinase', optional => 1},
+        phase_matched_cassette => { optional => 1 },
     };
 }
 
@@ -747,14 +755,31 @@ sub create_qc_template_from_csv{
         my $name = uc( $datum->{well_name} );
         $well_hash->{$name}->{well_name} = uc( $datum->{source_well} );
         $well_hash->{$name}->{plate_name} = $datum->{source_plate};
-        $well_hash->{$name}->{cassette} = $datum->{cassette} if $datum->{cassette};
-        $well_hash->{$name}->{backbone} = $datum->{backbone} if $datum->{backbone};
-        $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette} if $datum->{phase_matched_cassette};
+
+        if ($datum->{cassette}) {
+            $well_hash->{$name}->{cassette} = $datum->{cassette};
+        } elsif ($params->{cassette}) {
+            $well_hash->{$name}->{cassette} = $params->{cassette};
+        }
+
+        if ($datum->{backbone}) {
+            $well_hash->{$name}->{backbone} = $datum->{backbone};
+        } elsif ($params->{backbone}) {
+            $well_hash->{$name}->{backbone} = $params->{backbone};
+        }
+
+        if ($datum->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $datum->{phase_matched_cassette};
+        } elsif ($params->{phase_matched_cassette}) {
+            $well_hash->{$name}->{phase_matched_cassette} = $params->{phase_matched_cassette};
+        }
 
         if ($datum->{recombinase}){
             my @recombinases = split ",", $datum->{recombinase};
             s/\s*//g foreach @recombinases;
             $well_hash->{$name}->{recombinase} = \@recombinases;
+        } elsif ($params->{recombinase}) {
+            $well_hash->{$name}->{recombinase} = $params->{recombinase};
         }
     }
 
@@ -922,7 +947,7 @@ sub create_plate_from_qc{
                 accepted     => $best->{pass},
             );
 
-            # Identify reagent overrides from QC wells            
+            # Identify reagent overrides from QC wells
             if ( my $cassette = $template_well->qc_template_well_cassette){
                 $well_params{cassette} = $cassette->cassette->name;
             }
@@ -938,7 +963,7 @@ sub create_plate_from_qc{
             $well_params{process_type} = infer_qc_process_type(
                 \%well_params,
                 $validated_params->{plate_type},
-                $source_well->plate->type_id,
+                $source_well->plate_type,
             );
 
             push @new_wells, \%well_params;
@@ -1012,6 +1037,142 @@ sub _add_well_qc_sequencing_results{
     }
     return;
 }
+
+sub pspec_create_sequencing_project{
+    return {
+        name            => { validate => 'non_empty_string' },
+        template        => { validate => 'existing_qc_template_id', rename => 'qc_template_id', optional => 1},
+        user_id         => { validate => 'existing_user_id', rename => 'created_by_id' },
+        sub_projects    => { validate => 'integer' },
+        qc              => { validate => 'boolean', optional => 1},
+        is_384          => { validate => 'boolean', optional => 1},
+        created_at      => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        primers         => { optional => 1 },
+        qc_type         => { optional => 1 },
+    };
+}
+
+sub create_sequencing_project {
+    my ($self, $params) = @_;
+    DEBUG "Creating sequencing project ".$params->{name};
+    try {
+        if($params->{qc}){
+            unless ($params->{qc_type} eq 'Crispr') {
+                my $template_id = $self->retrieve_qc_template({ name => $params->{template} })->{_column_data}->{id};
+                $params->{template} = $template_id;
+            }
+        }
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'QC template: ' . $params->{template}
+                  . ' does not exist'
+            }
+        );
+        return;
+    };
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project);
+
+    #Create if the project name already exists
+    if ( $self->schema->resultset('SequencingProject')->find({ name => $validated_params->{name} }) ) {
+        $self->throw( InvalidState => {
+            message => 'Sequencing project name: ' . $validated_params->{name}
+                  . ' already exists'
+            }
+        );
+        return;
+    }
+
+    # Otherwise, create a new project
+    my $seq_project = $self->schema->resultset('SequencingProject')->create( { slice_def $validated_params, qw( name created_by_id created_at sub_projects qc is_384) } );
+    $self->log->debug('created sequencing project ' . $seq_project->name . ' with id ' . $seq_project->id );
+
+    if ($validated_params->{primers}){
+        my @primers = @{$validated_params->{primers}};
+        foreach my $primer (@primers){
+            my $check_primer = $self->schema->resultset('SequencingPrimerType')->find({ id => $primer },{ distinct => 1 });
+
+            if($check_primer) {
+                create_sequencing_relations($self, $primer, $seq_project, 'sequencing_project_primers', 'primer_id');
+            }
+            else {
+                $self->throw( InvalidState => {
+                    message => 'Primer : ' . $primer
+                        . ' was not found in the sequencing primer types table.'
+                    }
+                );
+            }
+        }
+    }
+    if ($validated_params->{qc_template_id}){
+        create_sequencing_relations($self, $validated_params->{qc_template_id}, $seq_project, 'sequencing_project_templates', 'qc_template_id');
+    }
+    return;
+ }
+
+ sub create_sequencing_relations {
+    my ($self, $data, $seq_proj, $table, $column) = @_;
+    my $seq_relation;
+    try{
+        $seq_relation = $seq_proj->create_related(
+                $table => {
+                $column         => $data,
+                seq_project_id  => $seq_proj->{_column_data}->{id},
+            }
+        );
+    } catch {
+        $self->throw( InvalidState => {
+            message => 'Could not create relation in ' . $table . ' table for id: '. $seq_proj->{_column_data}->{id}
+            }
+        );
+
+    };
+
+    if( $seq_relation->{_column_data} ) {
+        $self->log->debug('created sequencing relation. table: ' . $table . ' id: ' . $seq_relation->{_column_data}->{seq_project_id} . ' foreign key: ' . $data );
+    }
+    return;
+ }
+
+sub pspec_update_sequencing_project{
+    return {
+        id          => { validate => 'integer', optional =>  1},
+        name        => { validate => 'non_empty_string', optional => 1},
+        abandoned   => { validate => 'boolean', optional => 1},
+        available_results => { validate => 'boolean', optional => 1},
+        results_imported_date => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+ sub update_sequencing_project {
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_update_sequencing_project );
+
+    my $seq_proj = $self->retrieve_sequencing_project( { slice_def( $validated_params, qw( name id ) ) });
+
+    my $update_params = { slice_def( $validated_params, qw( abandoned available_results results_imported_date ) ) };
+    $seq_proj->update( $update_params );
+
+    return;
+}
+
+sub pspec_retrieve_sequencing_project{
+    return {
+        id          => { validate => 'integer', optional =>  1},
+        name        => { validate => 'non_empty_string', optional => 1},
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    }
+}
+
+sub retrieve_sequencing_project{
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_sequencing_project );
+
+    my $project_params = { slice_def( $validated_params, qw( name id ) ) };
+    return $self->retrieve( SequencingProject => $project_params );
+}
+
 1;
 
 __END__

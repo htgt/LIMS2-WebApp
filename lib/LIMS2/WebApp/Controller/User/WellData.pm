@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use LIMS2::Model::Util::DataUpload qw(spreadsheet_to_csv);
+use LIMS2::Report qw(get_raw_spreadsheet);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -334,6 +335,28 @@ sub genotyping_qc_report : Path( '/user/genotyping_qc_report') : Args(1) {
     return;
 }
 
+sub genotyping_qc_report_xlsx : Path( '/user/genotyping_qc_report_xlsx') : Args(1) {
+    my ( $self, $c, $plate_name ) = @_;
+    $c->assert_user_roles( 'read' );
+
+    my $model = $c->model('Golgi');
+    my $plate = $model->retrieve_plate({ name => $plate_name});
+
+    my @csv_plate_data = $model->csv_genotyping_qc_plate_data( $plate_name, $c->session->{selected_species});
+
+    @csv_plate_data = map { $_ . "\n" } @csv_plate_data;
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename='
+            . $plate_name
+            . '_gqc.xlsx' );
+    my $body = join q{}, @csv_plate_data;
+    $body = get_raw_spreadsheet($plate_name, $body);
+    $c->response->body( $body );
+    return;
+}
+
+
 sub genotyping_grid_help : Path( '/user/genotyping_grid_help') : Args(0) {
     return;
 }
@@ -452,68 +475,6 @@ sub upload_genotyping_qc : Path( '/user/upload_genotyping_qc') : Args(0){
             };
         }
     );
-
-    return;
-}
-
-=head2 well_genotyping_info
-
-Page to choose the desired well, no arguments
-
-=cut
-sub well_genotyping_info_search :Path( '/user/well_genotyping_info_search' ) :Args(0) {
-    my ( $self, $c ) = @_;
-
-    return;
-}
-
-=head2 well_genotyping_info
-
-Page to display chosen well, takes a well id (later a barcode) or a plate/well combo
-
-=cut
-sub well_genotyping_info :Path( '/user/well_genotyping_info' ) :Args() {
-    my ( $self, $c, @args ) = @_;
-
-    if ( @args == 1 ) {
-        my $barcode = shift @args;
-
-        $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
-    }
-    elsif ( @args == 2 ) {
-        my ( $plate_name, $well_name ) = @args;
-
-        $self->_stash_well_genotyping_info(
-            $c, { plate_name => $plate_name, well_name => $well_name }
-        );
-    }
-    else {
-        $c->stash( error_msg => "Invalid number of arguments" );
-    }
-
-    return;
-}
-
-sub _stash_well_genotyping_info {
-    my ( $self, $c, $search ) = @_;
-
-    #well_id will become barcode
-    my $well = $c->model('Golgi')->retrieve_well( $search );
-
-    unless ( $well ) {
-        $c->stash( error_msg => "Well doesn't exist" );
-        return;
-    }
-
-    try {
-        #needs to be given a method for finding genes
-        my $data = $well->genotyping_info( sub { $c->model('Golgi')->find_genes( @_ ); } );
-        $c->stash( data => $data );
-    }
-    catch {
-        #get string representation if its a lims2::exception
-        $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
-    };
 
     return;
 }

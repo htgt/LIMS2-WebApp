@@ -1,0 +1,18 @@
+---
+valid_design_target:
+    species: Mouse
+    marker_symbol: Atad2
+    gene_id: MGI:1917722
+    ensembl_gene_id: ENSMUSG00000022360
+    ensembl_exon_id: ENSMUSE00000125819
+    exon_size: 276
+    exon_rank: 1
+    canonical_transcript: ENSMUST00000038194
+    assembly: GRCm38
+    build: 73
+    chr_name: 15
+    chr_start: 58094047
+    chr_end: 58135082
+    chr_strand: -1
+    automatically_picked: 1
+    comment: Test design target

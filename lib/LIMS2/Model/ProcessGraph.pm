@@ -2,7 +2,7 @@ package LIMS2::Model::ProcessGraph;
 
 use Moose;
 use Const::Fast;
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq any );
 use LIMS2::Exception::Implementation;
 use LIMS2::Model::Types qw( ProcessGraphType );
 use Log::Log4perl qw( :easy );
@@ -79,7 +79,8 @@ has prefetch_process_data => (
         [ 'process_design',
           { 'process_cassette' => 'cassette' },
           { 'process_backbone' => 'backbone' },
-          'process_recombinases'
+          'process_recombinases',
+          'process_global_arm_shortening_design',
       ]
     }
 );
@@ -101,7 +102,7 @@ sub schema {
 has edges => (
     is         => 'ro',
     isa        => 'ArrayRef',
-    init_arg   => undef,
+    init_arg   => 'edges',
     lazy_build => 1
 );
 
@@ -306,9 +307,15 @@ sub depth_first_traversal {
 # $relation.  Returns the related record. $relation should be
 # something like 'process_design', 'process_cassette', etc.
 sub find_process {
-    my ( $self, $start_well, $relation ) = @_;
+    my ( $self, $start_well, $relation, $args ) = @_;
 
     TRACE( "find_process searching for relation $relation" );
+
+    # setup processes to ignore if any
+    my @ignore_processes;
+    if ( $args && exists $args->{ignore_processes} ) {
+        @ignore_processes = @{ $args->{ignore_processes} };
+    }
 
     my $it = $self->breadth_first_traversal( $start_well, 'in' );
 
@@ -316,6 +323,7 @@ sub find_process {
         TRACE( "find_process examining $well" );
         for my $process ( $self->input_processes( $well ) ) {
             if ( my $related = $process->$relation() ) {
+                next if @ignore_processes && any { $_ eq $process->type_id } @ignore_processes;
 
             	# Don't return $related if it is an empty resultset
             	next if ($related->isa("DBIx::Class::ResultSet") and $related->count == 0 );
@@ -326,6 +334,26 @@ sub find_process {
         }
     }
 
+    return;
+}
+
+# Similar to find_process but looks for process type instead of process relation
+sub find_process_of_type{
+    my ($self, $start_well, $type ) = @_;
+
+    TRACE( "find_process_of_type searching for type $type" );
+
+    my $it = $self->breadth_first_traversal( $start_well, 'in' );
+
+    while( my $well = $it->next ) {
+        TRACE( "find_process_of_type examining $well" );
+        for my $process ( $self->input_processes( $well ) ) {
+            if ( $process->type_id eq $type ) {
+                TRACE( "Found $type at $well (process ".$process->id.")" );
+                return $process;
+            }
+        }
+    }
     return;
 }
 
@@ -367,6 +395,9 @@ sub process_data_for {
         if ( $p->process_global_arm_shortening_design ) {
             push @data, 'Global Arm Shorten Design: ' . $p->process_global_arm_shortening_design->design_id;
         }
+        foreach my $param ($p->process_parameters){
+            push @data, $param->parameter_name.': '.$param->parameter_value;
+        }
     }
 
     return @data;
@@ -387,10 +418,19 @@ sub render {
     # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
+        my @labels = ( $well->as_string, 'Plate Type: ' . $well->last_known_plate->type_id );
+        if($well->barcode){
+            push @labels, 'Barcode: '.$well->barcode;
+            push @labels, 'State: '.$well->barcode_state->id;
+            push @labels, 'Old Location: '.$well->last_known_location_str;
+        }
+        push @labels, process_data_for($well);
+        my $url = ( $well->plate ? "/htgt/lims2/user/view_plate?id=" . $well->plate->id
+                                 : "/htgt/lims2/user/scan_barcode?barcode=". $well->barcode );
         $graph->add_node(
             name   => $well->as_string,
-            label  => [ $well->as_string, 'Plate Type: ' . $well->plate->type_id, process_data_for($well) ],
-            URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+            label  => \@labels,
+            URL    => $url,
             target => '_blank',
         );
     }

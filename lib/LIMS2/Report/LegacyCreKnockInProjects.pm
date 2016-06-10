@@ -16,11 +16,14 @@ override _build_name => sub {
 override _build_columns => sub {
     return [
         qw(
-            htgt_project_id
-            lims2_project_id
             marker_symbol
             mgi_gene_id
             status
+            allele_names
+            allele_products
+            num_alleles
+            cassette
+            design_id
         )
     ];
 };

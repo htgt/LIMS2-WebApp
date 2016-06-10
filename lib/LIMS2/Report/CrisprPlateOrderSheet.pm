@@ -86,10 +86,13 @@ sub build_base_report_data{
         my ( $parent_process ) = $well->parent_processes;
         my $crispr = $parent_process->process_crispr->crispr;
 
+        # Profile for the crispr order sheet can be changed here...
         push @{ $self->crispr_data }, {
             well_name => $well->name,
-            forward   => $crispr->forward_order_seq,
-            reverse   => $crispr->reverse_order_seq,
+            well_id   => $well->id,
+            append_id => $well->plate->crispr_plate_append->append_id,
+            forward   => $crispr->forward_order_seq($well->plate->crispr_plate_append->append_id),
+            reverse   => $crispr->reverse_order_seq($well->plate->crispr_plate_append->append_id),
             crispr_id => $crispr->id,
         };
     }
@@ -107,12 +110,25 @@ sub build_report {
         for my $datum ( @{ $self->crispr_data } ) {
             $datum->{well_name} =~ /(?<row>\w)(?<column>\d{2})/;
             my $crispr_name = $datum->{well_name} . '_' . $datum->{crispr_id} . '_' . $direction;
+
+            my @crispr_wells = $self->model->retrieve_crispr({ id => $datum->{crispr_id} })->crispr_wells;
+
+            my @used_wells;
+            my $used_wells_string;
+            foreach my $crispr_well (@crispr_wells) {
+                next if $crispr_well->id == $datum->{well_id};
+                push (@used_wells, $crispr_well->as_string) if ($crispr_well->plate->crispr_plate_append->append_id eq $datum->{append_id});
+            }
+            if (@used_wells) {
+                $used_wells_string = 'Used also by ' . (join ' and ', @used_wells);
+            }
             my @row_data = (
                 $plate_name,
                 $+{row},
                 $+{column},
                 $crispr_name,
                 $datum->{ $direction },
+                $used_wells_string,
             );
 
             $self->add_report_row( \@row_data );

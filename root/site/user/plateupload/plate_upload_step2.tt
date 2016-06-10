@@ -4,73 +4,114 @@
   <h1>Upload Plate <small> Step 2</small></h1>
 </div>
 
-<div class="row">
-
-  <div class="span6 offset3">
+<div class="grid">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form well"  enctype="multipart/form-data" >
+      <input name="plate_upload_step" value="2" type="hidden"/>
+      <div class="row">
+        <div class="col-md-12">  
+          <label>Plate Name</label><br>
+          <input name="plate_name" id="plate_name" type="text"
+            [% IF plate_name %]value="[% plate_name %]"[% END %]
+          />
+        </div>
+      </div>
 
-        <input name="plate_upload_step" value="2" type="hidden"/>
+      [% IF process_type == "rearray" %]
+      <div class="row">
+        <div class="col-md-12">
+          <label>Virtual Plate <input type="checkbox" name="is_virtual" value="1"></label>
+        </div>
+      </div>
+      [% END %]
+      
+      <div class="row">
+        <div class="col-md-12">
+          <label>Process Type</label></br>
+          <input type="hidden" name="process_type" id="process_type" value="[% process_type %]" />
+          <p class="form-control-static">[% process_type %]</p>
+        </div>
+      </div>
 
-        <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-        />
-
-        [% IF process_type == "rearray" %]
-        <label>Virtual Plate <input type="checkbox" name="is_virtual" value="1"></label>
-        [% END %]
-
-        <label>Process Type</label>
-        <input type="hidden" name="process_type" id="process_type" value="[% process_type %]" />
-        <span class="input uneditable-input">[% process_type %]</span>
-
-        <label>Plate Type</label>
-        [% IF plate_types.size > 1 %]
-          <select name="plate_type">
-              [% UNLESS plate_type %]<option value="" selected="selected">-</option>[% END %]
+      <div class="row">
+        <div class="col-md-6">
+          <label>Plate Type</label></br>
+          [% IF plate_types.size > 1 %]
+            <select name="plate_type" class="form-control">
+              [% UNLESS plate_type %]
+                <option value="" selected="selected">-</option>
+              [% END %]
               [%- FOR type IN plate_types %]
                 <option [% IF plate_type == type %] selected="selected"[% END %]>[% type %]</option>
               [%- END %]
-          </select>
-        [% ELSE %]
-          <input type="hidden" name="plate_type" id="plate_type" value="[% plate_types.0 %]"/>
-          <span class="input uneditable-input">[% plate_types.0 %]</span>
-        [%- END %]
+            </select>
+          [% ELSE %]
+            <input type="hidden" name="plate_type" id="plate_type" value="[% plate_types.0 %]"/>
+            <span class="input uneditable-input">[% plate_types.0 %]</span>
+          [%- END %]
+        </div>
+      </div>
 
-        [% IF process_type == 'int_recom' %]
-        <label>Number of Planned Post-gateway Wells</label>
+    
+  
+      [% IF process_type == 'int_recom' %]
+        <div class="row">
+          <label>Number of Planned Post-gateway Wells</label>
           <select name="planned_wells">
             <option value="" selected="selected">-</option>
             [% total = 4 %]
             [% WHILE total < 33 %]
               <option value="[% total %]">[% total %]</option>
               [% total = total + 4 %]
-        [%- END %]
+            [%- END %]
           </select>
-        [%- END %]
+        </div>
 
-        [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
+        <div class="row">
+          <label>DNA Template</label>
+          <select name="source_dna">
+            <option value="" selected="selected">-</option>
+              [%- FOR line IN cell_lines %]
+                <option value="[% line %]">[% line %]</option>
+              [%- END %]
+          </select>
+        </div>
 
-        <label>Well Data File</label>
-        <input name="datafile" type="file">
+      [%- END %]
+      
+      [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
-        <label>Description</label>
-        <input name="description" id="description" type="text"
-          [% IF description %]value="[% description %]"[% END %]
-        />
-        <span class="help-inline">optional</span>
+      <div class="row">
+        <div class="col-md-12">
+          <label>Well Data File</label><br>
+          <input name="datafile" type="file">
+        </div>
+      </div>
 
+      <div class="row">
+        <div class="col-md-12">
+            <label>Description</label></br>
+        </div>
+        <div class="col-md-6">
+          <input class="form-control" name="description" id="description" type="text"
+            [% IF description %]value="[% description %]"[% END %]
+          />
+        </div>
+        <div class="col-md-6">
+          <span class="help help-block">optional</span>
+        </div>
+      </div>
         <br>
-        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn">
-            <i class="icon-upload"></i> Create Plate
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Create Plate
         </button>
     </form>
   </div>
 
 </div>
-
-[% INCLUDE 'plate_upload_help.tt' plate_help = plate_help %]
-
+<div class="col-md-10 col-md-offset-1">
+  [% INCLUDE 'plate_upload_help.tt' plate_help = plate_help %]
+</div>
 <script type="text/javascript">
 $('form#plate_create').submit(function(){
     $(this).children('button[type=submit]').attr('disabled', 'disabled');

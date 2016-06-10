@@ -12,6 +12,7 @@ use Sub::Exporter -setup => {
             retrieve_qc_run_seq_well_results
             retrieve_qc_alignment_results
             retrieve_qc_seq_read_sequences
+            retrieve_qc_eng_seq_bioseq
             retrieve_qc_eng_seq_sequence
             build_qc_runs_search_params
             infer_qc_process_type
@@ -31,13 +32,12 @@ use LIMS2::Model::Util::WellName qw ( to384 );
 use HTGT::QC::Config;
 use HTGT::QC::Util::Alignment qw( alignment_match );
 use HTGT::QC::Util::CigarParser;
-use LIMS2::Util::Solr;
 use JSON qw( decode_json );
 use Data::Dumper;
 
 sub retrieve_qc_run_results {
     my $qc_run = shift;
-#print "running retrieve_qc_run_results\n";
+
     my $expected_loc = _design_loc_for_qc_template_plate($qc_run);
     my @qc_seq_wells        = $qc_run->qc_run_seq_wells( {},
         { prefetch => ['qc_test_results'] } );
@@ -58,7 +58,7 @@ sub retrieve_qc_run_results {
 #eventually this should replace retrive_qc_run_results
 ## no critic ( Subroutines::ProhibitExcessComplexity )
 sub retrieve_qc_run_results_fast {
-    my ( $qc_run, $schema, $crispr_run ) = @_;
+    my ( $qc_run, $model, $crispr_run ) = @_;
     my $name_id = $crispr_run ? 'crispr_id' : 'design_id';
 
     my $expected_loc = _loc_for_qc_template_plate( $qc_run, $crispr_run );
@@ -67,12 +67,12 @@ sub retrieve_qc_run_results_fast {
     #because failed wells don't get a qc_test_result or qc_alignment, but we still need to show them.
     #note that there can be multiple qc_test_results for a single seq well.
     my $sql = <<'EOT';
-select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params, 
-qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass, 
-qc_seq_reads.primer_name, qc_seq_reads.length as read_length, qc_alignments.score, qc_alignments.pass primer_valid, 
+select qc_alignments.qc_eng_seq_id as qc_alignment_eng_seq_id, qc_eng_seqs.id as qc_eng_seq_id, qc_eng_seqs.params as params,
+qc_run_seq_wells.plate_name, qc_run_seq_wells.well_name, qc_test_results.pass as overall_pass,
+qc_seq_reads.primer_name, qc_seq_reads.length as read_length, qc_alignments.score, qc_alignments.pass primer_valid,
 qc_alignments.qc_run_id alignment_qc_run_id, qc_alignments.features alignment_features,
-qc_alignments.target_start alignment_target_start, qc_alignments.target_end alignment_target_end 
-from qc_runs 
+qc_alignments.target_start alignment_target_start, qc_alignments.target_end alignment_target_end
+from qc_runs
 join qc_run_seq_wells on qc_run_seq_wells.qc_run_id = qc_runs.id
 left join qc_test_results on qc_test_results.qc_run_seq_well_id = qc_run_seq_wells.id
 join qc_run_seq_well_qc_seq_read on qc_run_seq_well_qc_seq_read.qc_run_seq_well_id = qc_run_seq_wells.id
@@ -83,11 +83,9 @@ where qc_runs.id = ?
 order by plate_name, well_name, qc_eng_seq_id;
 EOT
 
-    #we need this to convert MGI accession ids -> marker symbols
-    my $solr = LIMS2::Util::Solr->new;
 
     my @qc_run_results;
-    $schema->storage->dbh_do(
+    $model->schema->storage->dbh_do(
         sub {
             my ( $storage, $dbh ) = @_;
             my $sth = $dbh->prepare( $sql );
@@ -111,25 +109,6 @@ EOT
                     pass               => $r->{overall_pass},
                     primers            => []
                 );
-
-                #attempt to get a marker symbol if we have a design id.
-                #to do that we first get the mgi accession id, then use that as a lookup in the solr
-                if ( defined $eng_seq_params->{ design_id } ) {
-                    my $design = $schema->resultset('Design')->find( {
-                        id => $eng_seq_params->{ design_id }
-                    } );
-
-                    #we do this in a try just in case the design doesn't exist.
-                    try {
-                        #force the arrayref we get back from solr into an array so it can be appended,
-                        #and extract just the marker symbol from the hashref returned by solr.
-                        my @genes = map { $_->{marker_symbol} }
-                                        map { @{ $solr->query( [ mgi_accession_id => $_->gene_id ] ) } }
-                                            $design->genes;
-                        #there could be more than one, if so we just display them all
-                        $result{gene_symbol} = join ", ", @genes;
-                    }
-                }
 
                 #aggregate the primers into our hash, making sure that we only do this for results
                 #with the same eng seq id (IF we got one), so that we get separate entries for different
@@ -199,38 +178,121 @@ EOT
             || $b->{valid_primers_score} <=> $a->{valid_primers_score};
     } @qc_run_results;
 
+    foreach my $result (@qc_run_results){
+        my @designs;
+
+        if($crispr_run){
+            my $crispr_id = $result->{crispr_id};
+            unless ($crispr_id) {$crispr_id = $result->{expected_crispr_id}};
+            # get designs for crispr
+            try{
+                my $crispr = $model->schema->resultset('Crispr')->find( {
+                    id => $crispr_id
+                } );
+                @designs = $crispr->related_designs;
+                }
+            }
+            else{
+                my $design_id = $result->{design_id};
+                unless ($design_id) {$design_id = $result->{expected_design_id}};
+                # get designs
+                try{
+                    @designs = $model->schema->resultset('Design')->search( {
+                        id => $design_id
+                    } );
+                }
+            }
+            my @genes = map { $_->genes } @designs;
+            my @gene_ids = uniq map { $_->gene_id } @genes;
+            my @symbols;
+            foreach my $gene (@gene_ids){
+                # get gene symbol
+                try{
+                    my $species;
+                    if ($gene =~ m/HGNG:/) {$species = 'Human'} else {$species = 'Mouse'};
+                    my $gene_symbol = $model->find_gene( { species => $species, search_term => $gene } );
+                    push @symbols, $gene_symbol->{gene_symbol};
+            }
+        }
+        $result->{gene_symbol} = join( q{/}, uniq @symbols );
+
+    }
+
     return \@qc_run_results;
 }
 ## use critic
 
+## no critic ( Subroutines::ProhibitExcessComplexity )
 sub retrieve_qc_run_summary_results {
-    my ( $qc_run ) = @_;
+    my ( $qc_run, $model, $crispr_run ) = @_;
 
-    my $results = retrieve_qc_run_results($qc_run);
+    if (!$model) {
+        $model = LIMS2::Model->new( user => 'lims2' );
+    }
 
-    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my $run_type = 'design_id';
+    if ($crispr_run) {
+        $run_type = 'crispr_id';
+    }
+
+    my $all_results = retrieve_qc_run_results_fast($qc_run, $model, $crispr_run);
+    # Filter results so that if a single well(read) has multiple designs(synvecs) aligning to it
+    # we only consider the best alignment result for that well
+    my $well_results;
+    my $id_gene_symbols;
+    foreach my $result (@$all_results){
+        my $well_name = $result->{plate_name}.$result->{well_name};
+
+        # store the gene symbol for display in case we get no decent results for this ID
+        if($result->{gene_symbol} and $result->{ $run_type }){
+            $id_gene_symbols->{ $result->{ $run_type } } = $result->{gene_symbol};
+        }
+
+        if(my $existing_well_result = $well_results->{$well_name}){
+            DEBUG "Examining duplicate well $well_name";
+            # To determine the best result for the well use the same sort criteria
+            # as we will later use to find the best result for each design/crispr
+            my $this_result_better = _compare_qc_results($result,$existing_well_result);
+            if($this_result_better > 0){
+                DEBUG $result->{ $run_type }." is better match for $well_name than ".$existing_well_result->{ $run_type };
+                $well_results->{$well_name} = $result;
+            }
+            elsif($this_result_better == 0){
+                # same
+                my $ids = join ",",$existing_well_result->{ $run_type }, $result->{ $run_type };
+                ERROR "Well $well_name aligns to ids $ids equally well";
+                # list both IDs. wells with multiple IDs will be ignored when identifying best well for ID
+                $existing_well_result->{ $run_type } = $ids;
+            }
+            else{
+                # existing result better. do nothing.
+                DEBUG $existing_well_result->{ $run_type }." is better match for $well_name than ".$result->{ $run_type };
+            }
+        }
+        else{
+            $well_results->{$well_name} = $result;
+        }
+    }
+
+    my $results = [ values %$well_results ];
 
     my @summary;
-    my %seen_design;
 
+    my $template_well_rs = $qc_run->qc_template->qc_template_wells;
+    my %seen;
+
+    # Identify the best result for each $run_type (design or crispr) ID
     while ( my $template_well = $template_well_rs->next ) {
         next
-            unless $template_well->design_id
-                and not $seen_design{ $template_well->design_id }++;
+            unless $template_well->$run_type
+                and not $seen{ $template_well->$run_type }++;
 
         my %s = (
-            design_id   => $template_well->design_id,
-            gene_symbol => '-',
+            $run_type => $template_well->$run_type,
         );
 
-        my @results = reverse sort {
-                   ( $a->{pass} || 0 ) <=> ( $b->{pass} || 0 )
-                || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
-                || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
-                || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
-                || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 )
-            }
-            grep { $_->{design_id} and $_->{design_id} == $template_well->design_id } @{$results};
+        my @design_or_crispr_results = grep { $_->{$run_type} and ($_->{$run_type} eq $template_well->$run_type) } @{$results};
+        my @results = reverse sort _compare_qc_results @design_or_crispr_results;
 
         if ( my $best = shift @results ) {
             $s{plate_name}    = $best->{plate_name};
@@ -238,12 +300,33 @@ sub retrieve_qc_run_summary_results {
             $s{well_name_384} = uc $best->{well_name_384};
             $s{valid_primers} = join( q{,}, @{ $best->{valid_primers} } );
             $s{pass}          = $best->{pass};
+            $s{gene_symbol}   = $best->{gene_symbol};
         }
+        else{
+            $s{gene_symbol} = $id_gene_symbols->{ $template_well->$run_type };
+        }
+
         push @summary, \%s;
     }
 
     return \@summary;
 }
+## use critic
+
+## no critic (Subroutines::ProhibitSubroutinePrototypes)
+# prototyping seems to be needed to get this to work in sorting
+sub _compare_qc_results($$){
+    my ($a,$b) = @_;
+
+    my $compare_result = ( $a->{pass}|| 0 ) <=> ( $b->{pass}                || 0 )
+    || ( $a->{num_valid_primers}   || 0 ) <=> ( $b->{num_valid_primers}   || 0 )
+    || ( $a->{valid_primers_score} || 0 ) <=> ( $b->{valid_primers_score} || 0 )
+    || ( $a->{score}               || 0 ) <=> ( $b->{score}               || 0 )
+    || ( $a->{num_reads}           || 0 ) <=> ( $b->{num_reads}           || 0 );
+
+    return $compare_result;
+}
+## use critic
 
 sub retrieve_qc_run_seq_well_results {
     my ( $qc_run_id, $seq_well ) = @_;
@@ -256,7 +339,7 @@ sub retrieve_qc_run_seq_well_results {
     }
 
     #
-    # NOTE 
+    # NOTE
     # until all legacy data is updated we have to allow a null qc_run_id.
     # if its null we just allow it as we can't know which run it belongs to.
     # this method will return ALL alignments if it can't find any linked ones
@@ -333,12 +416,20 @@ sub retrieve_qc_seq_read_sequences {
     return ( $filename, $formatted_seq );
 }
 
-sub retrieve_qc_eng_seq_sequence {
-    my ( $eng_seq_builder, $qc_test_result, $format ) = @_;
+sub retrieve_qc_eng_seq_bioseq{
+    my ( $eng_seq_builder, $qc_test_result ) = @_;
 
     my $qc_eng_seq_params = $qc_test_result->qc_eng_seq->as_hash;
     my $eng_seq_method    = $qc_eng_seq_params->{eng_seq_method};
     my $qc_eng_seq = $eng_seq_builder->$eng_seq_method( $qc_eng_seq_params->{eng_seq_params} );
+
+    return $qc_eng_seq;
+}
+
+sub retrieve_qc_eng_seq_sequence {
+    my ( $eng_seq_builder, $qc_test_result, $format ) = @_;
+
+    my $qc_eng_seq = retrieve_qc_eng_seq_bioseq($eng_seq_builder, $qc_test_result);
 
     my $params = _validated_download_seq_params($format);
 
@@ -441,7 +532,7 @@ sub _parse_qc_seq_wells {
     # NOTE
     # alignments for run will return all qc alignments for a seq read if it is old
     # qc data which doesnt have a run attached to an alignment
-    # 
+    #
 
     my @qc_alignments = map { $_->alignments_for_run( $qc_run->id ) } @qc_seq_reads;
 
@@ -549,13 +640,13 @@ sub build_qc_runs_search_params {
 }
 
 sub infer_qc_process_type{
-	my ( $params, $new_plate_type, $source_plate_type ) = @_;
+    my ( $params, $new_plate_type, $source_plate_type ) = @_;
 
-	my $process_type;
-	my $reagent_count = 0;
+    my $process_type;
+    my $reagent_count = 0;
 
-	$reagent_count++ if $params->{cassette};
-	$reagent_count++ if $params->{backbone};
+    $reagent_count++ if $params->{cassette};
+    $reagent_count++ if $params->{backbone};
 
     ## no critic (ProhibitCascadingIfElse)
     if ( $source_plate_type eq 'DESIGN' ) {
@@ -572,11 +663,6 @@ sub infer_qc_process_type{
     }
     elsif ( $source_plate_type eq 'CRISPR' ) {
         $process_type = _crispr_source_plate( $new_plate_type, $reagent_count, $params );
-    }
-    elsif ( $source_plate_type eq 'CRISPR_V' ) {
-        # CRISPR_V QC can only be done to create a rearrayed CRISPR_V plate
-        # rearray creation will check that input and output well types are the same
-        $process_type = 'rearray';
     }
     elsif ( $source_plate_type eq 'FINAL_PICK' ) {
         $process_type = _final_pick_source_plate( $new_plate_type, $reagent_count, $params );

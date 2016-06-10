@@ -1,0 +1,405 @@
+[%- META title = 'View Project' %]
+
+<div class="page-header">
+  <h1>View Project [% project.id %]
+  [% IF project.effort_concluded %]
+  <span class="label label-info">Effort Concluded</span>
+  [% ELSIF c.check_user_roles('edit') and c.user.is_sanger %]
+  <button class="btn" id="conclude_effort_button" href="#ConcludeEffortModal" data-toggle="modal" style="display:none"><i class="icon-stop"></i> Mark Project as Concluded</button>
+  [% END %]
+  </h1>
+</div>
+<p>
+  <a href="[% c.uri_for('/user/manage_projects') %]" class="btn btn-primary">
+    <i class="icon-hand-left icon-white"></i>
+    Back to project search
+  </a>
+</p>
+<h2>Project Details</h2>
+
+<table class="table well">
+  <tr>
+    <th>ID</th>
+    <td>[% project.id %]</td>
+  </tr>
+  <tr>
+    <th>Gene</th>
+    <td>[% project.gene_id %]</td>
+  </tr>
+  <tr>
+    <th>Gene Symbol</th>
+    <td>[% gene_symbol %]</td>
+  </tr>
+  <tr>
+    <th>Species</th>
+    <td>[% project.species_id %]</td>
+  </tr>
+  <tr>
+    <th>Cell line</th>
+    <td>[% project.cell_line %]</td>
+  </tr>
+  <tr>
+    <th>Targeting Type</th>
+    <td>[% project.targeting_type %]</td>
+  </tr>
+  [% IF project.targeting_profile_id %]
+  <tr>
+    <th>Targeting Profile</th>
+    <td>[% project.targeting_profile_id %]</td>
+  </tr>
+  [% END %]
+  <tr>
+    <th>Recovery Class</th>
+    <td>
+      [% IF c.check_user_roles( 'edit' ) %]
+      <form class="form-inline">
+        <select id="recovery_class_value">
+          <option value="-" [% IF not project.recovery_class %]selected[% END %]>-</option>
+          [% FOREACH class IN recovery_classes %]
+          <option value="[% class %]" [% IF project.recovery_class == class %]selected[% END %]>
+            [% class %]
+          </option>
+          [% END %]
+        </select>
+        <button type="submit" class="btn" id="recovery_class_btn">Update</button>
+      </form>
+      [% ELSE %]
+        [% project.recovery_class %]
+      [% END %]
+    </td>
+  </tr>
+  <tr>
+    <th>Recovery Comment</th>
+    <td>
+      [% IF c.check_user_roles( 'edit' ) %]
+      <form class="form-inline">
+        <input type="text" id="recovery_comment_value" value="[% project.recovery_comment %]"></input>
+        <button type="submit" class="btn" id="recovery_comment_btn">Update</button>
+      </form>
+      [% ELSE %]
+        [% project.recovery_comment %]
+      [% END %]
+    </td>
+  </tr>
+  <tr>
+    <th>Sponsors</th>
+    <td>[% project.sponsors %]</td>
+  </tr>
+[% IF c.user.is_sanger %]
+  <tr>
+    <th>Tracker Issues (Sanger users only)</th>
+    <td id="tracker_issues"><img id="tracker_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
+  </tr>
+[% END %]
+</table>
+
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="update_sponsors_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#update_sponsors_dev" href="#update_sponsors_form">
+        <strong>Edit Sponsors <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="update_sponsors_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form" id="sponsors_form">
+		  <input type="hidden" name="project_id" value="[% project.id %]">
+      <table>
+      <tr>
+       <th>Sponsor</th>
+       <th>Priority</th>
+      </tr>
+		  [% FOREACH sponsor IN all_sponsors %]
+      <tr>
+      <td>
+      <label class="checkbox">
+		    <input type="checkbox" name="sponsors" value="[% sponsor %]" [% IF project_sponsors.defined(sponsor) %]checked[% END %]> [% sponsor %]
+      </label>
+      </td>
+      <td>
+         <select name="[% sponsor %]_priority">
+           <option value="" [% IF !sponsors_priority.$sponsor %]selected[% END %]>-</option>
+           <option value="low" [% IF sponsors_priority.$sponsor == 'low' %]selected[% END %]>low</option>
+           <option value="medium" [% IF sponsors_priority.$sponsor == 'medium' %]selected[% END %]>medium</option>
+           <option value="high" [% IF sponsors_priority.$sponsor == 'high' %]selected[% END %]>high</option>
+         </select>
+      </td>
+      </tr>
+		  [% END %]
+      </table>
+		  <br>
+		  <button type="submit" class="btn" name="update_sponsors" value="1">Update Project Sponsors</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+[% END %]
+
+<div class="well">
+<h3>Experiments targeting [% project.gene_id %]</h3>
+[% IF experiments.size %]
+<table class="table experiments">
+  <tr>
+    <th>Experiment ID</th>
+    <th>Design ID</th>
+  [% IF c.user.is_sanger %]
+    <th>Tracker Issues (Sanger users only)</th>
+  [% END %]
+    <th>Crisprs</th>
+    <th>Delete Experiment</th>
+  </tr>
+  [% FOREACH exp IN experiments %]
+  <tr>
+    <td>
+      <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id }) %]" name="view_experiment">
+        [% exp.id %]
+      </a>
+    </td>
+    <td>
+      <a href="[% c.uri_for('/user/view_design', { design_id => exp.design_id }) %]">
+        [% exp.design_id %]
+      </a>
+    </td>
+    [% IF c.user.is_sanger %]
+    <td class="tracker_exp_issues" data-exp-id="[% exp.id %]"><img class="tracker_exp_spinner" src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/></td>
+    [% END %]
+    <td>[% exp.crispr_description %]</td>
+    <td>
+      <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form" id="delete_experiment_[% exp.id %]">
+        <button type="submit" class="btn btn-danger delete_experiment_btn" name="delete_experiment" value="[% exp.id %]" href="#DeleteExperimentModal" data-toggle="modal" data-exp-id="[% exp.id %]">
+          <i class="icon-remove icon-white"></i>
+        </button>
+      </form>
+    </td>
+  </tr>
+  [% END %]
+</table>
+[% ELSE %]
+No experiments for this project
+[% END %]
+
+
+<div class="modal hide fade" id="DeleteExperimentModal">
+    <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_modal" >
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Delete Experiment</h3>
+      </div>
+
+      <div class="modal-body" align="center">
+        Are you sure you want to delete experiment <strong id="delete_exp_id_display"></strong>?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button type="submit" name="delete_experiment" class="btn btn-danger" value="" id="delete_exp_id_value">
+          <i class="icon-remove icon-white"></i> Confirm Delete Experiment
+        </button>
+      </div>
+    </form>
+</div>
+
+<div class="modal hide fade" id="ConcludeEffortModal">
+    <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="conclude_effort_modal" id="conclude_effort_modal_form">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Conclude Project Effort</h3>
+      </div>
+
+      <div class="modal-body" align="center">
+        Are you sure you want to conclude this project? This will also terminate all related redmine issues.
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button type="submit" name="conclude_project" class="btn btn-danger" value="conclude" id="conclude_project">
+          <i class="icon-remove icon-white"></i> Confirm Conclude Project
+        </button>
+      </div>
+    </form>
+</div>
+
+[% IF c.check_user_roles( 'edit' ) %]
+<div class="accordion" id="add_experiment_div">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#add_experiment_dev" href="#add_experiment_form">
+        <strong>Add Experiment <i class="icon-edit"></i></strong>
+      </a>
+    </div>
+    <div id="add_experiment_form" class="accordion-body collapse in">
+      <div class="accordion-inner">
+		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well" name="add_experiment_form">
+          <input type="text" name="design_id" placeholder="Design ID">
+          <input type="text" name="crispr_id" placeholder="Crispr ID">
+          <input type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">
+          <input type="text" name="crispr_group_id" placeholder="Crispr Group ID">
+		  <button type="submit" class="btn" name="add_experiment" value="1">Add Experiment</button>
+		</form>
+      </div>
+    </div>
+  </div>
+</div>
+
+[% END %]
+</div>
+
+<script type="text/javascript">
+
+$( document ).ready(function() {
+
+  document.title = 'Project: [% project.id %]';
+  $("#update_sponsors_form").collapse('hide');
+
+  $(".delete_experiment_btn").click(function(e){
+    var exp_id = $(this).data("exp-id");
+    $("#delete_exp_id_value").val(exp_id);
+    $("#delete_exp_id_display").text(exp_id);
+  });
+
+  $("#recovery_comment_btn").click(function(e){
+    e.preventDefault();
+    $.ajax({
+      type: "GET",
+      contentType: "application/json",
+      url: "[% c.uri_for('/api/project_recovery_comment') %]",
+      data: { 'id': [% project.id %], 'recovery_comment': $("#recovery_comment_value").val() }
+    }).done(function(data){
+      alert("Recovery comment updated");
+    }).fail(function(data){
+      alert("Could not update recovery comment");
+    });
+  });
+
+  $("#recovery_class_btn").click(function(e){
+    e.preventDefault();
+    $.ajax({
+      type: "GET",
+      contentType: "application/json",
+      url: "[% c.uri_for('/api/project_recovery_class') %]",
+      data: { 'id': [% project.id %], 'recovery_class': $("#recovery_class_value").val() }
+    }).done(function(data){
+      alert("Recovery class updated");
+    }).fail(function(data){
+      alert("Could not update recovery class");
+    });
+  });
+
+[% IF c.user.is_sanger %]
+  var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+  // Search for any tracker issues linked to this project
+  $.ajax({
+    type: "GET",
+    contentType: 'application/json',
+    url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]"
+  }).done(function(data) {
+    $("#tracker_spinner").remove();
+    $.each(data, function(i,issue){
+      console.log(issue);
+      console.log(issue.id)
+      $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
+      $("#conclude_effort_modal_form").append("<input type='hidden' name='redmine_issue_id' value='" + issue.id + "'></input>");
+    });
+    $("#conclude_effort_button").show();
+  }).fail(function(){
+    $("#tracker_spinner").remove();
+    $("#tracker_issues").append("tracker query failed");
+  });
+
+  var exp_spinner_html = '<img class="tracker_exp_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+  // Search for tracker issues for this project for each experiment
+  $(".tracker_exp_issues").each(function(i, item){
+    console.log($(item).data('expId') );
+    $.ajax({
+      type: "GET",
+      contentType: 'application/json',
+      url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]",
+      data: { experiment_id:$(item).data('expId') }
+    }).done(function(data) {
+      $(item).children( $(".tracker_exp_spinner") ).remove();
+      $.each(data, function(i,issue){
+        console.log(issue);
+        console.log(issue.id)
+        var issue_text = "#" + issue.id;
+
+        if(issue.status.name == "Active"){
+          issue_text += " - " + issue.custom_fields[ 'Current activity (HUMAN)' ];
+        }
+        else{
+          issue_text += " - " + issue.status.name;
+        }
+
+        $(item).append("<a href='"+ issue.url + "' target='_blank'>" + issue_text + "</a> ");
+      });
+
+      if(data.length == 0){
+        var btn_id = 'create_issue_' + $(item).data('expId');
+        $(item).append("<button class='btn' id='" + btn_id + "'>Create Tracker Issue</button>");
+        $("#" + btn_id).click( function(){
+          var exp_td = $(this).parent( $(".tracker_exp_issues") );
+          this.remove();
+          exp_td.append(exp_spinner_html);
+
+          $.ajax({
+            type: "POST",
+            url: "[% c.uri_for('/api/redmine_issue') %]",
+            dataType: 'json',
+            data: {
+              gene_symbol   : "[% gene_symbol %]",
+              gene_id       : "[% project.gene_id %]",
+              project_id    : "[% project.id %]",
+              experiment_id : $(item).data('expId'),
+              sponsors      : "[% project.sponsors %]",
+              cell_line     : "[% project.cell_line %]",
+              priority      : "[% project.priority %]"
+            }
+          }).done(function(data){
+            console.log(data);
+            exp_td.children( $(".tracker_exp_spinner") ).remove();
+            var issue_link_html = "<a href='"+ data.url + "' target='_blank'>#" + data.id + "</a> ";
+            exp_td.append(issue_link_html);
+            // append to project level list of issues too
+            $("#tracker_issues").append(issue_link_html);
+
+          }).fail(function(){
+            exp_td.children( $(".tracker_exp_spinner") ).remove();
+            exp_td.append("tracker issue creation failed");
+          })
+        });
+      }
+
+    });
+  });
+
+[% END %]
+
+});
+
+
+var designs = [
+[% FOREACH id IN design_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+var groups = [
+[% FOREACH id IN group_suggest %]
+  "[% id %]",
+[% END %]
+];
+
+$("input[name='design_id']").autocomplete({
+  source: designs,
+  minLength: 0,
+});
+
+$("input[name='crispr_group_id']").autocomplete({
+  source: groups,
+  minLength: 0,
+});
+</script>

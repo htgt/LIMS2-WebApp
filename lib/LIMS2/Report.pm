@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ 'generator_for', 'generate_report', 'cached_report' ]
+    exports => [ 'generator_for', 'generate_report', 'cached_report' , 'get_raw_spreadsheet' ]
 };
 
 use Data::UUID;
@@ -21,6 +21,10 @@ use Path::Class;
 use Const::Fast;
 use DateTime;
 use DateTime::Duration;
+use JSON;
+use IO::Compress::Gzip qw(gzip $GzipError);
+use Excel::Writer::XLSX;
+use File::Slurp;
 
 const my $WORK_DIR       => dir( $ENV{LIMS2_REPORT_DIR} || '/var/tmp/lims2-reports' );
 const my $CACHE_FILE_TTL => DateTime::Duration->new( days => 3 );
@@ -73,8 +77,36 @@ sub read_report_from_disk {
 
     my $report_fh   = $dir->file( 'report.csv' )->openr;
     my $report_name = $dir->file( 'name' )->slurp;
+    my $template_name;
+    try{
+        $template_name = $dir->file('template_name')->slurp;
+    };
 
-    return ( $report_name, $report_fh );
+    my $report_data;
+    try{
+        my $json_string = $dir->file('data.json')->slurp;
+        $report_data = decode_json($json_string);
+    };
+
+    return ( $report_name, $report_fh, $template_name, $report_data );
+}
+
+sub compress_report_on_disk {
+    my $report_id = shift;
+
+    my $dir = $WORK_DIR->subdir( $report_id );
+
+    my $report_fh = $dir->file( 'report.csv' )->openr;
+    my $report_name = $dir->file( 'name' )->slurp;
+
+    my $gz_fh = $dir->file( 'report.csv.gz' )->openw;
+
+    gzip $report_fh => $gz_fh, 'AutoClose' => 1
+        or die "gzip failed: $GzipError\n";
+
+    my $compressed_fh = $dir->file( 'report.csv.gz' )->openr;
+
+    return ( $report_name, $compressed_fh );
 }
 
 sub _cached_report_ok {
@@ -92,7 +124,7 @@ sub _cached_report_ok {
 sub cached_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $generator = generator_for( $args{report}, $args{model}, $args{params}, $args{catalyst} );
 
     # Take an exclusive lock to avoid race between interrogating table
     # and creating cache row. This ensures we don't set off concurrent
@@ -123,10 +155,10 @@ sub cached_report {
 }
 
 sub generator_for {
-    my ( $report, $model, $params ) = @_;
+    my ( $report, $model, $params, $catalyst ) = @_;
 
     my $generator = load_generator_class( $report )->new(
-        +{ %{$params}, model => $model }
+        +{ %{$params}, model => $model, catalyst => $catalyst }
     );
 
     return $generator;
@@ -139,7 +171,7 @@ sub generate_report_id {
 sub generate_report {
     my %args = @_;
 
-    my $generator = generator_for( $args{report}, $args{model}, $args{params} );
+    my $generator = generator_for( $args{report}, $args{model}, $args{params}, $args{catalyst} );
 
     my $report_id = generate_report_id();
 
@@ -168,7 +200,7 @@ sub run_in_background {
 
     if ( $pid == 0 ) { # child
         Log::Log4perl->easy_init( { level => $WARN, file => $work_dir->file( 'log' ) } );
-        $generator->model->clear_schema; # Force re-connect in child process        
+        $generator->model->clear_schema; # Force re-connect in child process
         local $0 = 'Generate report ' . $generator->name;
         do_generate_report( $generator, $work_dir, $cache_entry );
         exit 0;
@@ -206,6 +238,18 @@ sub do_generate_report {
             or LIMS2::Exception::System->throw( "Error closing $output_file: $!" );
 
         write_report_name( $work_dir->file( 'name' ), $generator->name );
+        if($generator->custom_template){
+            write_report_name( $work_dir->file('template_name'), $generator->custom_template );
+        }
+
+        my $structured_data = $generator->structured_data();
+        if($structured_data){
+            my $json_file = $work_dir->file('data.json');
+            my $fh = $json_file->openw;
+            print $fh encode_json($structured_data);
+            $fh->close()
+                or LIMS2::Exception::System->throw("Error writing to $json_file: $!");
+        }
 
         $work_dir->file( 'done' )->touch;
         $cache_entry && $cache_entry->update( { complete => 1 } );
@@ -258,6 +302,29 @@ sub init_work_dir {
     $work_dir->mkpath;
 
     return $work_dir;
+}
+
+sub get_raw_spreadsheet {
+    my ($file_name, $data) = @_;
+    my $base = $ENV{LIMS2_TEMP}
+        or die "LIMS2_TEMP not set";
+    my $name = $file_name . '.xlsx';
+    my $dir = $base . '/' . $name;
+    my $workbook = Excel::Writer::XLSX->new($dir);
+    my $worksheet = $workbook->add_worksheet();
+
+    my @row;
+    my $row_number = 1;
+    for (split /^/, $data) {
+        @row = split(/,/);
+        $worksheet->write_row('A' . $row_number, \@row);
+        $row_number++;
+    }
+
+    $workbook->close;
+    my $file = read_file( $dir, {binmode => ':raw'} );
+
+    return $file;
 }
 
 1;

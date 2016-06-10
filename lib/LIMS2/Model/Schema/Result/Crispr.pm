@@ -77,6 +77,12 @@ __PACKAGE__->table("crisprs");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 nonsense_crispr_original_crispr_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -99,6 +105,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", is_nullable => 1 },
   "wge_crispr_id",
   { data_type => "integer", is_nullable => 1 },
+  "nonsense_crispr_original_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -129,17 +137,17 @@ __PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"
 
 =head1 RELATIONS
 
-=head2 crispr_designs
+=head2 crispr_group_crisprs
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroupCrispr>
 
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
+  "crispr_group_crisprs",
+  "LIMS2::Model::Schema::Result::CrisprGroupCrispr",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -204,6 +212,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_validations
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprValidation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_validations",
+  "LIMS2::Model::Schema::Result::CrisprValidation",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 experiments_including_deleted
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments_including_deleted",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 loci
 
 Type: has_many
@@ -216,6 +254,71 @@ __PACKAGE__->has_many(
   "loci",
   "LIMS2::Model::Schema::Result::CrisprLocus",
   { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 nonsense_crispr_original_crispr
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "nonsense_crispr_original_crispr",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { id => "nonsense_crispr_original_crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 nonsense_crisprs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Crispr>
+
+=cut
+
+__PACKAGE__->has_many(
+  "nonsense_crisprs",
+  "LIMS2::Model::Schema::Result::Crispr",
+  { "foreign.nonsense_crispr_original_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 nonsense_designs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->has_many(
+  "nonsense_designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.nonsense_design_crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 off_target_crispr_for
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprOffTargets>
+
+=cut
+
+__PACKAGE__->has_many(
+  "off_target_crispr_for",
+  "LIMS2::Model::Schema::Result::CrisprOffTargets",
+  { "foreign.off_target_crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -280,8 +383,22 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iCBcK0B07XGoh/EQgHXNfA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uJN4fU8zwjPTSPud+ljxDg
+
+__PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 use Bio::Perl qw( revcom );
 
@@ -292,7 +409,7 @@ sub as_string {
 }
 
 sub as_hash {
-    my ( $self ) = @_;
+    my ( $self, $options ) = @_;
 
     my $locus;
     if ( my $default_assembly = $self->species->default_assembly ) {
@@ -300,20 +417,31 @@ sub as_hash {
     }
 
     my %h = (
-        id            => $self->id,
-        type          => $self->crispr_loci_type_id,
-        seq           => $self->seq,
-        species       => $self->species_id,
-        comment       => $self->comment,
-        locus         => $locus ? $locus->as_hash : undef,
-        pam_right     => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
-        wge_crispr_id => $self->wge_crispr_id,
+        id             => $self->id,
+        type           => $self->crispr_loci_type_id,
+        seq            => $self->seq,
+        fwd_seq        => $self->fwd_seq,
+        species        => $self->species_id,
+        comment        => $self->comment,
+        locus          => $locus ? $locus->as_hash : undef,
+        pam_right      => !defined $self->pam_right ? '' : $self->pam_right == 1 ? 'true' : 'false',
+        wge_crispr_id  => $self->wge_crispr_id,
+        crispr_primers => [ map { $_->as_hash } $self->crispr_primers ],
+        nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
     );
 
-    $h{off_targets} = [ map { $_->as_hash } $self->off_targets ];
+    if ( !$options->{no_off_targets} ) {
+        $h{off_targets} = [ sort { $a->{mismatches} <=> $b->{mismatches} } map { $_->as_hash } $self->off_targets ];
+    }
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
+}
+
+sub fwd_seq {
+    my $self = shift;
+    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
+    return $fwd_seq;
 }
 
 sub current_locus {
@@ -350,6 +478,16 @@ sub chr_name {
     return shift->current_locus->chr->name;
 }
 
+sub default_assembly{
+    return shift->species->default_assembly;
+}
+
+# The name of the foreign key column to use when
+# linking e.g. a crispr_primer to a crispr
+sub id_column_name{
+    return 'crispr_id';
+}
+
 sub target_slice {
     my ( $self, $ensembl_util ) = @_;
 
@@ -372,86 +510,89 @@ sub target_slice {
 # Methods for U6 specific order sequences
 #
 sub guide_rna {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    if ( ! defined $self->pam_right ) {
-        return substr( $self->seq, 1, 19 );
-    }
-    elsif ( $self->pam_right == 1 ) {
-        return substr( $self->seq, 1, 19 );
-    }
-    elsif ( $self->pam_right == 0 ) {
-        #its pam left, so strip first three characters and the very last one,
-        #we revcom so that the grna is always relative to the NGG sequence
-        return revcom( substr( $self->seq, 3, 19 ) )->seq;
-    }
-    else {
-        die "Unexpected value in pam_right: " . $self->pam_right;
+    WARN ( "No appends type provided for guide_rna, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry') {
+
+        if ( ! defined $self->pam_right ) {
+            return substr( $self->seq, 0, 20 );
+        }
+        elsif ( $self->pam_right == 1 ) {
+            return substr( $self->seq, 0, 20 );
+        }
+        elsif ( $self->pam_right == 0 ) {
+            #its pam left, so strip first three characters
+            #we revcom so that the grna is always relative to the NGG sequence
+            return revcom( substr( $self->seq, 3, 20 ) )->seq;
+        }
+        else {
+            die "Unexpected value in pam_right: " . $self->pam_right;
+        }
+
+    } else {
+
+        if ( ! defined $self->pam_right ) {
+            return substr( $self->seq, 1, 19 );
+        }
+        elsif ( $self->pam_right == 1 ) {
+            return substr( $self->seq, 1, 19 );
+        }
+        elsif ( $self->pam_right == 0 ) {
+            #its pam left, so strip first three characters and the very last one,
+            #we revcom so that the grna is always relative to the NGG sequence
+            return revcom( substr( $self->seq, 3, 19 ) )->seq;
+        }
+        else {
+            die "Unexpected value in pam_right: " . $self->pam_right;
+        }
+
     }
 
 }
 
 sub forward_order_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    return  "ACCG" . $self->guide_rna;
+    WARN ( "No appends type provided for forward_order_seq, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry' || $appends eq 't7-wendy' ) {
+
+        return "ATAGG" . $self->guide_rna($appends);
+
+    } else {
+
+        return  "ACCG" . $self->guide_rna($appends);
+    }
+
 }
 
 sub reverse_order_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    #require Bio::Seq;
-    #my $bio_seq = Bio::Seq->new( -alphabet => 'dna', -seq => $self->guide_rna );
-    #my $revcomp_seq = $bio_seq->revcom->seq;
-    return "AAAC" . revcom( $self->guide_rna )->seq;
+    WARN ( "No appends type provided for reverse_order_seq, defaulting to u6" ) unless $appends;
+
+    if ($appends eq 't7-barry' || $appends eq 't7-wendy' ) {
+
+        return "AAAC" . revcom( $self->guide_rna($appends) )->seq . "C";
+
+    } else {
+
+        return "AAAC" . revcom( $self->guide_rna($appends) )->seq;
+    }
+
 }
 
 #we need to add the G here so its the full forward grna
 sub vector_seq {
-    my ( $self ) = @_;
+    my ( $self, $appends ) = @_;
 
-    return  "G" . $self->guide_rna;
+    WARN ( "No appends type provided for vector_seq, defaulting to u6" ) unless $appends;
+
+    return  "G" . $self->guide_rna($appends);
 }
 
-#
-#Methods for T7 specific order sequences
-#
-sub t7_vector_seq {
-    my ( $self ) = @_;
-
-    return "G" . $self->t7_guide_rna;
-}
-
-sub t7_guide_rna {
-    my ( $self ) = @_;
-
-    if ( ! defined $self->pam_right ) {
-        return substr( $self->seq, 0, 20 );
-    }
-    elsif ( $self->pam_right == 1 ) {
-        return substr( $self->seq, 0, 20 );
-    }
-    elsif ( $self->pam_right == 0 ) {
-        #its pam left, so strip first three characters
-        #we revcom so that the grna is always relative to the NGG sequence
-        return revcom( substr( $self->seq, 3, 20 ) )->seq;
-    }
-    else {
-        die "Unexpected value in pam_right: " . $self->pam_right;
-    }
-}
-
-sub t7_forward_order_seq {
-  my ( $self ) = @_;
-
-  return "ATAGG" . $self->t7_guide_rna;
-}
-
-sub t7_reverse_order_seq {
-  my ( $self ) = @_;
-
-  return "AAAC" . revcom( $self->t7_guide_rna )->seq . "C";
-}
 
 sub pairs {
   my $self = shift;
@@ -461,18 +602,29 @@ sub pairs {
 
 # Designs may be linked to single crispr directly or to crispr pair
 sub related_designs {
-  my $self = shift;
+    my $self = shift;
 
-  my @designs;
-      foreach my $crispr_design ($self->crispr_designs->all){
+    my @designs;
+    foreach my $crispr_design ( $self->crispr_designs->all ) {
         my $design = $crispr_design->design;
         push @designs, $design;
     }
 
-    foreach my $pair ($self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all){
-        foreach my $pair_crispr_design ($pair->crispr_designs->all){
+    foreach my $nonsense_design ( $self->nonsense_designs->all ) {
+        push @designs, $nonsense_design;
+    }
+
+    foreach my $pair ( $self->crispr_pairs_left_crisprs->all, $self->crispr_pairs_right_crisprs->all ) {
+        foreach my $pair_crispr_design ( $pair->crispr_designs->all ) {
             my $pair_design = $pair_crispr_design->design;
             push @designs, $pair_design;
+        }
+    }
+
+    foreach my $group ( $self->crispr_groups->all ) {
+        foreach my $group_design ( $group->crispr_designs ) {
+            my $crispr_group_design = $group_design->design;
+            push @designs, $crispr_group_design unless !defined($crispr_group_design);
         }
     }
 
@@ -516,6 +668,41 @@ sub accepted_vector_wells{
 }
 
 sub is_pair { return; }
+
+sub is_group { return; }
+
+sub is_nonsense_crispr {
+    my $self = shift;
+    return $self->nonsense_crispr_original_crispr_id ? 1 : 0;
+}
+
+sub linked_nonsense_crisprs {
+    my $self = shift;
+    my $schema = $self->result_source->schema;
+
+    my @nonsense_crisprs = $schema->resultset('Crispr')->search(
+        {
+            nonsense_crispr_original_crispr_id => $self->id,
+        }
+    );
+
+    return \@nonsense_crisprs;
+}
+
+sub current_primer{
+    my ( $self, $primer_type ) = @_;
+
+    unless($primer_type){
+        require LIMS2::Exception::Implementation;
+        LIMS2::Exception::Implementation->throw( "You must provide a primer_type to the current_primer method" );
+    }
+
+    my @primers = $self->search_related('crispr_primers', { primer_name => $primer_type });
+
+    # FIXME: what if more than 1?
+    my ($current_primer) = grep { ! $_->is_rejected } @primers;
+    return $current_primer;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

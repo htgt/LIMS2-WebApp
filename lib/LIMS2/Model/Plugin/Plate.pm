@@ -5,13 +5,14 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
-use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util qw( sanitize_like_expr random_string );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status upload_plate_dna_quality parse_csv_file upload_plate_pcr_status );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
 use LIMS2::Model::Util::QCTemplates qw( create_qc_template_from_wells );
 use LIMS2::Model::Constants
     qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS %PROCESS_TEMPLATE );
+use LIMS2::Model::Util::BarcodeActions qw( checkout_well_barcode_list );
 use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
@@ -32,7 +33,8 @@ sub pspec_list_plates {
         plate_name => { validate => 'non_empty_string', optional => 1 },
         plate_type => { validate => 'existing_plate_type', optional => 1 },
         page       => { validate => 'integer', optional => 1, default => 1 },
-        pagesize   => { validate => 'integer', optional => 1, default => 15 }
+        pagesize   => { validate => 'integer', optional => 1, default => 15 },
+        hide_virtual_fp_piq => { validate => 'boolean', optional => 1, default => 1},
     };
 }
 
@@ -42,6 +44,9 @@ sub list_plates {
     my $validated_params = $self->check_params( $params, $self->pspec_list_plates );
 
     my %search = ( 'me.species_id' => $validated_params->{species} );
+
+    # List only current plates, not old versions
+    $search{'me.version'} = undef;
 
     if ( $validated_params->{plate_name} ) {
         $search{'me.name'}
@@ -61,6 +66,21 @@ sub list_plates {
         }
     );
 
+    # Subselect all real plates
+    # and virtual plates which are not FP and PIQ
+    if($validated_params->{hide_virtual_fp_piq}){
+        $resultset = $resultset->search({
+            -or => {
+                'me.is_virtual' => undef,
+                -not_bool => 'me.is_virtual',
+                -and  => {
+                    -bool => 'me.is_virtual',
+                    'me.type_id' => { -not_in => [qw(FP PIQ)]}
+                }
+            }
+        });
+    }
+
     return ( [ $resultset->all ], $resultset->pager );
 }
 
@@ -76,9 +96,11 @@ sub pspec_create_plate {
             rename      => 'created_by_id'
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        appends    => { optional => 1, validate => 'existing_crispr_plate_appends_type' },
         comments   => { optional => 1 },
         wells      => { optional => 1 },
         is_virtual => { validate => 'boolean', optional => 1 },
+        version    => { validate => 'integer', optional => 1, default => undef },
     };
 }
 
@@ -100,6 +122,7 @@ The optional wells parameter takes an ArrayRef of hashes which contain the follo
 
 well_name
 parent_plate (name)
+parent_plate_version (default = undef, e.g. current plate version)
 parent_well (name)
 accepted (boolean - optional)
 process_type
@@ -115,19 +138,33 @@ sub create_plate {
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
     $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 
-    my $current_plate
-        = $self->schema->resultset('Plate')->find( { name => $validated_params->{name} } );
+    my $current_plate = $self->schema->resultset('Plate')->find( {
+        name    => $validated_params->{name},
+        version => $validated_params->{version},
+    } );
+
     if ($current_plate) {
         $self->throw( Validation => 'Plate ' . $validated_params->{name} . ' already exists' );
+    }
+
+    if ($validated_params->{type_id} eq 'CRISPR' && !$validated_params->{appends} ) {
+        $self->throw( Validation => 'No appends provided for CRISPR plate ' . $validated_params->{name} );
     }
 
     my $plate = $self->schema->resultset('Plate')->create(
         {   slice_def(
                 $validated_params,
-                qw( name species_id type_id description created_by_id created_at is_virtual )
+                qw( name species_id type_id description created_by_id created_at is_virtual version )
             )
         }
     );
+
+    if ($validated_params->{type_id} eq 'CRISPR' && $validated_params->{appends} ) {
+        $self->schema->resultset('CrisprPlateAppend')->create({
+                plate_id  => $plate->id,
+                append_id => $validated_params->{appends},
+        });
+    }
 
     # refresh object data from database, sets created_by value if it was set by database
     $plate->discard_changes;
@@ -144,7 +181,48 @@ sub create_plate {
         create_plate_well( $self, $_, $plate ) for @{ $revised_wells };
     }
 
+    # Handle status of parent FP barcodes for Mouse pipeline
+    # (Human FP barcodes are frozen back one by one by user in interface)
+    if($validated_params->{type_id} eq 'PIQ' and $validated_params->{species_id} eq 'Mouse'){
+        $self->_freeze_back_fp_barcodes($plate);
+    }
+
     return $plate;
+}
+
+sub _freeze_back_fp_barcodes{
+    my ($self, $plate) = @_;
+
+    # Identify any parent FP wells with barcodes
+    my @barcodes;
+    foreach my $well ($plate->wells){
+        my ($parent_well) = $well->parent_wells;
+        next unless $parent_well->plate_type eq 'FP';
+        if($parent_well->barcode){
+            push @barcodes, $parent_well->barcode;
+        }
+    }
+
+    return unless @barcodes;
+
+    $self->log->debug("Freezing back ".scalar(@barcodes)." FP barcodes to make PIQ plate $plate");
+
+    # Checkout parent barcodes (this method handles reversioning of parent plates)
+    checkout_well_barcode_list($self, {
+       barcode_list => \@barcodes,
+       user         => $plate->created_by->name,
+    });
+
+    # Freeze back all barcodes
+    foreach my $barcode (@barcodes){
+        $self->update_well_barcode({
+            barcode   => $barcode,
+            new_state => 'frozen_back',
+            user      => $plate->created_by->name,
+        });
+    }
+
+    return;
 }
 
 =head
@@ -160,7 +238,6 @@ sub check_xep_pool_wells {
     my $original_wells = shift;
 
     my @revised_wells;
-
     WELL_HASH: foreach my $well_hash ( @$original_wells ) {
         if ( $well_hash->{'process_type'} ne 'xep_pool' ) {
             push @revised_wells, $well_hash;
@@ -206,6 +283,7 @@ sub pspec_retrieve_plate {
         name         => { validate => 'plate_name',          optional => 1, rename => 'me.name' },
         id           => { validate => 'integer',             optional => 1, rename => 'me.id' },
         barcode      => { validate => 'alphanumeric_string', optional => 1, rename => 'me.barcode' },
+        version      => { validate => 'integer'            , optional => 1, rename => 'me.version', default => undef },
         type         => { validate => 'existing_plate_type', optional => 1, rename => 'me.type_id' },
         species      => { validate => 'existing_species', rename => 'me.species_id', optional => 1 },
         REQUIRE_SOME => { name_or_id_or_barcode => [ 1, qw( name id barcode ) ] }
@@ -218,8 +296,16 @@ sub retrieve_plate {
     my $validated_params
         = $self->check_params( $params, $self->pspec_retrieve_plate, ignore_unknown => 1 );
 
+    my $search_params = { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) };
+
+    if($search_params->{'me.name'}){
+        # Set the version search param. we use undef (NULL in db)
+        # to indicate that we want the current plate
+        $search_params->{'me.version'} = $validated_params->{'me.version'};
+    }
+
     return $self->retrieve(
-        Plate => { slice_def $validated_params, qw( me.name me.id me.type_id me.species_id me.barcode ) },
+        Plate => $search_params,
         $search_opts
     );
 }
@@ -239,6 +325,13 @@ sub delete_plate {
     }
 
     $plate->search_related_rs('plate_comments')->delete;
+
+    if ($plate->type_id eq 'CRISPR') {
+        $self->schema->resultset('CrisprPlateAppend')->find({
+                plate_id  => $plate->id,
+        })->delete;
+    }
+
     $plate->delete;
     return;
 }
@@ -346,11 +439,12 @@ sub create_plate_by_copy {
     return $plate;
 }
 
+## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
     #validation done of create_plate, not needed here
     my %plate_data = map { $_ => $params->{$_} }
-        qw( plate_name species plate_type description created_by is_virtual process_type);
+        qw( plate_name species plate_type description created_by is_virtual process_type );
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
 
@@ -368,16 +462,42 @@ sub create_plate_csv_upload {
     my %plate_process_data = map { $_ => $params->{$_} }
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
-
+    if ( $params->{plate_type} eq 'INT' ) {
+        $plate_process_data{dna_template} = $params->{source_dna};
+    }
     my $expected_csv_headers;
-    if ($params->{process_type} eq 'second_electroporation') {
+    if ( $params->{process_type} eq 'second_electroporation' ) {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
-    } elsif ($params->{process_type} eq 'single_crispr_assembly') {
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector_plate', 'crispr_vector_well' ];
-    } elsif ($params->{process_type} eq 'paired_crispr_assembly') {
-        $expected_csv_headers = [ 'well_name', 'final_pick_plate', 'final_pick_well', 'crispr_vector1_plate', 'crispr_vector1_well',
-                                'crispr_vector2_plate', 'crispr_vector2_well' ];
-    } else {
+    }
+    elsif ( $params->{process_type} eq 'single_crispr_assembly' ) {
+        $expected_csv_headers = [
+            'well_name',       'final_pick_plate',
+            'final_pick_well', 'crispr_vector_plate',
+            'crispr_vector_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'paired_crispr_assembly' ) {
+        $expected_csv_headers = [
+            'well_name',           'final_pick_plate',
+            'final_pick_well',     'crispr_vector1_plate',
+            'crispr_vector1_well', 'crispr_vector2_plate',
+            'crispr_vector2_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'group_crispr_assembly' ) {
+        # Require final pick plate/well and at least one crispr_vector plate/well
+        $expected_csv_headers = [
+            'well_name',       'final_pick_plate',
+            'final_pick_well', 'crispr_vector1_plate',
+            'crispr_vector1_well'
+        ];
+    }
+    elsif ( $params->{process_type} eq 'oligo_assembly' ) {
+        # require one design well and one crispr well
+        $expected_csv_headers
+            = [ 'well_name', 'design_plate', 'design_well', 'crispr_plate', 'crispr_well' ];
+    }
+    else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
 
@@ -389,6 +509,7 @@ sub create_plate_csv_upload {
     $plate_data{wells} = $well_data;
     return $self->create_plate( \%plate_data );
 }
+## use critic
 
 sub plate_help_info {
     my ($self) = @_;
@@ -483,6 +604,79 @@ sub rename_plate {
         if try { $self->retrieve_plate( { name => $validated_params->{new_name} } ) };
 
     return $plate->update( { name => $validated_params->{new_name} } );
+}
+
+sub pspec_set_plate_barcode {
+    return {
+        name              => { validate => 'plate_name', optional => 1  },
+        id                => { validate => 'integer',  optional => 1 },
+        species           => { validate => 'existing_species', optional => 1 },
+        new_plate_barcode => { validate => 'plate_barcode' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub set_plate_barcode {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Setting plate barcode: $plate to" . $validated_params->{new_plate_barcode} );
+
+    $self->throw( Validation => 'Plate barcode '
+            . $validated_params->{new_plate_barcode}
+            . ' already exists for another plate, can not use this new plate barcode' )
+        if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
+
+    return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_set_crispr_plate_appends {
+    return {
+        name              => { validate => 'plate_name', optional => 1  },
+        id                => { validate => 'integer',  optional => 1 },
+        species           => { validate => 'existing_species', optional => 1 },
+        new_plate_barcode => { validate => 'plate_barcode' },
+        REQUIRE_SOME => { name_or_id => [ 1, qw( name id ) ] },
+    };
+}
+
+sub set_crispr_plate_appends {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_plate_barcode );
+
+    my $plate = $self->retrieve_plate( { slice_def( $validated_params, qw( name id species ) ) } );
+    $self->log->info( "Setting plate barcode: $plate to" . $validated_params->{new_plate_barcode} );
+
+    $self->throw( Validation => 'Plate barcode '
+            . $validated_params->{new_plate_barcode}
+            . ' already exists for another plate, can not use this new plate barcode' )
+        if try { $self->retrieve_plate( { barcode => $validated_params->{new_plate_barcode} } ) };
+
+    return $plate->update( { barcode => $validated_params->{new_plate_barcode} } );
+}
+
+sub pspec_random_plate_name{
+    return {
+        prefix => { validate => 'non_empty_string' },
+    }
+}
+
+sub random_plate_name{
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_random_plate_name);
+
+    my $random_name = random_string(6);
+    $random_name = $validated_params->{prefix}.$random_name;
+
+    if( try { $self->retrieve_plate({ name => $random_name }) }){
+        $random_name = $self->random_plate_name($validated_params);
+    }
+
+    return $random_name;
 }
 
 1;

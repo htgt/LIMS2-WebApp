@@ -18,11 +18,10 @@ override _build_name => sub {
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         'Well Name',
-        "Design Id", "Gene Id", "Gene Symbol", "Gene Sponsors",
-        'Crispr Plate', 'Crispr Well',
+        "Design Id", "Design Type", "Gene Id", "Gene Symbol", "Gene Sponsors", 'Genbank File',
+        'Crispr Plate', 'Crispr Well', 'Crispr ID',
         'Backbone',
         'Created By','Created At',
         'Accepted?',
@@ -32,39 +31,50 @@ override _build_columns => sub {
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
+            bind => [ $self->plate->id ],
         }
     );
 
+    my @wells_data = @{ $rs->consolidate( $self->plate_id, [ 'well_qc_sequencing_result' ] ) };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
+
+    my $well_data = shift @wells_data;
+
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+        return unless $well_data;
 
-        my $crispr_well = $well->parent_crispr;
-        my $crispr = $crispr_well->crispr;
+        my $crispr = $self->model->schema->resultset( 'Crispr' )->find(
+            {
+                id => $well_data->{crispr_ids}[0],
+            },
+            {
+                prefetch => { 'experiments' => { 'design' => 'genes' } },
+            }
+        );
+        my ( $parent_plate, $parent_well ) = split( /_/, $well_data->{parent_wells} );
 
-        my $backbone = '';
-        if ($well->backbone) {
-            $backbone = $well->backbone->name;
-        }
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
-        return [
-            $well->name,
+        my @data = (
+            $well_data->{well_name},
             $self->crispr_design_and_gene_cols($crispr),
-            $crispr_well->plate,
-            $crispr_well->name,
-            $backbone,
-            $well->created_by->name,
-            $well->created_at->ymd,
-            $self->boolean_str( $well->is_accepted ),
-        ];
-    }
+            $self->catalyst ? $self->catalyst->uri_for( '/public_reports/well_eng_seq', $well_data->{well_id} ) : '',
+            $well_data->{parent_wells}[0]{plate_name},
+            $well_data->{parent_wells}[0]{well_name},
+            $crispr->id,
+            $well_data->{backbone},
+            $well_data->{created_by},
+            $well_data->{created_at},
+            $self->boolean_str( $well_data->{accepted} ),
+        );
+        $well_data = shift @wells_data;
+        return \@data;
+    };
+
 };
 
 __PACKAGE__->meta->make_immutable;

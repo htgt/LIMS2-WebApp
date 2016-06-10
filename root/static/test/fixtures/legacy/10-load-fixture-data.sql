@@ -761,6 +761,7 @@ SELECT pg_catalog.setval('bac_clones_id_seq', 436043, true);
 --
 
 INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', NULL);
+INSERT INTO crisprs VALUES (200, 'GTCTGTGACTGTTAGCTCAGTGG', 'Mouse', 'Intronic', NULL);
 
 
 --
@@ -768,6 +769,7 @@ INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', N
 --
 
 INSERT INTO crispr_loci VALUES (113, 'GRCm38', 3182, 102360192, 102360214, -1);
+INSERT INTO crispr_loci VALUES (200, 'GRCm38', 3182, 105360192, 105360214, -1);
 
 
 --
@@ -787,8 +789,8 @@ SELECT pg_catalog.setval('crispr_off_target_summaries_id_seq', 1, false);
 -- Data for Name: crispr_off_targets; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16', 'strict');
-INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16', 'strict');
+-- INSERT INTO crispr_off_targets VALUES (153, 113, 'Intronic', 'GRCm38', 70, 102030812, 102030826, -1, '16', 'strict');
+-- INSERT INTO crispr_off_targets VALUES (154, 113, 'Intergenic', 'GRCm38', 70, 1234812, 1234826, -1, '16', 'strict');
 
 
 --
@@ -4392,6 +4394,16 @@ INSERT INTO plates VALUES (1009, 'CRISPR_1', '', 'CRISPR', 722, '2013-05-28 13:3
 INSERT INTO plates VALUES (1010, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 INSERT INTO plates VALUES (1011, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL);
 
+INSERT INTO plates VALUES (1051, '1001', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:51.573499', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1052, '1002', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:52.595073', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1053, '1003', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:53.616845', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1054, '1004', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:54.638359', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1055, '1005', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:55.660047', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1056, '1006', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:56.681031', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1057, '1007', 'Summaries test 02', 'FP', 1079, '2013-02-18 15:52:57.702485', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1058, 'PIQ0001', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL, NULL, NULL, 1);
+INSERT INTO plates VALUES (1059, 'PIQ0002', 'Dist QC tests', 'PIQ', 1079, '2013-05-29 11:00:00', 'Mouse', NULL, NULL, NULL, 1);
+
 
 --
 -- Data for Name: plate_comments; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -4460,7 +4472,7 @@ SELECT pg_catalog.setval('plate_comments_id_seq', 64, true);
 -- Name: plates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('plates_id_seq', 1043, true);
+SELECT pg_catalog.setval('plates_id_seq', 3000, true);
 
 
 --
@@ -7487,6 +7499,7 @@ INSERT INTO wells VALUES (1865, 1009, 'A02', 722, '2013-05-28 13:43:53.556914', 
 INSERT INTO wells VALUES (1866, 1009, 'A03', 722, '2013-05-28 13:43:53.556914', NULL, NULL, false);
 INSERT INTO wells VALUES (1867, 1010, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
 INSERT INTO wells VALUES (1868, 1011, 'A01', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
+INSERT INTO wells VALUES (2000, 1011, 'A02', 1079, '2013-05-29 11:00:00', NULL, NULL, false);
 
 
 --
@@ -9570,7 +9583,7 @@ INSERT INTO process_recombinase VALUES (1281, 'Dre', 1);
 -- Name: processes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('processes_id_seq', 1324, true);
+SELECT pg_catalog.setval('processes_id_seq', 3000, true);
 
 
 --
@@ -9589,7 +9602,7 @@ SELECT pg_catalog.setval('processes_id_seq', 1324, true);
 -- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('projects_id_seq', 1, false);
+SELECT pg_catalog.setval('projects_id_seq', 20, false);
 
 
 --
@@ -11340,13 +11353,11 @@ INSERT INTO well_recombineering_results VALUES (1320, 'rec_result', 'pass', '', 
 
 -- Included data for summary testing
 
-INSERT INTO projects VALUES (11, 'Syboss', '{"gene_id":"MGI:1914632","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}', 'MGI:1914632', 'double_targeted', 'Mouse');
-INSERT INTO projects VALUES (12, 'Syboss', '{"gene_id":"MGI:109393","second_allele_cassette_function":"reporter_only","first_allele_mutation_type":"ko_first","second_allele_mutation_type":"ko_first","first_allele_cassette_function":"ko_first","targeting_type":"double_targeted"}', 'MGI:109393', 'double_targeted', 'Mouse');
-INSERT INTO project_alleles VALUES (11, 'first', 'ko_first', 'ko_first');
-INSERT INTO project_alleles VALUES (11, 'second', 'reporter_only', 'ko_first');
-INSERT INTO project_alleles VALUES (12, 'first', 'ko_first', 'ko_first');
-INSERT INTO project_alleles VALUES (12, 'second', 'reporter_only', 'ko_first');
+INSERT INTO projects VALUES (11, 'MGI:1914632', 'double_targeted', 'Mouse');
+INSERT INTO projects VALUES (12, 'MGI:109393', 'double_targeted', 'Mouse');
 
+INSERT INTO project_sponsors VALUES (11, 'Syboss');
+INSERT INTO project_sponsors VALUES (12, 'Syboss');
 
 --
 -- Data for Name: well_targeting_pass; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
@@ -11364,7 +11375,7 @@ INSERT INTO project_alleles VALUES (12, 'second', 'reporter_only', 'ko_first');
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 1904, true);
+SELECT pg_catalog.setval('wells_id_seq', 3000, true);
 
 
 --

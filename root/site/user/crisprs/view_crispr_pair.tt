@@ -9,6 +9,7 @@
     <tr><th>ID</th> <td>[% cp.id %]</td></tr>
     <tr><th>Spacer</th> <td>[% cp.spacer %]</td></tr>
     <tr><th>Species</th> <td>[% cp.left_crispr.species_id %]</td></tr>
+    <tr><th>Gene</th> <td>[%- FOR gene IN genes %] [% gene.gene_symbol %] ([% gene.gene_id %]) <br /> [%- END %]</td></tr>
   </table>
 </div>
 
@@ -86,3 +87,61 @@
 [% ELSE %]
   <p><em>No designs linked to this crispr</em></p>
 [% END %]
+
+<h2>Crispr Primers</h2>
+[% IF crispr_primers.size > 0 %]
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Sequence</th>
+        <th>Locus</th>
+        <th>Strand</th>
+        <th>Melting Temp (&deg;C)</th>
+        <th>GC Content (%)</th>
+        <th>Rejected</th>
+        <th>Validation State</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR datum IN crispr_primers %]
+      <tr>
+        <td> [% datum.primer_name %] </td>
+        <td> [% datum.primer_seq %] </td>
+        <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
+        <td>[% datum.locus.chr_strand %]</td>
+        <td>[% datum.tm %]</td>
+        <td>[% datum.gc_content %]</td>
+        [% IF datum.is_rejected %]
+            <td> <span class="label label-important pull-right">Rejected</span> </td>
+            <td></td>
+        [% ELSE %]
+            <td></td>
+            <td class="validation-state-cell"
+                data-validated="[% datum.is_validated %]"
+                data-primer-name="[% datum.primer_name %]">
+            </td>
+        [% END %]
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No primers linked to this crispr pair</em></p>
+[% END %]
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    document.title = 'Crispr Pair: [% cp.id %]';
+    $(".validation-state-cell").each(function(){
+      //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
+      addPrimerValidationLabel(
+        $(this),
+        $(this).data('validated')
+      );
+    });
+  })
+
+</script>

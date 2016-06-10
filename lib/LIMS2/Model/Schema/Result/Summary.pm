@@ -847,6 +847,53 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 to_report
+
+  data_type: 'boolean'
+  default_value: true
+  is_nullable: 0
+
+=head2 ancestor_piq_plate_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_plate_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_name
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_created_ts
+
+  data_type: 'timestamp'
+  is_nullable: 1
+
+=head2 ancestor_piq_well_accepted
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 experiments
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dna_template
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1177,6 +1224,24 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "sponsor_id",
   { data_type => "text", is_nullable => 1 },
+  "to_report",
+  { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "ancestor_piq_plate_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_plate_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_name",
+  { data_type => "text", is_nullable => 1 },
+  "ancestor_piq_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ancestor_piq_well_created_ts",
+  { data_type => "timestamp", is_nullable => 1 },
+  "ancestor_piq_well_accepted",
+  { data_type => "boolean", is_nullable => 1 },
+  "experiments",
+  { data_type => "text", is_nullable => 1 },
+  "dna_template",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1191,9 +1256,31 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L6Q+AwfNoA7QuMB/boNm/Q
+=head2 dna_template
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "dna_template",
+  "LIMS2::Model::Schema::Result::DnaTemplate",
+  { id => "dna_template" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:25:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:criEywHu8Hp8GYzGuI4Ckg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1207,7 +1294,7 @@ sub satisfies_cassette_function {
   ref($function) eq "LIMS2::Model::Schema::Result::CassetteFunction"
       or die "You must provide a CassetteFunction to satisfies_cassette_function. Got a ".ref($function);
 
-  # If property, e.g. conditional, is specified true/false by CassetteFunction 
+  # If property, e.g. conditional, is specified true/false by CassetteFunction
   # then it must match the value of final_pick_cassette_<property>
   foreach my $property (qw(conditional promoter cre)){
     my $required_value = $function->$property;
@@ -1241,7 +1328,7 @@ sub satisfies_cassette_function {
     }
   }
 
-  # If we haven't returned 0 yet then the well satisfies 
+  # If we haven't returned 0 yet then the well satisfies
   # the cassette function rules
   return 1;
 }

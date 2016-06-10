@@ -5,21 +5,16 @@
 
 <form method="POST" action="[% c.uri_for( "/user/report/cache/${report_name}" ) %]" class="well">
   <fieldset>
-    <label for="sponsor_field">Please select which sponsor you would like to view results for:</label>
-    <select name="sponsor" id="sponsor_field">
-    [% IF species == 'Mouse' %]
-      <option value="All">All Homozygous</option>
-      <option value="Core">Core</option>
-      <option value="Cre Knockin">Cre Knockin</option>
-      <option value="Pathogens">Pathogens</option>
-      <option value="Syboss">Syboss</option>
-    [% ELSE %]
-      <option value="All">All</option>
-      [% FOR sponsor IN sponsors %]
-      <option value="[% sponsor %]">[% sponsor %]</option>
-      [% END %]
-    [% END %]
-    </select>
+    <div class="row">
+    <label class="col-md-5" for="sponsor_field">Please select which sponsor you would like to view results for:</label>
+    <div class="col-md-3">
+      <select name="sponsor" class="form-control" id="sponsor_field">
+        [% FOR sponsor IN sponsors %]
+        <option value="[% sponsor %]">[% sponsor %]</option>
+        [% END %]
+      </select>
+    </div>
+    </div>
     <br />
     <input type="submit" name="list_assigned_designs" class="btn btn-primary" value="View report" />
   </fieldset>

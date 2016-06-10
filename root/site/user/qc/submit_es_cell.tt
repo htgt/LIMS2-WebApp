@@ -1,0 +1,62 @@
+[%- META title = 'Submit New QC Job'; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Submit New QC Job</h1>
+</div>
+
+<div class="grid">
+
+  <div class="col-md-6 col-md-offset-3">
+    <form method="POST" id="submit_new_qc" action="[% c.uri_for( '/user/submit_es_cell' ) %]" class="form well"  enctype="multipart/form-data" >
+      <div class="row">
+          <label class="col-md-12">EPD Plate Name</label><br>
+        <div class="col-md-6">
+          <input name="epd_plate" id="epd_plate" class="form-control" type="text"
+            [%- IF epd_plate %]value="[% epd_plate %]"[% END -%]
+            [%- IF epd_plate_request %] class="form-readonly" readonly="readonly"[% END -%]
+          />
+        </div>
+      </div>
+      <div class="row">
+        <label class="col-md-12">Profile</label><br>
+        [% IF epd_plate_request %]
+          <input name="profile" id="profile" type="text" readonly="readonly" class="form-readonly" value="[% profile %]" />
+          [% ELSE %]
+          <div class="col-md-6">
+            <select name="profile" class="form-control">
+                [%- FOR prof IN profiles %]
+                  <option [% IF profile == prof %] selected="selected"[% END %]>[% prof %]</option>
+                [%- END %]
+            </select>
+          </div>
+        [% END %]
+      </div>
+        <br>
+        
+        [% IF epd_plate_request %]
+        <div class="row">
+          <label class="col-md-12">Template Plate</label><br>
+          
+          <input name="template_plate" id="template_plate" type="text"
+          [% IF template_plate %]value="[% template_plate %]"[% END %]
+          class="form-readonly" readonly="readonly"
+        />
+        [% IF template_type %]<span class="label label-info">[% template_type %]</span>[% END %]
+        [% END %]
+
+        <br>
+
+        [% IF epd_plate_request %]
+          <button name="launch_qc" id="launch_qc" type="submit" value="launch_qc" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Submit QC - step 2
+          </button>
+        [% ELSE %]
+          <button name="submit_initial_info" id="submit_initial_info" type="submit" value="submit_initial_info" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Submit QC - step 1
+          </button>
+        [% END %]
+    </form>
+  </div>
+
+</div>
+

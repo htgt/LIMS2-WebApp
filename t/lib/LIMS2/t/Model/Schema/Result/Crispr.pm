@@ -1,7 +1,6 @@
 package LIMS2::t::Model::Schema::Result::Crispr;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Schema::Result::Crispr;
 use LIMS2::Model::DBConnect;
 
 use strict;
@@ -11,74 +10,6 @@ use strict;
 =head1 NAME
 
 LIMS2/t/Model/Schema/Result/Crispr.pm - test class for LIMS2::Model::Schema::Result::Crispr
-
-=head1 DESCRIPTION
-
-Test module structured for running under Test::Class
-
-=head1 METHODS
-
-=cut
-
-=head2 BEGIN
-
-Loading other test classes at compile time
-
-=cut
-
-BEGIN {
-
-    # compile time requirements
-    #{REQUIRE_PARENT}
-}
-
-=head2 before
-
-Code to run before every test
-
-=cut
-
-sub before : Test(setup) {
-
-    #diag("running before test");
-}
-
-=head2 after
-
-Code to run after every test
-
-=cut
-
-sub after : Test(teardown) {
-
-    #diag("running after test");
-}
-
-=head2 startup
-
-Code to run before all tests for the whole test class
-
-=cut
-
-sub startup : Test(startup) {
-
-    #diag("running before all tests");
-}
-
-=head2 shutdown
-
-Code to run after all tests for the whole test class
-
-=cut
-
-sub shutdown : Test(shutdown) {
-
-    #diag("running after all tests");
-}
-
-=head2 all_tests
-
-Code to execute all tests
 
 =cut
 
@@ -98,6 +29,7 @@ sub all_tests : Tests {
         'comment'             => 'comment',
         'pam_right'           => 1,
         'wge_crispr_id'       => undef,
+        'nonsense_crispr_original_crispr_id' => undef,
     );
 
     note("Accessing the schema");
@@ -146,7 +78,6 @@ sub all_tests : Tests {
     'Deleting the existing test records';
     lives_ok { $crisprs_loci_type_resultset->search( \%crisprs_loci_type_record )->delete() }
     'Deleting the existing test records';
-
 }
 
 1;

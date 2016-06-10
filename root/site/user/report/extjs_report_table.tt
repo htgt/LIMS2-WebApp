@@ -1,35 +1,10 @@
 <div class="page-header">
   <h1>[% title %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/report/download', report_id ) %]">
+  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/report/download', report_id ) %]">
     <i class="icon-download-alt icon-white"></i>Download CSV</a>
   </h1>
 </div>
 <div id="my_results"></div>
-
-
-[%- MACRO linkify(v) BLOCK %]
-[%- IF v.match( '^https?:' ) %]
-<a href="[% v %]">Test result</a>
-[%- ELSIF v.match( '^custom:' ) %]
-    [%- USE String%]
-    [%- v_copy = String.new( text => v ) %]
-    [%- CALL v_copy.shift('custom:') %]
-    [%- FOREACH pair_val IN v_copy.split(';') %]
-        [%- pair_string = String.new ( text => pair_val) %]
-        [%- vals = pair_string.split('=', 2) %]
-        [%- left = vals.shift %]
-        [%- right = vals.shift %]
-        [%- custom.$left = right %]
-    [%- END %]
-    [%- button_label = custom.button_label %]
-    [%- tab_target = custom.browser_target %] 
-    [%- api_url = custom.api_url %]
-    [%- custom.delete( 'button_label', 'api_url') -%]
-<a class="btn btn-info btn-small" <a href="[% c.uri_for( api_url, custom ) %]" target="[% tab_target %]">[% button_label %]</a>
-[%- ELSE %]
-[%- v %]
-[%- END %]
-[%- END %]
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css') %]" />
@@ -37,4 +12,4 @@
 <script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
 
 [% PROCESS 'user/report/generic_report_grid.tt' %]
-   
+

@@ -1,0 +1,11 @@
+[% META title = "CGAP Name Search", tab_name = 'Barcodes' -%]
+
+<h1>Get Barcode From CGAP Name</h1>
+
+<form method="POST" action="[% c.uri_for( '/user/search_cgap_friendly_name' ) %]" class="well">
+  <fieldset>
+    <legend>Enter CGAP Friendly Name</legend>
+    <input type="text" name="cgap_name" placeholder="e.g. hoix" value="[% cgap_name %]" />
+    <input type="submit" name="search" class="btn btn-primary" value="Search" />
+  </fieldset>
+</form>

@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API;
 use Moose;
 use namespace::autoclean;
 
-BEGIN { extends 'Catalyst::Controller'; }
+BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -20,6 +20,18 @@ Catalyst Controller.
 
 =cut
 
+sub update_user_display_type : Path( '/api/update_user_display_type' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+sub update_user_display_type_POST {
+    my ( $self, $c ) = @_;
+
+    $c->session->{display_type} = $c->request->params->{display_type} || 'default';
+    $self->status_ok( $c, entity => { success => 1 } );
+
+    return;
+}
+
 sub auto : Private {
     my ( $self, $c ) = @_;
 
@@ -29,9 +41,15 @@ sub auto : Private {
     unless ( $c->user_exists ) {
         my $username = delete $c->req->parameters->{ 'username' };
         my $password = delete $c->req->parameters->{ 'password' };
-        return 1 unless ( $username && $password );
+        unless ( $username && $password ) {
+            $self->status_forbidden( $c, message => 'username or password not specified' );
+            $c->detach();
+        }
 
-        $c->authenticate( { name => lc($username), password => $password, active => 1 } );
+        unless ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
+            $self->status_forbidden( $c, message => 'username or password not correct' );
+            $c->detach();
+        }
     }
 
     if ( ! $c->session->{selected_species} ) {

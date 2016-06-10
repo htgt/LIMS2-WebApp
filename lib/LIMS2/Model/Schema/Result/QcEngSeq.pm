@@ -170,5 +170,13 @@ sub design_id {
     return $eng_seq_params->{design_id};
 }
 
+sub crispr_id {
+    my $self = shift;
+
+    my $eng_seq_params = decode_json( $self->params );
+
+    return $eng_seq_params->{crispr_id};
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

@@ -47,6 +47,8 @@ sub all_tests : Tests {
         'design_parameters'       => undef,
         'cassette_first'          => 1,
         'global_arm_shortened'    => undef,
+        'nonsense_design_crispr_id' => undef,
+        'parent_id'                 => undef,
     );
 
     note("Accessing the schema");

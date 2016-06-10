@@ -11,8 +11,10 @@
 
 <div id="report_complete" class="alert alert-success hide">
   <p>
-    Report ready. <a href="[% c.uri_for( '/user/report/download', report_id ) %]">Download</a>
-    or <a href="[% c.uri_for( '/user/report/view', report_id ) %]">View</a>.
+    Report ready. Download as <a href="[% c.uri_for( '/user/report/download', report_id ) %]">CSV</a> or <a href="[% c.uri_for( '/user/report/download_xlsx', report_id ) %]">XLSX</a>.
+    View as <a href="[% c.uri_for( '/user/report/view', report_id ) %]">Paged View</a>
+    (or as <a href="[% c.uri_for( '/user/report/grid_view', report_id ) %]">Data Grid</a>
+    displaying all data in one scrollable grid allowing you to sort and re-arrange columns).
   </p>
 </div>
 
@@ -27,14 +29,14 @@
     $.getJSON( "[% c.uri_for( '/api/report/ready', report_id ) %]", function(response){
       if( response.status == "DONE" ) {
          $("#report_pending").hide();
-         $("#report_complete").show();
+         $("#report_complete").removeClass("hide");
       }
       else if ( response.status == "PENDING" ) {
         retry();
       }
       else {
         $("#report_pending").hide();
-        $("#report_failed").show();
+        $("#report_failed").removeClass("hide");
       }
     });
   });

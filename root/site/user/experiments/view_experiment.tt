@@ -1,0 +1,126 @@
+[%- META title = 'View Experiment' %]
+
+[% IF experiment.deleted %]
+<div class="alert alert-error">
+  <h4>Error!</h4>
+  Experiment [% experiment_id %] has been deleted.
+</div>
+<div class="muted">
+[% ELSE %]
+
+<div class="page-header">
+  <h1>Experiment [% experiment_id %]
+  </h1>
+</div>
+
+[% END %]
+
+<h2>Experiment Details</h2>
+
+<table class="table experiment">
+  <tr>
+    <th>Experiment ID</th>
+    <td>[% experiment_id %]</td>
+  </tr>
+  <tr>
+    <th>Gene Symbol</th>
+    <td>
+      <a href="[% c.uri_for('/user/report/gene', { gene_id => gene_symbol }) %]">
+        [% gene_symbol %]
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Gene ID</th>
+    <td>[% experiment.gene_id %]</td>
+  </tr>
+  <tr>
+    <th>Design ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/view_design', { design_id => experiment.design_id }) %]">
+        [% experiment.design_id %]
+      </a>
+    </td>
+  </tr>
+
+  [% IF experiment.crispr_id %]
+  <tr>
+    <th>Crispr ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/crispr/' _ experiment.crispr_id _ '/view') %]">
+        [% experiment.crispr_id %]
+      </a>
+    </td>  </tr>
+  [% END %]
+
+  [% IF experiment.crispr_pair_id %]
+  <tr>
+    <th>Crispr Pair ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/crispr_pair/' _ experiment.crispr_pair_id _ '/view') %]">
+        [% experiment.crispr_pair_id %]
+      </a>
+    </td>
+  </tr>
+  [% END %]
+
+  [% IF experiment.crispr_group_id %]
+  <tr>
+    <th>Crispr Group ID</th>
+    <td>
+      <a href="[% c.uri_for('/user/crispr_group/' _ experiment.crispr_group_id _ '/view') %]">
+        [% experiment.crispr_group_id %]
+      </a>
+    </td>
+  </tr>
+  [% END %]
+
+</table>
+
+[% IF experiment.deleted %]
+  </div>
+  [% IF c.check_user_roles( 'edit' )  %]
+  <a class="btn" href="[% c.uri_for('/user/restore_experiment', { experiment_id => experiment_id }) %]">
+    Restore Experiment
+  </a>
+  [% END %]
+[% ELSE %]
+<h2>Crispr Primers</h2>
+<table class="table primer">
+  <tr>
+    <th>Primer Name</th>
+    <th>Sequence</th>
+    <th>Chromosome Name</th>
+    <th>Start</th>
+    <th>End</th>
+  </tr>
+  [% FOREACH crispr_primer IN experiment.crispr_primers %]
+  <tr>
+    <td>[% crispr_primer.primer_name %]</td>
+    <td>[% crispr_primer.primer_seq %]</td>
+    <td>[% crispr_primer.locus.chr_name %]</td>
+    <td>[% crispr_primer.locus.chr_start %]</td>
+    <td>[% crispr_primer.locus.chr_end %]</td>
+  </tr>
+  [% END %]
+</table>
+
+<h2>Crisprs</h2>
+<table class="table crispr">
+  <tr>
+    <th>Crispr ID</th>
+    <th>Sequence</th>
+  </tr>
+  [% FOREACH crispr IN experiment.crisprs %]
+  <tr>
+    <td>[% crispr.id %]</td>
+    <td>[% crispr.seq %]</td>
+  </tr>
+  [% END %]
+
+</table>
+[% END %]
+
+<script type="text/javascript">
+
+</script>

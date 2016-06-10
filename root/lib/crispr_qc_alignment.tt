@@ -1,0 +1,30 @@
+<div class="alignment">
+  <div class="alignment_reference">
+    <span>
+        [% qc.alignment.ref_start %]<span style="color:#FF0000;word-wrap: break-word;">[% qc.alignment.crispr_seq %]</span>[% qc.alignment.ref_end %]
+    </span><br/>
+  </div>
+  <div id="seqs[% qc.well_name %]" class="alignment_inner">
+       <span id="f" class="seq seq_a">
+          [% IF qc.alignment.no_forward_read %]
+            No Read
+          [% ELSIF qc.alignment.no_forward_alignment %]
+            No alignment to target region
+          [% ELSE %]
+            <span class="fwd">[% qc.alignment.forward %]</span>
+          [% END %]
+       </span>(F)
+    <span style="display: block">
+        <div id="r" class="seq seq_b">
+          [% IF qc.alignment.no_reverse_read %]
+            No Read
+          [% ELSIF qc.alignment.no_reverse_alignment %]
+            No alignment to target region
+          [% ELSE %]
+            <div class="rev">[% qc.alignment.reverse %]</div>
+          [% END %]
+        </div>(R)
+    </span>
+  </div>
+</div>
+

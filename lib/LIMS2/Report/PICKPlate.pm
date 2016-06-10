@@ -15,54 +15,54 @@ override _build_name => sub {
     return 'Pick Plate ' . $self->plate_name;
 };
 
-# Basic columns, will need to add more as these plate reports start
-# getting used.
-# Probaby need to add:
-# well primer bands
-# child wells
-# parent well
-# qc results
 override _build_columns => sub {
     my $self = shift;
 
-    # acs - 20_05_13 - redmine 10545 - add cassette resistance
     return [
         $self->base_columns,
         "Cassette", "Cassette Resistance", "Recombinases", "Cell Line", "Clone ID",
+        "QC Pass", "Valid Primers", "QC Result URL", "Primer Bands"
     ];
 };
 
 override iterator => sub {
     my $self = shift;
-    my $plate = $self->plate_name;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
+    # use custom resultset to gather data for plate report speedily
+    # avoid using process graph when adding new data or all speed improvements
+    # will be nullified, e.g calling $well->design
+    my $rs = $self->model->schema->resultset( 'PlateReport' )->search(
+        {},
         {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
+            prefetch => 'well',
+            bind => [ $self->plate->id ],
         }
     );
 
+    my @wells_data = @{ $rs->consolidate( $self->plate_id,
+            [ 'well_qc_sequencing_result', 'well_primer_bands' ] ) };
+    @wells_data = sort { $a->{well_name} cmp $b->{well_name} } @wells_data;
+
+    my $well_data = shift @wells_data;
+
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
-            or return;
+        return unless $well_data;
 
-        my $well_id = $well->name;
-        my $process_cell_line = $well->ancestors->find_process( $well, 'process_cell_line' );
-        my $cell_line = $process_cell_line ? $process_cell_line->cell_line->name : '';
+        my $well = $well_data->{well};
 
-        # acs - 20_05_13 - redmine 10545 - add cassette resistance
-        return [
-            $self->base_data( $well ),
-            $well->cassette->name,
-            $well->cassette->resistance,
-            join( q{/}, @{ $well->recombinases } ),
-            $cell_line,
-            $plate.'_'.$well_id,
-        ];
+        my @data = (
+            $self->base_data_quick( $well_data ),
+            $well_data->{cassette},
+            $well_data->{cassette_resistance},
+            $well_data->{recombinases},
+            $well_data->{cell_line},
+            $self->plate_name . '_' . $well_data->{well_name},
+            $self->well_qc_sequencing_result_data( $well ),
+            $self->well_primer_bands_data( $well ),
+        );
+
+        $well_data = shift @wells_data;
+        return \@data;
     };
 };
 

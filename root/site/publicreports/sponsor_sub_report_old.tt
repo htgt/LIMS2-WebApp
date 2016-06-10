@@ -1,0 +1,206 @@
+[%- META title = "Summary Report" %]
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- sponsor_id %]";
+</SCRIPT>
+
+<span style="float:right">
+
+  [% IF type == 'full' %]
+  <a id='type_simple' type='button' class='btn btn-primary btn-sm'
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        cache_param => cache_param,
+        type => 'simple'
+    }
+  ) %]><i class="icon-zoom-out icon-white"></i><b> Simple Report</b></a>
+  [% ELSIF type == 'simple' %]
+  <a id='type_full' type='button' class='btn btn-primary btn-sm'
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        cache_param => cache_param,
+        type => 'full'
+    }
+  ) %]><i class="icon-zoom-in icon-white"></i><b> Show Numbers</b></a>
+  [% END %]
+  <a id='csv_download' type='button' class='btn btn-info btn-sm' target="_blank"
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        csv => 1
+    }
+  ) %]><i class="icon-download-alt icon-white"></i><b> Download CSV</b></a>
+
+</span>
+<div class="page-header">
+  <h2>Sponsor Progress Sub-Report</h2>
+</div>
+<p>
+<big><b>[% disp_stage %]</b> for <b>[% disp_target_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+</p>
+
+[% IF report_id %]
+
+<table class="table table-striped table-bordered table-condensed">
+  <thead>
+    <tr>
+      [%- FOR disp_col IN display_columns %]
+        [%- IF disp_col == "sponsors" %]
+            [%- IF all %]
+              <th>[% disp_col %]</th>
+            [%- END %]
+        [%- ELSIF disp_col == "vector designs" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="vector_designs" href="#"
+            data-content="Number of gibson designs created for this gene (may not yet be plated)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "ordered targeting vectors" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="vector_wells" href="#"
+            data-content="Number of design oligos ordered (DESIGN wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "final vector clones" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="targeting_vector_wells" href="#"
+            data-content="Number of final vector clones, post-gateway (FINAL wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "QC-verified vectors" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_vector_wells" href="#"
+            data-content="Number of sequence-verified final vector clones (FINAL wells accepted)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "vectors constructed" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="passing_vector_wells" href="#"
+            data-content="Number of final vectors and gRNA plasmids passing DNA QC (DNA wells accepted)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "electroporations" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="electroporations" href="#"
+            data-content="Number of electroporated wells (EP/CRISPR_EP wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "colonies picked" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="colonies_picked" href="#"
+            data-content="Number of electroporated colonies picked for screening (EP_PICK wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "targeted clones" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="targeted_clones" href="#"
+            data-content="Number of electroporated colonies passing genotyping screens (EP_PICK wells accepted)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th></th>
+        [%- ELSIF disp_col == "crispr wells" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_wells" href="#"
+            data-content="Number of crisprs linked to the vector designs (CRISPR wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "crispr vector wells" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_vector_wells" href="#"
+            data-content="Number of crispr vector wells (CRISPR_V wells)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "crispr dna wells" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="crispr_dna_wells" href="#"
+            data-content="Number of crispr vector DNA wells (DNA wells from CRISPR_V)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "accepted crispr dna wells" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_dna_wells" href="#"
+            data-content="Number of accepted crispr vector DNA wells (DNA wells accepted from CRISPR_V)"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "accepted crispr pairs" %]
+            <th>[% disp_col %] <i class="icon-question-sign" id="accepted_crispr_pairs" href="#"
+            data-content="Number of crispr pairs with accepted DNA wells for both left and right crispr"
+            rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
+        [%- ELSIF disp_col == "PCR-passing design oligos" %]
+          [% IF c.user %]
+            <th>[% disp_col %]</th>
+          [%- END %]
+        [%- ELSE %]
+            <th>[% disp_col %]</th>
+        [%- END %]
+      [%- END %]
+    </tr>
+  </thead>
+  <tbody>
+  [%- FOREACH row IN data %]
+    <tr>
+      [%- FOREACH col IN columns %]
+        [%- colval = row.item(col) %]
+        [%- IF col == "final_qc_seq_pass" || col == "final_pick_qc_seq_pass" || col == "dna_status_pass" %]
+          [%-IF colval == "1" %]
+            <td style="color:green">pass</td>
+          [%- ELSIF colval == "0" %]
+            <td style="color:red">fail</td>
+          [%- ELSE %]
+            <td style="color:orange">----</td>
+          [%- END %]
+        [%- ELSIF col == "cassette_promotor" || col == "neo_p" || col == "neo_pl" || col == "bsd_p" || col == "bsd_pl" %]
+          [%- IF colval == "1" %]
+            <td style="color:green">yes</td>
+          [%- ELSIF colval == "0" %]
+            <td style="color:red">no</td>
+          [%- ELSE %]
+            <td style="color:orange">---</td>
+          [% END %]
+        [% ELSIF col == "gene_id" %]
+            [% IF c.user %]
+                <td><a class="brand" href="[% c.uri_for('/user/report/gene/', { gene_id => colval } ) %]">[% colval %]</a></td>
+            [% ELSIF row.item('targeted_clones') == '✔' || row.item('targeted_clones') > 0 %]
+                <td><a class="brand" href="[% c.uri_for('/public_reports/gene_report', colval ) %]">[% colval %]</a></td>
+            [% ELSE %]
+                <td>[% colval %]</td>
+            [% END %]
+        [% ELSIF col == "effort_concluded" && colval == "1" %]
+            <td>✔</td>
+        [% ELSIF col == "gene_symbol" %]
+            <td>[% colval %]</td>
+        [%- ELSIF col == "sponsors" %]
+            [%- IF all %]
+              <td>[% colval %]</td>
+            [%- END %]
+
+          [%- ELSIF col == 'vector_pcr_passes' %]
+            [% IF c.user %]
+              <td style="background:#E5E4E2" >[%- colval %]</td>
+            [%- END %]
+
+        [%- ELSIF !colval  %]
+            <td></td>
+        [%- ELSE %]
+          [%- IF col == 'passing_vector_wells' || col == 'targeted_clones' || col == 'accepted_crispr_vector' %]
+            <td style="background:#8AD95A" >[%- colval %]</td>
+          [%- ELSIF col == 'crispr_pairs'
+                || col == 'vector_designs'
+                || col == 'vector_wells'
+                || col == 'targeting_vector_wells'
+                || col == 'accepted_vector_wells'
+                || col == 'electroporations'
+                || col == 'colonies_picked'
+                || col == 'crispr_wells'
+                || col == 'crispr_vector_wells'
+                || col == 'crispr_dna_wells'
+                || col == 'accepted_crispr_dna_wells'
+                || col == 'recovery_class'
+                || col == 'priority'
+                || col == 'effort_concluded' %]
+            <td style="background:#E5E4E2" >[%- colval %]</td>
+          [%- ELSE %]
+            <td>[%- colval %]</td>
+          [%- END %]
+        [%- END %]
+      [%- END %]
+    </tr>
+  [%- END %]
+  </tbody>
+</table>
+
+[%- ELSE %]
+<h3>Error: No rows found for this report!</h3>
+[%- END %]
+
+<script type="text/javascript">
+  // description fields on the table
+  $('#vector_designs').popover();
+  $('#vector_wells').popover();
+  $('#targeting_vector_wells').popover();
+  $('#passing_vector_wells').popover();
+  $('#accepted_vector_wells').popover();
+  $('#electroporations').popover();
+  $('#colonies_picked').popover();
+  $('#targeted_clones').popover();
+  $('#crispr_wells').popover();
+  $('#crispr_vector_wells').popover();
+  $('#crispr_dna_wells').popover();
+  $('#accepted_crispr_dna_wells').popover();
+  $('#accepted_crispr_pairs').popover();
+
+</script>
+

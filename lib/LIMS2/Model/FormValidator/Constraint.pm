@@ -45,8 +45,8 @@ sub chromosome_fail_text {
     return shift->in_set( '0', '1', '2', '3', '4', 'Y' );
 }
 
-sub dna_seq {
-    return shift->regexp_matches(qr/^[ATGCN]+$/);
+sub oxygen_condition {
+    return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
 sub confidence_float {
@@ -96,17 +96,28 @@ sub cre_bac_recom_backbone {
 }
 
 sub plate_name {
-    return shift->regexp_matches(qr/^[A-Za-z0-9_]+$/);
+    return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }
-
+;
 sub well_name {
     return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
+}
+
+sub plate_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
+}
+
+sub well_barcode {
+    return shift->regexp_matches(qr/^[A-Za-z0-9]+$/);
 }
 
 sub bac_plate {
     return shift->regexp_matches(qr/^[abcd]$/);
 }
 
+sub existing_well_barcode {
+    return shift->in_resultset( 'Well', 'barcode' );
+}
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
 }
@@ -151,8 +162,16 @@ sub existing_genotyping_result_type {
     return shift->in_resultset( 'GenotypingResultType', 'id' );
 }
 
+sub existing_sponsor {
+    return shift->in_resultset( 'Sponsor', 'id' );
+}
+
 sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
+}
+
+sub existing_plate_id {
+    return shift->existing_row( 'Plate', 'id' );
 }
 
 sub existing_qc_run_id {
@@ -195,6 +214,19 @@ sub existing_final_backbone {
     return shift->eng_seq_of_type( 'final-backbone' );
 }
 
+sub existing_crispr_damage_type {
+    return shift->existing_row( 'CrisprDamageType', 'id' );
+}
+
+sub existing_crispr_es_qc_run_id {
+    return shift->existing_row( 'CrisprEsQcRuns', 'id' );
+}
+
+sub existing_crispr_es_qc_seq_project {
+    return shift->existing_row( 'CrisprEsQcRuns', 'sequencing_project' );
+}
+
+
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
 sub existing_backbone {
@@ -208,6 +240,14 @@ sub existing_cassette {
 
 sub existing_nuclease {
     return shift->existing_row( 'Nuclease', 'name');
+}
+
+sub existing_crispr_tracker_rna {
+    return shift->existing_row( 'CrisprTrackerRna', 'name');
+}
+
+sub existing_crispr_primer_type {
+	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
 
 sub qc_seq_read_id {
@@ -232,6 +272,68 @@ sub qc_alignment_seq {
 
 sub pass_or_fail {
     return shift->regexp_matches(qr/^(pass|fail)$/i);
+}
+
+sub existing_recovery_class {
+    return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
+}
+
+sub existing_design_id {
+    return shift->in_resultset( 'Design', 'id' );
+}
+
+sub existing_crispr_pair_id {
+    return shift->in_resultset( 'CrisprPair', 'id' );
+}
+
+sub existing_crispr_group_id {
+    return shift->in_resultset( 'CrisprGroup', 'id' );
+}
+
+sub existing_crispr_plate_appends_type {
+    return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
+}
+
+sub assembly_qc_type{
+    return shift->in_enum_column('WellAssemblyQc','qc_type');
+    #return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
+}
+
+sub assembly_qc_value{
+    return shift->in_enum_column('WellAssemblyQc','value');
+    #return shift->in_set('Good','Bad','Wrong');
+}
+
+sub existing_project_id {
+    return shift->in_resultset( 'Project', 'id' );
+}
+
+sub existing_experiment_id {
+    return shift->in_resultset( 'Experiment', 'id' );
+}
+
+sub primer_array {
+    my $self = shift;
+    return sub {
+        ref $_[0] eq 'ARRAY';
+    }
+}
+
+=head2 in_enum_column
+
+  Use enum from database schema as set, e.g. value column from WellAssemblyQc
+
+  data_type: 'enum'
+  extra: {custom_type_name => "qc_element_type",list => ["Good","Bad","Wrong"]}
+  is_nullable: 0
+
+=cut
+
+sub in_enum_column{
+    my ($self,$resultset_name,$column_name) = @_;
+    my $col_info = $self->model->schema->resultset($resultset_name)->result_source->column_info($column_name);
+    my $list = $col_info->{extra}->{list};
+    return $self->in_set(@{ $list });
 }
 
 __PACKAGE__->meta->make_immutable;

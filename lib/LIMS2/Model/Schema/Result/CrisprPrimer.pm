@@ -80,6 +80,22 @@ __PACKAGE__->table("crispr_primers");
   is_nullable: 1
   size: [5,3]
 
+=head2 crispr_group_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 is_validated
+
+  data_type: 'boolean'
+  is_nullable: 1
+
+=head2 is_rejected
+
+  data_type: 'boolean'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -102,6 +118,12 @@ __PACKAGE__->add_columns(
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
   "gc_content",
   { data_type => "numeric", is_nullable => 1, size => [5, 3] },
+  "crispr_group_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "is_validated",
+  { data_type => "boolean", is_nullable => 1 },
+  "is_rejected",
+  { data_type => "boolean", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -115,42 +137,6 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("crispr_oligo_id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<crispr_id and primer name must be unique>
-
-=over 4
-
-=item * L</crispr_id>
-
-=item * L</primer_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "crispr_id and primer name must be unique",
-  ["crispr_id", "primer_name"],
-);
-
-=head2 C<crispr_pair_id and primer name must be unique>
-
-=over 4
-
-=item * L</crispr_pair_id>
-
-=item * L</primer_name>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "crispr_pair_id and primer name must be unique",
-  ["crispr_pair_id", "primer_name"],
-);
 
 =head1 RELATIONS
 
@@ -166,6 +152,26 @@ __PACKAGE__->belongs_to(
   "crispr",
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 crispr_group
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprGroup>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "crispr_group",
+  "LIMS2::Model::Schema::Result::CrisprGroup",
+  { id => "crispr_group_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
@@ -209,9 +215,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 qc_template_well_crispr_primers
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 08:54:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J822CPubQcRELBzqhM9wjw
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_crispr_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer",
+  { "foreign.crispr_primer_id" => "self.crispr_oligo_id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 12:08:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G+Y4JJM59Dy+9mc1CNIDoA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -231,5 +252,86 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+sub id {
+  return shift->crispr_oligo_id;
+}
+
+sub as_hash {
+    my $self = shift;
+
+    my $locus = $self->current_locus;
+
+    return {
+        crispr_oligo_id => $self->crispr_oligo_id,
+        primer_seq      => $self->primer_seq,
+        primer_name     => $self->primer_name->primer_name,
+        tm              => $self->tm,
+        gc_content      => $self->gc_content,
+        locus           => $locus ? $locus->as_hash : undef,
+        crispr_pair_id  => $self->crispr_pair_id,
+        crispr_id       => $self->crispr_id,
+        crispr_group_id => $self->crispr_group_id,
+        is_validated    => $self->is_validated,
+        is_rejected     => $self->is_rejected,
+    };
+}
+
+sub current_locus {
+    my $self = shift;
+
+    my $species;
+
+    if ( $self->crispr_id ) {
+        $species = $self->crispr->species;
+    }
+    elsif ( $self->crispr_pair_id ) {
+        $species = $self->crispr_pair->left_crispr->species;
+    }
+    elsif ( $self->crispr_group_id ) {
+        $species = $self->crispr_group->left_most_crispr->species;
+    }
+    else {
+        die ( 'Crispr primer not linked to crispr, crispr pair or crispr group' );
+    }
+
+    my $locus;
+    if ( my $default_assembly = $species->default_assembly ) {
+        $locus = $self->search_related( 'crispr_primer_loci',
+            { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+
+    return $locus;
+}
+
+sub start {
+    return shift->current_locus->chr_start;
+}
+
+sub end {
+    return shift->current_locus->chr_end;
+}
+
+sub chr_id {
+    return shift->current_locus->chr_id;
+}
+
+sub chr_name {
+    return shift->current_locus->chr->name;
+}
+
+sub get_target{
+    my $self = shift;
+    if($self->crispr_id){
+        return $self->crispr;
+    }
+    elsif($self->crispr_pair_id){
+        return $self->crispr_pair;
+    }
+    elsif($self->crispr_group_id){
+        return $self->crispr_group;
+    }
+
+    return;
+}
 __PACKAGE__->meta->make_immutable;
 1;

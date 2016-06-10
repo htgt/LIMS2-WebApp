@@ -48,6 +48,10 @@ sub process_types : Tests() {
         paired_crispr_assembly
         crispr_ep
         global_arm_shortening
+        oligo_assembly
+        cgap_qc
+        ms_qc
+        doubling
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
@@ -195,7 +199,7 @@ sub int_recom_process : Tests() {
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
     }
-    qr/int_recom process input well should be type DESIGN \(got EP\)/;
+    qr/int_recom process input well should be type PREINT,DESIGN \(got EP\)/;
 
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_output_well} );
@@ -1099,7 +1103,7 @@ sub crispr_ep_process : Tests() {
     throws_ok {
         my $process = model->create_process( $crispr_ep_process_data->{ep_invalid_input_well} );
     }
-    qr/crispr_ep process input well should be type ASSEMBLY \(got CRISPR\)/;
+    qr/crispr_ep process input well should be type ASSEMBLY,OLIGO_ASSEMBLY \(got CRISPR\)/;
 }
 
 sub global_arm_shortening_process : Tests() {
@@ -1165,6 +1169,61 @@ sub global_arm_shortening_process : Tests() {
         my $process = model->create_process( $global_arm_shortening_process_data->{backbone_wrong_resistance} );
     }
     qr/The antibiotic resistance on the intermediate backbone used in a global_arm_shortening process should be Chloramphenicol/;
+}
+
+sub oligo_assembly_process : Tests() {
+    note("Testing oligo_assembly process creation");
+    my $oligo_assembly_process_data = test_data('oligo_assembly_process.yaml');
+
+    {
+        ok my $process = model->create_process( $oligo_assembly_process_data->{valid_input} ),
+            'create_process for type oligo_assembly should succeed';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'oligo_assembly', 'process is of correct type';
+
+        ok my $process_crispr_tracker_rna = $process->process_crispr_tracker_rna,
+            'process has a process_crispr_tracker_rna';
+        is $process_crispr_tracker_rna->crispr_tracker_rna->name, 'standard',
+            'process_crispr_tracker_rna has correct crispr tracker rna';
+
+        ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+        is $input_wells->count, 2, 'two input well';
+        my @input_well_plate_types = sort map { $_->plate->type_id } $input_wells->all;
+        is_deeply \@input_well_plate_types, [ 'CRISPR', 'DESIGN' ], 'have a CRISPR and DESIGN input well';
+
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+        is $output_wells->count, 1, 'only one output well';
+        my $output_well = $output_wells->next;
+        is $output_well->name, 'A01', 'output well has correct name';
+        is $output_well->plate->name, 'OLIGO_ASSEMBLY_TEST', '..and is on correct plate';
+
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+    }
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{missing_input_well} );
+    }
+    qr/oligo_assembly process should have 2 input well\(s\) \(got 0\)/;
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{invalid_input_well} );
+    }
+    qr/oligo_assembly process input well should be type CRISPR,DESIGN \(got DNA,DESIGN\)/;
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{invalid_output_well} );
+    }
+    qr/oligo_assembly process output well should be type OLIGO_ASSEMBLY \(got EP\)/;
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{not_nonsense_design} );
+    }
+    qr/oligo_assembly can only use nonsense type designs/;
+
+    throws_ok {
+        my $process = model->create_process( $oligo_assembly_process_data->{wrong_nonsense_design_crispr} );
+    }
+    qr/nonsense design is linked to crispr 113, not crispr 69543/;
 }
 
 1;

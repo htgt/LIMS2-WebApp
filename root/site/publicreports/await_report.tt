@@ -11,7 +11,8 @@
 
 <div id="report_complete" class="alert alert-success hide">
   <p>
-    Report ready. <a href="[% c.uri_for( '/public_reports/download', report_id ) %]">Download</a>
+    Report ready. Download as <a href="[% c.uri_for( '/public_reports/download', report_id ) %]">CSV</a>, <a href="[% c.uri_for( '/public_reports/download_xlsx', report_id ) %]">XLSX</a>
+    (<a href="[% c.uri_for( '/public_reports/download_compressed', report_id ) %]"> or as gzipped file)</a>
   </p>
 </div>
 
@@ -23,7 +24,7 @@
 
 <script type="text/javascript">
   $.smartPoller( function(retry){
-    $.getJSON( "[% c.uri_for( '/public_reports/ready', report_id ) %]", function(response){
+    $.getJSON( "[% c.uri_for( '/public_api/report_ready', report_id ) %]", function(response){
       if( response.status == "DONE" ) {
          $("#report_pending").hide();
          $("#report_complete").show();

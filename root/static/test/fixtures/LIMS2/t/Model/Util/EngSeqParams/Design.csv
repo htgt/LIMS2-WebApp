@@ -1,0 +1,6 @@
+id,name,created_by,created_at,design_type_id,phase,validated_by_annotation,target_transcript,species_id,design_parameters,cassette_first,global_arm_shortened,nonsense_design_crispr_id
+42815,EUCTV02961,1086,2007-04-04 00:00:00,conditional,0,yes,ENSMUST00000052368,Mouse,,t,,
+84231,EUCTV7287,1088,2008-03-12 00:00:00,conditional,2,not done,ENSMUST00000038194,Mouse,,t,,
+170606,EUCTV12600,1090,2008-08-30 00:00:00,conditional,0,not done,ENSMUST00000004202,Mouse,,t,,
+42428,EUCTV02548,1086,2007-03-20 00:00:00,conditional,2,not done,ENSMUST00000069107,Mouse,,t,,
+1000304,,1105,2013-03-18 10:39:07,nonsense,,not done,,Human,,t,,

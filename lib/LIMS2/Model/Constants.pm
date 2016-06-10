@@ -17,11 +17,14 @@ BEGIN {
         %STANDARD_KO_OLIGO_APPENDS
         %STANDARD_INS_DEL_OLIGO_APPENDS
         %GIBSON_OLIGO_APPENDS
+        %FUSION_OLIGO_APPENDS
         %ADDITIONAL_PLATE_REPORTS
         %UCSC_BLAT_DB
         %DEFAULT_SPECIES_BUILD
         %VECTOR_DNA_CONCENTRATION
         %GLOBAL_SHORTENED_OLIGO_APPEND
+        %GENE_TYPE_REGEX
+        $MAX_CRISPR_GROUP_SIZE
     );
     our %EXPORT_TAGS = ();
 }
@@ -49,7 +52,13 @@ const our %PROCESS_PLATE_TYPES => (
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
+    'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
+    'cgap_qc'                => [qw( CGAP_QC )],
+    'ms_qc'                  => [qw( MS_QC )],
+    'doubling'               => [qw( PIQ )],
+    'vector_cloning'         => [qw( PREINT )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -65,7 +74,9 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
     'crispr_vector'          => [qw( backbone )],
-#    'xep_pool'              => [qw( recombinase )],
+    'oligo_assembly'         => [qw( crispr_tracker_rna )],
+    'doubling'               => [qw( oxygen_condition doublings )],
+    'vector_cloning'         => [qw( backbone )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -87,7 +98,10 @@ const our %PROCESS_TEMPLATE => (
     'dist_qc'                => 'piq_template',
     'single_crispr_assembly' => 'single_crispr_assembly_template',
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
+    'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
+    'oligo_assembly'         => 'oligo_assembly',
+    'vector_cloning'         => 'vector_cloning_template',
 );
 
 # number relates to number of input wells (e.g. an SEP has two inputs)
@@ -96,7 +110,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'create_di' => { number => 0 },
     'create_crispr' => { number => 0 },
     'int_recom' => {
-        type   => [qw( DESIGN )],
+        type   => [qw( DESIGN PREINT )],
         number => 1,
     },
     '2w_gateway' => {
@@ -150,7 +164,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 2,
     },
     'freeze' => {
-        type   => [qw( EP_PICK SEP_PICK )],
+        type   => [qw( EP_PICK SEP_PICK PIQ )],
         number => 1,
     },
     'xep_pool' => {
@@ -173,50 +187,37 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( DNA )],
         number => 3,
     },
+    'group_crispr_assembly' => {
+        type   => [qw( DNA )],
+        number => 'MULTIPLE',
+    },
     'crispr_ep' => {
-        type   => [qw( ASSEMBLY )],
+        type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
+        number => 1,
+    },
+    'oligo_assembly' => {
+        type   => [qw( DESIGN CRISPR )],
+        number => 2,
+    },
+    'cgap_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'ms_qc' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'doubling' => {
+        type   => [qw( PIQ )],
+        number => 1,
+    },
+    'vector_cloning' => {
+        type   => [qw( DESIGN )],
         number => 1,
     },
 );
 
-const our %ARTIFICIAL_INTRON_OLIGO_APPENDS => (
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "D3" => "TGAACTGATGGCGAGCTCAGACC",
-    "D5" => "GAGATGGCGCAACGCAATTAATG",
-    "U3" => "CTGAAGGAAATTAGATGTAAGGAGC",
-    "U5" => "GTGAGTGTGCTAGAGGGGGTG",
-);
 
-const our %STANDARD_KO_OLIGO_APPENDS => (
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "U5" => "AAGGCGCATAACGATACCAC",
-    "U3" => "CCGCCTACTGCGACTATAGA",
-    "D5" => "GAGATGGCGCAACGCAATTAATG",
-    "D3" => "TGAACTGATGGCGAGCTCAGACC",
-);
-
-const our %STANDARD_INS_DEL_OLIGO_APPENDS => (
-    "G5" => "TCCTGTGTGAAATTGTTATCCGC",
-    "G3" => "CCACTGGCCGTCGTTTTACA",
-    "U5" => "AAGGCGCATAACGATACCAC",
-    "D3" => "CCGCCTACTGCGACTATAGA",
-);
-
-const our %GIBSON_OLIGO_APPENDS => (
-    "5F" => "AACGACGGCCAGTGAATTCGAT",
-    "5R" => "TATCGTTATGCGCCTTGAT",
-    "EF" => "TAGTCGCAGTAGGCGGAAGA",
-    "ER" => "AGCCAATTGGCGGCCGAAGA",
-    "3F" => "CTGAGCTAGCCATCAGTGAT",
-    "3R" => "CCATGATTACGCCAAGCTTGAT",
-);
-
-const our %GLOBAL_SHORTENED_OLIGO_APPEND => (
-    "G5" => "ACAACTTATATCGTATGGGGC",
-    "G3" => "TTACGCCCCGCCCTGCCACTC",
-);
 
 # When creating additional report classes override the additional_report sub to return 1
 const our %ADDITIONAL_PLATE_REPORTS => (
@@ -250,12 +251,12 @@ const our %ADDITIONAL_PLATE_REPORTS => (
 
 const our %UCSC_BLAT_DB => (
     mouse => 'mm10',
-    human => 'hg19',
+    human => 'hg38',
 );
 
 const our %DEFAULT_SPECIES_BUILD => (
     mouse => 73,
-    human => 73,
+    human => 76,
 );
 
 # Minimun required DNA concentrations for different species and vector types
@@ -269,6 +270,17 @@ const our %VECTOR_DNA_CONCENTRATION => (
         'CRISPR_V'   => 40,
     },
 );
+
+# Regex for checking format of gene IDs by gene_type
+const our %GENE_TYPE_REGEX => (
+    'HGNC'       => qr/HGNC:\d+/,
+    'MGI'        => qr/MGI:\d+/,
+    'CPG-island' => qr/CGI_\d+/,
+);
+
+# Maximum number of crisprs we can have in a group
+const our $MAX_CRISPR_GROUP_SIZE => 4;
+
 1;
 
 __END__

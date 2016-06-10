@@ -49,6 +49,11 @@ __PACKAGE__->table("sponsors");
   default_value: (empty string)
   is_nullable: 0
 
+=head2 abbr
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -56,6 +61,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "description",
   { data_type => "text", default_value => "", is_nullable => 0 },
+  "abbr",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -70,7 +77,36 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<sponsors_abbr_key>
+
+=over 4
+
+=item * L</abbr>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("sponsors_abbr_key", ["abbr"]);
+
 =head1 RELATIONS
+
+=head2 old_projects
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::OldProject>
+
+=cut
+
+__PACKAGE__->has_many(
+  "old_projects",
+  "LIMS2::Model::Schema::Result::OldProject",
+  { "foreign.sponsor_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 plates
 
@@ -87,25 +123,29 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 projects
+=head2 project_sponsors
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::Project>
+Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
 
 =cut
 
 __PACKAGE__->has_many(
-  "projects",
-  "LIMS2::Model::Schema::Result::Project",
+  "project_sponsors",
+  "LIMS2::Model::Schema::Result::ProjectSponsor",
   { "foreign.sponsor_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TjB+q2UTptKB+iI7jvzYpg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-27 14:35:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NAfdR/zY2Nd6ntCBrOY/mQ
 
+__PACKAGE__->many_to_many(
+    projects => 'project_sponsors',
+    'project',
+);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

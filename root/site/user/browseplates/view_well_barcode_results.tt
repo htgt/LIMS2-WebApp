@@ -1,0 +1,176 @@
+[%- META title="Plate Well Barcode Upload Results" %]
+
+<div class="page-header">
+  <h1>Plate <small>[% plate.name %]</small></h1>
+</div>
+
+<div class="row">
+  <div class="span6">
+      <table class="table">
+
+        <tr>
+          <td>
+            <strong>Name</strong>
+          </td>
+          <td>
+            [% plate.name %]
+          </td>
+          <td>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Plate Barcode</strong>
+          </td>
+          [% IF plate.barcode %]
+          <td>
+            [% plate.barcode %]
+          </td>
+          [% ELSE %]
+          <td>
+          </td>
+          [% END %]
+          <td>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Type</strong>
+          </td>
+          <td>
+            [% plate.type.id %] ([% plate.type.description %])
+          </td>
+          <td></td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Description</strong>
+          </td>
+          <td>
+            [% plate.description %]
+          </td>
+          <td></td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Created By</strong>
+          </td>
+          <td>
+            [% plate.created_by.name %]
+          </td>
+          <td></td>
+        </tr>
+
+        <tr>
+          <td>
+            <strong>Created At</strong>
+          </td>
+          <td>
+            [% plate.created_at.ymd %]
+          </td>
+          <td></td>
+        </tr>
+
+      </table>
+
+  </div>
+
+  <div class="span6">
+    <div class="well">
+      <h2>Comments</h2>
+      [% IF plate.plate_comments.size %]
+      <dl>
+        [% FOR comment IN plate.plate_comments %]
+        <dt>
+          [% comment.created_by.name %], [% comment.created_at.ymd %]
+        </dt>
+        <dd>
+          <p>[% comment.comment_text %]</p>
+        </dd>
+        [% END %]
+      </dl>
+      [% ELSE %]
+      <p><em>No comments for this plate.</em></p>
+      [% END %]
+    </div>
+  </div>
+</div>
+
+[% IF well_results_list %]
+    [%- USE JSON %]
+    [%- decoded_well_results_list = JSON.json_decode( well_results_list ) %]
+
+    [%- updates_errored = 0 %]
+    [% FOREACH well_row IN decoded_well_results_list %]
+        [% IF well_row.error == 1 %]
+            [% updates_errored = updates_errored + 1 %]
+        [% END %]
+    [% END %]
+
+    <div class="row">
+      <div class="span10">
+        <h3>Results from well barcodes upload:</h3>
+        [% IF updates_errored > 0 %]
+            <h5><font style="color: red;">
+            [% IF updates_errored == 1 %]
+                There was 1 error,
+            [% ELSE %]
+                There were [% updates_errored %] errors,
+            [% END %]
+            please check the details below and the barcode file which was uploaded. </br>No changes have been saved and you will need to re-upload a corrected file.</font></h5>
+        [% ELSE %]
+            <h5><font style="color: green;">All uploaded tube barcodes were either unchanged or saved successfully. Details below:</font></h5>
+        [% END %]
+      </div>
+      <div class="span2">
+        <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/view_plate' ) %]" enctype="multipart/form-data" >
+          <input type="hidden" name="id" value="[% plate.id %]" />
+          <input type="hidden" name="name" value="[% plate.name %]" />
+          <button class="btn btn-primary" name="btn_return_to_plate_view" id="btn_return_to_plate_view" type="submit" value="btn_return_to_plate_view" >
+            <i class="icon-upload"></i> Return to plate view
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+      <table class="table">
+        [% FOREACH well_row IN decoded_well_results_list %]
+            <tr>
+              <td>
+                <strong>[% well_row.well_name %]</strong>
+              </td>
+              [% IF well_row.error == 1 %]
+                <td style="color: red;">
+              [% ELSIF well_row.error == 2 %]
+                <td style="color: orange;">
+              [% ELSE %]
+                <td style="color: green;">
+              [% END %]
+                [% well_row.message %]
+              </td>
+            </tr>
+        [% END %]
+      </table>
+    </div>
+[% ELSE %]
+    <h3>Error: no information passed for well results.</h3>
+[% END %]
+
+<div class="row">
+  <div class="span10">
+  </div>
+  <div class="span2">
+    <form method="POST" id="plate_well_barcodes_update" action="[% c.uri_for( '/user/view_plate' ) %]" enctype="multipart/form-data" >
+      <input type="hidden" name="id" value="[% plate.id %]" />
+      <input type="hidden" name="name" value="[% plate.name %]" />
+      <button class="btn btn-primary" name="btn_return_to_plate_view" id="btn_return_to_plate_view" type="submit" value="btn_return_to_plate_view" >
+        <i class="icon-upload"></i> Return to plate view
+      </button>
+    </form>
+  </div>
+</div>

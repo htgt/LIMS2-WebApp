@@ -1,0 +1,47 @@
+<div class="panel-group" id="accordian">
+
+  <div class="panel panel-default">
+
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Crispr Plate Create Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
+        <p>
+          This form is used to create a crispr plate using well names and crispr ids from csv files.
+          The csv file must be formatted into two columns with the two column headers: well_name and crispr_id. 
+          For example:
+            <br>well_name   crispr_id
+            <br>A01         250000
+            <br>A02         250001
+            <br>A03         250002
+        </p>
+        <p>
+          If there are any errors were to occur, a warning will show up and the plate will not
+          be created. Once the data is proven valid then the plate will be created and a success message will appear. This may take some time depending on the additional options chosen.
+        </p>
+
+        <div class="well-sm">
+          <h6>Setup</h6>
+          <p>
+            Fill in basic plate details, the compulsory field is.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>Plate Name</dt>
+              <dd>Must contain only letters, numbers or underscores</dd>
+            </dl>
+          <p>
+            The options are listed below.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>WGE Crisprs</dt>
+              <dd>Tick to indicate that you are using WGE crispr IDs. At the current moment these must be already imported into LIMS2</dd>
+            </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

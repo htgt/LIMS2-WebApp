@@ -5,7 +5,7 @@ export LIMS2_DEBUG_DEFINITION="perl -d"
 
 #TODO: check that we are in the correct directory
 export LIMS2_MIGRATION_ROOT=`pwd`;
-export LIMS2_SHARED=~/git-checkout
+export LIMS2_SHARED=$GIT_CHECKOUT_ROOT
 
 function lims2 {
 case $1 in
@@ -36,10 +36,22 @@ case $1 in
     devel)
         lims2_devel
         ;;
+    wge)
+        lims2_wge_rest_client $2
+        ;;
     'pg9.3')
         lims2_pg9.3
         ;;
-    *) 
+    psql)
+        lims2_psql
+        ;;
+    audit)
+        lims2_audit
+        ;;
+    regenerate_schema)
+        lims2_regenerate_schema
+        ;;
+    *)
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
 esac
@@ -61,7 +73,7 @@ function check_and_set_dir {
 
 function lims2_webapp {
     if [[  "$1"   ]] ; then
-        LIMS2_PORT=$1 
+        LIMS2_PORT=$1
     elif [[ "$LIMS2_WEBAPP_SERVER_PORT"  ]] ; then
         LIMS2_PORT=$LIMS2_WEBAPP_SERVER_PORT
     else
@@ -88,13 +100,14 @@ function lims2_setdb {
         if [[ `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $1` == $1 ]] ; then
         export LIMS2_DB=$1
         printf "$L2I_STRING: database is now $LIMS2_DB\n"
-        else 
+        else
             printf "$L2E_STRING: database '$1' does not exist in $LIMS2_DBCONNECT_CONFIG\n"
         fi
     else
         # List the databases available
         printf "$L2I_STRING: Available database names from LIMS2_DBCONNECT_CONFIG\n\n"
         $LIMS2_MIGRATION_ROOT/bin/list_db_names.pl
+        printf "Use 'lims2 psql' command to open a psql command line for this db\n"
     fi
 }
 
@@ -111,8 +124,33 @@ function lims2_replicate {
             ;;
         *)
             lims2_load_generic $1
-            ;; 
+            ;;
     esac
+}
+
+function lims2_psql {
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Opening psql shell with database: $LIMS2_DB_NAME (profile: $LIMS2_DB)\n"
+    psql `$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --uri`
+}
+
+function lims2_audit {
+    export LIMS2_DB_HOST=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --host`
+    export LIMS2_DB_PORT=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --port`
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Audit command: generate-pg-audit-ddl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2 > ./audit-up.sql\n"
+
+    $LIMS2_MIGRATION_ROOT/script/generate-pg-audit-ddl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2 > ./audit-up.sql
+
+}
+
+function lims2_regenerate_schema {
+    export LIMS2_DB_HOST=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --host`
+    export LIMS2_DB_PORT=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --port`
+    export LIMS2_DB_NAME=`$LIMS2_MIGRATION_ROOT/bin/list_db_names.pl $LIMS2_DB --dbname`
+    printf "Regenerating schema for the currently select database: $LIMS2_DB_NAME\n"
+    printf "Regenerate command: lims2_model_dump_schema.pl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2\n"
+    $LIMS2_MIGRATION_ROOT/bin/lims2_model_dump_schema.pl --host $LIMS2_DB_HOST --port $LIMS2_DB_PORT --dbname $LIMS2_DB_NAME --user lims2
 }
 
 function lims2_load_test {
@@ -162,15 +200,27 @@ function lims2_replicate_generic {
             --destination_db $dbname \
             --overwrite 1 \
             --with_data 1 \
-            --create_test_role 0 
-    else 
+            --create_test_role 0
+    else
         printf "$L2E_STRING: cannot replicate because database '$1' does not exist in $LIMS2_DBCONNECT_CONFIG\n"
     fi
 
 }
 
 function lims2_load_staging {
-    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone 
+    source $LIMS2_DEV_ROOT/bin/lims2_staging_clone
+}
+
+function lims2_wge_rest_client {
+    if [[  "$1"   ]] ; then
+        if [[ $1 != "live" ]]; then
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+        else
+           export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-live-rest-client.conf
+        fi
+    else
+        printf "$L2W_STRING: need LIVE or DEVEL parameter\n"
+    fi
 }
 
 function lims2_devel {
@@ -180,10 +230,17 @@ function lims2_devel {
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Exception/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/LIMS2-Utils/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
+    export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/Design-Creation/lib
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-73/modules
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-76/modules
+    export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
+    export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
+    export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
+    export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
+    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+    export LIMS2_TEMP=/opt/t87/local/tmp
 }
 
 function lims2_pg9.3 {
@@ -198,7 +255,7 @@ cat << END
 LIMS2 useful environment variables:
 
 \$LIMS2_DEV_ROOT               : $LIMS2_DEV_ROOT
-\$SAVED_LIMS2_DEV_ROOT         : $SAVED_LIMS2_DEV_ROOT 
+\$SAVED_LIMS2_DEV_ROOT         : $SAVED_LIMS2_DEV_ROOT
 \$LIMS2_WEBAPP_SERVER_PORT     : $LIMS2_WEBAPP_SERVER_PORT
 \$LIMS2_WEBAPP_SERVER_OPTIONS  : $LIMS2_WEBAPP_SERVER_OPTIONS
 \$LIMS2_DEBUG_DEFINITION       : $LIMS2_DEBUG_DEFINITION
@@ -212,24 +269,38 @@ LIMS2 useful environment variables:
 \$PG_DUMP_EXE                  : $PG_DUMP_EXE
 \$PG_RESTORE_EXE               : $PG_RESTORE_EXE
 \$PSQL_EXE                     : $PSQL_EXE
+\$PGUSER                       : $PGUSER
+
+\$LIMS2_PRIMER_DIR             : $LIMS2_PRIMER_DIR
+\$LIMS2_TEMP                   : $LIMS2_TEMP
+\$DEFAULT_CRISPR_ES_QC_DIR     : $DEFAULT_CRISPR_ES_QC_DIR
+\$VEP_CACHE_DIR                : $VEP_CACHE_DIR
+\$DESIGN_CREATION_HUMAN_FA     : $DESIGN_CREATION_HUMAN_FA
+\$DESIGN_CREATION_MOUSE_FA     : $DESIGN_CREATION_MOUSE_FA
+\$BWA_REF_GENOME_HUMAN_FA      : $BWA_REF_GENOME_HUMAN_FA
+\$BWA_REF_GENOME_MOUSE_FA      : $BWA_REF_GENOME_MOUSE_FA
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG
 \$LIMS2_LOG4PERL_CONFIG        : $LIMS2_LOG4PERL_CONFIG
 \$LIMS2_QC_CONFIG              : $LIMS2_QC_CONFIG
 \$LIMS2_REPORT_CACHE_CONFIG    : $LIMS2_REPORT_CACHE_CONFIG
+\$LIMS2_REPORT_DIR             : $LIMS2_REPORT_DIR
 \$LIMS2_WEBAPP_CONFIG          : $LIMS2_WEBAPP_CONFIG
 \$LIMS2_DBCONNECT_CONFIG       : $LIMS2_DBCONNECT_CONFIG
+\$LIMS2_URL_CONFIG             : $LIMS2_URL_CONFIG
+\$HTGT_QC_CONF                 : $HTGT_QC_CONF
 \$ENG_SEQ_BUILDER_CONF         : $ENG_SEQ_BUILDER_CONF
 \$TARMITS_CLIENT_CONF          : $TARMITS_CLIENT_CONF
 \$LIMS2_REST_CLIENT            : $LIMS2_REST_CLIENT
+\$WGE_REST_CLIENT_CONFIG       : $WGE_REST_CLIENT_CONFIG
 \$LIMS2_ENSEMBL_USER           : $LIMS2_ENSEMBl_USER
 \$LIMS2_ENSEMBL_HOST           : $LIMS2_ENSEMBL_HOST
 \$LIMS2_DB                     : $LIMS2_DB
 
 END
 
-lims2_local_environment
+lims2_local_environment  # This is defined in your ~/.lims2_local
 }
 
 function lims2_help {
@@ -261,8 +332,12 @@ Commands avaiable:
     devel        - sets the environment to use entirely local checkouts (no production code)
 
     setdb        - lists the available database profiles, highlighting the profile currently in use
-    setdb <db_name> - sets the LIMS2_DB (*) environment variable 
+    setdb <db_name> - sets the LIMS2_DB (*) environment variable
 
+    psql         - opens psql command prompt using the currently selected database
+    audit        - generate audit.up in the current directory for the selected database
+    regenerate_schema
+                 - generate new schema files for the currently selected database
     help         - displays this help message
 Files:
 ~/.lims2_local     - sourced near the end of the setup phase for you own mods
@@ -276,3 +351,6 @@ if [[ -f $HOME/.lims2_local ]] ; then
     source $HOME/.lims2_local
 fi
 
+if [[ !"$PGUSER" ]]; then
+    export PGUSER=lims2
+fi

@@ -1,0 +1,53 @@
+<div class="page-header">
+  <h1>[% title %]</h1>
+</div>
+
+<form method="GET" action="[% c.uri_for( '/user/projects' ) %]" class="well">
+  <fieldset>
+    <label for="sponsor_id">Sponsor:</label>
+    <select name="sponsor_id">
+      [%- FOR sponsor IN sponsor_id %]
+      <option[% IF sponsor == sel_sponsor %] selected="selected"[% END %]>[% sponsor %]</option>
+      [%- END %]
+    </select>
+    <button name="filter" id="filter" type="submit" value="Filter" class="btn btn-primary"><i class="icon-filter icon-white"></i> Select</button>
+  </fieldset>
+    <span class="help-block">
+      You can browse for efforts and mark them as concluded by checking the box. To edit recovery classes click <a href="[% c.uri_for( '/user/edit_recovery_classes' ) %]">here</a>.
+    </span>
+</form>
+
+<div id="my_results"></div>
+
+[%- MACRO linkify(v) BLOCK %]
+[%- IF v.match( '^https?:' ) %]
+<a href="[% v %]">Test result</a>
+[%- ELSIF v.match( '^custom:' ) %]
+    [%- USE String%]
+    [%- v_copy = String.new( text => v ) %]
+    [%- CALL v_copy.shift('custom:') %]
+    [%- FOREACH pair_val IN v_copy.split(';') %]
+        [%- pair_string = String.new ( text => pair_val) %]
+        [%- vals = pair_string.split('=', 2) %]
+        [%- left = vals.shift %]
+        [%- right = vals.shift %]
+        [%- custom.$left = right %]
+    [%- END %]
+    [%- button_label = custom.button_label %]
+    [%- tab_target = custom.browser_target %]
+    [%- api_url = custom.api_url %]
+    [%- custom.delete( 'button_label', 'api_url') -%]
+<a class="btn btn-info btn-sm" <a href="[% c.uri_for( api_url, custom ) %]" target="[% tab_target %]">[% button_label %]</a>
+[%- ELSE %]
+[%- v %]
+[%- END %]
+[%- END %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/extjs/resources/css/ext-all.css') %]" />
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/lims2_extjs.css') %]" />
+
+<script type="text/javascript" src="[% c.uri_for('/static/extjs/ext-all.js') %]"></script>
+
+[%- IF get_grid %]
+[% PROCESS 'user/report/generic_report_grid.tt' %]
+[%- END %]

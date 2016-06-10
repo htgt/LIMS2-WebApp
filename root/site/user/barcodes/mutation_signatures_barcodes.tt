@@ -1,0 +1,176 @@
+[% META title = "Mutation Signatures Barcodes", tab_name = 'Barcodes' -%]
+
+<h1>Barcodes used for Mutation Signatures Doubling</h1>
+
+<style type="text/css">
+.popover {
+  max-width: 1100px;
+  width: auto;
+}
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+
+.seq {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+  font-size:15px;
+}
+#frozen_back span{
+    background-color:yellow;
+}
+#doubling_in_progress span{
+    background-color:yellow;
+}
+#discarded span{
+    background-color:yellow;
+}
+highlight {
+    font-weight: bold;
+    color: #FF0000;
+}
+</style>
+
+<div class="col-md-3">
+<input type="text" class="form-control" id="query"  placeholder="Find in page" autocomplete="on" />
+</div>
+<button class="btn btn-primary" onclick=searchThroughAccordion();>Find</button>
+<button class="btn btn-default" onclick=removeStyles();>Clear</button>
+[% SET row = 0 %]
+<div class="panel-group" id="mutation_accordion">
+[% FOREACH state IN ['frozen_back', 'doubling_in_progress', 'discarded'] %]
+    <p id="[% state %]_id"></p>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4>
+          <a class="panel-toggle" data-toggle="collapse" data-parent="#mutation_accordion" href=#[% state %] >Barcodes with state [% state %]:</a>
+        </h4>
+      </div>
+      <div id=[% state %] class="panel-body collapse">
+        <div class="panel-inner">
+          <table class="table table-striped">
+            <thead>
+                <tr>
+                  <th>Parent Barcode</th>
+                  <th>Gene ID</th>
+                  <th>Gene Symbol</th>
+                  <th>Start Date</th>
+                  <th>Oxygen Condition</th>
+                  <th>Doublings</th>
+                  <th>Child Barcode</th>
+                  <th>Child Plate Name</th>
+                  <th>Child Well Name</th>
+                  <th>Child Well Accepted?</th>
+                </tr>
+            </thead>
+            <tbody>
+          [% FOREACH bc IN data.$state %]
+              <tr id=[% row %]>
+                <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.parent_barcode }) %]">[% bc.parent_barcode %]</a></td>
+                <td>[% bc.gene_id %]</td>
+                <td>[% bc.gene_symbol %]</td>
+                <td>[% bc.doubling_start %]</td>
+                <td>[% bc.oxygen_condition %]</td>
+                <td>[% bc.number_of_doublings %]</td>
+                <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.child_barcode }) %]">[% bc.child_barcode %]</a></td>
+                <td>[% bc.child_plate_name %]</td>
+                <td>[% bc.child_well_name %]</td>
+                <td>[% bc.child_well_accepted_str %]</td>
+              </tr>
+            </tbody>
+            [% row = row + 1 %]
+          [% END %]
+          </table>
+        </div>
+      </div>
+  </div>
+[% END %]
+</div>
+<script type="text/javascript">
+var accordionClone;
+
+window.onload = function () {
+    accordionClone = $("#mutation_accordion").clone();
+}
+
+function removeStyles() {
+    $("#mutation_accordion").replaceWith(accordionClone.clone());
+}
+
+$(function() {
+    $('.panel-group').on('show', function (e) {
+         $(e.target).prev('.panel-heading').find('.panel-toggle').addClass('active');
+    });
+    
+    $('.panel-group').on('hide', function (e) {
+        $(this).find('.panel-toggle').not($(e.target)).removeClass('active');
+    });
+        
+});
+
+function searchThroughAccordion() {
+    var states = ['frozen_back', 'doubling_in_progress', 'discarded'];
+
+    removeStyles();
+    states.forEach(function(state) {
+        highlightSearch(state);
+    });
+    editRows("display:none");
+
+}
+
+function highlightSearch(state) {
+    var text = document.getElementById("query").value;
+    if (text) {
+        var query = new RegExp("(" + text + ")(?![^<]*>|[^<>]*<\/>\S)", "gim");
+        var clear = clearRows(state);
+        var newAccord = clear.replace(query, "<span>$1</span>");
+        var count;
+        try {
+            count = newAccord.match(query).length;
+        } catch (err) {
+            count = 0;
+        }
+        document.getElementById(state + '_id').innerHTML = "Results found: " + count;
+        
+        document.getElementById(state).innerHTML = newAccord;
+        document.getElementById(state + '_id').style = "color:red";
+        var ua = navigator.userAgent;
+        var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+
+        //if (browser[1] != "Firefox") {
+        //    if (count > 0 ){
+        $("#" + state).collapse("show");
+        
+        /*
+        }
+            else {
+                $("#" + state).collapse("hide");
+            }
+        } 
+        */
+    }
+}	
+
+function editRows(display) {
+    var count = '[% row %]';
+
+    for (var tick = 0; tick < count; tick++) {
+        var row = document.getElementById(tick).innerHTML;
+        if (row.indexOf("<span>") < 1) {
+            document.getElementById(tick).style = display;
+        }
+    }
+}
+
+function clearRows(state) {
+    var accordion = document.getElementById(state).innerHTML;
+    var clearAccord = accordion.replace(/(<span>|<\/span>)/igm, "");
+    document.getElementById(state + '_id').innerHTML = "";
+    document.getElementById(state).innerHTML = clearAccord;
+    return clearAccord;
+}
+
+</script>

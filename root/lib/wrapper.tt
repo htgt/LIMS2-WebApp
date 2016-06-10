@@ -17,7 +17,7 @@
       }
     </style>
     <!-- jQuery UI stylesheets -->
-    <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css' ) %]">
+    <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/ui-lightness/jquery-ui-1.12.0.custom.css' ) %]">
 
     <!-- Custom Styles -->
     <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/lims2.css' ) %]">
@@ -31,11 +31,48 @@
 
     <!-- Le javascript
     ================================================== -->
-    <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/js/jquery-1.12.3.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/js/poller.js' ) %]"></script>
-    <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.8.21.custom.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.12.0.custom.min.js' ) %]"></script>
 
+    <!-- Wide Screen
+    ================================================== -->
+    <script type="text/javascript">
+    $(document).ready(function() {
+        // click display type button
+        $("#display_type_default, #display_type_wide").click(function(e) {
+            var element = $(this);
+            var display_type = element.attr('data-display-type');
+            if ( display_type == 'wide' ) {
+                $('#main').removeClass('container').addClass('container-fluid');
+                $('#display_type_default').show();
+                $('#display_type_wide').hide();
+            }
+            else {
+                $('#main').removeClass('container-fluid').addClass('container');
+                $('#display_type_default').hide();
+                $('#display_type_wide').show();
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '[% c.uri_for("/api/update_user_display_type") %]',
+                data: {
+                    "display_type": element.attr('data-display-type')
+                },
+                success: function(data) {
+                    console.log(data);
+                },
+                error: function(data) {
+                    console.log(data);
+                    alert( 'Error with ajax' );
+                },
+                dataType: 'json'
+            });
+        });
+    });
+    </script>
 
   </head>
 
@@ -43,20 +80,20 @@
 
     [% INCLUDE 'navigation.tt' %]
 
-    <div id="main" class="container">
-      [% SET error = error_msg || c.flash.error_msg; IF error.length > 0 %]
-      <div class="alert alert-error">
+    <div id="main" class="[% IF c.session.display_type && c.session.display_type == 'wide' %]container-fluid[% ELSE %]container[% END %]">
+      [% SET error = error_msg || c.flash.error_msg; IF error.length %]
+      <div class="alert alert-danger">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% error | html_line_break %]</p>
       </div>
       [% END %]
-      [% SET info = info_msg || c.flash.info_msg; IF info.length > 0 %]
+      [% SET info = info_msg || c.flash.info_msg; IF info.length %]
       <div class="alert alert-info">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% info | html_line_break %]</p>
       </div>
       [% END %]
-      [% SET success = success_msg || c.flash.success_msg; IF success.length > 0 %]
+      [% SET success = success_msg || c.flash.success_msg; IF success.length %]
       <div class="alert alert-success">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% success | none %]</p>
@@ -65,10 +102,10 @@
       [% content | none %]
     </div> <!-- /container -->
 
-    <div class="navbar navbar-fixed-bottom">
+    <div class="navbar navbar-default navbar-fixed-bottom">
       <div class="navbar-inner">
         <div class="container">
-          <p class="nav pull-right navbar-text">
+          <p class="navbar-nav pull-right navbar-text">
           version: <strong>[% c.model('Golgi').software_version %]</strong> |
           database: <strong>[% c.model('Golgi').database_name %]</strong>
           </p>

@@ -181,6 +181,36 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 qc_template_well_crispr_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_crispr_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellCrisprPrimer",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 qc_template_well_genotyping_primers
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer>
+
+=cut
+
+__PACKAGE__->has_many(
+  "qc_template_well_genotyping_primers",
+  "LIMS2::Model::Schema::Result::QcTemplateWellGenotypingPrimer",
+  { "foreign.qc_template_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 qc_template_well_recombinases
 
 Type: has_many
@@ -227,8 +257,8 @@ Composing rels: L</qc_template_well_recombinases> -> recombinase
 __PACKAGE__->many_to_many("recombinases", "qc_template_well_recombinases", "recombinase");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tuwqkWBGklY7gpGFObfS+w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SitxEnCSkBRIPvUvseN23g
 
 use JSON qw( decode_json );
 
@@ -248,6 +278,12 @@ sub design_id {
     my $self = shift;
 
     return $self->qc_eng_seq->design_id;
+}
+
+sub crispr_id {
+    my $self = shift;
+
+    return $self->qc_eng_seq->crispr_id;
 }
 
 __PACKAGE__->meta->make_immutable;

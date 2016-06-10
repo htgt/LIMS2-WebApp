@@ -2,7 +2,6 @@ package LIMS2::Model::Util::CreatePlate;
 
 use strict;
 use warnings FATAL => 'all';
-use feature "switch";
 
 use Sub::Exporter -setup => {
     exports => [
@@ -17,6 +16,9 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Model::Util qw( well_id_for );
 use List::MoreUtils qw( uniq );
 use LIMS2::Exception;
+use Data::Dumper;
+
+use LIMS2::Model::Constants qw( $MAX_CRISPR_GROUP_SIZE );
 
 sub pspec_create_plate_well {
     return {
@@ -44,7 +46,7 @@ sub create_plate_well {
     );
 
     # the remaining params are specific to the process
-    delete @{$params}{qw( well_name process_type accepted)};
+    delete @{$params}{qw( well_name process_type accepted )};
 
     $well_params{process_data} = $params;
     $well_params{process_data}{type} = $validated_params->{process_type};
@@ -56,9 +58,11 @@ sub create_plate_well {
 }
 
 sub pspec_find_parent_well_ids {
-    return {
+    my $pspec = {
         parent_plate         => { validate => 'plate_name', optional => 1 },
+        parent_plate_version => { validate => 'integer',    optional => 1 },
         parent_well          => { validate => 'well_name',  optional => 1 },
+        parent_well_id       => { validate => 'integer',    optional => 1 },
         xep_plate            => { validate => 'plate_name', optional => 1 },
         xep_well             => { validate => 'well_name',  optional => 1 },
         dna_plate            => { validate => 'plate_name', optional => 1 },
@@ -71,100 +75,53 @@ sub pspec_find_parent_well_ids {
         crispr_vector1_well  => { validate => 'well_name',  optional => 1 },
         crispr_vector2_plate => { validate => 'plate_name', optional => 1 },
         crispr_vector2_well  => { validate => 'well_name',  optional => 1 },
+        design_plate         => { validate => 'plate_name', optional => 1 },
+        design_well          => { validate => 'well_name',  optional => 1 },
+        crispr_plate         => { validate => 'plate_name', optional => 1 },
+        crispr_well          => { validate => 'well_name',  optional => 1 },
         DEPENDENCY_GROUPS    => { parent   => [qw( parent_plate parent_well )] },
         DEPENDENCY_GROUPS    => { vector   => [qw( vector_plate vector_well )] },
         DEPENDENCY_GROUPS    => { allele   => [qw( allele_plate allele_well )] },
     };
+
+    # Add fields for all posssible crispr_vector plate and well columns
+    my $num = 1;
+    while ($num <= $MAX_CRISPR_GROUP_SIZE){
+        my $plate = 'crispr_vector'.$num.'_plate';
+        my $well = 'crispr_vector'.$num.'_well';
+
+        $pspec->{$plate} = { validate => 'plate_name', optional => 1 };
+        $pspec->{$well} = { validate => 'well_name',  optional => 1 };
+        $num++;
+    }
+
+    return $pspec;
 }
 
 sub find_parent_well_ids {
     my ( $model, $params ) = @_;
 
-
     my $validated_params
         = $model->check_params( $params, pspec_find_parent_well_ids, ignore_unknown => 1 );
 
+    my %process_parents = (
+        'second_electroporation' => \&second_electroporation_parents,
+        'single_crispr_assembly' => \&single_crispr_assembly_parents,
+        'paired_crispr_assembly' => \&paired_crispr_assembly_parents,
+        'group_crispr_assembly'  => \&group_crispr_assembly_parents,
+        'oligo_assembly'         => \&oligo_assembly_parents,
+        'create_di'              => \&create_di_or_crispr_parents,
+        'create_crispr'          => \&create_di_or_crispr_parents,
+        'xep_pool'               => \&xep_pool_parents,
+        'other'                  => \&other_parents,
+    );
+
     my @parent_well_ids;
 
-    for ( $params->{process_type} ) {
-        when ( 'second_electroporation' ) {
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{xep_plate},
-                    well_name  => substr( $validated_params->{xep_well}, -3 )
-                }
-            );
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{dna_plate},
-                    well_name  => substr( $validated_params->{dna_well}, -3 )
-                }
-            );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-        }
-        when ( 'single_crispr_assembly' ) {
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{final_pick_plate},
-                    well_name  => substr( $validated_params->{final_pick_well}, -3 )
-                }
-            );
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{crispr_vector_plate},
-                    well_name  => substr( $validated_params->{crispr_vector_well}, -3 )
-                }
-            );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-        }
-        when ( 'paired_crispr_assembly' ) {
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{final_pick_plate},
-                    well_name  => substr( $validated_params->{final_pick_well}, -3 )
-                }
-            );
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{crispr_vector1_plate},
-                    well_name  => substr( $validated_params->{crispr_vector1_well}, -3 )
-                }
-            );
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{crispr_vector2_plate},
-                    well_name  => substr( $validated_params->{crispr_vector2_well}, -3 )
-                }
-            );
-            delete @{$params}{qw( xep_plate xep_plate dna_well dna_well )};
-        }
-        when ( 'create_di' ) {
-            return [];
-        }
-        when ( 'create_crispr' ) {
-            return [];
-        }
-        when ( 'xep_pool' ) {
-            foreach my $well_name ( @{$params->{'parent_well_list'}} ) {
-                push @parent_well_ids, well_id_for(
-                    $model, {
-                        plate_name => $validated_params->{'parent_plate'},
-                        well_name => $well_name
-                    }
-                );
-            }
-            delete @{$params}{'parent_well_list'};
-        }
-        default {
-            push @parent_well_ids, well_id_for(
-                $model, {
-                    plate_name => $validated_params->{parent_plate},
-                    well_name  => substr( $validated_params->{parent_well}, -3 )
-                }
-            );
-
-            delete @{$params}{qw( parent_plate parent_well )};
-        }
+    if (exists $process_parents{ $params->{process_type} } ) {
+        @parent_well_ids = $process_parents{ $params->{process_type} }->($model, $params);
+    } else {
+        @parent_well_ids = $process_parents{ 'other' }->($model, $params);
     }
 
     return \@parent_well_ids;
@@ -186,6 +143,179 @@ sub merge_plate_process_data {
         if exists $well_data->{recombinase};
 }
 ## use critic
+
+sub second_electroporation_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{xep_plate},
+            well_name  => substr( $params->{xep_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{dna_plate},
+            well_name  => substr( $params->{dna_well}, -3 )
+        }
+    );
+
+    return @parent_well_ids;
+}
+
+sub single_crispr_assembly_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{final_pick_plate},
+            well_name  => substr( $params->{final_pick_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{crispr_vector_plate},
+            well_name  => substr( $params->{crispr_vector_well}, -3 )
+        }
+    );
+
+    return @parent_well_ids;
+}
+
+sub paired_crispr_assembly_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{final_pick_plate},
+            well_name  => substr( $params->{final_pick_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{crispr_vector1_plate},
+            well_name  => substr( $params->{crispr_vector1_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{crispr_vector2_plate},
+            well_name  => substr( $params->{crispr_vector2_well}, -3 )
+        }
+    );
+
+    return @parent_well_ids;
+}
+
+sub group_crispr_assembly_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{final_pick_plate},
+            well_name  => substr( $params->{final_pick_well}, -3 )
+        }
+    );
+    my $num = 1;
+    while ($num <= $MAX_CRISPR_GROUP_SIZE){
+        my $plate = 'crispr_vector'.$num.'_plate';
+        my $well = 'crispr_vector'.$num.'_well';
+
+        $num++;
+
+        next unless ($params->{$plate} and $params->{$well});
+
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $params->{$plate},
+                well_name => substr( $params->{$well}, -3 )
+            }
+        );
+    }
+
+    return @parent_well_ids;
+}
+
+sub oligo_assembly_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{design_plate},
+            well_name  => substr( $params->{design_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{crispr_plate},
+            well_name  => substr( $params->{crispr_well}, -3 )
+        }
+    );
+
+    return @parent_well_ids;
+}
+
+sub xep_pool_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    foreach my $well_name ( @{$params->{'parent_well_list'}} ) {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $params->{'parent_plate'},
+                well_name => $well_name
+            }
+        );
+    }
+    delete @{$params}{'parent_well_list'};
+
+    return @parent_well_ids;
+}
+
+sub create_di_or_crispr_parents {
+    my ( $model, $params ) = @_;
+
+    return;
+}
+
+sub other_parents {
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    my $well_params = {};
+
+
+    if($params->{parent_well_id}){
+        $well_params = { id => $params->{parent_well_id} };
+    }
+    else{
+        $well_params = {
+            plate_name    => $params->{parent_plate},
+            plate_version => $params->{parent_plate_version},
+            well_name     => substr( $params->{parent_well}, -3 ),
+        };
+    }
+
+    push @parent_well_ids, well_id_for(
+        $model, $well_params,
+    );
+
+    delete @{$params}{qw( parent_plate parent_well parent_well_id )};
+
+    return @parent_well_ids;
+}
 
 1;
 

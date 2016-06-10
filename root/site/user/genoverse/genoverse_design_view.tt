@@ -1,0 +1,114 @@
+[% META title="Genoverse Gene Browser"; META tab_name = '' %]
+<div class="page-header">
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- context.design_id %]";
+</SCRIPT>
+  <small><h1>
+  Gene: [%- context.gene_symbol %]
+  Design: [%- context.design_id -%]
+  chr: [%- extent.chr_name -%]
+  assembly: [%- extent.assembly -%]
+  </small>
+  </h1>
+</div>
+
+
+<script type="text/javascript">
+
+var crispr_for_region_params = [
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
+];
+
+var crispr_pairs_for_region_params = [
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
+];
+
+var crispr_groups_for_region_params = [
+    "assembly_id=[%extent.assembly%]",
+    "species=[%c.session.selected_species%]"
+];
+
+var generic_designs_params = [
+    "assembly_id=[%extent.assembly%]",
+];
+
+</script>
+
+
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 2} )%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 5})%]"></script>
+    <script>
+      var genoverseConfig = {
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        width: $( document ).width(),
+        [% USE String(extent.assembly) %]
+        genome    : '[% String.lower() %]', // see js/genomes/
+        chr       : '[% extent.chr_name %]',
+        start     : [% extent.chr_start %] - 2000,  // 2Kb context
+        end       : [% extent.chr_end %] + 2000,
+        plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        tracks    : [
+          Genoverse.Track.Scalebar,
+          Genoverse.Track.SequenceSelect.extend({
+            name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% ELSE  %]
+            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]
+            resizable : 'auto',
+            100000    : false
+          }),
+          Genoverse.Track.DesignsLIMS2.extend({
+            name      : 'Designs',
+            url       : "[% c.uri_for('/api/generic_designs')%]" + build_uri_params( generic_designs_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            design_report_uri : "[%  c.uri_for('/user/view_design') %]"
+          }),
+          Genoverse.Track.CrisprPairs.LIMS2.extend({
+            name      : 'Crispr_pairs',
+            url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
+          }),
+          Genoverse.Track.CrisprGroupsLIMS2.extend({
+            name      : 'Crispr_groups',
+            url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
+            resizable : 'auto',
+            height    : 150,
+            group_report_uri : "[% c.uri_for('/user/crispr_group') %]"
+          }),
+          Genoverse.Track.Crisprs.LIMS2.extend({
+            name      : 'Crisprs',
+            url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
+            resizable : 'auto',
+            height    : 150,
+            crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
+          }),
+          Genoverse.Track.Genes.extend({
+            name   : 'Genes',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% ELSE %]
+            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% END %]
+            height : 200
+          })
+        ]
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.genoverse = new Genoverse(genoverseConfig);
+        // From WebApp-Common/shared_static
+        [% INCLUDE 'genoverse_mods/selector_size_display.tt' %]
+      });
+    </script>
+
+    <div id="genoverse"></div>

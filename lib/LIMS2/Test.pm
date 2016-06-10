@@ -148,7 +148,6 @@ sub _build_test_data {
 
 sub _build_fixture_data {
     my ( $class, $name, $args ) = @_;
-
     return sub {
         my ( $filename, %opts ) = @_;
         my $fixture_filename = file($filename);
@@ -187,7 +186,6 @@ sub _build_fixture_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ( $fixture_directory, $new );
-
     # Fixture data processing
     if ( $args->{classname} ) {
         # Fixture data is derived from the caller's classname, i.e
@@ -222,7 +220,6 @@ sub _build_model {
 
         # Reference data (part of every test)
         load_static_files( $model, $mech );
-
         # Finally load the test data
         if ( $new ) {
             # A complete set of csv files, to be loaded in a specific order
@@ -265,9 +262,12 @@ sub load_static_files {
             ColonyCountType
             CrisprPrimerType
             CrisprLociType
+            CrisprDamageType
             DesignCommentCategory
             DesignOligoType
             DesignType
+            DesignOligoAppend
+            DesignAppendAlias
             GeneType
             GenotypingPrimerType
             GenotypingResultType
@@ -285,6 +285,14 @@ sub load_static_files {
             BacLibrary
             SpeciesDefaultAssembly
             Sponsor
+            BarcodeState
+            CrisprTrackerRna
+            SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectTemplate
+            DnaTemplate
+
             )
     );
 
@@ -297,7 +305,6 @@ sub load_static_files {
 
 sub load_dynamic_files {
     my ( $model, $mech, $path ) = @_;
-
     # Default path
     $path ||= '/static/test/fixtures';
 
@@ -307,16 +314,16 @@ sub load_dynamic_files {
         qw(
             User
             UserRole
-            Design
-            DesignOligo
-            DesignOligoLocus
-            GeneDesign
             Crispr
             CrisprOffTargets
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
-            CrisprDesign
+            Design
+            DesignOligo
+            DesignOligoLocus
+            GeneDesign
+            Experiment
             BacClone
             BacCloneLocus
             Process
@@ -329,6 +336,7 @@ sub load_dynamic_files {
             ProcessCrispr
             ProcessNuclease
             ProcessGlobalArmShorteningDesign
+            ProcessCrisprTrackerRna
             Plate
             Well
             ProcessInputWell
@@ -336,6 +344,12 @@ sub load_dynamic_files {
             ProcessDesign
             ProcessRecombinase
             Project
+            ProjectSponsor
+            Summary
+            CrisprEsQcRuns
+            CrisprEsQcWell
+            CrisprPlateAppendsType
+            CrisprPlateAppends
         )
     );
 
@@ -419,7 +433,6 @@ sub load_files {
 
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
-
     my $mech = mech();
     my $dir = $args->{dir} || '/static/test/fixtures';
     $mech->get($dir);

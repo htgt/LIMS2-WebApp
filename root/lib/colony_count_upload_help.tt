@@ -1,15 +1,15 @@
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Colony Count Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Colony Count Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to add colony counts to a well, using either well data from a csv file, or updating a well through the form.
         </p>
@@ -29,7 +29,12 @@
         </div>
 
         <div class="well">
-          <h6>Csv file</h6>
+          <h6>CSV file</h6>
+          <p>
+            <a href="[% c.uri_for( '/static/files/cells/update_colony_counts.csv' ) %]">
+                <i class="glyphicon glyphicon-download"></i> Download
+            </a>
+          </p>
           <p>
             Ensure the csv file has the following compulsory fields.
           </p>
@@ -42,8 +47,15 @@
               <dd>Enter the number of counts</dd>
               <dt>picked_colonies</dt>
               <dd>Enter the number of counts</dd>
-              <dt>remaining_unstained<br>_colonies</dt>
-              <dd><br>Enter the number of counts</dd>
+            </dl>
+          <p>
+            The additional fields can be filled if appropriate counts exist.
+          </p>
+            <dl class="dl-horizontal">
+              <dt>remaining_stained_colonies</dt>
+              <dd>Enter the number of counts</dd>
+              <dt>remaining_unstained_colonies</dt>
+              <dd>Enter the number of counts</dd>
             </dl>
           <p>
             Note! The column names must match the above ones.

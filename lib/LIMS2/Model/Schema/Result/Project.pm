@@ -45,17 +45,6 @@ __PACKAGE__->table("projects");
   is_nullable: 0
   sequence: 'projects_id_seq'
 
-=head2 sponsor_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 allele_request
-
-  data_type: 'text'
-  is_nullable: 0
-
 =head2 gene_id
 
   data_type: 'text'
@@ -77,6 +66,35 @@ __PACKAGE__->table("projects");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 effort_concluded
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 recovery_comment
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 recovery_class_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 targeting_profile_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 cell_line_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -87,10 +105,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "projects_id_seq",
   },
-  "sponsor_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "allele_request",
-  { data_type => "text", is_nullable => 0 },
   "gene_id",
   { data_type => "text", is_nullable => 1 },
   "targeting_type",
@@ -99,6 +113,16 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "htgt_project_id",
   { data_type => "integer", is_nullable => 1 },
+  "effort_concluded",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "recovery_comment",
+  { data_type => "text", is_nullable => 1 },
+  "recovery_class_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "targeting_profile_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "cell_line_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -115,11 +139,9 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<sponsor_gene_type_species_key>
+=head2 C<gene_type_species_profile_key>
 
 =over 4
-
-=item * L</sponsor_id>
 
 =item * L</gene_id>
 
@@ -127,51 +149,175 @@ __PACKAGE__->set_primary_key("id");
 
 =item * L</species_id>
 
+=item * L</targeting_profile_id>
+
 =back
 
 =cut
 
 __PACKAGE__->add_unique_constraint(
-  "sponsor_gene_type_species_key",
-  ["sponsor_id", "gene_id", "targeting_type", "species_id"],
+  "gene_type_species_profile_key",
+  [
+    "gene_id",
+    "targeting_type",
+    "species_id",
+    "targeting_profile_id",
+  ],
 );
 
 =head1 RELATIONS
 
-=head2 project_alleles
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectAllele>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_alleles",
-  "LIMS2::Model::Schema::Result::ProjectAllele",
-  { "foreign.project_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 sponsor
+=head2 cell_line
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Sponsor>
+Related object: L<LIMS2::Model::Schema::Result::CellLine>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "sponsor",
-  "LIMS2::Model::Schema::Result::Sponsor",
-  { id => "sponsor_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  "cell_line",
+  "LIMS2::Model::Schema::Result::CellLine",
+  { id => "cell_line_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 project_sponsors
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_sponsors",
+  "LIMS2::Model::Schema::Result::ProjectSponsor",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 recovery_class
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectRecoveryClass>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "recovery_class",
+  "LIMS2::Model::Schema::Result::ProjectRecoveryClass",
+  { id => "recovery_class_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+=head2 targeting_profile
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::TargetingProfile>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "targeting_profile",
+  "LIMS2::Model::Schema::Result::TargetingProfile",
+  { id => "targeting_profile_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-02-07 16:49:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NWx1GMZQcu6KlFq2s3dSaA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 11:09:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A/NJuU/3iM+F6vxZqf4auA
 
+__PACKAGE__->many_to_many(
+    sponsors => 'project_sponsors',
+    'sponsor',
+);
+
+sub as_hash {
+    my $self = shift;
+
+    my @sponsors = $self->sponsor_ids;
+
+    return {
+          "id"                => $self->id,
+          "gene_id"           => $self->gene_id,
+          "targeting_type"    => $self->targeting_type,
+          "targeting_profile_id" => $self->targeting_profile_id,
+          "species_id"        => $self->species_id,
+          "htgt_project_id"   => $self->htgt_project_id,
+          "effort_concluded"  => $self->effort_concluded,
+          "recovery_class"    => $self->recovery_class_name,
+          "recovery_comment"  => $self->recovery_comment,
+          "priority"          => $self->priority,
+          "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
+          "sponsors"          => join "/", @sponsors,
+    }
+}
+
+sub priority{
+    my ($self,$sponsor) = @_;
+
+    # For specified sponsor
+    if($sponsor){
+        my ($project_sponsor) = $self->search_related('project_sponsors',{ sponsor_id => $sponsor });
+        my $priority = $project_sponsor ? $project_sponsor->priority : undef;
+        return $priority;
+    }
+
+    # Or string showing priorites for all sponsors
+    my @priority_strings;
+    foreach my $project_sponsor($self->project_sponsors){
+        next unless $project_sponsor->priority;
+        push @priority_strings, $project_sponsor->sponsor_id.": ".$project_sponsor->priority;
+    }
+    my $string = join "; ", @priority_strings;
+    return $string;
+}
+
+sub recovery_class_name {
+    my $self = shift;
+
+    return $self->recovery_class ? $self->recovery_class->name : undef;
+}
+
+sub sponsor_ids{
+    my $self = shift;
+
+    my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
+    my @sorted = sort @sponsors;
+    return @sorted;
+}
+
+# removed direct link between experiments and projects so recreate
+# the relationship using shared gene_id
+sub experiments{
+    my $self = shift;
+
+    my @experiments = $self->result_source->schema->resultset('Experiment')->search({
+        gene_id => $self->gene_id,
+        deleted => 0,
+    });
+
+    return @experiments;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -97,6 +97,11 @@ __PACKAGE__->table("plates");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 version
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -130,6 +135,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "sponsor_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "version",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -146,19 +153,51 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
 
-=head2 C<plates_name_key>
+=head2 C<plates_name_version_key>
 
 =over 4
 
 =item * L</name>
 
+=item * L</version>
+
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("plates_name_key", ["name"]);
+__PACKAGE__->add_unique_constraint("plates_name_version_key", ["name", "version"]);
 
 =head1 RELATIONS
+
+=head2 barcode_events_new_plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_new_plates",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.new_plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 barcode_events_old_plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+
+=cut
+
+__PACKAGE__->has_many(
+  "barcode_events_old_plates",
+  "LIMS2::Model::Schema::Result::BarcodeEvent",
+  { "foreign.old_plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 created_by
 
@@ -173,6 +212,21 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 crispr_plate_append
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprPlateAppend>
+
+=cut
+
+__PACKAGE__->might_have(
+  "crispr_plate_append",
+  "LIMS2::Model::Schema::Result::CrisprPlateAppend",
+  { "foreign.plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 plate_comments
@@ -256,24 +310,32 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-21 10:03:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OfsVGCbzXEf/u17IzAJlmw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FwSGsovECFvj2EVxMP3SPw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 use overload '""' => \&as_string;
+use List::MoreUtils qw(any);
 
 sub as_string {
     my $self = shift;
 
-    return $self->name;
+    my $name = $self->name;
+
+    if($self->version){
+        $name = sprintf( '%s(v%s)', $self->name, $self->version);
+    }
+
+    return $name;
 }
 
 sub as_hash {
     my $self = shift;
 
     return {
+        id          => $self->id,
         name        => $self->name,
         description => $self->description,
         type        => $self->type_id,
@@ -287,7 +349,7 @@ sub has_child_wells {
     my $self = shift;
 
     for my $well ( $self->wells ) {
-        return 1 if $well->input_processes > 0;
+        return 1 if $well->process_input_wells > 0;
     }
 
     return;
@@ -295,7 +357,6 @@ sub has_child_wells {
 
 sub parent_plates_by_process_type{
 	my $self = shift;
-
 	my $parents;
 
 	for my $well ( $self->wells ){
@@ -310,6 +371,24 @@ sub parent_plates_by_process_type{
 	}
 
 	return $parents;
+}
+
+sub parent_names {
+    my $self = shift;
+    my @ancestors;
+    for my $well ( $self->wells ){
+	    foreach my $process ($well->parent_processes){
+	    	foreach my $input ($process->input_wells){
+                my $plate = {
+                    name => $input->plate_name,
+                    type_id => $input->plate_type,
+                };
+                push (@ancestors, $plate);
+	        }
+	    }
+	}
+
+    return \@ancestors;
 }
 
 sub child_plates_by_process_type{
@@ -331,5 +410,33 @@ sub child_plates_by_process_type{
 	return $children;
 }
 
+sub number_of_wells {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      $count += 1;
+    }
+
+    return $count;
+}
+
+sub number_of_wells_with_barcodes {
+    my $self = shift;
+
+    my $count = 0;
+    for my $well ( $self->wells ){
+      if( $well->barcode ) {
+        $count += 1;
+      }
+    }
+
+    return $count;
+}
+
+sub has_global_arm_shortened_designs{
+    my $self = shift;
+    return any { $_->global_arm_shortened_design } $self->wells;
+}
 __PACKAGE__->meta->make_immutable;
 1;
