@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.404     2016-06-10 09:45:56 Europe/London
+
+    Implemented method to get wells from crispr ID
+
 0.403     2016-06-07 14:21:52 Europe/London
 
    Modified Crispr ES QC to use blat for alignment instead of BWA
