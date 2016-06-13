@@ -135,13 +135,15 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     my $lims = $c->request->param('lims_checkbox');
 
     my $announcement = $c->model('Golgi')->create_message(
-        message         => $message,
-        expiry_date     => $expiry_date,
-        created_date    => $created_date,
-        priority        => $priority,
-        wge             => $wge,
-        htgt            => $htgt,
-        lims            => $lims,
+        {
+            message         => $message,
+            expiry_date     => $expiry_date,
+            created_date    => $created_date,
+            priority        => $priority,
+            wge             => $wge,
+            htgt            => $htgt,
+            lims            => $lims,
+        }
     );
 use Smart::Comments;
 

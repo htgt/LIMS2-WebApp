@@ -125,12 +125,12 @@ sub create_message {
     my @message = $self->schema->resultset('Message')->create(
         {
             message         => $params->{message},
-            expiry_date     => $params->expiry_date,
-            created_date    => $params->created_date,
-            priority        => $params->priority,
-            wge             => $params->wge,
-            htgt            => $params->htgt,
-            lims            => $params->lims,
+            expiry_date     => $params->{expiry_date},
+            created_date    => $params->{created_date},
+            priority        => $params->{priority},
+            wge             => $params->{wge},
+            htgt            => $params->{htgt},
+            lims            => $params->{lims},
         }
     );
 
