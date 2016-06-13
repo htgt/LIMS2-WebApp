@@ -90,52 +90,52 @@ sub list_messages {
     return \@messages;
 }
 
-# sub list_apps {
-#     my ($self) = @_;
+sub list_priority {
+    my ($self) = @_;
 
-#     my @apps = $self->schema->resultset('Message')->search(
-#         {},
-#         {
-#             columns     => [ 'wge', 'lims', 'htgt' ]
-#         }
-#     );
+    my @priority = $self->schema->resultset('Priority')->search(
+        {},
+        {}
+    );
 
-#     return @apps;
-# }
-
-# sub list_priority {
-#     my ($schema) = @_;
-
-#     my @priority = $schema->resultset('Priority')->search(
-#         {},
-#         {}
-#     );
-
-#     return @priority;
-# }
+    return \@priority;
+}
 
 # sub pspec_create_message {
 #     return {
-#         message         => { validate => 'non_empty_string' },
-#         expiry_date     => { validate => 'non_empty_string' }
+#         message         => { validate   => 'non_empty_string' },
+#         expiry_date     => { validate   => 'non_empty_string' },
+#         created_date    => { validate   => '' }
+#         priority        => { validate   => 'existing_priority' },
+#         wge             => { validate   => ''}
+#         htgt            =>
+#         lims            =>
 #     };
 # }
 
-# sub create_message {
-#     my ( $self, $params ) = @_;
+sub create_message {
+    my ( $self, $params ) = @_;
 
-#     my $validated_params = $self->check_params( $params, $self->pspec_create_message );
+    #my $validated_params = $self->check_params( $params, $self->pspec_create_message );
 
-#     my $message = $self->schema->resultset('Message')->create(
-#         {
-#             message         => $validated_params->{message},
-#             created_date    => datetime->now,
-#             expiry_date     =>
-#         }
-#     );
+    use Smart::Comments;
+    foreach (@_) {
+    ### $params
+}
+    my @message = $self->schema->resultset('Message')->create(
+        {
+            message         => $params->{message},
+            expiry_date     => $params->expiry_date,
+            created_date    => $params->created_date,
+            priority        => $params->priority,
+            wge             => $params->wge,
+            htgt            => $params->htgt,
+            lims            => $params->lims,
+        }
+    );
 
-#     return $message;
-# }
+    return \@message;
+}
 
 sub pspec_create_user {
     return {

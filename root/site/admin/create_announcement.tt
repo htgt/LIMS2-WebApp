@@ -5,10 +5,10 @@
 </div>
 
 <div>
-  <form method="POST" action="[% c.uri_for( '/admin/create_user' ) %]" name="create_user_form" class="well">
+  <form method="POST" action="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" name="create_announcement_form" class="well">
     <label for="message_field">Message field</label><br>
     <fieldset>
-    <textarea name="Message" id="message_field" value= "[% message_field %]" rows="6" cols="60">
+    <textarea name="message" id="message_field" value= "[% message_field %]" rows="6" cols="60">
     </textarea>
     <br><br>
     <label for="expiry_datetime">Expiry date</label><br>
@@ -16,7 +16,7 @@
     <br><br>
     <label for="priority">Priority</label>
     [%- FOR p IN priorities %]
-      <br>&#160;<input type="checkbox" name="priority" value="[% p.id %]"> [% p.id.ucfirst %]</input>
+      <br>&#160;<input type="radio" name="priority" value="[% p.id %]"> [% p.id.ucfirst %]</input>
     [% END %]
     <br>
     <br>&#160;<input type="checkbox" name="wge_checkbox" value="WGE">WGE</input>

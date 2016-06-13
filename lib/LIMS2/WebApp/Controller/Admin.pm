@@ -1,12 +1,8 @@
 package LIMS2::WebApp::Controller::Admin;
 
-# use LIMS2::Model::Plugin::User qw( list_messages );
-
 use Moose;
 use TryCatch;
 use namespace::autoclean;
-
-
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -103,14 +99,10 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 
 sub announcements : Path( '/admin/announcements' ) : Args(0) {
     my ( $self, $c ) = @_;
-use Smart::Comments;
-
-    # my @messages = LIMS2::Model::Plugin::User::list_messages( $c->model('Golgi')->schema );
 
     my $messages = $c->model('Golgi')->list_messages();
 
-my $message_hash = [ map { $_->as_hash } @{$messages} ];
-### $message_hash
+
 
     $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
@@ -123,25 +115,41 @@ my $message_hash = [ map { $_->as_hash } @{$messages} ];
 
 =cut
 
-# sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
-#     my ( $self, $c ) = @_;
+sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
+    my ( $self, $c ) = @_;
 
-#     my @priority = LIMS2::Model::Plugin::User::list_priority($c->model('Golgi')->schema );
+#use Smart::Comments;
 
-# #use Smart::Comments;
+    $c->stash(
+        priorities    => $c->model('Golgi')->list_priority(),
+    );
 
-#     $c->stash(
-#         priorities    => \@priority,
-#         apps         => $c->model('Golgi')->list_apps,
-#     );
+    return unless $c->request->method eq 'POST';
 
-#     return unless $c->request->method eq 'POST';
+    my $message = $c->request->param('message');
+    my $expiry_date = $c->request->param('expiry_datetime');
+    my $created_date = DateTime->now(time_zone=>'local');
+    my $priority = $c->request->param('priority');
+    my $wge = $c->request->param('wge_checkbox');
+    my $htgt = $c->request->param('htgt_checkbox');
+    my $lims = $c->request->param('lims_checkbox');
 
+    my $announcement = $c->model('Golgi')->create_message(
+        message         => $message,
+        expiry_date     => $expiry_date,
+        created_date    => $created_date,
+        priority        => $priority,
+        wge             => $wge,
+        htgt            => $htgt,
+        lims            => $lims,
+    );
+use Smart::Comments;
 
+my $announcement_hash = @{$announcement}->as_hash;
+    ### $announcement_hash
 
-
-#     return;
-# }
+    return;
+}
 
 =head2 update_user
 
