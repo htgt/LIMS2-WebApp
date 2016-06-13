@@ -1,7 +1,12 @@
 package LIMS2::WebApp::Controller::Admin;
+
+use LIMS2::Model::Plugin::User qw( list_messages );
+
 use Moose;
 use TryCatch;
 use namespace::autoclean;
+
+
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -99,13 +104,38 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 sub announcements : Path( '/admin/announcements' ) : Args(0) {
     my ( $self, $c ) = @_;
 
+    my @messages = LIMS2::Model::Plugin::User::list_messages( $c->model('Golgi')->schema );
 
-    $c->stash ( messages => $c->model('Golgi')->list_messages );
+    $c->stash ( messages => [ map { $_->as_hash } @messages ]);
 
     return unless $c->request->method eq 'POST';
 
     return $c->response->redirect( $c->uri_for('/admin') );
 }
+
+=head2 create_announcement
+
+=cut
+
+# sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
+#     my ( $self, $c ) = @_;
+
+#     my @priority = LIMS2::Model::Plugin::User::list_priority($c->model('Golgi')->schema );
+
+# #use Smart::Comments;
+
+#     $c->stash(
+#         priorities    => \@priority,
+#         apps         => $c->model('Golgi')->list_apps,
+#     );
+
+#     return unless $c->request->method eq 'POST';
+
+
+
+
+#     return;
+# }
 
 =head2 update_user
 

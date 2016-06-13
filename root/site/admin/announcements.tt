@@ -4,7 +4,7 @@
     <h1>Announcements</h1>
 </div>
 
-<a href="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" class="btn btn-primary">Create Announcements</a><br><br>
+<a href="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" class="btn btn-primary">Create Announcement</a><br><br>
 
 
 
@@ -18,14 +18,16 @@
         				<th>Message</th>
         				<th>Created on</th>
         				<th>Expires on</th>
+        				<th>Priority</th>
       				</tr>
     			</thead>
     			<tbody>
       			[%- FOR message IN messages %]
       				<tr>
         				<td>[% message.message %]</td>
-        				<td><date> [% message.created_date.ymd %]</date></td>
-        				<td><date> [% message.expiry_date.ymd %]</date></td>
+        				<td><date> [% message.created %]</date></td>
+        				<td><date> [% message.expiry %]</date></td>
+        				<td>[% message.priority %]</td>
       				</tr>
       				[% END %]
     			</tbody>

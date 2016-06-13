@@ -3,12 +3,17 @@ package LIMS2::Model::Plugin::User;
 use strict;
 use warnings FATAL => 'all';
 
+use Sub::Exporter -setup => {
+    exports => [ 'list_messages' ]
+};
+
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;
 use Crypt::SaltedHash;
 use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
+
 
 requires qw( schema check_params throw retrieve );
 
@@ -73,12 +78,64 @@ sub list_roles {
 }
 
 sub list_messages {
-    my ($self) = @_;
+    my ($schema) = @_;
 
-    my @messages = $self->schema->resultset('Message')->search( {}, { order_by => { -asc => 'me.expiry_date' } } );
+    my @messages = $schema->resultset('Message')->search(
+        {},
+        {
+            order_by    => { -asc => 'me.priority' }
+        }
+    );
 
-    return \@messages;
+    return @messages;
 }
+
+# sub list_apps {
+#     my ($self) = @_;
+
+#     my @apps = $self->schema->resultset('Message')->search(
+#         {},
+#         {
+#             columns     => [ 'wge', 'lims', 'htgt' ]
+#         }
+#     );
+
+#     return @apps;
+# }
+
+# sub list_priority {
+#     my ($schema) = @_;
+
+#     my @priority = $schema->resultset('Priority')->search(
+#         {},
+#         {}
+#     );
+
+#     return @priority;
+# }
+
+# sub pspec_create_message {
+#     return {
+#         message         => { validate => 'non_empty_string' },
+#         expiry_date     => { validate => 'non_empty_string' }
+#     };
+# }
+
+# sub create_message {
+#     my ( $self, $params ) = @_;
+
+#     my $validated_params = $self->check_params( $params, $self->pspec_create_message );
+
+#     my $message = $self->schema->resultset('Message')->create(
+#         {
+#             message         => $validated_params->{message},
+#             created_date    => datetime->now,
+#             expiry_date     =>
+#         }
+#     );
+
+#     return $message;
+# }
 
 sub pspec_create_user {
     return {
@@ -273,11 +330,4 @@ sub change_user_password {
     my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{new_password} );
 
-    $user->update( { password => $csh->generate } );
-
-    return $user;
-}
-
-1;
-
-__END__
+    $user->upda

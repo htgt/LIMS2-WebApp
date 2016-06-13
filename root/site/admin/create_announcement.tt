@@ -1,0 +1,30 @@
+[% META title = 'LIMS2 - Create Announcement'; META tab_name = "Admin" -%]
+
+<div class="page-header">
+    <h1>Create Announcement</h1>
+</div>
+
+<div>
+  <form method="POST" action="[% c.uri_for( '/admin/create_user' ) %]" name="create_user_form" class="well">
+    <label for="message_field">Message field</label><br>
+    <fieldset>
+    <textarea name="Message" id="message_field" value= "[% message_field %]" rows="6" cols="60">
+    </textarea>
+    <br><br>
+    <label for="expiry_datetime">Expiry date</label><br>
+    <input type="datetime-local" name="expiry_datetime">
+    <br><br>
+    <label for="priority">Priority</label>
+    [%- FOR p IN priorities %]
+      <br>&#160;<input type="checkbox" name="priority" value="[% p.id %]"> [% p.id.ucfirst %]</input>
+    [% END %]
+    <br>
+    <br>&#160;<input type="checkbox" name="wge_checkbox" value="WGE">WGE</input>
+    &#160;<input type="checkbox" name="lims_checkbox" value="LIMS">LIMS</input>
+    &#160;<input type="checkbox" name="htgt_checkbox" value="HTGT">HTGT</input><br>
+    <br>
+    </fieldset>
+    <a href="[% c.uri_for( '/admin/announcements' ) %]" class="btn btn-info">Cancel</a>
+    <input class="btn btn-primary" name="create_announcement" id="create_announcement_button" type="submit" value="Create Announcement" />
+  </form>
+</div>
