@@ -106,19 +106,19 @@
 <h3>Custom Spreadsheet</h3>
 <div class="row">
   <label class="col-md-1" for="sub">Sub-project: </label>
-<div class="col-md-1 form-group">
-  <select class="form-control" id="sub">
-  [% SET sub_counter = 0 %]
-  [% WHILE sub_counter < seq_project.sub_projects %]
-    [% sub_counter = sub_counter + 1 %]
-    <option>[% sub_counter %]</option>
-  [% END %]
-  </select>
-</div>
+  <div class="col-md-1 form-group">
+    <select class="form-control" id="sub">
+    [% SET sub_counter = 0 %]
+    [% WHILE sub_counter < seq_project.sub_projects %]
+      [% sub_counter = sub_counter + 1 %]
+      <option>[% sub_counter %]</option>
+    [% END %]
+    </select>
+  </div>
 
-<button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-customModal btn btn-primary" href="#customModal">
+  <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-customModal btn btn-primary" href="#customModal">
     <i class="glyphicon glyphicon-download"></i> Customise [% seq_project.name %]
-</button>
+  </button>
 </div>
 
 <h3>Standard Spreadsheet</h3>
@@ -189,9 +189,40 @@
     [% END %]
   [% END %]
 [% END %]
-
 </table>
 
+<h3>Paired Spreadsheet</h3>
+<div class="row">
+  <label class="col-md-1" for="pairSub">Sub-project: </label>
+  <div class="col-md-1 form-group">
+    <select class="form-control" id="pairSub">
+    [% SET sub_counter = 0 %]
+    [% WHILE sub_counter < seq_project.sub_projects %]
+      [% sub_counter = sub_counter + 1 %]
+      <option>[% sub_counter %]</option>
+    [% END %]
+    </select>
+  </div>
+  <div class="col-md-2 form-group">
+    <select class="pair form-control" id="pair1">
+      <option>-</option>
+    [% FOREACH primer IN primer_list %]
+      <option>[% primer %]</option>
+    [% END %]
+    </select>
+  </div>
+  <div class="col-md-2 form-group">
+    <select class="pair form-control" id="pair2">
+      <option>-</option>
+    [% FOREACH primer IN primer_list %]
+      <option>[% primer %]</option>
+    [% END %]
+    </select>
+  </div>
+  <button type="button" class="btn btn-primary" id="pairButton" onclick=retrievePairFile();>
+    <i class="glyphicon glyphicon-download"></i> Pair Download
+  </button>
+</div>
 
 <div class="modal fade" role="dialog" aria-labelledby="basicModal" aria-hidden="true" id="primerModal">
   <div class="modal-dialog">
@@ -205,10 +236,10 @@
         <p hidden id="modalAdj"></p>
         <p align="center">How will you send the samples?</p>
         <div align="center">
-          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('1');>
+          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieveFile('1');>
             <i class="glyphicon glyphicon-download"></i> Premixed
           </button>
-          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('0');>
+          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieveFile('0');>
             <i class="glyphicon glyphicon-download"></i> Eurofins to add primers
           </button>
         </div>
@@ -232,7 +263,7 @@
             [% SET count = count + 1 %]
           [% END %]
           <p>Choose a primer then drag and select the rows containing that primer.</p>
-          <ul class="list-group" id="list_rows">
+          <ul class="list-group" id="listRows">
             [% SET count = 0 %]
             [% FOREACH a IN ['A','B','C','D','E','F','G','H'] %]
               <li class="list-group-item" id="[% count %]">Empty - Row [% a %]</li>
@@ -243,7 +274,7 @@
       </div>
       <div class="modal-footer">
           <button class="col-md-offset-1 btn btn-danger" onclick=clearPlate();>Clear all</button>
-          <button class="btn btn-default" onclick=quit_modal();><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
+          <button class="btn btn-default" onclick=quitModal();><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
           <button class="btn btn-primary" onclick=customSheet();><i class="glyphicon glyphicon-download"></i> Download</button>
       </div>
     </div>
@@ -259,6 +290,7 @@ var letters = ['A','B','C','D','E','F','G','H'];
 
 $(document).ready(function () {
     var id = '[% seq_project.id %]';
+    $('#pairButton').prop('disabled', true);
     $('.primers').each(function(index) {
         primers.push($('.primers')[index].innerText);
     });
@@ -270,7 +302,7 @@ $(document).on("click", ".open-primerModal", function () {
     var adj = $(this).data('adjustment');
     var primer = $(this).data('primer');
     var title = name + " - " + adj + " : " + primer; 
-    console.log(title);
+
     document.getElementById("modalTitle").innerHTML = title;
     document.getElementById("modalAdj").innerHTML = adj;
     document.getElementById("modalPrimer").innerHTML = primer;
@@ -283,6 +315,30 @@ $(document).on("click", ".primers", function() {
     selection['primer'] = name;
     selection['colour'] = colour;
 });
+
+$(".pair").change(function() { 
+    firstPrimer = $("#pair1 option:selected").text();
+    secondPrimer = $("#pair2 option:selected").text();
+    if (firstPrimer == '-' || secondPrimer == '-') {
+        $('#pairButton').prop('disabled', true);
+        changePairColours('#FFCCCC');
+    }
+    else {
+        if (firstPrimer == secondPrimer) {
+            $('#pairButton').prop('disabled', true);
+            changePairColours('#FFCCCC');
+        }
+        else {
+            $('#pairButton').prop('disabled', false);
+            changePairColours('transparent');
+        }
+    }
+});
+
+function changePairColours(colour) {
+    $('#pair1').css('background-color',colour);
+    $('#pair2').css('background-color',colour);
+}
 
 $(function () {
     var isMouseDown = false;
@@ -313,7 +369,7 @@ function updateText(focus) {
     for (var count = 0; count < primers.length; count++) {
         primerCounts[primers[count]] = 0;
     }
-    $('#list_rows').children().each(function(index) {
+    $('#listRows').children().each(function(index) {
         if (typeof tracker[index] != 'undefined') {
             var num = primerCounts[tracker[index]];
             $(this).text(tracker[index] + " - Row " + letters[num]);
@@ -324,7 +380,7 @@ function updateText(focus) {
 }
 
 function clearPlate() {
-    $('#list_rows').children().each(function(index) {
+    $('#listRows').children().each(function(index) {
         $(this).text("Empty - Row " + letters[index]);
         $(this).css('background-color','transparent');
         tracker = [];
@@ -372,22 +428,36 @@ function customSheet() {
     $('#customModal').modal('hide');
 }
 
-function quit_modal() {
+function quitModal() {
     clearPlate();
     $('#customModal').modal('hide');
 }
 
-function retrieve_file(flag) {
+function retrieveFile(flag) {
     var primer = document.getElementById("modalPrimer").innerHTML;
     var sub = document.getElementById("modalAdj").innerHTML;
-    console.log("reached");
+    
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
     var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub=' + sub + '&mix=' + flag);
-    console.log(link);
 
     OpenInNewTab(link);
     $('#primerModal').modal('hide');
+}
+
+function retrievePairFile(){
+    var sub = document.getElementById('pairSub').value;
+    var primers = [];
+
+    primers.push($('#pair1 option:selected').text());
+    primers.push($('#pair2 option:selected').text());
+
+    var half = '[% c.uri_for('/api/pair_project/') %]';
+    var id = '[% seq_project.id %]';
+    var link =  half + encodeURI('?seq_id=' + id + '&primers=' + primers + '&sub=' + sub);
+    console.log(link);
+
+    OpenInNewTab(link);
 }
 
 function OpenInNewTab(url) {

@@ -3,7 +3,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [qw( build_seq_data build_xlsx_file)]
+    exports => [qw( build_seq_data build_xlsx_file custom_sheet)]
 };
 
 use Moose;
@@ -95,6 +95,7 @@ sub generate_rows {
     }
     return @data;
 }
+
 sub custom_row {
     my ($letter,  $layout) = @_;
     my @primers = keys(%{$layout});
@@ -162,28 +163,42 @@ sub construct_row {
             return $row;
         }
         $well = to384('_' . $quad, $qcwell);
-
-        if ($seq_project->{primer_flag} == 1){
-            $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
+        if (ref $primer_req eq 'ARRAY') {
+            $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k';
         } else {
-            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k';
+            $sample = $seq_project->{name} . '_' . $sample_no . $qcwell . '.p1k' . $primer_req;
         }
     }
     else {
         $well = $letter . $well_number;
-        if ($seq_project->{primer_flag} == 1){
-            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
-        } else {
+        if (ref $primer_req eq 'ARRAY') {
             $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k';
+        } else {
+            $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $primer_req;
         }
     }
     #Lowercase letter and single digit wells include leading zero so a01, a02. Required format for qc
     #e.g. Marshmallow_1a01.p1kLR
-    $row = ({
-        'well'          => $well,
-        'sample_name'   => $sample,
-        'primer_name'   => $primer_name,
-    });
+    if (ref $primer_req eq 'ARRAY') {
+        my @primers = @{$primer_req};
+        $row = ({
+            'well'          => $well,
+            'sample_name'   => $sample,
+            'primer_name'   => $primers[0],
+            'seq'           => '',
+            'second_primer' => $primers[1],
+            'second_seq'    => '',
+        });
+    } else {
+        $row = ({
+            'well'          => $well,
+            'sample_name'   => $sample,
+            'primer_name'   => $primer_name,
+            'seq'           => '',
+            'second_primer' => '',
+            'second_seq'    => '',
+        });
+    }
     return $row;
 }
 
@@ -192,6 +207,7 @@ sub build_xlsx_file {
     my ($wells, $primer_name, $sub_num, $seq_project) = @_;
     my $file_name;
     my @data;
+
     if (ref $primer_name eq 'ARRAY') {
         #Custom file - multiple primers
         my $suffix = "";
@@ -206,6 +222,7 @@ sub build_xlsx_file {
         $file_name = $seq_project . '_' . $sub_num . '_' . $suffix . '.xlsx';
         @data = @{$wells};
     }
+
     else {
         my $project = $wells->{project_data};
 
@@ -226,6 +243,7 @@ sub build_xlsx_file {
         }
         @data = @{$wells->{data}};
     }
+
     #Write file to temp loction
     my $dir = dir_build($file_name);
     setup_spreadsheet($dir, @data);
@@ -246,7 +264,7 @@ sub setup_spreadsheet {
     #Write generated data to file
     my $row_number = 2;
     foreach my $well (@data){
-        my @row = ($well->{well}, $well->{sample_name}, $well->{primer_name});
+        my @row = ($well->{well}, $well->{sample_name}, $well->{primer_name}, $well->{seq}, $well->{second_primer}, $well->{second_seq});
         $worksheet->write_row('A' . $row_number, \@row);
         $row_number++;
     }
@@ -268,6 +286,28 @@ sub custom_sheet {
 
     my @data = generate_rows($name, $sub, $wells, 1);
     my $file_name = build_xlsx_file(\@data, \@primers, $sub, $name);
+    my $dir = dir_build($file_name);
+    my $body = read_file( $dir, {binmode => ':raw'} );
+
+    my $file_contents = ({
+        body    => $body,
+        name    => $file_name,
+    });
+
+    return $file_contents;
+}
+
+sub pair_sheet {
+    my ($self, $c, $id, $sub, @primers) = @_;
+    my $seq_project = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->schema->resultset('SequencingProject')->find( { id => $id } )->{_column_data};
+        }
+    );
+    $seq_project->{primer_flag} = 0;
+    my @data = generate_rows($seq_project, $sub, \@primers);
+
+    my $file_name = build_xlsx_file(\@data, \@primers, $sub, $seq_project->{name});
     my $dir = dir_build($file_name);
     my $body = read_file( $dir, {binmode => ':raw'} );
 
