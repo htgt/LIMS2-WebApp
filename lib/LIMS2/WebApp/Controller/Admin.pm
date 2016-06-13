@@ -1,6 +1,6 @@
 package LIMS2::WebApp::Controller::Admin;
 
-use LIMS2::Model::Plugin::User qw( list_messages );
+# use LIMS2::Model::Plugin::User qw( list_messages );
 
 use Moose;
 use TryCatch;
@@ -103,10 +103,16 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 
 sub announcements : Path( '/admin/announcements' ) : Args(0) {
     my ( $self, $c ) = @_;
+use Smart::Comments;
 
-    my @messages = LIMS2::Model::Plugin::User::list_messages( $c->model('Golgi')->schema );
+    # my @messages = LIMS2::Model::Plugin::User::list_messages( $c->model('Golgi')->schema );
 
-    $c->stash ( messages => [ map { $_->as_hash } @messages ]);
+    my $messages = $c->model('Golgi')->list_messages();
+
+my $message_hash = [ map { $_->as_hash } @{$messages} ];
+### $message_hash
+
+    $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
     return unless $c->request->method eq 'POST';
 

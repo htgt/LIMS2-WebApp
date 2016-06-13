@@ -78,16 +78,16 @@ sub list_roles {
 }
 
 sub list_messages {
-    my ($schema) = @_;
+    my ($self) = @_;
 
-    my @messages = $schema->resultset('Message')->search(
+    my @messages = $self->schema->resultset('Message')->search(
         {},
         {
             order_by    => { -asc => 'me.priority' }
         }
     );
 
-    return @messages;
+    return \@messages;
 }
 
 # sub list_apps {
@@ -330,4 +330,11 @@ sub change_user_password {
     my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{new_password} );
 
-    $user->upda
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+1;
+
+__END__
