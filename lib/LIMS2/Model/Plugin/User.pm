@@ -101,25 +101,8 @@ sub list_priority {
     return \@priority;
 }
 
-# sub pspec_create_message {
-#     return {
-#         message         => { validate   => 'non_empty_string' },
-#         expiry_date     => { validate   => 'non_empty_string' },
-#         created_date    => { validate   => '' }
-#         priority        => { validate   => 'existing_priority' },
-#         wge             => { validate   => ''}
-#         htgt            =>
-#         lims            =>
-#     };
-# }
-
 sub create_message {
     my ( $self, $params ) = @_;
-
-    #my $validated_params = $self->check_params( $params, $self->pspec_create_message );
-
-    use Smart::Comments;
-
 
     my @message = $self->schema->resultset('Message')->create(
         {

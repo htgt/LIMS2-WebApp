@@ -102,7 +102,6 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 
     my $messages = $c->model('Golgi')->list_messages();
 
-
     $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
     return unless $c->request->method eq 'POST';
@@ -117,8 +116,6 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
     my ( $self, $c ) = @_;
 
-#use Smart::Comments;
-
     $c->stash(
         priorities    => $c->model('Golgi')->list_priority(),
     );
@@ -132,12 +129,6 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     my $wge = $c->request->param('wge_checkbox');
     my $htgt = $c->request->param('htgt_checkbox');
     my $lims = $c->request->param('lims_checkbox');
-
-    use Smart::Comments;
-    ### $htgt
-    ### $lims
-    ### $wge
-    ### $expiry_date
 
     unless ($wge or $htgt or $lims) {
         $c->stash (
