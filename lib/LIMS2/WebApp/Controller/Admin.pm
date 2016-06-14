@@ -103,7 +103,6 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
     my $messages = $c->model('Golgi')->list_messages();
 
 
-
     $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
     return unless $c->request->method eq 'POST';
@@ -127,12 +126,28 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     return unless $c->request->method eq 'POST';
 
     my $message = $c->request->param('message');
-    my $expiry_date = $c->request->param('expiry_datetime');
+    my $expiry_date = $c->request->param('expiry_date');
     my $created_date = DateTime->now(time_zone=>'local');
     my $priority = $c->request->param('priority');
     my $wge = $c->request->param('wge_checkbox');
     my $htgt = $c->request->param('htgt_checkbox');
     my $lims = $c->request->param('lims_checkbox');
+
+    use Smart::Comments;
+    ### $htgt
+    ### $lims
+    ### $wge
+    ### $expiry_date
+
+    unless ($wge or $htgt or $lims) {
+        $c->stash (
+            message_field   => $message,
+            expiry_date     => $expiry_date,
+            priority        => $priority,
+            error_msg       => 'Please specify a system for the announcement'
+        );
+        return;
+    }
 
     my $announcement = $c->model('Golgi')->create_message(
         {
@@ -144,11 +159,8 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             htgt            => $htgt,
             lims            => $lims,
         }
-    );
-use Smart::Comments;
 
-my $announcement_hash = @{$announcement}->as_hash;
-    ### $announcement_hash
+    );
 
     return;
 }

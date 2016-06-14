@@ -119,9 +119,8 @@ sub create_message {
     #my $validated_params = $self->check_params( $params, $self->pspec_create_message );
 
     use Smart::Comments;
-    foreach (@_) {
-    ### $params
-}
+
+
     my @message = $self->schema->resultset('Message')->create(
         {
             message         => $params->{message},
@@ -135,6 +134,7 @@ sub create_message {
     );
 
     return \@message;
+
 }
 
 sub pspec_create_user {
