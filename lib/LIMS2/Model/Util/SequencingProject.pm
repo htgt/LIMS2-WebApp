@@ -121,12 +121,20 @@ sub custom_well {
 
     if ($row_details->{primer} ne "EMPTY") {
         my $qcwell = (lc $row_details->{primer_letter}) . sprintf("%02d",$well_number);
-        my $sample = $seq_project . '_' . $sub_number . $qcwell . '.p1k';
-        $row = ({
-            'well'          => $well,
-            'sample_name'   => $sample,
-            'primer_name'   => $row_details->{primer},
-        });
+        my $sample = $seq_project->{name} . '_' . $sub_number . $qcwell . '.p1k' . $row_details->{primer};
+        if ($seq_project->{premix} == 1) {
+            $row = ({
+                'well'          => $well,
+                'sample_name'   => $sample,
+                'primer_name'   => 'premix w. temp',
+            });
+        } else {
+            $row = ({
+                'well'          => $well,
+                'sample_name'   => $sample,
+                'primer_name'   => $row_details->{primer},
+            });
+        }
     }
     else {
         $row = ({
@@ -282,9 +290,13 @@ sub dir_build {
 }
 
 sub custom_sheet {
-    my ($wells, $name, $sub, @primers) = @_;
+    my ($wells, $name, $sub, $premix, @primers) = @_;
 
-    my @data = generate_rows($name, $sub, $wells, 1);
+    my $seq_project = ({
+        name    => $name,
+        premix  => $premix,
+    });
+    my @data = generate_rows($seq_project, $sub, $wells, 1);
     my $file_name = build_xlsx_file(\@data, \@primers, $sub, $name);
     my $dir = dir_build($file_name);
     my $body = read_file( $dir, {binmode => ':raw'} );

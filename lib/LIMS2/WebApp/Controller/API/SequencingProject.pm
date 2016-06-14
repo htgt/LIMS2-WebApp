@@ -68,11 +68,12 @@ sub custom_sheet_GET {
     my $sheet = $c->request->param( 'data' );
     my $name = $c->request->param( 'name' );
     my $sub = $c->request->param( 'sub' );
+    my $mix = $c->request->param( 'mix' );
     my $primers = $c->request->param( 'primers' );
     my @primers = split(/,/,$primers);
     $sheet = from_json($sheet);
 
-    my $file = LIMS2::Model::Util::SequencingProject::custom_sheet($sheet, $name, $sub, @primers);
+    my $file = LIMS2::Model::Util::SequencingProject::custom_sheet($sheet, $name, $sub, $mix, @primers);
 
     $c->response->status( 200 );
     $c->response->content_type( 'application/xlsx' );

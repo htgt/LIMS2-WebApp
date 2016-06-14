@@ -193,35 +193,64 @@
 
 <h3>Paired Spreadsheet</h3>
 <div class="row">
-  <label class="col-md-1" for="pairSub">Sub-project: </label>
-  <div class="col-md-1 form-group">
-    <select class="form-control" id="pairSub">
-    [% SET sub_counter = 0 %]
-    [% WHILE sub_counter < seq_project.sub_projects %]
-      [% sub_counter = sub_counter + 1 %]
-      <option>[% sub_counter %]</option>
-    [% END %]
-    </select>
-  </div>
-  <div class="col-md-2 form-group">
-    <select class="pair form-control" id="pair1">
-      <option>-</option>
-    [% FOREACH primer IN primer_list %]
-      <option>[% primer %]</option>
-    [% END %]
-    </select>
-  </div>
-  <div class="col-md-2 form-group">
-    <select class="pair form-control" id="pair2">
-      <option>-</option>
-    [% FOREACH primer IN primer_list %]
-      <option>[% primer %]</option>
-    [% END %]
-    </select>
-  </div>
-  <button type="button" class="btn btn-primary" id="pairButton" onclick=retrievePairFile();>
-    <i class="glyphicon glyphicon-download"></i> Pair Download
-  </button>
+  <table class="table">
+    <tr>
+      <th>
+        <div class="col-md-12">
+          Sub-project
+        </div>
+      </th>
+      <th>
+        <div class="col-md-12">
+          Primer one
+        </div>
+      </th>
+      <th>
+        <div class="col-md-12">
+          Primer two
+        </div>
+      </th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>
+        <div class="col-md-6 form-group">
+          <select class="form-control" id="pairSub">
+          [% SET sub_counter = 0 %]
+          [% WHILE sub_counter < seq_project.sub_projects %]
+            [% sub_counter = sub_counter + 1 %]
+            <option>[% sub_counter %]</option>
+          [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <div class="col-md-8 form-group">
+          <select class="pair form-control" id="pair1">
+          <option>-</option>
+          [% FOREACH primer IN primer_list %]
+            <option>[% primer %]</option>
+          [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <div class="col-md-8 form-group">
+          <select class="pair form-control" id="pair2">
+            <option>-</option>
+            [% FOREACH primer IN primer_list %]
+              <option>[% primer %]</option>
+            [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <button type="button" class="btn btn-primary" id="pairButton" onclick=retrievePairFile();>
+          <i class="glyphicon glyphicon-download"></i> Pair Download
+        </button>
+      </td>
+    </tr>
+  </table>
 </div>
 
 <div class="modal fade" role="dialog" aria-labelledby="basicModal" aria-hidden="true" id="primerModal">
@@ -272,10 +301,12 @@
           </ul>
         </div>
       </div>
+      [% INCLUDE sequencing_project_multiple_primer_help.tt %]
       <div class="modal-footer">
           <button class="col-md-offset-1 btn btn-danger" onclick=clearPlate();>Clear all</button>
           <button class="btn btn-default" onclick=quitModal();><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
-          <button class="btn btn-primary" onclick=customSheet();><i class="glyphicon glyphicon-download"></i> Download</button>
+          <button class="btn btn-primary" onclick=customSheet('1');><i class="glyphicon glyphicon-download"></i> Premixed</button>
+          <button class="btn btn-primary" onclick=customSheet('0');><i class="glyphicon glyphicon-download"></i> Eurofins to add primers</button>
       </div>
     </div>
   </div>
@@ -387,7 +418,7 @@ function clearPlate() {
     });
 }
 
-function customSheet() {
+function customSheet(flag) {
     var sheet = {};
 
     for (var count = 0; count < tracker.length; count++) {
@@ -415,14 +446,11 @@ function customSheet() {
     }
 
     var jsonSheet = JSON.stringify(sheet);
-    console.log(jsonSheet);
     var name = '[% seq_project.name %]';
     var sub = document.getElementById('sub').value; 
 
-    console.log(jsonSheet);
-
     var half = '[% c.uri_for('/api/custom_sheet/') %]';
-    var link =  half + encodeURI('?data=' + jsonSheet + '&name=' + name + '&sub=' + sub + '&primers=' + primers);
+    var link =  half + encodeURI('?data=' + jsonSheet + '&name=' + name + '&sub=' + sub + '&primers=' + primers +  '&mix=' + flag);
 
     OpenInNewTab(link);
     $('#customModal').modal('hide');
@@ -455,7 +483,6 @@ function retrievePairFile(){
     var half = '[% c.uri_for('/api/pair_project/') %]';
     var id = '[% seq_project.id %]';
     var link =  half + encodeURI('?seq_id=' + id + '&primers=' + primers + '&sub=' + sub);
-    console.log(link);
 
     OpenInNewTab(link);
 }
@@ -497,7 +524,6 @@ function commitStatus() {
         data: 'seq_id=' + '[% seq_project.id %]' + '&abandoned=' + abandoned,
         success: function() { alert('PUT completed'); }
     });
-    console.log("reach");
 }
 
 function convertToYN(val) {
