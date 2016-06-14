@@ -362,6 +362,7 @@ root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
 root/lib/sequencing_project_creation_help.tt
+root/lib/sequencing_project_multiple_primer_help.tt
 root/lib/template_creation_help.tt
 root/lib/well_specific_fields.tt
 root/lib/wrapper.tt

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.401';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.405';
 }
 ## use critic
 
@@ -900,6 +900,51 @@ __PACKAGE__->table("summaries");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 crispr_ep_colonies_rem_unstained
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_colonies_total
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_colonies_picked
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_project_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_project_sponsors
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ep_pick_well_crispr_es_qc_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ep_pick_well_crispr_es_qc_well_call
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 piq_crispr_es_qc_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 piq_crispr_es_qc_well_call
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1248,6 +1293,24 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "dna_template",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "crispr_ep_colonies_rem_unstained",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_colonies_total",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_colonies_picked",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_project_id",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_project_sponsors",
+  { data_type => "text", is_nullable => 1 },
+  "ep_pick_well_crispr_es_qc_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ep_pick_well_crispr_es_qc_well_call",
+  { data_type => "text", is_nullable => 1 },
+  "piq_crispr_es_qc_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "piq_crispr_es_qc_well_call",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1285,8 +1348,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:25:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:criEywHu8Hp8GYzGuI4Ckg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-14 11:33:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+dv4P9sJyY1ZU6FuK0HMjw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
