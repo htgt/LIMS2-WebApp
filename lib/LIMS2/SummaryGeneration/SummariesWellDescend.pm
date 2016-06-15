@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.404';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.406';
 }
 ## use critic
 
@@ -290,6 +290,15 @@ sub fetch_values_for_type_DESIGN {
     $summary_row_values->{ 'design_gene_symbol' }         = $stored_values->{ stored_design_gene_symbols };
     $summary_row_values->{ 'design_gene_id' }             = $stored_values->{ stored_design_gene_ids };
     if ($stored_values->{ 'stored_design_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_design_sponsor } };
+
+    # We work out the project and sponsors for the crispr_ep_well here
+    # because we need the design information
+    if(my $ep_well_id = $summary_row_values->{'crispr_ep_well_id'}){
+        my $project = fetch_crispr_ep_well_project($model,$ep_well_id,$summary_row_values);
+        $summary_row_values->{ 'crispr_ep_well_project_id'}         = try{ $project->id };
+        $summary_row_values->{ 'crispr_ep_well_project_sponsors'}   = try{ join "/", $project->sponsor_ids };
+    }
+
     return;
 }
 
@@ -585,6 +594,11 @@ sub fetch_values_for_type_EP_PICK {
         $stored_values->{ 'stored_ep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
         $stored_values->{ 'stored_ep_pick_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
         $stored_values->{ 'stored_ep_pick_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
+        DEBUG "Getting ep_pick crispr QC";
+        my $crispr_qc_well = fetch_crispr_qc_well($curr_well);
+        $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_id' } = try{ $crispr_qc_well->id };
+        $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_call' } = try{ $crispr_qc_well->crispr_damage_type_id };
+        DEBUG "Got crispr QC";
     }
 
     $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
@@ -597,6 +611,8 @@ sub fetch_values_for_type_EP_PICK {
     $summary_row_values->{ 'ep_pick_qc_seq_pass' }          = $stored_values->{ stored_ep_pick_qc_seq_pass };
     $summary_row_values->{ 'ep_pick_well_recombinase_id' }  = $stored_values->{ stored_ep_pick_well_recombinase_id };
     if ($stored_values->{ 'stored_ep_pick_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_ep_pick_sponsor } };
+    $summary_row_values->{ 'ep_pick_well_crispr_es_qc_well_id' } = $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_id' };
+    $summary_row_values->{ 'ep_pick_well_crispr_es_qc_well_call' } = $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_call' };
     return;
 }
 
@@ -772,6 +788,12 @@ sub fetch_values_for_type_PIQ {
         $stored_values->{ 'stored_ancestor_piq_well_accepted' }   = try{ $ancestor_well->is_accepted }; # well accepted (with override)
 
         $stored_values->{ 'stored_piq_sponsor' }                  = try{ $curr_well->plate_sponsor }; # sponsor
+
+        DEBUG "Getting PIQ crispr QC";
+        my $crispr_qc_well = fetch_crispr_qc_well($curr_well);
+        $stored_values->{ 'stored_piq_well_crispr_es_qc_well_id' } = try{ $crispr_qc_well->id };
+        $stored_values->{ 'stored_piq_well_crispr_es_qc_well_call' } = try{ $crispr_qc_well->crispr_damage_type_id };
+        DEBUG "Got crispr QC";
     }
 
     $summary_row_values->{ 'piq_well_id' }                  = $stored_values->{ stored_piq_well_id };
@@ -790,6 +812,9 @@ sub fetch_values_for_type_PIQ {
     $summary_row_values->{ 'ancestor_piq_well_accepted' }   = $stored_values->{ stored_ancestor_piq_well_accepted };
 
     if ($stored_values->{ 'stored_piq_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_piq_sponsor } };
+
+    $summary_row_values->{ 'piq_crispr_es_qc_well_id' } = $stored_values->{ 'stored_piq_well_crispr_es_qc_well_id' };
+    $summary_row_values->{ 'piq_crispr_es_qc_well_call' } = $stored_values->{ 'stored_piq_well_crispr_es_qc_well_call' };
 
     return;
 }
@@ -890,6 +915,11 @@ sub fetch_values_for_type_CRISPR_EP {
         $stored_values->{ 'stored_crispr_ep_well_cell_line' }         = try{ $curr_well->first_cell_line->name };
         $stored_values->{ 'stored_crispr_ep_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
         $stored_values->{ 'stored_to_report' }                        = try{ $curr_well->to_report // 1}; # to_report flag
+        DEBUG "Getting crispr_ep colony counts";
+        $stored_values->{ 'stored_crispr_ep_colonies_rem_unstained' } = fetch_well_colony_count_remaining_unstained( $curr_well ); # count colonies remaining unstained
+        $stored_values->{ 'stored_crispr_ep_colonies_total' }         = fetch_well_colony_count_total( $curr_well ); # count colonies total
+        $stored_values->{ 'stored_crispr_ep_colonies_picked' }        = fetch_well_colony_count_picked( $curr_well ); # count colonies picked
+        DEBUG "Got colony counts";
     }
 
     $summary_row_values->{ 'crispr_ep_well_id' }               = $stored_values->{ stored_crispr_ep_well_id };
@@ -903,6 +933,9 @@ sub fetch_values_for_type_CRISPR_EP {
     $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };
     if ($stored_values->{ 'stored_crispr_ep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_crispr_ep_sponsor } };
     $summary_row_values->{ 'to_report' }                       = $stored_values->{ stored_to_report };
+    $summary_row_values->{ 'crispr_ep_colonies_rem_unstained' } = $stored_values->{ stored_crispr_ep_colonies_rem_unstained };
+    $summary_row_values->{ 'crispr_ep_colonies_total' }         = $stored_values->{ stored_crispr_ep_colonies_total };
+    $summary_row_values->{ 'crispr_ep_colonies_picked' }        = $stored_values->{ stored_crispr_ep_colonies_picked };
     return;
 }
 
@@ -1086,6 +1119,48 @@ sub fetch_dna_template{
         $template_cache->{ $curr_well->id } = $template;
     }
     return $template;
+}
+
+my $project_cache;
+sub fetch_crispr_ep_well_project{
+    my ($model,$ep_well_id, $summary_row_values) = @_;
+    DEBUG "Fetching project for crispr_ep_well $ep_well_id";
+    my $project;
+    if(exists $project_cache->{ $ep_well_id }){
+        DEBUG "Found project in cache";
+        $project = $project_cache->{ $ep_well_id }
+    }
+    else{
+        try{
+            $project = $model->retrieve_project({
+                cell_line => $summary_row_values->{'crispr_ep_well_cell_line'},
+                species_id   => $summary_row_values->{'design_species_id'},
+                gene_id      => $summary_row_values->{'design_gene_id'},
+            });
+            DEBUG "Got project ".$project->id." for crispr_ep_well $ep_well_id";
+        }
+        catch{
+            ERROR "project query failed: $_";
+        };
+        $project_cache->{ $ep_well_id } = $project;
+    }
+    return $project;
+}
+
+my $crispr_qc_cache;
+sub fetch_crispr_qc_well{
+    my ($curr_well) = @_;
+    my $qc_well;
+    if(exists $crispr_qc_cache->{$curr_well->id}){
+        DEBUG "Found crispr QC in cache";
+        $qc_well = $crispr_qc_cache->{$curr_well->id};
+    }
+    else{
+        $qc_well = $curr_well->accepted_crispr_es_qc_well;
+        $crispr_qc_cache->{$curr_well->id} = $qc_well;
+        DEBUG "Got crispr QC well from database";
+    }
+    return $qc_well;
 }
 
 1;
