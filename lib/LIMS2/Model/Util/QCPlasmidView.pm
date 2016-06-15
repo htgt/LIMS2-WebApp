@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
 
 
 use Number::Range;
+use List::Util qw(sum);
 use Bio::Perl qw( revcom );
 use Data::Dumper;
 
@@ -60,6 +61,15 @@ sub add_display_info_to_qc_results{
             else{
                 $params->{class} = 'marker_fail_read_align';
             }
+
+            # Calculate match percent
+            my $target_length = $params->{end} - $params->{start};
+            my $op_str = $a->op_str;
+            my @match_counts = ( $op_str =~ /M (\d+)/g );
+            my $total_count = sum @match_counts;
+            $log->debug("Target length: $target_length, Match count: $total_count");
+            my $match_pct = int( ( $total_count / $target_length ) * 100 );
+            $params->{match_pct} = $match_pct;
 
             push @display_alignments, $params;
 
