@@ -4,6 +4,9 @@ use Moose;
 use TryCatch;
 use namespace::autoclean;
 
+use LIMS2::Model::Schema::Result::Message qw( delete_message create_message list_messages );
+use LIMS2::Model::Schema::Result::Priority qw( list_priority );
+
 BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -100,13 +103,21 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 sub announcements : Path( '/admin/announcements' ) : Args(0) {
     my ( $self, $c ) = @_;
 
-    my $messages = $c->model('Golgi')->list_messages();
+    my $messages = list_messages( $c->model('Golgi')->schema );
 
     $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
     return unless $c->request->method eq 'POST';
 
-    return $c->response->redirect( $c->uri_for('/admin') );
+    my $deleted_message = $c->request->param('delete_message');
+
+    return unless ($deleted_message);
+
+    delete_message( $c->model('Golgi')->schema, { message_id => $deleted_message } );
+
+    $c->flash( success_msg => "Message sucessfully deleted");
+
+    return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
 =head2 create_announcement
@@ -116,8 +127,9 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
     my ( $self, $c ) = @_;
 
+
     $c->stash(
-        priorities    => $c->model('Golgi')->list_priority(),
+        priorities    => list_priority( $c->model('Golgi')->schema ),
     );
 
     return unless $c->request->method eq 'POST';
@@ -140,8 +152,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
         return;
     }
 
-    my $announcement = $c->model('Golgi')->create_message(
-        {
+    my $announcement = create_message( $c->model('Golgi')->schema, {
             message         => $message,
             expiry_date     => $expiry_date,
             created_date    => $created_date,
@@ -150,10 +161,9 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             htgt            => $htgt,
             lims            => $lims,
         }
-
     );
 
-    return;
+    return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
 =head2 update_user

@@ -148,6 +148,11 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-20 15:17:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48GHmHI2baow5zMxya+/ew
 
+use Sub::Exporter;
+Sub::Exporter::setup_exporter({ exports => [ qw( delete_message create_message list_messages ) ]});
+#use Sub::Exporter -setup => { exports => [ qw( delete_message ) ]}; This line doesn't work, however the above two lines do work
+
+
 sub as_hash {
     my $self = shift;
 
@@ -162,7 +167,56 @@ sub as_hash {
     return \%h;
 }
 
+sub delete_message {
+    my ( $schema, $params ) = @_;
+    my $message_id = $params->{message_id}
+      or die "No message_id provided to delete_message";
 
+    #create result variable and then use delete method to delete row
+
+
+    my $priority = $schema->resultset('Message')->search({
+        'me.id'  => [ $message_id ],
+      },
+      {}
+    );
+
+    $priority->delete;
+
+  return;
+}
+
+sub create_message {
+    my ( $schema, $params ) = @_;
+
+    my @message = $schema->resultset('Message')->create(
+        {
+            message         => $params->{message},
+            expiry_date     => $params->{expiry_date},
+            created_date    => $params->{created_date},
+            priority        => $params->{priority},
+            wge             => $params->{wge},
+            htgt            => $params->{htgt},
+            lims            => $params->{lims},
+        }
+    );
+
+    return \@message;
+
+}
+
+sub list_messages {
+    my ($schema) = @_;
+
+    my @messages = $schema->resultset('Message')->search(
+        {},
+        {
+            order_by    => { -asc => 'me.priority' }
+        }
+    );
+
+    return \@messages;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

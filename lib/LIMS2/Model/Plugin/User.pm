@@ -77,48 +77,7 @@ sub list_roles {
     return \@roles;
 }
 
-sub list_messages {
-    my ($self) = @_;
 
-    my @messages = $self->schema->resultset('Message')->search(
-        {},
-        {
-            order_by    => { -asc => 'me.priority' }
-        }
-    );
-
-    return \@messages;
-}
-
-sub list_priority {
-    my ($self) = @_;
-
-    my @priority = $self->schema->resultset('Priority')->search(
-        {},
-        {}
-    );
-
-    return \@priority;
-}
-
-sub create_message {
-    my ( $self, $params ) = @_;
-
-    my @message = $self->schema->resultset('Message')->create(
-        {
-            message         => $params->{message},
-            expiry_date     => $params->{expiry_date},
-            created_date    => $params->{created_date},
-            priority        => $params->{priority},
-            wge             => $params->{wge},
-            htgt            => $params->{htgt},
-            lims            => $params->{lims},
-        }
-    );
-
-    return \@message;
-
-}
 
 sub pspec_create_user {
     return {

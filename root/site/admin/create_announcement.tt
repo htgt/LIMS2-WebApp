@@ -2,11 +2,14 @@
 <head>
 <script language = "Javascript">
 /**
- * DHTML date validation script for dd/mm/yyyy. Courtesy of SmartWebby.com (http://www.smartwebby.com/dhtml/datevalidation.asp)
+ * DHTML date validation script for dd/mm/yyyy. Courtesy of SmartWebby.com (http://www.smartwebby.com/dhtml/date_validation.asp)
  */
 // Declaring valid date character, minimum year and maximum year
 var dtCh= "/";
-var minYear=1900;
+var today = new Date();
+var todayMonth = today.getMonth();
+var todayDay = today.getDate();
+var minYear = today.getFullYear();
 var maxYear=2100;
 
 function isInteger(s){
@@ -62,6 +65,8 @@ function isDate(dtStr){
   month=parseInt(strMonth)
   day=parseInt(strDay)
   year=parseInt(strYr)
+  thisMonth=parseInt(todayMonth)
+  thisDay=parseInt(todayDay)
   if (pos1==-1 || pos2==-1){
     alert("The date format should be : dd/mm/yyyy")
     return false
@@ -82,7 +87,12 @@ function isDate(dtStr){
     alert("Please enter a valid date")
     return false
   }
-return true
+
+  if (day > thisDay && month >= (thisMonth+1) && year >= minYear ){
+    return true
+  }
+  alert("Please enter a date greater than today")
+  return false
 }
 
 function ValidateForm(){
@@ -114,7 +124,7 @@ function ValidateForm(){
       <br><br>
       <label for="priority">Priority</label>
       [%- FOR p IN priorities %]
-        <br>&#160;<input type="radio" name="priority" required> [% p.id.ucfirst %]</input>
+        <br>&#160;<input type="radio" name="priority" value="[% p.id %]" required> [% p.id.ucfirst %]</input>
       [% END %]
       <br>
       <br>&#160;<input type="checkbox" name="wge_checkbox" value="1">WGE</input>
