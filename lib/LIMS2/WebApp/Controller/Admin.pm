@@ -4,8 +4,7 @@ use Moose;
 use TryCatch;
 use namespace::autoclean;
 
-use LIMS2::Model::Schema::Result::Message qw( delete_message create_message list_messages );
-use LIMS2::Model::Schema::Result::Priority qw( list_priority );
+use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -237,7 +236,6 @@ sub _retrieve_user_by_id {
 
     return $user;
 }
-
 
 =head2 announcements
 
