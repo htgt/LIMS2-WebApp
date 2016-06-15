@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.406     2016-06-15 14:47:16 Europe/London
+
+    Added mthod to view and create announcement messages for the webapp
+
 0.405     2016-06-14 14:45:06 Europe/London
     Added custom and pair Eurofins spreadsheet generation
 0.404     2016-06-10 09:45:56 Europe/London
