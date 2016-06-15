@@ -4,8 +4,7 @@ use Moose;
 use TryCatch;
 use namespace::autoclean;
 
-use LIMS2::Model::Schema::Result::Message qw( delete_message create_message list_messages );
-use LIMS2::Model::Schema::Result::Priority qw( list_priority );
+use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -147,7 +146,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             message_field   => $message,
             expiry_date     => $expiry_date,
             priority        => $priority,
-            error_msg       => 'Please specify a system for the announcement'
+            error_msg       => 'Please specify a webapp for the announcement'
         );
         return;
     }
