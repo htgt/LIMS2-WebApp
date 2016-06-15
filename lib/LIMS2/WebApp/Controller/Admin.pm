@@ -252,9 +252,11 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 
     return unless $c->request->method eq 'POST';
 
+
     my $deleted_message = $c->request->param('delete_message');
 
     return unless ($deleted_message);
+
 
     delete_message( $c->model('Golgi')->schema, { message_id => $deleted_message } );
 
@@ -291,6 +293,19 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             expiry_date     => $expiry_date,
             priority        => $priority,
             error_msg       => 'Please specify a system for the announcement'
+        );
+        return;
+    }
+
+    unless ( $created_date < $expiry_date ) {
+        $c->stash (
+            message_field   => $message,
+            expiry_date     => $expiry_date,
+            priority        => $priority,
+            wge_checkbox    => $wge,
+            htgt_checkbox   => $htgt,
+            lims_checkbox   => $lims,
+            error_msg       => 'Please enter an expiry date which is in the future'
         );
         return;
     }
