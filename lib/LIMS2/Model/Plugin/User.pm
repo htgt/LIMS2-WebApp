@@ -3,10 +3,6 @@ package LIMS2::Model::Plugin::User;
 use strict;
 use warnings FATAL => 'all';
 
-use Sub::Exporter -setup => {
-    exports => [ 'list_messages' ]
-};
-
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;

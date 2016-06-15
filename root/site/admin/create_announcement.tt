@@ -87,7 +87,6 @@ function isDate(dtStr){
     alert("Please enter a valid date")
     return false
   }
-
   if (day > thisDay && month >= (thisMonth+1) && year >= minYear ){
     return true
   }
