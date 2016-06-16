@@ -7,57 +7,238 @@ use Test::Most;
 use LIMS2::Model::Util::AnnouncementAdmin;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
+BEGIN {
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+};
+
 ## no critic
 
-sub message_creation_and_deletion : Test {
+=head1 NAME
 
-	my $message = 'Testing message creation';
-	my $created_date = '01/01/2015';
-	my $expiry_date = '02/02/2016';
-	my $priority = 'normal';
-	my $wge = '0';
-	my $htgt = '1';
-	my $lims = '0';
+LIMS2/t/Model/Util/AnnouncementAdmin.pm - test class for LIMS2::Model::Util::AnnouncementAdmin
 
-  my $created_message = create_message( $c->model('Golgi')->schema, {
-            message         => $message,
-            expiry_date     => $expiry_date,
-            created_date    => $created_date,
-            priority        => $priority,
-            wge             => $wge,
-            htgt            => $htgt,
-            lims            => $lims,
-        }
-    );
-
-  is ( $created_message->message, 'Testing message creation', 'message' );
-  is ( $created_message->expiry_date, '02/02/2016', 'expiry_date');
-  is ( $created_message->created_date, '01/01/2015', 'created_date');
-  is ( $created_message->priority, 'normal', 'priority');
-  is ( $created_message->wge, '0', 'wge');
-  is ( $created_message->htgt, '1', 'htgt');
-  is ( $created_message->lims, '0', 'lims');
-
-  my $listed_message = list_messages( $c->model('Golgi')->schema );
-
-  is ( $listed_message->message, 'Testing message creation', 'message' );
-  is ( $listed_message->expiry_date, '02/02/2016', 'expiry_date');
-  is ( $listed_message->created_date, '01/01/2015', 'created_date');
-  is ( $listed_message->priority, 'normal', 'priority');
-  is ( $listed_message->wge, '0', 'wge');
-  is ( $listed_message->htgt, '1', 'htgt');
-  is ( $listed_message->lims, '0', 'lims');
+=cut
 
 
+sub message_creation : Test {
+
+
+  my $mech = LIMS2::Test::mech();
+
+  {
+  note( "No message set" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            expiry_date   => '01/01/2099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr/Please fill in this field/, '...throws error saying no message specified';
+  }
+
+  {
+  note( "No expiry_date set" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr/Please fill in this field/, '...throws error saying no expiry_date specified';
+  }
+
+  {
+  note( "incorrect expiry_date set - year" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '01/01/1099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr/Please enter a valid 4 digit year between  and 2100/, '...throws error saying wrong expiry_date specified';
+  }
+
+  {
+  note( "incorrect expiry_date set - month" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '01/13/2099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr/Please enter a valid month/, '...throws error saying wrong expiry_date specified';
+  }
+
+  {
+  note( "incorrect expiry_date set - day" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '35/01/2099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr/Please enter a valid day/, '...throws error saying wrong expiry_date specified';
+  }
+
+  {
+  note( "incorrect expiry_date set - text" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => 'tomorrow',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr(The date format should be : dd/mm/yyyy), '...throws error saying wrong expiry_date specified';
+  }
+
+  {
+  note( "no priority set" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '01/01/2099',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr(Please fill in this field), '...throws error asking user to specify priority';
+  }
+
+  {
+  note( "no webapp specified" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '01/01/2099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '0',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements/create_announcement', '... stays on same page';
+  like $res->content, qr(Please specify a system for the announcement), '...throws error saying wrong expiry_date specified';
+  }
+
+  {
+  note( "no webapp specified" );
+  $mech->get_ok( '/admin/announcements/create_announcement' );
+  $mech->title_is('LIMS2 - Create Announcement');
+  ok my $res = $mech->submit_form(
+      form_id => 'create_announcement_form',
+      fields  => {
+            message       => 'This is a message'
+            expiry_date   => '01/01/2099',
+            priority      => 'normal',
+            wge           => '0',
+            htgt          => '1',
+            lims          => '0',
+      },
+      button  => 'create_announcement_button'
+  ), 'submit form without message';
+
+  ok $res->is_success, '...response is_success';
+  is $res->base->path, '/admin/announcements', '... redirects to announcements page';
+  like $res->content, qr(Message sucessfully created), '... message creation was sucessful';
+  }
 
 }
 
-sub list_priority : Test(3) {
+#todo, list priority, list messages and delete messages
 
-  my $priorities = list_priority( $c->model('Golgi')->schema );
+# sub list_priority : Test(3) {
 
-  is( $priorities[0], 'high', 'high' );
-  is( $priorities[1], 'normal', 'normal' );
-  is( $priorities[2], 'low', 'low' );
+#   my @priorities = list_priority( model->schema );
 
-}
+#   is( $priorities[0], 'high', 'high' );
+#   is( $priorities[1], 'normal', 'normal' );
+#   is( $priorities[2], 'low', 'low' );
+
+#}
+
+## use critic
+
+1;
+
+__END__
+
+
