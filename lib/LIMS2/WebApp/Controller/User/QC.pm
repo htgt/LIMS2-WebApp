@@ -919,7 +919,7 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");
-            my $project_dir
+            my $project_dir;
             if ($version eq 'Latest') {
                 $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project);
                 $c->stash->{selected_version} = 'Latest';
