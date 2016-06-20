@@ -8,6 +8,7 @@ use Sub::Exporter -setup => {
         qw(
              extract_eurofins_data
              fetch_archives_added_since
+             check_for_old_sequencing
           )
     ]
 };
@@ -20,6 +21,8 @@ use POSIX;
 use File::Path qw(remove_tree);
 use Data::Dumper;
 use LIMS2::Model::Util qw( random_string );
+use File::Slurp qw( read_dir );
+use File::Spec::Functions qw( catfile );
 
 Log::Log4perl->easy_init( { level => $DEBUG } );
 
@@ -255,6 +258,20 @@ sub _get_new_name{
 
     return $new_name;
 }
+
+sub check_for_old_sequencing{
+    my ($c, $name) = @_;
+    my $seq_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $name);
+    my @sub_dirs = grep { -d } map { catfile $seq_dir, $_ } read_dir $seq_dir;
+    my @sub_names;
+    foreach my $subs(@sub_dirs) {
+        $c->log->debug("Found backup: " . $subs);
+        my @split_sub = split('/',$subs);
+        push @sub_names, $split_sub[$#split_sub];
+    }
+    return \@sub_names;
+}
+
 
 1;
 

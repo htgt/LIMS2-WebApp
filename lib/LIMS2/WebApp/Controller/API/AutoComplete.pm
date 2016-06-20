@@ -4,6 +4,7 @@ use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
+use LIMS2::Model::Util::ImportSequencing qw( check_for_old_sequencing );
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -81,7 +82,6 @@ sub sequencing_projects_GET {
 =cut
 
 sub badger_seq_projects :Path( '/api/autocomplete/badger_seq_projects' ) :Args(0) :ActionClass( 'REST' ) {
-
 }
 
 sub badger_seq_projects_GET {
@@ -90,7 +90,7 @@ sub badger_seq_projects_GET {
 	$c->assert_user_roles( 'read' );
 
     my $projects = search_seq_project_names($c->request->params->{term});
-
+    
     return $self->status_ok( $c, entity => $projects );
 }
 
@@ -99,7 +99,6 @@ sub badger_seq_projects_GET {
 =cut
 
 sub seq_read_names :Path( '/api/autocomplete/seq_read_names' ) :Args(0) :ActionClass( 'REST' ) {
-
 }
 
 sub seq_read_names_GET {
@@ -108,12 +107,13 @@ sub seq_read_names_GET {
     $c->assert_user_roles( 'read' );
 
     #group data by sub project name and keep a count of all the attached primers
-
+$DB::single=1;
     my %data;
     for my $read_name ( get_parsed_reads( $c->request->params->{term} ) ) {
         my ( $plate, $primer ) = ( $read_name->{plate_name}, $read_name->{primer} );
         $data{$plate}->{$primer}++;
     }
+
 
     return $self->status_ok( $c, entity => \%data );
 }
@@ -222,6 +222,15 @@ sub _entity_column_search {
     return [ map { $_->$search_column } @objects ];
 }
 
+sub old_versions :Path( '/api/autocomplete/old_versions' ) :Args(0) :ActionClass('REST') {
+}
+
+sub old_versions_GET {
+    my ( $self, $c ) = @_;
+    my @versions = check_for_old_sequencing($c, $c->request->param('project'));
+$DB::single=1;
+    return $self->status_ok( $c, entity => @versions );
+}
 =head1 AUTHOR
 
 Sajith Perera
