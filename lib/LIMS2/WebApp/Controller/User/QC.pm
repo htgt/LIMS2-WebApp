@@ -214,7 +214,7 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         # and result->{alignment_targets} which is a hash of target regions by primer
         # A primer read is required to align to the target region in order to pass
         try{
-            add_display_info_to_qc_results($results,$c->log);
+            add_display_info_to_qc_results($results,$c->log,$c->model('Golgi'));
         }
         catch{
             $error_msg = "Failed to generate plasmid view: $_";

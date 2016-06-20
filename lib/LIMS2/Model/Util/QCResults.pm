@@ -389,6 +389,7 @@ sub retrieve_qc_alignment_results {
         query         => $query->display_id,
         alignment_str => $alignment_str,
         alignment     => $qc_alignment,
+        match_pct     => $match->{match_pct},
     };
 }
 
