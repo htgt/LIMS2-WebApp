@@ -10,6 +10,7 @@ use Crypt::SaltedHash;
 use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
 
+
 requires qw( schema check_params throw retrieve );
 
 {
@@ -71,6 +72,8 @@ sub list_roles {
 
     return \@roles;
 }
+
+
 
 sub pspec_create_user {
     return {

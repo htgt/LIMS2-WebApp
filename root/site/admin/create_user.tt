@@ -9,9 +9,9 @@
     <fieldset>
       <label for="username_field">Username</label>
       <input name="user_name" id="username_field" type="text" value="[% user_name %]"/>
-      <label for="roles_field">Roles</label>
+      <br><label for="roles_field">Roles</label>
       [% FOR r IN roles %]
-      <input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]> [% r.name.ucfirst %]</input><br>
+      <br>&#160;<input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]> [% r.name.ucfirst %]</input>
       [% END %]
     </fieldset>
     <br>

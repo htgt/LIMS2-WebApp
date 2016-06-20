@@ -6,6 +6,7 @@
 
 <a href="[% c.uri_for( '/admin/create_user' ) %]" class="btn btn-primary">Create new user</a>
 
+
 <table class="table table-striped">
   <thead>
     <tr>
