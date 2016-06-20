@@ -28,17 +28,9 @@ sub message_creation : Tests {
 
   my $priority_list = list_priority( model->schema );
 
-  my $deref_priority_list = shift @{$priority_list};
+  my $priority_item = shift @{$priority_list};
 
-  my $deref_priority_list_hash = $deref_priority_list->as_hash;
-  my $test = $deref_priority_list_hash->{id};
-
-
-
-  ### $test
-  ## $deref_list_id
-
-  is( $deref_priority_list_hash->{id}, 'normal', "list_priority works");
+  is( $priority_item->id, 'normal', "list_priority works");
 
   my $announcement_params = {
     message         => 'This is a message',
@@ -56,11 +48,10 @@ sub message_creation : Tests {
 
   is( @{$message_list}, @{$announcement}, "list_messages works");
 
-  my $deref_message_list = shift @{$message_list};
-  my $deref_message_list_hash = $deref_message_list->as_hash;
-  my $delete_message_id = $deref_message_list_hash->{id};
+  my $message_item = shift @{$message_list};
+  my $message_item_id = $message_item->id;
 
-  delete_message( model->schema, { message_id => $delete_message_id } );
+  delete_message( model->schema, { message_id => $message_item_id } );
 
   $message_list = list_messages( model->schema );
 

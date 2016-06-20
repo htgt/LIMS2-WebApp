@@ -88,9 +88,7 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    return {
-        id => $self->id;
-    };
+    return { id => $self->id };
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
