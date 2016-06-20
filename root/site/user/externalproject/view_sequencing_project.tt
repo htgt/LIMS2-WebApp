@@ -1,4 +1,33 @@
 [%- META title = 'View Sequencing Project' %]
+<style type="text/css">
+.list-group-item {
+    text-align:center;
+}
+#primer_1 {
+    background-color: #1F78B4;
+}
+#primer_2 {
+    background-color: #33A02C;
+}
+#primer_3 {
+    background-color: #A6CEE3;
+}
+#primer_4 {
+    background-color: #B2DF8A;
+}
+#primer_5 {
+    background-color: #E69F00;
+}
+#primer_6 {
+    background-color: #F0D042;
+}
+#primer_7 {
+    background-color: #CC79A7;
+}
+#primer_8 {
+    background-color: #009E73;
+}
+</style>
 
 <div class="page-header">
   <h1>Sequencing Project <small>[% seq_project.name %]</small>
@@ -73,6 +102,26 @@
 
 <h2>Project Submission Files</h2>
 <p>Below are the spreadsheets needed to upload your submission to Eurofins. There is 1 spreadsheet per sub-project/primer combination. Each spreadsheet contains names for 96 samples. If your plate does not contain 96 samples edit the spreadsheet to remove sample names for empty wells or replace them with the word "empty". Do not make any other changes to the sample names. During submission you will be asked to enter a "plate name" - this must match the name written on the plate that you send to Eurofins. The Eurofins submission system is here: <a href="https://ecom.mwgdna.com/register/index.tcl" target="#_blank">Eurofins submissions</a>
+
+<h3>Custom Spreadsheet</h3>
+<div class="row">
+  <label class="col-md-1" for="sub">Sub-project: </label>
+  <div class="col-md-1 form-group">
+    <select class="form-control" id="sub">
+    [% SET sub_counter = 0 %]
+    [% WHILE sub_counter < seq_project.sub_projects %]
+      [% sub_counter = sub_counter + 1 %]
+      <option>[% sub_counter %]</option>
+    [% END %]
+    </select>
+  </div>
+
+  <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% sub_counter %] class="open-customModal btn btn-primary" href="#customModal">
+    <i class="glyphicon glyphicon-download"></i> Customise [% seq_project.name %]
+  </button>
+</div>
+
+<h3>Standard Spreadsheet</h3>
 <table class="table primer" id="primer_table">
   <tr>
     <th>Primer Name</th>
@@ -109,7 +158,8 @@
           <td>
             <button type="button" data-toggle="modal" data-name=[% seq_project.name %] data-primer=[% primer %] data-toggle="modal" data-adjustment=[% 1 + adjustment %] class="open-primerModal btn btn-primary" href="#primerModal">
               <i class="glyphicon glyphicon-download"></i> Download [% seq_project.name %] [% 1 + adjustment %] - [% 4 + adjustment %] : [% primer %]
-            </button>
+          </button>
+
           </td>
         </tr>
       [% counter = counter + 1 %]
@@ -139,9 +189,69 @@
     [% END %]
   [% END %]
 [% END %]
-
 </table>
 
+<h3>Paired Spreadsheet</h3>
+<div class="row">
+  <table class="table">
+    <tr>
+      <th>
+        <div class="col-md-12">
+          Sub-project
+        </div>
+      </th>
+      <th>
+        <div class="col-md-12">
+          Primer one
+        </div>
+      </th>
+      <th>
+        <div class="col-md-12">
+          Primer two
+        </div>
+      </th>
+      <th></th>
+    </tr>
+    <tr>
+      <td>
+        <div class="col-md-6 form-group">
+          <select class="form-control" id="pairSub">
+          [% SET sub_counter = 0 %]
+          [% WHILE sub_counter < seq_project.sub_projects %]
+            [% sub_counter = sub_counter + 1 %]
+            <option>[% sub_counter %]</option>
+          [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <div class="col-md-8 form-group">
+          <select class="pair form-control" id="pair1">
+          <option>-</option>
+          [% FOREACH primer IN primer_list %]
+            <option>[% primer %]</option>
+          [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <div class="col-md-8 form-group">
+          <select class="pair form-control" id="pair2">
+            <option>-</option>
+            [% FOREACH primer IN primer_list %]
+              <option>[% primer %]</option>
+            [% END %]
+          </select>
+        </div>
+      </td>
+      <td>
+        <button type="button" class="btn btn-primary" id="pairButton" onclick=retrievePairFile();>
+          <i class="glyphicon glyphicon-download"></i> Pair Download
+        </button>
+      </td>
+    </tr>
+  </table>
+</div>
 
 <div class="modal fade" role="dialog" aria-labelledby="basicModal" aria-hidden="true" id="primerModal">
   <div class="modal-dialog">
@@ -155,10 +265,10 @@
         <p hidden id="modalAdj"></p>
         <p align="center">How will you send the samples?</p>
         <div align="center">
-          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('1');>
+          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieveFile('1');>
             <i class="glyphicon glyphicon-download"></i> Premixed
           </button>
-          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieve_file('0');>
+          <button type="button" class="btn btn-primary" style="float: center;" onclick=retrieveFile('0');>
             <i class="glyphicon glyphicon-download"></i> Eurofins to add primers
           </button>
         </div>
@@ -167,35 +277,214 @@
   </div>
 </div>
 
+<div class="modal fade" role="dialog" aria-labelledby="basicModal" aria-hidden="true" id="customModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal">×</button>
+        <h4 id="modalTitle">Customise [% seq_project.name %]</h4>
+      </div>
+      <div class="modal-body">
+        <div class="grid">
+          [% SET count = 1 %]
+          [% FOREACH primer IN primer_list %]
+            <button class="primers btn btn-info" id="primer_[% count %]">[% primer %]</button>
+            [% SET count = count + 1 %]
+          [% END %]
+          <p>Choose a primer then drag and select the rows containing that primer.</p>
+          <ul class="list-group" id="listRows">
+            [% SET count = 0 %]
+            [% FOREACH a IN ['A','B','C','D','E','F','G','H'] %]
+              <li class="list-group-item" id="[% count %]">Empty - Row [% a %]</li>
+              [% SET count = count + 1 %]
+            [% END %]
+          </ul>
+        </div>
+      </div>
+      [% INCLUDE sequencing_project_multiple_primer_help.tt %]
+      <div class="modal-footer">
+          <button class="col-md-offset-1 btn btn-danger" onclick=clearPlate();>Clear all</button>
+          <button class="btn btn-default" onclick=quitModal();><i class="glyphicon glyphicon-cancel"></i> Cancel</button>
+          <button class="btn btn-primary" onclick=customSheet('1');><i class="glyphicon glyphicon-download"></i> Premixed</button>
+          <button class="btn btn-primary" onclick=customSheet('0');><i class="glyphicon glyphicon-download"></i> Eurofins to add primers</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <script type="text/javascript">
+var selection = {};
+var tracker = new Array(8);
+var primers = [];
+var letters = ['A','B','C','D','E','F','G','H'];
+
+$(document).ready(function () {
+    var id = '[% seq_project.id %]';
+    $('#pairButton').prop('disabled', true);
+    $('.primers').each(function(index) {
+        primers.push($('.primers')[index].innerText);
+    });
+})
+
+
 $(document).on("click", ".open-primerModal", function () {
     var name = $(this).data('name');
     var adj = $(this).data('adjustment');
     var primer = $(this).data('primer');
     var title = name + " - " + adj + " : " + primer; 
-    console.log(title);
+
     document.getElementById("modalTitle").innerHTML = title;
     document.getElementById("modalAdj").innerHTML = adj;
     document.getElementById("modalPrimer").innerHTML = primer;
 
 });
 
-$(document).ready(function () {
-    var id = '[% seq_project.id %]';
-})
-function retrieve_file(flag) {
+$(document).on("click", ".primers", function() {
+    var colour = $(this).css("background-color");
+    var name = $(this).text();
+    selection['primer'] = name;
+    selection['colour'] = colour;
+});
+
+$(".pair").change(function() { 
+    firstPrimer = $("#pair1 option:selected").text();
+    secondPrimer = $("#pair2 option:selected").text();
+    if (firstPrimer == '-' || secondPrimer == '-') {
+        $('#pairButton').prop('disabled', true);
+        changePairColours('#FFCCCC');
+    }
+    else {
+        if (firstPrimer == secondPrimer) {
+            $('#pairButton').prop('disabled', true);
+            changePairColours('#FFCCCC');
+        }
+        else {
+            $('#pairButton').prop('disabled', false);
+            changePairColours('transparent');
+        }
+    }
+});
+
+function changePairColours(colour) {
+    $('#pair1').css('background-color',colour);
+    $('#pair2').css('background-color',colour);
+}
+
+$(function () {
+    var isMouseDown = false;
+    $(".list-group-item")
+        .mousedown(function() {
+            if (selection) {
+                isMouseDown = true;
+                $(this).css("background-color", selection['colour']);
+                updateText($(this));
+                return false; // prevent text selection 
+            }
+        })
+        .mouseover(function() {
+            if (isMouseDown == true){
+                $(this).css("background-color", selection['colour']);
+                updateText($(this));
+            }
+        });
+
+    $(document).mouseup(function() {
+        isMouseDown = false;
+    });
+});
+
+function updateText(focus) {
+    tracker[focus.attr('id')] = selection["primer"];
+    var primerCounts = {};
+    for (var count = 0; count < primers.length; count++) {
+        primerCounts[primers[count]] = 0;
+    }
+    $('#listRows').children().each(function(index) {
+        if (typeof tracker[index] != 'undefined') {
+            var num = primerCounts[tracker[index]];
+            $(this).text(tracker[index] + " - Row " + letters[num]);
+            primerCounts[tracker[index]]++;
+        }
+    });
+    return;
+}
+
+function clearPlate() {
+    $('#listRows').children().each(function(index) {
+        $(this).text("Empty - Row " + letters[index]);
+        $(this).css('background-color','transparent');
+        tracker = [];
+    });
+}
+
+function customSheet(flag) {
+    var sheet = {};
+
+    for (var count = 0; count < tracker.length; count++) {
+        if (sheet.hasOwnProperty(tracker[count]) == false) {
+            var primer;
+            if (primers.indexOf(tracker[count]) == -1) {
+                primer = "EMPTY";
+            }
+            else {
+                primer = tracker[count];
+            }
+            if (!(primer in sheet)) {
+                sheet[primer] = [];
+            }
+        }
+        var row = {};
+        row['row'] = letters[count];
+        row['primer_letter'] = $('#' + count).text().split('Row ')[1];
+
+        if (tracker[count]) {
+            sheet[tracker[count]].push(row);
+        } else {
+            sheet['EMPTY'].push(row);
+        }
+    }
+
+    var jsonSheet = JSON.stringify(sheet);
+    var name = '[% seq_project.name %]';
+    var sub = document.getElementById('sub').value; 
+
+    var half = '[% c.uri_for('/api/custom_sheet/') %]';
+    var link =  half + encodeURI('?data=' + jsonSheet + '&name=' + name + '&sub=' + sub + '&primers=' + primers +  '&mix=' + flag);
+
+    OpenInNewTab(link);
+    $('#customModal').modal('hide');
+}
+
+function quitModal() {
+    clearPlate();
+    $('#customModal').modal('hide');
+}
+
+function retrieveFile(flag) {
     var primer = document.getElementById("modalPrimer").innerHTML;
     var sub = document.getElementById("modalAdj").innerHTML;
-    console.log("reached");
+    
     var half = '[% c.uri_for('/api/seq_project/') %]';
     var id = '[% seq_project.id %]';
     var link =  half + encodeURI('?seq_id=' + id + '&primer=' + primer + '&sub=' + sub + '&mix=' + flag);
-    console.log(link);
 
     OpenInNewTab(link);
     $('#primerModal').modal('hide');
+}
+
+function retrievePairFile(){
+    var sub = document.getElementById('pairSub').value;
+    var primers = [];
+
+    primers.push($('#pair1 option:selected').text());
+    primers.push($('#pair2 option:selected').text());
+
+    var half = '[% c.uri_for('/api/pair_project/') %]';
+    var id = '[% seq_project.id %]';
+    var link =  half + encodeURI('?seq_id=' + id + '&primers=' + primers + '&sub=' + sub);
+
+    OpenInNewTab(link);
 }
 
 function OpenInNewTab(url) {
@@ -213,7 +502,6 @@ function changeStatus() {
     else {
         elem.value = "Submit Status";
         injectCheckbox(data);
-
     }
 }
 
@@ -236,7 +524,6 @@ function commitStatus() {
         data: 'seq_id=' + '[% seq_project.id %]' + '&abandoned=' + abandoned,
         success: function() { alert('PUT completed'); }
     });
-    console.log("reach");
 }
 
 function convertToYN(val) {

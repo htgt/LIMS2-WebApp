@@ -1,0 +1,77 @@
+<div class="panel-group" id="accordian">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Custom Eurofins Submission Help
+      </a>
+    </div>
+
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
+        <p>
+          This form allows you to specify which primer is located on each row. By selecting a primer from the buttons above, drag and select the rows to match your plate. This only works for 96 well plates.
+        </p>
+        <p>
+          Each set of primer rows are treated as a separate plate. Using the table below, we can see SF1 and SR1 only have two rows of sample so the samples have been placed on the same plate. SF1 is located in rows A-B and SR1 in rows C-D. Since these rows are being treated like separate plates, SR1 rows have been renamed to SR1 row A and B. The system will automatically update this and display which rows have been renamed before you download the spreadsheet.
+        </p>
+        <table class="table">
+          <tr>
+            <th>
+              Physical row
+            </th>
+            <th>
+              Primer
+            </th>
+            <th>
+              Primer row
+            </th>
+          </tr>
+          <tr>
+            <td>
+              A
+            </td>
+            <td>
+              SF1 
+            </td>
+            <td>
+              A
+            </td>
+          </tr>
+          <tr>
+            <td>
+              B
+            </td>
+            <td>
+              SF1
+            </td>
+            <td>
+              B
+            </td>
+          </tr>
+          <tr>
+            <td>
+              C
+            </td>
+            <td>
+              SR1
+            </td>
+            <td>
+              A
+            </td>
+          </tr>
+          <tr>
+            <td>
+              D
+            </td>
+            <td>
+              SR1
+            </td>
+            <td>
+              B
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

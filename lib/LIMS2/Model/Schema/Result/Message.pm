@@ -148,6 +148,7 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-20 15:17:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48GHmHI2baow5zMxya+/ew
 
+
 sub as_hash {
     my $self = shift;
 
@@ -157,12 +158,13 @@ sub as_hash {
         message     => $self->message,
         expiry      => $self->expiry_date->dmy('/'),
         priority    => $self->priority->id,
+        wge         => $self->wge,
+        lims        => $self->lims,
+        htgt        => $self->htgt,
     );
 
     return \%h;
 }
-
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

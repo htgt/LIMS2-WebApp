@@ -9,7 +9,7 @@
     <fieldset>
       <label for="roles_field">Roles</label>
       [%- FOR r IN roles %]
-      <input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]> [% r.name.ucfirst %]</input><br>
+      <br><input type="checkbox" name="user_roles" value="[% r.name %]" [%- IF checked_role.${r.name} %] checked="checked"[% END %]> [% r.name.ucfirst %]</input>
       [%- END %]
     </fieldset>
     <br>
