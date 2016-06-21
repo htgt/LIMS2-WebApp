@@ -627,7 +627,7 @@ sub crispr_wells_for_crispr {
             'me.crispr_id' => [ $crispr_id ],
         },
         {
-            order_by    => { -adc   => 'me.crispr_id'},
+            order_by    => { -asc   => 'me.crispr_id'},
         }
     );
 

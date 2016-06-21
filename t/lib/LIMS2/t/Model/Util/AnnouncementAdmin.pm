@@ -31,7 +31,6 @@ sub message_creation_and_deletion : Test(9) {
   ok my $priority =  model->schema->resultset('Priority')->create( {id => 'normal'} );
 
   my $priority_list = list_priority( model->schema );
-
   my $priority_item = shift @{$priority_list};
 
   is( $priority_item->id, 'normal', "list_priority works");
