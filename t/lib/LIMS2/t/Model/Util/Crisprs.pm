@@ -245,46 +245,25 @@ sub crispr_pick : Test(8) {
     ok $crispr_design_rs->search_rs( {} )->delete, 'delete all existing links';
 }
 
-sub crispr_wells_for_crispr_test : Tests {
-    use Smart::Comments;
+sub crispr_wells_for_crispr_test : Test(4) {
     my $crispr_id = {crispr_id => 227040};
 
-    my @crispr_process = model->schema->resultset('ProcessCrispr')->search(
-        {
-            'me.crispr_id' => '227040',
-        },
-    );
+    can_ok(__PACKAGE__, qw( crispr_wells_for_crispr ));
 
-    my @well_id_all;
-    foreach my $current_crispr_process (@crispr_process) {
-        my @well_id = model->schema->resultset('Well')->search(
-            {
-                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
-            },
-            {
-                join => 'process_output_wells',
-                distinct => 1,
-            }
-        );
+    my @crisprs_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
 
-        push @well_id_all, @well_id;
+    foreach my $crispr_returned (@crisprs_returned) {
 
+        is($crispr_returned->name, 'A01', "name of returned well");
+        is($crispr_returned->plate_id, '3002', "id of plate the well is on");
     }
-    foreach my $process_crispr (@well_id_all) {
-    ### $process_crispr
-}
 
-    my $crispr_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
+    $crispr_id = {crispr_id => 1234};
 
-    ### $crispr_returned
+    my @no_crisprs_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
 
-    my $shifted_crispr_returned = shift @{$crispr_returned};
-    my $test = $shifted_crispr_returned->id;
-    ### $test
+    is(@no_crisprs_returned, '0', "can't return non-existant crispr");
 
-
-    is($shifted_crispr_returned->id, '227040', "ID of returned crispr");
-    is($shifted_crispr_returned->seq, 'CCATTGAAACGATGCCTTGTGTC', "Sequence of returned crispr");
 
 }
 
