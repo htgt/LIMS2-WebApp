@@ -206,6 +206,7 @@ lib/LIMS2/Model/Schema/ResultSet/PlateReport.pm
 lib/LIMS2/Model/Types.pm
 lib/LIMS2/Model/Util.pm
 lib/LIMS2/Model/Util/AlleleDetermination.pm
+lib/LIMS2/Model/Util/AnnouncementAdmin.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
 lib/LIMS2/Model/Util/BarcodeActions.pm
 lib/LIMS2/Model/Util/CGAP.pm
@@ -362,9 +363,12 @@ root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
 root/lib/sequencing_project_creation_help.tt
+root/lib/sequencing_project_multiple_primer_help.tt
 root/lib/template_creation_help.tt
 root/lib/well_specific_fields.tt
 root/lib/wrapper.tt
+root/site/admin/announcements.tt
+root/site/admin/create_announcement.tt
 root/site/admin/create_user.tt
 root/site/admin/index.tt
 root/site/admin/update_user.tt

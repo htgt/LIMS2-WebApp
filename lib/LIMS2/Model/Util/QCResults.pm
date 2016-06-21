@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.403';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.407';
 }
 ## use critic
 
@@ -168,9 +168,9 @@ EOT
                                             @{ $result{primers} };
 
                 $result{valid_primers}       = [ map { $_->{name} } @valid_primers ];
-                $result{num_valid_primers}   = scalar @valid_primers || undef;
-                $result{score}               = sum( 0, map { $_->{score} } @{ $result{primers} } ) || undef;
-                $result{valid_primers_score} = sum( 0, map { $_->{score} } @valid_primers ) || undef;
+                $result{num_valid_primers}   = scalar @valid_primers;
+                $result{score}               = sum( 0, map { $_->{score} } @{ $result{primers} } );
+                $result{valid_primers_score} = sum( 0, map { $_->{score} } @valid_primers );
 
                 push @qc_run_results, \%result;
             }
@@ -395,6 +395,7 @@ sub retrieve_qc_alignment_results {
         query         => $query->display_id,
         alignment_str => $alignment_str,
         alignment     => $qc_alignment,
+        match_pct     => $match->{match_pct},
     };
 }
 
