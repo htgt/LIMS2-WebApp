@@ -13,11 +13,12 @@ use Sub::Exporter -setup => {
 
 
 use Number::Range;
+use List::Util qw(sum);
 use Bio::Perl qw( revcom );
 use Data::Dumper;
 
 sub add_display_info_to_qc_results{
-    my ($results, $log) = @_;
+    my ($results, $log, $model) = @_;
 
     # Set angularplasmid display parameters for each alignment
     foreach my $result (@$results){
@@ -27,9 +28,12 @@ sub add_display_info_to_qc_results{
         my @display_alignments;
         my $alignment_targets = {};
         foreach my $a (@{ $result->{alignments} }){
+            my $alignment_result = $model->qc_alignment_result({ qc_alignment_id => $a->id });
+
             my $params = {
                 name => $a->primer_name,
                 id => $a->id,
+                match_pct => $alignment_result->{match_pct},
             };
 
             # Start must be before end for display. draw arrow at start or end to indicate read direction.
