@@ -249,30 +249,30 @@ sub crispr_wells_for_crispr_test : Tests {
     use Smart::Comments;
     my $crispr_id = {crispr_id => 227040};
 
-#     my @crispr_process = model->schema->resultset('ProcessCrispr')->search(
-#         {
-#             'me.crispr_id' => '227040',
-#         },
-#     );
+    my @crispr_process = model->schema->resultset('ProcessCrispr')->search(
+        {
+            'me.crispr_id' => '227040',
+        },
+    );
 
-#     my @well_id_all;
-#     foreach my $current_crispr_process (@crispr_process) {
-#         my @well_id = model->schema->resultset('Well')->search(
-#             {
-#                 'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
-#             },
-#             {
-#                 join => 'process_output_wells',
-#                 distinct => 1,
-#             }
-#         );
+    my @well_id_all;
+    foreach my $current_crispr_process (@crispr_process) {
+        my @well_id = model->schema->resultset('Well')->search(
+            {
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
+            },
+            {
+                join => 'process_output_wells',
+                distinct => 1,
+            }
+        );
 
-#         push @well_id_all, @well_id;
+        push @well_id_all, @well_id;
 
-#     }
-#     foreach my $process_crispr (@well_id_all) {
-#     ### $process_crispr
-# }
+    }
+    foreach my $process_crispr (@well_id_all) {
+    ### $process_crispr
+}
 
     my $crispr_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
 
