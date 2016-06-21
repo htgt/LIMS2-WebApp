@@ -626,6 +626,9 @@ sub crispr_wells_for_crispr {
         {
             'me.crispr_id' => [ $crispr_id ],
         },
+        {
+            order_by    => { -adc   => 'me.crispr_id'},
+        }
     );
 
     my @well_id_all;
@@ -635,8 +638,9 @@ sub crispr_wells_for_crispr {
                 'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
             },
             {
-                join => 'process_output_wells',
-                distinct => 1,
+                order_by    => { -asc   => 'process_output_wells.process_id' },
+                join        => 'process_output_wells',
+                distinct    => 1,
             }
         );
 
