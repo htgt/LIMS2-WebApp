@@ -21,7 +21,7 @@ LIMS2/t/Model/Util/AnnouncementAdmin.pm - test class for LIMS2::Model::Util::Ann
 =cut
 
 
-sub message_creation : Tests {
+sub message_creation_and_deletion : Test(5) {
   use Smart::Comments;
 
   ok my $priority =  model->schema->resultset('Priority')->create( {id => 'normal'} );

@@ -14,7 +14,7 @@ BEGIN
     Log::Log4perl->easy_init($OFF);
 };
 
-sub all_tests  : Test(21)
+sub all_tests  : Test(26)
 {
     # try to import some crisprs around Atad2 (targeted by design 84231)
     my $design_id = 84231;
@@ -74,6 +74,17 @@ sub all_tests  : Test(21)
 
     ok $res->is_success, 'submitted request to link crispr group to design';
     $mech->content_contains('no crispr in the group lies wholly within target region of design');
+
+    #Crispr wells tests to go here:
+use Smart::Comments;
+    ### loading test data
+
+    my $crispr_data = fixture_data('Crispr.csv');
+    $mech->get_ok('/user/crispr/227040/view');
+    ok $res->is_success, '...response is_success';
+    $mech->content_contains('HLC16');
+    $mech->content_contains('A01');
+    $mech->content_contains('HLC16_A02');
 
 }
 
