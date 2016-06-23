@@ -4,7 +4,6 @@ use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
-use LIMS2::Model::Util::ImportSequencing qw( check_for_old_sequencing );
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -90,7 +89,7 @@ sub badger_seq_projects_GET {
 	$c->assert_user_roles( 'read' );
 
     my $projects = search_seq_project_names($c->request->params->{term});
-    
+
     return $self->status_ok( $c, entity => $projects );
 }
 
@@ -107,7 +106,6 @@ sub seq_read_names_GET {
     $c->assert_user_roles( 'read' );
 
     #group data by sub project name and keep a count of all the attached primers
-$DB::single=1;
     my %data;
     for my $read_name ( get_parsed_reads( $c->request->params->{term} ) ) {
         my ( $plate, $primer ) = ( $read_name->{plate_name}, $read_name->{primer} );
@@ -227,9 +225,25 @@ sub old_versions :Path( '/api/autocomplete/old_versions' ) :Args(0) :ActionClass
 
 sub old_versions_GET {
     my ( $self, $c ) = @_;
-    my @versions = check_for_old_sequencing($c, $c->request->param('project'));
-$DB::single=1;
-    return $self->status_ok( $c, entity => @versions );
+    my $project = $c->request->param('project');
+    $c->log->debug("Retrieving backups for project: " . $project);
+    my $seq_rs;
+    try { 
+        $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
+            name => $project
+        })->backup_directories;
+    }
+    catch {
+        $c->log->error( $_ );
+        return;
+    };
+
+    #Only dates are needed 
+    my @dates;
+    foreach my $dir (@{$seq_rs}) {
+        push (@dates, $dir->{date});
+    }
+    return $self->status_ok( $c, entity => \@dates );
 }
 =head1 AUTHOR
 

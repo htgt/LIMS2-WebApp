@@ -212,6 +212,23 @@ sub as_hash {
     return \%h;
 }
 
+sub backup_directories {
+    my $self = shift;
+    my $backup_rs = $self->result_source->schema->resultset('SequencingProjectBackup')->search({ 'seq_project_id'    => $self->id });
+
+    my @subdirs;
+
+    while (my $backup = $backup_rs->next) {
+        $backup = $backup->as_hash;
+        my %dir = (
+            'dir'   => $backup->{dir},
+            'date'  => $backup->{date},
+        );
+        push(@subdirs, \%dir);
+    }
+
+    return \@subdirs;
+}
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

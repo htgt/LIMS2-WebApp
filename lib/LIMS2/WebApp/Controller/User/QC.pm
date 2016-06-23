@@ -19,6 +19,7 @@ use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
 use Path::Class;
+use LIMS2::Model::Util::ImportSequencing qw( get_seq_file_import_date );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -914,21 +915,34 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
         my $project = $c->req->param('sequencing_project');
         my $sub_project = $c->req->param('sequencing_sub_project');
         my $well_name = $c->req->param('well_name');
-        my $version = $c->req->param('data_set');
+        my $date = $c->req->param('data_set');
+        my $version;
+        if ($date ne 'Latest') {
+            my $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
+                name => $project
+            })->backup_directories;
+            foreach my $dir (@{$seq_rs}) {
+                if ($date eq $dir->{date}) {
+                    $version = $dir->{dir};
+                    $c->stash->{selected_version} = $dir->{date};
+                }
+            }
+
+        } else {
+            $c->stash->{selected_version} = 'Latest';
+        }
         if ($well_name && $well_name ne ' '){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");
             my $project_dir;
-            if ($version eq 'Latest') {
-                $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project);
-                $c->stash->{selected_version} = 'Latest';
-                $c->log->debug("Using latest version of " . $project);
+            if ($version) {
+                $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project . '/' . $version);
+                $c->log->debug("Using version " . $version . " of " . $project);
             }
             else {
-                $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project . '/' . $version);
-                $c->stash->{selected_version} = $version;
-                $c->log->debug("Using version " . $version . " of " . $project);
+                $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project);
+                $c->log->debug("Using latest version of " . $project);
             }
             unless (-r $project_dir){
                 $c->stash->{error_msg} = "Cannot fetch reads as directory $project_dir is not available";
@@ -968,14 +982,12 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
             my $script_name = 'fetch-seq-reads.sh';
             my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
             my $fasta_input;
-            if ($version eq 'Latest') {
-                $fasta_input = join "", capturex( $fetch_cmd, $project);
-                $c->stash->{selected_version} = 'Latest';
-                $c->log->debug("Using latest version of " . $project);
-            } else {
+            if ($version) {
                 $fasta_input = join "", capturex( $fetch_cmd, $project . '/' . $version );
-                $c->stash->{selected_version} = $version;
                 $c->log->debug("Using version " . $version . " of " . $project);
+            } else {
+                $fasta_input = join "", capturex( $fetch_cmd, $project);
+                $c->log->debug("Using latest version of " . $project);
             }
 
             my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
@@ -983,17 +995,15 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
             while (my $seq = $seqIO->next_seq() ){
                 $seq_by_name->{ $seq->display_id } = $seq->seq;
             }
-$DB::single=1;
             # Parse all read names for the project
             # and store along with read sequence
             my $reads_by_sub;
             foreach my $read ( get_parsed_reads($project) ){
                 $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
-
+                $read->{date} = get_seq_file_import_date( $project, $read->{orig_read_name}, $version); 
                 $reads_by_sub->{ $read->{plate_name} } ||= [];
                 push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
             }
-$DB::single=1;
             $c->stash->{reads} = $reads_by_sub->{ $sub_project };
         }
     }
@@ -1031,3 +1041,5 @@ it under the same terms as Perl itself.
 =cut
 
 __PACKAGE__->meta->make_immutable;
+
+1;
