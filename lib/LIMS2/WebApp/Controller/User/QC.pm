@@ -11,6 +11,7 @@ use Config::Tiny;
 use Data::Dumper;
 use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
+use HTGT::QC::Run;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
@@ -19,6 +20,9 @@ use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
 use Path::Class;
+
+use HTGT::QC::Util::SubmitQCFarmJob::Vector;
+use HTGT::QC::Util::SubmitQCFarmJob::ESCell;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -481,16 +485,16 @@ sub _launch_qc{
     my $params = {
         profile             => $c->stash->{ profile },
         template_plate      => $c->stash->{ template_plate },
-        sequencing_projects => $c->stash->{ sequencing_project },
+        sequencing_projects => $c->stash->{ sequencing_project } ,
         plate_map           => $plate_map,
         created_by          => $c->user->name,
         species             => $c->session->{ selected_species },
         run_type            => $c->stash->{run_type},
     };
 
-    my $content = htgt_api_call( $c, $params, 'submit_uri' );
+    my $run_id = $self->_run_qc($c, $params);
 
-    return $content->{ qc_run_id };
+    return $run_id;
 }
 
 sub _launch_es_cell_qc{
@@ -505,11 +509,82 @@ sub _launch_es_cell_qc{
         run_type            => $c->stash->{run_type},
     };
 
-    my $content = htgt_api_call( $c, $params, 'submit_uri' );
+    my $run_id = $self->_run_qc($c, $params);
 
-    return $content->{ qc_run_id };
+    return $run_id;
 }
 
+sub _run_qc{
+
+    my ($self, $c, $params) = @_;
+
+    my $qc_data = $params;
+
+    if ( $qc_data->{ run_type } eq 'es_cell' ) {
+        my $epd_plate_name = shift @{ $qc_data->{ sequencing_projects } };
+        $c->log->debug( "Retrieving sequencing projects for epd plate $epd_plate_name" );
+
+        my @all_projects = $self->_get_trace_projects( $epd_plate_name );
+
+        die "Couldn't find any sequencing projects for $epd_plate_name"
+            unless @all_projects;
+
+        $c->log->debug( "Found the following sequencing projects: " . join ", ", @all_projects );
+
+        $qc_data->{ sequencing_projects } = \@all_projects;
+    }
+
+    my $run_id;
+    # Attempt to launch QC job
+#    try {
+
+        my $config = HTGT::QC::Config->new( { is_lims2 => 1 } );
+
+        my %run_params = (
+            config              => $config,
+            profile             => $qc_data->{ profile },
+            template_plate      => $qc_data->{ template_plate },
+            sequencing_projects => $qc_data->{ sequencing_projects },
+            run_type            => $qc_data->{ run_type },
+            created_by          => $qc_data->{ created_by },
+            species             => $qc_data->{ species },
+            persist             => 1,
+        );
+
+        my %run_types = (
+            es_cell   => "ESCell",
+            vector    => "Vector",
+        );
+
+        die $qc_data->{ run_type } . " is not a valid run type."
+            unless exists $run_types{ $qc_data->{ run_type } };
+
+        my $submit_qc_farm_job = "HTGT::QC::Util::SubmitQCFarmJob::" . $run_types{ $qc_data->{ run_type } };
+
+        #add any additional type specific modifications in this if
+        if ( $qc_data->{ run_type } eq "vector" ) {
+            #only vector needs a plate_map.
+            $run_params{ plate_map } = $qc_data->{ plate_map };
+        }
+
+
+        my $run = HTGT::QC::Run->init( %run_params );
+        $run_id = $run->id or die "No QC run ID generated"; #this is pretty pointless; we always get one.
+
+        $submit_qc_farm_job->new( { qc_run => $run } )->run_qc_on_farm();
+
+#    }
+#    catch {
+#        $c->log->warn( $_ );
+#    };
+
+    return $run_id;
+}
+
+sub _get_trace_projects {
+    my ( $self, $epd_plate_name ) = @_;
+    return @{ HTGT::QC::Util::ListTraceProjects->new()->get_trace_projects( $epd_plate_name ) };
+}
 
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my ( $self, $c ) = @_;
