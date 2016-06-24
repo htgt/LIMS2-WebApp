@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
              extract_eurofins_data
              fetch_archives_added_since
              get_seq_file_import_date
+             insert_backup
           )
     ]
 };
@@ -22,6 +23,7 @@ use File::Path qw(remove_tree);
 use Data::Dumper;
 use LIMS2::Model::Util qw( random_string );
 use File::stat;
+use LIMS2::Model;
 
 Log::Log4perl->easy_init( { level => $DEBUG } );
 
@@ -110,10 +112,10 @@ sub extract_eurofins_data{
 		}
 
 	}
-
+$DB::single=1;
 	foreach my $modified_dir (values %projects_modified){
 		my $project = $modified_dir->basename;
-        my $version = backup_data($modified_dir);
+        my $version = backup_data($modified_dir, $project);
         # method returns project versions so db can be updated with this info
         $project_versions{$project} = $version;
 	}
@@ -171,7 +173,7 @@ sub perform_file_moves{
 }
 
 sub backup_data{
-    my ($modified_dir) = @_;
+    my ($modified_dir, $project) = @_;
 
 	my $version = random_string(6);
 	my $versioned_dir = $modified_dir->subdir($version);
@@ -192,6 +194,8 @@ sub backup_data{
         $modified_dir->file('archive_names.txt')->copy_to($versioned_dir)
             or die "Could not copy archive_names.txt from $modified_dir to $versioned_dir - $!";
     }
+
+    insert_backup($version, $project);
 
     return $version;
 }
@@ -281,6 +285,29 @@ sub get_seq_file_import_date {
     }
     my $date_time = "$date[5]-$date[4]-$date[3] $date[2]:$date[1]:$date[0]";
     return $date_time;
+}
+
+sub insert_backup {
+    my ($dir, $project) = @_;
+$DB::single=1;
+    my $model = LIMS2::Model->new( user => 'lims2' );
+
+
+    my $now = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
+
+    $model->schema->txn_do( sub{
+      try{
+          $model->create_sequencing_project_backup({
+              directory         => $dir,
+              creation_date     => $now,
+          }, $project);
+      }
+      catch{
+          warn "Could not create_sequencing_project_backup for project $project: $_";
+          $model->schema->txn_rollback;
+      };
+    });
+    return;
 }
 
 1;

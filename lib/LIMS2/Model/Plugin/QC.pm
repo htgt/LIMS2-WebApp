@@ -1173,6 +1173,29 @@ sub retrieve_sequencing_project{
     return $self->retrieve( SequencingProject => $project_params );
 }
 
+sub pspec_create_sequencing_project_backup{
+    return {
+        directory       => { validate => 'non_empty_string'},
+        creation_date   => { validate => 'date_time'},
+    }
+}
+
+
+sub create_sequencing_project_backup{
+    my ($self, $params, $name) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project_backup );
+    my $seq_rs = $self->schema->resultset('SequencingProject')->find({
+        name => $name
+    });
+
+    my $seq_project_backup = $seq_rs->create_related(
+        SequencingProjectBackup => {
+            directory       => $validated_params->{directory},
+            creation_date   => $validated_params->{creation_date},
+        }
+    );
+    $self->log->debug('created sequencing project backup ' . $seq_project_backup->directory . ' with id ' . $seq_project_backup->id );
+}
 1;
 
 __END__
