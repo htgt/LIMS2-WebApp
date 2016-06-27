@@ -4,7 +4,6 @@ use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
-use LIMS2::Model::Util::ImportSequencing qw(insert_backup);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -229,7 +228,7 @@ sub old_versions_GET {
     my $project = $c->request->param('project');
     $c->log->debug("Retrieving backups for project: " . $project);
     my $seq_rs;
-    try { 
+    try {
         $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
             name => $project
         })->backup_directories;
@@ -247,12 +246,6 @@ sub old_versions_GET {
     return $self->status_ok( $c, entity => \@dates );
 }
 
-sub test :Path( '/api/autocomplete/test' ) :Args(0) :ActionClass('REST') {
-}
-
-sub test_GET {
-    insert_backup('6mHmcr','HUEPD0106');
-}
 
 =head1 AUTHOR
 

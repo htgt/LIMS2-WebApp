@@ -72,6 +72,20 @@ __PACKAGE__->add_columns(
   },
 );
 
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</seq_project_id>
+
+=item * L</directory>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("seq_project_id", "directory");
+
 =head1 RELATIONS
 
 =head2 seq_project
@@ -90,8 +104,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-21 09:28:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PjkOWt1DWcA1WmaO4uSOhA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-27 14:15:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yvr5h08lAr539rKXSa0V7w
 
 sub as_hash {
     my ( $self, $options ) = @_;

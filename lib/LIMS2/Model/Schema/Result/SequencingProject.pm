@@ -161,6 +161,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 sequencing_project_backups
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProjectBackup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_project_backups",
+  "LIMS2::Model::Schema::Result::SequencingProjectBackup",
+  { "foreign.seq_project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 sequencing_project_primers
 
 Type: has_many
@@ -191,8 +206,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UutyMmosEgooyTF+tG8fiQ
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-24 15:39:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I/0WZuVqKyaCXbKmVeyRXw
 
 sub as_hash {
     my ( $self, $options ) = @_;

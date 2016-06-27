@@ -105,9 +105,9 @@
 <table class="table col-md-12" style="table-layout:fixed">
     <thead>
         <tr>
-            <th class="col-md-2">Read</th>
+            <th class="col-md-3">Read</th>
             <th class="col-md-2">Import Date</th>
-            <th class="col-md-8">Trace <button class="btn btn-default btn-xs" id="hide_all_traces">Hide All Traces</button></th>
+            <th class="col-md-7">Trace <button class="btn btn-default btn-xs" id="hide_all_traces">Hide All Traces</button></th>
         </tr>
     </thead>
     <tbody>

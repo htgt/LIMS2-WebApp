@@ -9,7 +9,7 @@ use Sub::Exporter -setup => {
              extract_eurofins_data
              fetch_archives_added_since
              get_seq_file_import_date
-             insert_backup
+             backup_data
           )
     ]
 };
@@ -24,6 +24,7 @@ use Data::Dumper;
 use LIMS2::Model::Util qw( random_string );
 use File::stat;
 use LIMS2::Model;
+use Try::Tiny;
 
 Log::Log4perl->easy_init( { level => $DEBUG } );
 
@@ -112,7 +113,6 @@ sub extract_eurofins_data{
 		}
 
 	}
-$DB::single=1;
 	foreach my $modified_dir (values %projects_modified){
 		my $project = $modified_dir->basename;
         my $version = backup_data($modified_dir, $project);
@@ -267,16 +267,16 @@ sub get_seq_file_import_date {
     my $dir;
 
     if ($backup) {
-        $dir = $ENV{LIMS2_SEQ_FILE_DIR} . '/' . $project . '/' . $backup . '/' . $read_name . '.seq'; 
+        $dir = $ENV{LIMS2_SEQ_FILE_DIR} . '/' . $project . '/' . $backup . '/' . $read_name . '.seq';
     } else {
         $dir = $ENV{LIMS2_SEQ_FILE_DIR} . '/' . $project . '/' . $read_name . '.seq';
     }
-    
+
     my $fh;
-    open($fh, $dir);
+    my $file = open($fh, '<', $dir);
     my $stats = stat($fh);
     close $fh;
-    
+
     my @date = localtime($stats->ctime);
     $date[5] += 1900;
     $date[4] += 1;
@@ -289,11 +289,9 @@ sub get_seq_file_import_date {
 
 sub insert_backup {
     my ($dir, $project) = @_;
-$DB::single=1;
     my $model = LIMS2::Model->new( user => 'lims2' );
 
-
-    my $now = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
+    my $now = strftime("%Y-%m-%d %H:%M:%S", localtime(time));
 
     $model->schema->txn_do( sub{
       try{
