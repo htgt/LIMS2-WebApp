@@ -4,7 +4,7 @@ use warnings FATAL => 'all';
 
 use base qw( Test::Class );
 use Test::Most;
-use LIMS2::Model::Util::Crisprs;
+use LIMS2::Model::Util::Crisprs qw( crispr_wells_for_crispr );
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
 ## no critic
@@ -243,6 +243,28 @@ sub crispr_pick : Test(8) {
     ), 'design crispr link has been deleted';
 
     ok $crispr_design_rs->search_rs( {} )->delete, 'delete all existing links';
+}
+
+sub crispr_wells_for_crispr_test : Test(4) {
+    my $crispr_id = {crispr_id => 227040};
+
+    can_ok(__PACKAGE__, qw( crispr_wells_for_crispr ));
+
+    my @crisprs_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
+
+    foreach my $crispr_returned (@crisprs_returned) {
+
+        is($crispr_returned->name, 'A01', "name of returned well");
+        is($crispr_returned->plate_id, '3002', "id of plate the well is on");
+    }
+
+    $crispr_id = {crispr_id => 1234};
+
+    my @no_crisprs_returned = crispr_wells_for_crispr( model->schema, $crispr_id );
+
+    is(@no_crisprs_returned, '0', "can't return non-existant crispr");
+
+
 }
 
 ## use critic

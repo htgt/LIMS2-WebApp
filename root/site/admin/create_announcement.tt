@@ -136,7 +136,7 @@ function ValidateForm(){
       <br>
       </fieldset>
       <a href="[% c.uri_for( '/admin/announcements' ) %]" class="btn btn-info">Cancel</a>
-      <input class="btn btn-primary" name="create_announcement" id="create_announcement_button" type="submit" value="Create Announcement" />
+      <button class="btn btn-primary" name="create_announcement" id="create_announcement_button" type="submit" >Create Announcement</button>
     </form>
   </div>
 </body>

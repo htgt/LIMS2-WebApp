@@ -5,3 +5,4 @@ id,seq,species_id,crispr_loci_type_id,comment,pam_right
 69913,CCTAAGCAATTGTTTCAAATCGG,Mouse,Exonic,15A,f
 69844,CCGGAAGTCGGAATCCTCTATTA,Mouse,Exonic,32A,f
 69854,TGTTACACCTGCGTGTAGGGAGG,Mouse,Exonic,20B,t
+227040,CCATTGAAACGATGCCTTGTGTC,Human,Exonic,,f

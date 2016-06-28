@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.407';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.408';
 }
 ## use critic
 
@@ -323,6 +323,10 @@ sub primer_array {
     return sub {
         ref $_[0] eq 'ARRAY';
     }
+}
+
+sub psql_date {
+    return shift->regexp_matches(qr/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
 }
 
 =head2 in_enum_column
