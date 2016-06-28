@@ -393,11 +393,11 @@
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <li>&nbsp Switch species:</li>
+              <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.request.uri } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => '/' } ) %]">
                       [% species_id %]
                     </a>
                   </li>

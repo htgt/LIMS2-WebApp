@@ -19,6 +19,7 @@ use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
 use Path::Class;
+use LIMS2::Model::Util::ImportSequencing qw( get_seq_file_import_date );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -886,7 +887,6 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
     $c->stash->{primer_data} = $c->req->param('primer_data');
     $c->stash->{well_name} = $c->req->param('well_name');
-
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
         {
@@ -904,28 +904,34 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
         push(@results, $focus->{_column_data});
     }
     $c->stash->{recent_results} = \@results;
-
     if($c->req->param('get_reads')){
-
         unless($ENV{LIMS2_SEQ_FILE_DIR}){
             $c->stash->{error_msg} = "Cannot fetch reads - LIMS2_SEQ_FILE_DIR environment variable not set!";
             return;
         }
-
         my $project = $c->req->param('sequencing_project');
         my $sub_project = $c->req->param('sequencing_sub_project');
         my $well_name = $c->req->param('well_name');
+        my $date = $c->req->param('data_set');
+        my $version;
+        if ($date ne 'Latest') {
+            my $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
+                name => $project
+            })->backup_directories;
+            foreach my $dir (@{$seq_rs}) {
+                if ($date eq $dir->{date}) {
+                    $version = $dir->{dir};
+                    $c->stash->{selected_version} = $dir->{date};
+                }
+            }
+        } else {
+            $c->stash->{selected_version} = 'Latest';
+        }
         if ($well_name && $well_name ne ' '){
             # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
             # This will not work for older internally sequenced data
             $c->log->debug("Fetching reads for $sub_project well $well_name");
-
-            my $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR},$project);
-
-            unless (-r $project_dir){
-                $c->stash->{error_msg} = "Cannot fetch reads as directory $project_dir is not available";
-                return;
-            }
+            my $project_dir = file_name($c, $version, $project);
 
             my $file_prefix = $sub_project.lc($well_name);
             my @well_files = grep { $_->basename =~ /^$file_prefix\..*\.seq$/ } $project_dir->children;
@@ -959,19 +965,26 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
             # Fetch the sequence fasta and parse it
             my $script_name = 'fetch-seq-reads.sh';
             my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
-            my $fasta_input = join "", capturex( $fetch_cmd, $project );
+            my $fasta_input;
+            if ($version) {
+                $fasta_input = join "", capturex( $fetch_cmd, $project . '/' . $version );
+                $c->log->debug("Using version " . $version . " of " . $project);
+            } else {
+                $fasta_input = join "", capturex( $fetch_cmd, $project);
+                $c->log->debug("Using latest version of " . $project);
+            }
+
             my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
             my $seq_by_name = {};
             while (my $seq = $seqIO->next_seq() ){
                 $seq_by_name->{ $seq->display_id } = $seq->seq;
             }
-
             # Parse all read names for the project
             # and store along with read sequence
             my $reads_by_sub;
             foreach my $read ( get_parsed_reads($project) ){
                 $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
-
+                $read->{date} = get_seq_file_import_date( $project, $read->{orig_read_name}, $version);
                 $reads_by_sub->{ $read->{plate_name} } ||= [];
                 push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
             }
@@ -980,6 +993,24 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     }
 
     return;
+}
+
+sub file_name {
+    my ($c, $version, $project) = @_;
+    my $project_dir;
+    if ($version) {
+        $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project . '/' . $version);
+        $c->log->debug("Using version " . $version . " of " . $project);
+    }
+    else {
+        $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project);
+        $c->log->debug("Using latest version of " . $project);
+    }
+    unless (-r $project_dir){
+        $c->stash->{error_msg} = "Cannot fetch reads as directory $project_dir is not available";
+        return;
+    }
+    return $project_dir;
 }
 
 sub download_reads :Path( '/user/download_reads' ) :Args() {

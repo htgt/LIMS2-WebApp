@@ -319,6 +319,8 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
         }
     );
 
+    $c->flash( success_msg => "Message sucessfully created");
+
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
