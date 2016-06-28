@@ -350,6 +350,7 @@ sub load_dynamic_files {
             CrisprEsQcWell
             CrisprPlateAppendsType
             CrisprPlateAppends
+            SequencingProject
         )
     );
 
