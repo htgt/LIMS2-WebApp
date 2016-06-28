@@ -14,7 +14,7 @@ use Sub::Exporter -setup => {
     ]
 };
 
-use Log::Log4perl qw( :easy );;
+use Log::Log4perl qw( :easy );
 use Hash::MoreUtils qw( slice_def );
 use Archive::Zip qw( :ERROR_CODES );
 use Path::Class;
@@ -25,9 +25,11 @@ use LIMS2::Model::Util qw( random_string );
 use File::stat;
 use LIMS2::Model;
 use Try::Tiny;
-
-Log::Log4perl->easy_init( { level => $DEBUG } );
-
+BEGIN {
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
 my $STRING_TO_REMOVE = qr/_premix-w\.-temp/;
 my $PROJECT_NAME_RX = qr/^(.*)_\d+[a-z]{1}\d{2}\./;
 
@@ -141,6 +143,7 @@ sub extract_eurofins_data{
 
 	# Return list of projects seen
 	my @sorted_projects = sort keys %projects;
+
 	return (\@sorted_projects,\%project_versions);
 }
 
@@ -309,4 +312,3 @@ sub insert_backup {
 }
 
 1;
-
