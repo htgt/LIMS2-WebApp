@@ -89,8 +89,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Test(28) {
     note( 'Testing Pipeline Summary reports' );
 
     my $species = 'Mouse'; # NB. need to add tests for human reports later

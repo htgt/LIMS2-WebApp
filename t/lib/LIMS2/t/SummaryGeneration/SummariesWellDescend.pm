@@ -96,7 +96,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
+sub all_tests  : Test(21)
 {
 
     # Test gibson/crispr well trails which use data from

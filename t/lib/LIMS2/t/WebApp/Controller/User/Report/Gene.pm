@@ -86,8 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Test(22) {
     my @design_wells = ('1883','1877','935');
     foreach my $design_well_id (@design_wells) {
         my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,model);
