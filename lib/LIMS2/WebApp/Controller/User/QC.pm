@@ -15,7 +15,6 @@ use HTGT::QC::Run;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
-use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
 use LIMS2::Util::ESQCUpdateWellAccepted;
 use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
@@ -536,7 +535,7 @@ sub _run_qc{
 
     my $run_id;
     # Attempt to launch QC job
-#    try {
+    try {
 
         my $config = HTGT::QC::Config->new( { is_lims2 => 1 } );
 
@@ -573,10 +572,10 @@ sub _run_qc{
 
         $submit_qc_farm_job->new( { qc_run => $run } )->run_qc_on_farm();
 
-#    }
-#    catch {
-#        $c->log->warn( $_ );
-#    };
+    }
+    catch {
+        $c->log->warn( $_ );
+    };
 
     return $run_id;
 }
@@ -619,7 +618,7 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 
     $c->assert_user_roles( 'edit' );
 
-    my @jobs_killed = $self->_kill_lims2_qc($qc_run_id);
+    my @jobs_killed = $self->_kill_lims2_qc($qc_run_id, $c);
 
     if ( @jobs_killed ) {
         $c->flash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
@@ -634,15 +633,23 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 }
 
 sub _kill_lims2_qc{
-    my ( $self, $qc_run_id ) = @_;
+    my ( $self, $qc_run_id, $c ) = @_;
 
-    my $killer = HTGT::QC::Util::KillQCFarmJobs->new({
-        config    => $self->qc_config,
-        qc_run_id => $qc_run_id,
-    });
+    my $job_ids = [];
 
-    my $job_ids = $killer->kill_unfinished_farm_jobs();
-    return @{ $job_ids || [] };
+    try{
+        my $killer = HTGT::QC::Util::KillQCFarmJobs->new({
+            config    => $self->qc_config,
+            qc_run_id => $qc_run_id,
+        });
+        $job_ids = $killer->kill_unfinished_farm_jobs();
+    }
+    catch{
+        $c->log->warn( $_ );
+        $c->stash->{error_msg} = $_;
+    };
+
+    return @{ $job_ids };
 }
 
 sub _build_plate_map {
