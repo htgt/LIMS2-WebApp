@@ -619,20 +619,30 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 
     $c->assert_user_roles( 'edit' );
 
-    my $content = htgt_api_call( $c, { qc_run_id => $qc_run_id }, 'kill_uri' );
+    my @jobs_killed = $self->_kill_lims2_qc($qc_run_id);
 
-    if ( $content ) {
-        my @jobs_killed = @{ $content->{ job_ids } };
-        $c->stash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
+    if ( @jobs_killed ) {
+        $c->flash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
     }
     else {
         my $error = $c->stash->{ error_msg } . "<br/>Failed to kill farm jobs."; #dont overwrite other error
-        $c->stash( error_msg => $error );
+        $c->flash( error_msg => $error );
     }
 
-    $c->go( 'latest_runs' );
-
+    $c->res->redirect( $c->uri_for('/user/latest_runs') );
     return;
+}
+
+sub _kill_lims2_qc{
+    my ( $self, $qc_run_id ) = @_;
+
+    my $killer = HTGT::QC::Util::KillQCFarmJobs->new({
+        config    => $self->qc_config,
+        qc_run_id => $qc_run_id,
+    });
+
+    my $job_ids = $killer->kill_unfinished_farm_jobs();
+    return @{ $job_ids || [] };
 }
 
 sub _build_plate_map {
