@@ -3,10 +3,12 @@
 document.title = "[%- sponsor_id %]";
 </SCRIPT>
 
+
 <span style="float:right">
+  <a id='expand' type='button' class='btn btn-info btn-sm' onclick=displayAll();><i class="glyphicon glyphicon-resize-small"></i><b> Collapse all</b></a>
 
   [%- IF type == 'full' %]
-  <a id='type_simple' type='button' class='btn btn-primary btn-sm'
+  <a id='type_simple' type='button' class='btn btn-info btn-sm'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         cache_param => cache_param,
@@ -14,7 +16,7 @@ document.title = "[%- sponsor_id %]";
     }
   ) %]><i class="glyphicon glyphicon-zoom-out"></i><b> Simple Report</b></a>
   [%- ELSIF type == 'simple' %]
-  <a id='type_full' type='button' class='btn btn-primary btn-sm'
+  <a id='type_full' type='button' class='btn btn-info btn-sm'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         cache_param => cache_param,
@@ -22,13 +24,13 @@ document.title = "[%- sponsor_id %]";
     }
   ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
   [%- END %]
-  <a id='csv_download' type='button' class='btn btn-info btn-sm' target="_blank"
+  <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         csv => 1
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-info btn-sm' target="_blank"
+  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
         xlsx => 1
@@ -68,7 +70,7 @@ document.title = "[%- sponsor_id %]";
   </thead>
   <tbody>
     [%- FOREACH row IN data %]
-        <tr>
+        <tr class="info">
       [%- FOREACH col IN columns %]
         [%- colval = row.item(col) %]
 
@@ -195,53 +197,57 @@ document.title = "[%- sponsor_id %]";
         [%- ELSIF col == 'electroporations' %]
           <td style="background:#E5E4E2">
               [%- IF row.item('electroporations') %]
-                <a onclick="displayRow('[%- row.item('gene_id') %]')">[%- colval %]</a>
+                <a onclick="displayRow('[%- row.item('gene_symbol') %]')">[%- colval %]</a>
               [%- ELSE %]
                 [%- colval %]
               [%- END %]
               </td>
-
+        [%- ELSIF col == "DNA_source_cell_line"
+               || col == "EP_cell_line" 
+               || col == "experiment_ID" %]
+            <td><a onclick="displayRow('[%- row.item('gene_symbol') %]')"><span class="exp [% row.item('gene_symbol') %] glyphicon glyphicon-minus"></span></a></td>
         [%- ELSIF col == "ep_data" %]
 
           [%- IF row.item('ep_data').0 %]
           </tbody>
-          <tbody id="[%- row.item('gene_id') %]" style="display:none">
+          <tbody id="[%- row.item('gene_symbol') %]" class="gene_row" style="display:none">
                 [%- FOREACH ep_data IN row.item('ep_data') %]
+                  [% FOREACH vector_dna IN ep_data.item('dna_template') %]
+                    <tr>
+                      <td>[%- row.item('gene_id') %]</td>
+                      <td>[%- row.item('gene_symbol') %]</td>
+                      <td>[%- row.item('chromosome') %]</td>
+                      <td>[%- row.item('sponsors') %]</td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td></td>
+                      <td>[%- vector_dna %]</td>
+                      <td>[%- ep_data.item('cell_line') %]</td>
+                      <td>
+                        [% FOREACH exp IN ep_data.item('experiment') %]
+                          <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                        [% END %]
+                      </td>
+                      <td>[%- ep_data.item('total_colonies') %]</td>
+                      <td>[%- ep_data.item('ep_pick_count') %]</td>
+                      <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
+                      <td>[%- ep_data.item('frameshift') %]</td>
+                      <td>[%- ep_data.item('in-frame') %]</td>
+                      <td>[%- ep_data.item('wild_type') %]</td>
+                      <td>[%- ep_data.item('mosaic') %]</td>
+                      <td>[%- ep_data.item('no-call') %]</td>
+                      <td>[%- ep_data.item('het') %]</td>
+                    [%- IF c.user %]
+                      <td colspan=3></td>
+                    [%- ELSE %]
+                      <td colspan=2></td>
+                    [%- END %]
+                    </tr>
 
-                <tr>
-                [%- IF c.user %]
-                  <td colspan=10 style="text-align:right">
-                      Experiment
-                    [% FOREACH exp IN ep_data.item('experiment') %]
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
-                    [% END %]
-                     in [% ep_data.item('cell_line') %]
-                  </td>
-                [%- ELSE %]
-                  <td colspan=9  style="text-align:right">
-                      Experiment
-                    [% FOREACH exp IN ep_data.item('experiment') %]
-                      <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
-                    [% END %]
-                      in [% ep_data.item('cell_line') %]
-                  </td>
-                [%- END %]
-                  <td>[%- ep_data.item('total_colonies') %]</td>
-                  <td>[%- ep_data.item('ep_pick_count') %]</td>
-                  <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
-                  <td>[%- ep_data.item('frameshift') %]</td>
-                  <td>[%- ep_data.item('in-frame') %]</td>
-                  <td>[%- ep_data.item('wild_type') %]</td>
-                  <td>[%- ep_data.item('mosaic') %]</td>
-                  <td>[%- ep_data.item('no-call') %]</td>
-                  <td>[%- ep_data.item('het') %]</td>
-                [%- IF c.user %]
-                  <td colspan=3></td>
-                [%- ELSE %]
-                  <td colspan=2></td>
-                [%- END %]
-                </tr>
-
+                  [%- END %]
                 [%- END %]
           </tbody>
           <tbody>
@@ -262,17 +268,49 @@ document.title = "[%- sponsor_id %]";
 [%- END %]
 
 
-
-
 <script type="text/javascript">
+$(document).ready(function() {
+    $('.gene_row').each(function(ele) {
+        $('.gene_row')[ele].style.display = '';
+    });
+});
 
-  function displayRow( my_id ){
+function displayAll() {
+    var start = performance.now();
+    var state = '';
+    if ($('#expand').text() == ' Collapse all') {
+        state = 'none';
+        $('#expand').html("<i class='glyphicon glyphicon-resize-full'></i><b> Expand all</b></a>");
+    } else {
+        $('#expand').html("<i class='glyphicon glyphicon-resize-small'></i><b> Collapse all</b></a>");
+    }
+    var rows = document.getElementsByClassName('gene_row');
+    for (var row = 0; row < rows.length; row++) {
+        rows[row].style.display = state;
+    }
+    $('.exp').each(function() {
+        if (state == 'none') { 
+            $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus");
+        } else {
+            $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");
+        }
+    });
+    var end = performance.now();
+    var time = end - start;
+    console.log("Execution time: " + time);
+}
+
+function displayRow( my_id ){
     var row = document.getElementById(my_id);
-    if (row.style.display == '')
-      row.style.display = 'none';
-    else
-      row.style.display = '';
-  }
+    if (row.style.display == '') {
+        row.style.display = 'none';
+        $('.'+ my_id).removeClass("glyphicon-minus").addClass("glyphicon-plus");
+    }
+    else {
+        row.style.display = '';
+        $('.'+ my_id).removeClass("glyphicon-plus").addClass("glyphicon-minus");
+    }
+}
 
 </script>
 
