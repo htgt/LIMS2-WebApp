@@ -535,7 +535,7 @@ Page to display chosen well, takes a well id (later a barcode) or a plate/well c
 =cut
 sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args() {
     my ( $self, $c, @args ) = @_;
-
+use Smart::Comments;
     if ( @args == 1 ) {
         my $barcode = shift @args;
         try {
@@ -561,6 +561,8 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
     }
     else {
         $c->stash( error_msg => "Invalid number of arguments" );
+my $params = shift @args;
+### $params
     }
 
     return;

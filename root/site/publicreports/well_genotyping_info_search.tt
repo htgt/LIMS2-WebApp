@@ -45,6 +45,10 @@ $(document).ready(function () {
     $("#id_button").click();
   });
 
+  $("#plate_well_name").enterKey(function(ev) {
+    $("#plate_well_search_button").click();
+  });
+
   $("#well_name, #plate_name").enterKey(function(ev) {
     $("#search_button").click();
   });
