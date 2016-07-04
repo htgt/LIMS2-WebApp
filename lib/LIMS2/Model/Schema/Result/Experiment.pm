@@ -324,6 +324,40 @@ sub crispr_description{
     return $description;
 }
 
+sub crisprs{
+    my $self = shift;
+    my @crisprs;
+    if($self->crispr){
+        push @crisprs, $self->crispr;
+    }
+
+    if($self->crispr_pair){
+        push @crisprs, ($self->crispr_pair->left_crispr, $self->crispr_pair->right_crispr);
+    }
+
+    if($self->crispr_group){
+        push @crisprs, $self->crispr_group->crisprs;
+    }
+    return @crisprs;
+}
+
+# In practice experiments seem to have only 1 of crispr, pair or group
+# but this is an assumption and is not restricted by the schema
+sub crispr_entity{
+    my $self = shift;
+    if($self->crispr){
+        return $self->crispr;
+    }
+
+    if($self->crispr_pair){
+        return $self->crispr_pair;
+    }
+
+    if($self->crispr_group){
+        return $self->crispr_group;
+    }
+    return;
+}
 sub _chr_location{
     my ($self, $entity) = @_;
     my $location = "chr".$entity->chr_name.":".$entity->start."-".$entity->end;

@@ -319,6 +319,10 @@ sub primer_array {
     }
 }
 
+sub psql_date {
+    return shift->regexp_matches(qr/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+}
+
 =head2 in_enum_column
 
   Use enum from database schema as set, e.g. value column from WellAssemblyQc
