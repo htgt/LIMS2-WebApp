@@ -12,7 +12,7 @@ use LIMS2::Model;
 BEGIN {extends 'Catalyst::Controller'; }
 
 # Uncomment this to add time since last log entry to log output
-Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
+#Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
 =head1 NAME
 
