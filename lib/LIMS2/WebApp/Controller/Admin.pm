@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.407';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.409';
 }
 ## use critic
 
@@ -324,6 +324,8 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             lims            => $lims,
         }
     );
+
+    $c->flash( success_msg => "Message sucessfully created");
 
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }

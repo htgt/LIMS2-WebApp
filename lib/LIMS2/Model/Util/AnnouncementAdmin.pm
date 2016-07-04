@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::AnnouncementAdmin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::AnnouncementAdmin::VERSION = '0.407';
+    $LIMS2::Model::Util::AnnouncementAdmin::VERSION = '0.409';
 }
 ## use critic
 
@@ -34,6 +34,9 @@ sub delete_message {
 
     my $priority = $schema->resultset('Message')->search({
         'me.id'  => [ $message_id ],
+      },
+      {
+        order_by    => { -desc => 'me.expiry_date'},
       }
     );
 
@@ -92,7 +95,10 @@ Priority options.
 sub list_priority {
     my ($schema) = @_;
 
-    my @priority = $schema->resultset('Priority')->search( );
+    my @priority = $schema->resultset('Priority')->search({},
+    {
+        order_by    => { -asc => 'me.id'},
+    });
 
     return \@priority;
 }

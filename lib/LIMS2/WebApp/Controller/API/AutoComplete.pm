@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.407';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.409';
 }
 ## use critic
 
@@ -87,7 +87,6 @@ sub sequencing_projects_GET {
 =cut
 
 sub badger_seq_projects :Path( '/api/autocomplete/badger_seq_projects' ) :Args(0) :ActionClass( 'REST' ) {
-
 }
 
 sub badger_seq_projects_GET {
@@ -105,7 +104,6 @@ sub badger_seq_projects_GET {
 =cut
 
 sub seq_read_names :Path( '/api/autocomplete/seq_read_names' ) :Args(0) :ActionClass( 'REST' ) {
-
 }
 
 sub seq_read_names_GET {
@@ -114,12 +112,12 @@ sub seq_read_names_GET {
     $c->assert_user_roles( 'read' );
 
     #group data by sub project name and keep a count of all the attached primers
-
     my %data;
     for my $read_name ( get_parsed_reads( $c->request->params->{term} ) ) {
         my ( $plate, $primer ) = ( $read_name->{plate_name}, $read_name->{primer} );
         $data{$plate}->{$primer}++;
     }
+
 
     return $self->status_ok( $c, entity => \%data );
 }
@@ -227,6 +225,33 @@ sub _entity_column_search {
 
     return [ map { $_->$search_column } @objects ];
 }
+
+sub old_versions :Path( '/api/autocomplete/old_versions' ) :Args(0) :ActionClass('REST') {
+}
+
+sub old_versions_GET {
+    my ( $self, $c ) = @_;
+    my $project = $c->request->param('project');
+    $c->log->debug("Retrieving backups for project: " . $project);
+    my $seq_rs;
+    try {
+        $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
+            name => $project
+        })->backup_directories;
+    }
+    catch {
+        $c->log->error( $_ );
+        return;
+    };
+
+    #Only dates are needed 
+    my @dates;
+    foreach my $dir (@{$seq_rs}) {
+        push (@dates, $dir->{date});
+    }
+    return $self->status_ok( $c, entity => \@dates );
+}
+
 
 =head1 AUTHOR
 
