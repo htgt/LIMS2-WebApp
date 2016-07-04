@@ -11,6 +11,7 @@ use LIMS2::Model;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
+# Uncomment this to add time since last log entry to log output
 Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
 =head1 NAME
@@ -30,31 +31,15 @@ Catalyst Controller.
 
 =cut
 
-has species_assembly_ids => (
-    is  => 'ro',
-    isa => 'HashRef',
-    lazy_build => 1,
-    traits => ['Hash'],
-    handles => {
-        get_assembly_id => 'get',
-    }
-);
-
-sub _build_species_assembly_ids {
-    my $model = LIMS2::Model->new({ user => 'lims2' });
-    my @species = $model->schema->resultset('Species')->all;
-    my %species_assembly = map { $_->id => $_->default_assembly->assembly_id } @species;
-    return \%species_assembly;
-}
-
-has c => (
+# I'm going to assume all the designs for this gene are on the same chromosome!
+has chromosome => (
     is => 'rw',
-    isa => 'LIMS2::WebApp',
+    isa => 'Str',
 );
+
 sub index :Path( '/user/report/gene' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-$self->c($c);
     $c->assert_user_roles( 'read' );
 
     $c->stash( template => "user/report/gene_summary_report.tt" );
@@ -103,7 +88,7 @@ $self->c($c);
         sfp        => \&fetch_values_for_type_sfp,
     };
 
-    my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp');
+    my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','sfp','piq');
     my @plate_types_rev = reverse @plate_types;
 
     my %designs_hash;
@@ -135,15 +120,9 @@ $self->c($c);
 
                 # for each summary row append well data to hash rows depending on plate type, do not add if already exists in hash
                 for my $curr_plate_type_id( @plate_types_rev ) {
-                    if($curr_plate_type_id eq "ep"){
-                        $c->log->debug("Fetching values for plate type $curr_plate_type_id");
-                    }
                     my $row_complete = $dispatch_fetch_values->{ $curr_plate_type_id }->( $self, $summary_row, \%wells_hash, $c->model('Golgi'));
-                    if($curr_plate_type_id eq "ep"){
-                        $c->log->debug("Fetching values complete");
-                    }
                     if($row_complete){
-                        $c->log->debug("Skipping plate types earlier than $curr_plate_type_id");
+                        #$c->log->debug("Skipping plate types earlier than $curr_plate_type_id");
                         next ROW;
                     }
                 }
@@ -787,13 +766,18 @@ sub fetch_values_for_type_ep_pick {
         my $ep_well_name      = $summary_row->ep_well_name // $summary_row->crispr_ep_well_name;
         my $ep_well = $ep_plate_name . '_' . $ep_well_name;
 
-        my $design = $model->schema->resultset('Design')->find({
-            id => $summary_row->design_id,
-        });
+        my $chromosome = $self->chromosome;
+        unless($chromosome){
+            my $design = $model->schema->resultset('Design')->find({
+                id => $summary_row->design_id,
+            });
 
-        my $assembly_id = $self->get_assembly_id( $summary_row->design_species_id );
-        my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
-        my $chromosome = $design_oligo_locus->chr->name;
+            my $species = $model->schema->resultset('Species')->find({ id => $summary_row->design_species_id});
+            my $assembly_id = $species->default_assembly->assembly_id;
+            my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+            $chromosome = $design_oligo_locus->chr->name;
+            $self->chromosome($chromosome);
+        }
 
         my $is_het;
         my $damage_type;
@@ -885,7 +869,7 @@ sub fetch_values_for_type_sep {
         my $well_name      = $summary_row->sep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return 1 if exists $wells_hash->{ 'sep' }->{ $well_id_string };
+        return if exists $wells_hash->{ 'sep' }->{ $well_id_string };
 
         my $well_is_accepted;
         if ( $summary_row->sep_well_accepted ) {
@@ -943,7 +927,7 @@ sub fetch_values_for_type_sep_pick {
         my $well_name      = $summary_row->sep_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return 1 if exists $wells_hash->{ 'sep_pick' }->{ $well_id_string };
+        return if exists $wells_hash->{ 'sep_pick' }->{ $well_id_string };
 
         my $well_is_accepted;
         if ( $summary_row->sep_pick_well_accepted ) {
