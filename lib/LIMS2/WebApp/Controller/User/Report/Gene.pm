@@ -783,7 +783,7 @@ sub fetch_values_for_type_ep_pick {
         my $damage_type;
 
         try {
-            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ep_pick_well_id) // '---';
+            $damage_type = $summary_row->ep_pick_well_crispr_es_qc_well_call // '---';
             $is_het = ep_pick_is_het($model,$summary_row->ep_pick_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -808,13 +808,8 @@ sub fetch_values_for_type_ep_pick {
             'damage_type'       => $damage_type,
         };
 
-        if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
-            my $well = $model->schema->resultset('Well')->find( $summary_row->ep_pick_well_id );
-            #its an accepted crispr well, so try and get the qc data
-            my $gene_finder = sub { $model->find_genes( @_ ) };
-            try {
-                $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
-            };
+        if ( $summary_row->crispr_ep_well_id and $summary_row->ep_pick_well_accepted ) {
+            $well_hash->{crispr_es_qc_well_id} = $summary_row->ep_pick_well_crispr_es_qc_well_id;
         }
 
         $wells_hash->{ 'ep_pick' }->{ $summary_row->ep_pick_well_id } = $well_hash;
@@ -1047,7 +1042,7 @@ sub fetch_values_for_type_piq {
         my $damage_type;
 
         try {
-            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id) // '---';
+            $damage_type = $summary_row->piq_crispr_es_qc_well_call // '---';
             $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -1072,20 +1067,8 @@ sub fetch_values_for_type_piq {
             'damage_type'       => $damage_type,
         };
 
-        if ( $summary_row->crispr_ep_well_name ) {
-            my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
-                {
-                    well_id  => $summary_row->piq_well_id,
-                    accepted => 1,
-                },
-            );
-
-            if ( my $accepted_qc_well = shift @qc_wells ) {
-                my $gene_finder = sub { $model->find_genes(@_) };
-                try {
-                    $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-                };
-            }
+        if ( $summary_row->crispr_ep_well_id ) {
+            $well_hash->{crispr_es_qc_well_id} = $summary_row->piq_crispr_es_qc_well_id;
         }
 
         $wells_hash->{ 'piq' }->{ $summary_row->piq_well_id } = $well_hash;
@@ -1144,10 +1127,7 @@ sub fetch_values_for_type_piq {
                     );
 
                     if ( my $accepted_qc_well = shift @qc_wells ) {
-                        my $gene_finder = sub { $model->find_genes(@_) };
-                        try {
-                            $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-                        };
+                        $well_hash->{crispr_es_qc_well_id} = $accepted_qc_well->id;
                     }
                 }
 
@@ -1235,7 +1215,7 @@ sub crispr_qc_data {
             next unless $well_data->{is_accepted} eq 'yes';
             push @{ $piq_crispr_qc{ $well_data->{ep_pick_well_id} } }, {
                 qc       => $well_data->{crispr_qc_data},
-                piq_well => $piq_well,
+                piq_well => $well_data->{well_id_string},
                 accepted => $well_data->{is_accepted},
             };
         }
@@ -1254,7 +1234,7 @@ sub crispr_qc_data {
         if ( exists $piq_crispr_qc{ $well_id } ) {
             for my $piq_qc ( @{ $piq_crispr_qc{ $well_id } } ) {
                 push @crispr_qc, {
-                    epd_well     => $ep_pick,
+                    epd_well     => $piq_qc->{well_id_string},
                     epd_qc       => $crispr_qc_data,
                     piq_qc       => $piq_qc->{qc},
                     piq_well     => $piq_qc->{piq_well},
@@ -1265,7 +1245,7 @@ sub crispr_qc_data {
         }
         else {
             push @crispr_qc, {
-                epd_well  => $ep_pick,
+                epd_well  => $well_data->{well_id_string},
                 epd_qc    => $crispr_qc_data,
                 to_report => $well_data->{to_report},
             };
@@ -1273,7 +1253,8 @@ sub crispr_qc_data {
 
     }
 
-    return \@crispr_qc;
+    my @sorted = sort { $a->{epd_well} cmp $b->{epd_well} } @crispr_qc;
+    return \@sorted;
 }
 
 =head1 AUTHOR

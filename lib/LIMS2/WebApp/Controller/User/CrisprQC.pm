@@ -418,6 +418,26 @@ sub upload_het_status_file :Path('/user/crisprqc/upload_het_status_file') :Args(
     return;
 }
 
+# Used by ajax get in the gene summary page to populate alignment details on demand
+sub qc_well_alignment :Path('/user/crisprqc/well_alignment') :Args(1) {
+    my ($self, $c, $qc_well_id) = @_;
+
+    $c->assert_user_roles('read');
+
+    return unless $qc_well_id;
+
+
+        my $qc_well = $c->model('Golgi')->retrieve_crispr_es_qc_well({ id => $qc_well_id });
+        my $gene_finder = sub { $c->model('Golgi')->find_genes(@_) };
+        my $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+        $c->stash->{qc} = $qc_data;
+
+
+
+    $c->stash->{template} = 'crispr_qc_alignment.tt';
+    $c->forward( $c->view('HTML_fragment') );
+    return;
+}
 
 __PACKAGE__->meta->make_immutable;
 
