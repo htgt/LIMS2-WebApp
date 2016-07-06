@@ -1214,7 +1214,7 @@ sub crispr_qc_data {
             my $well_data = $piq_wells->{ $piq_well };
             next unless $well_data->{is_accepted} eq 'yes';
             push @{ $piq_crispr_qc{ $well_data->{ep_pick_well_id} } }, {
-                qc       => $well_data->{crispr_qc_data},
+                qc_well_id => $well_data->{crispr_es_qc_well_id},
                 piq_well => $well_data->{well_id_string},
                 accepted => $well_data->{is_accepted},
             };
@@ -1227,16 +1227,15 @@ sub crispr_qc_data {
 
         # ep_pick crispr qc
         my $well_id = $well_data->{well_id};
-        my $crispr_qc_data = $well_data->{crispr_qc_data};
-        next unless $crispr_qc_data;
+        next unless $well_data->{crispr_es_qc_well_id};
 
         # piq_crispr_qc
         if ( exists $piq_crispr_qc{ $well_id } ) {
             for my $piq_qc ( @{ $piq_crispr_qc{ $well_id } } ) {
                 push @crispr_qc, {
                     epd_well     => $piq_qc->{well_id_string},
-                    epd_qc       => $crispr_qc_data,
-                    piq_qc       => $piq_qc->{qc},
+                    epd_qc_well_id => $well_data->{crispr_es_qc_well_id},
+                    piq_qc_well_id => $piq_qc->{qc_well_id},
                     piq_well     => $piq_qc->{piq_well},
                     piq_accepted => $piq_qc->{accepted},
                     to_report    => $well_data->{to_report},
@@ -1246,7 +1245,7 @@ sub crispr_qc_data {
         else {
             push @crispr_qc, {
                 epd_well  => $well_data->{well_id_string},
-                epd_qc    => $crispr_qc_data,
+                epd_qc_well_id => $well_data->{crispr_es_qc_well_id},
                 to_report => $well_data->{to_report},
             };
         }
