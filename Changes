@@ -1,3 +1,7 @@
+0.410     2016-07-06 13:49:49 Europe/London
+
+   Faster page load for gene summary
+
 0.409     2016-07-04 13:16:33 Europe/London
 
     Run vector QC from LIMS2 without using HTGT API 

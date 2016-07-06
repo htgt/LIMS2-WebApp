@@ -1,7 +1,7 @@
 package LIMS2::WebApp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::VERSION = '0.409';
+    $LIMS2::WebApp::VERSION = '0.410';
 }
 ## use critic
 
@@ -55,6 +55,12 @@ __PACKAGE__->config(
         INCLUDE_PATH => [
             __PACKAGE__->path_to( 'root', 'lib' ),
             __PACKAGE__->path_to( 'root', 'site' ),
+            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
+        ],
+    },
+    'View::HTML_fragment' => {
+        INCLUDE_PATH => [
+            __PACKAGE__->path_to( 'root', 'lib' ),
             $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
         ],
     },

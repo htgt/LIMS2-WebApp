@@ -52,18 +52,80 @@ $(document).ready(function() {
     });
 
     $(".crispr_qc_accepted").each(function () {
+        var display_qc_link = $(this);
         $(this).click(function(e) {
             e.preventDefault();
+            if(display_qc_link.attr('data-toggle')){
+              // we've already got the alignment html so nothing to do
+              console.log('already have alignment popover');
+              display_qc_link.popover('toggle');
+            }
+            else{
+              // add a spinner while we wait
+              display_qc_link.before("<img class='spinner' src='[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]'/>");
+              // Fetch alignment html
+              var qc_well_id = $(this).data('qc_well_id');
+              var url = "[% c.uri_for('/user/crisprqc/well_alignment/') %]" + qc_well_id;
+              $.get(url)
+              .done(function(data){
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.after('<div style="display:none">' + data + '</div>');
+                  var inner = display_qc_link.parent().find(".alignment_inner");
+                  // crispr-qc.js method to colour the alignments
+                  colour_alignment_pair(inner);
+                  display_qc_link.popover({
+                      content: display_qc_link.parent().find(".alignment"),
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  // tried display_qc_link.popover('show') but this caused incorrect toggle
+                  // on next click
+                  display_qc_link.click();
+              })
+              .fail(function(data){
+                  console.log("failed to get alignment from " + url);
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.popover({
+                      content: "Failed to get alignment for QC well ID: " + qc_well_id,
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  display_qc_link.click();
+              });
+            }
         });
+    });
 
-        $(this).popover({
-            content: $(this).parent().find(".alignment"),
-//          trigger: "hover",
-//          title: "test",
-            container: 'body',
-            html: true,
-            placement: 'left'
-        })
+    $("#crispr_qc_expand").click(function(e){
+        console.log('clicked to expand crispr qc');
+        if($(this).data('populated') == 0){
+            console.log('fetching qc for...');
+            $(this).data('populated',1);
+            $(".qc_result").each(function(){
+                var result_td = $(this);
+                var qc_well_id = $(this).data('qc_well_id');
+                var url = "[% c.uri_for('/user/crisprqc/qc_well_details/') %]" + qc_well_id;
+                $.get(url)
+                .done(function(data){
+                    result_td.after(data);
+                    result_td.parent().find(".seq_spinner").remove();
+                    var inner = result_td.parent().find(".alignment_inner");
+                    // crispr-qc.js method to colour the alignments
+                    colour_alignment_pair(inner);
+                    // FIXME: need to make view traces button active
+                })
+                .fail(function(data){
+                    result_td.parent().find(".seq_spinner").html(
+                      "Could not get QC details for QC well ID: " + qc_well_id
+                    );
+                    console.log("failed to get qc details from " + url);
+                });
+            });
+        }
     });
 
   show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
@@ -193,12 +255,12 @@ function toggle_btn(btn, show_or_hide) {
     <p id="collapseCrisprQC_id"></p>
     <div class="panel-heading">
       <h3>
-        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC" data-populated="0" id="crispr_qc_expand">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
       </h3>
     </div>
     <div id="collapseCrisprQC" class="panel-body collapse" style="overflow-x:auto">
       <div class="panel-body">
-        <table class="table table-striped">
+        <table class="table table-striped" id="crispr_qc_table">
           <thead>
               <tr>
                   <th>Well</th>
@@ -211,29 +273,21 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH qc IN crispr_qc %]
             <tr>
-                <td>
+                <td class="qc_result" data-qc_well_id=[% qc.epd_qc_well_id %]>
                     <strong>[% qc.epd_well %]</strong>
                     [% IF !qc.to_report %]
                     <br>
                     <span class="label label-important">Not to Report</span>
                     [% END %]
                 </td>
-                [% INCLUDE 'crispr_qc_view.tt'
-                    row                    = qc.epd_qc
-                    accept                 = 0
-                    edit                   = 0
-                    hide_crispr_well_id    = 1
-                    complete_info          = 0
-                    hide_well_name         = 1
-                    hide_gene              = 1
-                    hide_crispr_validation = 1
-                    hide_het_validation    = 1
-                %]
+                <td colspan="6" class="seq_spinner">
+                    <img src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/>
+                </td>
             </tr>
 
             <tr>
-              [% IF qc.piq_qc %]
-                <td>
+              [% IF qc.piq_qc_well_id %]
+                <td class="qc_result" data-qc_well_id=[% qc.piq_qc_well_id %]>
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
@@ -241,17 +295,9 @@ function toggle_btn(btn, show_or_hide) {
                     <span class="label label-important">Not to Report</span>
                     [% END %]
                 </td>
-                [% INCLUDE 'crispr_qc_view.tt'
-                    row                    = qc.piq_qc
-                    accept                 = 0
-                    edit                   = 0
-                    hide_crispr_well_id    = 1
-                    complete_info          = 0
-                    hide_well_name         = 1
-                    hide_gene              = 1
-                    hide_crispr_validation = 1
-                    hide_het_validation    = 1
-                %]
+                <td colspan="6" class="seq_spinner">
+                    <img src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/>
+                </td>
               [% ELSE %]
                 <td colspan="7">
                   <span class="label">No Accepted PIQ Crispr QC</span>
@@ -344,12 +390,8 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.fp_well %]</td>
               <td class="accepted">[% well.is_accepted %]</td>
               <td>
-                [% IF well.crispr_qc_data %]
-                <a href="#" class="crispr_qc_accepted">
-                <!-- insert alignments but hidden -->
-                <div style="display:none">
-                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
-                </div>
+                [% IF well.crispr_es_qc_well_id %]
+                <a href="#" class="crispr_qc_accepted" data-qc_well_id="[% well.crispr_es_qc_well_id %]">
                 [% END %]
                 [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
@@ -568,12 +610,8 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.ep_well %]</td>
               <td class="accepted">[% well.is_accepted %]</td>
               <td>
-                [% IF well.crispr_qc_data %]
-                <a href="#" class="crispr_qc_accepted">
-                <!-- insert alignments but hidden -->
-                <div style="display:none">
-                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
-                </div>
+                [% IF well.crispr_es_qc_well_id %]
+                <a href="#" class="crispr_qc_accepted" data-qc_well_id="[% well.crispr_es_qc_well_id %]">
                 [% END %]
                 [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
