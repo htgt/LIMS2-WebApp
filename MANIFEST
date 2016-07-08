@@ -348,6 +348,7 @@ lib/LIMS2/WebApp/Model/Golgi.pm
 lib/LIMS2/WebApp/Pageset.pm
 lib/LIMS2/WebApp/Script/FastCGI.pm
 lib/LIMS2/WebApp/View/HTML.pm
+lib/LIMS2/WebApp/View/HTML_fragment.pm
 lib/LIMS2/WebApp/View/JSON.pm
 root/favicon.ico
 root/lib/barcode_well_details.tt

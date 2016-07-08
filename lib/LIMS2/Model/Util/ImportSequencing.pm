@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ImportSequencing;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.408';
+    $LIMS2::Model::Util::ImportSequencing::VERSION = '0.411';
 }
 ## use critic
 
@@ -285,14 +285,19 @@ sub get_seq_file_import_date {
     my $file = open($fh, '<', $dir);
     my $stats = stat($fh);
     close $fh;
+    my $date_time;
 
-    my @date = localtime($stats->ctime);
-    $date[5] += 1900;
-    $date[4] += 1;
-    for (my $t = 0; $t < 5; $t++) {
-        $date[$t] = sprintf("%02d",$date[$t]);
-    }
-    my $date_time = "$date[5]-$date[4]-$date[3] $date[2]:$date[1]:$date[0]";
+    try {
+        my @date = localtime($stats->ctime);
+        $date[5] += 1900;
+        $date[4] += 1;
+        for (my $t = 0; $t < 5; $t++) {
+            $date[$t] = sprintf("%02d",$date[$t]);
+        }
+        $date_time = "$date[5]-$date[4]-$date[3] $date[2]:$date[1]:$date[0]";
+    } catch {
+        $date_time = '-';
+    };
     return $date_time;
 }
 

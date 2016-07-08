@@ -1,3 +1,13 @@
+0.411     2016-07-08 15:07:49 Europe/London
+    Changes to the front page reports
+0.410     2016-07-06 13:49:49 Europe/London
+
+   Faster page load for gene summary
+
+0.409     2016-07-04 13:16:33 Europe/London
+
+    Run vector QC from LIMS2 without using HTGT API 
+
 0.408     2016-06-28 14:31:33 Europe/London
     Added import dates to the view seq traces
 0.407     2016-06-21 09:46:07 Europe/London
