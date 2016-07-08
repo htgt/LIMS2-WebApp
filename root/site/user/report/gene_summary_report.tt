@@ -43,14 +43,6 @@ $(document).ready(function() {
       addQCVerifiedLabel($(this),value);
     });
 
-    // crispr qc trace view button
-    $(".traces").click(function(e) {
-        e.preventDefault();
-
-        //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
-    });
-
     $(".crispr_qc_accepted").each(function () {
         var display_qc_link = $(this);
         $(this).click(function(e) {
@@ -103,20 +95,23 @@ $(document).ready(function() {
     $("#crispr_qc_expand").click(function(e){
         console.log('clicked to expand crispr qc');
         if($(this).data('populated') == 0){
-            console.log('fetching qc for...');
+            console.log('fetching all qc details');
             $(this).data('populated',1);
+            var all_requests = [];
             $(".qc_result").each(function(){
                 var result_td = $(this);
                 var qc_well_id = $(this).data('qc_well_id');
                 var url = "[% c.uri_for('/user/crisprqc/qc_well_details/') %]" + qc_well_id;
-                $.get(url)
+                var request = $.get(url)
                 .done(function(data){
                     result_td.after(data);
                     result_td.parent().find(".seq_spinner").remove();
                     var inner = result_td.parent().find(".alignment_inner");
                     // crispr-qc.js method to colour the alignments
                     colour_alignment_pair(inner);
-                    // FIXME: need to make view traces button active
+                    // disable view traces button for now. We'll make it active
+                    // after all alignments have loaded.
+                    result_td.parent().find(".traces").addClass('disabled');
                 })
                 .fail(function(data){
                     result_td.parent().find(".seq_spinner").html(
@@ -124,6 +119,21 @@ $(document).ready(function() {
                     );
                     console.log("failed to get qc details from " + url);
                 });
+
+                all_requests.push(request);
+            });
+
+            $.when.apply(null,all_requests).always(function(){
+                // Activate the trace button after all alignment api requests are complete
+                // NB: activating it immediately means that if user clicks it takes ages
+                // for trace to appear as request is stuck in queue behind alignment requests
+                console.log("Activating view traces buttons");
+                $(".traces").click(function(e) {
+                    e.preventDefault();
+                    //the code for this is inside jquery.flot.traceviewer.js
+                    var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+                });
+                $(".traces").removeClass('disabled');
             });
         }
     });
