@@ -1,0 +1,7 @@
+[% META title = 'LIMS2 - JS tests'; META tab_name = "Admin" -%]
+<link href="[% c.uri_for( '/static/qunit/qunit-2.0.0.css' ) %]" rel="stylesheet">
+<script src="[% c.uri_for( '/static/qunit/qunit-2.0.0.js' ) %]"></script>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+</body>

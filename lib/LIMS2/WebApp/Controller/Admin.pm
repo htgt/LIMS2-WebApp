@@ -324,6 +324,11 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
+sub js_overview : Path( '/admin/js_overview' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    return;
+}
 =head1 AUTHOR
 
 Ray Miller
