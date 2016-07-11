@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Le styles -->
     <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap.min.css' ) %]" rel="stylesheet">
+    <link href="[% c.uri_for( '/static/qunit/qunit-2.0.0.css' ) %]" rel="stylesheet">
     <style type="text/css">
       body {
         padding-top: 60px;
@@ -35,6 +36,7 @@
     <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/js/poller.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.12.0.custom.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/qunit/qunit-2.0.0.js' ) %]"></script>
 
     <!-- Wide Screen
     ================================================== -->
