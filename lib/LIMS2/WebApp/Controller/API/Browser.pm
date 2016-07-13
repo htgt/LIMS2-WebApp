@@ -18,6 +18,7 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crispr_groups_for_region
     crispr_groups_to_gff
     design_params_to_gff
+    single_experiment_gff
 /;
 use JSON;
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
@@ -253,6 +254,19 @@ sub unique_crispr_GET {
     my $unique_crispr_data_gff = unique_crispr_data_to_gff( $crispr_data, $c->request->params );
     $c->response->content_type( 'text/plain' );
     my $body = join "\n", @{$unique_crispr_data_gff};
+    return $c->response->body( $body );
+}
+
+sub single_experiment_track :Path('/api/single_experiment_track') :Args(0) :ActionClass('REST'){
+}
+
+sub single_experiment_track_GET{
+    my ($self, $c) = @_;
+
+    my $experiment = $c->model('Golgi')->retrieve_experiment({ id => $c->req->param('id') });
+    my $experiment_gff = single_experiment_gff($experiment);
+    $c->response->content_type('text/plain');
+    my $body  = join "\n", @{ $experiment_gff };
     return $c->response->body( $body );
 }
 

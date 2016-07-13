@@ -57,7 +57,7 @@ has chr_name => (
 
 has [
     qw( loxp_start loxp_end target_region_start target_region_end
-        cassette_start cassette_end homology_arm_start homology_arm_end )
+        cassette_start cassette_end homology_arm_start homology_arm_end start end)
 ] => (
     is         => 'ro',
     isa        => 'Maybe[Int]',
@@ -71,7 +71,7 @@ has ensembl_util => (
     handles    => {
         #make all the functions accessible without having to do ensembl->slice_adaptor
         map { $_ => $_ }
-            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor 
+            qw( db_adaptor gene_adaptor slice_adaptor transcript_adaptor
                 constrained_element_adaptor repeat_feature_adaptor
                 get_best_transcript get_exon_rank )
     }
@@ -110,6 +110,38 @@ has floxed_exons => (
         num_floxed_exons  => 'count',
     },
 );
+
+sub _build_start{
+    my $self = shift;
+
+    my $min_coord;
+    foreach my $oligo ($self->design->oligos){
+        my $oligo_start = $oligo->current_locus->chr_start;
+        if($min_coord){
+            if($oligo_start < $min_coord){
+                $min_coord = $oligo_start;
+            }
+        }
+        else{
+            $min_coord = $oligo_start;
+        }
+    }
+    return $min_coord;
+}
+
+sub _build_end{
+    my $self = shift;
+
+    my $max_coord = 0;
+    foreach my $oligo ($self->design->oligos){
+        my $oligo_end = $oligo->current_locus->chr_end;
+
+        if($oligo_end > $max_coord){
+            $max_coord = $oligo_end;
+        }
+    }
+    return $max_coord;
+}
 
 #TODO We are assuming that gibson designs are being treated as conditionals
 #     If the design is being used as a deletion the coordinates will be different
@@ -559,7 +591,7 @@ sub _build_target_transcript {
     #with the longest translation and transcription length
 
     my $best_transcript;
-    #trap exception so we can give a more specific error 
+    #trap exception so we can give a more specific error
  ;   try {
         $best_transcript = $self->get_best_transcript( $self->target_gene );
     }

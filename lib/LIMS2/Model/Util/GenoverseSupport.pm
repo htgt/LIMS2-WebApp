@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
         get_genotyping_primer_extent
         get_design_extent
         get_gene_extent
+        get_experiment_extent
     ) ]
 };
 
@@ -133,6 +134,25 @@ sub get_design_extent {
     $extent_hash{'assembly'} = $model->get_species_default_assembly( $species );
 
     return \%extent_hash;
+}
+
+sub get_experiment_extent{
+    my ($model, $params, $species) = @_;
+
+    my $extent = {};
+    my $exp = $model->retrieve_experiment({ id => $params->{id} });
+
+    if($exp->design){
+        $extent = get_design_extent($model, { design_id => $exp->design->id }, $species);
+    }
+    else{
+        my $crispr = $exp->crispr_entity;
+        $extent->{chr_start} = $crispr->start;
+        $extent->{chr_end} = $crispr->end;
+        $extent->{chr_name} = $crispr->chr_name;
+        $extent->{assembly} = $model->get_species_default_assembly( $species );
+    }
+    return $extent;
 }
 
 1;
