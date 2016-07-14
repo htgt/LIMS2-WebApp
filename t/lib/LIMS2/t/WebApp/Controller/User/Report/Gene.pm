@@ -88,6 +88,7 @@ Code to execute all tests
 
 sub all_tests  : Test(22) {
     my @design_wells = ('1883','1877','935');
+
     foreach my $design_well_id (@design_wells) {
         my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,model);
         my $exit_code = $results->{exit_code};
@@ -195,6 +196,7 @@ sub all_tests  : Test(22) {
               <td>SFP0001_H08</td>
               <td><a', 'Checked SFP');
 
+    $mech->content_like(qr'graph_type=descendants&well_name=G04&plate_name=56', 'checked production graph');
 }
 
 =head1 AUTHOR

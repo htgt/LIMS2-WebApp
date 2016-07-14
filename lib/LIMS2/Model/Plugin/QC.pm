@@ -1173,6 +1173,37 @@ sub retrieve_sequencing_project{
     return $self->retrieve( SequencingProject => $project_params );
 }
 
+sub pspec_create_sequencing_project_backup{
+    return {
+        seq_project_id  => { validate => 'integer'},
+        directory       => { validate => 'non_empty_string'},
+        creation_date   => { validate => 'psql_date'},
+    }
+}
+
+
+sub create_sequencing_project_backup{
+    my ($self, $params, $name) = @_;
+    my $seq_rs = $self->schema->resultset('SequencingProject')->find({
+        name => $name
+    });
+    if ($seq_rs) {
+        $params->{seq_project_id} = $seq_rs->as_hash->{id};
+        my $validated_params = $self->check_params( $params, $self->pspec_create_sequencing_project_backup );
+
+        #    my $seq_project_backup = $seq_rs->create_related(
+            #SequencingProjectBackup => {
+                #directory       => $validated_params->{directory},
+            #creation_date   => $validated_params->{creation_date},
+            #});
+        my $seq_project_backup = $self->schema->resultset('SequencingProjectBackup')->create( { slice_def $validated_params, qw( seq_project_id directory creation_date ) } );
+
+        $self->log->debug('created sequencing project backup ' . $seq_project_backup->directory . ' with id ' . $seq_project_backup->id );
+    } else {
+        $self->log->debug("$name not found in Sequencing Projects");
+    }
+    return;
+}
 1;
 
 __END__

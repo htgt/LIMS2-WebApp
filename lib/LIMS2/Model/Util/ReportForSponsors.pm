@@ -421,7 +421,6 @@ sub generate_sub_report {
                                             'gene_symbol',
                                             'chromosome',
                                             'sponsors',
-                                            'source_cell_line',
                                             # 'crispr_pairs',
                                             'crispr_wells',
                                             # 'crispr_vector_wells',
@@ -439,6 +438,10 @@ sub generate_sub_report {
                                             # 'targeted_clones',
                                             # 'recovery_class',
                                             # 'effort_concluded',
+
+                                            'DNA_source_cell_line',
+                                            'EP_cell_line',
+                                            'experiment_ID',
 
                                             'total_colonies',
 
@@ -463,7 +466,6 @@ sub generate_sub_report {
                                             'gene symbol',
                                             'chr',
                                             'sponsor(s)',
-                                            'source cell line',
                                             # 'crispr pairs',
                                             'ordered crispr primers',
                                             # 'crispr vectors',
@@ -481,6 +483,10 @@ sub generate_sub_report {
                                             # 'homozygous targeted clones',
                                             # 'recovery_class',
                                             # 'effort concluded',
+
+                                            'DNA source vector',
+                                            'EP cell line',
+                                            'experiment ID',
 
                                             '# colonies',
                                             'iPSC colonies picked',
@@ -1062,6 +1068,28 @@ sub genes {
         my $total_no_call = 0;
         my $total_het;
 
+        my @int_plates = $summary_rs->search(
+            {
+                dna_template => { '!=', undef },
+                to_report => 't',
+            },
+            {
+                select => [ qw/dna_template/ ],
+                as => [ qw/dna_template/ ],
+                distinct => 1,
+            }
+        );
+
+        my @dna_template;
+        if (@int_plates){
+            foreach my $focus (@int_plates){
+                push (@dna_template, $focus->get_column('dna_template'));
+            }
+        }
+        unless (@dna_template) {
+            push(@dna_template, '-');
+        }
+        DEBUG $gene_symbol . " - DNA : " . $dna_template[0] . " / count " . scalar @dna_template;
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
             my $ep_id;
@@ -1072,6 +1100,7 @@ sub genes {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
 
+            $curr_ep_data{'dna_template'} = \@dna_template;
             $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
             $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
 
@@ -1210,30 +1239,9 @@ sub genes {
         );
 
         my $piq_pass_count = scalar @piq;
-
-        my @int_plates = $summary_rs->search(
-            {
-                dna_template => { '!=', undef },
-                to_report => 't',
-            },
-            {
-                select => [ qw/dna_template/ ],
-                as => [ qw/dna_template/ ],
-                distinct => 1,
-            }
-        );
-        my $dna_template;
-        if (@int_plates){
-            my @templates;
-            foreach my $focus (@int_plates){
-                push (@templates, $focus->get_column('dna_template'));
-            }
-            if (scalar(@templates) == 1) {
-                $dna_template = $templates[0];
-            }
-            else {
-                $dna_template = $templates[0] . ";" . $templates[1];
-            }
+        my $toggle;
+        if ($ep_count) {
+            $toggle = '-';
         }
         # push the data for the report
         push @genes_for_display, {
@@ -1241,7 +1249,6 @@ sub genes {
             'gene_symbol'            => $gene_symbol,
             'chromosome'             => $chromosome,
             'sponsors'               => $sponsors_str ? $sponsors_str : '0',
-            'source_cell_line'           => $dna_template,
 
             # 'vector_wells'           => scalar @design_ids,
 
@@ -1250,6 +1257,10 @@ sub genes {
             'passing_vector_wells'   => $final_pick_pass_count,
             # 'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
+
+            'DNA_source_cell_line'   => $toggle,
+            'EP_cell_line'           => $toggle,
+            'experiment_ID'          => $toggle,
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
