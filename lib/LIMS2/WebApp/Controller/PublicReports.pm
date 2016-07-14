@@ -560,6 +560,7 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
     }
     else {
         $c->stash( error_msg => "Invalid number of arguments" );
+    }
 
     return;
 }
