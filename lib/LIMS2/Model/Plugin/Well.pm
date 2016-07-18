@@ -167,6 +167,17 @@ sub delete_well {
         $well->search_related_rs('barcode_events')->delete;
     }
 
+
+    if($well->plate_type eq 'DESIGN'){
+        # Find summary rows for this design well and delete them as summary generation
+        # only adds or updates design wells, it does not identify deleted design wells
+        $self->schema->resultset('Summary')->search(
+           {
+               'design_well_id'        => $well->id,
+           },
+        )->delete;
+    }
+
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status
                                  well_qc_sequencing_result well_recombineering_results well_colony_counts
                                  well_primer_bands well_chromosome_fail well_genotyping_results
