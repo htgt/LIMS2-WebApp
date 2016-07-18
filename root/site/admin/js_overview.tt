@@ -2,6 +2,7 @@
 <link href="[% c.uri_for( '/static/qunit/qunit-2.0.0.css' ) %]" rel="stylesheet">
 <script src="[% c.uri_for( '/static/qunit/qunit-2.0.0.js' ) %]"></script>
 <script src="[% c.uri_for( '/static/qunit/qunit-page.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/qunit/qunit-assert-step.js' ) %]"></script>
 <body>
     <div id="qunit"></div>
     <div id="qunit-fixture"></div>

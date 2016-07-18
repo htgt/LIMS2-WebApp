@@ -4,7 +4,7 @@
     var enableDebug = true;
 
     QUnit.match = function(actual, expected, message) {
-        QUnit.push(!!actual.match(expected), actual, expected, message);
+        this.push(!!actual.match(expected), actual, expected, message);
     }
 
     function log() {
@@ -45,24 +45,28 @@
 
         function makeWait(entry) {
             var time = entry._time - (new Date().getTime() - entry.init);
-            if (time >= 0 && !check(entry)) {
-                if (!entry.stopped) {
-                    QUnit.stop();
-                    entry.stopped = true;
+            QUnit.test("Asynchronous halt", function( assert ) {
+                var done = assert.async();
+                console.log(done);
+                if (time >= 0 && !check(entry)) {
+                    if (!stopped) {
+                        entry.stopped = true;
+                    }
+                    setTimeout(function() {
+                        makeWait(entry);
+                    }, timeStep);
+                    return;
                 }
-                setTimeout(function() {
-                    makeWait(entry);
-                }, timeStep);
-                return;
-            }
-            if (entry.stopped) {
-                QUnit.start();
-            }
-            if (time < 0) {
-                entry._timeout();
-                return;
-            }
-            entry._done();
+                if (entry.stopped) {
+                    done();
+                }
+                if (time < 0) {
+                    entry._timeout();
+                    return;
+                }
+                done();
+                entry._done();
+            });
         }
 
         return {
@@ -206,7 +210,6 @@
         },
         start: function() {
             this._stop = false;
-            QUnit.start();
             executeTest(this);
         },
         intervane: function(step) {
@@ -228,6 +231,8 @@
         },
         global: function(name) {
             var window = this.window();
+            console.log("window");
+            console.log(window);
             if (name == 'window') {
                 return window;
             }
@@ -235,9 +240,13 @@
         },
         open: function(url) {
             (function(page) {
+                console.log("Outside step");
                 page.step('open ' + url, function() {
+                    console.log("Open step");
                     page.loaded = false;
                     page.window().location = url;
+                    console.log(url);
+                    console.log(page.window().location);
                     page.intervane(waitReady(page));
                 });
             })(this);
@@ -268,7 +277,7 @@
         if (QUnit.timeoutPerTest) {
             var currentTimestamp = new Date().getTime();
             if (currentTimestamp - timestamp > QUnit.timeoutPerTest) {
-                QUnit.ok(false, 'Timeout: not found ' + step.incomplete(page).join(', '));
+                assert.ok(false, 'Timeout: not found ' + step.incomplete(page).join(', '));
                 return;
             }
         }
@@ -279,17 +288,14 @@
         page._retry = false;
         step.func(page);
         if (page._stop) {
-            QUnit.stop();
             return;
         }
         if (page._retry) {
             page.steps.unshift(step);
         }
         setTimeout(function() {
-            QUnit.start();
             executeTest(page, timestamp);
         }, timeStep);
-        QUnit.stop();
     }
 
     function prepareFrame(page) {
@@ -317,13 +323,14 @@
 
     function simpleAssert(page) {
         page.step('', function() {
-            QUnit.ok(1);
+            QUnit.assert.ok(1);
         });
     }
 
     function pageTest(name, func) {
-        QUnit.test(name, function() {
-            log('pageTest', name);
+        QUnit.test(name, function(assert) {
+            assert.equal(1,1,"Page created");
+            console.log('pageTest', name);
             var page = new Page();
             QUnit.page = page;
             page.name = name;

@@ -1315,6 +1315,7 @@ QUnit.assert = Assert.prototype = {
 	// Specify the number of expected assertions to guarantee that failed test
 	// (no assertions are run at all) don't slip through.
 	expect: function( asserts ) {
+        console.log(this);
 		if ( arguments.length === 1 ) {
 			this.test.expected = asserts;
 		} else {
@@ -1325,6 +1326,7 @@ QUnit.assert = Assert.prototype = {
 	// Increment this Test's semaphore counter, then return a function that
 	// decrements that counter a maximum of once.
 	async: function( count ) {
+        console.log(this);
 		var test = this.test,
 			popped = false,
 			acceptCallCount = count;
