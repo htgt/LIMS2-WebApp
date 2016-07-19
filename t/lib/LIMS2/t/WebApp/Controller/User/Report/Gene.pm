@@ -86,7 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(22) {
+sub all_tests  : Tests() {
     my @design_wells = ('1883','1877','935');
 
     foreach my $design_well_id (@design_wells) {
