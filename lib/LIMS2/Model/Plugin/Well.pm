@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.410';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.412';
 }
 ## use critic
 
@@ -171,6 +171,17 @@ sub delete_well {
     # Delete any related barcode events
     if ($well->barcode){
         $well->search_related_rs('barcode_events')->delete;
+    }
+
+
+    if($well->plate_type eq 'DESIGN'){
+        # Find summary rows for this design well and delete them as summary generation
+        # only adds or updates design wells, it does not identify deleted design wells
+        $self->schema->resultset('Summary')->search(
+           {
+               'design_well_id'        => $well->id,
+           },
+        )->delete;
     }
 
     my @related_resultsets = qw( well_accepted_override well_comments well_dna_quality well_dna_status

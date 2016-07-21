@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.410';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.412';
 }
 ## use critic
 
@@ -14,7 +14,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
-use List::MoreUtils qw( uniq );
+use List::MoreUtils qw( uniq indexes);
 use namespace::autoclean;
 use feature 'switch';
 use Text::CSV_XS;
@@ -376,37 +376,24 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
-
     # csv download
     if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
         $c->response->status( 200 );
-        my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+        remove_column($c, 'PCR-passing design oligos', @{$display_columns});
 
+        my $body = join(',', map { $_ } @{$display_columns}) . "\n";
         my @csv_colums;
         if (@{$columns}[-1] eq 'ep_data') {
             @csv_colums = splice (@{$columns}, 0, -1);
         } else {
             @csv_colums = @{$columns};
         }
-        foreach my $column ( @{$data} ) {
-            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
-        }
-        if ($c->request->param('xlsx')) {
-            $c->response->content_type( 'application/xlsx' );
-            $c->response->content_encoding( 'binary' );
-            $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
-            $body = get_raw_spreadsheet('report', $body);
-        }
-        else {
-            $c->response->content_type( 'text/csv' );
-            $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
-        }
-        $c->response->body( $body );
+        remove_column($c, 'passing_vector_wells', @csv_colums);
+        create_spreadsheet($self, $c, $data, $body, @csv_colums);
     }
     else {
-
+        my $template = 'publicreports/sponsor_sub_report.tt';
         if ($disp_stage eq 'Genes') {
-
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
             }
@@ -417,13 +404,11 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
                 $data = $self->_simple_transform( $data );
             }
         }
-
-        my $template = 'publicreports/sponsor_sub_report.tt';
-
-        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
+        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core') {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
         # Store report values in stash for display onscreen
+
         $c->stash(
             'template'             => $template,
             'report_id'            => $report_id,
@@ -434,7 +419,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'display_columns'      => $display_columns,
             'data'                 => $data,
             'link'                 => $link,
-            'type'                 => $type,
+            'type'                 => $c->request->params->{type},
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
@@ -443,7 +428,96 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     return;
 }
 
+sub create_spreadsheet {
+    my ($self, $c, $data, $body, @csv_colums) = @_;
+    foreach my $column ( @{$data} ) {
+        $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
+        if ($column->{ep_data}) {
+            $body = add_ep_rows($c, $column, $body, @csv_colums);
+        }
+    }
+    if ($c->request->param('xlsx')) {
+        $c->response->content_type( 'application/xlsx' );
+        $c->response->content_encoding( 'binary' );
+        $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+        $body = get_raw_spreadsheet('report', $body);
+    }
+    else {
+        $c->response->content_type( 'text/csv' );
+        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+    }
+    $c->response->body( $body );
+    return;
+}
 
+
+sub remove_column {
+    my ($c, $column, @columns) = @_;
+
+    unless ($c->request->params->{user}) {
+        my $pcr_index = indexes { $_ eq $column } @columns;
+        splice @columns, $pcr_index, 1;
+        $c->log->debug( "Public user" );
+    }
+
+    return;
+}
+
+sub add_ep_rows {
+    my ($c, $column, $body, @csv_colums) = @_;
+    my %keys = (
+        'cell_line'           => 'EP_cell_line',
+        'dna_template'        => 'DNA_source_cell_line',
+        'ep_pick_count'       => 'colonies_picked',
+        'ep_pick_pass_count'  => 'targeted_clones',
+        'experiment'          => 'experiment_ID',
+        'frameshift'          => 'fs_count',
+        'in-frame'            => 'if_count',
+        'mosaic'              => 'ms_count',
+        'no-call'             => 'nc_count',
+        'total_colonies'      => 'total_colonies',
+        'wild_type'           => 'wt_count',
+    );
+    my @expand_cols;
+    foreach my $ep_col ( @{$column->{ep_data}} ) {
+        if (scalar $ep_col->{dna_template} > 1) {
+            foreach my $dna (@{$ep_col->{dna_template}}) {
+                my $ep_col_copy = $ep_col;
+                $ep_col_copy->{dna_template} = $dna;
+                push (@expand_cols, $ep_col_copy);
+            }
+        } else {
+            $ep_col->{dna_template} = $ep_col->{dna_template}[0];
+            push (@expand_cols, $ep_col);
+        }
+    }
+    foreach my $ep_col ( @expand_cols ) {
+        my $sub_col = {
+            gene_id                 => $column->{gene_id},
+            gene_symbol             => $column->{gene_symbol},
+            chromosome              => $column->{chromosome},
+            sponsors                => $column->{sponsors},
+            crispr_wells            => ' ',
+            accepted_crispr_vector  => ' ',
+            vector_wells            => ' ',
+            vector_pcr_passes       => ' ',
+            passing_vector_wells    => ' ',
+            electroporations        => ' ',
+            ep_pick_het             => ' ',
+            distrib_clones          => ' ',
+            priority                => ' ',
+            recovery_class          => ' ',
+        }; #Reduces warnings
+        foreach my $key (keys %{$ep_col}) {
+            if ($key eq 'experiment') {
+                $ep_col->{experiment} = join(', ', @{$ep_col->{experiment}});
+            }
+            $sub_col->{$keys{$key}} = $ep_col->{$key};
+        }
+        $body .= join(',', map { $sub_col->{$_} } @csv_colums ) . "\n";
+    }
+    return $body;
+}
 
 sub _simple_transform {
     my $self = shift;
@@ -462,7 +536,11 @@ sub _simple_transform {
                     || $key eq 'ep_data'
                     || $key eq 'recovery_class'
                     || $key eq 'effort_concluded'
-                    || $key eq 'chromosome' );
+                    || $key eq 'chromosome'
+                    || $key eq 'EP_cell_line'
+                    || $key eq 'DNA_source_cell_line'
+                    || $key eq 'experiment_ID'
+                );
             }
         }
     }

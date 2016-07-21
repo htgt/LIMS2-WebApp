@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.410';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.412';
 }
 ## use critic
 
@@ -14,7 +14,7 @@ use Bio::SCF;
 use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
-use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
+use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het crispr_damage_type_for_ep_pick);
 use Data::Dumper;
 use JSON;
 with "MooseX::Log::Log4perl";
@@ -319,6 +319,18 @@ sub mutation_signatures_info_GET{
             my $chromosome = $design_oligo_locus->chr->name;
             $data->{chromosome} = $chromosome;
             $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $well->id, $chromosome, $damage) unless !$damage;
+        }
+
+        unless (exists $data->{is_het}){
+            # PIQ QC may be missing for hets in which case we go back to the ep_pick well to get this
+            my $ep_pick = try{ $well->first_ep_pick };
+            if($ep_pick){
+                my $damage = crispr_damage_type_for_ep_pick($c->model('Golgi'), $ep_pick->id);
+                $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $ep_pick->id, $data->{chromosome}, $damage);
+            }
+            else{
+                $c->log->warn("Could not set is_het flag for barcode $barcode");
+            }
         }
         $c->stash->{json_data} = $data;
     }
