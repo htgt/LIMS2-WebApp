@@ -278,8 +278,6 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
 
     return unless $c->request->method eq 'POST';
 
-    use Smart::Comments;
-
     my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
     my $expiry_date = DateTime->new(
        year      => $y,
