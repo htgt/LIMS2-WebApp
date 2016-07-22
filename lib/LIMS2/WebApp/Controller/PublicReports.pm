@@ -16,6 +16,7 @@ use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -474,16 +475,7 @@ sub add_ep_rows {
     );
     my @expand_cols;
     foreach my $ep_col ( @{$column->{ep_data}} ) {
-        if (scalar $ep_col->{dna_template} > 1) {
-            foreach my $dna (@{$ep_col->{dna_template}}) {
-                my $ep_col_copy = $ep_col;
-                $ep_col_copy->{dna_template} = $dna;
-                push (@expand_cols, $ep_col_copy);
-            }
-        } else {
-            $ep_col->{dna_template} = $ep_col->{dna_template}[0];
-            push (@expand_cols, $ep_col);
-        }
+        push @expand_cols, $ep_col;
     }
     foreach my $ep_col ( @expand_cols ) {
         my $sub_col = {
