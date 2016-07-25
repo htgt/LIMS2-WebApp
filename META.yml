@@ -78,6 +78,7 @@ requires:
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
+  DateTime::Format::Strptime: 0
   DesignCreate::Types: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
@@ -97,12 +98,15 @@ requires:
   GraphViz2: 0
   HTGT::QC::Config: 0
   HTGT::QC::Constants: 0
+  HTGT::QC::Run: 0
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
   HTGT::QC::Util::CrisprDamageVEP: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
+  HTGT::QC::Util::SubmitQCFarmJob::ESCell: 0
+  HTGT::QC::Util::SubmitQCFarmJob::Vector: 0
   HTTP::Status: 0
   Hash::Merge: 0
   Hash::MoreUtils: 0
@@ -190,4 +194,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.406
+version: 0.414

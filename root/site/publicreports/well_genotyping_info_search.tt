@@ -45,6 +45,10 @@ $(document).ready(function () {
     $("#id_button").click();
   });
 
+  $("#plate_well_name").enterKey(function(ev) {
+    $("#plate_well_search_button").click();
+  });
+
   $("#well_name, #plate_name").enterKey(function(ev) {
     $("#search_button").click();
   });
@@ -76,7 +80,7 @@ function create_alert(text, alert_class) {
 
 <p class="lead"><strong>Stem Cell Engineering: <a href="mailto:[% email %]?subject=clone request">[% email %]</a></strong></p>
 
-<p class="lead">If you have already reveived clones from us you can find information about them by entering an identifier in this form.</p>
+<p class="lead">If you have already received clones from us you can find information about them by entering an identifier in this form.</p>
 
 <div class="well" id="barcode_group">
   <fieldset>

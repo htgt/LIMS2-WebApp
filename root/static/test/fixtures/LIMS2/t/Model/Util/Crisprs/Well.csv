@@ -1,0 +1,2 @@
+id,plate_id,name,created_by_id,created_at,assay_pending,assay_complete,accepted,accepted_rules_version,to_report,barcode,barcode_state
+3029,3002,A01,1081,2016-06-21 11:49:46.777289,,,f,,t,,

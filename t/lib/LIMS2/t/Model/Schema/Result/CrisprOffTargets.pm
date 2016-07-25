@@ -24,7 +24,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(18) {
     my $user                 = 'lims2';
     my $connect_entry        = 'LIMS2_DB';
     my $rs_species           = 'Species';

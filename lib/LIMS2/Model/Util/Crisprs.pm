@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.406';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.414';
 }
 ## use critic
 
@@ -632,6 +632,9 @@ sub crispr_wells_for_crispr {
         {
             'me.crispr_id' => [ $crispr_id ],
         },
+        {
+            order_by    => { -asc   => 'me.crispr_id'},
+        }
     );
 
     my @well_id_all;
@@ -641,8 +644,9 @@ sub crispr_wells_for_crispr {
                 'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
             },
             {
-                join => 'process_output_wells',
-                distinct => 1,
+                order_by    => { -asc   => 'process_output_wells.process_id' },
+                join        => 'process_output_wells',
+                distinct    => 1,
             }
         );
 

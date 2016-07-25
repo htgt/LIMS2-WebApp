@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.406';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.414';
 }
 ## use critic
 
@@ -13,8 +13,12 @@ use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::CrisprESQCView qw( crispr_damage_type_for_ep_pick ep_pick_is_het );
 use List::MoreUtils qw( uniq );
 use Data::Dumper;
+use LIMS2::Model;
 
 BEGIN {extends 'Catalyst::Controller'; }
+
+# Uncomment this to add time since last log entry to log output
+#Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
 =head1 NAME
 
@@ -32,6 +36,12 @@ Catalyst Controller.
 =head2 index
 
 =cut
+
+# I'm going to assume all the designs for this gene are on the same chromosome!
+has chromosome => (
+    is => 'rw',
+    isa => 'Str',
+);
 
 sub index :Path( '/user/report/gene' ) :Args(0) {
     my ( $self, $c ) = @_;
@@ -84,7 +94,8 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         sfp        => \&fetch_values_for_type_sfp,
     };
 
-    my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','piq','sfp');
+    my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','sfp','piq');
+    my @plate_types_rev = reverse @plate_types;
 
     my %designs_hash;
     my %wells_hash;
@@ -109,13 +120,17 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
 
         if ($design_summaries_rs->count() > 0) {
 
-            while ( my $summary_row = $design_summaries_rs->next ) {
+            ROW: while ( my $summary_row = $design_summaries_rs->next ) {
 
                 my $summary_id = $summary_row->id;
 
                 # for each summary row append well data to hash rows depending on plate type, do not add if already exists in hash
-                for my $curr_plate_type_id( @plate_types ) {
-                    $dispatch_fetch_values->{ $curr_plate_type_id }->( $self, $summary_row, \%wells_hash, $c->model('Golgi'));
+                for my $curr_plate_type_id( @plate_types_rev ) {
+                    my $row_complete = $dispatch_fetch_values->{ $curr_plate_type_id }->( $self, $summary_row, \%wells_hash, $c->model('Golgi'));
+                    if($row_complete){
+                        #$c->log->debug("Skipping plate types earlier than $curr_plate_type_id");
+                        next ROW;
+                    }
                 }
             }
         }
@@ -339,7 +354,7 @@ sub fetch_values_for_type_design {
         my $well_name      = $summary_row->design_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'design' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'design' }->{ $summary_row->design_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->design_well_accepted ) {
@@ -361,7 +376,7 @@ sub fetch_values_for_type_design {
             'is_accepted'    => $well_is_accepted,
         };
 
-        $wells_hash->{ 'design' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'design' }->{ $summary_row->design_well_id } = $well_hash;
 
     }
     return;
@@ -376,7 +391,7 @@ sub fetch_values_for_type_int {
         my $well_name      = $summary_row->int_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'int' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'int' }->{ $summary_row->int_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->int_well_accepted ) {
@@ -411,7 +426,7 @@ sub fetch_values_for_type_int {
             'is_accepted'    => $well_is_accepted,
         };
 
-        $wells_hash->{ 'int' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'int' }->{ $summary_row->int_well_id } = $well_hash;
 
     }
     return;
@@ -426,7 +441,7 @@ sub fetch_values_for_type_final {
         my $well_name      = $summary_row->final_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'final' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'final' }->{ $summary_row->final_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->final_well_accepted ) {
@@ -461,7 +476,7 @@ sub fetch_values_for_type_final {
             'is_accepted'    => $well_is_accepted,
         };
 
-        $wells_hash->{ 'final' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'final' }->{ $summary_row->final_well_id } = $well_hash;
 
     }
     return;
@@ -476,7 +491,7 @@ sub fetch_values_for_type_final_pick {
         my $well_name      = $summary_row->final_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'final_pick' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'final_pick' }->{ $summary_row->final_pick_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->final_pick_well_accepted ) {
@@ -511,7 +526,7 @@ sub fetch_values_for_type_final_pick {
             'is_accepted'    => $well_is_accepted,
         };
 
-        $wells_hash->{ 'final_pick' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'final_pick' }->{ $summary_row->final_pick_well_id } = $well_hash;
 
     }
     return;
@@ -526,7 +541,7 @@ sub fetch_values_for_type_dna {
         my $well_name      = $summary_row->dna_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'dna' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'dna' }->{ $summary_row->dna_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->dna_well_accepted ) {
@@ -564,7 +579,7 @@ sub fetch_values_for_type_dna {
             'is_accepted'       => $well_is_accepted,
         };
 
-        $wells_hash->{ 'dna' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'dna' }->{ $summary_row->dna_well_id } = $well_hash;
 
     }
     return;
@@ -580,7 +595,7 @@ sub fetch_values_for_type_assembly {
         my $well_id      = $summary_row->assembly_well_id;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'assembly' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'assembly' }->{ $summary_row->assembly_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->assembly_well_accepted ) {
@@ -590,9 +605,20 @@ sub fetch_values_for_type_assembly {
             $well_is_accepted = 'no';
         }
 
-        my $well = $model->retrieve_well( { id => $well_id } );
+        my $crispr_entity;
+        my @exps;
+        my $well = $model->schema->resultset('Well')->find( { id => $well_id } );
+        if($summary_row->experiments){
+            @exps = split ",",$summary_row->experiments;
+        }
+        if(@exps == 1){
+            my $exp = $model->schema->resultset('Experiment')->find({ id => $exps[0] });
+            $crispr_entity = $exp->crispr_entity;
+        }
+        else{
+            $crispr_entity = $well->crispr_entity;
+        }
 
-        my $crispr_entity = $well->crispr_entity;
         my $crispr_type = !$crispr_entity          ? 'NA'
                         : $crispr_entity->is_pair  ? 'crispr_pair'
                         : $crispr_entity->is_group ? 'crispr_group'
@@ -615,7 +641,7 @@ sub fetch_values_for_type_assembly {
 
         };
 
-        $wells_hash->{ 'assembly' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'assembly' }->{ $summary_row->assembly_well_id } = $well_hash;
 
     }
     return;
@@ -629,7 +655,7 @@ sub fetch_values_for_type_ep {
         my $well_name      = $summary_row->ep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'ep' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'ep' }->{ $summary_row->ep_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->ep_well_accepted ) {
@@ -658,7 +684,7 @@ sub fetch_values_for_type_ep {
             'dna_well'          => $dna_well,
             'is_accepted'       => $well_is_accepted,
         };
-        $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'ep' }->{ $summary_row->ep_well_id } = $well_hash;
 
     } elsif ( defined $summary_row->crispr_ep_well_id && $summary_row->crispr_ep_well_id > 0 ) {
         my $plate_name     = $summary_row->crispr_ep_plate_name;
@@ -666,7 +692,7 @@ sub fetch_values_for_type_ep {
         my $well_id        = $summary_row->crispr_ep_well_id;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'ep' }->{ $well_id_string };
+        return if exists $wells_hash->{ 'ep' }->{ $summary_row->crispr_ep_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->crispr_ep_well_accepted ) {
@@ -684,8 +710,21 @@ sub fetch_values_for_type_ep {
         my $assembly_plate_name = $summary_row->assembly_plate_name ? $summary_row->assembly_plate_name : '';
         my $assembly_well_name  = $summary_row->assembly_well_name ? $summary_row->assembly_well_name : '';
         my $assembly_well = $assembly_plate_name . '_' . $assembly_well_name;
-        my $well = $model->retrieve_well( { id => $well_id } );
-        my @crisprs = map { $_->id } $well->crisprs;
+
+        # Fetch list of
+        my @exps;
+        my @crisprs;
+        if($summary_row->experiments){
+            @exps = split ",", $summary_row->experiments;
+        }
+        if(@exps == 1){
+            my $exp = $model->schema->resultset('Experiment')->find( { id => $exps[0] } );
+            @crisprs = map { $_->id } $exp->crisprs;
+        }
+        else{
+            my $well = $model->retrieve_well( { id => $well_id } );
+            @crisprs = map { $_->id } $well->crisprs;
+        }
 
         my $well_hash = {
             'well_id'           => $summary_row->crispr_ep_well_id,
@@ -704,7 +743,7 @@ sub fetch_values_for_type_ep {
             'to_report'         => $summary_row->to_report,
         };
 
-        $wells_hash->{ 'ep' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'ep' }->{ $summary_row->crispr_ep_well_id } = $well_hash;
 
     }
 
@@ -720,7 +759,7 @@ sub fetch_values_for_type_ep_pick {
         my $well_name      = $summary_row->ep_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'ep_pick' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'ep_pick' }->{ $summary_row->ep_pick_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->ep_pick_well_accepted ) {
@@ -733,20 +772,24 @@ sub fetch_values_for_type_ep_pick {
         my $ep_well_name      = $summary_row->ep_well_name // $summary_row->crispr_ep_well_name;
         my $ep_well = $ep_plate_name . '_' . $ep_well_name;
 
-        my $design = $model->schema->resultset('Design')->find({
-            id => $summary_row->design_id,
-        });
+        my $chromosome = $self->chromosome;
+        unless($chromosome){
+            my $design = $model->schema->resultset('Design')->find({
+                id => $summary_row->design_id,
+            });
 
-        my $species = $model->schema->resultset('Species')->find({ id => $summary_row->design_species_id});
-        my $assembly_id = $species->default_assembly->assembly_id;
-        my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
-        my $chromosome = $design_oligo_locus->chr->name;
+            my $species = $model->schema->resultset('Species')->find({ id => $summary_row->design_species_id});
+            my $assembly_id = $species->default_assembly->assembly_id;
+            my $design_oligo_locus = $design->oligos->first->search_related( 'loci', { assembly_id => $assembly_id } )->first;
+            $chromosome = $design_oligo_locus->chr->name;
+            $self->chromosome($chromosome);
+        }
 
         my $is_het;
         my $damage_type;
 
         try {
-            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->ep_pick_well_id) // '---';
+            $damage_type = $summary_row->ep_pick_well_crispr_es_qc_well_call // '---';
             $is_het = ep_pick_is_het($model,$summary_row->ep_pick_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -771,16 +814,11 @@ sub fetch_values_for_type_ep_pick {
             'damage_type'       => $damage_type,
         };
 
-        if ( $summary_row->crispr_ep_well_name and $summary_row->ep_pick_well_accepted ) {
-            my $well = $model->schema->resultset('Well')->find( $summary_row->ep_pick_well_id );
-            #its an accepted crispr well, so try and get the qc data
-            my $gene_finder = sub { $model->find_genes( @_ ) };
-            try {
-                $well_hash->{crispr_qc_data} = $well->genotyping_info( $gene_finder, 1 );
-            };
+        if ( $summary_row->crispr_ep_well_id and $summary_row->ep_pick_well_accepted ) {
+            $well_hash->{crispr_es_qc_well_id} = $summary_row->ep_pick_well_crispr_es_qc_well_id;
         }
 
-        $wells_hash->{ 'ep_pick' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'ep_pick' }->{ $summary_row->ep_pick_well_id } = $well_hash;
 
     }
     return;
@@ -795,7 +833,7 @@ sub fetch_values_for_type_xep {
         my $well_name      = $summary_row->xep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'xep' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'xep' }->{ $summary_row->xep_well_id };
 
         my $fepd_plate_name = $summary_row->ep_pick_plate_name ? $summary_row->ep_pick_plate_name : '';
         my $fepd_well_name = $summary_row->ep_pick_well_name ? $summary_row->ep_pick_well_name : '';
@@ -817,7 +855,7 @@ sub fetch_values_for_type_xep {
             'ep_parents'     => $ep_parents,
             'created_at'     => $summary_row->xep_well_created_ts->ymd,
         };
-        $wells_hash->{ 'xep' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'xep' }->{ $summary_row->xep_well_id } = $well_hash;
 
     }
     return;
@@ -832,7 +870,7 @@ sub fetch_values_for_type_sep {
         my $well_name      = $summary_row->sep_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'sep' }->{ $well_id_string };
+        return if exists $wells_hash->{ 'sep' }->{ $summary_row->sep_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->sep_well_accepted ) {
@@ -854,7 +892,7 @@ sub fetch_values_for_type_sep {
             $second_fpick_id_string = $final_pick_plate_name . '_' . $final_pick_well_name;
         }
 
-        if ( !exists $wells_hash->{ 'sep' }->{ $well_id_string } ) {
+        if ( !exists $wells_hash->{ 'sep' }->{ $summary_row->sep_well_id } ) {
             my $well_hash = {
                 'well_id'        => $summary_row->sep_well_id,
                 'well_id_string' => $well_id_string,
@@ -867,14 +905,14 @@ sub fetch_values_for_type_sep {
                 'is_accepted'    => $well_is_accepted,
             };
 
-            $wells_hash->{ 'sep' }->{ $well_id_string } = $well_hash;
+            $wells_hash->{ 'sep' }->{ $summary_row->sep_well_id } = $well_hash;
 
         } else {
             if ($first_fpick_id_string) {
-                $wells_hash->{ 'sep' }->{ $well_id_string }->{'first_fpick'} = $first_fpick_id_string;
+                $wells_hash->{ 'sep' }->{ $summary_row->sep_well_id }->{'first_fpick'} = $first_fpick_id_string;
             }
             if ($second_fpick_id_string) {
-                $wells_hash->{ 'sep' }->{ $well_id_string }->{'second_fpick'} = $second_fpick_id_string;
+                $wells_hash->{ 'sep' }->{ $summary_row->sep_well_id }->{'second_fpick'} = $second_fpick_id_string;
             }
         }
     }
@@ -890,7 +928,7 @@ sub fetch_values_for_type_sep_pick {
         my $well_name      = $summary_row->sep_pick_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'sep_pick' }->{ $well_id_string };
+        return if exists $wells_hash->{ 'sep_pick' }->{ $summary_row->sep_pick_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->sep_pick_well_accepted ) {
@@ -915,7 +953,7 @@ sub fetch_values_for_type_sep_pick {
             'is_accepted'       => $well_is_accepted,
         };
 
-        $wells_hash->{ 'sep_pick' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'sep_pick' }->{ $summary_row->sep_pick_well_id } = $well_hash;
 
     }
     return;
@@ -930,7 +968,7 @@ sub fetch_values_for_type_fp {
         my $well_name      = $summary_row->fp_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'fp' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'fp' }->{ $summary_row->fp_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->fp_well_accepted ) {
@@ -967,7 +1005,7 @@ sub fetch_values_for_type_fp {
         };
 
 
-        $wells_hash->{ 'fp' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'fp' }->{ $summary_row->fp_well_id } = $well_hash;
 
     }
     return;
@@ -982,7 +1020,7 @@ sub fetch_values_for_type_piq {
         my $well_name      = $summary_row->piq_well_name;
         my $well_id_string = $plate_name . '_' . $well_name;
 
-        return if exists $wells_hash->{ 'piq' }->{ $well_id_string };
+        return 1 if exists $wells_hash->{ 'piq' }->{ $summary_row->piq_well_id };
 
         my $well_is_accepted;
         if ( $summary_row->piq_well_accepted ) {
@@ -991,9 +1029,11 @@ sub fetch_values_for_type_piq {
         else {
             $well_is_accepted = 'no';
         }
-        my $fp_plate_name     = $summary_row->fp_plate_name;
-        my $fp_well_name      = $summary_row->fp_well_name;
-        my $fp_well = $fp_plate_name . '_' . $fp_well_name;
+
+        my $fp_well = $model->schema->resultset('Well')->find({
+            id => $summary_row->fp_well_id,
+        });
+
 
         my $design = $model->schema->resultset('Design')->find({
             id => $summary_row->design_id,
@@ -1008,7 +1048,7 @@ sub fetch_values_for_type_piq {
         my $damage_type;
 
         try {
-            $damage_type = crispr_damage_type_for_ep_pick($model,$summary_row->piq_well_id) // '---';
+            $damage_type = $summary_row->piq_crispr_es_qc_well_call // '---';
             $is_het = ep_pick_is_het($model,$summary_row->piq_well_id,$chromosome,$damage_type) // '---';
             if ( $is_het eq '1' ) {
                 $is_het = 'yes';
@@ -1025,7 +1065,7 @@ sub fetch_values_for_type_piq {
             'plate_name'        => $summary_row->piq_plate_name,
             'well_name'         => $summary_row->piq_well_name,
             'created_at'        => $summary_row->piq_well_created_ts->ymd,
-            'fp_well'           => $fp_well,
+            'fp_well'           => $fp_well->last_known_location_str,
             'is_het'            => $is_het,
             'is_accepted'       => $well_is_accepted,
             'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
@@ -1033,23 +1073,11 @@ sub fetch_values_for_type_piq {
             'damage_type'       => $damage_type,
         };
 
-        if ( $summary_row->crispr_ep_well_name ) {
-            my @qc_wells = $model->schema->resultset('CrisprEsQcWell')->search(
-                {
-                    well_id  => $summary_row->piq_well_id,
-                    accepted => 1,
-                },
-            );
-
-            if ( my $accepted_qc_well = shift @qc_wells ) {
-                my $gene_finder = sub { $model->find_genes(@_) };
-                try {
-                    $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-                };
-            }
+        if ( $summary_row->crispr_ep_well_id ) {
+            $well_hash->{crispr_es_qc_well_id} = $summary_row->piq_crispr_es_qc_well_id;
         }
 
-        $wells_hash->{ 'piq' }->{ $well_id_string } = $well_hash;
+        $wells_hash->{ 'piq' }->{ $summary_row->piq_well_id } = $well_hash;
 
         # Ancestor PIQ is required for reporting
         if ( defined $summary_row->ancestor_piq_well_id && $summary_row->ancestor_piq_well_id > 0 ) {
@@ -1088,7 +1116,7 @@ sub fetch_values_for_type_piq {
                     'plate_name'        => $summary_row->ancestor_piq_plate_name,
                     'well_name'         => $summary_row->ancestor_piq_well_name,
                     'created_at'        => $summary_row->ancestor_piq_well_created_ts->ymd,
-                    'fp_well'           => $fp_well,
+                    'fp_well'           => $fp_well->last_known_location_str,
                     'is_accepted'       => $ancestor_well_is_accepted,
                     'is_het'            => $is_het,
                     'ep_pick_well_id'   => $summary_row->ep_pick_well_id,
@@ -1105,14 +1133,11 @@ sub fetch_values_for_type_piq {
                     );
 
                     if ( my $accepted_qc_well = shift @qc_wells ) {
-                        my $gene_finder = sub { $model->find_genes(@_) };
-                        try {
-                            $well_hash->{crispr_qc_data} = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-                        };
+                        $well_hash->{crispr_es_qc_well_id} = $accepted_qc_well->id;
                     }
                 }
 
-                $wells_hash->{ 'piq' }->{ $ancestor_well_id_string } = $well_hash;
+                $wells_hash->{ 'piq' }->{ $summary_row->ancestor_piq_well_id } = $well_hash;
             }
 
         }
@@ -1156,7 +1181,7 @@ sub fetch_values_for_type_sfp {
         }
 
 
-        if ( !exists $wells_hash->{ 'sfp' }->{ $well_id_string } ) {
+        if ( !exists $wells_hash->{ 'sfp' }->{ $summary_row->sfp_well_id } ) {
             my $well_hash = {
                 'well_id'        => $summary_row->sfp_well_id,
                 'well_id_string' => $well_id_string,
@@ -1170,10 +1195,10 @@ sub fetch_values_for_type_sfp {
                 'is_accepted'    => $well_is_accepted,
              };
 
-             $wells_hash->{ 'sfp' }->{ $well_id_string } = $well_hash;
+             $wells_hash->{ 'sfp' }->{ $summary_row->sfp_well_id } = $well_hash;
         } else {
             if ($ep_id_string) {
-                $wells_hash->{ 'sfp' }->{ $well_id_string }->{'ep_well'} = $ep_id_string;
+                $wells_hash->{ 'sfp' }->{ $summary_row->sfp_well_id }->{'ep_well'} = $ep_id_string;
             }
         }
 
@@ -1195,8 +1220,8 @@ sub crispr_qc_data {
             my $well_data = $piq_wells->{ $piq_well };
             next unless $well_data->{is_accepted} eq 'yes';
             push @{ $piq_crispr_qc{ $well_data->{ep_pick_well_id} } }, {
-                qc       => $well_data->{crispr_qc_data},
-                piq_well => $piq_well,
+                qc_well_id => $well_data->{crispr_es_qc_well_id},
+                piq_well => $well_data->{well_id_string},
                 accepted => $well_data->{is_accepted},
             };
         }
@@ -1208,16 +1233,15 @@ sub crispr_qc_data {
 
         # ep_pick crispr qc
         my $well_id = $well_data->{well_id};
-        my $crispr_qc_data = $well_data->{crispr_qc_data};
-        next unless $crispr_qc_data;
+        next unless $well_data->{crispr_es_qc_well_id};
 
         # piq_crispr_qc
         if ( exists $piq_crispr_qc{ $well_id } ) {
             for my $piq_qc ( @{ $piq_crispr_qc{ $well_id } } ) {
                 push @crispr_qc, {
-                    epd_well     => $ep_pick,
-                    epd_qc       => $crispr_qc_data,
-                    piq_qc       => $piq_qc->{qc},
+                    epd_well     => $piq_qc->{well_id_string},
+                    epd_qc_well_id => $well_data->{crispr_es_qc_well_id},
+                    piq_qc_well_id => $piq_qc->{qc_well_id},
                     piq_well     => $piq_qc->{piq_well},
                     piq_accepted => $piq_qc->{accepted},
                     to_report    => $well_data->{to_report},
@@ -1226,15 +1250,16 @@ sub crispr_qc_data {
         }
         else {
             push @crispr_qc, {
-                epd_well  => $ep_pick,
-                epd_qc    => $crispr_qc_data,
+                epd_well  => $well_data->{well_id_string},
+                epd_qc_well_id => $well_data->{crispr_es_qc_well_id},
                 to_report => $well_data->{to_report},
             };
         }
 
     }
 
-    return \@crispr_qc;
+    my @sorted = sort { $a->{epd_well} cmp $b->{epd_well} } @crispr_qc;
+    return \@sorted;
 }
 
 =head1 AUTHOR

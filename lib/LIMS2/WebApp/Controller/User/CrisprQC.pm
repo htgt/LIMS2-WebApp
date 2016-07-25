@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.406';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.414';
 }
 ## use critic
 
@@ -424,6 +424,48 @@ sub upload_het_status_file :Path('/user/crisprqc/upload_het_status_file') :Args(
     return;
 }
 
+# Used by ajax get in the gene summary page to populate alignment details on demand
+# Uses HTML_fragment view because the standard HTML view adds wrapper.tt to the html
+sub qc_well_alignment :Path('/user/crisprqc/well_alignment') :Args(1) {
+    my ($self, $c, $qc_well_id) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $qc_well = $c->model('Golgi')->retrieve_crispr_es_qc_well({ id => $qc_well_id });
+    my $gene_finder = sub { $c->model('Golgi')->find_genes(@_) };
+    my $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    $c->stash->{qc} = $qc_data;
+
+
+    $c->stash->{template} = 'crispr_qc_alignment.tt';
+    $c->forward( $c->view('HTML_fragment') );
+    return;
+}
+
+sub qc_well_details :Path('/user/crisprqc/qc_well_details') :Args(1){
+    my ($self, $c, $qc_well_id) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $qc_well = $c->model('Golgi')->retrieve_crispr_es_qc_well({ id => $qc_well_id });
+    my $gene_finder = sub { $c->model('Golgi')->find_genes(@_) };
+    my $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 });
+
+    $c->stash({
+        template               => 'crispr_qc_view.tt',
+        row                    => $qc_data,
+        accept                 => 0,
+        edit                   => 0,
+        hide_crispr_well_id    => 1,
+        complete_info          => 0,
+        hide_well_name         => 1,
+        hide_gene              => 1,
+        hide_crispr_validation => 1,
+        hide_het_validation    => 1,
+    });
+    $c->forward( $c->view('HTML_fragment') );
+    return;
+}
 
 __PACKAGE__->meta->make_immutable;
 

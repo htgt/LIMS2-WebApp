@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.406';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.414';
 }
 ## use critic
 
@@ -1793,7 +1793,10 @@ sub genotyping_info {
      unless $accepted_qc_well;
 
   if ( $only_qc_data ) {
-    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data";
+    my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data DONE";
+    return $data;
   }
   my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
@@ -1911,15 +1914,6 @@ sub accepted_crispr_es_qc_well{
     my ($self) = @_;
     my @qc_wells = $self->crispr_es_qc_wells;
 
-    # But QC might be linked to a parent of this well
-    # which sits on an old version of the plate so we
-    # need to search these too
-    # FIXME: Plate versioning is truly horrible!
-    # it would be better to refactor lims2 to allow
-    # tubes to move from one plate location to another
-
-    push @qc_wells, map { $_->crispr_es_qc_wells } $self->old_versions;
-
     my $accepted_qc_well;
     for my $qc_well ( @qc_wells ) {
         if ( $qc_well->accepted ) {
@@ -1929,31 +1923,6 @@ sub accepted_crispr_es_qc_well{
     }
 
     return $accepted_qc_well;
-}
-
-# Use this method to find all ancestors of this well
-# that exist in LIMS2 as a result of plate versioning
-# Wells will be returned in an array from most recent
-# to oldest
-sub old_versions{
-    my ($self) = @_;
-
-    my @versioned_parents;
-    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
-    while ( my $ancestor = $ancestors->next ) {
-      # Ancestor list contains self - skip it
-      next if $ancestor->id == $self->id;
-        # FIXME: this will break if user changes the name of the current plate
-        # as the old version of the plate will no longer have the same name
-        if($ancestor->plate and $ancestor->plate->version and $ancestor->plate->name eq $self->plate->name){
-            DEBUG "Found old version of well: $ancestor";
-            push @versioned_parents, $ancestor;
-        }
-        else{
-            last;
-        }
-    }
-    return @versioned_parents;
 }
 
 sub _qc_info{

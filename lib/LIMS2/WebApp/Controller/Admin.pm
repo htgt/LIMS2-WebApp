@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.406';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.414';
 }
 ## use critic
 
@@ -9,6 +9,7 @@ package LIMS2::WebApp::Controller::Admin;
 use Moose;
 use TryCatch;
 use namespace::autoclean;
+use DateTime::Format::Strptime;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
@@ -283,8 +284,15 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
 
     return unless $c->request->method eq 'POST';
 
+    my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
+    my $expiry_date = DateTime->new(
+       year      => $y,
+       month     => $m,
+       day       => $d,
+       time_zone => 'local',
+    );
+
     my $message = $c->request->param('message');
-    my $expiry_date = $c->request->param('expiry_date');
     my $created_date = DateTime->now(time_zone=>'local');
     my $priority = $c->request->param('priority');
     my $wge = $c->request->param('wge_checkbox');
@@ -294,7 +302,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     unless ($wge or $htgt or $lims) {
         $c->stash (
             message_field   => $message,
-            expiry_date     => $expiry_date,
+            expiry_date     => $c->request->param('expiry_date'),
             priority        => $priority,
             error_msg       => 'Please specify a system for the announcement'
         );
@@ -304,7 +312,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     unless ( $created_date < $expiry_date ) {
         $c->stash (
             message_field   => $message,
-            expiry_date     => $expiry_date,
+            expiry_date     => $c->request->param('expiry_date'),
             priority        => $priority,
             wge_checkbox    => $wge,
             htgt_checkbox   => $htgt,
@@ -324,6 +332,8 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
             lims            => $lims,
         }
     );
+
+    $c->flash( success_msg => "Message sucessfully created");
 
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }

@@ -393,11 +393,11 @@
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <li>&nbsp Switch species:</li>
+              <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.request.uri } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -422,14 +422,11 @@
         </li>
       <!-- Non Logged in User -->
       [% ELSE %]
-        <li class="dropdown active">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
-            </li>
-          </ul>
-        </li>
+        <li class="divider-vertical"></li>
+          <input type="text" name="clone_genotyping_search" id="clone_genotyping_search" placeholder="Search" class="text navbar-text" />
+        <li class="divider-vertical"></li>
+
+          <a id="clone_genotyping_search_button" class="btn btn-primary navbar-btn">Clone Genotyping Search <i class="glyphicon glyphicon-search"></i> </a>
         </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="divider-vertical"></li>
@@ -450,6 +447,66 @@
 <script type="text/javascript">
 function getAnnouncements(){
     $('#announceModal').modal({show: true});
+}
+
+$.fn.enterKey = function (fnc) {
+    return this.each(function () {
+        $(this).keypress(function (ev) {
+            var keycode = (ev.keyCode ? ev.keyCode : ev.which);
+            if (keycode == '13') {
+                fnc.call(this, ev);
+            }
+        })
+    })
+}
+
+
+$(document).ready(function () {
+  $("#clone_genotyping_search_button").click(function (event) {
+    var search_params = $("#clone_genotyping_search").val();
+
+    if ( /^(.*)_(.{3})$/.test(search_params) ) {
+      var split_plate_well = search_params.match(/^(.*)_(.{3})$/);
+      console.log(split_plate_well);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_plate_well[1], split_plate_well[2] ] );
+    } else if ( /^(.*)\s(.{3})$/.test(search_params) ) {
+      var split_plate_name = search_params.match(/^(.*)\s(.{3})$/);
+      console.log(split_plate_name);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_plate_name[1], split_plate_name[2] ] );
+    } else if  ( /^[A-Z]{2}[0-9]+$/ || /^[0-9]+/ ) {
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", $("#clone_genotyping_search").val() );
+    } else {
+      create_alert("Please provide a plate_well name or barcode");
+    }
+
+  });
+
+    //allow pressing enter to submit
+  $("#clone_genotyping_search").enterKey(function(ev) {
+    $("#clone_genotyping_search_button").click();
+  });
+});
+
+function go_to_url(url, params) {
+  if ( params ) {
+    params = [].concat( params ).join("/");
+    window.location.href = url + "/" + params;
+  }
+  else {
+    window.location.href = url;
+    create_alert("wrong url");
+  }
+}
+
+function create_alert(text, alert_class) {
+  alert_class = alert_class || "alert-error"; //default is error box
+  //create an error alert,
+  //should make it so we can actually change he class
+  $("#clone_genotyping_search_button").after(
+      $("<div>", { "class": "alert alert-dismissable " + alert_class })
+          .append( $("<button>", { "class": "close", type: "button", 'aria-hidden': "true", html: "&times;", 'data-dismiss': "alert" }) )
+          .append( $("<span>", { html: text }) )
+  );
 }
 
 </script>

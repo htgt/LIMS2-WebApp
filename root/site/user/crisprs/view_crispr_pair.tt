@@ -128,6 +128,12 @@
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr pair</em></p>
+  [% IF c.check_user_roles( 'edit' ) %]
+    <p>
+    <a class="btn btn-primary" href="[% c.uri_for("/user/crispr_pair/${cp.id}/view/", { generate_primers => 1 }) %]">Generate Primers</a>
+    <small>this action may take a few minutes</small>
+    </p>
+  [% END %]
 [% END %]
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
