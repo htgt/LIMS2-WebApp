@@ -9,35 +9,35 @@
     <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form well"  enctype="multipart/form-data" >
       <input name="plate_upload_step" value="2" type="hidden"/>
       <div class="row">
-        <div class="col-md-12">  
+        <div class="col-md-12">
           <label>Plate Name</label><br>
           <input name="plate_name" id="plate_name" type="text"
             [% IF plate_name %]value="[% plate_name %]"[% END %]
           />
         </div>
-      </div>
+      </div></br>
 
       [% IF process_type == "rearray" %]
       <div class="row">
         <div class="col-md-12">
           <label>Virtual Plate <input type="checkbox" name="is_virtual" value="1"></label>
         </div>
-      </div>
+      </div></br>
       [% END %]
-      
+
       <div class="row">
         <div class="col-md-12">
           <label>Process Type</label></br>
           <input type="hidden" name="process_type" id="process_type" value="[% process_type %]" />
           <p class="form-control-static">[% process_type %]</p>
         </div>
-      </div>
+      </div></br>
 
       <div class="row">
         <div class="col-md-6">
           <label>Plate Type</label></br>
           [% IF plate_types.size > 1 %]
-            <select name="plate_type" class="form-control">
+            <select name="plate_type" class="form-control" onChange="new_plate_type(this)">
               [% UNLESS plate_type %]
                 <option value="" selected="selected">-</option>
               [% END %]
@@ -52,22 +52,9 @@
         </div>
       </div>
 
-    
-  
-      [% IF process_type == 'int_recom' %]
-        <div class="row">
-          <label>Number of Planned Post-gateway Wells</label>
-          <select name="planned_wells">
-            <option value="" selected="selected">-</option>
-            [% total = 4 %]
-            [% WHILE total < 33 %]
-              <option value="[% total %]">[% total %]</option>
-              [% total = total + 4 %]
-            [%- END %]
-          </select>
-        </div>
-
-        <div class="row">
+      <div id="rearray_int" class="row" style="visibility: hidden;">
+      </br>
+        <div class="col-md-12">
           <label>DNA Template</label>
           <select name="source_dna">
             <option value="" selected="selected">-</option>
@@ -76,9 +63,36 @@
               [%- END %]
           </select>
         </div>
+      </div></br>
 
+      [% IF process_type == 'int_recom' %]
+        <div class="row">
+          <div class="col-md-12">
+            <label>Number of Planned Post-gateway Wells</label>
+            <select name="planned_wells">
+              <option value="" selected="selected">-</option>
+              [% total = 4 %]
+              [% WHILE total < 33 %]
+                <option value="[% total %]">[% total %]</option>
+                [% total = total + 4 %]
+              [%- END %]
+            </select>
+          </div>
+        </div></br>
+
+        <div class="row">
+          <div class="col-md-12">
+            <label>DNA Template</label>
+            <select name="source_dna">
+              <option value="" selected="selected">-</option>
+                [%- FOR line IN cell_lines %]
+                  <option value="[% line %]">[% line %]</option>
+                [%- END %]
+            </select>
+          </div>
+        </div></br>
       [%- END %]
-      
+
       [% INCLUDE 'process_specific_fields.tt' process_fields = process_fields %]
 
       <div class="row">
@@ -86,7 +100,7 @@
           <label>Well Data File</label><br>
           <input name="datafile" type="file">
         </div>
-      </div>
+      </div></br>
 
       <div class="row">
         <div class="col-md-12">
@@ -112,9 +126,19 @@
 <div class="col-md-10 col-md-offset-1">
   [% INCLUDE 'plate_upload_help.tt' plate_help = plate_help %]
 </div>
-<script type="text/javascript">
-$('form#plate_create').submit(function(){
-    $(this).children('button[type=submit]').attr('disabled', 'disabled');
-});
 
+<script type="text/javascript">
+  $('form#plate_create').submit(function(){
+      $(this).children('button[type=submit]').attr('disabled', 'disabled');
+  });
+
+  function new_plate_type(x){
+        var plate_type = x.value;
+
+        if (plate_type == 'INT') {
+            document.getElementById("rearray_int").style.visibility="visible";
+        } else {
+            document.getElementById("rearray_int").style.visibility="hidden";
+        }
+  }
 </script>
