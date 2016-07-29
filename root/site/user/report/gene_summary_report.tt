@@ -310,7 +310,7 @@ function toggle_btn(btn, show_or_hide) {
                 </td>
               [% ELSE %]
                 <td colspan="7">
-                  <span class="label">No Accepted PIQ Crispr QC</span>
+                  <span class="label label-info">No Accepted PIQ Crispr QC</span>
                 </td>
               [% END %]
             </tr>
