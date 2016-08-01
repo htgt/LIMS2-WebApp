@@ -15,17 +15,17 @@
     <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Crispr Pair</span>
+    <span class="badge badge-default">Crispr Pair</span>
   [% ELSIF row.is_crispr_group %]
     <a href="[% c.uri_for( '/user/crispr_group' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Crispr Group</span>
+    <span class="badge badge-default">Crispr Group</span>
   [% ELSE %]
     <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Single Crispr</span>
+    <span class="badge badge-default">Single Crispr</span>
   [% END %]
 </td>
 

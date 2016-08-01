@@ -140,4 +140,16 @@
       [% END %]
     [% END %]
   });
+
+  // Add plate name to the document title (name in browser tab)
+  $(document).ready(function() {
+    var title = '[% title %]';
+    var plateNameRegex = /Plate (.*)/igm;
+
+    if ( plateNameRegex.test(title) ) {
+      title.match(plateNameRegex);
+      document.title = plateNameRegex.exec(title)[1];
+    }
+  });
+
 </script>
