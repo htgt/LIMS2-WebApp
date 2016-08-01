@@ -310,7 +310,7 @@ function toggle_btn(btn, show_or_hide) {
                 </td>
               [% ELSE %]
                 <td colspan="7">
-                  <span class="label label-info">No Accepted PIQ Crispr QC</span>
+                  <span class="label label-primary">No Accepted PIQ Crispr QC</span>
                 </td>
               [% END %]
             </tr>
@@ -720,7 +720,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_id_string %]</td>
               <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
-              <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="label">[% well.crispr_type.replace('\_', ' ') %]</span></td>
+              <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="badge badge-default">[% well.crispr_type.replace('\_', ' ') %]</span></td>
               <td>[% well.created_at %]</td>
               <td class="assembly_qc_verified">[% well.qc_verified %]</td>
               <td><a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_primer_view', {
