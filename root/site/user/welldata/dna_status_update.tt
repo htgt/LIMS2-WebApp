@@ -4,41 +4,41 @@
   <h1>Plate DNA Status Update</h1>
 </div>
 
-<div class="row">
-
-  <div class="span6 offset3">
+<div class="grid">
+  <div class="col-md-6 col-md-offset-3">
     <form method="POST" id="dna_status_update" action="[% c.uri_for( '/user/dna_status_update' ) %]" class="form well"  enctype="multipart/form-data" >
-
-        <label>Plate Name</label>
-        <input name="plate_name" id="plate_name" type="text"
-          [% IF plate_name %]value="[% plate_name %]"[% END %]
-        />
-
-        <label>DNA Status Data File</label>
-        <input name="datafile" type="file">
-
-        <br>
-        <br>
-        <button name="update_dna_status" id="update_dna_status" type="submit" value="update_dna_status" class="btn">
-            <i class="icon-upload"></i> Update DNA Status
+      <div class="row">
+        <label class="col-md-12">Plate Name</label>
+        <div class="col-md-5">
+          <input name="plate_name" id="plate_name" type="text"
+            [% IF plate_name %]value="[% plate_name %]"[% END %]
+          />
+        </div>
+      </div>
+      <br><label>DNA Status Data File</label>
+      <input name="datafile"  type="file">
+      <br>
+      <br>
+      <button name="update_dna_status" id="update_dna_status" type="submit" value="update_dna_status" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Update DNA Status
         </button>
     </form>
   </div>
 
 </div>
 
-<div class="accordion" id="accordian">
+<div class="col-md-12 panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Plate DNA Status Update Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Plate DNA Status Update Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to update the dna status value of the wells on a given plate, using a csv file.
         </p>

@@ -1,13 +1,17 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.327';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.415';
 }
 ## use critic
+
 
 use Moose;
 use TryCatch;
 use namespace::autoclean;
+use DateTime::Format::Strptime;
+
+use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -238,6 +242,100 @@ sub _retrieve_user_by_id {
     };
 
     return $user;
+}
+
+=head2 announcements
+
+=cut
+
+sub announcements : Path( '/admin/announcements' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $messages = list_messages( $c->model('Golgi')->schema );
+
+    $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
+
+    return unless $c->request->method eq 'POST';
+
+
+    my $deleted_message = $c->request->param('delete_message');
+
+    return unless ($deleted_message);
+
+
+    delete_message( $c->model('Golgi')->schema, { message_id => $deleted_message } );
+
+    $c->flash( success_msg => "Message sucessfully deleted");
+
+    return $c->response->redirect( $c->uri_for('/admin/announcements') );
+}
+
+=head2 create_announcement
+
+=cut
+
+sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
+    my ( $self, $c ) = @_;
+
+
+    $c->stash(
+        priorities    => list_priority( $c->model('Golgi')->schema ),
+    );
+
+    return unless $c->request->method eq 'POST';
+
+    my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
+    my $expiry_date = DateTime->new(
+       year      => $y,
+       month     => $m,
+       day       => $d,
+       time_zone => 'local',
+    );
+
+    my $message = $c->request->param('message');
+    my $created_date = DateTime->now(time_zone=>'local');
+    my $priority = $c->request->param('priority');
+    my $wge = $c->request->param('wge_checkbox');
+    my $htgt = $c->request->param('htgt_checkbox');
+    my $lims = $c->request->param('lims_checkbox');
+
+    unless ($wge or $htgt or $lims) {
+        $c->stash (
+            message_field   => $message,
+            expiry_date     => $c->request->param('expiry_date'),
+            priority        => $priority,
+            error_msg       => 'Please specify a system for the announcement'
+        );
+        return;
+    }
+
+    unless ( $created_date < $expiry_date ) {
+        $c->stash (
+            message_field   => $message,
+            expiry_date     => $c->request->param('expiry_date'),
+            priority        => $priority,
+            wge_checkbox    => $wge,
+            htgt_checkbox   => $htgt,
+            lims_checkbox   => $lims,
+            error_msg       => 'Please enter an expiry date which is in the future'
+        );
+        return;
+    }
+
+    my $announcement = create_message( $c->model('Golgi')->schema, {
+            message         => $message,
+            expiry_date     => $expiry_date,
+            created_date    => $created_date,
+            priority        => $priority,
+            wge             => $wge,
+            htgt            => $htgt,
+            lims            => $lims,
+        }
+    );
+
+    $c->flash( success_msg => "Message sucessfully created");
+
+    return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
 =head1 AUTHOR

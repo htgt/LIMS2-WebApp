@@ -764,6 +764,7 @@ INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', N
 INSERT INTO crisprs VALUES (200, 'GTCTGTGACTGTTAGCTCAGTGG', 'Mouse', 'Intronic', NULL);
 
 
+
 --
 -- Data for Name: crispr_loci; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.327';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.415';
 }
 ## use critic
 
@@ -135,6 +135,7 @@ sub bulk_designs_for_design_targets {
                 -or => [
                     'design.design_type_id' => 'gibson',
                     'design.design_type_id' => 'gibson-deletion',
+                    'design.design_type_id' => 'fusion-deletion',
                 ],
             ],
         },
@@ -187,9 +188,10 @@ sub fetch_existing_design_crispr_links {
     my ( $schema, $design_ids ) = @_;
     my %design_crispr_links;
 
-    my @crispr_designs = $schema->resultset( 'CrisprDesign' )->search(
+    my @experiments = $schema->resultset( 'Experiment' )->search(
         {
             design_id => { 'IN' => $design_ids },
+            deleted   => 0,
         },
         {
             prefetch => 'crispr_pair',
@@ -199,7 +201,7 @@ sub fetch_existing_design_crispr_links {
     # there is nothing stopping a record having a link to both a crispr_id and
     # a crispr_pair_id so check for both
     # and now check for crispr_group_id too
-    for my $crispr_design ( @crispr_designs ) {
+    for my $crispr_design ( @experiments ) {
         # if we have a single crispr linked to a design store that id
         if ( $crispr_design->crispr_id ) {
             push @{ $design_crispr_links{ $crispr_design->design_id }{single} }, $crispr_design->crispr_id;

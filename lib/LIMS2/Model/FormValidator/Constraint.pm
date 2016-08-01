@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.327';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.415';
 }
 ## use critic
 
@@ -55,10 +55,6 @@ sub oxygen_condition {
     return shift->in_set( 'normoxic', 'hypoxic' );
 }
 
-sub dna_seq {
-    return shift->regexp_matches(qr/^[ATGCN]+$/);
-}
-
 sub confidence_float {
     my $self = shift;
     return sub {
@@ -108,7 +104,7 @@ sub cre_bac_recom_backbone {
 sub plate_name {
     return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }
-
+;
 sub well_name {
     return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
 }
@@ -126,7 +122,7 @@ sub bac_plate {
 }
 
 sub existing_well_barcode {
-    return shift->in_resultset( 'WellBarcode', 'barcode' );
+    return shift->in_resultset( 'Well', 'barcode' );
 }
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
@@ -180,6 +176,10 @@ sub existing_plate_name {
     return shift->existing_row( 'Plate', 'name' );
 }
 
+sub existing_plate_id {
+    return shift->existing_row( 'Plate', 'id' );
+}
+
 sub existing_qc_run_id {
     return shift->existing_row( 'QcRun', 'id' );
 }
@@ -227,6 +227,11 @@ sub existing_crispr_damage_type {
 sub existing_crispr_es_qc_run_id {
     return shift->existing_row( 'CrisprEsQcRuns', 'id' );
 }
+
+sub existing_crispr_es_qc_seq_project {
+    return shift->existing_row( 'CrisprEsQcRuns', 'sequencing_project' );
+}
+
 
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
@@ -303,6 +308,25 @@ sub assembly_qc_type{
 sub assembly_qc_value{
     return shift->in_enum_column('WellAssemblyQc','value');
     #return shift->in_set('Good','Bad','Wrong');
+}
+
+sub existing_project_id {
+    return shift->in_resultset( 'Project', 'id' );
+}
+
+sub existing_experiment_id {
+    return shift->in_resultset( 'Experiment', 'id' );
+}
+
+sub primer_array {
+    my $self = shift;
+    return sub {
+        ref $_[0] eq 'ARRAY';
+    }
+}
+
+sub psql_date {
+    return shift->regexp_matches(qr/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
 }
 
 =head2 in_enum_column

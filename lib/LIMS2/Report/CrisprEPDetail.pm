@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPDetail::VERSION = '0.327';
+    $LIMS2::Report::CrisprEPDetail::VERSION = '0.415';
 }
 ## use critic
 
@@ -66,7 +66,7 @@ override iterator => sub {
 
 };
 
-## no critic(ProhibitDeepNests)
+## no critic(ProhibitDeepNests, ProhibitExcessComplexity)
 sub build_ep_detail {
     my ( $self ) = @_;
 
@@ -112,8 +112,11 @@ sub build_ep_detail {
                 my @dna_process = $dna_well->parent_processes;
                 my @vector = $dna_process[0]->input_wells;
                 my $vector_well = shift @vector;
-                my $vector_well_type = $vector_well->plate->type_id;
-                if ($vector_well->plate->type_id eq 'FINAL_PICK') {
+
+                next if !$vector_well;
+
+                my $vector_well_type = $vector_well->plate_type;
+                if ($vector_well->plate_type eq 'FINAL_PICK') {
                     $wells->{'vector'} = $vector_well;
                     $wells->{'vector_dna'} = $dna_well;
                 } else {
@@ -138,8 +141,8 @@ sub build_ep_detail {
             foreach my $process ($crispr_ep_well->child_processes){
                 foreach my $output ($process->output_wells){
                     $ep_pick_count++;
-                    my $plate_name = $output->plate->name;
-                    my $well_name = $output->name;
+                    my $plate_name = $output->plate_name;
+                    my $well_name = $output->well_name;
                     my $specification = $plate_name . '[' . $well_name . ']';
                     $ep_pick_list = !$ep_pick_list ? $specification : join q{ }, ( $ep_pick_list, $specification );
 
@@ -178,14 +181,14 @@ sub build_ep_detail {
                 $gene_id,
                 $gene_symbol,
                 $design_id,
-                $wells->{'crispr_ep'}->plate->name . "_" . $wells->{'crispr_ep'}->name,
-                $wells->{'assembly'}->plate->name . "_" . $wells->{'assembly'}->name,
-                $wells->{'vector'}->plate->name . "_" . $wells->{'vector'}->name,
-                $wells->{'vector_dna'}->plate->name . "_" . $wells->{'vector_dna'}->name,
-                $wells->{'l_vector'} ? $wells->{'l_vector'}->plate->name .'_'. $wells->{'l_vector'}->name : '',
-                $wells->{'l_dna'} ? $wells->{'l_dna'}->plate->name .'_'. $wells->{'l_dna'}->name : '',
-                $wells->{'r_vector'} ? $wells->{'r_vector'}->plate->name .'_'. $wells->{'r_vector'}->name : '',
-                $wells->{'r_dna'} ? $wells->{'r_dna'}->plate->name .'_'. $wells->{'r_dna'}->name : '',
+                $wells->{'crispr_ep'} ? $wells->{'crispr_ep'}->plate_name . "_" . $wells->{'crispr_ep'}->well_name : '',
+                $wells->{'assembly'} ? $wells->{'assembly'}->plate_name . "_" . $wells->{'assembly'}->well_name : '',
+                $wells->{'vector'} ? $wells->{'vector'}->plate_name . "_" . $wells->{'vector'}->well_name : '',
+                $wells->{'vector_dna'} ? $wells->{'vector_dna'}->plate_name . "_" . $wells->{'vector_dna'}->well_name : '',
+                $wells->{'l_vector'} ? $wells->{'l_vector'}->plate_name .'_'. $wells->{'l_vector'}->well_name : '',
+                $wells->{'l_dna'} ? $wells->{'l_dna'}->plate_name .'_'. $wells->{'l_dna'}->well_name : '',
+                $wells->{'r_vector'} ? $wells->{'r_vector'}->plate_name .'_'. $wells->{'r_vector'}->well_name : '',
+                $wells->{'r_dna'} ? $wells->{'r_dna'}->plate_name .'_'. $wells->{'r_dna'}->well_name : '',
                 $ep_pick_count,
                 $ep_pick_list,
                 $ep_pick_pass_count,

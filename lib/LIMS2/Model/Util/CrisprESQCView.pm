@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQCView;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQCView::VERSION = '0.327';
+    $LIMS2::Model::Util::CrisprESQCView::VERSION = '0.415';
 }
 ## use critic
 
@@ -37,22 +37,27 @@ sub ep_pick_is_het{
     my ($model, $well_id, $chromosome, $damage_call) = @_;
 
     my $is_het;
+
+    my $het;
+
+    try{
+        $het = $model->schema->resultset( 'WellHetStatus' )->find(
+                { well_id => $well_id } );
+        if ( defined $het->five_prime && defined $het->three_prime ) {
+            $is_het = 0;
+        }
+    };
+
     if ( $chromosome eq ('X' || 'Y') && $damage_call eq 'no-call' ) {
         try{
-            my $het = $model->schema->resultset( 'WellHetStatus' )->find(
-                    { well_id => $well_id } );
-
             if ( $het->five_prime && $het->three_prime ) {
-                $is_het=1;
+                $is_het = 1;
             }
         };
     } elsif ( $chromosome ne ('X' || 'Y') && $damage_call eq 'wild_type' ) {
         try{
-            my $het = $model->schema->resultset( 'WellHetStatus' )->find(
-                    { well_id => $well_id } );
-
             if ( $het->five_prime && $het->three_prime ) {
-                $is_het=1;
+                $is_het = 1;
             }
         };
     }
@@ -184,7 +189,7 @@ sub ep_pick_wells_for_gene {
         my $descendants = $design_well->descendants->depth_first_traversal( $design_well, 'out' );
         next unless $descendants;
         while( my $descendant = $descendants->next ) {
-            if ( $descendant->plate->type_id eq 'EP_PICK' ) {
+            if ( $descendant->plate_type eq 'EP_PICK' ) {
                 push @ep_pick_wells, $descendant if $descendant->is_accepted;
             }
         }
@@ -244,7 +249,7 @@ sub piq_crispr_es_qc_data {
 
     my @piq_wells;
     while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq 'PIQ' ) {
+        if ( $descendant->plate_type eq 'PIQ' ) {
             push @piq_wells, $descendant;
         }
     }

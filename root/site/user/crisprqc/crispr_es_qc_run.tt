@@ -5,16 +5,18 @@
 <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', { v => 5} ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script type="text/javascript">
     api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
 </script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
-<script type="text/javascript">
-$(document).ready(function() {
 
+<script type="text/javascript">
+var traceviewers = [];
+var tv;
+$(document).ready(function() {
     if ( [% run_validated %] ) {
         $("#validate_run").hide();
     }
@@ -27,7 +29,23 @@ $(document).ready(function() {
         e.preventDefault();
 
         //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+        tv = new TraceViewer(
+            "[% c.uri_for('/public_api/trace_data') %]",
+            $(this),
+            [% IF truncate == 0 %] 1 [% ELSE %] 0 [% END %]
+            [% IF sequencing_data_version %],"[% sequencing_data_version %]"[% END %]
+        );
+        tv.well = (tv.fwd_container.closest('tr[class^="well_tr"]')) ? tv.fwd_container.closest('tr[class^="well_tr"]').attr('id') : tv.rev_container.closest('tr[class^="well_tr"]').attr('id');
+
+        for(var index = 0; index < traceviewers.length; index++) {
+            if (tv.well == traceviewers[index].well) {
+                traceviewers[index] = tv;
+                return;
+            }
+        };
+
+        traceviewers.push(tv);
+
     });
 
     // validate or invalidate run
@@ -165,6 +183,204 @@ $(document).ready(function() {
     });
 
 });
+
+var focusTrace;
+var wellTrace;
+var click;
+var wellName;
+var parent;
+
+var copy;
+
+$(document).click(function(event) {
+    click = $(event.target);
+    children = click.children();
+    parent = click.parent()[0].getElementsByTagName('span');
+    well = click.parents('tr[class^="well_tr"]');
+    wellName = well.attr('id');
+    var id;
+    for (var pos = 0; pos < parent.length; pos++) {
+        if (parent[pos].id != "") {
+            id = parent[pos].id;
+        }
+    }
+    traceviewers.forEach( function(trace) {
+        if (trace.well == wellName) {
+            wellTrace = trace;
+        }
+    });
+
+    if (id) {
+        if (wellTrace) {
+            focusTrace = wellTrace[id + "_plot"];
+            adjustPane(children, id, click);
+        }
+        else {
+            console.log(wellName + children.attr('id') + " not found");
+        }
+    }
+    else {
+        var reads = ['forward_full','reverse_full'];
+        var plots = ['fwd','rev'];
+        var query = click.text();
+        copy = query;
+        for (var count = 0; count < reads.length; count++) {
+            var read = well[0].getElementsByClassName(reads[count])[0].innerText;
+            var result = read.search(query.toUpperCase());
+            if (result > 0) {
+                focusTrace = wellTrace[plots[count] + "_plot"];
+                adjustPane(children, plots[count], click);
+
+            }
+        }
+    }
+});
+
+var result;
+
+function adjustPane(text, dir, target) {
+    var selection = window.getSelection();
+
+    if (typeof(selection.focusNode.data) == 'undefined') {
+        console.log("False click");
+        return;
+    }
+    //Using Jquery mouse target $(event.target)
+
+    var tr = target.closest("tr");
+    var well_name = tr.attr('id');
+    //Get table row nearest to mouse location
+    var alignmentInner = tr[0];
+
+    tr = alignmentInner.getElementsByTagName('div');
+
+    var div;
+    for (var counter = 0; counter < tr.length; counter++) {
+        if (tr[counter].id == "seqs" + well_name && tr[counter].className == "alignment_inner") {
+            div = tr[counter];
+        }
+    }
+
+    div = $(div).text();
+    var result = sanitise(div);
+    //Remove everything not relating to the sequence
+    var customSelection = selection.toString();
+    var referencePoint = focusTrace._pos;
+    if (dir == 'fwd') {
+        dir = 0;
+    } else {
+        dir = 1;
+    }
+    if (focusTrace._reduced != 1 && [% truncate %] == 0) {
+        cleanseReference(result[dir], alignmentInner, dir);
+        focusTrace._reduced = 1;
+    }
+
+    var loc = findCoords(result, referencePoint, selection, dir);
+    wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
+
+}
+
+function sanitise(text) {
+    text = text.replace("No alignment to target region",'N');
+
+    var regex = /[ACTGNn\-]+/g;
+    var match;
+    result = text.match(regex);
+    return result;
+}
+
+function cleanseReference(userString, row, dir) {
+    var read;
+    if (dir == 0) {
+        read = 'forward_full';
+    } else {
+        read = 'reverse_full';
+    }
+
+    var query = "";
+    var bases = ['A','C','T','G'];
+    var explored;
+
+    for (var base = 0; base < focusTrace._labels.length; base++) {
+        if (bases.indexOf(userString[base]) != -1){
+            query += userString[base];
+        } else {
+            console.log("reset - " + query.length);
+            query = "";
+        }
+
+        if (query.length >= 10) {
+            explored = base;
+            break;
+        }
+    }
+
+    var offset = focusTrace._labels.search(query);
+    offset = offset - (explored - query.length);
+    if (offset > 0) {
+        focusTrace._indices = focusTrace._indices.splice(offset, focusTrace._indices.length);
+        focusTrace._ref = focusTrace._indices;
+    }
+}
+
+function getMouseOffset(seq, selection){
+    var offset;
+    seq = seq.replace(/-/g,'');
+    if (selection.toString().length > 1) {
+        offset = seq.search(selection.toString());
+    } else {
+        offset = seq.search(selection.focusNode.data) + selection.focusOffset;
+    }
+
+    return offset;
+}
+
+
+function findCoords(seqs, point, selection, dir) {
+    var traceSeq = seqs[dir]; //Dir: 0 -> Fwd seq | 1 -> Rev seq
+
+    var target = selection.toString();
+    var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
+    var ends = [];
+
+    if (target.length < 5) {
+        if ([% truncate %] == 0) {
+            mouseOffset += 10;
+        }
+        ends.push(mouseOffset - 10);
+        ends.push(mouseOffset + 10);
+        if (ends[0] < 0) {
+            ends[0] = 0;
+        }
+        if (ends[1] > traceSeq.length){
+            ends[1] = traceSeq.length;
+        }
+    }
+    else {
+        ends.push(mouseOffset);
+        ends.push(mouseOffset + target.length);
+    }
+
+    if (mouseOffset == -1) {
+        ends[0] = 0;
+        ends[1] = 20;
+    }
+
+    if (mouseOffset > focusTrace._ref.length) {
+        ends[0] = focusTrace._ref.length - 20;
+        ends[1] = focusTrace._ref.length;
+    }
+
+    var loc = [];
+
+    for (var point = 0; point < ends.length; point++){
+        loc.push(focusTrace._ref[ends[point]]);
+    }
+
+    return loc;
+}
+
 </script>
 
 <div class="well">
@@ -189,46 +405,50 @@ $(document).ready(function() {
         </tr>
     </table>
     <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
-        <i class="icon-remove icon-white"></i> Delete QC Run
+        <i class="glyphicon glyphicon-remove icon-white"></i> Delete QC Run
     </a>
 
     [% IF truncate %]
-        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
-            <i class="icon-resize-full"></i> Show Full Reads
+        <a id="truncate_toggle" class="btn btn-default" role="button" href="[% c.uri_for('es_qc_run', qc_run_id, { truncate => 0 }) %]" >
+            <i class="glyphicon glyphicon-resize-full"></i> Show Full Reads
         </a>
     [% ELSE %]
-        <a id="truncate_toggle" class="btn" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
-            <i class="icon-resize-small"></i> Truncate Reads
+        <a id="truncate_toggle" class="btn btn-default" role="button" href="[% c.uri_for('es_qc_run', qc_run_id) %]" >
+            <i class="glyphicon glyphicon-resize-small"></i> Truncate Reads
         </a>
     [% END %]
 
     [% IF wells.size > 0 %]
         <a id="validate_run" class="btn pull-right btn-primary" role="button" data-loading-text="... working" data-validate="true">
-            <i class="icon-gift icon-white"></i> Validate QC Run
+            <i class="glyphicon glyphicon-gift"></i> Validate QC Run
         </a>
 
         <a id="invalidate_run" class="btn pull-right btn-warning" role="button" data-loading-text="... working" data-validate="false">
-            <i class="icon-ban-circle icon-white"></i> Invalidate Qc Run
+            <i class="glyphicon glyphicon-ban-circle"></i> Invalidate Qc Run
         </a>
     [% END %]
 </div>
 
-<div class="modal hide fade" id="DeleteRunModal">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3 id="myModalLabel">Delete QC Run</h3>
-    </div>
+<div class="modal fade" id="DeleteRunModal" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 id="myModalLabel">Delete QC Run</h3>
+      </div>
 
-    <div class="modal-body" align="center">
-      Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
-    </div>
+      <div class="modal-body" align="center">
+        Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
+      </div>
 
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal">Cancel</button>
-      <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
-        <i class="icon-remove icon-white"></i> Confirm Delete QC Run
-      </a>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-danger" href="[% c.uri_for('/user/crisprqc/delete_qc_run', qc_run_id) %]" id="delete_run_button">
+          <i class="icon-remove icon-white"></i> Confirm Delete QC Run
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
 <table class="table table-striped">
@@ -251,7 +471,7 @@ $(document).ready(function() {
     </thead>
     <tbody>
         [% FOR row IN wells %]
-            <tr>
+            <tr id="[% row.well_name %]" class="well_tr">
 
                 [% INCLUDE 'crispr_qc_view.tt'
                     row                    = row
@@ -273,3 +493,10 @@ $(document).ready(function() {
         [% END %]
     </tbody>
 </table>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Crispr QC: [% sub_project %]';
+  });
+</script>
+

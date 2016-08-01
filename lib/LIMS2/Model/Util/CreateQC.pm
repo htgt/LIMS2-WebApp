@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateQC::VERSION = '0.327';
+    $LIMS2::Model::Util::CreateQC::VERSION = '0.415';
 }
 ## use critic
 
@@ -45,7 +45,9 @@ sub create_or_retrieve_eng_seq {
 }
 
 sub build_qc_template_search_params {
-    my ( $params ) = @_;
+    my ( $params, $schema ) = @_;
+
+    my $dtf = $schema->storage->datetime_parser;
 
     if ( defined $params->{id} ) {
         return { 'me.id' => $params->{id} };
@@ -66,7 +68,7 @@ sub build_qc_template_search_params {
     }
 
     if ( $params->{created_before} ) {
-        $search{'me.created_at'} = { '<=', $params->{created_before} };
+        $search{'me.created_at'} = { '<=', $dtf->format_datetime( $params->{created_before} ) };
     }
 
     if ( $params->{latest} ) {
@@ -74,7 +76,7 @@ sub build_qc_template_search_params {
             $search{'me.created_at'} = {
                 '=' => \[
                     '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
-                    [ created_at => $params->{created_before} ]
+                    [ created_at => $dtf->format_datetime( $params->{created_before} ) ]
                 ]
             };
         }
@@ -275,7 +277,7 @@ sub link_primers_to_qc_run_template{
     my $primer_filter = { is_validated => 1, is_rejected => [ 0, undef ] };
     foreach my $template_well ($qc_run->qc_template->qc_template_wells){
         if(my $source_well = $template_well->source_well){
-            next unless $source_well->plate->type_id eq 'ASSEMBLY';
+            next unless $source_well->plate_type eq 'ASSEMBLY';
             my $design = $source_well->design;
             # Find validated genotyping primers for this design and add qc_template_well_genotyping_primers
             foreach my $gt_primer ($design->genotyping_primers($primer_filter)){

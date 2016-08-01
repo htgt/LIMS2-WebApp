@@ -7,6 +7,7 @@ use LIMS2::Test;
 use JSON qw( encode_json decode_json );
 use HTTP::Request::Common;
 use HTTP::Status qw( :constants );
+use Path::Class;
 
 use strict;
 
@@ -32,6 +33,9 @@ Loading other test classes at compile time
 
 BEGIN
 {
+	# Set the environment to use test sequencing data directory
+    $ENV{LIMS2_SEQ_FILE_DIR} = dir('t','data','sequencing')->absolute->stringify;
+
     # compile time requirements
     #{REQUIRE_PARENT}
     use Log::Log4perl qw( :easy );
@@ -89,9 +93,40 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Test(127) {
     my $mech = mech();
+=head causing issues in dzil release but unable to replicate in dzil test, prove or local
+    note "Testing sequence trace view page";
+    $mech->get_ok('/user/qc/view_traces');
+    ok $mech->submit_form(
+        form_id => 'view_traces',
+        fields  => {
+        	sequencing_project => 'HUEDQ0044',
+        	sequencing_sub_project => 'HUEDQ0044_1',
+            well_name => ' ',
+        },
+        button => 'get_reads',
+    );
+    $mech->content_contains("HUEDQ0044_1a01.p1kSF1");
+    $mech->content_contains("CTTATTACAGCGGAATGGCCAAAGACTATGACGGGTCTTCCTAGCACATCAGGGACAAC");
+    $mech->content_contains("HUEDQ0044_1a02.p1kSR1");
+    $mech->content_contains("HUEDQ0044_1a03.p1kSF1");
+=cut
+    $mech->get_ok('/user/qc/view_traces');
+    ok $mech->submit_form(
+        form_id => 'view_traces',
+        fields  => {
+        	sequencing_project => 'HUEDQ0044',
+        	sequencing_sub_project => 'HUEDQ0044_1',
+        	well_name => 'A01',
+        },
+        button => 'get_reads',
+    );
+    $mech->content_contains("HUEDQ0044_1a01.p1kSF1");
+    $mech->content_contains("CTTATTACAGCGGAATGGCCAAAGACTATGACGGGTCTTCCTAGCACATCAGGGACAAC");
+    $mech->content_contains("HUEDQ0044_1a01.p1kSR1");
+    $mech->content_lacks("HUEDQ0044_1a02.p1kSR1");
+    $mech->content_lacks("HUEDQ0044_1a03.p1kSF1");
 
     note "Testing creation of QC template from plate";
 
@@ -141,7 +176,7 @@ sub all_tests  : Tests
 
     note "Testing creation of QC template from CSV upload";
 
-    {   
+    {
 	my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
 	$test_file->print("well_name,source_plate,source_well\n"
 			  . "A01,MOHFAS0001_A,B01\n"
@@ -352,7 +387,7 @@ sub all_tests  : Tests
 
     my $template;
 
-    {   
+    {
 	my $template_data = test_data( 'qc_template.yaml' );
 	my $template_name = $template_data->{name};
 
@@ -364,7 +399,7 @@ sub all_tests  : Tests
 	    $template = decode_json( $res->content )
 	} '...decoding JSON lives';
 
-	like $res->header('location') || '', qr(\Q/api/qc_template?id=$template->{id}\E$), '...location header is correct';
+	like $res->header('location') || '', qr{\Q/api/qc_template?id=$template->{id}\E$}, '...location header is correct';
     }
 
     note "Testing creation and retrieval of QC run";
@@ -373,23 +408,23 @@ sub all_tests  : Tests
     $run_data->{qc_template_name} = $template->{name};
     my $test_results = delete $run_data->{test_results};
 
-    {   
-	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}"; 
+    {
+	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}";
 	ok $res->is_success, '...request should succeed';
 	is $res->code, HTTP_CREATED, '..status is created';
-	like $res->header('location'), qr(\Q/api/qc_run?id=$run_data->{id}\E$), '...location header is correct';
+	like $res->header('location'), qr{\Q/api/qc_run?id=$run_data->{id}\E$}, '...location header is correct';
     }
 
     note "Testing creation and retrieval of QC sequencing reads";
 
-    {   
+    {
 	my @seq_reads_data = test_data( 'qc_seq_reads.yaml' );
 
 	for my $s ( @seq_reads_data ) {
 	    ok my $res = $mech->request( POST '/api/qc_seq_read', 'Content-Type' => 'application/json', Content => encode_json( $s ) ), "POST qc_seq_read $s->{id}";
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is "created"';
-	    like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';
+	    like $res->header('location'), qr{\Q/api/qc_seq_read?id=$s->{id}\E$}, '...location header is correct';
 	}
     }
 
@@ -417,14 +452,14 @@ sub all_tests  : Tests
 	}
 	$test_result->{qc_run_id} = $run_data->{id};
 	my $test_result_id;
-	{  
+	{
 	    ok my $res = $mech->request( POST '/api/qc_test_result', 'Content-Type' => 'application/json', Content => encode_json( $test_result ) ), 'POST /api/qc_test_result';
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is created';
-	    like $res->header('location'), qr(\Q/api/qc_test_result?id=\E\d+$), '...location header is correct';
+	    like $res->header('location'), qr{\Q/api/qc_test_result?id=\E\d+$}, '...location header is correct';
 	    ( $test_result_id ) = $res->header('location') =~ m/(\d+)$/;
 	}
-	{  
+	{
 	    my $url = "/api/qc_test_result?id=$test_result_id";
 	    ok my $res = $mech->request( GET $url, 'Content-Type' => 'application/json' ), "GET $url";
 	    ok $res->is_success, '...request should succeed';

@@ -12,7 +12,7 @@ use strict;
 
 LIMS2/t/SummaryGeneration/SummariesWellDescend.pm - test class for LIMS2::SummaryGeneration::SummariesWellDescend
 
-See also SummariesWellDescendLegacy test module which tests trails loaded from the legacy fixture data sql file 
+See also SummariesWellDescendLegacy test module which tests trails loaded from the legacy fixture data sql file
 
 =head1 DESCRIPTION
 
@@ -96,7 +96,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
+sub all_tests  : Test(21)
 {
 
     # Test gibson/crispr well trails which use data from
@@ -110,8 +110,8 @@ sub all_tests  : Tests
     );
     test_success(\%gibson_wells_expecting_success);
 
-    ## See also SummariesWellDescendLegacy test module which tests trails loaded from 
-    ## the legacy fixture data sql file 
+    ## See also SummariesWellDescendLegacy test module which tests trails loaded from
+    ## the legacy fixture data sql file
 }
 
 sub test_success{
@@ -120,7 +120,7 @@ sub test_success{
     # loop of tests expected to be successful
     while( my($design_well_id, $expected_results) = each %wells_expecting_success ) {
 
-	my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
+	my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,model);
 
 	my $exit_code = $results->{exit_code};
 

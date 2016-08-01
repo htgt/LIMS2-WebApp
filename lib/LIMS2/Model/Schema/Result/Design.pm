@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.415';
 }
 ## use critic
 
@@ -118,6 +118,12 @@ __PACKAGE__->table("designs");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 parent_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -156,6 +162,8 @@ __PACKAGE__->add_columns(
   "global_arm_shortened",
   { data_type => "integer", is_nullable => 1 },
   "nonsense_design_crispr_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -203,22 +211,22 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 crispr_designs
+=head2 designs
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
+Related object: L<LIMS2::Model::Schema::Result::Design>
 
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.design_id" => "self.id" },
+  "designs",
+  "LIMS2::Model::Schema::Result::Design",
+  { "foreign.parent_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 experiments
+=head2 experiments_including_deleted
 
 Type: has_many
 
@@ -227,7 +235,7 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
+  "experiments_including_deleted",
   "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -298,6 +306,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 parent
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Design>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "parent",
+  "LIMS2::Model::Schema::Result::Design",
+  { id => "parent_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 process_designs
 
 Type: has_many
@@ -359,8 +387,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wzzQdVF7ohmrYFtsQapVUw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pP6TbTvP1aYUiLhUOZF9DQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -376,6 +404,18 @@ __PACKAGE__->many_to_many(
     "process_designs",
     "process"
 );
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.design_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 has 'info' => (
     is      => 'ro',
@@ -408,7 +448,6 @@ sub _build_design_info {
 
 sub as_hash {
     my ( $self, $suppress_relations ) = @_;
-
     # updates design object with latest information from database
     # if not done then the created_at value which can default to the current
     # timestamp does not seem to be set and a error is thrown
@@ -428,6 +467,7 @@ sub as_hash {
         cassette_first            => $self->cassette_first,
         global_arm_shortened      => $self->global_arm_shortened,
         nonsense_design_crispr_id => $self->nonsense_design_crispr_id,
+        parent_id                 => $self->parent_id,
     );
 
     if ( ! $suppress_relations ) {
@@ -453,7 +493,6 @@ sub oligos_sorted{
 
 sub _sort_oligos {
     my $self = shift;
-
     my @oligos = map { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }

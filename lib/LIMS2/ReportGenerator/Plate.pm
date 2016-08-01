@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.327';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.415';
 }
 ## use critic
 
@@ -395,7 +395,7 @@ sub accepted_crispr_data {
         my @right_accepted = $self->$find_method(\@right_cr_wells);
         if (@left_accepted and @right_accepted){
             # Fetch the pair ID to display
-            my $pair_id = $self->model->schema->resultset('CrisprDesign')->find({
+            my $pair_id = $self->model->schema->resultset('Experiment')->find({
                 id => $crispr_design_id,
             })->crispr_pair_id;
 
@@ -449,7 +449,7 @@ sub ancestor_cols {
     my $ancestors = $well->ancestors->depth_first_traversal($well, 'in');
 
     while ( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq $plate_type ) {
+        if ( $ancestor->plate_type eq $plate_type ) {
             return (
                 $ancestor->as_string,
                 $self->qc_result_cols( $ancestor )
@@ -492,7 +492,7 @@ sub pick_counts {
 
     # XXX This assumes the picked wells are immediate descendants of
     # $well: we aren't doing a full traversal.
-    my @picks = grep { $_->plate->type_id eq $pick_type }
+    my @picks = grep { $_->plate_type eq $pick_type }
         $well->descendants->output_wells( $well );
 
     my $picked   = scalar @picks;
@@ -517,7 +517,7 @@ sub crispr_design_and_gene_cols{
 
     my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
     my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr, $self->model ) };
 
     my @symbols;
     for my $gene_id ( @gene_ids ) {

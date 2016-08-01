@@ -1,0 +1,464 @@
+[% META title="View Sequencing Traces"; META tab_name = 'QC' %]
+
+<style type="text/css">
+.seqName {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css', {id=1} ) %]">
+
+<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/excanvas.min.js' ) %]"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js', {id=>3} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+<script type="text/javascript">
+    api_url = '[% c.uri_for("/api/update_crispr_es_qc_well") %]'
+</script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
+
+
+<div class="page-header">
+  <h1>View Sequencing Traces</h1>
+</div>
+
+<div class="form-horizontal">
+
+  <div class="col-md-6 col-md-offset-3">
+    <form method="POST" id="view_traces" action="[% c.uri_for( '/user/qc/view_traces' ) %]" class="form well"  enctype="multipart/form-data" >
+
+    <div class="col-md-12 row">
+    <div class="control-group">
+      <label class="col-md-12" for="sequencing_project">Sequencing Project</label>
+      <div class="col-md-6">
+          <input name="sequencing_project" class="form-control" id="sequencing_project" type="text"
+            [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] />
+      </div>
+    </div>
+</div>
+
+    <div class="col-md-12 row">
+    <div class="control-group hidden" id="download_reads_button">
+      <div class="col-md-4">
+          <br><button name="download_reads" id="download_reads" type="submit" value="download_reads" class="btn btn-info">
+        <i class="glyphicon glyphicon-download-alt"></i> Download Reads (all sub-projects)
+      </button>
+      </div>
+    </div>
+</div>
+
+    <div class="col-md-12 row">
+    <div class="control-group">
+      <br><label class="col-md-12" for="sequencing_sub_project">Sequencing Sub Project</label>
+      <div class="col-md-6">
+        <select name="sequencing_sub_project" class="form-control" id="sequencing_sub_project" type="text">
+        </select>
+
+        <!-- <input name="sequencing_sub_project" id="sequencing_sub_project" type="text"
+            [% IF sequencing_sub_project %]value="[% sequencing_sub_project %]"[% END %] /> -->
+      </div>
+  </div>
+    </div>
+
+    <input type="hidden" name="primer_data" id="primer_data" value="[% primer_data %]">
+
+    <div class="col-md-12 row">
+    <div class="control-group">
+        <br><label class="col-md-12" for="primer_names">Primer Read Counts</label>
+      <div class="col-md-6">
+          <input id="primer_names" class="form-control" name="primer_names" value="" disabled />
+      </div>
+    </div>
+</div>
+    <div class="col-md-12 row">
+    <div class="control-group">
+        <br><label class="col-md-12" for="well_name">Well Name (optional)</label>
+      <div class="col-md-6">
+          <input id="well_name" class="form-control" name="well_name" value="[% well_name %]"/><br>
+      </div>
+  </div>
+    </div>
+    <div class="col-md-12 row">
+      <label class="hide col-md-12" id="data_set_label" for="data_set">Version</label>
+      <div class="col-md-6">
+      <select name="data_set" class="hide form-control" id="data_set" type="text">
+        <option>Latest</option>
+        [% FOR set IN old_data %]
+          <option>[% set %]</option>
+        [% END %]
+      </select>
+    <br></div>
+    </div>
+    <button name="get_reads" id="get_reads" type="submit" value="get_reads" class="btn btn-primary">
+      Fetch Reads <i class="glyphicon glyphicon-arrow-right icon-white"></i>
+    </button>
+    </form>
+  </div>
+
+</div>
+
+[% IF reads %]
+
+<table class="table col-md-12" style="table-layout:fixed">
+    <thead>
+        <tr>
+            <th class="col-md-3">Read</th>
+            <th class="col-md-2">Import Date</th>
+            <th class="col-md-7">Trace <button class="btn btn-default btn-xs" id="hide_all_traces">Hide All Traces</button></th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR read IN reads %]
+            [% SET well_id = read.well_name _ read.primer %]
+            <tr id=[% well_id %] class="well_tr">
+              <td rowspan="2">[% read.orig_read_name %]</td>
+              <td rowspan="2">[% read.date %]</td>
+              <td style="word-wrap:break-word" id="trace" class="trace_sequence">[% read.seq %]</td>
+            </tr>
+            <tr id=[% well_id %] class="trace_tr">
+               <td>
+               <div class="forward_full" style="display:none"></div>
+        <a class="btn btn-info traces" href="#" data-fwd="[% read.orig_read_name %]" data-context="15" >View Traces</a>
+               </td>
+            </tr>
+        [% END %]
+    </tbody>
+</table>
+
+[% ELSE %]
+
+<div class="col-md-6 col-md-offset-3">
+<table class="table" style="table-layout:fixed" align="center">
+    <thead>
+        <tr><th><h4>Recently Added</h4></th></tr>
+        <tr>
+            <th class="col-md-2">ID</th>
+            <th class="col-md-3">Name</th>
+            <th>Results Imported Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOR result IN recent_results %]
+            <tr>
+                <th>[% result.id %]</th>
+                <th class=seqName>[% result.name %]</font></th>
+                <th>[% result.results_imported_date %]</th>
+            </tr>
+        [% END %]
+    </tbody>
+</table>
+</div>
+[% END %]
+
+<script type="text/javascript" charset="utf-8">
+//Object.keys support for IE6/7/8
+if ( ! Object.keys ) {
+  Object.keys = function (obj) {
+    var op, result = [];
+    for (op in obj)
+      if ( obj.hasOwnProperty(op) ) result.push(op)
+
+    return result;
+  }
+}
+
+var traceviewers = [];
+var tv;
+var test;
+$(document).ready(function() {
+  if ('[% sequencing_sub_project %]') {
+    document.title = 'Traces: [% sequencing_sub_project %]';
+  }
+
+  $(".seqName").click( function(e) {
+    $("#sequencing_project").val(e.target.innerHTML);
+    $("#sequencing_project").autocomplete("search");
+  });
+
+ 
+  $("#sequencing_sub_project").change(function() {
+    var primer_data = $("#sequencing_sub_project option:selected").data();
+
+    if ( primer_data ) {
+      var names = Object.keys(primer_data);
+
+      var primers = [];
+      for ( var i = 0; i < names.length; i++ ) {
+        var name = names[i];
+
+        primers.push(name + " (" + primer_data[name] + ")");
+
+      }
+
+      $("#primer_names").val( primers.join(", ") );
+    }
+    else {
+      $("#primer_names").val("");
+    }
+    find_old_versions();
+});
+
+  function populate_subproject_list(data, selected_value){
+    // Show the dowload button at the same time
+    $("#download_reads_button").removeClass('hidden');
+    test = data;
+    console.log("primer data: ");
+    $("#sequencing_sub_project").empty();
+
+    var plates;
+
+    var sorted_keys = Object.keys(data).sort();
+
+    for (var i = 0; i < sorted_keys.length; i++) {
+      var sub_project = sorted_keys[i];
+
+      var opt = $("<option>", { value: sub_project, text: sub_project });
+
+      //store primer information in the option
+      opt.data(data[sub_project]);
+      opt.appendTo( $("#sequencing_sub_project") );
+
+      if(sub_project == selected_value){
+        console.log('selecting sub-project ' + sub_project);
+        opt.attr("selected","selected");
+      }
+    }
+
+    //trigger primer names update
+    $("#sequencing_sub_project").change();
+
+
+  }
+
+  // Check for primer data element
+  // If available fetch json data from it and use it to populate subproject options
+  if( $("#primer_data").val() ){
+    var data = JSON.parse( $("#primer_data").val() );
+    console.log("populating sub-projects with preloaded primer data");
+    populate_subproject_list(data, "[% sequencing_sub_project %]");
+  }
+
+  $("#sequencing_project").autocomplete({
+    autoFocus: true,
+    source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
+    minLength: 5,
+    select: function (event, ui) {
+     $.getJSON(
+       '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
+       { term: ui.item.value },
+       function (data) {
+
+          // remove any existing primer data form field and replace with new one
+          $("#primer_data").remove();
+          $("#view_traces").append("<input type='hidden' name='primer_data' id='primer_data' value='" + JSON.stringify(data) + "'>");
+
+          // populate sub project list
+          populate_subproject_list(data,'');
+       }
+     );
+    }
+  });
+
+  $("#download_reads_button").click(function(e){
+    e.preventDefault();
+    // go to read dowload link with value from sequencing project select field
+    var seq_project = $("#sequencing_project").val();
+    var download_uri = "[% c.uri_for('/user/download_reads') %]";
+    window.location.href = download_uri + "?sequencing_project=" + seq_project;
+  });
+
+  $(".traces").click(function(e) {
+    e.preventDefault();
+    //the code for this is inside jquery.flot.traceviewer.js
+    tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this), 20 );
+    tv.well = (tv.fwd_container.closest('tr[class^="trace_tr"]')) ? tv.fwd_container.closest('tr[class^="trace_tr"]').attr('id') : tv.rev_container.closest('tr[class^="trace_tr"]').attr('id');
+
+    for(var index = 0; index < traceviewers.length; index++) {
+        if (tv.well == traceviewers[index].well) {
+            traceviewers[index] = tv;
+            return;
+        }
+    };
+
+    traceviewers.push(tv);
+  });
+
+  // Decided not to do this as it takes ages to get them all
+  // and we don't want to overload lims2
+  //$("#show_all_traces").click(function(){
+  //  $(".traces").click();
+  //});
+
+  $("#hide_all_traces").click(function(){
+    // Remove the trace plots
+    $(".demo-container").remove();
+
+    // Remove any sequence highlighing
+    $(".trace_sequence").each(function(i,seq_td){
+      $(seq_td).html($(seq_td).text());
+    });
+
+    // Hide the hide traces buttons
+    $(".hide-traces").remove();
+    // Show the show traces buttons
+    $(".traces").show();
+  });
+
+});
+
+function find_old_versions() {
+    $.getJSON(
+        '[% c.uri_for( "/api/autocomplete/old_versions" ) %]',
+        { project: $('#sequencing_project').val() },
+        function (data) {
+            console.log($('#data_set option'));
+            //Cleanse dropdown - Just in case of the user navigating to a second project with back up
+            for(var count = 1; count < $('#data_set option').length; count++) {
+                console.log("Removing option: " + $('#data_set option')[count].value);
+                $('#data_set option')[count].remove();
+            }
+            
+            if (data.length !== 0) {
+                console.log("Data found");
+                $('#data_set').removeClass('hide');
+                $('#data_set_label').removeClass('hide');
+                var selected = '[% selected_version %]';
+                var values = [];
+                $('#data_set option').each(function(idx, val) {
+                    values.push($(val).text());
+                });
+                for (var count = 0; count < data.length; count++) {
+                    if (jQuery.inArray(data[count], values) == -1) {
+                        var option = document.createElement("option");
+                        option.text = data[count];
+                        if (data[count] == selected) {
+                            option.selected = true;
+                        }
+                        $('#data_set')[0].add(option);
+                    }
+                    else {
+                        console.log("Found in array");
+                    }
+                }
+            }
+            else {
+                console.log("Data not found");
+                $('#data_set').addClass('hide');
+                $('#data_set_label').addClass('hide');
+            }
+        }
+    );
+}
+
+var focusTrace;
+var wellTrace;
+
+$(document).click(function(event) {
+    var click = $(event.target);
+    var dir = click.children();
+    var wellName = click.parents('tr[class^="well_tr"]').attr('id');
+    if (typeof(wellName) != "undefined") {
+        traceviewers.forEach( function(trace) {
+            if (trace.well == wellName) {
+                wellTrace = trace;
+            }
+        });
+        if (wellTrace) {
+            focusTrace = wellTrace["fwd_plot"];
+            adjustPane(click);
+        }
+        else {
+            console.log(wellName + dir.attr('id') + " not found");
+        }
+    }
+});
+
+var tr;
+
+function adjustPane(text) {
+    var selection = window.getSelection();
+
+    tr = text.closest("tr");
+
+    tr = $(tr[0].getElementsByTagName('td').trace).text();
+    tr = tr.replace(/-/g,'N');
+
+    var regex = /[ACTGNn]+/g;
+
+    var match;
+    result = tr.match(regex);
+    //Remove everything not relating to the sequence
+
+    var customSelection = selection.toString();
+    var referencePoint = focusTrace._pos;
+
+    var loc = findCoords(result, referencePoint, selection);
+    wellTrace.moveToPoint(focusTrace, loc[0], loc[1]);
+}
+
+function getSliderOffset(seq){
+    //Not the nicest way. 'N' -> whitespace, ignore whitespaces to get actual loc
+    seq = seq.replace(/N/g,' ');
+    var read = focusTrace._read;
+    var builder = '';
+    for (var count = 0; count < read.length; count++) {
+        builder = builder + read[count] + '\\s*';
+    }
+    builder = new RegExp(builder);
+    return seq.search(builder);
+}
+
+function getMouseOffset(seq, selection){
+    if (selection.toString().length > 1) {
+        return seq.search(selection.toString());
+    } else {
+        return seq.search(selection.focusNode.data) + selection.focusOffset;
+    }
+}
+
+
+function findCoords(seqs, point, selection) {
+    var traceSeq = seqs[0];
+    var target = selection.toString();
+    var mouseOffset = getMouseOffset(traceSeq, selection); //Must be done before any update to the traceviewer
+
+    var ends = [];
+
+    if (target.length < 5) {
+        ends.push(mouseOffset - 10);
+        ends.push(mouseOffset + 10);
+        if (ends[0] < 0) {
+            ends[0] = 0;
+        }
+        if (ends[1] > traceSeq.length){
+            ends[1] = traceSeq.length;
+        }
+    }
+    else {
+        mouseOffset = mouseOffset - 1;
+        ends.push(mouseOffset);
+        ends.push(mouseOffset + target.length - 1);
+    }
+
+    var loc = [];
+
+    for (var point = 0; point < ends.length; point++){
+        loc.push(focusTrace._ref[ends[point]]);
+    }
+
+    return loc;
+
+}
+
+function forceUpdate() {
+    var newPos = focusTrace._pos + 300;
+    wellTrace.moveToPoint(focusTrace, newPos - 125, newPos + 125);
+    //Move the traceviewer to allow for an average of the spacing between bases
+
+}
+
+
+</script>

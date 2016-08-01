@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.415';
 }
 ## use critic
 
@@ -267,6 +267,18 @@ use JSON;
 use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
+use Data::Dumper;
+use List::MoreUtils qw( any );
+use Bio::Perl qw( revcom );
+
+use Log::Log4perl qw(:easy);
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
+}
+
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -338,10 +350,10 @@ sub format_well_data {
     my ( $alignment_data, $insertions, $deletions )
         = $self->format_alignment_strings( $params, $json );
 
-    my $well_accepted = $self->well->accepted;
+    my $accepted_any_run = $self->well_accepted_any_run;
     my $show_checkbox = 1; #by default we show the accepted checkbox
     #if the well itself is accepted, we need to see if it was this run that made it so
-    if ( $well_accepted && ! $self->accepted ) {
+    if ( $accepted_any_run && ! $self->accepted ) {
         #the well was accepted on another QC run
         $show_checkbox = 0;
     }
@@ -362,23 +374,39 @@ sub format_well_data {
       Z => 'G',
     );
 
-    #rebuild entire sequence. insertions hash will be empty if there are none
-    #this is to make finding the sequence within a trace easier
-    for my $dir ( keys %{ $insertions } ) {
-        my @positions = sort keys %{ $insertions->{$dir} };
+    if($params->{truncate}){
+      # Do we really need to do this?? can't we take section of fwd_read and rev_read?
 
-        my ( $res, $i ) = ( "", 0 );
-        #loop through the whole string, replacing any special chars with their insert
-        for my $char ( split "", $alignment_data->{$dir} ) {
-            next if $char =~ /[-X]/; #skip dashes and Xs
-            #this just gets the sequence out of the insertions hash, what a nightmare
-            $res .= ($char =~ /[JLPYZ]/)
-                  ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
-                  : uc $char;
+      #rebuild entire sequence. insertions hash will be empty if there are none
+      #this is to make finding the sequence within a trace easier
+      for my $dir ( keys %{ $insertions } ) {
+          my @positions = sort keys %{ $insertions->{$dir} };
+
+          my ( $res, $i ) = ( "", 0 );
+          #loop through the whole string, replacing any special chars with their insert
+          for my $char ( split "", $alignment_data->{$dir} ) {
+              next if $char =~ /[-X]/; #skip dashes and Xs
+              #this just gets the sequence out of the insertions hash, what a nightmare
+              $res .= ($char =~ /[JLPYZ]/)
+                    ? $special_map{$char} . $insertions->{$dir}{ $positions[$i++] }{seq}
+                    : uc $char;
+          }
+
+          #store with the other alignment data for easy access
+          $alignment_data->{$dir."_full"} = $res;
+      }
+    }
+    else{
+        # We are looking at the complete read so can just get it from the database
+        if($self->fwd_read){
+            my ($name, $seq) = split "\n", $self->fwd_read;
+            $alignment_data->{'forward_full'} = $seq;
         }
 
-        #store with the other alignment data for easy access
-        $alignment_data->{$dir."_full"} = $res;
+        if($self->rev_read){
+            my ($name, $seq) = split "\n", $self->rev_read;
+            $alignment_data->{'reverse_full'} = revcom( $seq )->seq;
+        }
     }
 
     return {
@@ -392,7 +420,7 @@ sub format_well_data {
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
-        well_accepted           => $well_accepted,
+        well_accepted           => $self->well->accepted,
         show_checkbox           => $show_checkbox,
         insertions              => $insertions,
         deletions               => $deletions,
@@ -432,7 +460,7 @@ sub crispr {
   my ( $rs, $prefetch );
   if ( $json->{is_pair} ) {
       $rs = 'CrisprPair';
-      $prefetch = [ 'left_crispr', 'right_crispr', 'crispr_designs' ];
+      $prefetch = [ 'left_crispr', 'right_crispr', 'experiments' ];
   }
   elsif ( $json->{is_group} ) {
       $rs = 'CrisprGroup';
@@ -440,7 +468,7 @@ sub crispr {
   }
   else {
       $rs = 'Crispr';
-      $prefetch = [ 'crispr_designs' ];
+      $prefetch = [ 'experiments' ];
   }
 
   $crispr = $self->result_source->schema->resultset($rs)->find(
@@ -670,6 +698,19 @@ sub _split_sequence {
     }
 
     return $ref_start, $crispr_seq, $ref_end;
+}
+
+sub well_accepted_any_run {
+    my $self = shift;
+
+    my $accepted = $self->result_source->schema->resultset('CrisprEsQcWell')->find(
+        {
+            'well_id'  => $self->well->id,
+            'accepted' => 't',
+        }
+    );
+
+    return $accepted ? 1 : 0;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.327';
+    $LIMS2::Test::VERSION = '0.415';
 }
 ## use critic
 
@@ -154,7 +154,6 @@ sub _build_test_data {
 
 sub _build_fixture_data {
     my ( $class, $name, $args ) = @_;
-
     return sub {
         my ( $filename, %opts ) = @_;
         my $fixture_filename = file($filename);
@@ -273,6 +272,8 @@ sub load_static_files {
             DesignCommentCategory
             DesignOligoType
             DesignType
+            DesignOligoAppend
+            DesignAppendAlias
             GeneType
             GenotypingPrimerType
             GenotypingResultType
@@ -292,6 +293,12 @@ sub load_static_files {
             Sponsor
             BarcodeState
             CrisprTrackerRna
+            SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectTemplate
+            DnaTemplate
+
             )
     );
 
@@ -322,7 +329,7 @@ sub load_dynamic_files {
             DesignOligo
             DesignOligoLocus
             GeneDesign
-            CrisprDesign
+            Experiment
             BacClone
             BacCloneLocus
             Process
@@ -345,9 +352,11 @@ sub load_dynamic_files {
             Project
             ProjectSponsor
             Summary
-            WellBarcode
             CrisprEsQcRuns
             CrisprEsQcWell
+            CrisprPlateAppendsType
+            CrisprPlateAppends
+            SequencingProject
         )
     );
 
@@ -431,7 +440,6 @@ sub load_files {
 
 sub _load_fixtures {
     my ( $dbh, $args ) = @_;
-
     my $mech = mech();
     my $dir = $args->{dir} || '/static/test/fixtures';
     $mech->get($dir);

@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.327';
+    $LIMS2::Report::CrisprVectorPlate::VERSION = '0.415';
 }
 ## use critic
 
@@ -60,7 +60,7 @@ override iterator => sub {
                 id => $well_data->{crispr_ids}[0],
             },
             {
-                prefetch => { 'crispr_designs' => { 'design' => 'genes' } },
+                prefetch => { 'experiments' => { 'design' => 'genes' } },
             }
         );
         my ( $parent_plate, $parent_well ) = split( /_/, $well_data->{parent_wells} );

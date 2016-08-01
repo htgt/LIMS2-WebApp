@@ -1,11 +1,11 @@
 [% IF pageset.last_page > 1 %]
-<div class="pagination">
-  <ul>
-    <li><a href="[% pageset.uri( pageset.first_page ) %]"><i class="icon-fast-backward"></i></a></li>
+<nav>
+  <ul class="pagination">
+    <li><a href="[% pageset.uri( pageset.first_page ) %]"><i class="glyphicon glyphicon-fast-backward"></i></a></li>
     [% IF pageset.previous_page %]
-    <li><a href="[% pageset.uri( pageset.previous_page ) %]"><i class="icon-backward"></i></a></li>
+    <li><a href="[% pageset.uri( pageset.previous_page ) %]"><i class="glyphicon glyphicon-backward"></i></a></li>
     [% ELSE %]
-    <li class="disabled"><a href="#"><i class="icon-backward"></i></a></li>
+    <li class="disabled"><a href="#"><i class="glyphicon glyphicon-backward"></i></a></li>
     [% END %]
     [% FOR page IN pageset.pages_in_set %]
     <li [%- IF page == pageset.current_page %]class="active"[% END %]>
@@ -13,11 +13,11 @@
     </li>
     [% END %]
     [% IF pageset.next_page %]
-    <li><a href="[% pageset.uri( pageset.next_page ) %]"><i class="icon-forward"></i></a></li>
+    <li><a href="[% pageset.uri( pageset.next_page ) %]"><i class="glyphicon glyphicon-forward"></i></a></li>
     [% ELSE %]
-    <li class="disabled"><a href="#"><i class="icon-forward"></i></a></li>
+    <li class="disabled"><a href="#"><i class="glyphicon glyphicon-forward"></i></a></li>
     [% END %]
-    <li><a href="[% pageset.uri( pageset.last_page ) %]"><i class="icon-fast-forward"></i></a></li>
+    <li><a href="[% pageset.uri( pageset.last_page ) %]"><i class="glyphicon glyphicon-fast-forward"></i></a></li>
   </ul>
-</div>
+</nav>
 [% END %]

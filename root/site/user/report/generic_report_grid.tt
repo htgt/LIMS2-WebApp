@@ -158,6 +158,26 @@
                     [%- ELSE %]
                     sortable: true,
                     [%- END %]
+                    [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
+                        renderer: function(val) {
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_design') %]" + '?design_id=' + val + "\">" + val + '</a>';
+                        },
+                    [%- END %]
+                    [%- IF col.match( '[Gg]ene[_\- ]([Ss]ymbol|[Ii][Dd])' ) %]
+                        renderer: function(val) {
+                            return "<a target=\"_blank\" href=\"[% c.uri_for('/user/report/gene') %]" + '?gene_id=' + val + "\">" + val + '</a>';
+                        },
+                    [%- END %]
+                    [%- IF col.match( '^[Cc]rispr[_\- ][Ii][Dd]' ) %]
+                        renderer: function(val) {
+                            var arr = /(\d*)\s*\((\w*)\)/.exec(val);
+                            if (arr) {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/') %]" + arr[2] + '/' + arr[1] + "/view\">" + arr[1] + '</a> (' + arr[2] + ')';
+                            } else {
+                                return "<a target=\"_blank\" href=\"[% c.uri_for('/user/crispr/') %]" + val + "/view\">" + val;
+                            }
+                        },
+                    [%- END %]
                     [%- IF col.match( 'concluded\?' ) %]
                     xtype: 'checkcolumn',
                     width: 65,
@@ -211,7 +231,11 @@
 
                                 console.log("Updating " + record.data.id + " with value " + field.getValue());
 
-                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {id:record.data.id,priority:field.getValue()}, function(){record.commit();});
+                                $.getJSON( "[% c.uri_for('/api/project_priority') %]", {
+                                    id:record.data.id,
+                                    priority:field.getValue(),
+                                    sponsor_id: "[% sel_sponsor %]"
+                                }, function(){record.commit();});
                             }
                         }
 
@@ -261,6 +285,10 @@
                         change: function (field, newValue, oldValue) {
                             var record = grid.getSelectionModel().getSelection()[0];
 
+                            if(record === undefined){
+                              return;
+                            }
+
                             console.log("Updating " + record.data['Well Name'] + " with value " + field.getValue());
 
                             var params_string = j_val.lims2_combo.api_params;
@@ -275,6 +303,29 @@
                                 // For some reason lastValue does not get updated by setRawValue
                                 // so we do it here to avoid wrong oldValue being sent to next change
                                 field.lastValue = oldValue;
+                            })
+                            .done(function(data){
+                                if('qc_verified' in data){
+                                  var qc_verified_col = grid.down('[dataIndex="QC Verified?"]');
+                                  var qc_verified_cell_class = 'x-grid-cell-' + qc_verified_col.id;
+
+                                  var combo_box = field.el.dom;
+                                  var row = $(combo_box).closest('tr.x-grid-row');
+                                  var div = row.find('.' + qc_verified_cell_class ).find('div');
+
+                                  console.log("Changing QC verified value from " + div.text() + " to " + data.qc_verified);
+                                  div.text(data.qc_verified);
+
+                                  // change the value in the record too in case grid is exported to csv
+                                  record.data['QC Verified?'] = data.qc_verified;
+
+                                  // can't do record.set because it reloads the entire record
+                                  // from original values thus overwriting changes to assembly QC
+                                  // grid.store.suspendEvents() stops the reload but also stops the value
+                                  // from being changed in grid!
+
+                                  //record.set('QC Verified?', data.qc_verified);
+                                }
                             });
                         }
                       }
@@ -327,7 +378,7 @@
                 [% IF printable %]
                 tbar: [{
                     text: 'Printer Friendly View',
-                    iconCls: 'icon-ext-print',
+                    iconCls: 'glyphicon glyphicon-print',
                     handler : function(){
                         Ext.ux.grid.Printer.printAutomatically = false;
                         Ext.ux.grid.Printer.print(grid);

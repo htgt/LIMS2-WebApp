@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.327';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.415';
 }
 ## use critic
 
@@ -108,7 +108,7 @@ sub schema {
 has edges => (
     is         => 'ro',
     isa        => 'ArrayRef',
-    init_arg   => undef,
+    init_arg   => 'edges',
     lazy_build => 1
 );
 
@@ -424,16 +424,19 @@ sub render {
     # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
     for my $well ( $self->wells ) {
         $self->log->debug( "Adding $well to GraphViz" );
-        my @labels = ( $well->as_string, 'Plate Type: ' . $well->plate->type_id );
-        if($well->well_barcode){
-            push @labels, 'Barcode: '.$well->well_barcode->barcode;
-            push @labels, 'State: '.$well->well_barcode->barcode_state->id;
+        my @labels = ( $well->as_string, 'Plate Type: ' . $well->last_known_plate->type_id );
+        if($well->barcode){
+            push @labels, 'Barcode: '.$well->barcode;
+            push @labels, 'State: '.$well->barcode_state->id;
+            push @labels, 'Old Location: '.$well->last_known_location_str;
         }
         push @labels, process_data_for($well);
+        my $url = ( $well->plate ? "/htgt/lims2/user/view_plate?id=" . $well->plate->id
+                                 : "/htgt/lims2/user/scan_barcode?barcode=". $well->barcode );
         $graph->add_node(
             name   => $well->as_string,
             label  => \@labels,
-            URL    => "/htgt/lims2/user/view_plate?id=" . $well->plate->id,
+            URL    => $url,
             target => '_blank',
         );
     }

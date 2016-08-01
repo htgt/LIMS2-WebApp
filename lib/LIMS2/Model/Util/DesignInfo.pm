@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.327';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.415';
 }
 ## use critic
 
@@ -162,10 +162,24 @@ sub _build_target_region_start {
         }
     }
 
+    if ( $self->type eq 'fusion-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'U5'}{end};
+        }
+        else {
+            return $self->oligos->{'D3'}{end};
+        }
+
+    }
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
         return $self->oligos->{'N'}{start};
+    }
+
+    # Do the same for point mutation designs
+    if( $self->type eq 'point-mutation'){
+        return $self->oligos->{'PM'}{start};
     }
 
     return;
@@ -173,7 +187,6 @@ sub _build_target_region_start {
 
 sub _build_target_region_end {
     my $self = shift;
-
     if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{D3}{start};
@@ -210,11 +223,23 @@ sub _build_target_region_end {
             return $self->oligos->{'5R'}{start};
         }
     }
-
+    if ( $self->type eq 'fusion-deletion') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'D3'}{start};
+        }
+        else {
+            return $self->oligos->{'U5'}{start};
+        }
+    }
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
         return $self->oligos->{'N'}{end};
+    }
+
+    # Do the same for point mutation designs
+    if( $self->type eq 'point-mutation'){
+        return $self->oligos->{'PM'}{end};
     }
 
     return;
@@ -222,7 +247,6 @@ sub _build_target_region_end {
 
 sub _build_loxp_start {
     my $self = shift;
-
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{D5}{end} + 1;
@@ -247,7 +271,6 @@ sub _build_loxp_start {
 
 sub _build_loxp_end {
     my $self = shift;
-
     if ( $self->type eq 'conditional' || $self->type eq 'artificial-intron' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{D3}{start} - 1;
@@ -272,7 +295,6 @@ sub _build_loxp_end {
 
 sub _build_cassette_start {
     my $self = shift;
-
     if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{U5}{end} + 1;
@@ -315,7 +337,6 @@ sub _build_cassette_start {
 
 sub _build_cassette_end {
     my $self = shift;
-
     if ( $self->type eq 'deletion' || $self->type eq 'insertion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{D3}{start} - 1;
@@ -358,7 +379,6 @@ sub _build_cassette_end {
 
 sub _build_homology_arm_start {
     my $self = shift;
-
     if ( $self->type eq 'gibson' || $self->type eq 'gibson-deletion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'5F'}{start};
@@ -367,7 +387,7 @@ sub _build_homology_arm_start {
             return $self->oligos->{'3R'}{start};
         }
     }
-    elsif ( $self->type eq 'nonsense' ) {
+    elsif ( $self->type eq 'nonsense' or $self->type eq 'point-mutation') {
         return;
     }
     else {
@@ -382,7 +402,6 @@ sub _build_homology_arm_start {
 
 sub _build_homology_arm_end {
     my $self = shift;
-
     if ( $self->type eq 'gibson' || $self->type eq 'gibson-deletion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'3R'}{end};
@@ -406,7 +425,6 @@ sub _build_homology_arm_end {
 
 sub _build_chr_strand {
     my $self = shift;
-
     my @strands = uniq map { $_->{strand} } values %{ $self->oligos };
     LIMS2::Exception->throw(
         'Design ' . $self->design->id . ' oligos have inconsistent strands'
@@ -417,8 +435,8 @@ sub _build_chr_strand {
 
 sub _build_chr_name {
     my $self = shift;
-
     my @chr_names = uniq map { $_->{chromosome} } values %{ $self->oligos };
+
     LIMS2::Exception->throw(
         'Design ' . $self->design->id . ' oligos have inconsistent chromosomes'
     ) unless @chr_names == 1;
@@ -429,7 +447,6 @@ sub _build_chr_name {
 # Build up oligos with information from current assembly
 sub _build_oligos {
     my $self = shift;
-
     my @oligos = $self->design->oligos(
         {
             'loci.assembly_id' => $self->default_assembly,
@@ -467,7 +484,6 @@ sub _build_ensembl_util {
 
 sub _build_target_region_slice {
     my $self = shift;
-
     return $self->slice_adaptor->fetch_by_region(
         'chromosome',
         $self->chr_name,
@@ -479,7 +495,6 @@ sub _build_target_region_slice {
 
 sub _build_target_gene {
     my $self = shift;
-
     my $exons = $self->target_region_slice->get_all_Exons;
     confess "No exons found in target region"
         unless @{ $exons };
@@ -535,7 +550,6 @@ sub _build_target_gene {
 
 sub _build_target_transcript {
     my $self = shift;
-
     #first see if the target transcript specified by the design is valid. if so just return that.
     #a target transcript is optional though.
     if ( $self->design->target_transcript ) {
@@ -552,7 +566,7 @@ sub _build_target_transcript {
 
     my $best_transcript;
     #trap exception so we can give a more specific error 
-    try {
+ ;   try {
         $best_transcript = $self->get_best_transcript( $self->target_gene );
     }
     catch {
@@ -564,7 +578,6 @@ sub _build_target_transcript {
 
 sub _build_floxed_exons {
     my $self = shift;
-
     my ( $start, $end ) = ( $self->target_region_start, $self->target_region_end );
 
     #retrieve all exons that are within the bounds of our target region
@@ -577,7 +590,6 @@ sub _build_floxed_exons {
 
 sub get_mgi_accession_id_for_gene {
     my ( $self, $gene ) = @_;
-
     #this seems to be the recommended way to do this, i couldn't find how to get just the MGI xref
     for my $db_entry ( @{ $gene->get_all_DBEntries() } ) {
         if ( $db_entry->dbname eq "MGI" ) {

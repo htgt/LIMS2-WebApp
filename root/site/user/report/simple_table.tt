@@ -1,7 +1,7 @@
 <div class="page-header">
   <h1>[% title %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/report/download', report_id ) %]">
-    <i class="icon-download-alt icon-white"></i>Download CSV</a>
+  <a class="btn btn-info" href="[% c.uri_for( '/user/report/download', report_id ) %]">
+    <i class="glyphicon glyphicon-download-alt"></i> Download CSV</a>
   </h1>
 </div>
 
@@ -17,7 +17,7 @@
         [%- button_label = v_json.lims2_custom.button_label %]
         [%- tab_target = v_json.lims2_custom.browser_target %]
         [%- api_url = v_json.lims2_custom.api_url %]
-<a class="btn btn-info btn-small"
+<a class="btn btn-info btn-sm"
         <a href="[% c.uri_for( api_url, v_json.lims2_custom )
                  %]" target="[% tab_target %]">[% button_label %]</a>
     [% ELSIF v.match( 'lims2_combo' ) %]
@@ -58,7 +58,8 @@
 
 [% INCLUDE 'pagination.tt' pageset = pageset %]
 
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js', {v => 1} ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
 <script type="text/javascript">
 
   $(document).ready(function() {
@@ -75,17 +76,33 @@
         params_string = params_string + '&value=' + new_value;
       }
       var uri = "[% c.uri_for('/') %]" + combo.data("url") + '?' + params_string;
-      $.getJSON( uri ).fail(function (data){
+      $.getJSON( uri )
+
+      .fail(function (data){
         console.log(data.responseText);
         console.log("Update failed. Returning value to " + old_value);
         combo.val(old_value);
         combo.data("previous", old_value);
+      })
+      .done(function(data){
+        if('qc_verified' in data){
+          console.log(data.qc_verified);
+          label_cell = getCell('QC Verified?','Well Name',data.well_name);
+          addQCVerifiedLabel(label_cell,data.qc_verified);
+        }
       });
     });
 
     // Add primer validation buttons and labels to Assembly plate
     [%IF extra_data.plate_type == 'ASSEMBLY' %]
       console.log('adding assembly plate functionality');
+
+      // Change verification score to label
+      var verification_col_index = getColumnIndexByName('QC Verified?') + 1;
+      $('table tr td:nth-child(' + verification_col_index + ')').each(function(){
+          var value = $(this).text();
+          addQCVerifiedLabel($(this),value);
+      });
 
       [% genotyping = { primer_class => 'genotyping_primers', id_column => 'Design ID', id_param => 'design_id', url => '/user/toggle_genotyping_primer_validation_state' } %]
 
@@ -123,4 +140,16 @@
       [% END %]
     [% END %]
   });
+
+  // Add plate name to the document title (name in browser tab)
+  $(document).ready(function() {
+    var title = '[% title %]';
+    var plateNameRegex = /Plate (.*)/igm;
+
+    if ( plateNameRegex.test(title) ) {
+      title.match(plateNameRegex);
+      document.title = plateNameRegex.exec(title)[1];
+    }
+  });
+
 </script>

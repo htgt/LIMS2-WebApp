@@ -1,6 +1,6 @@
 <div class="row">
 [% IF logs.create.size > 0 %]
-  <div class="span6">
+  <div class="col-md-6">
     <h3>Created Crispr Design Links</h3>
 
     <table class="table">
@@ -13,7 +13,7 @@
 [% END %]
 
 [% IF logs.delete.size > 0 %]
-  <div class="span6">
+  <div class="col-md-6">
     <h3>Deleted Crispr Design Links</h3>
     <table class="table">
     [% FOR m IN logs.delete %]
@@ -27,7 +27,7 @@
 
 <div class="row">
 [% IF logs.delete_fail.size > 0 %]
-  <div class="span6">
+  <div class="col-md-6">
     <h3>Errors Deleting Links</h3>
 
     <table class="table">
@@ -40,7 +40,7 @@
 [% END %]
 
 [% IF logs.create_fail.size > 0 %]
-  <div class="span6">
+  <div class="col-md-6">
     <h3>Errors Creating Links</h3>
 
     <table class="table">
@@ -54,8 +54,8 @@
 </div>
 
 <div class="row">
-  <div class="span3">
-    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn">
-    <i class="icon-hand-left"></i> Back to search </a>
+  <div class="col-md-3">
+    <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]" class="btn btn-default">
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
 </div>

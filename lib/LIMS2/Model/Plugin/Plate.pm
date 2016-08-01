@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.327';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.415';
 }
 ## use critic
 
@@ -11,7 +11,7 @@ use warnings FATAL => 'all';
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
-use LIMS2::Model::Util qw( sanitize_like_expr );
+use LIMS2::Model::Util qw( sanitize_like_expr random_string );
 use LIMS2::Model::Util::CreateProcess qw( process_aux_data_field_list );
 use LIMS2::Model::Util::DataUpload qw( upload_plate_dna_status upload_plate_dna_quality parse_csv_file upload_plate_pcr_status );
 use LIMS2::Model::Util::CreatePlate qw( create_plate_well merge_plate_process_data );
@@ -203,9 +203,9 @@ sub _freeze_back_fp_barcodes{
     my @barcodes;
     foreach my $well ($plate->wells){
         my ($parent_well) = $well->parent_wells;
-        next unless $parent_well->plate->type_id eq 'FP';
-        if($parent_well->well_barcode){
-            push @barcodes, $parent_well->well_barcode->barcode;
+        next unless $parent_well->plate_type eq 'FP';
+        if($parent_well->barcode){
+            push @barcodes, $parent_well->barcode;
         }
     }
 
@@ -244,7 +244,6 @@ sub check_xep_pool_wells {
     my $original_wells = shift;
 
     my @revised_wells;
-
     WELL_HASH: foreach my $well_hash ( @$original_wells ) {
         if ( $well_hash->{'process_type'} ne 'xep_pool' ) {
             push @revised_wells, $well_hash;
@@ -451,7 +450,7 @@ sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
     #validation done of create_plate, not needed here
     my %plate_data = map { $_ => $params->{$_} }
-        qw( plate_name species plate_type description created_by is_virtual process_type);
+        qw( plate_name species plate_type description created_by is_virtual process_type );
     $plate_data{name} = delete $plate_data{plate_name};
     $plate_data{type} = delete $plate_data{plate_type};
 
@@ -469,7 +468,9 @@ sub create_plate_csv_upload {
     my %plate_process_data = map { $_ => $params->{$_} }
         grep { exists $params->{$_} } @{ process_aux_data_field_list() };
     $plate_process_data{process_type} = $params->{process_type};
-
+    if ( $params->{plate_type} eq 'INT' ) {
+        $plate_process_data{dna_template} = $params->{source_dna};
+    }
     my $expected_csv_headers;
     if ( $params->{process_type} eq 'second_electroporation' ) {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
@@ -673,14 +674,8 @@ sub random_plate_name{
     my ( $self, $params ) = @_;
 
     my $validated_params = $self->check_params( $params, $self->pspec_random_plate_name);
-    my @chars=('a'..'z','A'..'Z','0'..'9');
-    my $random_name;
-    for(1..6){
-        # rand @chars will generate a random
-        # number between 0 and scalar @chars
-        $random_name.=$chars[rand @chars];
-    }
 
+    my $random_name = random_string(6);
     $random_name = $validated_params->{prefix}.$random_name;
 
     if( try { $self->retrieve_plate({ name => $random_name }) }){

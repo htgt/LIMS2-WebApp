@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Summary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Summary::VERSION = '0.415';
 }
 ## use critic
 
@@ -889,6 +889,62 @@ __PACKAGE__->table("summaries");
   data_type: 'boolean'
   is_nullable: 1
 
+=head2 experiments
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 dna_template
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 crispr_ep_colonies_rem_unstained
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_colonies_total
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_colonies_picked
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_project_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 crispr_ep_well_project_sponsors
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 ep_pick_well_crispr_es_qc_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 ep_pick_well_crispr_es_qc_well_call
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 piq_crispr_es_qc_well_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 piq_crispr_es_qc_well_call
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1233,6 +1289,28 @@ __PACKAGE__->add_columns(
   { data_type => "timestamp", is_nullable => 1 },
   "ancestor_piq_well_accepted",
   { data_type => "boolean", is_nullable => 1 },
+  "experiments",
+  { data_type => "text", is_nullable => 1 },
+  "dna_template",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "crispr_ep_colonies_rem_unstained",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_colonies_total",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_colonies_picked",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_project_id",
+  { data_type => "integer", is_nullable => 1 },
+  "crispr_ep_well_project_sponsors",
+  { data_type => "text", is_nullable => 1 },
+  "ep_pick_well_crispr_es_qc_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "ep_pick_well_crispr_es_qc_well_call",
+  { data_type => "text", is_nullable => 1 },
+  "piq_crispr_es_qc_well_id",
+  { data_type => "integer", is_nullable => 1 },
+  "piq_crispr_es_qc_well_call",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1247,9 +1325,31 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-18 16:14:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pX0rZsB9Zk1Px+VlxWRODw
+=head2 dna_template
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::DnaTemplate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "dna_template",
+  "LIMS2::Model::Schema::Result::DnaTemplate",
+  { id => "dna_template" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-14 11:33:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+dv4P9sJyY1ZU6FuK0HMjw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

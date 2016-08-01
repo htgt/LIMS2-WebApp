@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPair;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::CrisprPair::VERSION = '0.415';
 }
 ## use critic
 
@@ -123,21 +123,6 @@ __PACKAGE__->add_unique_constraint("unique_pair", ["left_crispr_id", "right_cris
 
 =head1 RELATIONS
 
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.crispr_pair_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_primers
 
 Type: has_many
@@ -153,7 +138,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 experiments
+=head2 experiments_including_deleted
 
 Type: has_many
 
@@ -162,7 +147,7 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
+  "experiments_including_deleted",
   "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.crispr_pair_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -199,8 +184,20 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:25:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MBXpihnogswuzG3K/d08fQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LhiddgZPOuluhszoE32LqQ
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 sub as_hash {
     my ( $self ) = @_;

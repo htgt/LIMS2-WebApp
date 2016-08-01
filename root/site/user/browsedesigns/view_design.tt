@@ -42,6 +42,14 @@
     </td>
   </tr>
   [% END %]
+  [% IF design.parent_id %]
+  <tr>
+    <th>Parent ID</th>
+    <td>
+    <a href="[% c.uri_for( '/user/view_design', { design_id => design.parent_id } ) %]"> [% design.parent_id %] </a>
+    </td>
+  </tr>
+  [% END %]
 </table>
 
 <h2>Comments</h2>
@@ -99,7 +107,7 @@
         <td>[% oligo.locus.chr_strand %]</td>
         <td>[% oligo.locus.chr_start  %]</td>
         <td>[% oligo.locus.chr_end    %]</td>
-        <td>[% oligo.seq              %]</td>
+        <td [% IF oligo.type == 'PM' %]class="mutant_seq"[% END %]>[% oligo.seq %]</td>
       </tr>
     [%- END %]
     </tbody>
@@ -234,6 +242,7 @@
 <script type="text/javascript">
 
   $(document).ready(function() {
+    document.title = 'Design: [% design.id %]';
     $(".validation-state-cell").each(function(){
       //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
       addPrimerValidationState(
@@ -245,6 +254,33 @@
         $(this).data('validated')
       );
     });
+
+    $(".mutant_seq").each(function(){
+        var seq = $(this).text();
+        console.log('mutant seq: ' + seq);
+        
+        var mismatch_char = /[actgn]/;
+
+        var result = "";
+
+        for (var i = 0; i < seq.length; i++) {
+          if ( mismatch_char.test(seq.charAt(i)) ) {
+            console.log('mismatch at at position ' + i);
+            result += "<span class='mismatch'>" + seq.charAt(i) + "</span>";
+          }
+          else {
+            result += seq.charAt(i)
+          }
+        };
+        $(this).html(result);
+    });
+
   })
 
 </script>
+
+<style type="text/css">
+.mismatch {
+  color: #FF0000;
+}
+</style>

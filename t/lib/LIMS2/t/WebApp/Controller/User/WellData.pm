@@ -95,10 +95,10 @@ sub concentration_upload  : Test(23)
     note("upload spreadsheet");
     $mech->get_ok('/user/dna_concentration_upload');
     $mech->title_is('DNA Concentration Upload');
-    my $example_ss_path = 'root/static/files/qc_upload/dna_concentrations.xlsx';  
+    my $example_ss_path = 'root/static/files/qc_upload/dna_concentrations.xlsx';
     ok $mech->submit_form(
     	form_id => 'dna_concentration_upload',
-    	fields => { 
+    	fields => {
     		spreadsheet => 'spreadsheet',
     		datafile => $example_ss_path,
     	},
@@ -131,7 +131,7 @@ sub concentration_upload  : Test(23)
     $mech->field('JG2_map','HCL_DNA');
     ok $mech->click_button( name => 'update');
     $mech->content_contains('Uploaded dna status information onto plate HCL_DNA');
- 
+
     ok my $well = model->retrieve_well({ plate_name=>'HCL_DNA', well_name=>'A01'});
     is $well->well_dna_status->pass, 1, 'DNA status is correct';
     is $well->well_dna_status->concentration_ng_ul, 117.65911207533, 'DNA concentration is correct';
@@ -144,33 +144,33 @@ sub concentration_upload  : Test(23)
     $mech->content_contains('Well HCL_DNA_A01 already has a dna status');
 }
 
-sub egel_status_upload : Tests() {
+sub egel_status_upload : Tests(22) {
     my $mech = mech();
 
     note("upload no plate name");
     $mech->get_ok('/user/select_species?species=Human');
-    $mech->get_ok('/user/dna_quality_update');  
+    $mech->get_ok('/user/dna_quality_update');
     $mech->title_is('DNA EGel Status Update');
     ok $mech->click_button( name => 'update_dna_quality' ), 'submit without plate name ok';
     $mech->content_contains('You must specify a plate name');
 
     note("upload no spreadsheet");
-    $mech->get_ok('/user/dna_quality_update'); 
+    $mech->get_ok('/user/dna_quality_update');
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
-        fields => { 
+        fields => {
             plate_name => 'HCL_DNA',
         },
         button  => 'update_dna_quality',
     ), 'submit without spreadsheet ok';
-    $mech->content_contains('No csv file with dna quality data specified');   
+    $mech->content_contains('No csv file with dna quality data specified');
 
     note("plate does not exist");
     $mech->get_ok('/user/dna_quality_update');
-    my $example_ss_path = 'root/static/test/data/egel_test.csv'; 
+    my $example_ss_path = 'root/static/test/data/egel_test.csv';
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
-        fields => { 
+        fields => {
             datafile => $example_ss_path,
             plate_name => 'rubbish',
         },
@@ -183,26 +183,26 @@ sub egel_status_upload : Tests() {
     $mech->get_ok('/user/dna_quality_update');
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
-        fields => { 
+        fields => {
             datafile => $example_ss_path,
             plate_name => 'HCL1',
         },
         button  => 'update_dna_quality',
     ), 'submit with non DNA plate';
     $mech->content_contains('Invalid plate type');
- 
+
     note("plate update");
     $mech->get_ok('/user/dna_quality_update');
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
-        fields => { 
+        fields => {
             datafile => $example_ss_path,
             plate_name => 'HCL_DNA',
         },
         button  => 'update_dna_quality',
     ), 'dna egel pass data uploaded';
     $mech->content_contains('Uploaded dna quality information onto plate HCL_DNA');
- 
+
     my $well = model->retrieve_well({ plate_name=>'HCL_DNA', well_name=>'A01'});
     is $well->well_dna_quality->egel_pass, 1, 'DNA egel status is pass for A01';
     my $well6 = model->retrieve_well({ plate_name=>'HCL_DNA', well_name=>'A06'});
@@ -212,7 +212,7 @@ sub egel_status_upload : Tests() {
     $mech->get_ok('/user/dna_quality_update');
     ok $mech->submit_form(
         form_id => 'dna_quality_update',
-        fields => { 
+        fields => {
             datafile => $example_ss_path,
             plate_name => 'HCL_DNA',
         },

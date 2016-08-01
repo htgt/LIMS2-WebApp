@@ -31,6 +31,7 @@ meta-spec:
   version: 1.4
 name: LIMS2-WebApp
 requires:
+  Archive::Zip: 0
   Bio::Perl: 0
   Bio::SCF: 0
   Bio::Seq: 0
@@ -77,13 +78,18 @@ requires:
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
+  DateTime::Format::Strptime: 0
+  DesignCreate::Types: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
   EngSeqBuilder: 0
+  Excel::Writer::XLSX: 0
   Exporter: 0
   Fcntl: 0
   File::Basename: 0
+  File::Path: 0
+  File::Slurp: 0
   File::Temp: 0
   File::Which: 0
   File::stat: 0
@@ -91,12 +97,16 @@ requires:
   Getopt::Long: 0
   GraphViz2: 0
   HTGT::QC::Config: 0
+  HTGT::QC::Constants: 0
+  HTGT::QC::Run: 0
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
   HTGT::QC::Util::CrisprDamageVEP: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
+  HTGT::QC::Util::SubmitQCFarmJob::ESCell: 0
+  HTGT::QC::Util::SubmitQCFarmJob::Vector: 0
   HTTP::Status: 0
   Hash::Merge: 0
   Hash::MoreUtils: 0
@@ -105,6 +115,7 @@ requires:
   IO::Pipe: 0
   IO::String: 0
   IPC::Run: 0
+  IPC::System::Simple: 0
   Iterator::Simple: 0
   JSON: 0
   LIMS2::Exception: 0
@@ -138,9 +149,12 @@ requires:
   MooseX::Log::Log4perl: 0
   MooseX::MarkAsMethods: 0
   MooseX::NonMoose: 0
+  MooseX::SimpleConfig: 0
   MooseX::Types: 0
   MooseX::Types::Path::Class: 0
   MooseX::Types::Path::Class::MoreCoercions: 0
+  Number::Range: 0
+  POSIX: 0
   Parse::BooleanLogic: 0
   Path::Class: 0
   Perl6::Slurp: 0
@@ -161,8 +175,11 @@ requires:
   TryCatch: 0
   URI: 0
   URI::QueryParam: 0
+  WWW::JSON: 0
   WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
+  WebAppCommon::Design::DesignParameters: 0
+  WebAppCommon::Design::FusionConversion: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
   WebAppCommon::Util::EnsEMBL: 0
@@ -177,4 +194,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.327
+version: 0.415

@@ -89,8 +89,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Test(28) {
     note( 'Testing Pipeline Summary reports' );
 
     my $species = 'Mouse'; # NB. need to add tests for human reports later
@@ -117,7 +116,7 @@ sub all_tests  : Tests
             ok my $project_deleted = model('Golgi')->delete_project({ id => $project->id }), 'project should be deleted from DB';
         }
 	    ok my $project_inserted = $project_rs->create( $project ), 'project should be inserted into DB';
-        ok model('Golgi')->add_project_sponsor({
+        ok model('Golgi')->update_or_create_project_sponsor({
                 project_id => $project_inserted->id,
                 sponsor_id => 'Syboss',
             }), 'sponsor added to project';
@@ -126,7 +125,7 @@ sub all_tests  : Tests
 
         ok model('Golgi')->update_project_sponsors({
                 project_id => $project_inserted->id,
-                sponsor_list => ['Mutation'],
+                sponsors_priority => { 'Mutation' => undef },
             }), 'project sponsors updated';
         ok my @new_sponsors = $project_inserted->sponsor_ids, 'project sponsor found';
         is scalar(@new_sponsors), 1, 'project has correct number of sponsors';

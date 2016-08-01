@@ -1,0 +1,69 @@
+[%- META title = 'Create Crispr Plate' %]
+
+<div class="page-header">
+  <h1>Upload Crispr Plate</h1>
+</div>
+
+
+
+<form method="POST" id="crispr_plate_create" action="[% c.uri_for( '/user/create_crispr_plate' ) %]" class="col-md-7 form well"  enctype="multipart/form-data" >
+    <div class="col-md-7 grid">
+        <div class="row">
+            <div class="form-group">
+
+            <input name="crispr_plate_upload" type="hidden"/>
+
+            <label class="form-label"> Plate Name</label></br>
+            <input name="plate_name" id="plate_name" type="text"
+              [%IF plate_name %]value="[% plate_name %]"[% END %]
+            />
+            <br>
+        </div>
+        <div class="row">
+             <label class="col-md-12" for="append_type">Appends</label></br>
+             <div class="col-md-6">
+                <select class="form-control" name="append_type" id="append_type">
+                  <option value="" selected="selected">-</option>
+                  [%- FOR append IN append_list %]
+                    <option value="[% append %]">[% append.replace( '_', ' ' ) %]</option>
+                  [%- END %]
+                </select><br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <label>Crispr Data File</label>
+            </div>
+            <div class="btn btn-file">
+                <input class="file" name="datafile" type="file" />
+            </div>
+        </div>
+        <div class="row"> 
+          <div class="col-md-12">
+            <div class="col-md-offset-1 checkbox">
+                <input type="checkbox" name="wge" id="check_wge" enabled />
+                    WGE Crispr IDs
+            </div>
+          </div>
+        </div>
+        <button name="create_plate" id="create_plate" type="submit" value="create_plate" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Create Plate
+        </button>
+  </div>
+</form>
+
+</div>
+
+<div class="col-md-7 row">
+    [% INCLUDE 'crispr_plate_upload_help.tt' plate_help = plate_help %]
+</div>
+
+<script type="text/javascript">
+$('form#plate_create').submit(function(){
+    $(this).children('button[type=submit]').attr('disabled', 'disabled');
+});
+$('#process_type').change(function() {
+    $(this).closest("form").submit();
+})
+
+</script>

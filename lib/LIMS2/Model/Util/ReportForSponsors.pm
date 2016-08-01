@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.327';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.415';
 }
 ## use critic
 
@@ -21,7 +21,10 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
-use feature "switch";
+use Data::Dumper;
+
+# Uncomment this to add time since last log entry to log output
+#Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -445,6 +448,10 @@ sub generate_sub_report {
                                             # 'recovery_class',
                                             # 'effort_concluded',
 
+                                            'DNA_source_cell_line',
+                                            'EP_cell_line',
+                                            'experiment_ID',
+
                                             'total_colonies',
 
                                             'colonies_picked',
@@ -485,6 +492,10 @@ sub generate_sub_report {
                                             # 'homozygous targeted clones',
                                             # 'recovery_class',
                                             # 'effort concluded',
+
+                                            'DNA source vector',
+                                            'EP cell line',
+                                            'experiment ID',
 
                                             '# colonies',
                                             'iPSC colonies picked',
@@ -727,7 +738,6 @@ sub _build_sub_report_data {
     my ($self, $sponsor_id, $stage) = @_;
 
     DEBUG 'Building sub-summary report for sponsor = '.$sponsor_id.', stage = '.$stage.', targeting_type = '.$self->targeting_type.' and species = '.$self->species;
-
     my $query_type = 'select';
     my $sub_report_data;
 
@@ -859,6 +869,7 @@ sub genes {
         my $gene_id = $gene_row->{ 'gene_id' };
 
         my $gene_info;
+
         # get the gene name, the good way. TODO for human genes
         try {
             $gene_info = $self->model->find_gene( {
@@ -876,39 +887,16 @@ sub genes {
 
         my %search = ( design_gene_id => $gene_id );
 
-        if ($self->species eq 'Human' ) {
+        if ($self->species eq 'Human' || $sponsor_id eq 'Pathogen Group 2' || $sponsor_id eq 'Pathogen Group 3' ) {
             $search{'-or'} = [
                     { design_type => 'gibson' },
                     { design_type => 'gibson-deletion' },
+                    { design_type => 'fusion-deletion' },
                 ];
         }
 
-        for ($sponsor_id) {
-            when ('Pathogen Group 2') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 3') {
-                $search{'-or'} = [
-                    { design_type => 'gibson' },
-                    { design_type => 'gibson-deletion' },
-                ];
-            }
-            when ('Pathogen Group 1') {
-                $search{'sponsor_id'} = 'Pathogen Group 1';
-            }
-            when ('EUCOMMTools Recovery') {
-                $search{'sponsor_id'} = 'EUCOMMTools Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            when ('Barry Short Arm Recovery') {
-                $search{'sponsor_id'} = 'Barry Short Arm Recovery';
-            }
-            # default { DEBUG "No special option for sponsor: " . $sponsor_id }
+        if ($sponsor_id eq 'Pathogen Group 1' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'Barry Short Arm Recovery') {
+            $search{'sponsor_id'} = $sponsor_id;
         }
 
         my $summary_rs = $self->model->schema->resultset("Summary")->search(
@@ -921,31 +909,23 @@ sub genes {
 
         try {
             my $index = 0;
-            $index++ until ( $sponsors[$index] eq 'All' || $index >= scalar @sponsors );
+            $index++ until ( $index >= scalar @sponsors || $sponsors[$index] eq 'All' );
             splice(@sponsors, $index, 1);
         };
 
-        my $sponsors_str = join  ( '; ', @sponsors );
-        $sponsors_str =~ s/Pathogen Group 1/PG1/;
-        $sponsors_str =~ s/Pathogen Group 2/PG2/;
-        $sponsors_str =~ s/Pathogen Group 3/PG3/;
-        $sponsors_str =~ s/Mutation/MSP/;
-        $sponsors_str =~ s/Experimental Cancer Genetics/ECG/;
-        $sponsors_str =~ s/Transfacs/TF/;
-        $sponsors_str =~ s/Pathogen/PG/;
-        $sponsors_str =~ s/PGs/Pathogens/;
-        $sponsors_str =~ s/Stem Cell Engineering/SCE/;
-        $sponsors_str =~ s/Human Genetics/HG/;
+        my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
+        my $sponsors_str = join  ( ';', @sponsors_abbr );
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
-            my @priority_array = map { $_->priority } @gene_projects;
+            my @priority_array = map { $_->priority($sponsor_id) } @gene_projects;
 
             my $index = 0;
             $index++ until ( !defined $priority_array[$index] || $index >= scalar @priority_array );
             splice(@priority_array, $index, 1);
 
-            $priority = join ( '; ', @priority_array );
+            $priority = shift @priority_array;
+
         };
         if (! $priority) {$priority = '-'}
 
@@ -959,7 +939,6 @@ sub genes {
             my @effort_concluded_array = uniq map { $_->effort_concluded } @gene_projects;
             $effort_concluded = join ( '; ', @effort_concluded_array );
         };
-
 
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
@@ -988,7 +967,6 @@ sub genes {
             push @$arrayref, $design_id;
             push @all_design_ids, $design_id;
         }
-
 
         # DESIGN wells
         my @design = $summary_rs->search(
@@ -1032,8 +1010,6 @@ sub genes {
             }
         }
 
-
-
         # FINAL_PICK wells
         my @final_pick = $summary_rs->search(
             { final_pick_well_accepted => 't',
@@ -1045,15 +1021,15 @@ sub genes {
         );
         my $final_pick_pass_count = scalar @final_pick;
 
-        my @final_pick_qc = $summary_rs->search(
-            { final_pick_qc_seq_pass => 't',
-              to_report => 't' },
-            {
-                columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
-                distinct => 1
-            }
-        );
-        my $final_pick_qc_pass_count = scalar @final_pick_qc;
+        # my @final_pick_qc = $summary_rs->search(
+        #     { final_pick_qc_seq_pass => 't',
+        #       to_report => 't' },
+        #     {
+        #         columns => [ qw/final_pick_plate_name final_pick_well_name final_pick_qc_seq_pass/ ],
+        #         distinct => 1
+        #     }
+        # );
+        # my $final_pick_qc_pass_count = scalar @final_pick_qc;
 
 
 
@@ -1068,23 +1044,21 @@ sub genes {
         # );
         # my $dna_pass_count = scalar @dna;
 
-
         # EP wells
         my @ep = $summary_rs->search(
             {
                 -or => [
-                    { ep_plate_name => { '!=', undef } },
-                    { crispr_ep_plate_name => { '!=', undef } },
+                    { ep_well_id => { '!=', undef } },
+                    { crispr_ep_well_id => { '!=', undef } },
                 ],
                 to_report => 't',
             },
             {
-                columns => [ qw/ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id/ ],
+                columns => [ qw/experiments dna_template ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id crispr_ep_well_cell_line/ ],
                 distinct => 1
             }
         );
         my $ep_count = scalar @ep;
-
 
         my @ep_data;
 
@@ -1096,7 +1070,7 @@ sub genes {
         my $total_wild_type = 0;
         my $total_mosaic = 0;
         my $total_no_call = 0;
-        my $total_het = 0;
+        my $total_het;
 
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
@@ -1107,6 +1081,12 @@ sub genes {
             else {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
+
+            # dna_template is actually a foreign key so we need to use get_column
+            # to get the value rather than the DNATemplate result object
+            $curr_ep_data{'dna_template'} = $curr_ep->get_column('dna_template') // '-' ;
+            $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
+            $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
 
             my $total_colonies = 0;
             # my $picked_colonies = 0;
@@ -1130,14 +1110,14 @@ sub genes {
             # EP_PICK wells
             my @ep_pick = $summary_rs->search(
                 {
-                    ep_pick_plate_name => { '!=', undef },
+                    ep_pick_well_id => { '!=', undef },
                    -or => [
                         { ep_well_id => $ep_id },
                         { crispr_ep_well_id => $ep_id },
                     ],
                     to_report => 't',
                 },{
-                    columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id/ ],
+                    columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id ep_pick_well_crispr_es_qc_well_call/ ],
                     distinct => 1
                 }
             );
@@ -1146,31 +1126,34 @@ sub genes {
             $total_ep_pick_count += $curr_ep_data{'ep_pick_count'};
             # $curr_ep_data{'ep_pick_pass_count'} = 0;
 
-
             $curr_ep_data{'frameshift'} = 0;
             $curr_ep_data{'in-frame'} = 0;
             $curr_ep_data{'wild_type'} = 0;
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
-            $curr_ep_data{'het'} = 0;
 
             ## no critic(ProhibitDeepNests)
-            foreach my $ep_pick (@ep_pick) {
-                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
 
-                if($damage_call){
+            foreach my $ep_pick (@ep_pick) {
+                my $damage_call = $ep_pick->ep_pick_well_crispr_es_qc_well_call;
+
+                if ($damage_call) {
                     $curr_ep_data{$damage_call}++;
                 }
-                else{
+                else {
                     $damage_call = '';
                 }
 
-                if(ep_pick_is_het($self->model,$ep_pick->ep_pick_well_id,$chromosome,$damage_call)){
-                    $curr_ep_data{het}++;
+                my $is_het = ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call);
+
+                if ( defined $is_het) {
+                    $curr_ep_data{het} += $is_het;
                 }
+
             }
             ## use critic
 
+            $curr_ep_data{'frameshift'} += $curr_ep_data{'splice_acceptor'} unless (!$curr_ep_data{'splice_acceptor'});
             $curr_ep_data{'ep_pick_pass_count'} = $curr_ep_data{'wild_type'} + $curr_ep_data{'in-frame'} + $curr_ep_data{'frameshift'} + $curr_ep_data{'mosaic'};
             $total_ep_pick_pass_count += $curr_ep_data{'ep_pick_pass_count'};
 
@@ -1179,7 +1162,10 @@ sub genes {
             $total_wild_type += $curr_ep_data{'wild_type'};
             $total_mosaic += $curr_ep_data{'mosaic'};
             $total_no_call += $curr_ep_data{'no-call'};
-            $total_het += $curr_ep_data{'het'};
+
+            if (defined $curr_ep_data{'het'} ) {
+                $total_het += $curr_ep_data{'het'};
+            }
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
                 if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
@@ -1187,20 +1173,12 @@ sub genes {
                 if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
                 if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
                 if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'no-call'} = '' };
+                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
             }
 
-            # if ( $curr_ep_data{'total_colonies'} == 0 ) { $curr_ep_data{'total_colonies'} = '' };
-            # if ( $curr_ep_data{'ep_pick_count'} == 0 ) { $curr_ep_data{'ep_pick_count'} = '' };
-
-
-
-
-
-
             push @ep_data, \%curr_ep_data;
-
         }
+
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
@@ -1208,6 +1186,8 @@ sub genes {
             $total_in_frame = '';
             $total_wild_type = '';
             $total_mosaic = '';
+            $total_no_call = '';
+            $total_het = '';
         }
 
 
@@ -1216,32 +1196,34 @@ sub genes {
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
-
-
         # PIQ wells
         my @piq = $summary_rs->search(
-            {   piq_plate_name => { '!=', undef },
+            {   piq_well_id => { '!=', undef },
                 piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/piq_plate_name piq_well_name/ ],
+                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
 
-        my @ancestor_piq = $summary_rs->search(
-            {   ancestor_piq_plate_name => { '!=', undef },
+        push @piq, $summary_rs->search(
+            {   ancestor_piq_well_id=> { '!=', undef },
                 ancestor_piq_well_accepted=> 't',
                 to_report => 't' },
             {
-                columns => [ qw/ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
                 distinct => 1
             }
         );
-        my $piq_pass_count = scalar @piq + scalar @ancestor_piq;
 
-
-
+        my $piq_pass_count = scalar @piq;
+        my $toggle;
+        if ($ep_count) {
+            $toggle = '-';
+        }
         # push the data for the report
         push @genes_for_display, {
             'gene_id'                => $gene_id,
@@ -1254,8 +1236,12 @@ sub genes {
             'vector_wells'           => $design_count,
             'vector_pcr_passes'      => $pcr_passes,
             'passing_vector_wells'   => $final_pick_pass_count,
-            'qc_passing_vector_wells' => $final_pick_qc_pass_count,
+            # 'qc_passing_vector_wells' => $final_pick_qc_pass_count,
             'electroporations'       => $ep_count,
+
+            'DNA_source_cell_line'   => $toggle,
+            'EP_cell_line'           => $toggle,
+            'experiment_ID'          => $toggle,
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
@@ -1265,7 +1251,7 @@ sub genes {
             'wt_count'               => $total_wild_type,
             'ms_count'               => $total_mosaic,
             'nc_count'               => $total_no_call,
-            'ep_pick_het'            => $total_het,
+            'ep_pick_het'            => $total_het // '-',
 
             'distrib_clones'         => $piq_pass_count,
 
@@ -1273,6 +1259,7 @@ sub genes {
             'recovery_class'         => $recovery_class,
             'effort_concluded'       => $effort_concluded // '0',
             'ep_data'                => \@ep_data,
+
         };
 
     }
@@ -1291,19 +1278,20 @@ sub genes {
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'distrib_clones' }        <=> $a->{ 'distrib_clones' }        ||
-            $b->{ 'fs_count' }              <=> $a->{ 'fs_count' }              ||
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-            # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' } ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
-            $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
-            # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
-            $b->{ 'accepted_crispr_vector' } <=> $a->{ 'accepted_crispr_vector' }
-            # $a->{ 'gene_symbol' }           cmp $b->{ 'gene_symbol' }
+          ( $b->{ 'distrib_clones' } || -1 )   <=> ( $a->{ 'distrib_clones' } || -1 )   ||
+          ( $b->{ 'fs_count' } || -1 )         <=> ( $a->{ 'fs_count' } || -1 )         ||
+          ( $b->{ 'ep_pick_het' } || -1 )      <=> ( $a->{ 'ep_pick_het' } || -1 )      ||
+          ( $b->{ 'targeted_clones' } || -1 )  <=> ( $a->{ 'targeted_clones' } || -1 )  ||
+            # $b->{ 'colonies_picked' }        <=> $a->{ 'colonies_picked' }            ||
+          ( $b->{ 'electroporations' } || -1 ) <=> ( $a->{ 'electroporations' } || -1 ) ||
+            # $b->{ 'qc_passing_vector_wells' } <=> $a->{ 'qc_passing_vector_wells' }   ||
+          ( $b->{ 'passing_vector_wells' } || -1 ) <=> ( $a->{ 'passing_vector_wells' } || -1 )  ||
+            # $b->{ 'vector_wells' }           <=> $a->{ 'vector_wells' }               ||
+            # $b->{ 'vector_designs' }         <=> $a->{ 'vector_designs' }             ||
+            $b->{ 'accepted_crispr_vector' }   <=> $a->{ 'accepted_crispr_vector' }     ||
+            $b->{ 'crispr_wells' }             <=> $a->{ 'crispr_wells' }
+            # $a->{ 'gene_symbol' }            cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
-
     return \@sorted_genes_for_display;
 }
 ## use critic
@@ -1426,13 +1414,13 @@ SQL_END
         ## no critic (ProhibitCascadingIfElse)
         my $targeting_profile;
         if ($self->species eq 'Human') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         if ($sponsor_id eq 'Pathogen Group 2') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         if ($sponsor_id eq 'Pathogen Group 3') {
-            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' );";
+            $sql .= " AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion');";
         }
         elsif ($sponsor_id eq 'Pathogen Group 1') {
             $sql .= " AND ( sponsor_id = 'Pathogen Group 1' );";
@@ -1615,10 +1603,10 @@ SQL_END
     }
 
     my @sorted_genes_for_display =  sort {
-            $b->{ 'targeted_clones' }       <=> $a->{ 'targeted_clones' }       ||
-            $b->{ 'colonies_picked' }       <=> $a->{ 'colonies_picked' }       ||
-            $b->{ 'electroporations' }      <=> $a->{ 'electroporations' }      ||
-            $b->{ 'passing_vector_wells' }  <=> $a->{ 'passing_vector_wells' }  ||
+          ( $b->{ 'targeted_clones' } || -1 )      <=> ( $a->{ 'targeted_clones' } || -1 )       ||
+          ( $b->{ 'colonies_picked' } || -1 )      <=> ( $a->{ 'colonies_picked' } || -1 )       ||
+          ( $b->{ 'electroporations' } || -1 )     <=> ( $a->{ 'electroporations' } || -1 )      ||
+          ( $b->{ 'passing_vector_wells' } || -1 ) <=> ( $a->{ 'passing_vector_wells' } || -1 )  ||
             # $b->{ 'accepted_vector_wells' } <=> $a->{ 'accepted_vector_wells' } ||
             $b->{ 'vector_wells' }          <=> $a->{ 'vector_wells' }          ||
             # $b->{ 'vector_designs' }        <=> $a->{ 'vector_designs' }        ||
@@ -2497,10 +2485,10 @@ sub sql_count_st_vectors {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2617,10 +2605,10 @@ sub sql_count_st_dna {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2736,10 +2724,10 @@ sub sql_count_st_eps {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2855,10 +2843,10 @@ sub sql_count_st_accepted_clones {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -2982,10 +2970,10 @@ sub sql_select_st_vectors {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3112,10 +3100,10 @@ sub sql_select_st_dna {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3245,10 +3233,10 @@ sub sql_select_st_electroporations {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -3374,10 +3362,10 @@ sub sql_select_st_accepted_clones {
 ## no critic (ProhibitCascadingIfElse)
     my $condition = '';
     if ($self->species eq 'Human') {
-       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )"
+       $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')"
     }
     if ($sponsor_id eq 'Pathogen Group 2') {
-        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' )";
+        $condition = "AND ( design_type = 'gibson' OR design_type = 'gibson-deletion' OR design_type = 'fusion-deletion')";
     }
     elsif ($sponsor_id eq 'Pathogen Group 1') {
         $condition = "AND ( s.sponsor_id = 'Pathogen Group 1' )";
@@ -5591,13 +5579,14 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_id=prc.crispr_id
+and cd.deleted=false
 and pro.process_id=prc.process_id
 )
     UNION ALL
@@ -5632,13 +5621,14 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_id=prc.crispr_id
+and cd.deleted=false
 and pro.process_id=prc.process_id
 )
     UNION ALL
@@ -5673,13 +5663,14 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_pair_id=cp.id
+and cd.deleted=false
 and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )
@@ -5715,13 +5706,14 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     WHERE pr_out.well_id in (
-select pro.well_id from project_sponsors ps, projects pr, gene_design gd, crispr_designs cd, process_crispr prc, crispr_pairs cp, process_output_well pro
+select pro.well_id from project_sponsors ps, projects pr, gene_design gd, experiments cd, process_crispr prc, crispr_pairs cp, process_output_well pro
 where ps.sponsor_id='$sponsor_id'
 and ps.project_id = pr.id
 and pr.species_id='$species_id'
 and pr.gene_id=gd.gene_id
 and cd.design_id=gd.design_id
 and cd.crispr_pair_id=cp.id
+and cd.deleted=false
 and( cp.left_crispr_id=prc.crispr_id or cp.right_crispr_id=prc.crispr_id)
 and pro.process_id=prc.process_id
 )

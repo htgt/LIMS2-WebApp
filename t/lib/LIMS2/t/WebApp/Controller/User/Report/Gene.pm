@@ -31,6 +31,8 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init($OFF);
 };
 
 =head2 before
@@ -84,11 +86,11 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Tests() {
     my @design_wells = ('1883','1877','935');
+
     foreach my $design_well_id (@design_wells) {
-        my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id);
+        my $results = LIMS2::SummaryGeneration::SummariesWellDescend::generate_summary_rows_for_design_well($design_well_id,model);
         my $exit_code = $results->{exit_code};
         ok( defined $results,                "Returned results hash defined for design well id : ".$design_well_id );
         ok( defined $results->{exit_code},   "Returned exit code defined for design well id : ".$design_well_id );
@@ -154,13 +156,15 @@ sub all_tests  : Tests
               <td>_</td>
               <td>MOHFAQ0001_A_2_H02</td>
               <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
               <td>no</td>', 'Checked EP');
 
     $mech->content_like(qr'>XEP0006</a></td>
               <td>C01</td>
               <td>2012-06-15</td>
               <td>
-                
                   FEP0006_A01<', 'Checked XEP');
 
     $mech->content_like(qr'>SEP0006</a></td>
@@ -192,6 +196,7 @@ sub all_tests  : Tests
               <td>SFP0001_H08</td>
               <td><a', 'Checked SFP');
 
+    $mech->content_like(qr'graph_type=descendants&well_name=G04&plate_name=56', 'checked production graph');
 }
 
 =head1 AUTHOR

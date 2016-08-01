@@ -6,6 +6,7 @@
 <tr>
   <th>Checkout Date</th>
   <th>Checkout User</th>
+  <th>Gene ID</th>
   <th>Gene Symbol</th>
   <th>EPD parent</th>
   <th>Last Known Location</th>
@@ -18,9 +19,10 @@
 <tr>
   <td>[% bc.checkout_date %]</td>
   <td>[% bc.checkout_user %]</td>
+  <td>[% bc.design_gene_id %]</td>
   <td>[% bc.design_gene_symbol %]</td>
   <td>[% bc.parent_epd %]</td>
-  <td>[% bc.well_as_string %]</td>
+  <td>[% bc.last_known_location %]</td>
   <td>[% bc.barcode %]</td>
   <td>[% bc.lab_number %]</td>
   <td>
@@ -33,7 +35,7 @@
     Send Out
     </a>
     <br><br>
-    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => bc.barcode) %]" class="btn btn-primary btn-mini">
+    <a href="[% c.uri_for('/user/piq_start_doubling', barcode => bc.barcode) %]" class="btn btn-primary btn-xs">
     Start Doubling
     </a>
   [% END %]
@@ -42,21 +44,20 @@
   	<form class="form-inline" method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]">
   	  <input type="hidden" name="barcode" value="[% bc.barcode %]">
   	  <input type="hidden" name="plate_type" value="[% plate_type %]">
-      <div id="div_[% bc.barcode %]">
-        <div class="controls">
-          <select class="reason_text" name="reason" id="reason_[% bc.barcode %]">
+      <div class="col-md-2" id="div_[% bc.barcode %]">
+          <select class="form-control" name="reason" id="reason_[% bc.barcode %]">
             <option value="" disabled selected>select discard reason</option>
             [% FOREACH reason IN discard_reasons %]
               <option>[% reason %]</option>
             [% END %]
           </select>
           <span class="help-block hidden">Please enter reason</span>
-        </div>
+          <br><button type="submit" name="discard_barcode" class="btn btn-danger discard_button" value="discard_barcode" id="discard_[% bc.barcode %]">
+  	        Discard
+  	        <i class="glyphicon glyphicon-trash"></i>
+  	      </button>
       </div>
-  	  <button type="submit" name="discard_barcode" class="btn btn-danger discard_button" value="discard_barcode" id="discard_[% bc.barcode %]">
-  	    Discard
-  	    <i class="icon-trash icon-white"></i>
-  	  </button>
+
   	</form>
   </td>
 </tr>

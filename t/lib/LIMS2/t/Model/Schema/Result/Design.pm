@@ -19,7 +19,7 @@ Test module structured for running under Test::Class
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(25) {
     my $user           = 'lims2';
     my $connect_entry  = 'LIMS2_DB';
     my $rs_user        = 'User';
@@ -48,6 +48,7 @@ sub all_tests : Tests {
         'cassette_first'          => 1,
         'global_arm_shortened'    => undef,
         'nonsense_design_crispr_id' => undef,
+        'parent_id'                 => undef,
     );
 
     note("Accessing the schema");

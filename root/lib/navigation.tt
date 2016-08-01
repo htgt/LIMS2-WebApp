@@ -1,14 +1,72 @@
-<div class="navbar navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
-  <div class="navbar-inner">
-    <div class="container">
-      <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+<style type="text/css">
+    body { padding-top: 70px; }
+
+.navbar .divider-vertical {
+    height: 50px;
+    margin: 0 9px;
+    border-right: 1px solid #ffffff;
+    border-left: 1px solid #f2f2f2;
+}
+
+.navbar-inverse .divider-vertical {
+    border-right-color: #222222;
+    border-left-color: #111111;
+}
+
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > .divider {
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-toggle {
+  border-color: #3691c8;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #3691c8;
+}
+
+@media (max-width: 767px) {
+    .navbar-collapse .nav > .divider-vertical {
+        display: none;
+     }
+}
+</style>
+
+<div class="navbar navbar-default navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="nav navbar-brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+      </div>
       [% IF template.title != 'Login' %]
-      <ul class="nav">
+      <ul class="nav navbar-nav">
 
       [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/report/gene' ) %]">
@@ -33,7 +91,6 @@
           </ul>
         </li>
 
-
         <li class="dropdown[% IF template.tab_name == "Designs" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
           <ul class="dropdown-menu">
@@ -41,7 +98,7 @@
               <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Gibson Design</a>
+              <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Design</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/design_attempts' ) %]">Design Attempts</a>
@@ -57,6 +114,10 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
             </li>
 
             <li class="divider"></li>
@@ -82,7 +143,11 @@
             </li>
             <li class="divider"></li>
             <li>
-              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs by ID</a>
+              <a href="[% c.uri_for( '/user/create_crispr_plate' ) %]">Upload Crispr Plate</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
           </ul>
         </li>
@@ -152,6 +217,20 @@
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
             </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]">Upload het status</a>
+            </li>
+
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/external_project' ) %]">Create Sequencing Project</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/browse_sequencing_projects' ) %]">Search Sequencing Projects</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
+            </li>
             [% END %]
           </ul>
         </li>
@@ -194,6 +273,11 @@
               </a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/report/cache/CrisprEPWellSummary' ) %]">
+                Crispr Electroporation Well Summary
+              </a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/cache/CrisprEPDetail' ) %]">
                 Crispr Electroporation Detail
               </a>
@@ -221,6 +305,11 @@
               </a>
             </li>
             [% END %]
+            <li>
+              <a href="[% c.uri_for( '/user/report/cache/HetSummary' ) %]">
+              Het Summary
+              </a>
+            </li>
 
             <li class="divider"></li>
 
@@ -271,26 +360,29 @@
           </ul>
         </li>
 
-      </ul>
 
-      <ul class="nav pull-right">
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right" style="align:right">
         <li class="divider-vertical"></li>
+
+        <li onclick="getAnnouncements()"><a><i class="glyphicon glyphicon-envelope"></i></a></li>
 
         [% IF c.session.display_type %]
             <li><a id="display_type_default" data-display-type="default"
                 [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
                 [% IF c.session.selected_species == 'Human' %]
-                    <i class="icon-resize-small"></i>
+                    <i class="glyphicon glyphicon-resize-small"></i>
                 [% ELSE %]
-                    <i class="icon-resize-small icon-white"></i>
+                    <i class="glyphicon glyphicon-resize-small"></i>
                 [% END %]
                 </a></li>
             <li><a id="display_type_wide" data-display-type="wide"
                 [% IF c.session.display_type == 'wide' %]style="display: none"[% END %]>
                 [% IF c.session.selected_species == 'Human' %]
-                    <i class="icon-fullscreen"></i>
+                    <i class="glyphicon glyphicon-fullscreen"></i>
                 [% ELSE %]
-                    <i class="icon-fullscreen icon-white"></i>
+                    <i class="glyphicon glyphicon-fullscreen"></i>
                 [% END %]
                 </a></li>
         [% END %]
@@ -301,11 +393,11 @@
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <li>&nbsp Switch species:</li>
+              <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -320,37 +412,101 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
             [% IF c.check_user_roles( 'admin' ) %]
-            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
+            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="glyphicon glyphicon-user"></i> User Admin</a></li>
+            <li><a href="[% c.uri_for( '/admin/announcements' ) %]"><i class="glyphicon glyphicon-envelope"></i> Manage Announcements</a></li>
             [% END %]
-            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
+            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="glyphicon glyphicon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
-            <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
+            <li><a href="[% c.uri_for('/logout') %]"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
           </ul>
         </li>
-      </ul>
-
       <!-- Non Logged in User -->
       [% ELSE %]
-        <li class="dropdown active">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
-            </li>
-          </ul>
-        </li>
-      </ul>
-
-      <ul class="nav pull-right">
         <li class="divider-vertical"></li>
-          <p class="nav pull-right">
-            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-          </p>
+          <input type="text" name="clone_genotyping_search" id="clone_genotyping_search" placeholder="Search" class="text navbar-text" />
+        <li class="divider-vertical"></li>
+
+          <a id="clone_genotyping_search_button" class="btn btn-primary navbar-btn">Clone Genotyping Search <i class="glyphicon glyphicon-search"></i> </a>
+        </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="divider-vertical"></li>
+          <div class="col-md-3">
+            <a class="btn btn-default navbar-btn" href="[% c.uri_for('/login') %]">Login</a>
+          </div>
       </ul>
-
+        <ul>
       [% END %]
-
+    </ul>
     </div>
     [% END %]
   </div>
 </div>
+
+
+[% INCLUDE message/announcements.tt sys = 'lims' %]
+<script type="text/javascript">
+function getAnnouncements(){
+    $('#announceModal').modal({show: true});
+}
+
+$.fn.enterKey = function (fnc) {
+    return this.each(function () {
+        $(this).keypress(function (ev) {
+            var keycode = (ev.keyCode ? ev.keyCode : ev.which);
+            if (keycode == '13') {
+                fnc.call(this, ev);
+            }
+        })
+    })
+}
+
+
+$(document).ready(function () {
+  $("#clone_genotyping_search_button").click(function (event) {
+    var search_params = $("#clone_genotyping_search").val();
+
+    if ( /^(.*)_(.{3})$/.test(search_params) ) {
+      var split_plate_well = search_params.match(/^(.*)_(.{3})$/);
+      console.log(split_plate_well);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_plate_well[1], split_plate_well[2] ] );
+    } else if ( /^(.*)\s(.{3})$/.test(search_params) ) {
+      var split_plate_name = search_params.match(/^(.*)\s(.{3})$/);
+      console.log(split_plate_name);
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", [ split_plate_name[1], split_plate_name[2] ] );
+    } else if  ( /^[A-Z]{2}[0-9]+$/ || /^[0-9]+/ ) {
+      go_to_url( "[% c.uri_for( '/public_reports/well_genotyping_info' ) %]", $("#clone_genotyping_search").val() );
+    } else {
+      create_alert("Please provide a plate_well name or barcode");
+    }
+
+  });
+
+    //allow pressing enter to submit
+  $("#clone_genotyping_search").enterKey(function(ev) {
+    $("#clone_genotyping_search_button").click();
+  });
+});
+
+function go_to_url(url, params) {
+  if ( params ) {
+    params = [].concat( params ).join("/");
+    window.location.href = url + "/" + params;
+  }
+  else {
+    window.location.href = url;
+    create_alert("wrong url");
+  }
+}
+
+function create_alert(text, alert_class) {
+  alert_class = alert_class || "alert-error"; //default is error box
+  //create an error alert,
+  //should make it so we can actually change he class
+  $("#clone_genotyping_search_button").after(
+      $("<div>", { "class": "alert alert-dismissable " + alert_class })
+          .append( $("<button>", { "class": "close", type: "button", 'aria-hidden': "true", html: "&times;", 'data-dismiss': "alert" }) )
+          .append( $("<span>", { html: text }) )
+  );
+}
+
+</script>

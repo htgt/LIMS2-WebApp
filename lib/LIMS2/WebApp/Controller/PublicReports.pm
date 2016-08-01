@@ -1,9 +1,10 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.327';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.415';
 }
 ## use critic
+
 
 use Moose;
 use LIMS2::Report;
@@ -11,8 +12,17 @@ use Try::Tiny;
 use Data::Printer;
 use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
-use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
+use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+use List::MoreUtils qw( uniq indexes);
 use namespace::autoclean;
+use feature 'switch';
+use Text::CSV_XS;
+use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
+use Excel::Writer::XLSX;
+use File::Slurp;
+use LIMS2::Report qw/get_raw_spreadsheet/;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -54,7 +64,7 @@ sub cre_knockin_project_status : Path( '/public_reports/cre_knockin_project_stat
     $c->stash(
         template    => 'publicreports/await_report.tt',
         report_name => 'Cre_KnockIn_Project_Status',
-        report_id   => $report_id
+        report_id   => $report_id,
     );
 
     return;
@@ -65,10 +75,15 @@ sub cre_knockin_project_status : Path( '/public_reports/cre_knockin_project_stat
 Downloads a csv report of a given report_id
 
 =cut
-sub download_report :Path( '/public_reports/download' ) :Args(1) {
+
+
+sub download_report_csv :Path( '/public_reports/download' ) :Args(1) {
     my ( $self, $c, $report_id ) = @_;
 
+    $c->assert_user_roles( 'read' );
+
     my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -77,7 +92,22 @@ sub download_report :Path( '/public_reports/download' ) :Args(1) {
     return;
 }
 
+sub download_report_xlsx :Path( '/public_reports/download_xlsx' ) :Args(1) {
+    my ( $self, $c, $report_id ) = @_;
+    $c->assert_user_roles( 'read' );
 
+    my ( $report_name, $report_fh ) = LIMS2::Report::read_report_from_disk( $report_id );
+    $report_name =~ s/\s/_/g;
+    my $file = csv_to_spreadsheet($report_name, $report_fh);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->content_encoding( 'binary' );
+    $c->response->header( 'content-disposition' => 'attachment; filename=' . $file->{name} );
+    $c->response->body( $file->{file} );
+    return;
+
+}
 =head2 download_compressed
 
 Generates a gzipped file for download, and downloads it
@@ -120,9 +150,6 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
 
     return;
 }
-
-
-
 
 =head2 index
 
@@ -209,7 +236,6 @@ sub _generate_front_page_report {
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
-
     # Store report values in stash for display onscreen
     $c->stash(
         'report_id'      => $report_id,
@@ -230,7 +256,22 @@ sub view_cached_csv : Path( '/public_reports/cached_sponsor_csv' ) : Args(1) {
     my ( $self, $c, $sponsor_id ) = @_;
 
     $sponsor_id =~ s/\ /_/g;
-    return $self->_view_cached_csv($c, $sponsor_id);
+    my $body = $self->_view_cached_csv($c, $sponsor_id);
+    return $c->response->body($body);
+}
+
+sub convert_cached_csv : Path( '/public_reports/cached_sponsor_xlsx' ) : Args(1) {
+    my ( $self, $c, $sponsor_id ) = @_;
+
+    $sponsor_id =~ s/\ /_/g;
+    my $body = $self->_view_cached_csv($c, $sponsor_id);
+
+    $body = get_raw_spreadsheet($sponsor_id, $body);
+    $c->response->status( 200 );
+    $c->response->content_type( 'application/xlsx' );
+    $c->response->content_encoding( 'binary' );
+    $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+    return $c->response->body($body);
 }
 
 sub _view_cached_csv {
@@ -265,7 +306,7 @@ sub _view_cached_csv {
     close $csv_handle
         or die "unable to close cached file: $!";
 
-    return $c->response->body( join( '', @lines_out ));
+    return join( '', @lines_out );
 }
 
 
@@ -312,6 +353,12 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $cache_param = $c->request->params->{'cache_param'};
 
+    if ($c->request->params->{generate_cache}) {
+        $c->session->{display_type} = 'wide';
+    } else {
+        $c->session->{display_type} = 'default';
+    }
+
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
             'species' => $species,
@@ -330,32 +377,24 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
-
     # csv download
-    if ($c->request->params->{csv}) {
+    if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
         $c->response->status( 200 );
-        $c->response->content_type( 'text/csv' );
-        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+        remove_column($c, 'PCR-passing design oligos', @{$display_columns});
 
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
-
         my @csv_colums;
         if (@{$columns}[-1] eq 'ep_data') {
             @csv_colums = splice (@{$columns}, 0, -1);
         } else {
             @csv_colums = @{$columns};
         }
-
-        foreach my $column ( @{$data} ) {
-            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
-        }
-
-        $c->response->body( $body );
+        remove_column($c, 'passing_vector_wells', @csv_colums);
+        create_spreadsheet($self, $c, $data, $body, @csv_colums);
     }
     else {
-
+        my $template = 'publicreports/sponsor_sub_report.tt';
         if ($disp_stage eq 'Genes') {
-
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
             }
@@ -366,14 +405,11 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
                 $data = $self->_simple_transform( $data );
             }
         }
-
-        my $template = 'publicreports/sponsor_sub_report.tt';
-
-        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
+        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core') {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
-
         # Store report values in stash for display onscreen
+
         $c->stash(
             'template'             => $template,
             'report_id'            => $report_id,
@@ -384,13 +420,95 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'display_columns'      => $display_columns,
             'data'                 => $data,
             'link'                 => $link,
-            'type'                 => $type,
+            'type'                 => $c->request->params->{type},
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
     }
 
     return;
+}
+
+sub create_spreadsheet {
+    my ($self, $c, $data, $body, @csv_colums) = @_;
+    foreach my $column ( @{$data} ) {
+        $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
+        if ($column->{ep_data}) {
+            $body = add_ep_rows($c, $column, $body, @csv_colums);
+        }
+    }
+    if ($c->request->param('xlsx')) {
+        $c->response->content_type( 'application/xlsx' );
+        $c->response->content_encoding( 'binary' );
+        $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+        $body = get_raw_spreadsheet('report', $body);
+    }
+    else {
+        $c->response->content_type( 'text/csv' );
+        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+    }
+    $c->response->body( $body );
+    return;
+}
+
+
+sub remove_column {
+    my ($c, $column, @columns) = @_;
+
+    unless ($c->request->params->{user}) {
+        my $pcr_index = indexes { $_ eq $column } @columns;
+        splice @columns, $pcr_index, 1;
+        $c->log->debug( "Public user" );
+    }
+
+    return;
+}
+
+sub add_ep_rows {
+    my ($c, $column, $body, @csv_colums) = @_;
+    my %keys = (
+        'cell_line'           => 'EP_cell_line',
+        'dna_template'        => 'DNA_source_cell_line',
+        'ep_pick_count'       => 'colonies_picked',
+        'ep_pick_pass_count'  => 'targeted_clones',
+        'experiment'          => 'experiment_ID',
+        'frameshift'          => 'fs_count',
+        'in-frame'            => 'if_count',
+        'mosaic'              => 'ms_count',
+        'no-call'             => 'nc_count',
+        'total_colonies'      => 'total_colonies',
+        'wild_type'           => 'wt_count',
+    );
+    my @expand_cols;
+    foreach my $ep_col ( @{$column->{ep_data}} ) {
+        push @expand_cols, $ep_col;
+    }
+    foreach my $ep_col ( @expand_cols ) {
+        my $sub_col = {
+            gene_id                 => $column->{gene_id},
+            gene_symbol             => $column->{gene_symbol},
+            chromosome              => $column->{chromosome},
+            sponsors                => $column->{sponsors},
+            crispr_wells            => ' ',
+            accepted_crispr_vector  => ' ',
+            vector_wells            => ' ',
+            vector_pcr_passes       => ' ',
+            passing_vector_wells    => ' ',
+            electroporations        => ' ',
+            ep_pick_het             => ' ',
+            distrib_clones          => ' ',
+            priority                => ' ',
+            recovery_class          => ' ',
+        }; #Reduces warnings
+        foreach my $key (keys %{$ep_col}) {
+            if ($key eq 'experiment') {
+                $ep_col->{experiment} = join(', ', @{$ep_col->{experiment}});
+            }
+            $sub_col->{$keys{$key}} = $ep_col->{$key};
+        }
+        $body .= join(',', map { $sub_col->{$_} } @csv_colums ) . "\n";
+    }
+    return $body;
 }
 
 sub _simple_transform {
@@ -410,7 +528,11 @@ sub _simple_transform {
                     || $key eq 'ep_data'
                     || $key eq 'recovery_class'
                     || $key eq 'effort_concluded'
-                    || $key eq 'chromosome' );
+                    || $key eq 'chromosome'
+                    || $key eq 'EP_cell_line'
+                    || $key eq 'DNA_source_cell_line'
+                    || $key eq 'experiment_ID'
+                );
             }
         }
     }
@@ -445,7 +567,7 @@ sub _view_cached_lines {
     for ($server_path) {
         if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -463,7 +585,6 @@ sub _view_cached_lines {
     }
     close $html_handle
         or die "unable to close cached file: $!";
-
     return $c->response->body( join( '', @lines_out ));
 }
 
@@ -473,7 +594,13 @@ Page to choose the desired well, no arguments
 
 =cut
 sub well_genotyping_info_search :Path( '/public_reports/well_genotyping_info_search' ) :Args(0) {
-my ( $self, $c ) = @_;
+    my ( $self, $c ) = @_;
+
+    $ENV{ LIMS2_URL_CONFIG } or die "LIMS2_URL_CONFIG environment variable not set";
+    my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
+    my $email = $conf->{_}->{clone_request_email};
+
+    $c->stash->{email} = $email;
     return;
 }
 
@@ -484,7 +611,6 @@ Page to display chosen well, takes a well id (later a barcode) or a plate/well c
 =cut
 sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args() {
     my ( $self, $c, @args ) = @_;
-
     if ( @args == 1 ) {
         my $barcode = shift @args;
         try {
@@ -545,24 +671,116 @@ sub _stash_well_genotyping_info {
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
         my @crispr_data;
-
         my @crisprs = $well->parent_crispr_wells;
         foreach my $crispr_well ( @crisprs ) {
             my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
             if ( $process_crispr ) {
                 my $crispr_data_hash = $process_crispr->crispr->as_hash;
+
                 $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
                 push @crispr_data, $crispr_data_hash;
             }
         }
-
-        $c->stash( data => $data, crispr_data => \@crispr_data );
+        my $crispr_result;
+        my $type;
+        try{
+            #Depending on type of crispr, retrieve crispr hash ref
+            if ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprPair';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+                $type = 'CrisprGroup';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            else {
+                $type = 'Crispr';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+        } catch {
+            $c->stash( error_msg => "Validation tags not found");
+            $c->stash( data => $data, crispr_data => \@crispr_data);
+            return;
+        };
+        #Crispr hash ref contains validation confirmation
+        my $crispr_primers = $data->{primers}->{crispr_primers};
+        my $match;
+        foreach my $set (values %$crispr_primers)
+        {
+            foreach my $primer(@$set)
+            {
+                #Compare sequences to find the correct tag for the correct sequence
+                $match = search_primers($primer->{seq}, $crispr_result->{crispr_primers});
+                $primer->{is_validated} = $match->{is_validated};
+                $primer->{is_rejected} = $match->{is_rejected};
+            }
+        }
+        $c->stash( data => $data, crispr_data => \@crispr_data);
     }
     catch {
         #get string representation if its a lims2::exception
         $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
 
+    return;
+}
+
+#Depending on type of crispr, search for the crispr then retrieves it's data hash
+sub retrieve_crispr_hash {
+    my ($c, $type, @crisprs) = @_;
+    my $crispr_data;
+    my @crispr_schema;
+    my $id = $crisprs[0]->{id};
+
+    #Searches for the crispr id in either the left or the right location
+    if ($type eq 'CrisprPair'){
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search(
+            [ { left_crispr_id => $id },{ right_crispr_id => $id } ],
+            {
+                distinct => 1,
+            }
+            )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_pair( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Joins the crispr group and the crispr group crisprs tables to search which crispr group contains the id
+    elsif ($type eq 'CrisprGroup') {
+        @crispr_schema = $c->model('Golgi')->schema->resultset('CrisprGroup')->search(
+        {
+            'crispr_group_crisprs.crispr_id' => $id,
+        },
+        {
+            join     => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+        )->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr_group( { id => $crispr_schema[0]->{_column_data}->{id} });
+    }
+
+    #Single crispr search
+    else {
+        @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search({ id => $id })->all;
+        $crispr_data = $c->model('Golgi')->retrieve_crispr(
+            {
+                id => $crispr_schema[0]->{_column_data}->{id}
+            },
+            {
+                distinct => 1,
+            }->all);
+    }
+
+    return $crispr_data->as_hash;
+}
+
+#Retrieves the correct sequence validation tag
+sub search_primers {
+    my ($seq, $validation_primers) = @_;
+    foreach my $valid_primer(@$validation_primers)
+    {
+        if ($seq eq $valid_primer->{primer_seq}){
+            return $valid_primer;
+        }
+    }
     return;
 }
 
@@ -581,6 +799,10 @@ Public gene report, only show targeted clone details:
 ## no critic (Subroutines::ProhibitExcessComplexity)
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
+
+    unless($c->user){
+        return $c->response->redirect( $c->uri_for('/public_reports/well_genotyping_info_search') );
+    }
 
     # by default type is Targeted, Distributable as an option
     my $type = 'Targeted';
@@ -716,6 +938,10 @@ Generate Genbank file for a well
 =cut
 sub well_eng_seq :Path( '/public_reports/well_eng_seq' ) :Args(1) {
     my ( $self, $c, $well_id ) = @_;
+
+    # FIXME: temporarily require logged in user for this page
+    # to stop robot access
+    $c->assert_user_roles('read');
 
     my $model = $c->model('Golgi');
     my $well =  $model->retrieve_well( { id => $well_id } );

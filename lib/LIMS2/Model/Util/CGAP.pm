@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CGAP;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CGAP::VERSION = '0.327';
+    $LIMS2::Model::Util::CGAP::VERSION = '0.415';
 }
 ## use critic
 
@@ -35,8 +35,6 @@ sub _build_url_config{
 sub get_barcode_for_cgap_name{
 	my ($self,$name) = @_;
 
-    # FIXME: should go in config or env
-    # my $cgap_url = "http://sccp-prod.internal.sanger.ac.uk:8080/sccp-lims/information/release_json/friendly_name/";
     my $cgap_url = $self->url_config->{cgap_name_search};
 
 	$cgap_url .= $name;

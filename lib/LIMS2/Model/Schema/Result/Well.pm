@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.415';
 }
 ## use critic
 
@@ -55,12 +55,12 @@ __PACKAGE__->table("wells");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 name
 
   data_type: 'text'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 created_by_id
 
@@ -102,6 +102,18 @@ __PACKAGE__->table("wells");
   default_value: true
   is_nullable: 0
 
+=head2 barcode
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 40
+
+=head2 barcode_state
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -113,9 +125,9 @@ __PACKAGE__->add_columns(
     sequence          => "wells_id_seq",
   },
   "plate_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "text", is_nullable => 1 },
   "created_by_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "created_at",
@@ -135,6 +147,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "to_report",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "barcode",
+  { data_type => "varchar", is_nullable => 1, size => 40 },
+  "barcode_state",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -150,6 +166,18 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 UNIQUE CONSTRAINTS
+
+=head2 C<wells_barcode_key>
+
+=over 4
+
+=item * L</barcode>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("wells_barcode_key", ["barcode"]);
 
 =head2 C<wells_plate_id_name_key>
 
@@ -167,7 +195,7 @@ __PACKAGE__->add_unique_constraint("wells_plate_id_name_key", ["plate_id", "name
 
 =head1 RELATIONS
 
-=head2 barcode_events_new_wells
+=head2 barcode_events
 
 Type: has_many
 
@@ -176,25 +204,30 @@ Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
 =cut
 
 __PACKAGE__->has_many(
-  "barcode_events_new_wells",
+  "barcode_events",
   "LIMS2::Model::Schema::Result::BarcodeEvent",
-  { "foreign.new_well_id" => "self.id" },
+  { "foreign.barcode" => "self.barcode" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 barcode_events_old_wells
+=head2 barcode_state
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::BarcodeEvent>
+Related object: L<LIMS2::Model::Schema::Result::BarcodeState>
 
 =cut
 
-__PACKAGE__->has_many(
-  "barcode_events_old_wells",
-  "LIMS2::Model::Schema::Result::BarcodeEvent",
-  { "foreign.old_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "barcode_state",
+  "LIMS2::Model::Schema::Result::BarcodeState",
+  { id => "barcode_state" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 created_by
@@ -227,6 +260,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 fp_picking_list_well_barcodes
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::FpPickingListWellBarcode>
+
+=cut
+
+__PACKAGE__->has_many(
+  "fp_picking_list_well_barcodes",
+  "LIMS2::Model::Schema::Result::FpPickingListWellBarcode",
+  { "foreign.well_barcode" => "self.barcode" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -239,7 +287,12 @@ __PACKAGE__->belongs_to(
   "plate",
   "LIMS2::Model::Schema::Result::Plate",
   { id => "plate_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 process_input_wells
@@ -314,36 +367,6 @@ __PACKAGE__->has_many(
   "well_assembly_qcs",
   "LIMS2::Model::Schema::Result::WellAssemblyQc",
   { "foreign.assembly_well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 well_barcode
-
-Type: might_have
-
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
-
-=cut
-
-__PACKAGE__->might_have(
-  "well_barcode",
-  "LIMS2::Model::Schema::Result::WellBarcode",
-  { "foreign.well_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 well_barcodes_root_piqs_well
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
-
-=cut
-
-__PACKAGE__->has_many(
-  "well_barcodes_root_piqs_well",
-  "LIMS2::Model::Schema::Result::WellBarcode",
-  { "foreign.root_piq_well_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -578,13 +601,13 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mydeTrbl+IRZGKndI3lQtw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wwmY0jGQQOTQvpz06fYT0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
-use List::MoreUtils qw( any );
+use List::MoreUtils qw( any uniq );
 
 use Log::Log4perl qw(:easy);
 BEGIN {
@@ -608,15 +631,20 @@ sub is_accepted {
 }
 
 use overload '""' => \&as_string;
-use List::MoreUtils qw( uniq );
 
 sub as_string {
     my $self = shift;
 
-    my $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+    my $name;
+    if($self->plate){
+        $name = sprintf( '%s_%s', $self->plate->name, $self->name );
 
-    if($self->plate->version){
-        $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+        if($self->plate->version){
+            $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);
+        }
+    }
+    else{
+        $name = 'Barcode:'.$self->barcode.'('.$self->barcode_state->id.')';
     }
     return $name;
 }
@@ -626,24 +654,51 @@ sub as_hash {
 
     return {
         id             => $self->id,
-        plate_name     => $self->plate->name,
-        plate_type     => $self->plate->type_id,
-        well_name      => $self->name,
+        plate_name     => $self->plate_name,
+        plate_type     => $self->plate_type,
+        well_name      => $self->well_name,
         created_by     => $self->created_by->name,
         created_at     => $self->created_at->iso8601,
         assay_pending  => $self->assay_pending ? $self->assay_pending->iso8601 : undef,
         assay_complete => $self->assay_complete ? $self->assay_complete->iso8601 : undef,
-        accepted       => $self->is_accepted
+        accepted       => $self->is_accepted,
+        barcode        => $self->barcode,
+        barcode_state  => ( $self->barcode_state ? $self->barcode_state->id : undef ),
+        last_known_location => $self->last_known_location_str,
     };
+}
+
+sub plate_id {
+    my $self = shift;
+    return $self->plate ? $self->plate->id : undef;
 }
 
 sub plate_name {
     my $self = shift;
-    return $self->plate->name;
+    return $self->plate ? $self->plate->name : '';
 }
 
+sub well_name {
+    my $self = shift;
+    return $self->name // '';
+}
+
+sub plate_type{
+    my $self = shift;
+    return $self->last_known_plate->type_id;
+}
+
+sub plate_species{
+    my $self = shift;
+    return $self->last_known_plate->species;
+}
+
+sub plate_sponsor{
+    my $self = shift;
+    return $self->last_known_plate->sponsor_id;
+}
 has ancestors => (
-    is         => 'ro',
+    is         => 'rw',
     isa        => 'LIMS2::Model::ProcessGraph',
     init_arg   => undef,
     lazy_build => 1
@@ -655,6 +710,20 @@ sub _build_ancestors {
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
+}
+
+# Use this to set the well's ancestors using results of a batch ancestor query
+sub set_ancestors{
+    my ($self, $edges) = @_;
+
+    my $graph = LIMS2::Model::ProcessGraph->new(
+      start_with => $self,
+      type => 'ancestors',
+      edges => $edges
+    );
+
+    $self->ancestors($graph);
+    return;
 }
 
 has descendants => (
@@ -683,12 +752,63 @@ sub _build_is_double_targeted {
 
     my $it = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while ( my $well = $it->next ) {
-        if ( $well->plate->type_id eq 'SEP' ) {
+        if ( $well->plate_type eq 'SEP' ) {
             return 1;
         }
     }
 
     return 0;
+}
+
+
+sub last_known_plate{
+    my $self = shift;
+
+    my $plate = $self->plate;
+    unless($plate){
+        # Well no longer on a plate so fetch last related
+        # plate from the barcode_events table
+        $plate = $self->last_known_location_event->old_plate;
+    }
+    return $plate;
+}
+
+sub last_known_well_name{
+    my $self = shift;
+
+    my $well_name = $self->name;
+    unless($well_name){
+        # Well no longer on a plate so fetch last related
+        # plate from the barcode_events table
+        $well_name = $self->last_known_location_event->old_well_name;
+    }
+    return $well_name;
+}
+
+sub last_known_location_str{
+    my $self = shift;
+
+    if(my $event = $self->last_known_location_event){
+        return sprintf( '%s_%s', $event->old_plate->name, $event->old_well_name );
+    }
+    return '';
+}
+
+sub last_known_location_event{
+    my $self = shift;
+    my $event;
+    if($self->barcode){
+        ($event) = $self->search_related('barcode_events',
+            {
+                old_plate_id => { '!=' => undef },
+                new_plate_id => undef,
+            },
+            {
+                order_by => { -desc => [qw/created_at id/] }
+            }
+        );
+    }
+    return $event;
 }
 
 # if this well has a global arm shortened design then
@@ -804,7 +924,7 @@ sub vector_recombinases {
 
     while( my $this_well = $it->next ) {
         # check plate type
-        my $this_well_plate_type = $this_well->plate->type_id;
+        my $this_well_plate_type = $this_well->plate_type;
         #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
         if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
             for my $process ( $self->ancestors->input_processes( $this_well ) ) {
@@ -831,7 +951,7 @@ sub cell_recombinases {
 
     while( my $this_well = $it->next ) {
         # check plate type
-        my $this_well_plate_type = $this_well->plate->type_id;
+        my $this_well_plate_type = $this_well->plate_type;
         #my $match_found = any { $this_well_plate_type } @list_of_plate_types;
         if ( grep {$_ eq $this_well_plate_type} @list_of_plate_types ) {
             for my $process ( $self->ancestors->input_processes( $this_well ) ) {
@@ -906,7 +1026,6 @@ sub designs {
 
 sub parent_processes{
 	my $self = shift;
-
 	# Fetch processes of which this well is an output
 	my @parent_processes = map { $_->process } $self->process_output_wells->all;
 
@@ -930,12 +1049,44 @@ sub child_processes{
 	return @child_processes;
 }
 
+
 sub child_wells {
     my $self = shift;
 
     my @child_processes = $self->child_processes;
 
     return map{ $_->output_wells } @child_processes;
+}
+
+sub child_wells_skip_versioned_plates{
+    my $self = shift;
+
+    DEBUG "Finding real child wells of $self";
+
+    my @real_child_wells;
+
+    my @child_wells = $self->child_wells;
+    foreach my $well (@child_wells){
+        if($well->plate and $well->plate->version){
+            push @real_child_wells, $well->child_wells_skip_versioned_plates;
+        }
+        else{
+            push @real_child_wells, $well;
+        }
+    }
+    return @real_child_wells;
+}
+
+sub sibling_wells{
+    my ($self) = @_;
+
+    # Includes "half-siblings", i.e. those that share any parent
+    # with the parents of the current well
+    my @parent_wells = $self->parent_wells;
+    my @siblings = map { $_->child_wells } @parent_wells;
+
+    my @siblings_not_self = grep { $_->id != $self->id } @siblings;
+    return @siblings_not_self;
 }
 
 has second_electroporation_process => (
@@ -969,7 +1120,7 @@ sub first_allele {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id eq 'XEP' ) {
+        if ( $input->plate_type eq 'XEP' ) {
             return $input;
         }
     }
@@ -986,7 +1137,7 @@ sub second_allele {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id ne 'XEP' ) {
+        if ( $input->plate_type ne 'XEP' ) {
             return $input;
         }
     }
@@ -1004,7 +1155,7 @@ sub final_vector {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if (  $ancestor->plate->type_id eq 'FINAL' || $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+        if (  $ancestor->plate_type eq 'FINAL' || $ancestor->plate_type eq 'FINAL_PICK' ) {
             return $ancestor;
         }
     }
@@ -1025,7 +1176,7 @@ sub first_dna {
     else {
         my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
         while( my $ancestor = $ancestors->next ) {
-            if ( $ancestor->plate->type_id eq 'DNA' ) {
+            if ( $ancestor->plate_type eq 'DNA' ) {
                 return $ancestor;
             }
         }
@@ -1042,7 +1193,7 @@ sub second_dna {
     my $self = shift;
 
     for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate->type_id eq 'DNA' ) {
+        if ( $input->plate_type eq 'DNA' ) {
             return $input;
         }
     }
@@ -1061,7 +1212,7 @@ sub first_ep {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'EP' ) {
+        if ( $ancestor->plate_type eq 'EP' ) {
             return $ancestor;
         }
     }
@@ -1077,7 +1228,7 @@ sub first_ep_pick {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'EP_PICK' ) {
+        if ( $ancestor->plate_type eq 'EP_PICK' ) {
             return $ancestor;
         }
     }
@@ -1093,11 +1244,11 @@ sub is_epd_or_later {
   my $self = shift;
 
   #epd is ok with us
-  return $self if $self->plate->type_id eq 'EP_PICK';
+  return $self if $self->plate_type eq 'EP_PICK';
 
   my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
   while ( my $ancestor = $ancestors->next ) {
-    return $ancestor if $ancestor->plate->type_id eq 'EP_PICK';
+    return $ancestor if $ancestor->plate_type eq 'EP_PICK';
   }
 
   #we didn't find any ep picks further up so its not
@@ -1123,7 +1274,7 @@ sub second_ep {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SEP' ) {
+        if ( $ancestor->plate_type eq 'SEP' ) {
             return $ancestor;
         }
     }
@@ -1140,7 +1291,7 @@ sub get_input_wells_as_string {
 
     foreach my $process ($well->parent_processes){
         foreach my $input ($process->input_wells){
-	    		my $plate_name = $input->plate->name;
+	    		my $plate_name = $input->plate_name;
                 my $well_name = $input->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
                 $parents = !$parents ? $specification : join q{ }, ( $parents, $specification );
@@ -1156,7 +1307,7 @@ sub get_output_wells_as_string {
 
     foreach my $process ($well->child_processes){
         foreach my $output ($process->output_wells){
-          my $plate_name = $output->plate->name;
+          my $plate_name = $output->plate_name;
                 my $well_name = $output->name;
                 my $specification = $plate_name . '[' . $well_name . ']';
                 $children = !$children ? $specification : join q{ }, ( $children, $specification );
@@ -1171,7 +1322,7 @@ sub second_ep_pick {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SEP_PICK' ) {
+        if ( $ancestor->plate_type eq 'SEP_PICK' ) {
             return $ancestor;
         }
     }
@@ -1187,7 +1338,7 @@ sub freezer_instance {
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'SFP' ||  $ancestor->plate->type_id eq 'FP' ) {
+        if ( $ancestor->plate_type eq 'SFP' ||  $ancestor->plate_type eq 'FP' ) {
             return $ancestor;
         }
     }
@@ -1204,7 +1355,7 @@ sub descendant_piq {
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ) {
   		while( my $descendant = $descendants->next ) {
-  			if ( $descendant->plate->type_id eq 'PIQ' ) {
+  			if ( $descendant->plate_type eq 'PIQ' ) {
   				return $descendant;
   			}
   		}
@@ -1221,7 +1372,7 @@ sub ancestor_piq {
     if ( defined $ancestors ) {
       $ancestors->next;
       while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'PIQ' ) {
+        if ( $ancestor->plate_type eq 'PIQ' ) {
           return $ancestor;
         }
       }
@@ -1236,7 +1387,7 @@ sub barcoded_descendant_of_type{
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
     if ( defined $descendants ){
       while( my $descendant = $descendants->next ){
-        if( ($descendant->plate->type_id eq $type) and $descendant->well_barcode ){
+        if( ($descendant->plate_type eq $type) and $descendant->barcode ){
           return $descendant;
         }
       }
@@ -1244,19 +1395,41 @@ sub barcoded_descendant_of_type{
     return;
 }
 
-sub descendant_crispr_vectors {
-    my $self = shift;
-
-    my @crispr_vectors;
+sub barcoded_descendants{
+    my ($self) = @_;
+    my @barcoded_descendants;
     my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
-    if ( defined $descendants ) {
-      while( my $descendant = $descendants->next ) {
-        if ( $descendant->plate->type_id eq 'CRISPR_V' ) {
-          push @crispr_vectors, $descendant;
+    if ( defined $descendants ){
+      while( my $descendant = $descendants->next ){
+        if( $descendant->barcode ){
+          push @barcoded_descendants, $descendant;
         }
       }
     }
-    return @crispr_vectors;
+    return @barcoded_descendants;
+}
+sub descendant_crispr_vectors {
+    my $self = shift;
+
+    return $self->descendants_of_type('CRISPR_V');
+}
+
+# Returns array of all descendant wells of the requested type
+sub descendants_of_type{
+    my ($self, $type) = @_;
+
+    die "No type specified" unless $type;
+
+    my @results;
+    my $descendants = $self->descendants->depth_first_traversal( $self, 'out' );
+    if ( defined $descendants ) {
+      while( my $descendant = $descendants->next ) {
+        if ( $descendant->plate_type eq $type ) {
+          push @results, $descendant;
+        }
+      }
+    }
+    return @results;
 }
 
 =head2 parent_crispr_wells
@@ -1271,7 +1444,7 @@ sub parent_crispr_wells {
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     if ( defined $ancestors ) {
       while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'CRISPR' ) {
+        if ( $ancestor->plate_type eq 'CRISPR' ) {
           push @crisprs, $ancestor;
         }
       }
@@ -1293,10 +1466,10 @@ sub parent_crispr_vectors {
     my @parents;
     my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
     while( my $ancestor = $ancestors->next ) {
-        if ( $ancestor->plate->type_id eq 'CRISPR_V' ) {
+        if ( $ancestor->plate_type eq 'CRISPR_V' ) {
 
             # Ignore CRISPR_V well if it does not have any DNA child wells..
-            if ( grep { $_->plate->type_id eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
+            if ( grep { $_->plate_type eq 'DNA' } $self->ancestors->output_wells($ancestor) ) {
                 push ( @parents, $ancestor );
             }
         }
@@ -1313,14 +1486,14 @@ sub parent_crispr_vectors {
 
 sub parent_assembly_well{
     my $self = shift;
-    if ( $self->plate->type_id eq 'ASSEMBLY' || $self->plate->type_id eq 'OLIGO_ASSEMBLY' ) {
+    if ( $self->plate_type eq 'ASSEMBLY' || $self->plate_type eq 'OLIGO_ASSEMBLY' ) {
         return $self;
     }
     else{
         my $ancestors = $self->ancestors->breadth_first_traversal( $self, 'in' );
         while( my $ancestor = $ancestors->next ) {
-            if (   $ancestor->plate->type_id eq 'ASSEMBLY'
-                || $ancestor->plate->type_id eq 'OLIGO_ASSEMBLY' )
+            if (   $ancestor->plate_type eq 'ASSEMBLY'
+                || $ancestor->plate_type eq 'OLIGO_ASSEMBLY' )
             {
                 return $ancestor;
             }
@@ -1430,7 +1603,7 @@ sub experiments {
         die "No crispr entity or design found for $self. Cannot identify related experiments";
     }
 
-    my $search = {};
+    my $search = { deleted => 0};
     if($crispr_entity){
         $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
     }
@@ -1551,22 +1724,43 @@ sub distributable_child_barcodes{
     my @barcodes;
 
     # Find all child wells which have a barcode and are distributable (accepted)
-    foreach my $well ( $self->child_wells ){
-        next unless $well->well_barcode;
+    foreach my $well ( $self->child_wells_skip_versioned_plates ){
+        next unless $well->barcode;
         next unless $well->is_accepted;
-        push @barcodes, $well->well_barcode->barcode;
+        push @barcodes, $well->barcode;
     }
     return \@barcodes;
 }
 
 sub input_process_parameters{
-    my ( $self ) = @_;
-    my $parameters;
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
     foreach my $process ($self->parent_processes){
         foreach my $param ($process->process_parameters){
             # FIXME: will overwrite if we have multiple input protocols with
             # same parameter names
             $parameters->{ $param->parameter_name } = $param->parameter_value;
+        }
+    }
+    return $parameters;
+}
+
+sub input_process_parameters_skip_versioned_plates{
+    my ( $self, $parameters ) = @_;
+    $parameters ||= {};
+    foreach my $process ($self->parent_processes){
+        my ($input_well) = $process->input_wells;
+        if($input_well->last_known_plate->version and $process->type_id eq 'rearray'){
+            DEBUG ("process input well $input_well is versioned."
+                    ."skipping this process in search for process parameters");
+            $input_well->input_process_parameters_skip_versioned_plates($parameters);
+        }
+        else{
+            foreach my $param ($process->process_parameters){
+                # FIXME: will overwrite if we have multiple input protocols with
+                # same parameter names
+                $parameters->{ $param->parameter_name } = $param->parameter_value;
+            }
         }
     }
     return $parameters;
@@ -1599,14 +1793,17 @@ sub genotyping_info {
      unless $accepted_qc_well;
 
   if ( $only_qc_data ) {
-    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data";
+    my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data DONE";
+    return $data;
   }
   my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
   # Add some extra info about which well the reported QC comes from
-  $qc_info->{qc_plate_name} = $parent_qc_well->plate->name;
+  $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
   $qc_info->{qc_well_name} = $parent_qc_well->name;
-  $qc_info->{qc_plate_type} = $parent_qc_well->plate->type_id;
+  $qc_info->{qc_plate_type} = $parent_qc_well->plate_type;
   if($qc_info->{qc_plate_type} eq 'EP_PICK'){
       $qc_info->{qc_type} = 'Primary QC';
   }
@@ -1650,10 +1847,10 @@ sub genotyping_info {
       design_id        => $design->id,
       well_id          => $self->id,
       well_name        => $self->name,
-      plate_name       => $self->plate->name,
-      epd_plate_name   => $epd->plate->name,
+      plate_name       => $self->plate_name,
+      epd_plate_name   => $epd->plate_name,
       accepted         => $epd->accepted,
-      targeting_vector => $vector_well->plate->name,
+      targeting_vector => $vector_well->plate_name,
       vector_cassette  => $vector_well->cassette->name,
       primers          => \%primers,
       species          => $design->species_id,
@@ -1674,24 +1871,38 @@ sub ms_qc_data{
 
     DEBUG "Looking for MS_QC wells with parent $ms_parent";
 
+    my @ms_parent_child_wells = $ms_parent->child_wells_skip_versioned_plates;
     # Get QC results for MS_QC plates produced from the parent well
-    my @ms_qc_wells = grep { $_->plate->type_id eq 'MS_QC' } $ms_parent->child_wells;
+    my @ms_qc_wells = grep { $_->plate_type eq 'MS_QC' } @ms_parent_child_wells;
     foreach my $qc_well (@ms_qc_wells){
         DEBUG "Looking for accepted_crispr_es_qc_well for $qc_well";
         my $crispr_qc_well = $qc_well->accepted_crispr_es_qc_well;
         next unless $crispr_qc_well;
         DEBUG "Storing MS_QC info for $qc_well";
         my $qc_info = _qc_info($crispr_qc_well,$gene_finder);
-        $qc_info->{parameters} = $qc_well->input_process_parameters;
+        $qc_info->{parameters} = $qc_well->input_process_parameters_skip_versioned_plates;
         push @mutation_signatures_qc, $qc_info;
     }
 
-    # Add any QC info linked to the well produced by the doubling process
-    my ($final_qc_well) = $doubling->output_wells;
+    # Add any QC info linked to the PIQ QC well produced by the doubling process
+    # To find the correct well to use look for an ancestor of the current well
+    # which is in the list of real (not versioned) child wells of the doubling input
+    # well.
+    my $final_qc_well;
+    my $ancestors = $self->ancestors->depth_first_traversal($self,'in');
+    while (my $ancestor = $ancestors->next){
+        if (grep { $_->id eq $ancestor->id } @ms_parent_child_wells){
+            $final_qc_well = $ancestor;
+            last;
+        }
+    }
+
+    DEBUG "Final QC well for MS QC: $final_qc_well";
+
     my $crispr_qc_well = $final_qc_well->accepted_crispr_es_qc_well;
     if($crispr_qc_well){
         my $final_qc_info = _qc_info($crispr_qc_well, $gene_finder);
-        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters;
+        $final_qc_info->{parameters} = $final_qc_well->input_process_parameters_skip_versioned_plates;
         $final_qc_info->{final_ms_qc_result} = 1;
         push @mutation_signatures_qc, $final_qc_info;
     }
@@ -1755,7 +1966,7 @@ sub egel_pass_string {
 sub compute_final_pick_dna_well_accepted {
     my ( $self ) = @_;
 
-    return unless $self->plate->type_id eq 'DNA';
+    return unless $self->plate_type eq 'DNA';
 
     my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
 
@@ -1763,10 +1974,10 @@ sub compute_final_pick_dna_well_accepted {
     while ( my $ancestor = $ancestors->next ) {
 
         # Allow for rearraying of DNA plates
-        next if $ancestor->plate->type_id eq 'DNA';
+        next if $ancestor->plate_type eq 'DNA';
 
         # Check plate type of parent well
-        if ( $ancestor->plate->type_id eq 'FINAL_PICK' ) {
+        if ( $ancestor->plate_type eq 'FINAL_PICK' ) {
             $final_pick_parent = $ancestor;
             DEBUG("Found final pick parent ".$ancestor->as_string);
             last;
@@ -1827,6 +2038,11 @@ sub assembly_qc_value{
 sub assembly_well_qc_verified{
     my ($self) = @_;
 
+    # Must have all 3 qc results set to make this call
+    unless($self->well_assembly_qcs->all == 3){
+        return;
+    }
+
     my @good = map { $_->qc_type }
                $self->search_related('well_assembly_qcs',{
                   value => 'Good',
@@ -1836,8 +2052,33 @@ sub assembly_well_qc_verified{
     my $vector_good = grep { $_ eq 'VECTOR_QC' } @good;
     my $crispr_good = grep { $_ =~ /CRISPR/ } @good;
 
-    return $vector_good and $crispr_good;
+    my $is_good = $vector_good && $crispr_good ? 1 : 0;
+
+    return $is_good;
 }
 
+# Find most recent event for the barcode.
+# If state is provided find the most recent event which *changed* the state to the one specified
+sub most_recent_barcode_event{
+    my ($self, $state) = @_;
+
+    my $search_criteria = {};
+
+    if($state){
+        $search_criteria = {
+            new_state => $state,
+            old_state => {'!=' => $state }
+        };
+    }
+
+    my $event = $self->search_related('barcode_events',
+        $search_criteria,
+        {
+            order_by => { -desc => [qw/created_at/] }
+        }
+    )->first;
+
+    return $event;
+}
 __PACKAGE__->meta->make_immutable;
 1;

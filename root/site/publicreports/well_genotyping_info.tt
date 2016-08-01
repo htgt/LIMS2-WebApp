@@ -107,8 +107,8 @@
     <tr>
       <th>Genbank Files</th>
       <td>
-          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="icon-file"></i> Allele</a> <br>
-          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="icon-file"></i> Vector</a>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="glyphicon glyphicon-file"></i> Allele</a> <br>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="glyphicon glyphicon-file"></i> Vector</a>
       </td>
     </tr>
     <tr>
@@ -192,7 +192,7 @@
           </div>
         </div>
         [% IF data.qc_data.fwd_read AND data.qc_data.rev_read %]
-            <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+            <a class="btn traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
         [% END %]
       </td>
     </tr>
@@ -205,6 +205,10 @@
     <tr>
       <th>[% primer.name %]</th>
       <td class="alignment">[% primer.seq %]</td>
+      <td class="validation-state-cell"
+        data-validated="[% primer.is_validated %]"
+        data-rejected="[% primer.is_rejected %]"
+      </td>
     </tr>
       [% END %]
     [% END %]
@@ -213,7 +217,7 @@
     <tr>
       <th>QC Run</th>
       <td>
-        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
+        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn">View QC Run</a>
       </td>
     </tr>
     [% END %]
@@ -230,7 +234,7 @@
     <tr>
       <th>VEP Output</th>
       <td>
-        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-default">Show / Hide</a>
         [% IF data.qc_data.has_vep_file %]
             <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
@@ -241,7 +245,7 @@
     <tr>
       <th>VCF</th>
       <td>
-        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-default">Show / Hide</a>
         <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
       </td>
     </tr>
@@ -259,10 +263,35 @@
 </div>
 
 <div class="data.qc_data">
-  <div class="span3">
-    <a href="[% c.uri_for( '/user/well_genotyping_info_search' ) %]" class="btn">
-    <i class="icon-hand-left"></i> Back to search </a>
+  <div class="col-md-3">
+    <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary">
+    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
   </div>
 </div>
 
 <br/>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script type="text/javascript">
+  var valid_label = '<span class="label label-success validation-status pull-right">Validated</span>';
+  var not_valid_label = '<span class="label label-default validation-status pull-right">Not Validated</span>';
+  var rejected_label = '<span class="label label-important pull-right">Rejected</span>';
+
+
+
+  $(document).ready(function() {
+    $(".validation-state-cell").each(function(){
+      if($(this).data('rejected')){
+        $(this).append(rejected_label);
+      }
+      else{
+        if($(this).data('validated')){
+          $(this).append(valid_label);
+        }
+        else{
+          $(this).append(not_valid_label);
+        }
+      }
+    });
+  })
+</script>

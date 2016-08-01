@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCTemplates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCTemplates::VERSION = '0.327';
+    $LIMS2::Model::Util::QCTemplates::VERSION = '0.415';
 }
 ## use critic
 
@@ -129,8 +129,8 @@ sub qc_template_display_data {
 
         my $cassette_first;
         if ( my $source = $well->source_well ) {
-            $info{source_plate} = $source->plate->name;
-            $info{source_well} = $source->name;
+            $info{source_plate} = $source->plate_name;
+            $info{source_well} = $source->well_name;
 
             if ( my $design_id = $es_params->{design_id} ) {
                 my $design = try{ $model->c_retrieve_design( { id => $design_id } ) };
@@ -170,10 +170,10 @@ sub design_data {
 
     my @gene_symbols;
     foreach my $gene_id ( @gene_ids ) {
-        my $genes = $model->search_genes(
+        my $gene = $model->find_gene(
             { search_term => $gene_id, species =>  $species } );
 
-        push @gene_symbols,  map { $_->{gene_symbol} } @{$genes || [] };
+        push @gene_symbols, $gene->{gene_symbol};
     }
 
     $info->{gene_ids} = join q{/}, @gene_ids;

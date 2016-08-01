@@ -3,6 +3,9 @@
   <h1>QC Well Results <small>[% "${qc_seq_well.plate_name}[${qc_seq_well.well_name}]" %]</small></h1>
 </div>
 
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/angularplasmid.css', { v => 4 } ) %]">
+<script src="[% c.uri_for( '/static/js/angularplasmid.complete.min.js' ) %]"></script>
+
 <a class="btn btn-primary" href="[% c.uri_for( '/user/view_qc_run', { 'qc_run_id' => qc_run.id } ) %]">
   <i class="icon-arrow-left icon-white"></i> Back to Qc Run Results
 </a>
@@ -16,6 +19,8 @@
       <dl>
         <dt>QC Run</dt>
         <dd><a href="[% c.uri_for( '/user/view_qc_run', { qc_run_id => qc_run.id } ) %]">[% qc_run.id %]</a></dd>
+        <dt>Qc Template</dt>
+        <dd>[% qc_run.qc_template %] (best match well: [% qc_template_well.name %])</dd>
         <dt>Run Date</dt>
         <dd>[% qc_run.created_at %]</dd>
       </dl>
@@ -25,10 +30,12 @@
   <div class="span6">
     <div class="well">
       <dl>
-        <dt>Qc Template</dt>
-        <dd>[% qc_run.qc_template %] (best match well: [% qc_template_well.name %])</dd>
         <dt>Sequencing Project(s)</dt>
         <dd>[%  qc_run.sequencing_projects.join(' - ') %]</dd>
+        <dt>Gene ID</dt>
+        <dd>[% gene.gene_id %]</dd>
+        <dt>Gene Symbol</dt>
+        <dd>[% gene.gene_symbol %]</dd>
       </dl>
     </div>
   </div>
@@ -144,6 +151,85 @@
     [% END -%]
   </tbody>
 </table>
+
+[% IF r.display_alignments %]
+[% primer_site_direction = {
+     puc19seqR = 'rev'
+     puc19seqF = 'fwd'
+     seqEF1aR1 = 'rev'
+     seqPNF    = 'fwd'
+  }
+%]
+<div class="row">
+<div class="span5">
+<plasmid class='p1' sequencelength="[% r.eng_seq.length %]" plasmidheight="600" plasmidwidth="600">
+  <plasmidtrack class='t1'>
+    <trackscale class='smajor' interval='500' showlabels='1' labelclass='sml'></trackscale>
+[% FOREACH feature IN r.eng_seq.get_SeqFeatures %]
+  [% TRY %]
+    [% name = '' %]
+    [% name = feature.get_tag_values('note') %]
+  [% CATCH %]
+  [% END %]
+  [% IF name == 'Synthetic Cassette' %]
+    <trackmarker class='marker_cassette' start='[% feature.start %]' end='[% feature.end %]'>
+      <markerlabel class='mlabel' text='[% name %]' type='path'></markerlabel>
+    </trackmarker>
+  [% ELSIF name.match(' arm') %]
+    <trackmarker class='marker_arm' start='[% feature.start %]' end='[% feature.end %]'>
+      <markerlabel class='mlabel' text='[% name %]' type='path'></markerlabel>
+    </trackmarker>
+  [% END %]
+[% END %]
+
+[% FOREACH a IN r.display_alignments %]
+    <trackmarker class='[% a.class %]' start='[% a.start %]' end='[% a.end %]' [% a.arrow %] wadjust='-5' vadjust='[% -30 * a.vadjust_level %]'>
+      <markerlabel text="[% a.name %]" class="mlabel" type="path"></markerlabel>
+      <markerlabel text="[% a.match_pct %]%" class="mlabel" halign='start' hadjust='-10'></markerlabel>
+    </trackmarker>
+[% END %]
+
+[% max_vadjust = 1 %]
+[% FOREACH primer IN r.alignment_targets.keys %]
+  [% FOREACH region IN r.alignment_targets.$primer %]
+    [% IF region.vadjust_level > max_vadjust %]
+      [% max_vadjust = region.vadjust_level %]
+    [% END %]
+    <trackmarker class='marker_target_region' start='[% region.start %]' end='[% region.end %]'>
+      <markerlabel text="[% primer %]" valign="outer" vadjust="[% region.vadjust_level * 40 %]" type="path"></markerlabel>
+      <markerlabel text="[% region.name %]" valign="outer" showline="1" vadjust="[% region.vadjust_level * 40 - 10 %]" type="path" labelstyle="font-size:10px"></markerlabel>
+    </trackmarker>
+  [% END %]
+[% END %]
+
+[% FOREACH feature IN r.eng_seq.get_SeqFeatures %]
+  [% TRY %]
+    [% name = '' %]
+    [% name = feature.get_tag_values('note') %]
+  [% CATCH %]
+  [% END %]
+  [% IF primer_site_direction.$name %]
+    <trackmarker start='[% feature.start %]' end='[% feature.end %]' markerstyle='fill:rgba(85,170,0,0.9)'
+    [% IF primer_site_direction.$name == 'fwd' %]
+      arrowendlength='3' arrowstartlength='-3'>
+    [% ELSE %]
+      arrowendlength='-3' arrowstartlength='3'>
+    [% END %]
+    <!-- max_vadjust: [% max_vadjust %] -->
+      <markerlabel text='[% name %]' showline='1' linevadjust='-10' linevadjust='10' vadjust='[% (max_vadjust + 1) * 40 %]' type='path' labelstyle='fill:rgba(85,170,0,0.9)' linestyle='stroke:rgba(85,170,0,0.9)'></markerlabel>
+    </trackmarker>
+  [% END %]
+[% END %]
+  </plasmidtrack>
+</plasmid>
+</div>
+<div class="span6">
+<a class="btn btn-info" href="[% c.uri_for( '/static/images/plasmid_map_help.png' ) %]" target="_blank">
+  What is this <i class="icon-question-sign icon-white"></i>
+</a>
+</div>
+</div>
+[% END %]
 <p>
 <a class="btn btn-info" href="[% c.uri_for( '/user/qc_eng_seq',
   { 'format' => "genbank", 'qc_test_result_id' => r.qc_test_result_id } ) %]">

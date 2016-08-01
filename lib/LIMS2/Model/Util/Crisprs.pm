@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.327';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.415';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids' ]
+    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids', 'crispr_groups_for_crispr', 'crispr_pairs_for_crispr', 'crispr_wells_for_crispr' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -189,13 +189,15 @@ sub create_crispr_group_design_links {
 
         next unless crispr_group_hits_design( $design, $crispr_group, $default_assembly, \@fail_log );
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_group_id => $crispr_group->id,
+                gene_id         => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+        INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr group ' . p(%$datum);
     }
@@ -224,13 +226,15 @@ sub create_crispr_pair_design_links {
 
         next unless crispr_pair_hits_design( $design, $crispr_pair, $default_assembly, \@fail_log );
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->create_experiment(
             {
                 design_id      => $design->id,
                 crispr_pair_id => $crispr_pair->id,
+                gene_id        => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+        INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr pair ' . p(%$datum);
     }
@@ -264,13 +268,16 @@ sub create_crispr_design_links {
             next;
         }
 
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find_or_create(
+        my ($gene_id) = $design->gene_ids;
+        my $experiment = $model->create_experiment(
             {
                 design_id => $design->id,
                 crispr_id => $crispr->id,
+                gene_id   => $gene_id,
             }
         );
-        INFO('Crispr design record created: ' . $crispr_design->id );
+
+        INFO('Experiment record created: ' . $experiment->id );
         push @create_log, 'Linked design & crispr ' . p(%$datum);
     }
 
@@ -287,18 +294,18 @@ sub delete_crispr_design_links {
     my ( @delete_log, @fail_log );
 
     for my $datum ( @{ $delete_links } ) {
-        my $crispr_design = $model->schema->resultset( 'CrisprDesign' )->find( $datum );
-        unless ( $crispr_design ) {
-            ERROR( 'Unable to find crispr_design link ' . p(%$datum) );
+        my $experiment = $model->schema->resultset( 'Experiment' )->find( $datum );
+        unless ( $experiment) {
+            ERROR( 'Unable to find experiment linking ' . p(%$datum) );
             push @fail_log, 'Failed to find design & crispr link: ' . p(%$datum);
             next;
         }
-        if ( $crispr_design->delete ) {
-            INFO( 'Deleted crispr_design record ' . $crispr_design->id );
+        if ( $experiment->update({ deleted => 1 }) ) {
+            INFO( 'Deleted experiment record ' . $experiment->id );
             push @delete_log, 'Deleted link between design & crispr: ' . p(%$datum);
         }
         else {
-            ERROR( 'Failed to delete crispr_design record ' . $crispr_design->id );
+            ERROR( 'Failed to delete experiment record ' . $experiment->id );
             push @fail_log, 'Failed to delete design & crisprlink ' . p(%$datum);
         }
     }
@@ -461,9 +468,10 @@ usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
 
 =cut
 sub gene_ids_for_crispr {
-    my ( $gene_finder, $crispr ) = @_;
+    my ( $gene_finder, $crispr, $model ) = @_;
     my @gene_ids;
 
+    # if a group, get it's gene id
     if ( $crispr->is_group ) {
         push @gene_ids, $crispr->gene_id;
     }
@@ -472,8 +480,22 @@ sub gene_ids_for_crispr {
         my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
         push @gene_ids, uniq @design_gene_ids;
     }
-    else {
-        # now we have a crispr or crispr pair and no linked designs, need to look at sequence
+    # not a group a no linked design? check if there is an experiment
+    elsif ( $model && (my @groups = $crispr->crispr_groups->all) ) {
+        my @groups_ids = map { $_->id } @groups;
+
+        my @experiments = $model->schema->resultset('Experiment')->search(
+            {
+                crispr_group_id => { -in => \@groups_ids },
+                gene_id => { '!=', undef }
+            }
+        )->all;
+
+        @gene_ids = map { $_->gene_id } @experiments;
+    }
+
+    # if no gene_id yet, look at the genomic location
+    if (!@gene_ids) {
         my $slice = try{ $crispr->target_slice };
         return [] unless $slice;
         my @genes = @{ $slice->get_all_Genes };
@@ -498,7 +520,6 @@ to identify the correct group.
 =cut
 sub get_crispr_group_by_crispr_ids{
     my ($schema, $params) = @_;
-
     my @crispr_ids = @{ $params->{crispr_ids} }
         or die "No crispr_ids array provided to get_crispr_group_by_crispr_ids";
 
@@ -548,5 +569,94 @@ sub get_crispr_group_by_crispr_ids{
     LIMS2::Exception->throw($error_msg);
     return;
 }
+
+=head2 crispr_groups_for_crispr
+
+Given a crispr ID returns a list of crispr groups that contain it.
+
+=cut
+sub crispr_groups_for_crispr {
+    my ($schema, $params) = @_;
+    my $crispr_id = $params->{crispr_id}
+        or die "No crispr_id provided to crispr_groups_for_crispr";
+
+    my @crispr_groups = $schema->resultset('CrisprGroup')->search(
+        {
+            'crispr_group_crisprs.crispr_id' => $crispr_id,
+        },
+        {
+            join     => 'crispr_group_crisprs',
+            distinct => 1,
+        }
+    );
+
+    return @crispr_groups;
+}
+
+=head2 crispr_pairs_for_crispr
+
+Given a crispr ID returns a list of crispr pairs that contain it.
+
+=cut
+sub crispr_pairs_for_crispr {
+    my ($schema, $params) = @_;
+    my $crispr_id = $params->{crispr_id}
+        or die "No crispr_id provided to crispr_pairs_for_crispr";
+
+    my @crispr_pairs = $schema->resultset('CrisprPair')->search(
+        {
+            -or => [
+                'left_crispr_id'  => $crispr_id,
+                'right_crispr_id' => $crispr_id,
+            ]
+        },
+        {
+            distinct => 1,
+        }
+    );
+
+    return @crispr_pairs;
+}
+
+=head2 crispr_wells_for_crispr
+
+Given a crispr ID returns a list of wells that contain it
+
+=cut
+sub crispr_wells_for_crispr {
+    my ($schema, $params) = @_;
+    my $crispr_id = $params->{crispr_id}
+        or die "No crispr_id provided to crispr_wells_for_crispr";
+
+    my @crispr_process = $schema->resultset('ProcessCrispr')->search(
+        {
+            'me.crispr_id' => [ $crispr_id ],
+        },
+        {
+            order_by    => { -asc   => 'me.crispr_id'},
+        }
+    );
+
+    my @well_id_all;
+    foreach my $current_crispr_process (@crispr_process) {
+        my @well_id = $schema->resultset('Well')->search(
+            {
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
+            },
+            {
+                order_by    => { -asc   => 'process_output_wells.process_id' },
+                join        => 'process_output_wells',
+                distinct    => 1,
+            }
+        );
+
+        push @well_id_all, @well_id;
+
+    }
+
+    return @well_id_all;
+}
+
+
 
 1;

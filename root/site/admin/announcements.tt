@@ -1,0 +1,58 @@
+[% META title = 'LIMS2 - Announcements'; META tab_name = "Admin" -%]
+
+<head>
+<script src="[% c.uri_for( '/static/js/jquery-1.12.3.min.js' ) %]"></script>
+  <script>
+    $(document).ready(function(){
+      $("[name='delete_message_button']").click(function(){
+        var delete_message_id = ($(this).attr('id'));
+        $("#message_to_delete").val(delete_message_id);
+      });
+    });
+  </script>
+</head>
+
+<div class="page-header">
+    <h1>Announcements</h1>
+</div>
+
+<a href="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" class="btn btn-primary">Create Announcement</a><br><br>
+
+<div>
+	<form method="POST" action="[% c.uri_for( '/admin/announcements' ) %]" name="announcements_form" class="well"  >
+		<h2>Messages</h2>
+		[% IF messages.size > 0 %]
+  			<table class="table table-condensed table-striped">
+    			<thead>
+      				<tr>
+                <th>Webapp</th>
+                <th>Priority</th>
+        				<th>Message</th>
+        				<th>Created on</th>
+        				<th>Expires on</th>
+                <th></th>
+      				</tr>
+    			</thead>
+    			<tbody>
+      			[%- FOR message IN messages %]
+      				<tr>
+                <td>
+                  [% IF message.lims %] LIMS2 [% END %]
+                  [% IF message.wge %] WGE [% END %]
+                  [% IF message.htgt %] HTGT [% END %]
+                </td>
+                <td>[% message.priority %]</td>
+        				<td>[% message.message %]</td>
+        				<td><date>[% message.created %]</date></td>
+        				<td><date>[% message.expiry %]</date></td>
+                <td><input class="btn btn-primary" name="delete_message_button" id="[% message.id %]" type="submit" value="Delete" /></td>
+      				</tr>
+      				[% END %]
+    			</tbody>
+    		</table>
+        <input name="delete_message" type="hidden" id="message_to_delete"/>
+		[% ELSE %]
+  			<p><em>No messages to show</em></p>
+		[% END %]
+	</form>
+</div>

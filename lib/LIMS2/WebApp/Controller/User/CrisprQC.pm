@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.327';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.415';
 }
 ## use critic
 
@@ -14,8 +14,10 @@ use List::Util qw ( min max );
 use List::MoreUtils qw( uniq );
 use LIMS2::Model::Util::CrisprESQC;
 use LIMS2::Model::Util::CrisprESQCView qw( find_gene_crispr_es_qc );
+use LIMS2::Model::Util::DataUpload qw(process_het_status_file);
 use TryCatch;
 use Log::Log4perl::Level;
+use Bio::Perl qw( revcom );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -68,7 +70,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my $hide_crispr_validation = 1;
     my $hide_het_validation = 0;
     if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
-        my $plate_type  = $qc_well->well->plate->type_id;
+        my $plate_type  = $qc_well->well->plate_type;
         if ( $plate_type eq 'EP_PICK' ) {
             # only do crispr validation of ES cells in EP_PICK plates
             $hide_crispr_validation = 0;
@@ -79,10 +81,18 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
         }
     }
 
+    if($run->sequencing_data_version){
+        $c->stash->{info_msg} = "The data for sequencing project ".$run->sequencing_project
+                                ." has been updated since this QC run was performed."
+                                ." This page shows the old data used by the QC run which is stored as backup version "
+                                .$run->sequencing_data_version;
+    }
+
     $c->stash(
         qc_run_id              => $run->id,
         seq_project            => $run->sequencing_project,
         sub_project            => $run->sub_project,
+        sequencing_data_version => $run->sequencing_data_version,
         species                => $run->species_id,
         wells                  => [ sort { $a->{well_name} cmp $b->{well_name} } @qc_wells ],
         damage_types           => [ map{ $_->id } @crispr_damage_types ],
@@ -190,17 +200,44 @@ sub crispr_es_qc_aa_file :PathPart( 'aa_file' ) Chained('crispr_qc_well') :Args(
 sub crispr_es_qc_runs :Path( '/user/crisprqc/es_qc_runs' ) :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @runs = $c->model('Golgi')->schema->resultset('CrisprEsQcRuns')->search(
-        { 'me.species_id' => $c->session->{selected_species} },
+    my $params = $c->request->params;
+
+    if ( defined $params->{show_all} ) {
+        delete @{$params}{ qw( show_all sequencing_project plate_name ) };
+    }
+
+    #filter isnt in the pspec so remove it to avoid an error
+    delete $params->{filter} if defined $params->{filter};
+
+    $params->{species} ||= $c->session->{selected_species};
+
+    if ($params->{sequencing_project}) {
+        $params->{sequencing_project} =~ s/^\s+//;
+        $params->{sequencing_project} =~ s/\s+$//;
+    }
+    if ($params->{plate_name}) {
+        $params->{plate_name} =~ s/^\s+//;
+        $params->{plate_name} =~ s/\s+$//;
+    }
+
+    my ( $runs, $pager ) = $c->model('Golgi')->list_crispr_es_qc_runs( $params );
+
+    my $pageset = LIMS2::WebApp::Pageset->new(
         {
-            prefetch => [ 'created_by', {'crispr_es_qc_wells' => { well => 'plate' }} ],
-            #rows     => 20,
-            order_by => { -desc => "me.created_at" }
+            total_entries    => $pager->total_entries,
+            entries_per_page => $pager->entries_per_page,
+            current_page     => $pager->current_page,
+            pages_per_set    => 5,
+            mode             => 'slide',
+            base_uri         => $c->uri_for( '/user/crisprqc/es_qc_runs', $params )
         }
     );
 
     $c->stash(
-        runs => [ map { $_->as_hash({ include_plate_name => 1}) } @runs ],
+        runs               => $runs,
+        pageset            => $pageset,
+        plate_name         => $params->{plate_name},
+        sequencing_project => $params->{sequencing_project},
     );
 
     return;
@@ -236,8 +273,13 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             $c->stash( error_msg => $err->as_webapp_string );
             return;
         }
-
         my $plate = $c->model('Golgi')->retrieve_plate( { name => $validated_params->{plate_name} } );
+        my $plate_species = $plate->{_column_data}->{species_id};
+        unless ($plate->{_column_data}->{species_id} eq $c->session->{selected_species}) {
+            $c->stash( error_msg =>  $validated_params->{plate_name} . " is a " . $plate_species . " plate whereas your session is set to "
+                . $c->session->{selected_species} . ". Please set your session to " . $plate_species . " and resubmit.");
+            return;
+        }
 
         my $qc_run;
 		try {
@@ -348,6 +390,80 @@ sub gene_crispr_es_qc :Path('/user/crisprqc/gene_crispr_es_qc') :Args(0) {
         crispr_qc    => $sorted_crispr_qc,
         damage_types => [ map{ $_->id } @crispr_damage_types ],
     );
+    return;
+}
+
+sub upload_het_status_file :Path('/user/crisprqc/upload_het_status_file') :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    return unless $c->req->param('upload_het_status');
+
+    my $het_status = $c->request->upload('datafile');
+    unless ( $het_status ) {
+        $c->stash->{error_msg} = 'No csv file with het status data specified';
+        return;
+    }
+
+    my $model = $c->model('Golgi');
+    $model->txn_do(
+        sub{
+            try{
+                my $messages = process_het_status_file($model,$het_status->fh,$c->user->name);
+                $c->stash->{success_msg} = "Uploaded het status values from ".$het_status->basename.":<br>"
+                                           .join("<br>", @$messages);
+            }
+            catch ($err){
+               $c->stash->{error_msg} = "Error processing ".$het_status->basename.". Nothing has been updated.<br> Error message: $err";
+               $model->txn_rollback;
+            }
+        }
+    );
+
+    return;
+}
+
+# Used by ajax get in the gene summary page to populate alignment details on demand
+# Uses HTML_fragment view because the standard HTML view adds wrapper.tt to the html
+sub qc_well_alignment :Path('/user/crisprqc/well_alignment') :Args(1) {
+    my ($self, $c, $qc_well_id) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $qc_well = $c->model('Golgi')->retrieve_crispr_es_qc_well({ id => $qc_well_id });
+    my $gene_finder = sub { $c->model('Golgi')->find_genes(@_) };
+    my $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    $c->stash->{qc} = $qc_data;
+
+
+    $c->stash->{template} = 'crispr_qc_alignment.tt';
+    $c->forward( $c->view('HTML_fragment') );
+    return;
+}
+
+sub qc_well_details :Path('/user/crisprqc/qc_well_details') :Args(1){
+    my ($self, $c, $qc_well_id) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $qc_well = $c->model('Golgi')->retrieve_crispr_es_qc_well({ id => $qc_well_id });
+    my $gene_finder = sub { $c->model('Golgi')->find_genes(@_) };
+    my $qc_data = $qc_well->format_well_data( $gene_finder, { truncate => 1 });
+
+    $c->stash({
+        template               => 'crispr_qc_view.tt',
+        row                    => $qc_data,
+        accept                 => 0,
+        edit                   => 0,
+        hide_crispr_well_id    => 1,
+        complete_info          => 0,
+        hide_well_name         => 1,
+        hide_gene              => 1,
+        hide_crispr_validation => 1,
+        hide_het_validation    => 1,
+    });
+    $c->forward( $c->view('HTML_fragment') );
     return;
 }
 

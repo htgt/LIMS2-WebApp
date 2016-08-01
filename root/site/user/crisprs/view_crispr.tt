@@ -59,6 +59,7 @@
   <tr><th>ID</th> <td>[% crispr_data.id %]</td></tr>
   <tr><th>Sequence</th> <td>[% crispr_data.seq %]</td></tr>
   <tr><th>Species</th> <td>[% crispr_data.species %]</td></tr>
+  <tr><th>Gene</th> <td>[%- FOR gene IN genes %] [% gene.gene_symbol %] ([% gene.gene_id %]) <br /> [%- END %]</td></tr>
   <tr><th>Chromosome</th> <td>[% crispr_data.locus.chr_name %]</td></tr>
   <tr><th>Start</th> <td>[% crispr_data.locus.chr_start %]</td></tr>
   <tr><th>End</th> <td>[% crispr_data.locus.chr_end %]</td></tr>
@@ -119,6 +120,54 @@
   </table>
 [% ELSE %]
   <p><em>No off target summaries for this crispr</em></p>
+[% END %]
+
+<h2>Crispr Pairs</h2>
+[% IF pairs.size %]
+  <table class="table table-striped">
+    <thead>
+      <th>ID</th>
+      <th>Left Crispr</th>
+      <th>Right Crispr</th>
+      <th>Spacer</th>
+    </thead>
+    <tbody>
+      [%- FOR cp IN pairs %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr_pair', cp.id , 'view'  ) %]" target="_blank"> [% cp.id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.left_crispr_id , 'view'  ) %]" target="_blank"> [% cp.left_crispr_id %]</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr', cp.right_crispr_id , 'view'  ) %]" target="_blank"> [% cp.right_crispr_id %]</a></td>
+        <td>[% cp.spacer %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>This crispr is not part of a pair</em></p>
+[% END %]
+
+<h2>Crispr Groups</h2>
+[% IF groups.size %]
+  <table class="table table-striped">
+    <thead>
+      <th>ID</th>
+      <th>Group Target</th>
+      <th>Num Crisprs</th>
+      <th>Crisprs</th>
+    </thead>
+    <tbody>
+      [%- FOR cg IN groups %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr_group', cg.id , 'view'  ) %]" target="_blank"> [% cg.id %]</a></td>
+        <td>[% cg.gene_id %]</td>
+        <td>[% cg.crispr_ids.size %]</td>
+        <td>[% cg.crispr_ids.join(', ') %]</td>
+      </tr>
+      [%- END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>This crispr is not part of a group</em></p>
 [% END %]
 
 <h2>Linked Designs</h2>
@@ -193,6 +242,30 @@
   [% END %]
 [% END %]
 
+<h2>Crispr Wells</h2>
+[% IF wells.size > 0 %]
+  <table class="table table-condensed table-striped">
+    <thead>
+      <tr>
+        <th>Well Name</th>
+        <th>Plate Name</th>
+        <th>Well</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR well IN wells %]
+      <tr>
+        <td>[% well.plate_name %]_[% well.well_name %]</td>
+        <td><a href="[% c.uri_for( '/user/view_plate', { name => well.plate_name } ) %]"> [% well.plate_name %]</a></td>
+        <td>[% well.well_name %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No CRISPR wells with this crispr</em></p>
+[% END %]
+
 [% IF crispr_data.off_targets.size > 0 %]
 <h2>Crispr Off Targets</h2>
 <p class="text-warning">We only show off targets loaded in LIMS2, which may not be all the off targets.
@@ -215,7 +288,7 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% crispr_data.fwd_seq %]</td>
         <td>[% crispr_data.type %]</td>
         <td> [% crispr_data.locus.chr_name %]:[% crispr_data.locus.chr_start %]-[% crispr_data.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- FOR datum IN crispr_data.off_targets %]
       <tr class="ots">
@@ -224,9 +297,15 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% datum.ot_crispr.fwd_seq %]</td>
         <td>[% datum.ot_crispr.type %]</td>
         <td> [% datum.ot_crispr.locus.chr_name %]:[% datum.ot_crispr.locus.chr_start %]-[% datum.ot_crispr.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- END %]
     </tbody>
   </table>
 [% END %]
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    document.title = 'Crispr: [% crispr_data.id %]';
+  });
+</script>

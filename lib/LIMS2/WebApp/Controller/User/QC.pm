@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.327';
+    $LIMS2::WebApp::Controller::User::QC::VERSION = '0.415';
 }
 ## use critic
 
@@ -17,12 +17,18 @@ use Config::Tiny;
 use Data::Dumper;
 use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
+use HTGT::QC::Run;
 use HTGT::QC::Util::ListLatestRuns;
 use HTGT::QC::Util::KillQCFarmJobs;
-use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names );
-use LIMS2::Model::Util::CreateQC qw( htgt_api_call );
+use HTGT::QC::Util::CreateSuggestedQcPlateMap qw( create_suggested_plate_map get_sequencing_project_plate_names get_parsed_reads);
 use LIMS2::Util::ESQCUpdateWellAccepted;
+use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
+use IPC::System::Simple qw( capturex );
+use Path::Class;
+use LIMS2::Model::Util::ImportSequencing qw( get_seq_file_import_date );
 
+use HTGT::QC::Util::SubmitQCFarmJob::Vector;
+use HTGT::QC::Util::SubmitQCFarmJob::ESCell;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -44,6 +50,23 @@ has qc_config => (
     default => sub{ HTGT::QC::Config->new({ is_lims2 => 1 }) },
     lazy    => 1,
 );
+
+has latest_run_util => (
+    is      => 'ro',
+    isa     => 'HTGT::QC::Util::ListLatestRuns',
+    lazy_build => 1,
+);
+
+sub _build_latest_run_util {
+    my $self = shift;
+    my $lustre_server = $ENV{ FILE_API_URL }
+        or die "FILE_API_URL environment variable not set";
+
+    return HTGT::QC::Util::ListLatestRuns->new( {
+        config => $self->qc_config,
+        file_api_url => $lustre_server,
+    } );
+}
 
 ## no critic(ProtectPrivateSubs)
 sub _list_all_profiles {
@@ -162,12 +185,14 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
-
+    my ( $qc, $res ) = $c->model( 'Golgi' )->qc_run_results(
+        { qc_run_id => $c->req->params->{qc_run_id} } );
     my ( $qc_seq_well, $seq_reads, $results ) = $c->model('Golgi')->qc_run_seq_well_results(
         {
             qc_run_id  => $c->req->params->{qc_run_id},
             plate_name => $c->req->params->{plate_name},
             well_name  => uc( $c->req->params->{well_name} ),
+            with_eng_seq => 1,
         }
     );
 
@@ -190,6 +215,23 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         $c->log->debug("crispr primers: ".Dumper(@crispr_primers));
     }
 
+    my $is_es_qc = grep { $_ eq $qc_run->profile } @{ $self->_list_all_profiles('es_cell') };
+
+    my $error_msg;
+    unless($is_es_qc){
+        # Create start and end coords for items to be drawn in plasmid view
+        # Adds result->{display_alignments} which is an array of read alignments
+        # and result->{alignment_targets} which is a hash of target regions by primer
+        # A primer read is required to align to the target region in order to pass
+        try{
+            add_display_info_to_qc_results($results,$c->log,$c->model('Golgi'));
+        }
+        catch{
+            $error_msg = "Failed to generate plasmid view: $_";
+        };
+    }
+    my $species_id = $c->session->{selected_species};
+    my $gene = $c->model('Golgi')->find_gene( { search_term => $c->req->params->{gene_symbol}, species => $species_id } );
     $c->stash(
         qc_run      => $qc_run->as_hash,
         qc_seq_well => $qc_seq_well,
@@ -198,7 +240,10 @@ sub view_qc_result :Path('/user/view_qc_result') Args(0) {
         genotyping_primers => \@genotyping_primers,
         crispr_primers => \@crispr_primers,
         qc_template_well => $template_well,
+        error_msg   => $error_msg,
+        gene => $gene,
     );
+
     return;
 }
 
@@ -446,16 +491,16 @@ sub _launch_qc{
     my $params = {
         profile             => $c->stash->{ profile },
         template_plate      => $c->stash->{ template_plate },
-        sequencing_projects => $c->stash->{ sequencing_project },
+        sequencing_projects => $c->stash->{ sequencing_project } ,
         plate_map           => $plate_map,
         created_by          => $c->user->name,
         species             => $c->session->{ selected_species },
         run_type            => $c->stash->{run_type},
     };
 
-    my $content = htgt_api_call( $c, $params, 'submit_uri' );
+    my $run_id = $self->_run_qc($c, $params);
 
-    return $content->{ qc_run_id };
+    return $run_id;
 }
 
 sub _launch_es_cell_qc{
@@ -470,20 +515,89 @@ sub _launch_es_cell_qc{
         run_type            => $c->stash->{run_type},
     };
 
-    my $content = htgt_api_call( $c, $params, 'submit_uri' );
+    my $run_id = $self->_run_qc($c, $params);
 
-    return $content->{ qc_run_id };
+    return $run_id;
 }
 
+sub _run_qc{
+
+    my ($self, $c, $params) = @_;
+
+    my $qc_data = $params;
+
+    if ( $qc_data->{ run_type } eq 'es_cell' ) {
+        my $epd_plate_name = shift @{ $qc_data->{ sequencing_projects } };
+        $c->log->debug( "Retrieving sequencing projects for epd plate $epd_plate_name" );
+
+        my @all_projects = $self->_get_trace_projects( $epd_plate_name );
+
+        die "Couldn't find any sequencing projects for $epd_plate_name"
+            unless @all_projects;
+
+        $c->log->debug( "Found the following sequencing projects: " . join ", ", @all_projects );
+
+        $qc_data->{ sequencing_projects } = \@all_projects;
+    }
+
+    my $run_id;
+    # Attempt to launch QC job
+    try {
+
+        my $config = HTGT::QC::Config->new( { is_lims2 => 1 } );
+
+        my %run_params = (
+            config              => $config,
+            profile             => $qc_data->{ profile },
+            template_plate      => $qc_data->{ template_plate },
+            sequencing_projects => $qc_data->{ sequencing_projects },
+            run_type            => $qc_data->{ run_type },
+            created_by          => $qc_data->{ created_by },
+            species             => $qc_data->{ species },
+            persist             => 1,
+        );
+
+        my %run_types = (
+            es_cell   => "ESCell",
+            vector    => "Vector",
+        );
+
+        die $qc_data->{ run_type } . " is not a valid run type."
+            unless exists $run_types{ $qc_data->{ run_type } };
+
+        my $submit_qc_farm_job = "HTGT::QC::Util::SubmitQCFarmJob::" . $run_types{ $qc_data->{ run_type } };
+
+        #add any additional type specific modifications in this if
+        if ( $qc_data->{ run_type } eq "vector" ) {
+            #only vector needs a plate_map.
+            $run_params{ plate_map } = $qc_data->{ plate_map };
+        }
+
+
+        my $run = HTGT::QC::Run->init( %run_params );
+        $run_id = $run->id or die "No QC run ID generated"; #this is pretty pointless; we always get one.
+
+        $submit_qc_farm_job->new( { qc_run => $run } )->run_qc_on_farm();
+
+    }
+    catch {
+        $c->log->warn( $_ );
+    };
+
+    return $run_id;
+}
+
+sub _get_trace_projects {
+    my ( $self, $epd_plate_name ) = @_;
+    return @{ HTGT::QC::Util::ListTraceProjects->new()->get_trace_projects( $epd_plate_name ) };
+}
 
 sub latest_runs :Path('/user/latest_runs') :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'read' );
 
-    my $llr = HTGT::QC::Util::ListLatestRuns->new( { config => $self->qc_config } );
-
-    $c->stash( latest => $llr->get_latest_run_data );
+    $c->stash( latest => $self->latest_run_util->get_latest_run_data );
 
     return;
 }
@@ -496,8 +610,8 @@ sub qc_farm_error_rpt :Path('/user/qc_farm_error_rpt') :Args(1) {
     my ( $qc_run_id, $last_stage ) = $params =~ /^(.+)___(.+)$/;
     my $config = $self->qc_config;
 
-    my $error_file = $config->basedir->subdir( $qc_run_id )->subdir( 'error' )->file( $last_stage . '.err' );
-    my @error_file_content = $error_file->slurp( chomp => 1 );
+    # Fetches error file via file server api
+    my @error_file_content = $self->latest_run_util->fetch_error_file($qc_run_id, $last_stage);
 
     $c->stash( run_id => $qc_run_id );
     $c->stash( last_stage => $last_stage );
@@ -511,20 +625,38 @@ sub kill_farm_jobs :Path('/user/kill_farm_jobs') :Args(1) {
 
     $c->assert_user_roles( 'edit' );
 
-    my $content = htgt_api_call( $c, { qc_run_id => $qc_run_id }, 'kill_uri' );
+    my @jobs_killed = $self->_kill_lims2_qc($qc_run_id, $c);
 
-    if ( $content ) {
-        my @jobs_killed = @{ $content->{ job_ids } };
-        $c->stash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
+    if ( @jobs_killed ) {
+        $c->flash( info_msg => "Killing farm jobs (" . join( ' ', @jobs_killed ) . ") from QC run $qc_run_id" );
     }
     else {
         my $error = $c->stash->{ error_msg } . "<br/>Failed to kill farm jobs."; #dont overwrite other error
-        $c->stash( error_msg => $error );
+        $c->flash( error_msg => $error );
     }
 
-    $c->go( 'latest_runs' );
-
+    $c->res->redirect( $c->uri_for('/user/latest_runs') );
     return;
+}
+
+sub _kill_lims2_qc{
+    my ( $self, $qc_run_id, $c ) = @_;
+
+    my $job_ids = [];
+
+    try{
+        my $killer = HTGT::QC::Util::KillQCFarmJobs->new({
+            config    => $self->qc_config,
+            qc_run_id => $qc_run_id,
+        });
+        $job_ids = $killer->kill_unfinished_farm_jobs();
+    }
+    catch{
+        $c->log->warn( $_ );
+        $c->stash->{error_msg} = $_;
+    };
+
+    return @{ $job_ids };
 }
 
 sub _build_plate_map {
@@ -639,11 +771,18 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 				die "You must select a csv file containing the well list";
 			}
 
+            my %overrides = map { $_ => $c->req->param($_) }
+                            grep { $c->req->param($_) }
+                            qw( cassette backbone phase_matched_cassette);
+            $overrides{recombinase} = [ $c->req->param('recombinase') ];
+
 			my $template = $c->model('Golgi')->create_qc_template_from_csv({
 				template_name => $template_name,
 				well_data_fh  => $well_data->fh,
 				species       => $c->session->{selected_species},
+                %overrides,
 			});
+
 			my $view_uri = $c->uri_for("/user/view_template",{ id => $template->id});
 			$c->stash->{success_msg} = "Template <a href=\"$view_uri\">$template_name</a> was successfully created";
 		}
@@ -835,6 +974,163 @@ sub mark_ep_pick_wells_accepted :Path('/user/mark_ep_pick_wells_accepted') :Args
     $c->res->redirect( $c->uri_for('/user/view_qc_run', { qc_run_id => $run_id } ) );
 
 	return;
+}
+
+sub view_traces :Path('/user/qc/view_traces') :Args(0){
+    my ($self, $c) = @_;
+    $c->assert_user_roles('read');
+
+    # Store form values
+    $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
+    $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
+    $c->stash->{primer_data} = $c->req->param('primer_data');
+    $c->stash->{well_name} = $c->req->param('well_name');
+    #Create recently added list
+    my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
+        {
+            available_results => 'y'
+        },
+        {
+            rows => 20,
+            order_by => {-desc => 'created_at'},
+        }
+    );
+
+    my @results;
+
+    while (my $focus = $recent->next) {
+        push(@results, $focus->{_column_data});
+    }
+    $c->stash->{recent_results} = \@results;
+    if($c->req->param('get_reads')){
+        unless($ENV{LIMS2_SEQ_FILE_DIR}){
+            $c->stash->{error_msg} = "Cannot fetch reads - LIMS2_SEQ_FILE_DIR environment variable not set!";
+            return;
+        }
+        my $project = $c->req->param('sequencing_project');
+        my $sub_project = $c->req->param('sequencing_sub_project');
+        my $well_name = $c->req->param('well_name');
+        my $date = $c->req->param('data_set');
+        my $version;
+        if ($date ne 'Latest') {
+            my $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
+                name => $project
+            })->backup_directories;
+            foreach my $dir (@{$seq_rs}) {
+                if ($date eq $dir->{date}) {
+                    $version = $dir->{dir};
+                    $c->stash->{selected_version} = $dir->{date};
+                }
+            }
+        } else {
+            $c->stash->{selected_version} = 'Latest';
+        }
+        if ($well_name && $well_name ne ' '){
+            # Fetch the sequence fasta files for this well from the lims2 managed seq data dir
+            # This will not work for older internally sequenced data
+            $c->log->debug("Fetching reads for $sub_project well $well_name");
+            my $project_dir = file_name($c, $version, $project);
+
+            my $file_prefix = $sub_project.lc($well_name);
+            my @well_files = grep { $_->basename =~ /^$file_prefix\..*\.seq$/ } $project_dir->children;
+
+            unless(@well_files){
+                $c->stash->{error_msg} = "Could not find any reads for $sub_project well $well_name";
+                return;
+            }
+
+            my @reads;
+            foreach my $file (@well_files){
+                my $input = $file->slurp;
+                my $seqIO = Bio::SeqIO->new(-string => $input, -format => 'fasta');
+                my $seq = $seqIO->next_seq();
+                my $read_name = $seq->display_id;
+                my ($primer) = ( $read_name =~ /^$file_prefix\.p1k(.*)$/ );
+
+                my $read = {
+                    well_name      => uc($well_name),
+                    primer         => $primer,
+                    plate_name     => $sub_project,
+                    seq            => $seq->seq,
+                    orig_read_name => $read_name,
+                };
+                push @reads, $read;
+            }
+            $c->stash->{reads} = \@reads;
+
+        }
+        else{
+            # Fetch the sequence fasta and parse it
+            my $script_name = 'fetch-seq-reads.sh';
+            my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+            my $fasta_input;
+            if ($version) {
+                $fasta_input = join "", capturex( $fetch_cmd, $project . '/' . $version );
+                $c->log->debug("Using version " . $version . " of " . $project);
+            } else {
+                $fasta_input = join "", capturex( $fetch_cmd, $project);
+                $c->log->debug("Using latest version of " . $project);
+            }
+
+            my $seqIO = Bio::SeqIO->new(-string => $fasta_input, -format => 'fasta');
+            my $seq_by_name = {};
+            while (my $seq = $seqIO->next_seq() ){
+                $seq_by_name->{ $seq->display_id } = $seq->seq;
+            }
+            # Parse all read names for the project
+            # and store along with read sequence
+            my $reads_by_sub;
+            foreach my $read ( get_parsed_reads($project) ){
+                $read->{seq} = $seq_by_name->{ $read->{orig_read_name} };
+                $read->{date} = get_seq_file_import_date( $project, $read->{orig_read_name}, $version);
+                $reads_by_sub->{ $read->{plate_name} } ||= [];
+                push @{ $reads_by_sub->{ $read->{plate_name} } }, $read;
+            }
+            $c->stash->{reads} = $reads_by_sub->{ $sub_project };
+        }
+    }
+
+    return;
+}
+
+sub file_name {
+    my ($c, $version, $project) = @_;
+    my $project_dir;
+    if ($version) {
+        $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project . '/' . $version);
+        $c->log->debug("Using version " . $version . " of " . $project);
+    }
+    else {
+        $project_dir = dir($ENV{LIMS2_SEQ_FILE_DIR}, $project);
+        $c->log->debug("Using latest version of " . $project);
+    }
+    unless (-r $project_dir){
+        $c->stash->{error_msg} = "Cannot fetch reads as directory $project_dir is not available";
+        return;
+    }
+    return $project_dir;
+}
+
+sub download_reads :Path( '/user/download_reads' ) :Args() {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'read' );
+
+    my $seq_project = $c->req->param('sequencing_project');
+
+    unless($seq_project){
+        $c->stash->{error_msg} = "No sequencing_project specified";
+    }
+
+    my $script_name = 'fetch-seq-reads.sh';
+    my $fetch_cmd = File::Which::which( $script_name ) or die "Could not find $script_name";
+    my $fasta = join "", capturex( $fetch_cmd, $seq_project );
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => "attachment; filename=$seq_project.fasta" );
+    $c->response->body( $fasta );
+    return;
 }
 
 =head1 LICENSE

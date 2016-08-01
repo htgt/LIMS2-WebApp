@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.415';
 }
 ## use critic
 
@@ -143,21 +143,6 @@ __PACKAGE__->add_unique_constraint("crisprs_wge_crispr_id_key", ["wge_crispr_id"
 
 =head1 RELATIONS
 
-=head2 crispr_designs
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::CrisprDesign>
-
-=cut
-
-__PACKAGE__->has_many(
-  "crispr_designs",
-  "LIMS2::Model::Schema::Result::CrisprDesign",
-  { "foreign.crispr_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 crispr_group_crisprs
 
 Type: has_many
@@ -248,7 +233,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 experiments
+=head2 experiments_including_deleted
 
 Type: has_many
 
@@ -257,7 +242,7 @@ Related object: L<LIMS2::Model::Schema::Result::Experiment>
 =cut
 
 __PACKAGE__->has_many(
-  "experiments",
+  "experiments_including_deleted",
   "LIMS2::Model::Schema::Result::Experiment",
   { "foreign.crispr_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -404,10 +389,22 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hPnkSJo9fDmtCBDVnkJDyg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uJN4fU8zwjPTSPud+ljxDg
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
+
+__PACKAGE__->has_many(
+  "experiments",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.crispr_id" => "self.id" },
+  { where => { "deleted" => 0 } },
+);
+
+# crispr_designs table merged into experiments table
+sub crispr_designs{
+    return shift->experiments;
+}
 
 use Bio::Perl qw( revcom );
 
@@ -424,13 +421,12 @@ sub as_hash {
     if ( my $default_assembly = $self->species->default_assembly ) {
         $locus = $self->search_related( 'loci', { assembly_id => $default_assembly->assembly_id } )->first;
     }
-    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
 
     my %h = (
         id             => $self->id,
         type           => $self->crispr_loci_type_id,
         seq            => $self->seq,
-        fwd_seq        => $fwd_seq,
+        fwd_seq        => $self->fwd_seq,
         species        => $self->species_id,
         comment        => $self->comment,
         locus          => $locus ? $locus->as_hash : undef,
@@ -446,6 +442,12 @@ sub as_hash {
     $h{off_target_summaries} = [ map { $_->as_hash } $self->off_target_summaries ];
 
     return \%h;
+}
+
+sub fwd_seq {
+    my $self = shift;
+    my $fwd_seq = !$self->pam_right ? revcom( $self->seq )->seq : $self->seq;
+    return $fwd_seq;
 }
 
 sub current_locus {
@@ -627,7 +629,8 @@ sub related_designs {
 
     foreach my $group ( $self->crispr_groups->all ) {
         foreach my $group_design ( $group->crispr_designs ) {
-            push @designs, $group_design->design;
+            my $crispr_group_design = $group_design->design;
+            push @designs, $crispr_group_design unless !defined($crispr_group_design);
         }
     }
 

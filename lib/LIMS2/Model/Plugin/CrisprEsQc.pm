@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.327';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.415';
 }
 ## use critic
 
@@ -414,6 +414,80 @@ sub set_het_status {
 }
 
 
+sub pspec_list_crispr_es_qc_runs {
+    return {
+        species    => { validate => 'existing_species' },
+        sequencing_project => { validate => 'non_empty_string', optional => 1 },
+        plate_name => { validate => 'non_empty_string',  optional => 1 },
+        page       => { validate => 'integer', optional => 1, default => 1 },
+        pagesize   => { validate => 'integer', optional => 1, default => 15 },
+    };
+}
+
+sub list_crispr_es_qc_runs {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_list_crispr_es_qc_runs );
+
+    my %search = (
+        'me.species_id' => $validated_params->{species},
+    );
+
+    if ( $validated_params->{sequencing_project} ) {
+        $search{'sequencing_project'} = { 'like', '%' . $validated_params->{sequencing_project} . '%' };
+    }
+    if ( $validated_params->{plate_name} ) {
+        $search{'plate.name'} = { 'like', '%' . $validated_params->{plate_name} . '%' };
+    }
+
+    my $resultset = $self->schema->resultset('CrisprEsQcRuns')->search(
+        { %search },
+        {
+            prefetch => [ 'created_by' ],
+            join     => {'crispr_es_qc_wells' => { well => 'plate' }},
+            order_by => { -desc => "me.created_at" },
+            page     => $validated_params->{page},
+            rows     => $validated_params->{pagesize},
+            distinct => 1
+        }
+    );
+
+    return ( [ map { $_->as_hash({ include_plate_name => 1}) } $resultset->all ], $resultset->pager );
+}
+
+# All QC runs for the specified project which do not already have a data version
+# are updated to use the specified data version
+sub _pspec_update_qc_runs_with_data_version{
+    return {
+        sequencing_project => { validate => 'non_empty_string' },
+        sequencing_data_version => { validate => 'non_empty_string' },
+    };
+}
+
+sub update_qc_runs_with_data_version{
+    my ($self,$params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->_pspec_update_qc_runs_with_data_version);
+
+    my @qc_runs = $self->schema->resultset('QcRunSeqProject')->search({
+        qc_seq_project_id       => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    push @qc_runs, $self->schema->resultset('CrisprEsQcRuns')->search({
+        sequencing_project      => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    foreach my $run (@qc_runs){
+        my $version = $validated_params->{sequencing_data_version};
+
+        $self->log->debug("Adding sequencing_data_version $version to QC run ".$run->id);
+        $run->update({ sequencing_data_version => $version })->discard_changes;
+    }
+
+    return \@qc_runs;
+}
 1;
 
 __END__

@@ -181,7 +181,7 @@ sub all_tests : Test(48) {
 
 }
 
-sub create_crispr_off_target : Tests() {
+sub create_crispr_off_target : Tests(12) {
     note('Testing create crispr off target');
 
     my $create_crispr_ot_data = test_data('create_crispr_off_target.yaml');

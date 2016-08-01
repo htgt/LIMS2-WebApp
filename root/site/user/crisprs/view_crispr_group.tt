@@ -7,8 +7,9 @@
 <div class="row">
   <table class="table table-bordered">
     <tr><th>ID</th> <td>[% cg.id %]</td></tr>
+    <tr><th>Species</th> <td>[% cg.species %]</td></tr>
     <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
-    <tr><th>Species</th> <td>[% species %]</td></tr>
+    <tr><th>Gene Symbol</th> <td>[% cg.gene_symbol %]</td></tr>
   </table>
 </div>
 
@@ -112,6 +113,12 @@
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr group</em></p>
+  [% IF c.check_user_roles( 'edit' ) %]
+    <p>
+    <a class="btn btn-primary" href="[% c.uri_for("/user/crispr_group/${cg.id}/view/", { generate_primers => 1 }) %]">Generate Primers</a>
+    <small>this action may take a few minutes</small>
+    </p>
+  [% END %]
 [% END %]
 
 
@@ -119,6 +126,7 @@
 <script type="text/javascript">
 
   $(document).ready(function() {
+    document.title = 'Crispr Group: [% cg.id %]';
     $(".validation-state-cell").each(function(){
       //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
       addPrimerValidationState(

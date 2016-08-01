@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.327';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.415';
 }
 ## use critic
 
@@ -175,6 +175,7 @@ my %process_check_well = (
     'cgap_qc'                => \&_check_wells_cgap_qc,
     'ms_qc'                  => \&_check_wells_ms_qc,
     'doubling'               => \&_check_wells_doubling,
+    'vector_cloning'         => \&_check_wells_vector_cloning,
 );
 
 sub check_process_wells {
@@ -205,7 +206,7 @@ sub check_input_wells {
 
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
-    my @types = uniq map { $_->plate->type_id } @input_wells;
+    my @types = uniq map { $_->plate_type } @input_wells;
     my %expected_input_process_types
         = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
 
@@ -234,7 +235,7 @@ sub check_output_wells {
 
     return unless exists $PROCESS_PLATE_TYPES{$process_type};
 
-    my @types = uniq map { $_->plate->type_id } @output_wells;
+    my @types = uniq map { $_->plate_type } @output_wells;
     my %expected_output_process_types
         = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
 
@@ -271,6 +272,16 @@ sub _check_wells_create_crispr {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_int_recom {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_vector_cloning {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -359,8 +370,8 @@ sub _check_wells_rearray {
     my @input_wells = $process->input_wells;
 
     # Output well type must be the same as the input well type
-    my $in_type = $input_wells[0]->plate->type_id;
-    my @output_types = uniq map { $_->plate->type_id } $process->output_wells;
+    my $in_type = $input_wells[0]->plate_type;
+    my @output_types = uniq map { $_->plate_type } $process->output_wells;
 
     my @invalid_types = grep { $_ ne $in_type } @output_types;
 
@@ -424,7 +435,7 @@ sub _check_wells_second_electroporation {
     check_output_wells( $model, $process);
 
     #two input wells, one must be xep, other dna
-    my @input_well_types = map{ $_->plate->type_id } $process->input_wells;
+    my @input_well_types = map{ $_->plate_type } $process->input_wells;
 
     if ( ( none { $_ eq 'XEP' } @input_well_types ) || ( none { $_ eq 'DNA' } @input_well_types ) ) {
         LIMS2::Exception::Validation->throw(
@@ -560,7 +571,7 @@ sub _check_wells_single_crispr_assembly {
     my $final_pick = 0;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             unless (defined $_->crispr) {
             LIMS2::Exception::Validation->throw(
@@ -568,7 +579,7 @@ sub _check_wells_single_crispr_assembly {
             }
 
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
     unless ($crispr_v == 1 && $final_pick == 1 ) {
         LIMS2::Exception::Validation->throw(
@@ -598,7 +609,7 @@ sub _check_wells_paired_crispr_assembly {
     my $pamleft;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             my $crispr = $_->crispr; # single crispr
             unless (defined $crispr) {
@@ -615,7 +626,7 @@ sub _check_wells_paired_crispr_assembly {
                 $pamleft = 1;
             }
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
 
     unless ($crispr_v == 2 && $final_pick == 1 ) {
@@ -655,7 +666,7 @@ sub _check_wells_group_crispr_assembly {
     my @crispr_ids;
 
     foreach (@input_parent_wells) {
-        if ($_->plate->type_id eq 'CRISPR_V') {
+        if ($_->plate_type eq 'CRISPR_V') {
             $crispr_v++;
             my $crispr = $_->crispr; # single crispr
             unless (defined $crispr) {
@@ -664,7 +675,7 @@ sub _check_wells_group_crispr_assembly {
             }
             push @crispr_ids, $crispr;
         }
-        if ($_->plate->type_id eq 'FINAL_PICK') {$final_pick++}
+        if ($_->plate_type eq 'FINAL_PICK') {$final_pick++}
     }
 
     @crispr_ids = uniq @crispr_ids;
@@ -708,10 +719,10 @@ sub _check_wells_oligo_assembly {
 
     my ( $design, $crispr );
     foreach ( $process->input_wells ) {
-        if ($_->plate->type_id eq 'DESIGN') {
+        if ($_->plate_type eq 'DESIGN') {
             $design = $_->design;
         }
-        elsif ($_->plate->type_id eq 'CRISPR') {
+        elsif ($_->plate_type eq 'CRISPR') {
             $crispr = $_->crispr;
         }
     }
@@ -799,11 +810,11 @@ my %process_aux_data = (
     'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
     'doubling'               => \&_create_process_aux_data_doubling,
+    'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
 );
 
 sub create_process_aux_data {
     my ( $model, $process, $params ) = @_;
-
     my $process_type = $process->type_id;
     LIMS2::Exception::Implementation->throw(
         "Don't know how to create auxiliary data for process type $process_type"
@@ -817,6 +828,7 @@ sub create_process_aux_data {
 sub pspec__create_process_aux_data_create_di {
     return {
         design_id => { validate => 'existing_design_id' },
+        dna_template => { optional => 1 },
         bacs =>
             { validate => 'hashref', optional => 1 } # validate called on each element of bacs array
     };
@@ -825,7 +837,6 @@ sub pspec__create_process_aux_data_create_di {
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_create_di {
     my ( $model, $params, $process ) = @_;
-
     my $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_create_di() );
 
@@ -881,16 +892,16 @@ sub pspec__create_process_aux_data_int_recom {
     ## Backbone constraint must be set depending on species
     return {
         cassette => { validate => 'existing_intermediate_cassette' },
+        dna_template => { optional => 1 },
     };
 }
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_int_recom {
     my ( $model, $params, $process ) = @_;
-
     my $pspec = pspec__create_process_aux_data_int_recom;
     my ($input_well) = $process->process_input_wells;
-    my $species_id = $input_well->well->plate->species_id;
+    my $species_id = $input_well->well->plate_species->id;
 
     # allow any type of backbone for int_recom process now...
     # backbone puc19_RV_GIBSON is used in both int and final wells
@@ -901,6 +912,34 @@ sub _create_process_aux_data_int_recom {
     my $validated_params = $model->check_params( $params, $pspec );
 
     $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    return;
+}
+## use critic
+
+sub pspec__create_process_aux_data_vector_cloning {
+    ## Backbone constraint must be set depending on species
+    return {
+        dna_template => { optional => 1 },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_vector_cloning {
+    my ( $model, $params, $process ) = @_;
+    my $pspec = pspec__create_process_aux_data_vector_cloning;
+    my ($input_well) = $process->process_input_wells;
+    my $species_id = $input_well->well->plate_species->id;
+
+    # allow any type of backbone for int_recom process now...
+    # backbone puc19_RV_GIBSON is used in both int and final wells
+    # and our final / intermediate backbone system does not handle this
+    # case yet so for now allow anything
+    $pspec->{backbone} = { validate => 'existing_backbone' };
+
+    my $validated_params = $model->check_params( $params, $pspec );
+
     $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
 
     return;

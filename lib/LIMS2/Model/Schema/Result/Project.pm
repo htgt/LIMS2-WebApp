@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.415';
 }
 ## use critic
 
@@ -83,11 +83,6 @@ __PACKAGE__->table("projects");
   data_type: 'text'
   is_nullable: 1
 
-=head2 priority
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 recovery_class_id
 
   data_type: 'integer'
@@ -97,6 +92,12 @@ __PACKAGE__->table("projects");
 =head2 targeting_profile_id
 
   data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 cell_line_id
+
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 1
 
@@ -122,12 +123,12 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "recovery_comment",
   { data_type => "text", is_nullable => 1 },
-  "priority",
-  { data_type => "text", is_nullable => 1 },
   "recovery_class_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "targeting_profile_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "cell_line_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -172,19 +173,24 @@ __PACKAGE__->add_unique_constraint(
 
 =head1 RELATIONS
 
-=head2 experiments
+=head2 cell_line
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Experiment>
+Related object: L<LIMS2::Model::Schema::Result::CellLine>
 
 =cut
 
-__PACKAGE__->has_many(
-  "experiments",
-  "LIMS2::Model::Schema::Result::Experiment",
-  { "foreign.project_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "cell_line",
+  "LIMS2::Model::Schema::Result::CellLine",
+  { id => "cell_line_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 project_sponsors
@@ -243,8 +249,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MW9rEeT4zSlkVgyiiibv2w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 11:09:56
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A/NJuU/3iM+F6vxZqf4auA
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
@@ -267,8 +273,29 @@ sub as_hash {
           "recovery_class"    => $self->recovery_class_name,
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
+          "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "sponsors"          => join "/", @sponsors,
     }
+}
+
+sub priority{
+    my ($self,$sponsor) = @_;
+
+    # For specified sponsor
+    if($sponsor){
+        my ($project_sponsor) = $self->search_related('project_sponsors',{ sponsor_id => $sponsor });
+        my $priority = $project_sponsor ? $project_sponsor->priority : undef;
+        return $priority;
+    }
+
+    # Or string showing priorites for all sponsors
+    my @priority_strings;
+    foreach my $project_sponsor($self->project_sponsors){
+        next unless $project_sponsor->priority;
+        push @priority_strings, $project_sponsor->sponsor_id.": ".$project_sponsor->priority;
+    }
+    my $string = join "; ", @priority_strings;
+    return $string;
 }
 
 sub recovery_class_name {
@@ -283,6 +310,19 @@ sub sponsor_ids{
     my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
     my @sorted = sort @sponsors;
     return @sorted;
+}
+
+# removed direct link between experiments and projects so recreate
+# the relationship using shared gene_id
+sub experiments{
+    my $self = shift;
+
+    my @experiments = $self->result_source->schema->resultset('Experiment')->search({
+        gene_id => $self->gene_id,
+        deleted => 0,
+    });
+
+    return @experiments;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

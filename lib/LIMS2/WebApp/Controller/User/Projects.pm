@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.327';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.415';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
+use LIMS2::Model::Util::RedmineAPI;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -26,10 +27,15 @@ Catalyst Controller.
 
 =cut
 
+my $redmine = LIMS2::Model::Util::RedmineAPI->new_with_config();
+
 sub manage_projects :Path('/user/manage_projects'){
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+
+    my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
+    $c->stash->{cell_line_options} = \@cell_lines;
 
     my $species_id = $c->session->{selected_species};
     my $gene_id;
@@ -57,6 +63,10 @@ sub manage_projects :Path('/user/manage_projects'){
         $c->stash->{targeting_profile_id} = $targ_profile;
         $search->{targeting_profile_id} = $targ_profile;
     }
+    if( my $cell_line_id = $c->req->param('cell_line_id')){
+        $c->stash->{cell_line_id} = $cell_line_id;
+        $search->{cell_line_id} = $cell_line_id;
+    }
 
     my @project_results;
     if($c->req->param('create_project')){
@@ -67,7 +77,8 @@ sub manage_projects :Path('/user/manage_projects'){
             # Create a new project
             if(my $sponsor = $c->req->param('sponsor')){
                 $c->stash->{sponsor} = $sponsor;
-                $search->{sponsors} = [ $sponsor ];
+                # Priority is undef for now. User can set priority on the view project page
+                $search->{sponsors_priority} = { $sponsor => undef };
             }
             my $project;
             $c->model('Golgi')->txn_do(
@@ -146,15 +157,45 @@ sub view_project :Path('/user/view_project'){
         species => $project->species_id
     } ) };
 
+    if($c->req->param('conclude_project')){
+        $project->update({ effort_concluded => 1});
+
+        # We also need to update the status in redmine if applicable
+        my $comment = "Project terminated by LIMS2 user ".$c->user->name;
+        my @issues = $c->req->param('redmine_issue_id');
+        $c->log->debug("redmine issues to terminate: ".join ",", @issues);
+
+        my @update_errors;
+        foreach my $issue_id (@issues){
+            $c->log->debug("Setting redmine issue $issue_id status to Terminated");
+            try{
+                $redmine->update_issue_status($issue_id,'Terminated',$comment);
+            }
+            catch{
+                 push @update_errors, "Error terminating redmine issue $issue_id: ".$_;
+            };
+        }
+        if(@update_errors){
+            $c->stash->{error_msg} = join "<br>", @update_errors;
+        }
+        else{
+            $c->stash->{success_msg} = "Project effort has been concuded";
+        }
+    }
+
     if($c->req->param('update_sponsors')){
         $c->assert_user_roles('edit');
-        my @new_sponsors = $c->req->param('sponsors');
+        my $sponsors_priority = {};
+        foreach my $sponsor_id ($c->req->param('sponsors')){
+            my $priority = $c->req->param($sponsor_id."_priority");
+            $sponsors_priority->{$sponsor_id} = $priority;
+        }
         $c->model('Golgi')->txn_do(
             sub {
                 try{
                     $c->model('Golgi')->update_project_sponsors({
                         project_id => $project->id,
-                        sponsor_list => \@new_sponsors,
+                        sponsors_priority => $sponsors_priority,
                     });
                     $c->stash->{success_msg} = 'Project sponsor list updated';
                 }
@@ -170,6 +211,8 @@ sub view_project :Path('/user/view_project'){
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};
+        delete $params->{project_id};
+        $params->{gene_id} = $project->gene_id;
         try{
             my $experiment = $c->model('Golgi')->create_experiment($params);
             $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id;
@@ -198,15 +241,20 @@ sub view_project :Path('/user/view_project'){
     my @group_suggest = map { $_->id }
                             $c->model('Golgi')->schema->resultset('CrisprGroup')->search({ gene_id => $project->gene_id });
 
+    my @recovery_class_names =  map { $_->name } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } });
+
     $c->stash->{project} = $project->as_hash;
     if($gene_info->{gene_symbol}){
         $c->stash->{gene_symbol} = $gene_info->{gene_symbol};
     }
     $c->stash->{project_sponsors} = { map { $_ => 1 } $project->sponsor_ids };
+    $c->stash->{sponsors_priority} = { map { $_->sponsor_id => $_->priority } $project->project_sponsors };
     $c->stash->{all_sponsors} = \@sponsors;
-    $c->stash->{experiments} = [ $project->experiments ];
+    $c->stash->{experiments} = [ sort { $a->id <=> $b->id } $project->experiments ];
     $c->stash->{design_suggest} = \@design_suggest;
     $c->stash->{group_suggest} = \@group_suggest;
+    $c->stash->{recovery_classes} = \@recovery_class_names;
+
     return;
 }
 
@@ -269,7 +317,7 @@ sub index :Path( '/user/projects' ) :Args(0) {
         $_->effort_concluded,
         $_->recovery_class_name // '',
         $_->recovery_comment // '',
-        $_->priority // '',
+        $_->priority($sel_sponsor) // '',
     ] } @projects;
 
 

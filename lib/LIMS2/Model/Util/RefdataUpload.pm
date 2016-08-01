@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RefdataUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RefdataUpload::VERSION = '0.327';
+    $LIMS2::Model::Util::RefdataUpload::VERSION = '0.415';
 }
 ## use critic
 
@@ -36,11 +36,13 @@ sub load_csv_file {
             LIMS2::Exception::Validation->throw( "Invalid csv file: $_" );
         }
     };
-
+    my $current_csv;
+    my $rec_copy;
     try {
         for my $csv_record (@{$csv_data}) {
+            $current_csv = $csv_record;
             my $rec = $rs->update_or_new({%{$csv_record}});
-
+            $rec_copy = $rec;
             if ($rec->in_storage) {
                 # the record was updated
             }
@@ -52,7 +54,9 @@ sub load_csv_file {
     }
     catch {
         DEBUG( "Error inserting csv data ('" . $_ . "')" );
-        LIMS2::Exception::Validation->throw( "Error inserting csv data: " . $_ );
+        DEBUG( "Result set - " . $rs->result_class );
+        LIMS2::Exception::Validation->throw( "Result set - "  . " Rec - " . $rec_copy );
+        #"Error inserting csv data: " . $_ 
     };
 
     return;

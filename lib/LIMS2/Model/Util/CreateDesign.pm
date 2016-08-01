@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.327';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.415';
 }
 ## use critic
 
@@ -9,14 +9,23 @@ package LIMS2::Model::Util::CreateDesign;
 use warnings FATAL => 'all';
 
 use Moose;
+
+use Sub::Exporter -setup => {
+    exports => [ 'convert_gibson_to_fusion' ]
+};
+
+
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Exception;
 use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
 use Path::Class;
 use Const::Fast;
 use TryCatch;
+use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch109/sanger/team87/lims2_designs';
@@ -158,6 +167,7 @@ sub designs_for_exons {
                 -or => [
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
+                    design_type_id  => 'fusion-deletion',
                 ],
             ],
         },
@@ -224,37 +234,36 @@ sub design_targets_for_exons {
     return;
 }
 
-=head2 create_exon_target_gibson_design
+=head2 create_exon_target_design
 
 Wrapper for all the seperate subroutines we need to run to
 initiate the creation of a gibson design with a exon target.
 
 =cut
-sub create_exon_target_gibson_design {
+sub create_exon_target_design {
     my ( $self ) = @_;
-
-    my $params         = $self->c_parse_and_validate_exon_target_gibson_params();
+    my $params         = $self->c_parse_and_validate_exon_target_design_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     $self->calculate_design_targets( $params );
-    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $cmd            = $self->c_generate_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );
 }
 
-=head2 create_custom_target_gibson_design
+=head2 create_custom_target_design
 
 Wrapper for all the seperate subroutines we need to run to
 initiate the creation of a gibson design with a custom target.
 
 =cut
-sub create_custom_target_gibson_design {
+sub create_custom_target_design {
     my ( $self ) = @_;
 
-    my $params         = $self->c_parse_and_validate_custom_target_gibson_params();
+    my $params         = $self->c_parse_and_validate_custom_target_design_params();
     my $design_attempt = $self->c_initiate_design_attempt( $params );
     $self->calculate_design_targets( $params );
-    my $cmd            = $self->c_generate_gibson_design_cmd( $params );
+    my $cmd            = $self->c_generate_design_cmd( $params );
     my $job_id         = $self->c_run_design_create_cmd( $cmd, $params );
 
     return ( $design_attempt, $job_id );
@@ -393,6 +402,199 @@ sub find_or_create_design_target {
     return $design_target;
 }
 
+=head create_point_mutation_design
+
+Provide a wild type sequence (or its coordinates) and oligo sequence containing point mutation
+to create a design. Does some validation of wt vs mutant oligo sequence.
+
+=cut
+
+sub _pspec_create_point_mutation_design{
+    return {
+        oligo_sequence     => { validate => 'dna_seq' },
+        chr_name           => { validate => 'existing_chromosome' },
+        chr_start          => { validate => 'integer' },
+        chr_end            => { validate => 'integer' },
+        chr_strand         => { validate => 'strand'  },
+    }
+}
+
+sub create_point_mutation_design{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->model->check_params( $params, $self->_pspec_create_point_mutation_design, ignore_unknown => 1 );
+
+    my $locus = { slice_def $validated_params, qw(chr_name chr_strand chr_start chr_end) };
+
+    my $assembly = $self->model->get_species_default_assembly($self->species);
+    $locus->{assembly} = $assembly;
+
+    # find wild type sequence in ensembl
+    my $slice = $self->ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $locus->{chr_name},
+        $locus->{chr_start},
+        $locus->{chr_end},
+        $locus->{chr_strand}
+    );
+    my $wild_type_sequence = $slice->seq();
+    $self->log->debug("Got wild type sequence $wild_type_sequence");
+
+    my $oligo_sequence = $self->mutant_seq_with_lower_case({
+        mutant_seq    => $validated_params->{oligo_sequence},
+        wild_type_seq => $wild_type_sequence,
+        max_mismatch_percent => 10,
+    });
+
+    # delete point mutation design specific params as the remaining params
+    # will be passed to the generic design creation method
+    delete @{$params}{qw( oligo_sequence chr_name chr_strand chr_start chr_end wild_type_sequence)};
+
+    # add the oligo and loci information to params
+    $params->{oligos} = [
+        {
+            type => 'PM',
+            seq  => $oligo_sequence,
+            loci => [ $locus ],
+        }
+    ];
+
+    $params->{species} = $self->species;
+    $params->{created_by} = $self->user;
+
+    my $design;
+    $self->model->txn_do(
+        sub {
+            try {
+                $design = $self->model->c_create_design($params);
+            }
+            catch ($err){
+                $self->log->error( "Error creating point muation design: $err" );
+                $self->model->txn_rollback;
+
+                #re-throw error so it goes to webapp
+                die $err;
+            };
+        }
+    );
+
+    return $design;
+}
+
+=head2 mutant_seq_with_lower_case
+
+Return mutant seq with lower case characters where it does not match
+wild type seq. (comparison is base by base and assumes strings are same
+length with no insertions/deletions)
+
+=cut
+
+sub mutant_seq_with_lower_case{
+    my ($self, $params) = @_;
+    my $mutant = $params->{mutant_seq} or die "No mutant_seq parameter provided";
+    my $wt = $params->{wild_type_seq} or die "No wild_type_seq parameter provided";
+
+    my @mutant_chars = map { uc $_ } split "", $mutant;
+    my @wt_chars = map { uc $_ } split "", $wt;
+
+    if(scalar @mutant_chars != scalar @wt_chars){
+        die "Wild type sequences are different lengths. Cannot compare.";
+    }
+
+    my @new_chars;
+    my $mismatch_count = 0;
+    foreach my $i (0..$#mutant_chars){
+        if( $mutant_chars[$i] eq $wt_chars[$i] ){
+            push @new_chars, $mutant_chars[$i];
+        }
+        else{
+            $self->log->debug("Sequence mismatch identified at position $i of oligo");
+            $mismatch_count++;
+            push @new_chars, lc( $mutant_chars[$i] );
+        }
+    }
+
+    my $new = join "", @new_chars;
+
+    my $max_mismatch_percent = $params->{max_mismatch_percent};
+    if(defined $max_mismatch_percent){
+        my $percent = ( $mismatch_count / scalar(@mutant_chars) ) * 100;
+        $self->log->debug("Mismatch percent: $percent");
+        if($percent > $max_mismatch_percent){
+            die "More than $max_mismatch_percent % mismatch found between sequences:\n"
+                ."Wild type: $wt\n"
+                ."Mutant   : $mutant";
+        }
+    }
+    return $new;
+}
+
+sub convert_gibson_to_fusion {
+    my ($self, $c, $id) = @_;
+    my $oligo_rs = $c->model('Golgi')->schema->resultset('DesignOligo')->search({ design_id => $id });
+    my @oligos;
+    my $oligo_rename = {
+        '5F'   => 'f5F',
+        '3F'    => 'D3',
+        '3R'    => 'f3R',
+        '5R'   => 'U5',
+    };
+
+    while (my $singular_oligo = $oligo_rs->next) {
+        my $singular = $singular_oligo->{_column_data};
+        my $existing_loci = $singular_oligo->current_locus;
+        my $loci_rs = $c->model('Golgi')->schema->resultset('DesignOligoLocus')->search({
+            design_oligo_id => $singular->{id},
+            assembly_id => $existing_loci->assembly_id
+        })->next->{_column_data};
+        my $chromosome = $c->model('Golgi')->schema->resultset('Chromosome')->find({ id => $loci_rs->{chr_id}})->{_column_data};
+        $self->{species} = $chromosome->{species_id};
+        $self->{chr_strand} = $loci_rs->{chr_strand};
+        $self->{chr_name} = $chromosome->{name};
+        my $loci = {
+            'chr_end'       => $loci_rs->{chr_end},
+            'chr_start'     => $loci_rs->{chr_start},
+            'chr_strand'    => $self->{chr_strand},
+            'chr_name'      => $self->{chr_name},
+            'assembly'      => $existing_loci->assembly_id,
+        };
+        my @loci = $loci;
+        my $fusion_oligo = $oligo_rename->{$singular->{design_oligo_type_id}};
+        if ($fusion_oligo) {
+            my $oligo = {
+                'type'          => $fusion_oligo,
+                'seq'           => $singular->{seq},
+                'loci'          => \@loci,
+            };
+            push @oligos, $oligo;
+        }
+    }
+
+    $self->_build_ensembl_util();
+    my $oligos = \@oligos;
+    my @modified_oligos = modify_fusion_oligos($self, $oligos, 1);
+    my $gene = $c->model('Golgi')->schema->resultset('GeneDesign')->find({ design_id => $id })->{_column_data};
+    my @genes;
+    push (@genes, $gene);
+
+    my $attempt = {
+        'species'       => $self->{species},
+        'created_by'    => $c->user->name,
+        'oligos'        => \@oligos,
+        'type'          => 'fusion-deletion',
+        'gene_ids'      => \@genes,
+        'parent_id'     => $id,
+    };
+    my $design = $c->model( 'Golgi' )->c_create_design( $attempt );
+    if ($design) {
+        $c->stash->{success_msg} = "Successfully created fusion-deletion design " . $design->id . " from design " . $id;
+        $c->response->redirect( $c->uri_for('/user/view_design' , {'design_id'=>$design->id}) );
+    }
+    else {
+        $c->stash->{error_msg} = "Error occured during conversion " . $_;
+    }
+    return;
+}
 =head2 throw_validation_error
 
 Override parent throw method to use LIMS2::Exception::Validation.

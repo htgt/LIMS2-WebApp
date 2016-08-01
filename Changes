@@ -1,3 +1,328 @@
+0.415     2016-08-01 11:54:10 Europe/London
+
+    Gene summary bootstrap issues fixed
+    Plate report, plate name added to browser tab
+    Rearray plate upload, added required DNA template for INT plates
+
+0.414     2016-07-25 10:18:37 Europe/London
+
+	Create Announcement fix
+
+0.413     2016-07-21 15:21:12 Europe/London
+
+   CSV report download fix
+
+0.412     2016-07-21 12:55:47 Europe/London
+
+   Speed up front page report generation
+
+0.411     2016-07-08 15:07:49 Europe/London
+    Changes to the front page reports
+0.410     2016-07-06 13:49:49 Europe/London
+
+   Faster page load for gene summary
+
+0.409     2016-07-04 13:16:33 Europe/London
+
+    Run vector QC from LIMS2 without using HTGT API 
+
+0.408     2016-06-28 14:31:33 Europe/London
+    Added import dates to the view seq traces
+0.407     2016-06-21 09:46:07 Europe/London
+
+    Additions to QC plasmid view to support viewing of failed QC results
+
+0.406     2016-06-15 14:47:16 Europe/London
+
+    Added mthod to view and create announcement messages for the webapp
+
+0.405     2016-06-14 14:45:06 Europe/London
+    Added custom and pair Eurofins spreadsheet generation
+0.404     2016-06-10 09:45:56 Europe/London
+
+    Implemented method to get wells from crispr ID
+
+0.403     2016-06-07 14:21:52 Europe/London
+
+   Modified Crispr ES QC to use blat for alignment instead of BWA
+
+0.402     2016-05-24 14:27:53 Europe/London
+
+    Fixes to bootstrap migration on QC submission and QC view pages
+
+0.401     2016-05-23 15:04:35 Europe/London
+    Bootstrap fixes: Qc Template
+0.400     2016-05-18 12:31:14 Europe/London
+    Bootstrap fixes
+0.399     2016-05-16 12:27:42 Europe/London
+    Bootstrap V3
+0.398     2016-05-10 11:59:11 Europe/London
+
+   Display design oligo search regions in genoverse and UCSC
+
+0.397     2016-04-28 11:27:05 Europe/London
+
+   Support manual release of PIQ barcoded wells to mutation signatures
+
+0.396     2016-04-21 16:48:37 Europe/London
+    Moved announcements api to public
+0.395     2016-04-20 16:19:56 Europe/London
+    Added announcements
+0.394     2016-04-14 11:53:56 Europe/London
+
+    Handle multiple versions of sequencing data for a seq project
+
+0.393     2016-04-11 09:35:15 Europe/London
+    Traceviewer bug fixes
+0.392     2016-04-05 13:20:55 Europe/London
+
+0.391     2016-04-05 12:25:32 Europe/London
+   Improved the accuracy of the traceviewer
+
+0.390     2016-04-04 15:14:33 Europe/London
+
+   Redirect not logged in users to clone request info page
+
+0.389     2016-03-24 14:02:34 Europe/London
+
+   Update to front page report queries to allow for wells without plates
+
+0.388     2016-03-23 09:30:07 Europe/London
+
+   Another attempt to speed up summary generation
+   More report fixes
+
+0.387     2016-03-21 16:29:00 Europe/London
+
+    Updates to the EP reports
+
+0.386     2016-03-18 11:29:46 Europe/London
+    Sequencing project xls primer option added
+0.385     2016-03-17 15:41:16 Europe/London
+
+    Optimization of summaries generation
+
+0.384     2016-03-16 16:27:19 Europe/London
+
+    Added new PREINT plate type and vector_cloning process
+
+0.383     2016-03-14 13:44:45 Europe/London
+    Moved appends to the DB
+0.382     2016-03-10 12:51:06 Europe/London
+    
+    Added traceviewer modifications to crispr QC
+
+0.381     2016-03-03 16:09:43 Europe/London
+
+   bugfix to crispr ES QC and checked out barcode lists
+
+0.380     2016-03-02 15:46:38 Europe/London
+
+   bugfix to mutation_signatures_info API
+
+0.379     2016-03-01 14:53:57 Europe/London
+
+   Allow well locations to change or be null so we can handle barcodes without plate versioning
+
+0.378     2016-03-01 10:02:17 Europe/London
+
+    can view seqeuncing traces for a specified well
+    mutation signatures: 3 PIQ subclones frozen back, sibling_barcodes provided in JSON API 
+
+0.377     2016-02-23 14:16:46 Europe/London
+
+    experiments now flagged as deleted and can be restored
+    temporary restriction of access to some public reports
+
+0.376     2016-02-17 15:28:10 Europe/London
+
+    added crispr pairs and groups to the crispr page
+    experient management updates
+
+0.375     2016-02-16 11:09:47 Europe/London
+
+    Added duplicate checking to gibson convertor
+    bugfix CRISPR plate reports
+
+0.374     2016-02-10 14:28:44 Europe/London
+    Schema file regen
+0.373     2016-02-10 10:18:59 Europe/London
+    Moved dna_template to the int plates
+0.372     2016-02-05 15:43:43 Europe/London
+    Added Dna_template to the design plates
+0.371     2016-02-05 12:35:32 Europe/London
+
+0.369     2016-02-05 11:44:33 Europe/London
+
+    Corrected Eng seq Params for fusion
+0.370     2016-02-03 09:32:28 Europe/London
+
+0.369     2016-02-02 18:04:15 Europe/London
+
+    Gene Summary page retrieve_well now uses well_id
+
+0.368     2016-02-02 09:56:12 Europe/London
+
+    crispr_designs merged into experiments table and crispr_designs table dropped
+
+0.367     2016-01-28 09:57:06 Europe/London
+
+0.366     2016-01-27 17:04:13 Europe/London
+
+    sponsor abbreviation moved into database
+
+0.365     2016-01-25 15:14:32 Europe/London
+
+    project priority now set sponsor by sponsor
+
+0.364     2016-01-19 14:51:42 Europe/London
+
+    bugfix: fusion qc_eng_seqs method was incorrect
+
+0.363     2016-01-18 09:39:35 Europe/London
+
+    bugfix: QC results now shown in mutation_signatures_info if they are linked to an old version of the well
+
+0.362     2016-01-13 12:09:01 Europe/London
+    Fixed genoverse design browser  
+0.361     2016-01-12 12:25:40 Europe/London
+    Converter sequence alignment fixes
+0.360     2016-01-11 13:18:00 Europe/London
+    Added standard gibsons to the fusion converter
+0.359     2016-01-06 11:22:15 Europe/London
+    Added parent IDs to designs
+0.358     2016-01-04 12:13:24 Europe/London
+    Added fusion convertor
+0.357     2015-12-08 16:12:42 Europe/London
+    Added fusion-deletion designs
+0.356     2015-12-02 14:59:12 Europe/London
+
+    Recovery status editing added to project view page
+    Updates to gene summary page
+    Gene symbols added to design and crispr view pages
+
+0.355     2015-12-01 14:40:49 Europe/London
+
+0.354     2015-12-01 13:55:54 Europe/London
+    Changes made for Fusion-Deletion
+    Initial release for testing on staging
+
+0.354     2015-11-30 14:48:25 Europe/London
+
+    bugfix on crispr qc, checking if a well is accepted on any run
+    species switch now stays on same page instead of homepage
+    gene summary page: added het status, update to electroporation section, refactoring to speed up
+    front page report warnings cleanup
+    search_genes method deprecated
+
+0.353     2015-11-10 10:40:24 Europe/London
+
+  Bug fix to sequencing import. Added sequencing project help text
+
+0.352     2015-11-07 13:49:36 Europe/London
+
+
+0.351     2015-11-06 16:24:45 Europe/London
+
+    Bugfixes to the generic grid report
+
+0.350     2015-11-03 14:32:41 Europe/London
+
+    Improvements to Eurofins data extraction script
+
+0.349     2015-10-26 15:57:56 Europe/London
+    Added highlight search to gene summary
+    Added XLSX download to reports
+
+0.348     2015-10-23 13:15:28 Europe/London
+
+    Search updated in CRISPR QC Runs 
+    is_het added to mutation signatures JSON string
+
+0.347     2015-10-22 15:04:26 Europe/London
+
+  Gene symbols and searching added to mutation signatures barcodes page
+  Sequence highlighting added to crispr QC view page 
+
+0.346     2015-10-19 13:12:15 Europe/London
+
+  Sequence highlighting on trace view page
+
+0.345     2015-10-16 09:38:21 Europe/London
+
+0.344     2015-10-13 15:56:23 Europe/London
+
+   Added view and create links from project/experiment view to redmine
+
+0.343     2015-10-12 15:43:51 Europe/London
+
+    Added page to view sequence data traces
+
+0.342     2015-10-09 09:43:12 Europe/London
+
+0.341     2015-10-08 15:18:51 Europe/London
+
+0.340     2015-10-07 15:27:03 Europe/London
+    Sequencing project 96 plate creation added
+    Download sequencing project xlsx added
+    Sequencing project view and create interfaces added 
+0.339     2015-10-01 11:50:37 Europe/London
+
+    Cell line added to projects
+    Experiments linked to genes rather than projects
+
+0.337     2015-09-17 16:50:11 Europe/London
+    Added create design and crispr plates function
+    Added experiments to summarys table
+
+0.336     2015-09-03 12:59:33 Europe/London
+
+    Removed dependancy on lustre file system
+    Added point mutation design creation form
+    Workflow changes to allow freeze back of Kolf cells to FP
+
+0.335     2015-08-26 09:26:50 Europe/London
+    Fixed bug in the public reports
+
+0.334     2015-08-21 11:32:40 Europe/London
+    Search crisprs by sequence feature added
+    Crispr primer validation checks added to public reports 
+
+0.333     2015-08-12 14:15:23 Europe/London
+
+    Front page report wide view update
+    Extra methods to check region around primers
+
+0.332     2015-08-10 16:50:10 Europe/London
+
+    Het summary update
+
+0.331     2015-08-05 14:26:27 Europe/London
+
+   Het summary report added
+   Vector QC plasmid maps added to result view
+   Assembly plate QC verified status flag added
+
+0.330     2015-07-30 14:07:01 Europe/London
+
+0.329     2015-07-30 13:30:02 Europe/London
+
+    Improved genoverse views 
+    Fixed bug in crispr damage QC view 
+    Added primer generation to crispr import 
+    QC run summary changed to handle similar designs
+
+0.329     2015-07-22 10:45:33 Europe/London
+
+    Sponsor front page sub-report updated:
+    - Added splice_acceptor calls to the frameshift counts
+    - het clones make a green project checkpoint
+    - failed project always turn red most recent checkpoint
+
+0.328     2015-07-21 11:57:39 Europe/London
+
+    Added view experiment interface
+
 0.327     2015-06-29 15:52:14 Europe/London
 
     Added new variant calls: splice_acceptor, splice_donor, intron

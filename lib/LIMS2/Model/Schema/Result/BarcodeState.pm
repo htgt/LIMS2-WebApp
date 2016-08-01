@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::BarcodeState;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::BarcodeState::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::BarcodeState::VERSION = '0.415';
 }
 ## use critic
 
@@ -107,24 +107,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 well_barcodes
+=head2 wells
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::WellBarcode>
+Related object: L<LIMS2::Model::Schema::Result::Well>
 
 =cut
 
 __PACKAGE__->has_many(
-  "well_barcodes",
-  "LIMS2::Model::Schema::Result::WellBarcode",
+  "wells",
+  "LIMS2::Model::Schema::Result::Well",
   { "foreign.barcode_state" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-06 15:08:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xzbtzIoHkGytJY0s/pIgLg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:anvQPRiGtcpyaQm+1dkA8Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

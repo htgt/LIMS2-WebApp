@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.327';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.415';
 }
 ## use critic
 
@@ -51,12 +51,6 @@ __PACKAGE__->table("experiments");
   is_nullable: 0
   sequence: 'experiments_id_seq'
 
-=head2 project_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 design_id
 
   data_type: 'integer'
@@ -81,6 +75,23 @@ __PACKAGE__->table("experiments");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 gene_id
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 plated
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
+=head2 deleted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -91,8 +102,6 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "experiments_id_seq",
   },
-  "project_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "design_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "crispr_id",
@@ -101,6 +110,12 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "crispr_group_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "gene_id",
+  { data_type => "text", is_nullable => 1 },
+  "plated",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "deleted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -114,37 +129,6 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
-
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<experiment_components_key>
-
-=over 4
-
-=item * L</project_id>
-
-=item * L</design_id>
-
-=item * L</crispr_id>
-
-=item * L</crispr_pair_id>
-
-=item * L</crispr_group_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint(
-  "experiment_components_key",
-  [
-    "project_id",
-    "design_id",
-    "crispr_id",
-    "crispr_pair_id",
-    "crispr_group_id",
-  ],
-);
 
 =head1 RELATIONS
 
@@ -228,35 +212,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 project
 
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::Project>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "project",
-  "LIMS2::Model::Schema::Result::Project",
-  { id => "project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-03-30 14:31:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jY+6DMtaTv42ooTBAbaZkw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 12:24:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1V5OvWyV0Ze3tthsOkhBg
 
 sub as_hash{
     my $self = shift;
 
     return {
         id              => $self->id,
-        project_id      => $self->project_id,
+        gene_id         => $self->gene_id,
         design_id       => $self->design_id,
         crispr_id       => $self->crispr_id,
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_group_id => $self->crispr_group_id,
+        deleted         => $self->deleted,
     };
 }
 
@@ -265,7 +235,7 @@ sub as_hash_with_detail{
 
     my $info = $self->as_hash;
 
-    $info->{gene_id} = $self->project->gene_id;
+    $info->{gene_id} = $self->gene_id;
 
     if(my $design = $self->design){
         my @design_primers = map { $_->as_hash } $design->genotyping_primers;
@@ -290,10 +260,19 @@ sub as_hash_with_detail{
     if(@crisprs){
         my @crispr_info;
         foreach my $crispr (@crisprs){
-            push @crispr_info, {
-                id  => $crispr->id,
-                seq => $crispr->seq,
+            my $crispr_detail =  {
+                id        => $crispr->id,
+                seq       => $crispr->seq,
+                pam_right => !defined $crispr->pam_right ? '' : $crispr->pam_right == 1 ? 'true' : 'false',
             };
+
+            if(my $locus = $crispr->current_locus){
+                $crispr_detail->{chr_name}  = $locus->chr->name;
+                $crispr_detail->{chr_start} = $locus->chr_start;
+                $crispr_detail->{chr_end}   = $locus->chr_end;
+                $crispr_detail->{assembly}  = $locus->assembly_id;
+            }
+            push @crispr_info, $crispr_detail;
         }
         $info->{crisprs} = \@crispr_info;
     }
@@ -308,6 +287,23 @@ sub as_hash_with_detail{
         $info->{crispr_primers} = \@primers;
     }
     return $info;
+}
+
+# Grab the first design or crispr entity we find so we can get chromosome info etc from it
+sub _related_entity{
+    my $self = shift;
+    my ($related_entity) = grep { $_ } ( $self->crispr, $self->crispr_pair, $self->crispr_group, $self->design );
+    return $related_entity;
+}
+
+sub species_id{
+    my $self = shift;
+    return $self->_related_entity->species_id;
+}
+
+sub chr_name{
+    my $self = shift;
+    return $self->_related_entity->chr_name;
 }
 
 sub crispr_description{
@@ -334,11 +330,46 @@ sub crispr_description{
     return $description;
 }
 
+sub crisprs{
+    my $self = shift;
+    my @crisprs;
+    if($self->crispr){
+        push @crisprs, $self->crispr;
+    }
+
+    if($self->crispr_pair){
+        push @crisprs, ($self->crispr_pair->left_crispr, $self->crispr_pair->right_crispr);
+    }
+
+    if($self->crispr_group){
+        push @crisprs, $self->crispr_group->crisprs;
+    }
+    return @crisprs;
+}
+
+# In practice experiments seem to have only 1 of crispr, pair or group
+# but this is an assumption and is not restricted by the schema
+sub crispr_entity{
+    my $self = shift;
+    if($self->crispr){
+        return $self->crispr;
+    }
+
+    if($self->crispr_pair){
+        return $self->crispr_pair;
+    }
+
+    if($self->crispr_group){
+        return $self->crispr_group;
+    }
+    return;
+}
 sub _chr_location{
     my ($self, $entity) = @_;
     my $location = "chr".$entity->chr_name.":".$entity->start."-".$entity->end;
     return $location;
 }
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

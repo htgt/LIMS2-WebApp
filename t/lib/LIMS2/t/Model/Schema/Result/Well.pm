@@ -25,7 +25,7 @@ sub get_output_wells_as_string : Tests(3) {
     is( $children, 'FP4734[F08]', "Checking well child" );
 }
 
-sub design : Tests() {
+sub design : Tests(7) {
     ok my $well = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
         'can retrive test well';
 
@@ -40,7 +40,7 @@ sub design : Tests() {
     is $design2->global_arm_shortened, $design->id, '.. and this is the right short arm design';
 }
 
-sub designs : Tests() {
+sub designs : Tests(9) {
     ok my $well = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
         'can retrive test well';
 
@@ -57,10 +57,10 @@ sub designs : Tests() {
     is $sep_designs[1]->id, 95204, '.. second design is correct';
 }
 
-sub final_pick_dna_well_status : Tests() {
+sub final_pick_dna_well_status : Tests(16) {
     my %well_hash = ( plate_name => 'ETGRQ0007_A_1', well_name => 'C01' );
     my %parent_hash = ( plate_name => 'ETGRD0007_A_1', well_name => 'C01' );
-    
+
     ok my $well = model->retrieve_well({ %well_hash }) ,
         'got well from DNA plate';
     ok my $parent_well = model->retrieve_well({ %parent_hash }) ,
@@ -70,7 +70,7 @@ sub final_pick_dna_well_status : Tests() {
     is $parent_well->well_qc_sequencing_result, undef, 'Parent well has no qc seq result';
     $well->compute_final_pick_dna_well_accepted();
     is $well->accepted, 0, 'well is not accepted';
-    
+
     # Add related DNA and QC scores
     ok model->create_well_qc_sequencing_result({ %parent_hash, pass => '1', created_by => 'test_user@example.org', test_result_url =>'http://www.test.com/stuff' }),
         'created parent well qc seq result';
@@ -81,7 +81,7 @@ sub final_pick_dna_well_status : Tests() {
     # compute_final_pick_dna_well_accepted will be run by create_well_dna_status
     ok model->create_well_dna_status({ %well_hash, pass => '1', created_by => 'test_user@example.org'}),
         'created well dna status';
-    $well = model->retrieve_well({ %well_hash });    
+    $well = model->retrieve_well({ %well_hash });
     is $well->accepted, 0, 'well is not accepted';
 
     # compute_final_pick_dna_well_accepted will be run by create_well_dna_quality
@@ -93,7 +93,7 @@ sub final_pick_dna_well_status : Tests() {
     model->delete_well_dna_status({ %well_hash });
     ok model->create_well_dna_status({ %well_hash, pass => '0', created_by => 'test_user@example.org'}),
         'created fail well dna status';
-    $well = model->retrieve_well({ %well_hash }); 
+    $well = model->retrieve_well({ %well_hash });
     is $well->accepted, 0, 'well is not accepted';
 
     ok my $well2 = model->retrieve_well( { plate_name => 'PCS00037_A', well_name => 'A03' } ),
