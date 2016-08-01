@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.415     2016-08-01 11:54:10 Europe/London
+
+    Gene summary bootstrap issues fixed
+    Plate report, plate name added to browser tab
+    Rearray plate upload, added required DNA template for INT plates
+
 0.414     2016-07-25 10:18:37 Europe/London
 
 	Create Announcement fix
