@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.416     2016-08-02 16:18:02 Europe/London
+
+    well_genotyping_info updated to support wells on uknown location
+    crispr primers validation state display updated
+    minor html display issues fixed
+
 0.415     2016-08-01 11:54:10 Europe/London
 
     Gene summary bootstrap issues fixed
