@@ -192,7 +192,7 @@
           </div>
         </div>
         [% IF data.qc_data.fwd_read AND data.qc_data.rev_read %]
-            <a class="btn traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+            <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
         [% END %]
       </td>
     </tr>
@@ -217,7 +217,7 @@
     <tr>
       <th>QC Run</th>
       <td>
-        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn">View QC Run</a>
+        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
       </td>
     </tr>
     [% END %]
@@ -234,7 +234,7 @@
     <tr>
       <th>VEP Output</th>
       <td>
-        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-default">Show / Hide</a>
+        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
         [% IF data.qc_data.has_vep_file %]
             <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
@@ -245,7 +245,7 @@
     <tr>
       <th>VCF</th>
       <td>
-        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-default">Show / Hide</a>
+        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
         <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
       </td>
     </tr>
