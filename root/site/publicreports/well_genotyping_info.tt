@@ -85,7 +85,7 @@
     </tr>
     <tr>
       <th>Sequence</th>
-      <td class="alignment">[% crispr.seq %]</td>
+      <td><div class="alignment">[% crispr.seq %]</div></td>
     </tr>
     <tr>
       <th>Locus</th>
@@ -131,7 +131,7 @@
       [% FOR primer IN data.primers.design_primers.$key %]
     <tr>
       <th>[% primer.name %]</th>
-      <td class="alignment">[% primer.seq %]</td>
+      <td><div class="alignment">[% primer.seq %]</div></td>
     </tr>
       [% END %]
     [% END %]
