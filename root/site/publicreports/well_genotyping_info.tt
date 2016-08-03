@@ -265,14 +265,12 @@
   </p>
 </div>
 
-<div class="data.qc_data">
-  <div class="col-md-3">
-    <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary">
-    <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
-  </div>
+<div class="col-md-6">
+  <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary">
+  <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
 </div>
 
-<br/>
+<br/><p></p><br/>
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
 <script type="text/javascript">
