@@ -421,10 +421,8 @@
         </li>
       <!-- Non Logged in User -->
       [% ELSE %]
-
-        <li class="divider-vertical"></li>
-          <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary navbar-btn"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a>
-        </ul>
+        <li class="active"><a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a></li>
+      </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="divider-vertical"></li>
           <div class="col-md-3">
