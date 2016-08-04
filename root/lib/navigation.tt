@@ -423,7 +423,7 @@
       [% ELSE %]
 
         <li class="divider-vertical"></li>
-          <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary navbar-btn"><i class="glyphicon glyphicon-search"></i>!!!!!!!! Clone Genotyping Search</a>
+          <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary navbar-btn"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a>
         </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="divider-vertical"></li>
