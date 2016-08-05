@@ -1,11 +1,16 @@
 #!/usr/bin/env perl
 
+BEGIN { push @INC, 'lib/' }
+
+use strict;
+use warnings;
 use Selenium::Firefox;
 use feature qw(say);
 use Getopt::Long;
 use Pod::Usage;
 use Data::Dumper;
-use JSON;
+use LIMS2::Model;
+use LIMS2::TestJS qw( setup run_all_tests );
 #use Test::More tests => 5;
 #use Test::WWW::Jasmine;
 #use WWW::Selenium;
@@ -21,43 +26,13 @@ my @path = @ARGV;
 
 #Open local webapp
 my $driver = Selenium::Firefox->new;
-$driver->get('t87-dev.internal.sanger.ac.uk:' . $ENV{LIMS2_WEBAPP_SERVER_PORT});
-say $driver->get_title();
-
-#Log into webapp
-unless ($logged_out) {
-    my $elem = $driver->find_element_by_class('navbar-btn');
-    $driver->mouse_move_to_location(element => $elem);
-    $driver->click;
-    say $driver->get_title();
-    my $login = q{
-        $('#username_field').val('test_user@example.org');
-        $('#password_field').val('ahdooS1e');
-        return;
-    };
-    $driver->execute_script($login);
-    $elem = $driver->find_element_by_id('login_button');
-    $driver->mouse_move_to_location(element => $elem);
-    $driver->click;
-    say $driver->get_title();
-}
-
+setup($driver);
 #Find tests
 if (@path) {
 
 }
 else {
-    my $base = $ENV{LIMS2_JS}
-        or die "LIMS2_JS not set";
-    my @results;
-    @results = check_folder($base, @results);
-    my $js = JSON->new;
-    my $encode = $js->allow_blessed->convert_blessed->encode($driver);
-    print Dumper $encode;
-    foreach my $file (@results) {
-        system($^X, $file, $encode);
-        #$driver->get('t87-dev.internal.sanger.ac.uk:' . $ENV{LIMS2_WEBAPP_SERVER_PORT});
-    }
+    run_all_tests();
 }
 
 #my $jasmine = Test::WWW::Jasmine->new(
@@ -71,24 +46,7 @@ else {
 
 $driver->quit();
 
-sub check_folder {
-    my ($current_dir, @js_files) = @_;
-    
-    opendir my $dir, $current_dir or die "Cannot open directory: $!";
-    my @files = readdir $dir;
-    closedir $dir;
 
-    foreach my $file (@files) {
-        if ($file =~ /^\S*\.pm$/) {     # If JavaScript file, ignoring swps
-            push(@js_files, $current_dir . $file);
-        }
-        elsif ($file !~ /^\..*/) {      # If subdirectory
-            my $new_dir = $current_dir . $file . '/';
-            @js_files = check_folder($new_dir, @js_files);
-        }
-    }
-    return @js_files;
-}
 =head1 NAME
 
 lims2_js_test - Launch the Javascript testing suite for LIMS2

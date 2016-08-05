@@ -1,0 +1,158 @@
+package LIMS2::TestJS;
+
+use strict;
+use warnings FATAL => 'all';
+
+use Sub::Exporter -setup => {
+    exports => [
+        qw(
+             setup_user
+             setup_public
+             run_all_tests
+             find_by_link_text
+             find_by_button_id
+             cycle_windows
+             close_additional_windows
+          )
+    ],
+};
+
+use Selenium::Firefox;
+use feature qw(say);
+use Path::Class;
+use Log::Log4perl qw( :easy );
+
+BEGIN {
+    #try not to override the lims2 logger
+    unless ( Log::Log4perl->initialized ) {
+        Log::Log4perl->easy_init( { level => $OFF } );
+    }
+}
+sub setup_user {
+    my ($driver) = @_;
+
+    _setup($driver);
+
+    my $elem = $driver->find_element_by_class('navbar-btn');
+    $driver->mouse_move_to_location(element => $elem);
+    $driver->click;
+    my $login = q{
+        $('#username_field').val('test_user@example.org');
+        $('#password_field').val('ahdooS1e');
+        return;
+    };
+    find_by_button_id($driver, "login_button");
+    $driver->execute_script($login);
+    say $driver->get_title();
+
+    return;
+}
+
+sub setup_public {
+    my ($driver) = @_;
+
+    _setup($driver);
+
+    return;
+}
+
+
+sub _setup {
+    my ($driver) = @_;
+
+    unless ($driver) {
+        say "Driver uninitialised";
+        return;
+    }
+
+    $driver->get('t87-dev.internal.sanger.ac.uk:' . $ENV{LIMS2_WEBAPP_SERVER_PORT});
+    say $driver->get_title();
+
+    return;
+}
+
+sub run_all_tests {
+$DB::single=1;
+    my $base = $ENV{LIMS2_JS}
+        or die "LIMS2_JS not set";
+    my @results;
+    @results = check_folder($base, @results);
+$DB::single=1;
+}
+
+sub check_folder {
+    my ($current_dir, @js_files) = @_;
+    
+    opendir my $dir, $current_dir or die "Cannot open directory: $!";
+    my @files = readdir $dir;
+    closedir $dir;
+
+    foreach my $file (@files) {
+        if ($file =~ /^\S*\.pm$/) {     # If JavaScript file, ignoring swps
+            push(@js_files, $current_dir . $file);
+        }
+        elsif ($file !~ /^\..*/) {      # If subdirectory
+            my $new_dir = $current_dir . $file . '/';
+            @js_files = check_folder($new_dir, @js_files);
+        }
+    }
+    return @js_files;
+}
+
+sub find_by_link_text {
+    my ($driver, $text) = @_;
+
+    my $elem = $driver->find_element_by_link_text($text);
+    $driver->mouse_move_to_location(element => $elem);
+    $driver->click;
+
+    return;
+}
+
+sub find_by_button_id {
+    my ($driver, $id) = @_;
+
+    my $elem = $driver->find_element_by_id($id);
+    $driver->mouse_move_to_location(element => $elem);
+    $driver->click;
+
+    return;
+}
+
+sub cycle_windows {
+    my ($driver) = @_;
+    
+    my $focus = $driver->get_current_window_handle;
+    my @handles = @{ $driver->get_window_handles };
+    my $next;
+    for (my $inc = 0; $inc < scalar @handles; $inc++) {
+        if ($focus eq $handles[$inc] && $inc < scalar @handles) {
+            $next = $inc + 1;
+        }
+        elsif ($focus eq $handles[$inc] && $inc == scalar @handles) {
+            $next = 0;
+        }
+    }
+
+    $driver->switch_to_window($handles[$next]);
+
+    return;
+}
+
+sub close_additional_windows {
+    my ($driver) = @_;
+
+    my $focus = $driver->get_current_window_handle;
+    my @handles = @{ $driver->get_window_handles };
+    for (my $inc = 0; $inc < scalar @handles; $inc++) {
+        if ($focus ne $handles[$inc]) {
+            $driver->switch_to_window($handles[$inc]);
+            $driver->close();
+        }
+    }
+    $driver->switch_to_window($focus);
+
+    return;
+}
+
+1;
