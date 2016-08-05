@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprLociType;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprLociType::VERSION = '0.416';
+    $LIMS2::Model::Schema::Result::CrisprLociType::VERSION = '0.417';
 }
 ## use critic
 
