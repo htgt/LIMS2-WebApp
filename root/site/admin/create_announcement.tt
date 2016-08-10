@@ -1,6 +1,14 @@
 [% META title = 'LIMS2 - Create Announcement'; META tab_name = "Admin" -%]
 <head>
+
+<script>
+  $(document).ready(function(){
+    $("#expiry_date").datepicker();
+  })
+
+</script>
 <script language = "Javascript">
+
 /**
  * DHTML date validation script for dd/mm/yyyy. Courtesy of SmartWebby.com (http://www.smartwebby.com/dhtml/date_validation.asp)
  */
@@ -10,7 +18,7 @@ var today = new Date();
 var todayMonth = today.getMonth()+1;
 var todayDay = today.getDate();
 var minYear = today.getFullYear();
-var maxYear=2100;
+var maxYear=minYear+100;
 
 function isInteger(s){
   var i;
@@ -120,6 +128,14 @@ function ValidateForm(){
     return true
  }
 
+
+
+
+
+
+
+
+
 </script>
 </head>
 
@@ -136,19 +152,19 @@ function ValidateForm(){
       <textarea name="message" id="message_field" value= "[% message_field %]" rows="6" cols="60" required>[% message_field %]</textarea>
       <br><br>
       <label for="expiry_date">Expiry Date</label>
-      <input type="text" id="expiry_date" name="expiry_date" placeholder="DD/MM/YYYY" required value="[% expiry_date %]" ></input>
+      <input type="text" id="expiry_date" name="expiry_date" placeholder="DD/MM/YYYY" required value="[% expiry_date %]" >
       <br><br>
       <label for="priority">Priority</label>
       [%- FOR p IN priorities %]
-        <br>&#160;<input type="radio" name="priority" value="[% p.id %]" required> [% p.id.ucfirst %]</input>
+        <br>&#160;<input type="radio" name="priority" value="[% p.id %]" required> [% p.id.ucfirst %]
       [% END %]
       <br><br>
       <label for="webapps">Webapps</label>
-      <br>&#160;<input type="checkbox" name="wge_checkbox" value="1"> WGE</input>
+      <br>&#160;<input type="checkbox" name="wge_checkbox" value="1"> WGE
       <input name="wge_checkbox" type="hidden" value="0" />
-      <br>&#160;<input type="checkbox" name="lims_checkbox" value="1"> LIMS2</input>
+      <br>&#160;<input type="checkbox" name="lims_checkbox" value="1"> LIMS2
       <input name="lims_checkbox" type="hidden" value="0" />
-      <br>&#160;<input type="checkbox" name="htgt_checkbox" value="1"> HTGT</input><br>
+      <br>&#160;<input type="checkbox" name="htgt_checkbox" value="1"> HTGT<br>
       <input name="htgt_checkbox" type="hidden" value="0" />
       <br>
       </fieldset>
