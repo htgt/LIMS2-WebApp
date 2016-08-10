@@ -318,7 +318,7 @@
       </a>
     </div>
   </div>
-  </br>
+  <br />
 
   <div class="modal fade" id="DeletePlateModal">
     <form method="POST" id="plate_delete" action="[% c.uri_for( '/user/delete_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >

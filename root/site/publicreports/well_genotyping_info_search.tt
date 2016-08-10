@@ -97,15 +97,16 @@ function create_alert(text, alert_class) {
 <div class="well">
   <fieldset>
     <legend>Plate/Well Search</legend>
-      <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
       <div class="control-group">
+       <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
         <div class="form-inline">
           <input type="text" name="plate_well_name" id="plate_well_name" placeholder="Plate_Well Name" />
           <input type="button" id="plate_well_search_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
       </div>
-      <label>OR plate name and well name separately</label>
+      <br />
       <div class="control-group">
+      <label>OR plate name and well name separately</label>
         <div class="form-inline">
           <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />
           <input type="text" name="well_name" id="well_name" placeholder="Well Name" />
