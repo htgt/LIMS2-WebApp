@@ -58,7 +58,7 @@
 <div class="navbar navbar-default navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="nav navbar-brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+        <a class="nav navbar-brand" href="[% c.http_uri_for( '/' ) %]">HTGT LIMS2</a>
       </div>
       [% IF template.title != 'Login' %]
       <ul class="nav navbar-nav">
