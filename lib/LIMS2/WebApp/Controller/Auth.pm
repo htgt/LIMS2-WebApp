@@ -27,7 +27,8 @@ Catalyst Controller.
 sub login : Global {
     my ( $self, $c ) = @_;
 
-    if($c->req->headers->header('X-FORWARDED-PROTO') eq 'HTTPS'){
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
         my $base = $c->req->base;
         $base =~ s/^http:/https:/;
         $c->req->base(URI->new($base));

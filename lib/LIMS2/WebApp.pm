@@ -46,7 +46,7 @@ __PACKAGE__->config(
     require_ssl => {
             https => $ENV{LIMS2_HTTPS_DOMAIN},
             http => $ENV{LIMS2_HTTP_DOMAIN},
-            remain_in_ssl => 0,
+            remain_in_ssl => 1,
             no_cache => 0,
             detach_on_redirect => 0,
             disabled => $ENV{LIMS2_ENABLE_HTTPS} ? 0 : 1,
