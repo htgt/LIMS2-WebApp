@@ -19,7 +19,7 @@ Test module structured for running under Test::Class
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(25) {
     my $user           = 'lims2';
     my $connect_entry  = 'LIMS2_DB';
     my $rs_user        = 'User';

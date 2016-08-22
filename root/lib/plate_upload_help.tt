@@ -90,8 +90,8 @@
               <th>Process</th>
               <th>Plate Types</th>
               <th>Specific Data Fields</th>
-              <th>ES Template<br>(A1, B1, C1...)</br></th>
-              <th>Vector Template<br>(A1, A2, A3...)</br></th>
+              <th>ES Template<br>(A1, B1, C1...)<br /></th>
+              <th>Vector Template<br>(A1, A2, A3...)<br /></th>
             </tr>
           </thead>
 
