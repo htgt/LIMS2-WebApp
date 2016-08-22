@@ -211,7 +211,7 @@ sub more_tests : Test(6)
 }
 
 
-sub lrpcr_tests : Tests
+sub lrpcr_tests : Test(4)
 {
     note( 'Testing LRPCR aspects of Genotyping QC data update');
 

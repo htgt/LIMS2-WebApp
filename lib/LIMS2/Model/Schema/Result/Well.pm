@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.413';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.418';
 }
 ## use critic
 
@@ -1846,6 +1846,7 @@ sub genotyping_info {
       gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
       design_id        => $design->id,
       well_id          => $self->id,
+      barcode          => $self->barcode,
       well_name        => $self->name,
       plate_name       => $self->plate_name,
       epd_plate_name   => $epd->plate_name,

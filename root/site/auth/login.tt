@@ -12,5 +12,5 @@
   </form>
 </div>
 <div class="col-md-12"><br>
-Or continue as an anonymous user to view public reports: <a href="[% c.uri_for('/public_reports/sponsor_report') %]">Public Reports</a>
+Or continue as an anonymous user to view public reports: <a href="[% c.http_uri_for('/public_reports/sponsor_report') %]">Public Reports</a>
 </div>

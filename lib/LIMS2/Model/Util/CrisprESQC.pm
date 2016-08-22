@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.413';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.418';
 }
 ## use critic
 
@@ -572,15 +572,20 @@ sub fix_no_header_sam{
 
 
     my $sam_values_unique = {};
-
+    my $best_score_for_read = {};
     foreach my $value_array (@sam_values){
-        # Only use the longest alignment for each read
+        # Only use the alignment with the highest score for each read
+        # Score is in col 12 (index 11), format AS:i:468
         my $read_name = $value_array->[0];
+        my $score_string = $value_array->[11];
+        my $score = (split ":", $score_string)[2];
         if(exists $sam_values_unique->{$read_name}){
-            my $exisiting_seq = $sam_values_unique->{$read_name}->[9];
-            my $this_seq = $value_array->[9];
-            next unless length($this_seq) > length($exisiting_seq);
+            my $exisiting_score = $best_score_for_read->{$read_name};
+            next unless $score > $exisiting_score;
         }
+
+        # Store the score in case we have multiple alignments for read
+        $best_score_for_read->{$read_name} = $score;
 
         # replace region name with chromosome name
         $value_array->[2] = $params->{chr_name};
