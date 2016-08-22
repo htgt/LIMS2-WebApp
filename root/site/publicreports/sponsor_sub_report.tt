@@ -227,7 +227,7 @@ document.title = "[%- sponsor_id %]";
           <tbody id="[%- row.item('gene_symbol') %]" class="gene_row" style="display:none">
                 [%- FOREACH ep_data IN row.item('ep_data') %]
                   [% FOREACH vector_dna IN ep_data.item('dna_template') %]
-                    <tr>
+                    <tr class="sub_info">
                       <td>[%- row.item('gene_id') %]</td>
                       <td>[%- row.item('gene_symbol') %]</td>
                       <td>[%- row.item('chromosome') %]</td>

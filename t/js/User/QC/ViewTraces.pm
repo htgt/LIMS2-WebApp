@@ -1,7 +1,6 @@
 package LIMS2::t::js::User::QC::ViewTraces;
 
 BEGIN { 
-    push @INC, 'lib/'; 
 	# Set the environment to use test sequencing data directory
 
     # compile time requirements
@@ -10,53 +9,115 @@ BEGIN {
     Log::Log4perl->easy_init( $FATAL );
 }
 
-use Test::More tests => 1;
-use Test::Simple;
+use Test::More tests => 13;
 use Selenium::Firefox;
-use Selenium::Remote::Driver;
 use feature qw(say);
 use Getopt::Long;
 use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-use LIMS2::TestJS qw( setup find_by_link_text );
-use Test::WWW::Jasmine;
-use WWW::Selenium;
-use Test::Mocha;
+use LIMS2::TestJS qw( setup_user find_by );
 
-my $mocha = mock;
+#Scripts
+my $scroll = q{
+    var value = arguments[0];
+    window.scrollBy(0,value);
+    return;
+};
 
-$DB::single=1;
+my $well = q{
+    $('#well_name').val('A01');
+    return;
+};
+
+my $version = q{
+    document.getElementById('data_set').selectedIndex = 1;
+    return;
+};
+
+my $check_version = q{
+    return document.getElementById('data_set').value;
+};
 
 #Log in Selenium
-my $driver = Selenium::Firefox->new();
-setup($driver);
+my $driver = Selenium::Firefox->new(binary => '~/Downloads/firefox/firefox');
+setup_user($driver);
 
-say $driver->get_title();
-say "Test - View Traces";
+#Check login
+is ($driver->get_title(), 'HTGT LIMS2', 'Home page');
+$driver->maximize_window();
 
-#Navigation by navbar
-called_ok {
-    $mocha->test_mock()
-} atleast(1);
-
-
-#Navigation by url
-my $url = $driver->get_current_url();
-$driver->navigate( $url );
-say $driver->get_title();
+#Navigation
+ok( view_traces($driver), "Navigate to view_traces" );
 
 #Select Sequencing Project
+ok( select_project($driver), "Select from table");
+$driver->pause(10000);
+$driver->execute_script($well);
+
+ok( find_by($driver, 'id', 'get_reads'), "Fetch reads");
+
+#Test TV
+my $seq = check_traceviewer($driver, $scroll);
+isnt ($seq,'','Check TV click');
+isnt ($seq,'GGCTCGTA','Check TV loc');
+
+#Window had to be scrolled down. Reset
+$driver->execute_script($scroll, -400);
+
+#Test backup selection
+$driver->execute_script($version);
+$driver->execute_script($well);
+
+ok( find_by($driver, 'id', 'get_reads'), "Fetch reads");
+$driver->pause(1000);
+
+#Check selected traces version
+my $check = $driver->execute_script($check_version);
+is ($check, '2016-04-18 15:02:42', 'Check version');
+
+#Test TV again
+$seq = check_traceviewer($driver, $scroll);
+
+isnt ($seq,'','Check backup TV click');
+isnt ($seq,'GGCTCGTA','Check backup TV loc');
 
 #Close window
-$mocha->done_testing();
 $driver->quit();
 
-sub test_mock {
+sub view_traces {
     my ($driver) = @_;
-    find_by_link_text($driver, 'QC');
-    find_by_link_text($driver, 'View Sequencing Traces');
-    say $driver->get_title();
+
+    find_by($driver, 'link_text', 'QC');
+    find_by($driver, 'link_text', 'View Sequencing Traces');
+    is ($driver->get_title(), 'View Sequencing Traces', 'View traces');
+
     return 1;
 }
 
+sub select_project {
+    my ($driver) = @_;
+    
+    my $selection = q(
+        $('.seqName')[2].click();
+    );
+    $driver->execute_script($selection);
+    return 1;
+}
+
+sub check_traceviewer {
+    my ($driver, $scroll) = @_;
+
+    my $seq_script = q{
+        return tv.fwd_plot._read;
+    }; 
+
+    $driver->execute_script($scroll, 400);
+    ok( find_by($driver, 'class', 'traces'), "Open traceviewer" );
+    $driver->pause(5000);
+    ok( find_by($driver, 'class', 'trace_sequence'), "Click on TV seq");
+
+    my $seq = $driver->execute_script($seq_script);
+
+    return $seq;
+}
 1;

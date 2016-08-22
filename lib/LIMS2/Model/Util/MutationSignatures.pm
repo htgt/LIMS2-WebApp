@@ -20,7 +20,7 @@ use Data::Dumper;
 
 sub get_mutation_signatures_barcode_data{
 	my ($model, $species) = @_;
-
+$DB::single=1;
 	my @processes = $model->schema->resultset('Process')->search(
 	    {
 		    type_id => 'doubling',

@@ -107,7 +107,7 @@ has sponsor_data => (
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
-
+$DB::single=1;
     my @sponsor_ids = @{ $self->sponsors };
 
     foreach my $sponsor_id ( @sponsor_ids ) {

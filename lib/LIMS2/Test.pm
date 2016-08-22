@@ -293,6 +293,7 @@ sub load_static_files {
             SequencingProjectPrimer
             SequencingProjectTemplate
             DnaTemplate
+            Priority
 
             )
     );
@@ -352,6 +353,10 @@ sub load_dynamic_files {
             CrisprPlateAppendsType
             CrisprPlateAppends
             SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectBackup
+            Message
         )
     );
 
