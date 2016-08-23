@@ -1,0 +1,3 @@
+id,name,created_by,created_at,design_type_id,phase,validated_by_annotation,target_transcript,species_id,design_parameters,cassette_first,global_arm_shortened,nonsense_design_crispr_id,parent_id
+10000197,design1,165,2014-06-10 16:15:25,gibson-deletion,,not done,,Human,,t,,,
+10000256,design2,165,2014-06-23 10:15:46,gibson-deletion,,not done,,Human,,t,,,

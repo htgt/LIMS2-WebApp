@@ -29,6 +29,7 @@ sub load_csv_file {
             DEBUG( "Error parsing csv file" );
             LIMS2::Exception::Validation->throw( "Invalid csv file: $_" );
         }
+        DEBUG( $_ );
     };
     my $current_csv;
     my $rec_copy;
@@ -50,7 +51,7 @@ sub load_csv_file {
         DEBUG( "Error inserting csv data ('" . $_ . "')" );
         DEBUG( "Result set - " . $rs->result_class );
         LIMS2::Exception::Validation->throw( "Result set - "  . " Rec - " . $rec_copy );
-        #"Error inserting csv data: " . $_ 
+        #"Error inserting csv data: " . $_
     };
 
     return;
