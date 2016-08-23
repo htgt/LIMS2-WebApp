@@ -165,6 +165,7 @@ my %process_check_well = (
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
+    'crispr_sep'             => \&_check_wells_crispr_sep,
     'oligo_assembly'         => \&_check_wells_oligo_assembly,
     'cgap_qc'                => \&_check_wells_cgap_qc,
     'ms_qc'                  => \&_check_wells_ms_qc,
@@ -704,6 +705,16 @@ sub _check_wells_crispr_ep {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_sep {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_oligo_assembly {
     my ( $model, $process ) = @_;
 
@@ -800,6 +811,7 @@ my %process_aux_data = (
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
+    'crispr_sep'             => \&_create_process_aux_data_crispr_sep,
     'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
     'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
@@ -1311,7 +1323,13 @@ sub _create_process_aux_data_crispr_ep {
     return;
 }
 ## use critic
-#
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_sep {
+    return;
+}
+## use critic
+
 sub pspec__create_process_aux_data_oligo_assembly {
     return {
         crispr_tracker_rna => { validate => 'existing_crispr_tracker_rna' },

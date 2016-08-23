@@ -12,7 +12,7 @@ extends qw( LIMS2::ReportGenerator::Plate );
 sub base_columns {
 # acs - 20_05_13 - redmine 10545 - add cassette resistance
 #    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Cassette", "Recombinases" );
-    my @allele_cols = ( "Vector", "Design", "Gene Id", "Gene Symbol", "Gene Sponsors", "Cassette", "Cassette Resistance", "Vector Recombinases", "Cell Recombinases" );
+    my @allele_cols = ( "Vector", "Design ID", "Design Type", "Gene Id", "Gene Symbol", "Gene Sponsors", "Cassette", "Cassette Resistance", "Vector Recombinases", "Cell Recombinases" );
     return ( "Well Name", "Created By", "Created At", "Assay Pending", "Assay Complete", "Accepted?",
         map( { "First Allele $_" } @allele_cols ),
 		map( { "Second Alelle $_" } @allele_cols ),
@@ -50,6 +50,25 @@ sub base_data {
         ( $second_allele->cassette->promoter ? 'promoter' : 'promoterless' ),
     );
 }
+
+# Pre-fetch the ancestors for the first and second allele representative wells
+# for each well on the plate to speed up allele specific queries
+after 'prefetch_well_ancestors' => sub {
+    my $self = shift;
+    my @allele_wells;
+    foreach my $well ($self->plate->wells){
+        push @allele_wells, $well->first_allele;
+        push @allele_wells, $well->second_allele;
+    }
+
+    my @well_ids = map { $_->id } @allele_wells;
+    my $well_ancestors = $self->model->fast_get_well_ancestors(@well_ids);
+    foreach my $this_well (@allele_wells){
+        $this_well->set_ancestors( $well_ancestors->{ $this_well->id } );
+    }
+
+    return;
+};
 
 __PACKAGE__->meta->make_immutable;
 

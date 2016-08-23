@@ -691,6 +691,7 @@ sub plate_sponsor{
     my $self = shift;
     return $self->last_known_plate->sponsor_id;
 }
+
 has ancestors => (
     is         => 'rw',
     isa        => 'LIMS2::Model::ProcessGraph',
@@ -700,7 +701,7 @@ has ancestors => (
 
 sub _build_ancestors {
     my $self = shift;
-
+DEBUG "Building ancestors for well $self";
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
@@ -749,11 +750,65 @@ sub _build_is_double_targeted {
         if ( $well->plate_type eq 'SEP' ) {
             return 1;
         }
+        if( $well->plate_type eq 'CRISPR_SEP'){
+            return 1;
+        }
     }
 
     return 0;
 }
 
+has first_allele => (
+    is => 'ro',
+    isa => 'LIMS2::Model::Schema::Result::Well',
+    lazy_build => 1,
+);
+
+## no critic(RequireFinalReturn)
+sub _build_first_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate_type eq 'XEP' ) {
+            return $input;
+        }
+        if ( $input->plate_type eq 'PIQ' ){
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine first allele for $self"
+    );
+}
+## use critic
+
+has second_allele => (
+    is => 'ro',
+    isa => 'LIMS2::Model::Schema::Result::Well',
+    lazy_build => 1,
+);
+
+## no critic(RequireFinalReturn)
+sub _build_second_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate_type eq 'DNA' ) {
+            return $input;
+        }
+        if( $input->plate_type eq 'ASSEMBLY'){
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"
+    );
+}
+## use critic
 
 sub last_known_plate{
     my $self = shift;
@@ -1011,7 +1066,7 @@ sub designs {
     }
 
     # ok its double targeted, grab design from the first and second allele wells
-	my @designs;
+	  my @designs;
     push @designs, $self->first_allele->design;
     push @designs, $self->second_allele->design;
 
@@ -1099,46 +1154,15 @@ sub _build_second_electroporation_process {
             if ( $process->type_id eq 'second_electroporation' ) {
                 return $process;
             }
+            if( $process->type_id eq 'crispr_sep' ){
+                return $process;
+            }
         }
     }
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw(
         "Cannot request second_electroporation_process for single-targeted construct"
-    );
-}
-## use critic
-
-## no critic(RequireFinalReturn)
-sub first_allele {
-    my $self = shift;
-
-    for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate_type eq 'XEP' ) {
-            return $input;
-        }
-    }
-
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw(
-        "Failed to determine first allele for $self"
-    );
-}
-## use critic
-
-## no critic(RequireFinalReturn)
-sub second_allele {
-    my $self = shift;
-
-    for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate_type ne 'XEP' ) {
-            return $input;
-        }
-    }
-
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw(
-        "Failed to determine second allele for $self"
     );
 }
 ## use critic
