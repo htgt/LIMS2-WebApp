@@ -237,19 +237,23 @@
     <tr>
       <th>VEP Output</th>
       <td>
-        <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
         [% IF data.qc_data.has_vep_file %]
-            <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
+          <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+          <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
         [% ELSE %]
-            Not available
+          Not available
         [% END %]
       </td>
     </tr>
     <tr>
       <th>VCF</th>
       <td>
-        <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
-        <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
+        [% IF data.vcf_file %]
+          <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+          <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
+        [% ELSE %]
+          Not available
+        [% END %]
       </td>
     </tr>
 </table>
