@@ -694,7 +694,7 @@ sub _stash_well_genotyping_info {
                 $type = 'CrisprPair';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
-            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+            elsif ($data->{qc_data}->{is_crispr_group} == 1){
                 $type = 'CrisprGroup';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
