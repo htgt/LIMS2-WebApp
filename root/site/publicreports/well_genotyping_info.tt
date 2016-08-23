@@ -227,11 +227,17 @@
 
     <tr>
       <th>Forward Read</th>
-      <td><pre>[% data.fwd_read %]</pre></td>
+      <td>
+        <a onclick="toggle_id(fwd_read);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <pre id="fwd_read" style='display:none'>[% data.fwd_read %]</pre>
+      </td>
     </tr>
     <tr>
       <th>Reverse Read</th>
-      <td><pre>[% data.rev_read %]</pre></td>
+      <td>
+        <a onclick="toggle_id(rev_read);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <pre id="rev_read" style='display:none'>[% data.rev_read %]</pre>
+      </td>
     </tr>
 
     <tr>
