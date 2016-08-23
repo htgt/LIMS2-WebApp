@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.417';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.419';
 }
 ## use critic
 
@@ -696,11 +696,11 @@ sub _stash_well_genotyping_info {
         my $type;
         try{
             #Depending on type of crispr, retrieve crispr hash ref
-            if ($data->{qc_data}->{is_crispr_pair} == 1){
+            if ($data->{qc_data}->{is_crispr_pair}){
                 $type = 'CrisprPair';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
-            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+            elsif ($data->{qc_data}->{is_crispr_group}){
                 $type = 'CrisprGroup';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
