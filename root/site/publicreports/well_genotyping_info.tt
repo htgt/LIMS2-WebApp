@@ -159,7 +159,7 @@
       <th>QC damage data</th>
       <td>
         [% IF data.qc_data.alignment.forward_full %]
-            <div class="forward_full" style="display:none">[% data.qc_data.alignment.forward_full %]
+            <div class="forward_full" style="display:none">[% data.qc_data.alignment.forward_full %]</div>
         [% END %]
         [% IF data.qc_data.alignment.reverse_full %]
             <div class="reverse_full" style="display:none">[% data.qc_data.alignment.reverse_full %]</div>
