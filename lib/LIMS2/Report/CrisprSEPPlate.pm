@@ -33,6 +33,7 @@ override iterator => sub {
     my $self = shift;
 
     $self->prefetch_well_ancestors;
+    my @wells = $self->plate->wells;
 
     my $gene_finder = sub { $self->model->find_genes( @_ ); };;
 
