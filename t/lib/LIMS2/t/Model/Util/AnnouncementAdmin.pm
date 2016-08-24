@@ -28,12 +28,10 @@ sub message_creation_and_deletion : Test(9) {
   can_ok(__PACKAGE__, 'list_priority');
   can_ok(__PACKAGE__, 'list_messages');
 
-  ok my $priority =  model->schema->resultset('Priority')->create( {id => 'normal'} );
-
   my $priority_list = list_priority( model->schema );
   my $priority_item = shift @{$priority_list};
 
-  is( $priority_item->id, 'normal', "list_priority works");
+  is( $priority_item->id, 'high', "list_priority works");
 
   my $announcement_params = {
     message         => 'This is a message',

@@ -22,9 +22,9 @@ single_crispr_assembly,Single crispr assembly
 paired_crispr_assembly,Paired crispr assembly
 crispr_ep,Crispr electroporation
 global_arm_shortening,Shorten the global arms of a intermediate vector using new G oligos
-group_crispr_assembly,Group crispr assembly
 oligo_assembly,Oligo and crispr assembly
 cgap_qc,QC of samples returned from CGAP
 ms_qc,QC of samples during Mutation Signatures workflow
 doubling,growth for specified number of doublings
 vector_cloning,Create Pre-Intermediate
+group_crispr_assembly,Group crispr assembly

@@ -20,7 +20,6 @@ setup_user($driver);
 ok (find_by($driver, 'link_text', "Barcodes"));
 ok (find_by($driver, 'link_text', "Mutation Signatures Barcodes"));
 
-$DB::single=1;
 #Tests - check rows
 
 my %accordions = (

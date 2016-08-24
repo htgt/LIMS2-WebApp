@@ -9,7 +9,7 @@ BEGIN {
     Log::Log4perl->easy_init( $FATAL );
 }
 
-use Test::More tests => 13;
+use Test::More tests => 15;
 use Selenium::Firefox;
 use feature qw(say);
 use Getopt::Long;
@@ -69,7 +69,7 @@ $driver->execute_script($version);
 $driver->execute_script($well);
 
 ok( find_by($driver, 'id', 'get_reads'), "Fetch reads");
-$driver->pause(1000);
+$driver->pause(1500);
 
 #Check selected traces version
 my $check = $driver->execute_script($check_version);

@@ -33,11 +33,14 @@ sub setup_user {
     _setup($driver);
 
     find_by($driver, 'class', 'navbar-btn');
+
+    ## no critic (ProhibitImplicitNewlines)
     my $login = q{
         $('#username_field').val('test_user@example.org');
         $('#password_field').val('ahdooS1e');
         return;
     };
+    ## use critic
     $driver->execute_script($login);
     find_by($driver, 'id', 'login_button');
     say $driver->get_title();
@@ -66,7 +69,7 @@ sub _setup {
     say $driver->get_title();
     $driver->set_implicit_wait_timeout(10);
     $driver->maximize_window;
-    
+
     return;
 }
 
@@ -85,7 +88,7 @@ sub find_by {
 
 sub cycle_windows {
     my ($driver) = @_;
-    
+
     my $focus = $driver->get_current_window_handle;
     my @handles = @{ $driver->get_window_handles };
     my $next;
@@ -117,31 +120,4 @@ sub close_additional_windows {
     return 1;
 }
 
-sub run_all_tests {
-$DB::single=1;
-    my $base = $ENV{LIMS2_JS}
-        or die "LIMS2_JS not set";
-    my @results;
-    @results = check_folder($base, @results);
-$DB::single=1;
-}
-
-sub check_folder {
-    my ($current_dir, @js_files) = @_;
-    
-    opendir my $dir, $current_dir or die "Cannot open directory: $!";
-    my @files = readdir $dir;
-    closedir $dir;
-
-    foreach my $file (@files) {
-        if ($file =~ /^\S*\.pm$/) {     # If JavaScript file, ignoring swps
-            push(@js_files, $current_dir . $file);
-        }
-        elsif ($file !~ /^\..*/) {      # If subdirectory
-            my $new_dir = $current_dir . $file . '/';
-            @js_files = check_folder($new_dir, @js_files);
-        }
-    }
-    return @js_files;
-}
 1;

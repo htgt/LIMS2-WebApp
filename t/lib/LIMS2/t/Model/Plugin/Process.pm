@@ -52,6 +52,8 @@ sub process_types : Tests(5) {
         cgap_qc
         ms_qc
         doubling
+        group_crispr_assembly
+        vector_cloning
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
