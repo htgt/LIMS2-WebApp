@@ -5,8 +5,15 @@ use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
+sub BUILD{
+    my $self = shift;
+    $self->show_cassette_info(0);
+    $self->show_recombinase_info(0);
+    return;
+}
+
 override plate_types => sub {
-    return [ 'SPIQ' ];
+    return [ 'S_PIQ' ];
 };
 
 override _build_name => sub {

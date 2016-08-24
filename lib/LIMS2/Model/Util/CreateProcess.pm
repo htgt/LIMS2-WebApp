@@ -398,6 +398,17 @@ sub _check_wells_clone_pick {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'CRISPR_SEP'){
+        if($output_well->plate_type ne 'SEP_PICK'){
+            my $msg = 'clone_pick process with CRISPR_SEP input well must produce SEP_PICK output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
+    }
+
     return;
 }
 ## use critic
@@ -450,6 +461,17 @@ sub _check_wells_freeze {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'SEP_PICK'){
+        if($output_well->plate_type ne 'SFP'){
+            my $msg = 'freeze process with SEP_PICK input well must produce SFP output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
+    }
+
     return;
 }
 ## use critic
@@ -534,6 +556,16 @@ sub _check_wells_dist_qc {
         #       '; one FP well cannot be used to make more than one PIQ well' . "\n"
         #     );
         # }
+    }
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'SFP'){
+        if($output_well->plate_type ne 'S_PIQ'){
+            my $msg = 'dist_qc process with SFP input well must produce S_PIQ output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
     }
 
     check_output_wells( $model, $process);
@@ -710,6 +742,18 @@ sub _check_wells_crispr_sep {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    #two input wells, one must be PIQ, other ASSEMBLY
+    my @input_well_types = map{ $_->plate_type } $process->input_wells;
+
+    if ( ( none { $_ eq 'PIQ' } @input_well_types ) || ( none { $_ eq 'ASSEMBLY' } @input_well_types ) ) {
+        LIMS2::Exception::Validation->throw(
+            'crispr_sep (second electroporation) processes require two input wells, one of type PIQ '
+            . 'and the other of type ASSEMBLY'
+            . ' (got ' . join( ',', @input_well_types ) . ')'
+        );
+    }
+
     return;
 }
 ## use critic

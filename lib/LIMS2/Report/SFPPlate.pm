@@ -5,6 +5,14 @@ use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
 
+sub BUILD{
+    my $self = shift;
+    $self->show_cassette_info(0);
+    $self->show_recombinase_info(0);
+    $self->show_crispr_info(0);
+    return;
+}
+
 override plate_types => sub {
     return [ 'SFP' ];
 };
@@ -21,7 +29,7 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
-        'Parent Well',
+        'Barcode',
     ];
 };
 
@@ -37,7 +45,7 @@ override iterator => sub {
 
         return [
             $self->base_data( $well ),
-            $well->get_input_wells_as_string,
+            $well->barcode,
         ];
     };
 };
