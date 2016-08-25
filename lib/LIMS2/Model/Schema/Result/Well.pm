@@ -1930,14 +1930,23 @@ sub ms_qc_data{
 }
 
 sub accepted_crispr_es_qc_well{
-    my ($self) = @_;
+    my ($self, $allele_number) = @_;
     my @qc_wells = $self->crispr_es_qc_wells;
 
     my $accepted_qc_well;
     for my $qc_well ( @qc_wells ) {
         if ( $qc_well->accepted ) {
-            $accepted_qc_well = $qc_well;
-            last;
+            if ($allele_number){
+                # optional check of QC run allele number for use with double targeted wells
+                my $well_allele_number = ( $qc_well->crispr_es_qc_run->allele_number || 0 );
+                if($allele_number == $well_allele_number){
+                    $accepted_qc_well = $qc_well;
+                }
+            }
+            else{
+                $accepted_qc_well = $qc_well;
+                last;
+            }
         }
     }
 

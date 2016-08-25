@@ -70,7 +70,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
             $hide_crispr_validation = 0;
             $can_accept_wells = 1;
         }
-        elsif ( $plate_type eq 'PIQ' ) {
+        elsif ( $plate_type eq 'PIQ' or $plate_type eq 'S_PIQ') {
             $can_accept_wells = 1;
         }
     }
