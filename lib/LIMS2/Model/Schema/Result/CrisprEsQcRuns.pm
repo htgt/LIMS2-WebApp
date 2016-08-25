@@ -195,6 +195,8 @@ sub as_hash {
     $data->{plate_name} = $self->plate_name;
   }
 
+  $data->{gene_number} = $self->allele_number;
+
   return $data;
 }
 
@@ -204,6 +206,14 @@ sub plate_name{
     #TODO: make this work even without a well
     my $qc_well = $self->crispr_es_qc_wells->first;
     return $qc_well ? $qc_well->well->plate_name : "-";
+}
+
+# Mouse double targeted cells refer to first and second targeted alleles
+# Human crispr double targeted cells refer to first and second targeted genes
+# In the code they are interchangable, so this method is provided just to make
+# code easier to understand (I hope!) in the double targeted gene case
+sub gene_number{
+    return shift->allele_number;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -393,13 +393,13 @@ function findCoords(seqs, point, selection, dir) {
             <th>Plate Name</th>
             <td>[% plate_name %]</td>
         </tr>
-        [% IF allele_number %]
+        [% IF gene_number %]
         <tr>
-            <th>Allele</th>
+            <th>Gene Analysed</th>
             <td>
-             [% IF allele_number == 1 %]
+             [% IF gene_number == 1 %]
                <span class="label label-primary">1st</span>
-             [% ELSIF allele_number == 2 %]
+             [% ELSIF gene_number == 2 %]
                <span class="label label-info">2nd</span>
              [% END %]
             </td>

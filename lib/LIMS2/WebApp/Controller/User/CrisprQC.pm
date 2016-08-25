@@ -85,7 +85,7 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     $c->stash(
         qc_run_id              => $run->id,
         plate_name             => $run->plate_name,
-        allele_number          => $run->allele_number,
+        gene_number            => $run->allele_number,
         seq_project            => $run->sequencing_project,
         sub_project            => $run->sub_project,
         sequencing_data_version => $run->sequencing_data_version,
@@ -251,7 +251,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
     	forward_primer_name    => { validate => 'non_empty_string' },
     	reverse_primer_name    => { validate => 'non_empty_string' },
     	submit_crispr_es_qc    => { optional => 0 },
-        allele_number          => { validate => 'integer', optional => 1},
+        gene_number            => { validate => 'integer', optional => 1},
     };
 
 	# Store form values
@@ -260,7 +260,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 	$c->stash->{plate_name}             = $c->req->param('plate_name');
 	$c->stash->{forward_primer_name}    = $c->req->param('forward_primer_name');
 	$c->stash->{reverse_primer_name}    = $c->req->param('reverse_primer_name');
-    $c->stash->{allele_number}          = $c->req->param('allele_number');
+    $c->stash->{gene_number}            = $c->req->param('gene_number');
 
 	if ( $c->req->param( 'submit_crispr_es_qc' ) ) {
         my $validated_params;
@@ -279,7 +279,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             return;
         }
 
-        # Decide which allele to run QC on for double targeted plate types
+        # Decide which gene/allele to run QC on for double targeted plate types
         my $allele_number;
         if($plate->type_id eq 'SEP_PICK'){
             # QC second allele only for SEP_PICK
@@ -287,9 +287,9 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
         }
         elsif($plate->type_id eq 'S_PIQ'){
             # User must specify which allele the seq project is for
-            $allele_number = $c->req->param('allele_number');
+            $allele_number = $c->req->param('gene_number');
             unless($allele_number){
-                $c->stash->{error_msg} = "You must specify which allele to run QC for when using S_PIQ double targeted plate";
+                $c->stash->{error_msg} = "You must specify which gene to run QC for when using S_PIQ double targeted plate";
             }
         }
 

@@ -25,7 +25,7 @@
         <tr>
             <th>QC Run ID</th>
             <th>Plate Name</th>
-            <th>Allele</th>
+            <th>Gene Analysed</th>
             <th>Sequencing Project</th>
             <th>Validated</th>
             <th>Created By</th>

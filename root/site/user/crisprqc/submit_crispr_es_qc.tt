@@ -18,15 +18,15 @@
     </div>
 
     <div class="form-group hidden" id="allele_select">
-      <label class="col-md-7 form-label" for="allele_number">Which Allele?</label>
+      <label class="col-md-7 form-label" for="gene_number">Which gene do you want to QC?</label>
       <div class="radio col-md-7">
         <label>
-          <input name="allele_number" id="allele_number" type="radio" value="1" [% IF allele_number == 1 %]checked[% END %]>First
+          <input name="gene_number" id="gene_number" type="radio" value="1" [% IF gene_number == 1 %]checked[% END %]>Originally targeted gene
         </label>
       </div>
       <div class="radio col-md-7">
         <label>
-          <input name="allele_number" id="allele_number" type="radio" value="2" [% IF allele_number == 2 %]checked[% END %]>Second
+          <input name="gene_number" id="gene_number" type="radio" value="2" [% IF gene_number == 2 %]checked[% END %]>Second targeted gene
         </label>
       </div>
     </div>
