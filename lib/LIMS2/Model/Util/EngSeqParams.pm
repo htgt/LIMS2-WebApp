@@ -279,6 +279,8 @@ sub fetch_well_eng_seq_params {
 		my $cassette = $well->cassette;
 		$params->{cassette} = $cassette ? $cassette->name
 		                                : undef ;
+        # An empty_cassette was added and might require to be used instead
+        #                               : 'empty_cassette' ;
 	}
 
     # User specified recombinase is added to the list of
