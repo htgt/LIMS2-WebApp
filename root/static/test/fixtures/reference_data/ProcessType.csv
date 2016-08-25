@@ -26,3 +26,5 @@
 "cgap_qc","QC of samples returned from CGAP"
 "ms_qc","QC of samples during Mutation Signatures workflow"
 "doubling","growth for specified number of doublings"
+"crispr_sep","Crispr second electroporation"
+

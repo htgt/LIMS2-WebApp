@@ -52,6 +52,7 @@ sub process_types : Tests(5) {
         cgap_qc
         ms_qc
         doubling
+        crispr_sep
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
@@ -870,12 +871,11 @@ sub dist_qc_process : Test(13) {
 
         # check that process can be deleted
         lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
-
         throws_ok {
             my $invalid_output_process
                 = model->create_process( $dist_qc_process_data->{invalid_output} );
         }
-        qr/dist_qc process output well should be type (PIQ)+ \(got SEP\)/;
+        qr/dist_qc process output well should be type S_PIQ,PIQ \(got SEP\)/;
     }
 }
 
