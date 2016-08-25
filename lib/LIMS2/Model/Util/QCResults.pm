@@ -720,6 +720,7 @@ sub _design_source_plate {
 Help infer process type where the template well is derived from a PREINT plate
 
 =cut
+## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub _preint_source_plate {
     my ( $new_plate_type, $reagent_count, $params ) = @_;
 
@@ -776,6 +777,7 @@ sub _preint_source_plate {
 
     return;
 }
+## use critic
 
 =head2 _int_source_plate
 
