@@ -33,7 +33,7 @@ my $check_version = q{
 };
 
 #Log in Selenium
-my $driver = Selenium::Firefox->new(binary => '~/Downloads/firefox/firefox');
+my $driver = Selenium::Firefox->new();
 setup_user($driver);
 
 #Check login
