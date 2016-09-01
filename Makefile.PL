@@ -6,7 +6,7 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
                                # Catalyst::Devel installed or haven't said
                                # 'make dist' to create a standalone tarball.
 
-system('find ./t -name "*.t" > t/test_manifest' );                               
+system('find ./t -name "*.t" | sort -f > t/test_manifest' );                               
 eval 'use Test::Manifest';       # The new LIMS2 testing layout uses recursive test files
                                  # so we keep the actual list of files to test
                                  # in order, in t/test_manifest

@@ -15,15 +15,9 @@ use feature qw(say);
 use Getopt::Long;
 use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-use LIMS2::TestJS qw( setup_user find_by );
+use LIMS2::TestJS qw( setup_user find_by scroll_window );
 
 #Scripts
-my $scroll = q{
-    var value = arguments[0];
-    window.scrollBy(0,value);
-    return;
-};
-
 my $well = q{
     $('#well_name').val('A01');
     return;
@@ -62,7 +56,7 @@ isnt ($seq,'','Check TV click');
 isnt ($seq,'GGCTCGTA','Check TV loc');
 
 #Window had to be scrolled down. Reset
-$driver->execute_script($scroll, -400);
+scroll_window($driver, -400);
 
 #Test backup selection
 $driver->execute_script($version);
@@ -76,7 +70,7 @@ my $check = $driver->execute_script($check_version);
 is ($check, '2016-04-18 15:02:42', 'Check version');
 
 #Test TV again
-$seq = check_traceviewer($driver, $scroll);
+$seq = check_traceviewer($driver);
 
 isnt ($seq,'','Check backup TV click');
 isnt ($seq,'GGCTCGTA','Check backup TV loc');
@@ -105,13 +99,13 @@ sub select_project {
 }
 
 sub check_traceviewer {
-    my ($driver, $scroll) = @_;
+    my ($driver) = @_;
 
     my $seq_script = q{
         return tv.fwd_plot._read;
     }; 
 
-    $driver->execute_script($scroll, 400);
+    scroll_window($driver, 400);
     ok( find_by($driver, 'class', 'traces'), "Open traceviewer" );
     $driver->pause(5000);
     ok( find_by($driver, 'class', 'trace_sequence'), "Click on TV seq");

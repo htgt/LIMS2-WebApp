@@ -11,15 +11,15 @@ use LIMS2::Test model => { classname => __PACKAGE__ }; #Required for fixtures
 use LIMS2::TestJS qw( setup_user find_by );
 
 #Scripts
-my $alert = q{
+my $alert = q/
     var container = arguments[0];
     var alert = arguments[1];
-    var res = $('#' + container).find('.' + alert)[0].innerText;
+    var res = $('#' + container).find('.' + alert)[0].textContent.trim();
     if (container == 'main') {
-        res = res.slice(2);
+        res = res.slice(8);
     }
     return res;
-};
+/;
 
 my $announcement = q{
     $('#message_field').val("This was a triumph");
@@ -35,7 +35,7 @@ setup_user($driver);
 
 #Tests
 my $alerts = {
-    'alert-warning' =>  '01/08/2016: Don\'t Panic',
+    'alert-warning' =>  '01\/08\/2016:\s+Don\'t Panic',
 };
 
 alert_modal($driver, $alerts);
@@ -50,11 +50,11 @@ $driver->execute_script($announcement);
 ok( find_by($driver, 'id', 'create_announcement_button'), "Create announcement" );
 
 ok( find_by($driver,'link_text','HTGT LIMS2'), "Return home" );
-$driver->pause(500);
+$driver->pause(1000);
 
 my ($day, $month, $year) = (localtime)[3,4,5];
-my $today = sprintf( "%02d", $day) . "/" . sprintf( "%02d", ($month + 1) ) . "/" . ( $year + 1900 ) . ':';
-$alerts->{'alert-info'} = $today . ' This was a triumph';
+my $today = sprintf( "%02d", $day) . "\/" . sprintf( "%02d", ($month + 1) ) . "\/" . ( $year + 1900 ) . ':';
+$alerts->{'alert-info'} = $today . '\s+This was a triumph';
 
 alert_modal($driver, $alerts); 
 
@@ -79,7 +79,7 @@ sub alert_modal {
 
 sub check_alerts {
     my ($driver, $section, $alerts) = @_;
-    
+ 
     my @keys = keys %{ $alerts };
 
     foreach my $key (@keys){
@@ -91,7 +91,7 @@ sub check_alerts {
             $req = 'Announcement ' . $req;
         } 
         
-        is($alert_res, $req, $test);
+        like($alert_res, qr/$req/, $test);
     }
 
     return;

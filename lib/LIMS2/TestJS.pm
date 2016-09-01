@@ -8,10 +8,10 @@ use Sub::Exporter -setup => {
         qw(
              setup_user
              setup_public
-             run_all_tests
              find_by
              cycle_windows
              close_additional_windows
+             scroll_window
           )
     ],
 };
@@ -34,7 +34,7 @@ sub setup_user {
 
     find_by($driver, 'class', 'navbar-btn');
 
-    ## no critic (ProhibitImplicitNewlines)
+    ## no critic (ProhibitImplicitNewLines)
     my $login = q{
         $('#username_field').val('test_user@example.org');
         $('#password_field').val('ahdooS1e');
@@ -102,6 +102,7 @@ sub cycle_windows {
     }
 
     $driver->switch_to_window($handles[$next]);
+
     return 1;
 }
 
@@ -117,6 +118,22 @@ sub close_additional_windows {
         }
     }
     $driver->switch_to_window($focus);
+
+    return 1;
+}
+
+sub scroll_window {
+    my ($driver, $pixels) = @_;
+
+    ## no critic (ProhibitImplicitNewLines)
+    my $scroll = q{
+        var value = arguments[0];
+        window.scrollBy(0,value);
+        return;
+    };
+    ## use critic
+    $driver->execute_script($scroll, $pixels);
+
     return 1;
 }
 
