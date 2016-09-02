@@ -64,7 +64,6 @@ sub _setup {
         say "Driver uninitialised";
         return;
     }
-
     $driver->get('t87-dev.internal.sanger.ac.uk:' . $ENV{LIMS2_WEBAPP_SERVER_PORT});
     say $driver->get_title();
     $driver->set_implicit_wait_timeout(10);
