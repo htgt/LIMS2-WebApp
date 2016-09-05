@@ -58,7 +58,7 @@ $alerts->{'alert-info'} = $today . '\s+This was a triumph';
 alert_modal($driver, $alerts); 
 
 #Remember to close your browser handle.
-$driver->quit();
+$driver->shutdown_binary;
 
 sub alert_modal {
     my ($driver, $alerts) = @_;

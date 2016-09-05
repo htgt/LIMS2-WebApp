@@ -11,7 +11,7 @@ use feature qw(say);
 use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use LIMS2::TestJS qw( setup_public setup_user find_by cycle_windows close_additional_windows);
-use Test::More tests => 44;
+use Test::More tests => 42;
 
 
 #Log in Selenium
@@ -25,12 +25,7 @@ foreach my $page (@pages) {
     check_cache($driver, $page);
 }
 
-setup_user($driver);
-
-ok (find_by($driver, 'link_text', "Genes"));
-ok (find_by($driver, 'link_text', "Sponsor Report"));
-$DB::single=1;
-$driver->quit();
+$driver->shutdown_binary;
 
 sub check_cache {
     my ($driver, $page) = @_;

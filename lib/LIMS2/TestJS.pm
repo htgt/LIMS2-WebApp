@@ -56,7 +56,7 @@ sub setup_public {
 
 sub _setup {
     my $driver = Selenium::Firefox->new(marionette_enabled => 0);
-    
+
     unless ($driver) {
         say "Driver uninitialised";
         return;
