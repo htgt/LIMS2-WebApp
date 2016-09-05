@@ -33,8 +33,7 @@ my $check_version = q{
 };
 
 #Log in Selenium
-my $driver = Selenium::Firefox->new();
-setup_user($driver);
+my $driver = setup_user();
 
 #Check login
 is ($driver->get_title(), 'HTGT LIMS2', 'Home page');

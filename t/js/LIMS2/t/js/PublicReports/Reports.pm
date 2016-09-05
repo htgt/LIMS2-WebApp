@@ -15,9 +15,7 @@ use Test::More tests => 44;
 
 
 #Log in Selenium
-my $driver = Selenium::Firefox->new();
-setup_public($driver);
-
+my $driver = setup_public();
 
 #Check All cache file
 

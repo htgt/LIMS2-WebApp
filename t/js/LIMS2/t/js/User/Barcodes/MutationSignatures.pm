@@ -13,8 +13,7 @@ use feature qw(say);
 use Data::Dumper;
 
 #Log in Selenium
-my $driver = Selenium::Firefox->new();
-setup_user($driver); 
+my $driver = setup_user(); 
 
 #Navigate to Mutation Signs
 ok (find_by($driver, 'link_text', "Barcodes"));
@@ -54,7 +53,7 @@ ok( find_by($driver, 'class_name', 'btn-default') ); #Test clear button
 iterate_accordions($driver, "panel-body collapse", %accordions); 
 
 #Remember to close your browser handle.
-$driver->quit();
+$driver->shutdown_binary;
 
 sub iterate_accordions {
     my ($driver, $collapse_state, %accordions) = @_;

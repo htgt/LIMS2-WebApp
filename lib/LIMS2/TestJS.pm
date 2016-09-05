@@ -29,8 +29,7 @@ BEGIN {
 }
 
 sub setup_user {
-    my ($driver) = @_;
-    _setup($driver);
+    my $driver = _setup();
 
     find_by($driver, 'class', 'navbar-btn');
 
@@ -45,21 +44,19 @@ sub setup_user {
     find_by($driver, 'id', 'login_button');
     say $driver->get_title();
 
-    return;
+    return $driver;
 }
 
 sub setup_public {
-    my ($driver) = @_;
+    my $driver = _setup();
 
-    _setup($driver);
-
-    return;
+    return $driver;
 }
 
 
 sub _setup {
-    my ($driver) = @_;
-
+    my $driver = Selenium::Firefox->new(marionette_enabled => 0);
+    
     unless ($driver) {
         say "Driver uninitialised";
         return;
@@ -69,7 +66,7 @@ sub _setup {
     $driver->set_implicit_wait_timeout(10);
     $driver->maximize_window;
 
-    return;
+    return $driver;
 }
 
 sub find_by {
