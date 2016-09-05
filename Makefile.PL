@@ -7,7 +7,14 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
                                # 'make dist' to create a standalone tarball.
 my $pid = fork();
 if ($pid == 0) {
-    system qw{xterm -e ../../bin/lims2_launch_test_app.sh};
+    use Cwd;
+    my $cwd = cwd();
+    my $c = () = $cwd =~ /\//g;
+    if ($c eq '9') {
+        system qw{xterm -hold -e ../../../bin/lims2_launch_test_app.sh 1};
+    } else {
+        system qw{xterm -hold -e ../../bin/lims2_launch_test_app.sh 0};
+    }
 }
 system('find ./t -name "*.t" | sort -f > t/test_manifest' );                               
 eval 'use Test::Manifest';       # The new LIMS2 testing layout uses recursive test files
