@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.411';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.420';
 }
 ## use critic
 
@@ -22,6 +22,7 @@ use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -226,7 +227,6 @@ sub _generate_front_page_report {
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
 
     # Fetch details from returned report parameters
@@ -480,16 +480,7 @@ sub add_ep_rows {
     );
     my @expand_cols;
     foreach my $ep_col ( @{$column->{ep_data}} ) {
-        if (scalar $ep_col->{dna_template} > 1) {
-            foreach my $dna (@{$ep_col->{dna_template}}) {
-                my $ep_col_copy = $ep_col;
-                $ep_col_copy->{dna_template} = $dna;
-                push (@expand_cols, $ep_col_copy);
-            }
-        } else {
-            $ep_col->{dna_template} = $ep_col->{dna_template}[0];
-            push (@expand_cols, $ep_col);
-        }
+        push @expand_cols, $ep_col;
     }
     foreach my $ep_col ( @expand_cols ) {
         my $sub_col = {
@@ -622,54 +613,64 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
     if ( @args == 1 ) {
         my $barcode = shift @args;
+        my $well;
+
         try {
-            $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+            $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
+            # $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
         } catch {
-            $c->stash( error_msg => "$_" );
+            $c->stash( error_msg => "Barcode doesn't exist" );
+        };
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
             $c->go( 'well_genotyping_info_search' );
             return;
-        };
+        }
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
+        my $well;
 
         try {
-            $self->_stash_well_genotyping_info(
-                $c, { plate_name => $plate_name, well_name => $well_name }
-            );
-        } catch {
-            $c->stash( error_msg => "$_" );
+            $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        };
+
+        unless($well){
+            try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( { plate_name => $plate_name, well_name => $well_name } ) };
+            if($well){
+                $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
+                    $well->plate->name.". Reporting info for this well on version ".$well->plate->version
+                    ." of the plate.");
+            }
+        }
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
+            try {
+                my $plate_id = $c->model('Golgi')->retrieve_plate({ name => $plate_name })->id;
+                my $barcode_id = $c->model('Golgi')->schema->resultset('BarcodeEvent')->find({ old_plate_id => $plate_id, old_well_name => $well_name, new_well_name => undef } )->barcode->barcode;
+                $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode_id } );
+            } catch {
+                $c->stash( error_msg => "Well doesn't exist" );
+            };
+        }
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
             $c->go( 'well_genotyping_info_search' );
             return;
-        };
-    }
-    else {
-        $c->stash( error_msg => "Invalid number of arguments" );
+        }
     }
 
     return;
 }
 
 sub _stash_well_genotyping_info {
-    my ( $self, $c, $search ) = @_;
-
-    #well_id will become barcode
-    my $well;
-    try { $well = $c->model('Golgi')->retrieve_well( $search ) };
-
-    unless($well){
-        try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( $search ) };
-        if($well){
-            $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
-                $well->plate->name.". Reporting info for this well on version ".$well->plate->version
-                ." of the plate.");
-        }
-    }
-
-    unless ( $well ) {
-        $c->stash( error_msg => "Well doesn't exist" );
-        return;
-    }
+    my ( $self, $c, $well ) = @_;
 
     try {
         #needs to be given a method for finding genes
@@ -694,11 +695,11 @@ sub _stash_well_genotyping_info {
         my $type;
         try{
             #Depending on type of crispr, retrieve crispr hash ref
-            if ($data->{qc_data}->{is_crispr_pair} == 1){
+            if ($data->{qc_data}->{is_crispr_pair}){
                 $type = 'CrisprPair';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
-            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+            elsif ($data->{qc_data}->{is_crispr_group}){
                 $type = 'CrisprGroup';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }

@@ -289,7 +289,7 @@ sub test_infer_qc_process_type : Test(29) {
     note( 'DESIGN source plates' );
     throws_ok {
         infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'POSTINT', 'DESIGN' )
-    } qr/Can only create INT plate from a DESIGN/
+    } qr/Can only create PREINT or INT plate from a DESIGN template plate/
         , 'throws error when trying to create non INT plate';
 
     throws_ok {

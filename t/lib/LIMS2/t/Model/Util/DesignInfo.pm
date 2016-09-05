@@ -16,7 +16,7 @@ LIMS2/t/Model/Util/DesignInfo.pm - test class for LIMS2::Model::Util::DesignInfo
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(150) {
 
     note('Test Valid Conditional -ve Stranded Design');
 

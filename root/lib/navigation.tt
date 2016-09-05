@@ -58,7 +58,7 @@
 <div class="navbar navbar-default navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="nav navbar-brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+        <a class="nav navbar-brand" href="[% c.http_uri_for( '/' ) %]">HTGT LIMS2</a>
       </div>
       [% IF template.title != 'Login' %]
       <ul class="nav navbar-nav">
@@ -407,7 +407,6 @@
           </li>
         [% END %]
 
-
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
@@ -422,19 +421,12 @@
         </li>
       <!-- Non Logged in User -->
       [% ELSE %]
-        <li class="dropdown active">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
-            </li>
-          </ul>
-        </li>
-        </ul>
+        <li class="active"><a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a></li>
+      </ul>
       <ul class="nav navbar-nav navbar-right">
         <li class="divider-vertical"></li>
           <div class="col-md-3">
-            <a class="btn btn-default navbar-btn" href="[% c.uri_for('/login') %]">Login</a>
+            <a class="btn btn-default navbar-btn" href="[% c.uri_for('/login') %]"><i class="glyphicon glyphicon-log-in"></i> Login</a>
           </div>
       </ul>
         <ul>

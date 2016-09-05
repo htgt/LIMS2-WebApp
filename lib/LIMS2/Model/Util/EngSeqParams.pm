@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EngSeqParams;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.411';
+    $LIMS2::Model::Util::EngSeqParams::VERSION = '0.420';
 }
 ## use critic
 
@@ -285,6 +285,8 @@ sub fetch_well_eng_seq_params {
 		my $cassette = $well->cassette;
 		$params->{cassette} = $cassette ? $cassette->name
 		                                : undef ;
+        # An empty_cassette was added and might require to be used instead
+        #                               : 'empty_cassette' ;
 	}
 
     # User specified recombinase is added to the list of
@@ -307,7 +309,7 @@ sub fetch_well_eng_seq_params {
 
     # We always need a cassette
     LIMS2::Exception->throw( "No cassette found for well ". $well->id )
-        unless ($params->{cassette} || $well->plate->type_id eq 'PREINT');
+        unless ($params->{cassette} || $well->plate->type_id eq 'DESIGN');
 
     LIMS2::Exception->throw( "No backbone found for well ". $well->id )
         if $params->{stage} eq 'vector' && !$params->{backbone};

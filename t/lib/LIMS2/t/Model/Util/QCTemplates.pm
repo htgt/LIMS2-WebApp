@@ -127,7 +127,7 @@ sub qc_template_display_data_test : Test(4) {
         'we get expected data generated for qc_template';
 }
 
-sub eng_seq_data_test : Test(no_plan) {
+sub eng_seq_data_test : Test(10) {
 
     ok my $template_well = model->retrieve_qc_template_well( { id => 3265 } ),
         'can retrieve qc_template_well';

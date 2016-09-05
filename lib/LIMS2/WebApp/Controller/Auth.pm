@@ -1,14 +1,16 @@
 package LIMS2::WebApp::Controller::Auth;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Auth::VERSION = '0.411';
+    $LIMS2::WebApp::Controller::Auth::VERSION = '0.420';
 }
 ## use critic
+
 
 use Moose;
 use Crypt::CBC;
 use Config::Tiny;
 use namespace::autoclean;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -31,9 +33,19 @@ Catalyst Controller.
 sub login : Global {
     my ( $self, $c ) = @_;
 
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
-    my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
+    my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->http_uri_for('/');
     my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession') || "";
 
     $c->log->debug("HTGT session: $htgtsession");
@@ -49,13 +61,14 @@ sub login : Global {
     if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
 
     	# Only set the flash message if we are staying in lims2 webapp
-    	my $app_root = quotemeta( $c->req->base );
+        # FIXME: assuming we redirect to a http page, not another https page
+    	my $app_root = quotemeta( $c->http_uri_for('/') );
     	$c->log->debug("App root uri: $app_root");
         if($goto=~/$app_root/){
             $c->flash( success_msg => 'Login successful' );
         }
 
-        # If we have a htgt session id set a cookie that htgt can use 
+        # If we have a htgt session id set a cookie that htgt can use
         # to check authentication
         if ($htgtsession){
 
@@ -78,7 +91,7 @@ sub login : Global {
         	    domain => '.sanger.ac.uk',
             };
         }
-
+        $c->log->debug("redirecting to $goto");
         return $c->res->redirect($goto);
     }
     else {

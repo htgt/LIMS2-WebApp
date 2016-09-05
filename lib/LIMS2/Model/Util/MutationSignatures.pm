@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::MutationSignatures;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.411';
+    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.420';
 }
 ## use critic
 
@@ -26,7 +26,6 @@ use Data::Dumper;
 
 sub get_mutation_signatures_barcode_data{
 	my ($model, $species) = @_;
-
 	my @processes = $model->schema->resultset('Process')->search(
 	    {
 		    type_id => 'doubling',

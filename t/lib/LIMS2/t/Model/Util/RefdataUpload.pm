@@ -83,7 +83,7 @@ Code to execute all tests
 
 =cut
 
-sub a00_reference_data : Tests {
+sub a00_reference_data : Test(77) {
 
     my $user          = 'lims2';
     my $connect_entry = 'LIMS2_DB';

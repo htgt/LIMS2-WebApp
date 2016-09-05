@@ -1,3 +1,42 @@
+0.420     2016-09-05 16:11:49 Europe/London
+
+    Added JS tests
+0.419     2016-08-23 15:19:33 Europe/London
+
+    bugfix on well genotyping info
+
+0.418     2016-08-22 15:13:44 Europe/London
+
+    add support for https on login page
+
+0.417     2016-08-05 11:48:45 Europe/London
+
+    small changes to landing page
+
+0.416     2016-08-02 16:18:02 Europe/London
+
+    well_genotyping_info updated to support wells on uknown location
+    crispr primers validation state display updated
+    minor html display issues fixed
+
+0.415     2016-08-01 11:54:10 Europe/London
+
+    Gene summary bootstrap issues fixed
+    Plate report, plate name added to browser tab
+    Rearray plate upload, added required DNA template for INT plates
+
+0.414     2016-07-25 10:18:37 Europe/London
+
+	Create Announcement fix
+
+0.413     2016-07-21 15:21:12 Europe/London
+
+   CSV report download fix
+
+0.412     2016-07-21 12:55:47 Europe/London
+
+   Speed up front page report generation
+
 0.411     2016-07-08 15:07:49 Europe/London
     Changes to the front page reports
 0.410     2016-07-06 13:49:49 Europe/London

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.411';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.420';
 }
 ## use critic
 
@@ -22,6 +22,9 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 use Data::Dumper;
+
+# Uncomment this to add time since last log entry to log output
+#Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -113,7 +116,6 @@ has sponsor_data => (
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
-
     my @sponsor_ids = @{ $self->sponsors };
 
     foreach my $sponsor_id ( @sponsor_ids ) {
@@ -866,6 +868,7 @@ sub genes {
         my $gene_id = $gene_row->{ 'gene_id' };
 
         my $gene_info;
+
         # get the gene name, the good way. TODO for human genes
         try {
             $gene_info = $self->model->find_gene( {
@@ -936,7 +939,6 @@ sub genes {
             $effort_concluded = join ( '; ', @effort_concluded_array );
         };
 
-
         # design IDs list
         my @design_ids = map { $_->design_id } $summary_rs->all;
         @design_ids = uniq @design_ids;
@@ -964,7 +966,6 @@ sub genes {
             push @$arrayref, $design_id;
             push @all_design_ids, $design_id;
         }
-
 
         # DESIGN wells
         my @design = $summary_rs->search(
@@ -1008,8 +1009,6 @@ sub genes {
             }
         }
 
-
-
         # FINAL_PICK wells
         my @final_pick = $summary_rs->search(
             { final_pick_well_accepted => 't',
@@ -1044,7 +1043,6 @@ sub genes {
         # );
         # my $dna_pass_count = scalar @dna;
 
-
         # EP wells
         my @ep = $summary_rs->search(
             {
@@ -1055,12 +1053,11 @@ sub genes {
                 to_report => 't',
             },
             {
-                columns => [ qw/experiments ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id crispr_ep_well_cell_line/ ],
+                columns => [ qw/experiments dna_template ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id crispr_ep_well_cell_line/ ],
                 distinct => 1
             }
         );
         my $ep_count = scalar @ep;
-
 
         my @ep_data;
 
@@ -1074,28 +1071,6 @@ sub genes {
         my $total_no_call = 0;
         my $total_het;
 
-        my @int_plates = $summary_rs->search(
-            {
-                dna_template => { '!=', undef },
-                to_report => 't',
-            },
-            {
-                select => [ qw/dna_template/ ],
-                as => [ qw/dna_template/ ],
-                distinct => 1,
-            }
-        );
-
-        my @dna_template;
-        if (@int_plates){
-            foreach my $focus (@int_plates){
-                push (@dna_template, $focus->get_column('dna_template'));
-            }
-        }
-        unless (@dna_template) {
-            push(@dna_template, '-');
-        }
-        DEBUG $gene_symbol . " - DNA : " . $dna_template[0] . " / count " . scalar @dna_template;
         foreach my $curr_ep (@ep) {
             my %curr_ep_data;
             my $ep_id;
@@ -1106,7 +1081,9 @@ sub genes {
                 $ep_id = $curr_ep->crispr_ep_well_id;
             }
 
-            $curr_ep_data{'dna_template'} = \@dna_template;
+            # dna_template is actually a foreign key so we need to use get_column
+            # to get the value rather than the DNATemplate result object
+            $curr_ep_data{'dna_template'} = $curr_ep->get_column('dna_template') // '-' ;
             $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
             $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
 
@@ -1139,7 +1116,7 @@ sub genes {
                     ],
                     to_report => 't',
                 },{
-                    columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id/ ],
+                    columns => [ qw/ep_pick_plate_name ep_pick_well_name ep_pick_well_accepted ep_pick_well_id ep_pick_well_crispr_es_qc_well_call/ ],
                     distinct => 1
                 }
             );
@@ -1147,7 +1124,6 @@ sub genes {
             $curr_ep_data{'ep_pick_count'} = scalar @ep_pick;
             $total_ep_pick_count += $curr_ep_data{'ep_pick_count'};
             # $curr_ep_data{'ep_pick_pass_count'} = 0;
-
 
             $curr_ep_data{'frameshift'} = 0;
             $curr_ep_data{'in-frame'} = 0;
@@ -1158,7 +1134,7 @@ sub genes {
             ## no critic(ProhibitDeepNests)
 
             foreach my $ep_pick (@ep_pick) {
-                my $damage_call = crispr_damage_type_for_ep_pick($self->model,$ep_pick->ep_pick_well_id);
+                my $damage_call = $ep_pick->ep_pick_well_crispr_es_qc_well_call;
 
                 if ($damage_call) {
                     $curr_ep_data{$damage_call}++;
@@ -1218,8 +1194,6 @@ sub genes {
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
-
-
 
         # PIQ wells
         my @piq = $summary_rs->search(

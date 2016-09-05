@@ -1,0 +1,6 @@
+id,name,password,active
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,t
+121,phantom_user@sanger.ac.uk,,t
+92,mystery_user@sanger.ac.uk,,t
+1134,system,,t
+1135,unknown,,t
