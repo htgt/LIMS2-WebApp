@@ -332,50 +332,6 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
-sub js_overview : Path( '/admin/js_overview' ) : Args(0) {
-    my ( $self, $c ) = @_;
-    
-    my $base = $ENV{LIMS2_JS}
-        or die "LIMS2_JS not set";
-    my @results;
-    @results = check_folder($base, @results);
-    $c->stash(
-        scripts => \@results,
-    );
-
-    return;
-}
-
-sub check_folder {
-    my ($current_dir, @js_files) = @_;
-    
-    opendir my $dir, $current_dir or die "Cannot open directory: $!";
-    my @files = readdir $dir;
-    closedir $dir;
-
-    foreach my $file (@files) {
-        if ($file =~ /^\S*\.js$/) {     # If JavaScript file, ignoring swps
-$DB::single=1;
-            my @uri = split('WebApp', $current_dir . $file);
-            push(@js_files, $uri[1]);
-        }
-        elsif ($file !~ /^\..*/) {      # If subdirectory
-            my $new_dir = $current_dir . $file . '/';
-            @js_files = check_folder($new_dir, @js_files);
-        }
-    }
-    return @js_files;
-}
-
-#sub find_txt {
-#    my $c = shift;
-#    my $F = $File::Find::name;
-#    my @results;
-#    if ($F =~ /js$/ ) {
-#        $c->log->debug($F);
-#    }
-#}
-
 =head1 AUTHOR
 
 Ray Miller
