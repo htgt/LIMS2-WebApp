@@ -68,7 +68,7 @@ highlight {
             <tbody>
           [% FOREACH bc IN data.$state %]
               <tr id=[% row %]>
-                <td><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.parent_barcode }) %]">[% bc.parent_barcode %]</a></td>
+                <td class="bc_id"><a href="[% c.uri_for('/user/scan_barcode',{ barcode => bc.parent_barcode }) %]">[% bc.parent_barcode %]</a></td>
                 <td>[% bc.gene_id %]</td>
                 <td>[% bc.gene_symbol %]</td>
                 <td>[% bc.doubling_start %]</td>
@@ -137,8 +137,8 @@ function highlightSearch(state) {
         
         document.getElementById(state).innerHTML = newAccord;
         document.getElementById(state + '_id').style = "color:red";
-        var ua = navigator.userAgent;
-        var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        //var ua = navigator.userAgent;
+        //var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
 
         //if (browser[1] != "Firefox") {
         //    if (count > 0 ){

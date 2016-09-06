@@ -176,6 +176,9 @@ $(document).ready(function() {
   $(".seqName").click( function(e) {
     $("#sequencing_project").val(e.target.innerHTML);
     $("#sequencing_project").autocomplete("search");
+    begin_population( $("#sequencing_project").val());
+    $("#ui-id-1").remove();
+    console.log("removing");
   });
 
  
@@ -246,9 +249,14 @@ $(document).ready(function() {
     source: "[% c.uri_for( '/api/autocomplete/badger_seq_projects' ) %]",
     minLength: 5,
     select: function (event, ui) {
+        begin_population(ui.item.value);
+    }
+  });
+
+  function begin_population(ui) {
      $.getJSON(
        '[% c.uri_for( "/api/autocomplete/seq_read_names" ) %]',
-       { term: ui.item.value },
+       { term: ui },
        function (data) {
 
           // remove any existing primer data form field and replace with new one
@@ -259,9 +267,7 @@ $(document).ready(function() {
           populate_subproject_list(data,'');
        }
      );
-    }
-  });
-
+  }
   $("#download_reads_button").click(function(e){
     e.preventDefault();
     // go to read dowload link with value from sequencing project select field
