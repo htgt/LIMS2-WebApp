@@ -1368,8 +1368,24 @@ sub _create_process_aux_data_crispr_ep {
 }
 ## use critic
 
+sub pspec__create_process_aux_data_crispr_sep {
+    return {
+        nuclease     => { validate => 'existing_nuclease' },
+    };
+}
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _create_process_aux_data_crispr_sep {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_crispr_sep );
+
+    $process->create_related(
+        process_cell_line => {
+            cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} )
+        }
+    );
+
     return;
 }
 ## use critic

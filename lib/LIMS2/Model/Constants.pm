@@ -78,6 +78,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
     'vector_cloning'         => [qw( backbone )],
+    'crispr_sep'             => [qw( nuclease )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen

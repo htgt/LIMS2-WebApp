@@ -39,7 +39,7 @@
 
 <table class="table table-striped table-bordered">
   <thead>
-    <tr>
+    <tr id="table_header_row">
       [%- FOR col IN columns %]
       <th>[% col %]</th>
       [%- END %]
@@ -93,6 +93,30 @@
       });
     });
 
+    if([% is_double_targeted %]){
+        var first_cols = [];
+        var second_cols = [];
+        $("#table_header_row th").each(function(index){
+          var value = $(this).text();
+          if(value.indexOf('First') === 0){
+            console.log("Column " + value + " at index " + index + " is for First gene");
+            first_cols.push(index);
+          }
+          else if(value.indexOf('Second') === 0){
+            console.log("Column " + value + " at index " + index + " is for Second gene");
+            second_cols.push(index);
+          }
+        });
+
+        $.each(second_cols, function(index,col_index){
+          $('table tr td:nth-child('+(col_index+1)+')').addClass('second_gene_report_col');
+        });
+
+        $.each(first_cols, function(index,col_index){
+          $('table tr td:nth-child('+(col_index+1)+')').addClass('first_gene_report_col');
+        });
+
+    }
     // Add primer validation buttons and labels to Assembly plate
     [%IF extra_data.plate_type == 'ASSEMBLY' %]
       console.log('adding assembly plate functionality');
