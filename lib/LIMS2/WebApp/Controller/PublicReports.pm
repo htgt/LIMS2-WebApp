@@ -221,7 +221,6 @@ sub _generate_front_page_report {
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
 
     # Fetch details from returned report parameters

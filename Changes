@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.420     2016-09-05 16:11:49 Europe/London
+
+    Added JS tests
 0.419     2016-08-23 15:19:33 Europe/London
 
     bugfix on well genotyping info

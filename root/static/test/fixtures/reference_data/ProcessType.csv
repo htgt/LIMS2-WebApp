@@ -1,30 +1,31 @@
-"id","description"
-"create_di","Create design instance"
-"cre_bac_recom","Cre/BAC recombineering"
-"int_recom","Intermediate recombineering"
-"2w_gateway","Two-way gateway"
-"3w_gateway","Three-way gateway"
-"legacy_gateway","Legacy gateway, model old data from HTGT"
-"rearray","rearray wells"
-"dna_prep","dna prep"
-"recombinase","apply recombinase"
-"clone_pick","Pick from EP plate"
-"clone_pool","Pool es cells into backup vial"
-"first_electroporation","First (standard) electroporation"
-"second_electroporation","Second electroporation in double targetted cells"
-"freeze","Create freezer plate well"
-"final_pick","Create Final Pick plate"
-"xep_pool","Pool multiple EP_PICK wells into an XEP well"
-"create_crispr","Create crispr"
-"dist_qc","Pre-injection distribution QC PIQ create process"
-"crispr_vector","Create crispr vector"
-"single_crispr_assembly","Single crispr assembly"
-"paired_crispr_assembly","Paired crispr assembly"
-"crispr_ep","Crispr electroporation"
-"global_arm_shortening","Shorten the global arms of a intermediate vector using new G oligos"
-"oligo_assembly", 'Put a nonsense design with a crispr'
-"cgap_qc","QC of samples returned from CGAP"
-"ms_qc","QC of samples during Mutation Signatures workflow"
-"doubling","growth for specified number of doublings"
-"crispr_sep","Crispr second electroporation"
-
+id,description
+create_di,Create design instance
+cre_bac_recom,Cre/BAC recombineering
+int_recom,Intermediate recombineering
+2w_gateway,Two-way gateway
+3w_gateway,Three-way gateway
+rearray,Rearray wells
+dna_prep,DNA preparation
+recombinase,Apply recombinase
+clone_pick,Pick from EP plate
+clone_pool,Pool es cells into backup vial
+first_electroporation,First (standard) electroporation
+second_electroporation,Second electroporation in double targetted cells
+freeze,Create freezer plate well
+final_pick,Create Final Pick plate
+legacy_gateway,Legacy gateway process from HTGT
+xep_pool,Pool multiple wells into XEP well
+create_crispr,Create crispr
+dist_qc,Pre-injection distribution QC PIQ create process
+crispr_vector,Create crispr vector
+single_crispr_assembly,Single crispr assembly
+paired_crispr_assembly,Paired crispr assembly
+crispr_ep,Crispr electroporation
+global_arm_shortening,Shorten the global arms of a intermediate vector using new G oligos
+oligo_assembly,Oligo and crispr assembly
+cgap_qc,QC of samples returned from CGAP
+ms_qc,QC of samples during Mutation Signatures workflow
+doubling,growth for specified number of doublings
+vector_cloning,Create Pre-Intermediate
+group_crispr_assembly,Group crispr assembly
+crispr_sep,Crispr second electroporation
