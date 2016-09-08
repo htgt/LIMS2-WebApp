@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.421     2016-09-08 11:10:00 Europe/London
+
+   Support added for crispr second electroporation (double gene targeting)
+
 0.420     2016-09-05 16:11:49 Europe/London
 
     Added JS tests
