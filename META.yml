@@ -161,6 +161,7 @@ requires:
   Pod::Usage: 0
   Readonly: 0
   Scalar::Util: 0
+  Selenium::Firefox: 0
   Spreadsheet::XLSX: 0
   Sub::Exporter: 0
   Template::AutoFilter: 0
@@ -194,4 +195,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.418
+version: 0.421

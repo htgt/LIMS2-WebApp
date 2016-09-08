@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::QCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::QCResults::VERSION = '0.418';
+    $LIMS2::Model::Util::QCResults::VERSION = '0.421';
 }
 ## use critic
 
@@ -659,6 +659,9 @@ sub infer_qc_process_type{
     if ( $source_plate_type eq 'DESIGN' ) {
         $process_type = _design_source_plate( $new_plate_type, $reagent_count, $params );
     }
+    elsif ( $source_plate_type eq 'PREINT' ) {
+        $process_type = _preint_source_plate( $new_plate_type, $reagent_count, $params );
+    }
     elsif ( $source_plate_type eq 'INT' ) {
         $process_type = _int_source_plate( $new_plate_type, $reagent_count, $params );
     }
@@ -690,9 +693,13 @@ Help infer process type where the template well is derived from a DESIGN plate
 sub _design_source_plate {
     my ( $new_plate_type, $reagent_count, $params ) = @_;
 
-    unless ( $new_plate_type eq 'INT' ) {
+    unless ( $new_plate_type eq 'PREINT' || $new_plate_type eq 'INT' ) {
         LIMS2::Exception->throw(
-            "Can only create INT plate from a DESIGN template plate, not a $new_plate_type plate");
+            "Can only create PREINT or INT plate from a DESIGN template plate, not a $new_plate_type plate");
+    }
+
+    if ( $new_plate_type eq 'PREINT' ) {
+        return 'vector_cloning';
     }
 
     if ( $params->{recombinase} ) {
@@ -713,6 +720,70 @@ sub _design_source_plate {
 
     return;
 }
+
+=head2 _preint_source_plate
+
+Help infer process type where the template well is derived from a PREINT plate
+
+=cut
+## no critic(ControlStructures::ProhibitCascadingIfElse)
+sub _preint_source_plate {
+    my ( $new_plate_type, $reagent_count, $params ) = @_;
+
+    if ( $new_plate_type eq 'PREINT' ) {
+        if ( $reagent_count == 0 ) {
+            return $params->{recombinase} ? 'recombinase'
+                                          : 'rearray' ;
+        }
+        else {
+            LIMS2::Exception->throw(
+                'Cassette / backbone was specified when the PREINT template plate was created, '
+                . ' this does not fit in with creating a PREINT plate here'
+            );
+        }
+    }
+    elsif ( $new_plate_type eq 'INT' ) {
+        if ( $params->{recombinase} ) {
+            LIMS2::Exception->throw(
+                'A recombinase was specified when the PREINT template plate was created, '
+                . ' this does not fit with creating a INT plate here'
+            );
+        }
+        elsif ( $reagent_count == 2 ) {
+            return 'int_recom';
+        }
+        else {
+            LIMS2::Exception->throw(
+                'A cassette and backbone were not specified when the PREINT template plate was created, '
+                . ' this information is required when creating a INT plate from a PREINT template plate'
+            );
+        }
+    }
+    elsif ( $new_plate_type eq 'POSTINT' || $new_plate_type eq 'FINAL' ) {
+        if ($reagent_count == 0){
+            LIMS2::Exception->throw(
+                'A cassette and or backbone were not specified when the PREINT template plate was created, '
+                . " this information is required when creating a $new_plate_type plate from a INT template plate"
+            );
+        }
+        elsif ($reagent_count == 1){
+            return '2w_gateway';
+        }
+        else{
+            return '3w_gateway';
+        }
+    }
+    elsif ( $new_plate_type eq 'FINAL_PICK' ) {
+        LIMS2::Exception->throw( "Can not create FINAL_PICK plate from PREINT template plate" );
+
+    }
+    else {
+        LIMS2::Exception->throw( "Can not handle $new_plate_type plate type" );
+    }
+
+    return;
+}
+## use critic
 
 =head2 _int_source_plate
 

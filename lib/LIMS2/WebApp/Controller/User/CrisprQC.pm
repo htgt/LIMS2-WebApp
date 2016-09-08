@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.418';
+    $LIMS2::WebApp::Controller::User::CrisprQC::VERSION = '0.421';
 }
 ## use critic
 
@@ -71,12 +71,12 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
     my $hide_het_validation = 0;
     if ( my $qc_well = $run->crispr_es_qc_wells->first ) {
         my $plate_type  = $qc_well->well->plate_type;
-        if ( $plate_type eq 'EP_PICK' ) {
+        if ( $plate_type eq 'EP_PICK' or $plate_type eq 'SEP_PICK') {
             # only do crispr validation of ES cells in EP_PICK plates
             $hide_crispr_validation = 0;
             $can_accept_wells = 1;
         }
-        elsif ( $plate_type eq 'PIQ' ) {
+        elsif ( $plate_type eq 'PIQ' or $plate_type eq 'S_PIQ') {
             $can_accept_wells = 1;
         }
     }
@@ -90,6 +90,8 @@ sub crispr_es_qc_run :Path( '/user/crisprqc/es_qc_run' ) :Args(1) {
 
     $c->stash(
         qc_run_id              => $run->id,
+        plate_name             => $run->plate_name,
+        gene_number            => $run->allele_number,
         seq_project            => $run->sequencing_project,
         sub_project            => $run->sub_project,
         sequencing_data_version => $run->sequencing_data_version,
@@ -255,6 +257,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
     	forward_primer_name    => { validate => 'non_empty_string' },
     	reverse_primer_name    => { validate => 'non_empty_string' },
     	submit_crispr_es_qc    => { optional => 0 },
+        gene_number            => { validate => 'integer', optional => 1},
     };
 
 	# Store form values
@@ -263,6 +266,7 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
 	$c->stash->{plate_name}             = $c->req->param('plate_name');
 	$c->stash->{forward_primer_name}    = $c->req->param('forward_primer_name');
 	$c->stash->{reverse_primer_name}    = $c->req->param('reverse_primer_name');
+    $c->stash->{gene_number}            = $c->req->param('gene_number');
 
 	if ( $c->req->param( 'submit_crispr_es_qc' ) ) {
         my $validated_params;
@@ -281,6 +285,20 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
             return;
         }
 
+        # Decide which gene/allele to run QC on for double targeted plate types
+        my $allele_number;
+        if($plate->type_id eq 'SEP_PICK'){
+            # QC second allele only for SEP_PICK
+            $allele_number = 2;
+        }
+        elsif($plate->type_id eq 'S_PIQ'){
+            # User must specify which allele the seq project is for
+            $allele_number = $c->req->param('gene_number');
+            unless($allele_number){
+                $c->stash->{error_msg} = "You must specify which gene to run QC for when using S_PIQ double targeted plate";
+            }
+        }
+
         my $qc_run;
 		try {
 
@@ -295,6 +313,10 @@ sub submit_crispr_es_qc :Path('/user/crisprqc/submit_qc_run') :Args(0) {
                 user                    => $c->user->name,
                 species                 => $c->session->{selected_species},
             );
+
+            if($allele_number){
+                $params{allele_number} = $allele_number;
+            }
 
             my $qc_runner = LIMS2::Model::Util::CrisprESQC->new( %params );
 

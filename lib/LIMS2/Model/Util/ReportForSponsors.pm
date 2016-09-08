@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.418';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.421';
 }
 ## use critic
 
@@ -116,7 +116,6 @@ has sponsor_data => (
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
-
     my @sponsor_ids = @{ $self->sponsors };
 
     foreach my $sponsor_id ( @sponsor_ids ) {

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.418';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.421';
 }
 ## use critic
 
@@ -265,7 +265,7 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 
     delete_message( $c->model('Golgi')->schema, { message_id => $deleted_message } );
 
-    $c->flash( success_msg => "Message sucessfully deleted");
+    $c->flash( success_msg => "Message successfully deleted");
 
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }

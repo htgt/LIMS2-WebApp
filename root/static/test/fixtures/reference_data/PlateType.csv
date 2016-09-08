@@ -24,3 +24,6 @@
 "OLIGO_ASSEMBLY","assembly oligo and crispr"
 "CGAP_QC","QC of samples returned from CGAP","allele"
 "MS_QC","QC of samples during Mutation Signatures workflow","allele"
+"CRISPR_SEP","Crispr Second Electroporation","allele"
+"S_PIQ","Second Allele Pre-injection QC plate","allele"
+

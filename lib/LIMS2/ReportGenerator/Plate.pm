@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.418';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.421';
 }
 ## use critic
 
@@ -265,6 +265,22 @@ sub _build_plate_name {
     my $self = shift;
 
     return $self->plate->name;
+}
+
+# Get ancestor trees for all plate wells with one query
+# and pre-load them into well objects
+sub prefetch_well_ancestors{
+    my $self = shift;
+
+    my @wells = $self->plate->wells;
+
+    # Pre-populate ancestors for all plate wells using batch query
+    my @well_ids = map { $_->id } @wells;
+    my $well_ancestors = $self->model->fast_get_well_ancestors(@well_ids);
+    foreach my $this_well (@wells){
+        $this_well->set_ancestors( $well_ancestors->{ $this_well->id } );
+    }
+    return;
 }
 
 sub base_columns {

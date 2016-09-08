@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.418';
+    $LIMS2::Model::Constants::VERSION = '0.421';
 }
 ## use critic
 
@@ -54,12 +54,13 @@ const our %PROCESS_PLATE_TYPES => (
     'clone_pool'             => [qw( SEP_POOL XEP_POOL )],
     'freeze'                 => [qw( FP SFP )],
     'xep_pool'               => [qw( XEP )],
-    'dist_qc'                => [qw( PIQ )],
+    'dist_qc'                => [qw( PIQ S_PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'crispr_sep'             => [qw( CRISPR_SEP)],
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
     'cgap_qc'                => [qw( CGAP_QC )],
     'ms_qc'                  => [qw( MS_QC )],
@@ -83,6 +84,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
     'vector_cloning'         => [qw( backbone )],
+    'crispr_sep'             => [qw( nuclease )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -106,6 +108,7 @@ const our %PROCESS_TEMPLATE => (
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
     'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
+    'crispr_sep'             => 'crispr_sep_template',
     'oligo_assembly'         => 'oligo_assembly',
     'vector_cloning'         => 'vector_cloning_template',
 );
@@ -154,7 +157,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP CRISPR_EP )],
+        type   => [qw( EP XEP SEP CRISPR_EP CRISPR_SEP )],
         number => 1,
     },
     'clone_pool' => {
@@ -200,6 +203,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'crispr_ep' => {
         type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
         number => 1,
+    },
+    'crispr_sep' => {
+        type   => [qw( ASSEMBLY PIQ )],
+        number => 2,
     },
     'oligo_assembly' => {
         type   => [qw( DESIGN CRISPR )],

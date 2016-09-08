@@ -1,6 +1,6 @@
 [% META title="Crispr ES Cell QC"; META tab_name = 'QC' %]
 
-<style type="text/css"> 
+<style type="text/css">
 .label-as-badge {
     border-radius: 1em;
 }
@@ -25,6 +25,7 @@
         <tr>
             <th>QC Run ID</th>
             <th>Plate Name</th>
+            <th>Gene Analysed</th>
             <th>Sequencing Project</th>
             <th>Validated</th>
             <th>Created By</th>
@@ -36,7 +37,14 @@
         [% FOR run IN runs %]
         <tr>
             <td><a href="[% c.uri_for('es_qc_run', run.id) %]">[% run.id.substr(0, 8) %]</a></td>
-            <td><a href="[% c.uri_for('/user/view_plate', { name => run.plate_name}) %]">[% run.plate_name %]</a></dt>
+            <td><a href="[% c.uri_for('/user/view_plate', { name => run.plate_name}) %]">[% run.plate_name %]</a></td>
+            <td>
+             [% IF run.allele_number == 1 %]
+               <span class="label label-primary">1st</span>
+             [% ELSIF run.allele_number == 2 %]
+               <span class="label label-info">2nd</span>
+             [% END %]
+            </td>
             <td>[% run.sequencing_project %]</td>
             <td>
                 [% IF run.validated %]
