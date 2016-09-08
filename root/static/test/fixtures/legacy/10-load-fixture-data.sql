@@ -11376,7 +11376,7 @@ INSERT INTO project_sponsors VALUES (12, 'Syboss');
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 3000, true);
+SELECT pg_catalog.setval('wells_id_seq', 4000, true);
 
 
 --

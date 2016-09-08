@@ -1,6 +1,7 @@
 ---
 valid_input:
     type: crispr_sep
+    nuclease: 'Cas9 Church D10A (+neo)'
     output_wells:
         - plate_name: CRISPR_SEP
           well_name: A01

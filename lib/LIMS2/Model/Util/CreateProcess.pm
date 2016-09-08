@@ -1381,8 +1381,8 @@ sub _create_process_aux_data_crispr_sep {
         = $model->check_params( $params, pspec__create_process_aux_data_crispr_sep );
 
     $process->create_related(
-        process_cell_line => {
-            cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} )
+        process_nuclease => {
+            nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} )
         }
     );
 
