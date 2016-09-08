@@ -1378,7 +1378,7 @@ sub pspec__create_process_aux_data_crispr_sep {
 sub _create_process_aux_data_crispr_sep {
     my ($model, $params, $process) = @_;
     my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_crispr_sep );
+        = $model->check_params( $params, pspec__create_process_aux_data_crispr_sep, ignore_unknown => 1 );
 
     $process->create_related(
         process_nuclease => {
