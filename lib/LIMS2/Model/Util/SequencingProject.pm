@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::SequencingProject::VERSION = '0.421';
+    $LIMS2::Model::Util::SequencingProject::VERSION = '0.422';
 }
 ## use critic
 
