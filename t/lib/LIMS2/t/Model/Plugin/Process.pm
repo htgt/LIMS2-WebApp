@@ -54,6 +54,7 @@ sub process_types : Tests(5) {
         doubling
         group_crispr_assembly
         vector_cloning
+        crispr_sep
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
@@ -872,12 +873,11 @@ sub dist_qc_process : Test(13) {
 
         # check that process can be deleted
         lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
-
         throws_ok {
             my $invalid_output_process
                 = model->create_process( $dist_qc_process_data->{invalid_output} );
         }
-        qr/dist_qc process output well should be type (PIQ)+ \(got SEP\)/;
+        qr/dist_qc process output well should be type S_PIQ,PIQ \(got SEP\)/;
     }
 }
 
@@ -1106,6 +1106,36 @@ sub crispr_ep_process : Test(15) {
         my $process = model->create_process( $crispr_ep_process_data->{ep_invalid_input_well} );
     }
     qr/crispr_ep process input well should be type ASSEMBLY,OLIGO_ASSEMBLY \(got CRISPR\)/;
+}
+
+sub crispr_sep_process : Test(14){
+    note("Testing crispr_sep process creation");
+    my $crispr_sep_data = test_data('crispr_sep_process.yaml');
+
+    {
+        ok my $process = model->create_process( $crispr_sep_data->{valid_input} ),
+           'create crispr_sep process should succeed';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'crispr_sep', 'correct process type';
+
+        ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+        is $input_wells->count, 2, '2 input wells';
+        my $piq = grep { $_->plate_type eq 'PIQ'} $input_wells->all;
+        my $assembly = grep { $_->plate_type eq 'ASSEMBLY'} $input_wells->all;
+        is $piq, 1, 'PIQ input found';
+        is $assembly, 1, 'ASSEMBLY input found';
+
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+        is $output_wells->count, 1, 'only one output well';
+        my $output_well = $output_wells->next;
+        is $output_well->name, 'A01', 'output well has correct name';
+        is $output_well->plate->name, 'CRISPR_SEP', '..and is on correct plate';
+
+        is $output_well->first_allele->crispr->id, '69531', 'first CRISPR correct';
+        is $output_well->second_allele->crispr->id, '113', 'second CRISPR correct';
+
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+    }
 }
 
 sub global_arm_shortening_process : Test(21) {

@@ -1,36 +1,38 @@
-package LIMS2::Report::SFPPlate;
+package LIMS2::Report::CrisprSEPPlate;
 
 use Moose;
 use namespace::autoclean;
+use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
+with qw( LIMS2::ReportGenerator::ColonyCounts );
 
 sub BUILD{
     my $self = shift;
     $self->show_cassette_info(0);
     $self->show_recombinase_info(0);
-    $self->show_crispr_info(0);
+    $self->show_crispr_info(1);
     return;
 }
 
 override plate_types => sub {
-    return [ 'SFP' ];
+    return [ 'CRISPR_SEP' ];
 };
 
 override _build_name => sub {
     my $self = shift;
 
-    return 'SFP Plate ' . $self->plate_name;
+    return 'Crispr Second Electroporation Plate ' . $self->plate_name;
 };
 
-# Basic columns, will need to add more
 override _build_columns => sub {
     my $self = shift;
 
-    return [
+    my @columns = (
         $self->base_columns,
-        'Barcode',
-    ];
+    );
+
+    return \@columns;
 };
 
 override iterator => sub {
@@ -40,15 +42,15 @@ override iterator => sub {
     my @wells = $self->plate->wells;
 
     return Iterator::Simple::iter sub {
-        my $well = shift @wells
-            or return;
+        my $well = shift @wells;
+        return unless $well;
 
         return [
-            $self->base_data( $well ),
-            $well->barcode,
+            $self->base_data($well)
         ];
     };
 };
+
 
 __PACKAGE__->meta->make_immutable;
 

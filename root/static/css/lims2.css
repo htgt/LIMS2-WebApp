@@ -33,6 +33,14 @@ ul.ui-autocomplete
     background: #FCFCFC;
 }
 
+.first_gene_report_col{
+  background:#FCF3CF;
+}
+
+.second_gene_report_col{
+  background:#D6EAF8;
+}
+
 .selector_size_display{
   display: none;
   font-size: 13px;
