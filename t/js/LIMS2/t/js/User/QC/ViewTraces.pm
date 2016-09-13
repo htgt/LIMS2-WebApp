@@ -98,7 +98,7 @@ isnt ($seq,'GGCTCGTA','Check backup TV loc');
 
 #Close window
 $driver->shutdown_binary;
-
+$driver->pause(1000);
 
 
 sub view_traces {

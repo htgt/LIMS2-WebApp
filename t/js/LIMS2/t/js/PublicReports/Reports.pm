@@ -26,6 +26,7 @@ foreach my $page (@pages) {
 }
 
 $driver->shutdown_binary;
+$driver->pause(2000);
 
 sub check_cache {
     my ($driver, $page) = @_;
