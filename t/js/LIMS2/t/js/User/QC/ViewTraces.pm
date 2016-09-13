@@ -9,7 +9,7 @@ BEGIN {
     Log::Log4perl->easy_init( $FATAL );
 }
 
-use Test::More tests => 16;
+use Test::More tests => 17;
 use Selenium::Firefox;
 use feature qw(say);
 use Getopt::Long;
@@ -57,7 +57,9 @@ $driver->execute_script($seq_name);
 find_by($driver, 'class','btn-warning');
 find_by($driver, 'class','glyphicon-plus');
 find_by($driver, 'id','create_project');
+$driver->pause(10000);
 
+is ($driver->get_title(), 'View Sequencing Project', 'View seq');
 
 #Navigation
 ok( view_traces($driver), "Navigate to view_traces" );
