@@ -6,9 +6,6 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
                                # Catalyst::Devel installed or haven't said
                                # 'make dist' to create a standalone tarball.
 
-print "--------------------------------------------------------------\n";
-print $ENV{TEST_OPTS} . "\n"; 
-print "--------------------------------------------------------------\n";
 
 my $pid = fork();
 if ($pid == 0) {
