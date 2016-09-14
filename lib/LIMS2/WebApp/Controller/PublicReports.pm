@@ -8,7 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
-use List::MoreUtils qw( uniq indexes);
+use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
 use Text::CSV_XS;
@@ -370,24 +370,37 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
     my $type;
+
     # csv download
     if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
         $c->response->status( 200 );
-        remove_column($c, 'PCR-passing design oligos', @{$display_columns});
-
         my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+
         my @csv_colums;
         if (@{$columns}[-1] eq 'ep_data') {
             @csv_colums = splice (@{$columns}, 0, -1);
         } else {
             @csv_colums = @{$columns};
         }
-        remove_column($c, 'passing_vector_wells', @csv_colums);
-        create_spreadsheet($self, $c, $data, $body, @csv_colums);
+        foreach my $column ( @{$data} ) {
+            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
+        }
+        if ($c->request->param('xlsx')) {
+            $c->response->content_type( 'application/xlsx' );
+            $c->response->content_encoding( 'binary' );
+            $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+            $body = get_raw_spreadsheet('report', $body);
+        }
+        else {
+            $c->response->content_type( 'text/csv' );
+            $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+        }
+        $c->response->body( $body );
     }
     else {
-        my $template = 'publicreports/sponsor_sub_report.tt';
+
         if ($disp_stage eq 'Genes') {
+
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
             }
@@ -398,11 +411,13 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
                 $data = $self->_simple_transform( $data );
             }
         }
-        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core') {
+
+        my $template = 'publicreports/sponsor_sub_report.tt';
+
+        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
             $template = 'publicreports/sponsor_sub_report_old.tt';
         }
         # Store report values in stash for display onscreen
-
         $c->stash(
             'template'             => $template,
             'report_id'            => $report_id,
@@ -413,7 +428,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'display_columns'      => $display_columns,
             'data'                 => $data,
             'link'                 => $link,
-            'type'                 => $c->request->params->{type},
+            'type'                 => $type,
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
@@ -422,40 +437,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     return;
 }
 
-sub create_spreadsheet {
-    my ($self, $c, $data, $body, @csv_colums) = @_;
-    foreach my $column ( @{$data} ) {
-        $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
-        if ($column->{ep_data}) {
-            $body = add_ep_rows($c, $column, $body, @csv_colums);
-        }
-    }
-    if ($c->request->param('xlsx')) {
-        $c->response->content_type( 'application/xlsx' );
-        $c->response->content_encoding( 'binary' );
-        $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
-        $body = get_raw_spreadsheet('report', $body);
-    }
-    else {
-        $c->response->content_type( 'text/csv' );
-        $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
-    }
-    $c->response->body( $body );
-    return;
-}
-
-
-sub remove_column {
-    my ($c, $column, @columns) = @_;
-
-    unless ($c->request->params->{user}) {
-        my $pcr_index = indexes { $_ eq $column } @columns;
-        splice @columns, $pcr_index, 1;
-        $c->log->debug( "Public user" );
-    }
-
-    return;
-}
 
 sub add_ep_rows {
     my ($c, $column, $body, @csv_colums) = @_;
@@ -521,11 +502,7 @@ sub _simple_transform {
                     || $key eq 'ep_data'
                     || $key eq 'recovery_class'
                     || $key eq 'effort_concluded'
-                    || $key eq 'chromosome'
-                    || $key eq 'EP_cell_line'
-                    || $key eq 'DNA_source_cell_line'
-                    || $key eq 'experiment_ID'
-                );
+                    || $key eq 'chromosome' );
             }
         }
     }

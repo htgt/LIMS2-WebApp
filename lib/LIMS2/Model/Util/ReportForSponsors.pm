@@ -1215,7 +1215,7 @@ sub genes {
         my $piq_pass_count = scalar @piq;
         my $toggle;
         if ($ep_count) {
-            $toggle = '-';
+            $toggle = 'y';
         }
         # push the data for the report
         push @genes_for_display, {

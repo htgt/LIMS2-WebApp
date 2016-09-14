@@ -54,6 +54,7 @@ iterate_accordions($driver, "panel-body collapse", %accordions);
 
 #Remember to close your browser handle.
 $driver->shutdown_binary;
+$driver->pause(1000);
 
 sub iterate_accordions {
     my ($driver, $collapse_state, %accordions) = @_;
