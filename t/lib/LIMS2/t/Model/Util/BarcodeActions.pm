@@ -141,7 +141,7 @@ sub freeze_back_fp_tests : Tests(34){
 
 }
 
-sub individual_checkout_tests : Tests(){
+sub individual_checkout_tests : Tests(11){
     my $bc = 11;
     my $unchanged_well = 'B01';
 
@@ -168,7 +168,7 @@ sub individual_checkout_tests : Tests(){
     ok my $new_unchanged = $orig_plate->search_related('wells',{ name => $unchanged_well })->first, "$unchanged_well found";
 }
 
-sub upload_plate_scan_tests : Tests(){
+sub upload_plate_scan_tests : Tests(32){
     my $well_name = 'A11';
     my $plate_name = 'FP4637';
     my $well = model->retrieve_well({ well_name => $well_name, plate_name => $plate_name});

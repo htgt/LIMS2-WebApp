@@ -86,8 +86,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(12)
-{
+sub all_tests  : Test(12) {
     my $mech = mech();
 
     {
@@ -106,7 +105,7 @@ sub all_tests  : Test(12)
 	$mech->content_contains('MOHSAQ0001_A_2_B04','graph contains well MOHSAQ0001_A_2_B04');
     }
 
-    {   
+    {
 	note( "Test plate relations" );
 
 	$mech->get_ok( '/user/graph' );

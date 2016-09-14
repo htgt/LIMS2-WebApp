@@ -26,18 +26,10 @@ override _build_columns => sub {
 override iterator => sub {
     my $self = shift;
 
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
-        {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
-        }
-    );
-
+    $self->prefetch_well_ancestors;
+    my @wells = $self->plate->wells;
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
+        my $well = shift @wells
             or return;
 
 

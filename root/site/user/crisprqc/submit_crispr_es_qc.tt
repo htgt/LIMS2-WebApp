@@ -14,9 +14,23 @@
       <div class="col-md-7">
         <input name="plate_name" class="form-control" id="plate_name" type="text"
           [% IF plate_name %]value="[% plate_name %]"[% END %] />
-          <span class="help-block">EP_PICK, PIQ, CGAP_QC or MS_QC plates only</span>
       </div>
     </div>
+
+    <div class="form-group hidden" id="allele_select">
+      <label class="col-md-7 form-label" for="gene_number">Which gene do you want to QC?</label>
+      <div class="radio col-md-7">
+        <label>
+          <input name="gene_number" id="gene_number" type="radio" value="1" [% IF gene_number == 1 %]checked[% END %]>Originally targeted gene
+        </label>
+      </div>
+      <div class="radio col-md-7">
+        <label>
+          <input name="gene_number" id="gene_number" type="radio" value="2" [% IF gene_number == 2 %]checked[% END %]>Second targeted gene
+        </label>
+      </div>
+    </div>
+
 
     <div class="form-group">
       <label class="col-md-7 form-label" for="sequencing_project">Sequencing Project</label>
@@ -87,10 +101,34 @@ if ( ! Object.keys ) {
   }
 }
 
+  function show_hide_allele_select(plate_name){
+    $.getJSON(
+      '[% c.uri_for("/api/plate") %]' + "?name=" + plate_name,
+      function (data){
+        console.log(data);
+        if(data.type == 'S_PIQ'){
+          $("#allele_select").removeClass('hidden');
+        }
+        else{
+          $("#allele_select").addClass('hidden');
+        }
+      }
+    );
+  }
+
 $(document).ready(function() {
-  $("#ep_pick_plate").autocomplete({
+
+  var exisiting_plate_name = $("#plate_name").val();
+  if(exisiting_plate_name){
+    show_hide_allele_select(exisiting_plate_name);
+  }
+
+  $("#plate_name").autocomplete({
     source: "[% c.uri_for( '/api/autocomplete/plate_names' ) %]",
     minLength: 2,
+    select: function (event, ui){
+      show_hide_allele_select(ui.item.value);
+    }
    });
 
   $("#sequencing_project").autocomplete({

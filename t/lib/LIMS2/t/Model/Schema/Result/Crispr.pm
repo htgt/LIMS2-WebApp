@@ -13,7 +13,7 @@ LIMS2/t/Model/Schema/Result/Crispr.pm - test class for LIMS2::Model::Schema::Res
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(20) {
     my $user                 = 'lims2';
     my $connect_entry        = 'LIMS2_DB';
     my $rs_species           = 'Species';

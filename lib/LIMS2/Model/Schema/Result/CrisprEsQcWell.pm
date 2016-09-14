@@ -344,10 +344,9 @@ sub format_well_data {
     my ( $alignment_data, $insertions, $deletions )
         = $self->format_alignment_strings( $params, $json );
 
-    my $accepted_any_run = $self->well_accepted_any_run;
     my $show_checkbox = 1; #by default we show the accepted checkbox
     #if the well itself is accepted, we need to see if it was this run that made it so
-    if ( $accepted_any_run && ! $self->accepted ) {
+    if ( $self->well->accepted && ! $self->accepted ) {
         #the well was accepted on another QC run
         $show_checkbox = 0;
     }
@@ -414,6 +413,7 @@ sub format_well_data {
         gene                    => join( ",", @genes ),
         alignment               => $alignment_data,
         longest_indel           => $json->{concordant_indel} || "",
+        qc_well_accepted        => $self->accepted,
         well_accepted           => $self->well->accepted,
         show_checkbox           => $show_checkbox,
         insertions              => $insertions,

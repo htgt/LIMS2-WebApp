@@ -36,17 +36,19 @@ sub fetch_well_eng_seq_params_test : Tests(36) {
     ok my $design_well = model->retrieve_well( { well_name => 'F02', plate_name => '148' } ),
         'can grab design well';
 
-    throws_ok {
-        fetch_well_eng_seq_params(
-            $design_well,
-            {   stage                 => 'allele',
-                design_type           => 'conditional',
-                design_cassette_first => 1,
-                recombinase           => [],
-            }
-        );
-    }
-    qr/No cassette found for well/, 'throws error when it can not work out cassette for well ';
+    # DESIGN templates can now have no cassette for PREINT plate creation
+
+    # throws_ok {
+    #     fetch_well_eng_seq_params(
+    #         $design_well,
+    #         {   stage                 => 'allele',
+    #             design_type           => 'conditional',
+    #             design_cassette_first => 1,
+    #             recombinase           => [],
+    #         }
+    #     );
+    # }
+    # qr/No cassette found for well/, 'throws error when it can not work out cassette for well ';
 
     throws_ok {
         fetch_well_eng_seq_params(
@@ -272,7 +274,7 @@ sub generate_well_eng_seq_params_test : Test(11) {
     throws_ok {
         generate_well_eng_seq_params( model, { well_id => 850 } );
     }
-    qr/No cassette found for well/;
+    qr/No backbone found for well/;
 
     throws_ok {
         generate_well_eng_seq_params( model, { well_id => 3032 } );

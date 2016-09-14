@@ -117,6 +117,12 @@ has species => (
     required => 1,
 );
 
+has allele_number => (
+    is       => 'ro',
+    isa      => 'Int',
+    required => 0,
+);
+
 has assembly => (
     is         => 'ro',
     isa        => 'Str',
@@ -253,6 +259,10 @@ sub _build_qc_run {
         sub_project        => $self->sub_seq_project,
     };
 
+    if($self->allele_number){
+        $qc_run_data->{allele_number} = $self->allele_number;
+    }
+
     my $qc_run;
     $self->model->txn_do(
         sub {
@@ -338,7 +348,21 @@ sub analyse_plate {
     for my $well ( $self->plate->wells->all ) {
         next if $self->well_name && $well->name ne $self->well_name;
 
-        my $qc_data = $self->analyse_well( $well );
+        # Retrieve the well ancestor that is specific to the allele we want to QC
+        my $allele_well;
+        if($self->allele_number){
+            if($self->allele_number == 1){
+                $allele_well = $well->first_allele;
+            }
+            elsif($self->allele_number == 2){
+                $allele_well = $well->second_allele;
+            }
+            else{
+                die "Sorry, allele number ".$self->allele_number." QC not yet supported";
+            }
+        }
+
+        my $qc_data = $self->analyse_well( $well, $allele_well );
 
         #make analysis_data a json string
         if ( $qc_data ) {
@@ -394,14 +418,17 @@ Analyse a well on the plate.
 
 =cut
 sub analyse_well {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $allele_well ) = @_;
     $self->log->info( "Analysing well $well" );
 
     my $work_dir = $self->base_dir->subdir( $well->as_string );
     $work_dir->mkpath;
 
-    my $crispr = $well->crispr_entity;
-    my $design = $well->design;
+    $allele_well ||= $well;
+
+    $self->log->info( "Getting design and crispr for well $allele_well");
+    my $crispr = $allele_well->crispr_entity;
+    my $design = $allele_well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
     if ( !$crispr ) {
@@ -566,15 +593,20 @@ sub fix_no_header_sam{
 
 
     my $sam_values_unique = {};
-
+    my $best_score_for_read = {};
     foreach my $value_array (@sam_values){
-        # Only use the longest alignment for each read
+        # Only use the alignment with the highest score for each read
+        # Score is in col 12 (index 11), format AS:i:468
         my $read_name = $value_array->[0];
+        my $score_string = $value_array->[11];
+        my $score = (split ":", $score_string)[2];
         if(exists $sam_values_unique->{$read_name}){
-            my $exisiting_seq = $sam_values_unique->{$read_name}->[9];
-            my $this_seq = $value_array->[9];
-            next unless length($this_seq) > length($exisiting_seq);
+            my $exisiting_score = $best_score_for_read->{$read_name};
+            next unless $score > $exisiting_score;
         }
+
+        # Store the score in case we have multiple alignments for read
+        $best_score_for_read->{$read_name} = $score;
 
         # replace region name with chromosome name
         $value_array->[2] = $params->{chr_name};

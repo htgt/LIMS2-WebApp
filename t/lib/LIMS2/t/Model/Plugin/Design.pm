@@ -27,7 +27,7 @@ Loading other test classes at compile time
 
 =cut
 
-sub all_tests : Tests {
+sub all_tests : Test(80) {
     {
         ok my $design = model->c_retrieve_design( { id => 84231 } ), 'retrieve design id=84231';
         isa_ok $design, 'LIMS2::Model::Schema::Result::Design';

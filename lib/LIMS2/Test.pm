@@ -186,6 +186,7 @@ sub _build_fixture_data {
 sub _build_model {
     my ( $class, $name, $args ) = @_;
     my ( $fixture_directory, $new );
+
     # Fixture data processing
     if ( $args->{classname} ) {
         # Fixture data is derived from the caller's classname, i.e
@@ -292,6 +293,7 @@ sub load_static_files {
             SequencingProjectPrimer
             SequencingProjectTemplate
             DnaTemplate
+            Priority
 
             )
     );
@@ -351,6 +353,10 @@ sub load_dynamic_files {
             CrisprPlateAppendsType
             CrisprPlateAppends
             SequencingProject
+            SequencingPrimerType
+            SequencingProjectPrimer
+            SequencingProjectBackup
+            Message
         )
     );
 
