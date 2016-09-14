@@ -3,8 +3,10 @@
 document.title = "[%- sponsor_id %]";
 </SCRIPT>
 
+
 <span style="float:right">
   <a id='expand' type='button' class='btn btn-info btn-sm' onclick=displayAll();><i class="glyphicon glyphicon-resize-small"></i><b> Collapse all</b></a>
+
   [%- IF type == 'full' %]
   <a id='type_simple' type='button' class='btn btn-info btn-sm'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
@@ -22,25 +24,10 @@ document.title = "[%- sponsor_id %]";
     }
   ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
   [%- END %]
-  [% IF c.user %]
   <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
-        csv => 1, user => 1,
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        xlsx => 1, user => 1,
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
-
-  [% ELSE %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        csv => 1,
+        csv => 1
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
@@ -49,7 +36,6 @@ document.title = "[%- sponsor_id %]";
         xlsx => 1
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
-  [% END %] 
 </span>
 </span>
 <div class="page-header">
@@ -131,7 +117,7 @@ document.title = "[%- sponsor_id %]";
               [%- END %]
             [%- END %]
         [%- ELSIF col == 'recovery_class' %]
-            [%- IF c.user %]   <!-- PCR passing is hidden from public users -->
+            [%- IF c.user %]
               [%- IF row.item('fs_count') && row.item('effort_concluded') %]
                 <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
               [%- ELSIF row.item('effort_concluded') %]
@@ -235,9 +221,7 @@ document.title = "[%- sponsor_id %]";
                       <td></td>
                       <td></td>
                       <td></td>
-                      [%- IF c.user %]    <!-- PCR passing is hidden from public users -->
-                        <td></td>
-                      [% END %]
+                      <td></td>
                       <td></td>
                       <td></td>
                       <td>[%- vector_dna %]</td>
@@ -286,18 +270,9 @@ document.title = "[%- sponsor_id %]";
 
 <script type="text/javascript">
 $(document).ready(function() {
-
-    var simple = '[% type %]';
-    if (simple != 'simple') {
-        $('.gene_row').each(function(ele) {
-            $('.gene_row')[ele].style.display = '';
-        });
-    } else {
-        $('.gene_row').each(function(ele) {
-            $('.gene_row')[ele].style.display = 'none';
-        });
-        $('#expand').html("<i class='glyphicon glyphicon-resize-full'></i><b> Expand all</b></a>");
-    }
+    $('.gene_row').each(function(ele) {
+        $('.gene_row')[ele].style.display = '';
+    });
 });
 
 function displayAll() {

@@ -5,6 +5,8 @@ use inc::Module::Install 1.02;
 use Module::Install::Catalyst; # Complain loudly if you don't have
                                # Catalyst::Devel installed or haven't said
                                # 'make dist' to create a standalone tarball.
+
+
 my $pid = fork();
 if ($pid == 0) {
     use Cwd;
@@ -16,7 +18,18 @@ if ($pid == 0) {
         system qw{xterm -hold -e ../../bin/lims2_launch_test_app.sh 0};
     }
 }
-system('find ./t -name "*.t" | sort -f > t/test_manifest' );                               
+
+my %options = (
+    jp => 'find ./t -name "*.t" | sort -f > t/test_manifest',
+    j_ => 'find ./t -type f -name "*.t" ! -path "./t/LIMS2/WebApp/*" ! -path "./t/LIMS2/Report/*" ! -path "./t/LIMS2/AlleleRequest/*" ! -path "./t/LIMS2/SummaryGeneration/*" ! -path "./t/LIMS2/Model/*" ! -path "./t/LIMS2/ReportGenerator/*" ! -path "./t/LIMS2/Catalyst/*" ! -path "./t/LIMS2/DBUtils/*" | sort -f > t/test_manifest',
+    _p => 'find ./t -name "*.t" -not -path "./t/LIMS2/Js/*" | sort -f > t/test_manifest',
+    __ => 'find ./t -type f -name "*.t" ! -path "./t/LIMS2/*/*" | sort -f > t/test_manifest',
+);
+if ($options{$ENV{TEST_OPTS}}) {
+    system( $options{$ENV{TEST_OPTS}} );
+} else {
+    system('find ./t -name "*.t" | sort -f > t/test_manifest');
+}
 eval 'use Test::Manifest';       # The new LIMS2 testing layout uses recursive test files
                                  # so we keep the actual list of files to test
                                  # in order, in t/test_manifest

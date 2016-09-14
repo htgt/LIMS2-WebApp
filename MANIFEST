@@ -11,6 +11,7 @@ bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
+bin/lims2_dzil.sh
 bin/lims2_launch_test_app.sh
 bin/lims2_model_dump_schema.pl
 bin/lims2_setup.sh
@@ -257,6 +258,7 @@ lib/LIMS2/Report/CrisprEPSummaryJune2015.pm
 lib/LIMS2/Report/CrisprEPWellSummary.pm
 lib/LIMS2/Report/CrisprPlate.pm
 lib/LIMS2/Report/CrisprPlateOrderSheet.pm
+lib/LIMS2/Report/CrisprSEPPlate.pm
 lib/LIMS2/Report/CrisprVectorPlate.pm
 lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
@@ -285,6 +287,7 @@ lib/LIMS2/Report/SEPPICKPlate.pm
 lib/LIMS2/Report/SEPPOOLPlate.pm
 lib/LIMS2/Report/SEPPlate.pm
 lib/LIMS2/Report/SFPPlate.pm
+lib/LIMS2/Report/SPIQPlate.pm
 lib/LIMS2/Report/SummaryOligoPlate.pm
 lib/LIMS2/Report/XEPPOOLPlate.pm
 lib/LIMS2/Report/XEPPlate.pm
@@ -375,6 +378,8 @@ root/site/admin/announcements.tt
 root/site/admin/create_announcement.tt
 root/site/admin/create_user.tt
 root/site/admin/index.tt
+root/site/admin/js_overview.tt
+root/site/admin/test.js
 root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/publicreports/await_report.tt
@@ -2345,6 +2350,8 @@ root/static/files/cells/update_colony_counts.csv
 root/static/files/coding_test/horses.tsv
 root/static/files/plate_upload/crispr_ep_template_es.csv
 root/static/files/plate_upload/crispr_ep_template_vector.csv
+root/static/files/plate_upload/crispr_sep_template_es.csv
+root/static/files/plate_upload/crispr_sep_template_vector.csv
 root/static/files/plate_upload/dna_template.csv
 root/static/files/plate_upload/first_electroporation_template_es.csv
 root/static/files/plate_upload/first_electroporation_template_vector.csv
@@ -2447,6 +2454,7 @@ root/static/test/data/create_design_targets.yaml
 root/static/test/data/create_design_targets_atad2.yaml
 root/static/test/data/create_di_process.yaml
 root/static/test/data/crispr_ep_process.yaml
+root/static/test/data/crispr_sep_process.yaml
 root/static/test/data/crispr_vector_process.yaml
 root/static/test/data/csv_upload_linux.csv
 root/static/test/data/csv_upload_mac.csv
@@ -3224,3 +3232,4 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
+t/test_manifest

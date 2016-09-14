@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.420';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.423';
 }
 ## use critic
 
@@ -1221,7 +1221,7 @@ sub genes {
         my $piq_pass_count = scalar @piq;
         my $toggle;
         if ($ep_count) {
-            $toggle = '-';
+            $toggle = 'y';
         }
         # push the data for the report
         push @genes_for_display, {

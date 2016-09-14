@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcRuns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.420';
+    $LIMS2::Model::Schema::Result::CrisprEsQcRuns::VERSION = '0.423';
 }
 ## use critic
 
@@ -90,6 +90,11 @@ __PACKAGE__->table("crispr_es_qc_runs");
   data_type: 'text'
   is_nullable: 1
 
+=head2 allele_number
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -114,6 +119,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "sequencing_data_version",
   { data_type => "text", is_nullable => 1 },
+  "allele_number",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -176,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k4uLyw7hX35QuOQetfMr5g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-08-24 14:41:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CvvIOO3T45BBoagsGfilJA
 
 sub as_hash {
   my ( $self, $options ) = @_;
@@ -191,15 +198,29 @@ sub as_hash {
   #if you enable this you should do a prefetch with:
   #{'crispr_es_qc_wells' => { well => 'plate' }
   if ( exists $options->{include_plate_name} ) {
-    #wells might not exist yet, so for now just show a -
-    #TODO: make this work even without a well
-    my $qc_well = $self->crispr_es_qc_wells->first;
-    $data->{plate_name} = $qc_well ? $qc_well->well->plate_name : "-";
+    $data->{plate_name} = $self->plate_name;
   }
+
+  $data->{gene_number} = $self->allele_number;
 
   return $data;
 }
 
+sub plate_name{
+    my $self = shift;
+    #wells might not exist yet, so for now just show a -
+    #TODO: make this work even without a well
+    my $qc_well = $self->crispr_es_qc_wells->first;
+    return $qc_well ? $qc_well->well->plate_name : "-";
+}
+
+# Mouse double targeted cells refer to first and second targeted alleles
+# Human crispr double targeted cells refer to first and second targeted genes
+# In the code they are interchangable, so this method is provided just to make
+# code easier to understand (I hope!) in the double targeted gene case
+sub gene_number{
+    return shift->allele_number;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

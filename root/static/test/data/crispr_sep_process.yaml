@@ -1,0 +1,12 @@
+---
+valid_input:
+    type: crispr_sep
+    nuclease: 'Cas9 Church D10A (+neo)'
+    output_wells:
+        - plate_name: CRISPR_SEP
+          well_name: A01
+    input_wells:
+        - plate_name: ASSEMBLY_S1
+          well_name: B01
+        - plate_name: CRISPR_PIQ
+          well_name: A01

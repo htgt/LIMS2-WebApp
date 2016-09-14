@@ -390,6 +390,22 @@ function findCoords(seqs, point, selection, dir) {
             <td id="qc_run_id">[% qc_run_id %]</td>
         </tr>
         <tr>
+            <th>Plate Name</th>
+            <td>[% plate_name %]</td>
+        </tr>
+        [% IF gene_number %]
+        <tr>
+            <th>Gene Analysed</th>
+            <td>
+             [% IF gene_number == 1 %]
+               <span class="label label-primary">1st</span>
+             [% ELSIF gene_number == 2 %]
+               <span class="label label-info">2nd</span>
+             [% END %]
+            </td>
+        </tr>
+        [% END %]
+        <tr>
             <th>Sequencing project</th>
             <td>[% seq_project %]</td>
         </tr>
