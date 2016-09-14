@@ -25,9 +25,11 @@ my %options = (
     _p => 'find ./t -name "*.t" -not -path "./t/LIMS2/Js/*" | sort -f > t/test_manifest',
     __ => 'find ./t -type f -name "*.t" ! -path "./t/LIMS2/*/*" | sort -f > t/test_manifest',
 );
-
-system( $options{$ENV{TEST_OPTS}} );
-
+if ($options{$ENV{TEST_OPTS}}) {
+    system( $options{$ENV{TEST_OPTS}} );
+} else {
+    system('find ./t -name "*.t" | sort -f > t/test_manifest');
+}
 eval 'use Test::Manifest';       # The new LIMS2 testing layout uses recursive test files
                                  # so we keep the actual list of files to test
                                  # in order, in t/test_manifest
