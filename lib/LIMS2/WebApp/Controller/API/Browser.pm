@@ -263,7 +263,9 @@ sub single_experiment_track :Path('/api/single_experiment_track') :Args(0) :Acti
 sub single_experiment_track_GET{
     my ($self, $c) = @_;
 
-    my $experiment = $c->model('Golgi')->retrieve_experiment({ id => $c->req->param('id') });
+    $c->log->debug('getting experiment');
+    my $experiment = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $c->req->param('id') });
+    $c->log->debug('got experiment');
     my $experiment_gff = single_experiment_gff($experiment);
     $c->response->content_type('text/plain');
     my $body  = join "\n", @{ $experiment_gff };

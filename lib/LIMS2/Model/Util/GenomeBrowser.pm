@@ -1073,12 +1073,16 @@ sub unique_crispr_data_to_gff {
 sub single_experiment_gff{
     my ($experiment) = @_;
 
+    DEBUG "starting experiment GFF generation";
     # Display crispr entity, design and related primers
     my @gff;
     my $generator = LIMS2::Model::Util::GFFGenerator->new();
 
     if($experiment->design){
         push @gff, $generator->generate_gff($experiment->design);
+        foreach my $primer ($experiment->design->genotyping_primers){
+            push @gff, $generator->generate_gff($primer);
+        }
     }
 
     if(my $crispr = $experiment->crispr_entity){
@@ -1088,7 +1092,6 @@ sub single_experiment_gff{
         }
     }
 
-DEBUG join "\n", ("GFF output: ",@gff);
     return \@gff;
 }
 

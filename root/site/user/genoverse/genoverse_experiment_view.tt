@@ -44,7 +44,39 @@ document.title = "[%- context.design_id %]";
             url       : "[% c.uri_for('/api/single_experiment_track/', { id => context.id })%]",
             resizable : 'auto',
             height    : 150,
-            design_report_uri : "[%  c.uri_for('/user/view_design') %]"
+            design_report_uri : "[%  c.uri_for('/user/view_design') %]",
+            drawFeature: function(transcript, featureContext, labelContext, scale) {
+              this.base(transcript, featureContext, labelContext, scale);
+              addExonArrows(transcript, featureContext, labelContext, scale);
+            },
+            populateMenu: function(f){
+              // get up to date feature object
+              var feature = this.track.model.featuresById[f.id] || f;
+
+              var atts;
+
+              if(feature.oligo_name){
+                atts = {
+                  Name  : (feature.oligo_name + this.track.name_suffix),
+                  'Oligo Start' : feature.start,
+                  'Oligo End'   : feature.end,
+                  Strand : feature.strand,
+                  Design: feature.name,
+
+                };
+              }
+              else{
+                atts = {
+                  Name : feature.name,
+                  Type : feature.type,
+                  Start : feature.start,
+                  End : feature.end,
+
+                };
+              }
+
+              return atts;
+            }
           }),
           Genoverse.Track.Genes.extend({
             name   : 'Genes',

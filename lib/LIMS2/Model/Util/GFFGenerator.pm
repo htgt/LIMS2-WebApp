@@ -32,9 +32,15 @@ sub crispr_colour {
         right  => '#52CCCC', # bright blue
         pam    => '#1A8599', # blue
         primer => '#45A825', # green
+        SF1    => '#80aaff', # blue
+        SR1    => '#80aaff',
+        PF1    => '#ffb366', # orange
+        PR1    => '#ffb366',
+        PF2    => '#ffd11a', # yellow
+        PR2    => '#ffd11a',
     );
 
-    return $colours{ $type };
+    return $colours{ $type } // '#000000';
 }
 
 sub generic_colour {
@@ -61,8 +67,13 @@ sub generic_colour {
         '5R_EF' => '#68D310',
         'ER_3F' => '#BF249B',
         'target' => '#000000',
+        # These are the genotyping primers
+        'GF1' => '#660066', # dark purple
+        'GR1' => '#660066',
+        'GF2' => '#b366ff', # pale purple
+        'GR2' => '#b366ff',
     );
-    return $colours{ $oligo_type_id };
+    return $colours{ $oligo_type_id } // '#000000';
 }
 
 sub generate_gff{
@@ -76,6 +87,7 @@ sub generate_gff{
         'LIMS2::Model::Schema::Result::CrisprLocus' => \&_crispr_locus_gff,
         'LIMS2::Model::Schema::Result::CrisprBrowserPairs' => \&_crispr_browser_pair_gff,
         'LIMS2::Model::Schema::Result::CrisprPrimer' => \&_crispr_primer_gff,
+        'LIMS2::Model::Schema::Result::GenotypingPrimer' => \&_genotyping_primer_gff,
     };
     my $object_class = ref($object);
     my $method = $method_for->{$object_class}
@@ -134,7 +146,46 @@ sub _design_gff{
 }
 
 sub _genotyping_primer_gff{
+    my ($self, $primer) = @_;
 
+    my $locus = $primer->current_locus;
+
+    my $start = $locus->chr_start;
+    my $end = $locus->chr_end;
+    my $chr = $locus->chr->name;
+    my $name = $primer->genotyping_primer_type_id;
+
+    my @gff;
+    my $parent_id = 'GP_'.$primer->id;
+    my $params = {
+        seqid => $chr,
+        source => 'LIMS2',
+        score => '.',
+        phase => '.',
+        type  => 'Genotyping Primer',
+        start => $start < $end ? $start : $end,
+        end   => $end > $start ? $end : $start,
+        strand => $locus->chr_strand == 1 ? "+" : "-",
+        attributes => {
+            Name => $name,
+            ID => $parent_id,
+            color => generic_colour($name),
+        },
+    };
+    push @gff, $self->gff_from_hash($params);
+
+    # Add second GFF feature which is exon-like so
+    # that the primer is displayed as a solid block
+    $params->{type} = "CDS";
+    $params->{attributes} = {
+        Name => $name,
+        ID => 'GP_CDS_'.$primer->id,
+        color => generic_colour($name),
+        Parent =>  $parent_id,
+    };
+    push @gff, $self->gff_from_hash($params);
+
+    return @gff;
 }
 
 sub _crispr_gff{
@@ -254,24 +305,38 @@ sub _crispr_primer_gff{
 
     my $start = $primer->start;
     my $end = $primer->end;
+    my $name = $primer->primer_name->primer_name;
 
     my @gff;
+    my $parent_id = 'CP_'.$primer->id;
     my $params = {
         seqid => $primer->chr_name,
         source => 'LIMS2',
         score => '.',
         phase => '.',
-        type  => 'CDS',
+        type  => 'Crispr Primer',
         start => $start < $end ? $start : $end,
         end   => $end > $start ? $end : $start,
-        strand => $start < $end ? '+' : '_',
+        strand => $primer->chr_strand == 1 ? "+" : "-",
         attributes => {
-            Name => $primer->primer_name->primer_name,
-            ID => 'P_'.$primer->id,
-            color => crispr_colour('primer'),
+            Name => $name,
+            ID => $parent_id,
+            color => crispr_colour($name),
         },
     };
     push @gff, $self->gff_from_hash($params);
+
+    # Add second GFF feature which is exon-like so
+    # that the primer is displayed as a solid block
+    $params->{type} = "CDS";
+    $params->{attributes} = {
+        Name => $name,
+        ID => 'CP_CDS_'.$primer->id,
+        color => crispr_colour($name),
+        Parent =>  $parent_id,
+    };
+    push @gff, $self->gff_from_hash($params);
+
     return @gff;
 }
 
