@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta charset="utf-8">
     <title>[% template.title || "HTGT LIMS2" %]</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Le styles -->
     <link href="[% c.uri_for( '/static/bootstrap/css/bootstrap.min.css' ) %]" rel="stylesheet">
     <style type="text/css">
@@ -79,8 +78,7 @@
 
   <body>
 
-    [% INCLUDE 'navigation.tt' %]
-
+      [% INCLUDE 'navigation.tt' %]
     <div id="main" class="[% IF c.session.display_type && c.session.display_type == 'wide' %]container-fluid[% ELSE %]container[% END %]">
       [% SET error = error_msg || c.flash.error_msg; IF error.length %]
       <div class="alert alert-danger">

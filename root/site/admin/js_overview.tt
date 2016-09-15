@@ -1,0 +1,21 @@
+[% META title = 'LIMS2 - JS tests'; META tab_name = "Admin" -%]
+<link href="[% c.uri_for( '/static/qunit/qunit-2.0.0.css' ) %]" rel="stylesheet">
+<script src="[% c.uri_for( '/static/qunit/qunit-2.0.0.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/qunit/qunit-page.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/qunit/qunit-assert-step.js' ) %]"></script>
+<body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+    <script src="[% c.uri_for( '/static/qunit/test.js' ) %]"></script>
+    [% FOREACH script IN scripts %]
+        <script src="[% c.uri_for( '/user/qc/view_traces.js' ) %]"></script>
+    [% END %]
+</body>
+
+<script type="text/javascript">
+function test(){
+    var script = document.createElement("script");
+    script.innerHTML = 'QUnit.test("My first test", function(assert) { assert.equal(1,1,"1 = 1"); });';
+    document.body.appendChild(script);
+}
+</script>

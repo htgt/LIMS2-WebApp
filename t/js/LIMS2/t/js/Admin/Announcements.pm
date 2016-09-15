@@ -59,6 +59,7 @@ alert_modal($driver, $alerts);
 
 #Remember to close your browser handle.
 $driver->shutdown_binary;
+$driver->pause(1000);
 
 sub alert_modal {
     my ($driver, $alerts) = @_;
