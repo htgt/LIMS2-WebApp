@@ -50,8 +50,4 @@ sub setup_public {
     return $driver;
 }
 
-
-
-
-
 1;
