@@ -16,7 +16,7 @@ use Selenium::Firefox;
 use feature qw(say);
 use Path::Class;
 use Log::Log4perl qw( :easy );
-use WebAppCommon::Testing::JS qw( _setup find_by );
+use WebAppCommon::Testing::JS qw( setup find_by );
 
 BEGIN {
     #try not to override the lims2 logger
@@ -26,7 +26,7 @@ BEGIN {
 }
 
 sub setup_user {
-    my $driver = _setup();
+    my $driver = setup();
 
     find_by($driver, 'class', 'navbar-btn');
 
@@ -45,7 +45,7 @@ sub setup_user {
 }
 
 sub setup_public {
-    my $driver = _setup();
+    my $driver = setup();
 
     return $driver;
 }
