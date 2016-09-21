@@ -15,7 +15,8 @@ use feature qw(say);
 use Getopt::Long;
 use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-use LIMS2::TestJS qw( setup_user find_by scroll_window );
+use LIMS2::TestJS qw( setup_user );
+use WebAppCommon::Testing::JS qw( find_by scroll_window );
 
 #Scripts
 my $seq_name = q{

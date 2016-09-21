@@ -187,6 +187,7 @@ requires:
   WebAppCommon::Design::FusionConversion: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
+  WebAppCommon::Testing::JS: 0
   WebAppCommon::Util::EnsEMBL: 0
   WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
@@ -199,4 +200,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.423
+version: 0.424
