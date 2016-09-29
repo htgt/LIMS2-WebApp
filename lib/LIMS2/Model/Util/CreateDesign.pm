@@ -162,6 +162,7 @@ sub designs_for_exons {
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
                     design_type_id  => 'fusion-deletion',
+                    design_type_id  => 'crispr-conditional',
                 ],
             ],
         },
