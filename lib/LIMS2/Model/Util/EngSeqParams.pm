@@ -175,7 +175,7 @@ sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
     my $params;
 
-    if ( $type =~ /gibson/ || $type eq 'crispr-conditional' ) {
+    if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
         $params->{chromosome} = $loci->{'5F'}->{chr_name};
         $params->{strand}     = $loci->{'5F'}->{chr_strand};
         $params->{assembly}   = $loci->{'5F'}->{assembly};
@@ -194,7 +194,7 @@ sub build_eng_seq_params_from_loci{
     }
 
     if ( $params->{strand} == 1 ) {
-        if ( $type =~ /gibson/ || $type eq 'crispr-conditional' ) {
+        if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
             $params->{five_arm_start}  = $loci->{'5F'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'5R'}->{chr_end};
             $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
@@ -216,7 +216,7 @@ sub build_eng_seq_params_from_loci{
         }
     }
     else {
-        if ( $type =~ /gibson/ || $type eq 'crispr-conditional' ) {
+        if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
             $params->{five_arm_start}  = $loci->{'5R'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'5F'}->{chr_end};
             $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
@@ -243,7 +243,7 @@ sub build_eng_seq_params_from_loci{
         'gibson-deletion'       => 1,
         'gibson'                => 1,
         'fusion-deletion'       => 1,
-        'crispr-conditional'    => 1,
+        'conditional-inversion' => 1,
     );
     #return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
     # for now all gibson designs are treated as deletions

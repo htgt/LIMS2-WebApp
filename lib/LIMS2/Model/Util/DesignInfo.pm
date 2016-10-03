@@ -149,7 +149,7 @@ sub _build_target_region_start {
         }
     }
 
-    if ( $self->type eq 'gibson-deletion' || $self->type eq 'crispr-conditional' ) {
+    if ( $self->type eq 'gibson-deletion' || $self->type eq 'conditional-inversion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'5R'}{end};
         }
@@ -212,7 +212,7 @@ sub _build_target_region_end {
         }
     }
 
-    if ( $self->type eq 'gibson-deletion' || $self->type eq 'crispr-conditional') {
+    if ( $self->type eq 'gibson-deletion' || $self->type eq 'conditional-inversion') {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'3F'}{start};
         }
