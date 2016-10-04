@@ -295,7 +295,7 @@ sub _crispr_browser_pair_gff{
         push @gff, $self->_make_crispr_and_pam_cds($crispr, $crispr_format_hash, $pair_id);
     }
 
-    return
+    return @gff;
 }
 
 
