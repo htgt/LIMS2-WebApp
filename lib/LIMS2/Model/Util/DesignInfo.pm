@@ -148,6 +148,8 @@ sub _build_end{
 #     Normal gibson designs can be conditional or deletion
 #     deletion-gibson designs can only be deletion designs
 #     Need to pass a flag in to this object if we know the design in a deletion
+
+## no critic(Subroutines::ProhibitExcessComplexity)
 sub _build_target_region_start {
     my $self = shift;
 
@@ -179,7 +181,7 @@ sub _build_target_region_start {
         }
     }
 
-    if ( $self->type eq 'gibson-deletion') {
+    if ( $self->type eq 'gibson-deletion' || $self->type eq 'conditional-inversion' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'5R'}{end};
         }
@@ -197,6 +199,7 @@ sub _build_target_region_start {
         }
 
     }
+
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
@@ -241,7 +244,7 @@ sub _build_target_region_end {
         }
     }
 
-    if ( $self->type eq 'gibson-deletion') {
+    if ( $self->type eq 'gibson-deletion' || $self->type eq 'conditional-inversion') {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'3F'}{start};
         }
@@ -249,6 +252,7 @@ sub _build_target_region_end {
             return $self->oligos->{'5R'}{start};
         }
     }
+
     if ( $self->type eq 'fusion-deletion') {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'D3'}{start};
@@ -257,7 +261,8 @@ sub _build_target_region_end {
             return $self->oligos->{'U5'}{start};
         }
     }
-    # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
+
+# For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
         return $self->oligos->{'N'}{end};
@@ -270,6 +275,7 @@ sub _build_target_region_end {
 
     return;
 }
+## use critic
 
 sub _build_loxp_start {
     my $self = shift;

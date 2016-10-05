@@ -48,7 +48,6 @@ Create a design.
 
 sub design_POST {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles('edit');
 
     my $design = $c->model( 'Golgi' )->txn_do(
