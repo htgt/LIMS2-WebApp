@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.424';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.425';
 }
 ## use critic
 
@@ -604,6 +604,18 @@ sub fix_no_header_sam{
         # Only use the alignment with the highest score for each read
         # Score is in col 12 (index 11), format AS:i:468
         my $read_name = $value_array->[0];
+        my $flag = $value_array->[1];
+
+        # But first exclude reads not in the right orientation for the primer
+        if($flag == 16){
+            my $rev_primer = $self->reverse_primer_name;
+            next unless $read_name =~ /$rev_primer/;
+        }
+        elsif($flag == 0){
+            my $fwd_primer = $self->forward_primer_name;
+            next unless $read_name =~ /$fwd_primer/;
+        }
+
         my $score_string = $value_array->[11];
         my $score = (split ":", $score_string)[2];
         if(exists $sam_values_unique->{$read_name}){

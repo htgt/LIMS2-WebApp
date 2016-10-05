@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.424';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.425';
 }
 ## use critic
 
@@ -54,7 +54,6 @@ Create a design.
 
 sub design_POST {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles('edit');
 
     my $design = $c->model( 'Golgi' )->txn_do(

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.424';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.425';
 }
 ## use critic
 
@@ -427,6 +427,8 @@ has 'info' => (
         chr_strand          => 'chr_strand',
         target_region_start => 'target_region_start',
         target_region_end   => 'target_region_end',
+        start               => 'start',
+        end                 => 'end',
     }
 );
 

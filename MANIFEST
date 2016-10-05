@@ -227,6 +227,7 @@ lib/LIMS2/Model/Util/DesignInfo.pm
 lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
+lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
@@ -467,6 +468,7 @@ root/site/user/externalproject/view_sequencing_project.tt
 root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt
+root/site/user/genoverse/genoverse_experiment_view.tt
 root/site/user/genoverse/genoverse_gene_view.tt
 root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
