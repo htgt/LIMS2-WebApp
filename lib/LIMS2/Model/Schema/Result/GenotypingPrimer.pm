@@ -194,11 +194,7 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    my $locus;
-    if ( my $default_assembly = $self->design->species->default_assembly ) {
-        $locus = $self->search_related( 'genotyping_primer_loci',
-            { assembly_id => $default_assembly->assembly_id } )->first;
-    }
+    my $locus = $self->current_locus;
 
     return {
         id      => $self->id,
@@ -222,5 +218,14 @@ sub primer_seq{
     return shift->seq;
 }
 
+sub current_locus{
+    my $self = shift;
+    my $locus;
+    if ( my $default_assembly = $self->design->species->default_assembly ) {
+        $locus = $self->search_related( 'genotyping_primer_loci',
+            { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+    return $locus;
+}
 __PACKAGE__->meta->make_immutable;
 1;

@@ -421,6 +421,8 @@ has 'info' => (
         chr_strand          => 'chr_strand',
         target_region_start => 'target_region_start',
         target_region_end   => 'target_region_end',
+        start               => 'start',
+        end                 => 'end',
     }
 );
 
