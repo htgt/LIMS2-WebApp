@@ -21,11 +21,27 @@ GetOptions(
 my @archives = @ARGV;
 
 my @all_projects;
+my %all_project_versions;
 
 foreach my $archive(@archives){
     try{
-        my @projects = extract_eurofins_data($archive,$move);
-        push @all_projects, @projects;
+        my ($projects, $project_versions) = extract_eurofins_data($archive,$move);
+        push @all_projects, @$projects;
+        foreach my $project (keys %$project_versions){
+            if( exists $all_project_versions{$project} ){
+                # It is possible that a mutliple archives in the import contain
+                # data which updates the same project in which case a new backup version
+                # will be created as each archive is imported
+
+                # We are only interested in the first version created during
+                # this import so skip any additional versions
+
+                # FIXME: should we delete the unwanted versions here?
+            }
+            else{
+                $all_project_versions{$project} = $project_versions->{$project};
+            }
+        }
     }
     catch{
         warn "Data extraction from archive $archive failed with error: $_";
@@ -34,6 +50,17 @@ foreach my $archive(@archives){
 
 if($db_update){
     my $model = LIMS2::Model->new( user => 'lims2' );
+
+    # If import caused any project data to be updated then we need
+    # to add the identifier for the old version of the data to any
+    # QC runs which were done using it
+    foreach my $modified_project (keys %all_project_versions){
+        my @runs_updated = $model->update_qc_runs_with_data_version({
+            sequencing_project      => $modified_project,
+            sequencing_data_version => $all_project_versions{$modified_project},
+        });
+    }
+
     foreach my $project (@all_projects){
         # update in db
         my $now = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));

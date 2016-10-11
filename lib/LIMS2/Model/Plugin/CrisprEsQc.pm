@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.387';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.423';
 }
 ## use critic
 
@@ -24,7 +24,8 @@ sub pspec_create_crispr_es_qc_run {
         created_at => { validate => 'date_time', post_filter => 'parse_date_time', optional => 1 },
         species    => { validate => 'existing_species', rename => 'species_id' },
         sequencing_project => { validate => 'non_empty_string' },
-        sub_project => { validate => 'non_empty_string' }
+        sub_project => { validate => 'non_empty_string' },
+        allele_number => { validate => 'integer', optional => 1},
     };
 }
 
@@ -259,16 +260,40 @@ sub update_crispr_es_qc_well{
     # if the qc well has been marked accepted run this logic
     if ( exists $validated_params->{accepted} ) {
         my $well = $qc_well->well;
-        # only mark qc accepted if the linked well is not already accepted in another run
-        if ( $well->accepted && $validated_params->{accepted} eq 'true' ) {
-            delete $validated_params->{accepted};
-            $self->throw(
-                'Well already accepted in another run, not marking crispr es qc well as accepted');
+        if($qc_well->well->plate_type eq 'S_PIQ'){
+            # Double targeted!
+            # only mark the linked well accepted if we have accepted QC well for the other allele too
+            my $this_allele_number = $qc_well->crispr_es_qc_run->allele_number;
+            my $other_allele_number;
+            if($this_allele_number == 1){
+                $other_allele_number = 2;
+            }
+            elsif($this_allele_number == 2){
+                $other_allele_number = 1;
+            }
+            else{
+                die "Sorry, allele number $this_allele_number not supported yet";
+            }
+
+            my $other_accepted_qc = $qc_well->well->accepted_crispr_es_qc_well($other_allele_number);
+            if($other_accepted_qc){
+                $well->update( { accepted => $validated_params->{accepted} } );
+                $self->log->info( "Updated $well well accepted to ".$validated_params->{accepted}
+                                  ."Accepted crispr QC was found for allele $other_allele_number" );
+            }
         }
-        # mark the linked well accepted
-        else {
-            $well->update( { accepted => $validated_params->{accepted} } );
-            $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+        else{
+            # only mark qc accepted if the linked well is not already accepted in another run
+            if ( $well->accepted && $validated_params->{accepted} eq 'true' ) {
+                delete $validated_params->{accepted};
+                $self->throw(
+                    'Well already accepted in another run, not marking crispr es qc well as accepted');
+            }
+            # mark the linked well accepted
+            else {
+                $well->update( { accepted => $validated_params->{accepted} } );
+                $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+            }
         }
     }
     # if damage type set to no-call or mosaic then the well must not be accepted
@@ -455,6 +480,39 @@ sub list_crispr_es_qc_runs {
     return ( [ map { $_->as_hash({ include_plate_name => 1}) } $resultset->all ], $resultset->pager );
 }
 
+# All QC runs for the specified project which do not already have a data version
+# are updated to use the specified data version
+sub _pspec_update_qc_runs_with_data_version{
+    return {
+        sequencing_project => { validate => 'non_empty_string' },
+        sequencing_data_version => { validate => 'non_empty_string' },
+    };
+}
+
+sub update_qc_runs_with_data_version{
+    my ($self,$params) = @_;
+
+    my $validated_params = $self->check_params($params, $self->_pspec_update_qc_runs_with_data_version);
+
+    my @qc_runs = $self->schema->resultset('QcRunSeqProject')->search({
+        qc_seq_project_id       => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    push @qc_runs, $self->schema->resultset('CrisprEsQcRuns')->search({
+        sequencing_project      => $validated_params->{sequencing_project},
+        sequencing_data_version => undef,
+    })->all;
+
+    foreach my $run (@qc_runs){
+        my $version = $validated_params->{sequencing_data_version};
+
+        $self->log->debug("Adding sequencing_data_version $version to QC run ".$run->id);
+        $run->update({ sequencing_data_version => $version })->discard_changes;
+    }
+
+    return \@qc_runs;
+}
 1;
 
 __END__

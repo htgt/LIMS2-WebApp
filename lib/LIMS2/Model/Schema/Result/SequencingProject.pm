@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::SequencingProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.387';
+    $LIMS2::Model::Schema::Result::SequencingProject::VERSION = '0.423';
 }
 ## use critic
 
@@ -167,6 +167,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 sequencing_project_backups
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::SequencingProjectBackup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sequencing_project_backups",
+  "LIMS2::Model::Schema::Result::SequencingProjectBackup",
+  { "foreign.seq_project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 sequencing_project_primers
 
 Type: has_many
@@ -197,8 +212,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-10 14:00:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UutyMmosEgooyTF+tG8fiQ
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-24 15:39:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I/0WZuVqKyaCXbKmVeyRXw
 
 sub as_hash {
     my ( $self, $options ) = @_;
@@ -218,6 +234,23 @@ sub as_hash {
     return \%h;
 }
 
+sub backup_directories {
+    my $self = shift;
+    my $backup_rs = $self->result_source->schema->resultset('SequencingProjectBackup')->search({ 'seq_project_id'    => $self->id });
+
+    my @subdirs;
+
+    while (my $backup = $backup_rs->next) {
+        $backup = $backup->as_hash;
+        my %dir = (
+            'dir'   => $backup->{dir},
+            'date'  => $backup->{date},
+        );
+        push(@subdirs, \%dir);
+    }
+
+    return \@subdirs;
+}
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

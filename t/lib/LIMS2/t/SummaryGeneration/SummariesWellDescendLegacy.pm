@@ -11,7 +11,7 @@ use strict;
 
 =head1 NAME
 
-LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm - test class for LIMS2::SummaryGeneration::SummariesWellDescend 
+LIMS2/t/SummaryGeneration/SummariesWellDescendLegacy.pm - test class for LIMS2::SummaryGeneration::SummariesWellDescend
 which uses LEGACY fixture data
 
 See also SummariesWellDescend.pm test module which tests gibson/crispr trails using Human fixture data from
@@ -90,7 +90,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
+sub all_tests  : Test(70)
 {
     # Force reload of fixture data from root/static/test/fixtures/legacy/10-load-fixture-data.sql
     reload_fixtures;

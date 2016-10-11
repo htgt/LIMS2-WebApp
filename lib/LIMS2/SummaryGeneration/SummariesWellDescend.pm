@@ -1,7 +1,7 @@
 package LIMS2::SummaryGeneration::SummariesWellDescend;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.387';
+    $LIMS2::SummaryGeneration::SummariesWellDescend::VERSION = '0.423';
 }
 ## use critic
 
@@ -22,25 +22,33 @@ use Data::Dumper;
 sub generate_summary_rows_for_design_well {
 
     # passed design well ID, model
-    my ($design_well_id, $model) = @_;
+    my ($design_well_id, $model, $paths, $well_ancestors) = @_;
 
     INFO caller()." Well ID $design_well_id passed in";
 
     my %results = ();
 
-    $model ||= LIMS2::Model->new( user => 'lims2' );  # DB connection
+    if($model){
+        DEBUG "Model passed in";
+    }
+    else{
+        DEBUG "Creating LIMS2 model";
+        $model = LIMS2::Model->new( user => 'lims2' );  # DB connection
+    }
 
     my %stored_values = (); # to re-use well data as much as possible rather than re-fetching
-    my $wells_deleted = 0; # count of deleted wells
-    my $well_inserts_succeeded = 0; # count of inserts
-    my $well_inserts_failed = 0; # count of failures
+    my $status_counts = {
+        wells_deleted => 0,
+        well_inserts_succeeded => 0,
+        well_inserts_failed => 0,
+    };
 
     try {
-        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, \$wells_deleted, \$well_inserts_succeeded, \$well_inserts_failed);
+        generate_summary_rows_for_all_trails($design_well_id, $model, \%stored_values, $status_counts, $paths, $well_ancestors);
         $results{ exit_code } = 0;
-        $results{ count_deletes } = $wells_deleted;
-        $results{ count_inserts } = $well_inserts_succeeded;
-        $results{ count_fails } = $well_inserts_failed;
+        $results{ count_deletes } = $status_counts->{wells_deleted};
+        $results{ count_inserts } = $status_counts->{well_inserts_succeeded};
+        $results{ count_fails } = $status_counts->{well_inserts_failed};
     } catch {
         # error
         WARN caller()." Well ID $design_well_id : Exception caught:\nException message : $_";
@@ -57,7 +65,7 @@ sub generate_summary_rows_for_design_well {
 # in that design well hierarchy
 sub generate_summary_rows_for_all_trails {
 
-    my ($design_well_id, $model, $stored_values, $wells_deleted, $well_inserts_succeeded, $well_inserts_failed) = @_;
+    my ($design_well_id, $model, $stored_values, $status_counts, $paths, $well_ancestors) = @_;
 
     my $design_well = try { $model->retrieve_well( { id => $design_well_id } ) };
 
@@ -65,23 +73,29 @@ sub generate_summary_rows_for_all_trails {
         # delete existing rows for this design well (if any)
         my $rows_deleted = delete_summary_rows_for_design_well($design_well_id, $model);
         if(defined $rows_deleted && $rows_deleted > 0) {
-            $$wells_deleted = $rows_deleted;
+            $status_counts->{wells_deleted} = $rows_deleted;
         }
     } else {
         # no design well exists for that ID, error
         LOGDIE caller()." Well ID $design_well_id : No design well object found, cannot fetch descendant trails";
     }
 
-    # Call ProcessTree to fetch paths
-    DEBUG "getting well process path";
-    my $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
-    DEBUG "well process path done";
+    $paths ||= {};
+    my $design_well_trails = $paths->{$design_well_id};
+    unless($design_well_trails){
+        # Call ProcessTree to fetch paths
+        DEBUG "getting well process path";
+        $design_well_trails = $model->get_paths_for_well_id_depth_first( { well_id => $design_well_id, direction => 1 } );
+        DEBUG "well process path done";
+    }
 
-    DEBUG "getting list of unique well ids";
-    my @well_ids = uniq map { @{$_} } @{ $design_well_trails };
-    DEBUG scalar(@well_ids)." unique well ids found";
+    if(!$well_ancestors){
+        DEBUG "getting list of unique well ids";
+        my @well_ids = uniq map { @{$_} } @{ $design_well_trails };
+        DEBUG scalar(@well_ids)." unique well ids found";
 
-    my $well_ancestors = fast_get_well_ancestors($model, @well_ids);
+        $well_ancestors = $model->fast_get_well_ancestors(@well_ids);
+    }
 
     # initialise hash of previously retrieved wells
     my %wells_retrieved = ();
@@ -114,7 +128,9 @@ sub generate_summary_rows_for_all_trails {
                 $curr_well = try { $model->retrieve_well( { id => $curr_well_id } ) };
 
                 # Add the ancestor edges to the well that we got in batch query
-                $curr_well->set_ancestors( $well_ancestors->{ $curr_well_id } );
+                if($well_ancestors->{$curr_well_id}){
+                    $curr_well->set_ancestors( $well_ancestors->{ $curr_well_id } );
+                }
 
                 # and insert into hash
                 $wells_retrieved{ $curr_well_id } = $curr_well;
@@ -164,16 +180,19 @@ sub generate_summary_rows_for_all_trails {
     if(@summaries_to_insert){
         try{
             $model->schema->resultset('Summary')->populate(\@summaries_to_insert);
-            $$well_inserts_succeeded = $summary_row_count;
+            $status_counts->{well_inserts_succeeded} = $summary_row_count;
         }
         catch{
             INFO "Summary table populate failed with error $!";
-            $$well_inserts_failed = $summary_row_count;
+            $status_counts->{well_inserts_failed} = $summary_row_count;
         }
     }
     DEBUG "summary rows inserted";
 
-    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = ".$$wells_deleted."/".$$well_inserts_succeeded."/".$$well_inserts_failed;
+    INFO caller()." Well ID $design_well_id : Leaf node deletes/inserts/fails = "
+                 .$status_counts->{wells_deleted}."/"
+                 .$status_counts->{well_inserts_succeeded}."/"
+                 .$status_counts->{well_inserts_failed};
     return;
 }
 
@@ -271,6 +290,15 @@ sub fetch_values_for_type_DESIGN {
     $summary_row_values->{ 'design_gene_symbol' }         = $stored_values->{ stored_design_gene_symbols };
     $summary_row_values->{ 'design_gene_id' }             = $stored_values->{ stored_design_gene_ids };
     if ($stored_values->{ 'stored_design_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_design_sponsor } };
+
+    # We work out the project and sponsors for the crispr_ep_well here
+    # because we need the design information
+    if(my $ep_well_id = $summary_row_values->{'crispr_ep_well_id'}){
+        my $project = fetch_crispr_ep_well_project($model,$ep_well_id,$summary_row_values);
+        $summary_row_values->{ 'crispr_ep_well_project_id'}         = try{ $project->id };
+        $summary_row_values->{ 'crispr_ep_well_project_sponsors'}   = try{ join "/", $project->sponsor_ids };
+    }
+
     return;
 }
 
@@ -566,6 +594,11 @@ sub fetch_values_for_type_EP_PICK {
         $stored_values->{ 'stored_ep_pick_qc_seq_pass' }            = try{ $curr_well->well_qc_sequencing_result->pass };  # qc sequencing test result
         $stored_values->{ 'stored_ep_pick_well_recombinase_id' }    = fetch_well_process_recombinases( $curr_well ); # process recombinase(s)
         $stored_values->{ 'stored_ep_pick_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
+        DEBUG "Getting ep_pick crispr QC";
+        my $crispr_qc_well = fetch_crispr_qc_well($curr_well);
+        $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_id' } = try{ $crispr_qc_well->id };
+        $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_call' } = try{ $crispr_qc_well->crispr_damage_type_id };
+        DEBUG "Got crispr QC";
     }
 
     $summary_row_values->{ 'ep_pick_well_id' }              = $stored_values->{ stored_ep_pick_well_id };
@@ -578,6 +611,8 @@ sub fetch_values_for_type_EP_PICK {
     $summary_row_values->{ 'ep_pick_qc_seq_pass' }          = $stored_values->{ stored_ep_pick_qc_seq_pass };
     $summary_row_values->{ 'ep_pick_well_recombinase_id' }  = $stored_values->{ stored_ep_pick_well_recombinase_id };
     if ($stored_values->{ 'stored_ep_pick_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_ep_pick_sponsor } };
+    $summary_row_values->{ 'ep_pick_well_crispr_es_qc_well_id' } = $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_id' };
+    $summary_row_values->{ 'ep_pick_well_crispr_es_qc_well_call' } = $stored_values->{ 'stored_ep_pick_well_crispr_es_qc_well_call' };
     return;
 }
 
@@ -753,6 +788,12 @@ sub fetch_values_for_type_PIQ {
         $stored_values->{ 'stored_ancestor_piq_well_accepted' }   = try{ $ancestor_well->is_accepted }; # well accepted (with override)
 
         $stored_values->{ 'stored_piq_sponsor' }                  = try{ $curr_well->plate_sponsor }; # sponsor
+
+        DEBUG "Getting PIQ crispr QC";
+        my $crispr_qc_well = fetch_crispr_qc_well($curr_well);
+        $stored_values->{ 'stored_piq_well_crispr_es_qc_well_id' } = try{ $crispr_qc_well->id };
+        $stored_values->{ 'stored_piq_well_crispr_es_qc_well_call' } = try{ $crispr_qc_well->crispr_damage_type_id };
+        DEBUG "Got crispr QC";
     }
 
     $summary_row_values->{ 'piq_well_id' }                  = $stored_values->{ stored_piq_well_id };
@@ -771,6 +812,9 @@ sub fetch_values_for_type_PIQ {
     $summary_row_values->{ 'ancestor_piq_well_accepted' }   = $stored_values->{ stored_ancestor_piq_well_accepted };
 
     if ($stored_values->{ 'stored_piq_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_piq_sponsor } };
+
+    $summary_row_values->{ 'piq_crispr_es_qc_well_id' } = $stored_values->{ 'stored_piq_well_crispr_es_qc_well_id' };
+    $summary_row_values->{ 'piq_crispr_es_qc_well_call' } = $stored_values->{ 'stored_piq_well_crispr_es_qc_well_call' };
 
     return;
 }
@@ -871,6 +915,11 @@ sub fetch_values_for_type_CRISPR_EP {
         $stored_values->{ 'stored_crispr_ep_well_cell_line' }         = try{ $curr_well->first_cell_line->name };
         $stored_values->{ 'stored_crispr_ep_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
         $stored_values->{ 'stored_to_report' }                        = try{ $curr_well->to_report // 1}; # to_report flag
+        DEBUG "Getting crispr_ep colony counts";
+        $stored_values->{ 'stored_crispr_ep_colonies_rem_unstained' } = fetch_well_colony_count_remaining_unstained( $curr_well ); # count colonies remaining unstained
+        $stored_values->{ 'stored_crispr_ep_colonies_total' }         = fetch_well_colony_count_total( $curr_well ); # count colonies total
+        $stored_values->{ 'stored_crispr_ep_colonies_picked' }        = fetch_well_colony_count_picked( $curr_well ); # count colonies picked
+        DEBUG "Got colony counts";
     }
 
     $summary_row_values->{ 'crispr_ep_well_id' }               = $stored_values->{ stored_crispr_ep_well_id };
@@ -884,6 +933,9 @@ sub fetch_values_for_type_CRISPR_EP {
     $summary_row_values->{ 'crispr_ep_well_cell_line' }        = $stored_values->{ stored_crispr_ep_well_cell_line };
     if ($stored_values->{ 'stored_crispr_ep_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_crispr_ep_sponsor } };
     $summary_row_values->{ 'to_report' }                       = $stored_values->{ stored_to_report };
+    $summary_row_values->{ 'crispr_ep_colonies_rem_unstained' } = $stored_values->{ stored_crispr_ep_colonies_rem_unstained };
+    $summary_row_values->{ 'crispr_ep_colonies_total' }         = $stored_values->{ stored_crispr_ep_colonies_total };
+    $summary_row_values->{ 'crispr_ep_colonies_picked' }        = $stored_values->{ stored_crispr_ep_colonies_picked };
     return;
 }
 
@@ -1069,45 +1121,46 @@ sub fetch_dna_template{
     return $template;
 }
 
-sub fast_get_well_ancestors{
-    my ($model, @well_id_list) = @_;
-    my $well_list = join q{,}, @well_id_list;
-
-    my $query = << "QUERY_END";
-WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, ARRAY[pr_out.well_id]
-     FROM processes pr
-     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     WHERE pr_out.well_id in ($well_list)
-     UNION
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
-     FROM processes pr
-     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
-)
-SELECT process_id, input_well_id, output_well_id,path[1]
-FROM well_hierarchy;
-QUERY_END
-
-    DEBUG "Running batch well ancestor query";
-    my $sql_result =  $model->schema->storage->dbh_do(
-        sub {
-            my ( $storage, $dbh ) = @_;
-            my $sth = $dbh->prepare_cached( $query );
-            $sth->execute();
-            $sth->fetchall_arrayref();
-        }
-    );
-    DEBUG "ancestor query done";
-
-    my $edges_for_well = {};
-    foreach my $edge (@{ $sql_result }){
-        my $well_id = $edge->[3];
-        $edges_for_well->{$well_id} ||= [];
-        push @{ $edges_for_well->{$well_id} }, [ @{ $edge }[0,1,2] ];
+my $project_cache;
+sub fetch_crispr_ep_well_project{
+    my ($model,$ep_well_id, $summary_row_values) = @_;
+    DEBUG "Fetching project for crispr_ep_well $ep_well_id";
+    my $project;
+    if(exists $project_cache->{ $ep_well_id }){
+        DEBUG "Found project in cache";
+        $project = $project_cache->{ $ep_well_id }
     }
-    return $edges_for_well;
+    else{
+        try{
+            $project = $model->retrieve_project({
+                cell_line => $summary_row_values->{'crispr_ep_well_cell_line'},
+                species_id   => $summary_row_values->{'design_species_id'},
+                gene_id      => $summary_row_values->{'design_gene_id'},
+            });
+            DEBUG "Got project ".$project->id." for crispr_ep_well $ep_well_id";
+        }
+        catch{
+            ERROR "project query failed: $_";
+        };
+        $project_cache->{ $ep_well_id } = $project;
+    }
+    return $project;
 }
+
+my $crispr_qc_cache;
+sub fetch_crispr_qc_well{
+    my ($curr_well) = @_;
+    my $qc_well;
+    if(exists $crispr_qc_cache->{$curr_well->id}){
+        DEBUG "Found crispr QC in cache";
+        $qc_well = $crispr_qc_cache->{$curr_well->id};
+    }
+    else{
+        $qc_well = $curr_well->accepted_crispr_es_qc_well;
+        $crispr_qc_cache->{$curr_well->id} = $qc_well;
+        DEBUG "Got crispr QC well from database";
+    }
+    return $qc_well;
+}
+
 1;

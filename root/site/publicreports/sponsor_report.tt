@@ -5,30 +5,30 @@
 <span style="float:right">
 
 [%- IF targeting_type == "single_targeted" && species == 'Mouse' %]
-  <a class="btn btn-small btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/double_targeted", {species => 'Mouse'} ) %]"><i class="icon-list-alt icon-white"></i><b> Show double-targeted</b></a>
+  <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/double_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show double-targeted</b></a>
 [%- ELSIF targeting_type == "double_targeted" %]
-  <a class="btn btn-small btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="icon-list-alt icon-white"></i><b> Show single-targeted</b></a>
+  <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show single-targeted</b></a>
 [%- END %]
 
 [%- IF c.user %]
     [%- IF cache_param == 'with_cache' %]
-        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-small'
+        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param => 'without_cache'} ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Use live reports</b></a>
+        <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use live reports</b></a>
     [%- ELSE %]
-        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-small'
+        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param => 'with_cache'} ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Use cached reports</b></a>
+        <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use cached reports</b></a>
     [%- END %]
 [%- ELSE %]
     [%- IF species == 'Human' %]
-        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-small'
+        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Mouse', cache_param => 'without_cache'} ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Mouse</b></a>
+        <i class="glyphicon glyphicon-exclamation-sign"></i><b> Switch to Mouse</b></a>
     [%- ELSE %]
-        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-small'
+        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', {species => 'Human', cache_param => 'without_cache'} ) %]">
-        <i class="icon-exclamation-sign icon-white"></i><b> Switch to Human</b></a>
+        <i class="glyphicon glyphicon-exclamation-sign"></i><b> Switch to Human</b></a>
     [%- END %]
 [%- END %]
 
@@ -80,11 +80,11 @@
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
             [%- IF cache_param == "with_cache" %]
-                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank">[%- countval %]</a></b></td>
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
             [%- ELSE %]
                 <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
                   { species => species, cache_param => 'without_cache', type => 'full' }
-                ) %]" target="_blank">[%- countval %]</a></b></td>
+                ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
             [%- END %]
           [%- ELSE %]
             <b>[%- countval %]</b></td>

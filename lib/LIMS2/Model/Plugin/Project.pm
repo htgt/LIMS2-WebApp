@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.387';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.423';
 }
 ## use critic
 
@@ -33,11 +33,32 @@ sub retrieve_sponsor {
     return $sponsor;
 }
 
+sub cell_line_id_for{
+    my ( $self, $cell_line_name ) = @_;
+
+    my %search = ( name => $cell_line_name );
+    my $cell_line = $self->schema->resultset('CellLine')->find( \%search )
+        or $self->throw(
+        NotFound => {
+            entity_class  => 'CellLine',
+            search_params => \%search
+        }
+        );
+
+    return $cell_line->id;
+}
+
 sub pspec_retrieve_project {
     return {
         gene_id              => { validate => 'non_empty_string' },
         targeting_type       => { validate => 'non_empty_string', optional => 1 } ,
         species_id           => { validate => 'existing_species' },
+        cell_line            => {
+            validate    => 'existing_cell_line',
+            post_filter => 'cell_line_id_for',
+            rename      => 'cell_line_id',
+            optional    => 1,
+        },
         targeting_profile_id => { validate => 'non_empty_string', optional => 1 },
         sponsor_id           => { validate => 'non_empty_string', optional => 1 },
     };
@@ -49,7 +70,7 @@ sub retrieve_project {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_project );
 
     my $search_params = {
-        slice_def $validated_params, qw( id gene_id targeting_type species_id targeting_profile_id)
+        slice_def $validated_params, qw( id gene_id targeting_type species_id targeting_profile_id cell_line_id)
     };
 
     my $project;

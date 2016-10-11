@@ -7,7 +7,7 @@
 </div>
 
 <div class="row">
-  <div class="span6">
+  <div class="col-md-6">
     <div class="well">
       <dl>
         <dt>Qc Template</dt>
@@ -19,7 +19,7 @@
       </dl>
     </div>
   </div>
-  <div class="span6">
+  <div class="col-md-6">
     <div class="well">
       <dl>
         <dt>Created At</dt>
@@ -34,31 +34,33 @@
 </div>
 
 <div class="row">
-  <div class="span10">
+  <div class="col-md-8">
     <a class="btn btn-info" href="[% c.uri_for( '/user/report/cache/QcRun', { 'qc_run_id' => qc_run.id } ) %]">
-      <i class="icon-download-alt icon-white"></i> View Full Results
+      <i class="glyphicon glyphicon-download-alt"></i> View Full Results
     </a>
     <a class="btn btn-info" href="[% c.uri_for( '/user/report/sync/QcRunSummary', { 'qc_run_id' => qc_run.id } ) %]">
-      <i class="icon-download-alt icon-white"></i> View Summary Results
+      <i class="glyphicon glyphicon-download-alt"></i> View Summary Results
     </a>
     <a class="btn btn-info" href="[% c.uri_for( '/user/create_plates', { 'qc_run_id' => qc_run.id } ) %]">
-      <i class="icon-circle-arrow-right icon-white"></i> Create Plates from QC
+      <i class="glyphicon glyphicon-circle-arrow-right"></i> Create Plates from QC
     </a>
 
     [% IF show_accept_ep_pick_well_button %]
-        <a id="update_ep_pick_well_accepted_button" class="btn btn-success" href="#UpdateEP_PICKWellAcceptedModal" data-toggle="modal" role="button">
-          <i class="icon-ok icon-white"></i> Mark EP_PICK Wells Accepted
+        <a id="update_ep_pick_well_accepted_button" class="btn btn-success" data-target="#UpdateEP_PICKWellAcceptedModal" data-toggle="modal" role="button">
+          <i class="glyphicon glyphicon-ok"></i> Mark EP_PICK Wells Accepted
         </a>
     [% END %]
 
-    <a id="delete_run_button" class="btn btn-danger" role="button" href="#DeleteRunModal" data-toggle="modal">
-      <i class="icon-remove icon-white"></i> Delete QC Run
+    <a id="delete_run_button" class="btn btn-danger" role="button" data-target="#DeleteRunModal" data-toggle="modal">
+      <i class="glyphicon glyphicon-remove"></i> Delete QC Run
     </a>
 
   </div>
 </div>
 
-<div class="modal hide fade" id="UpdateEP_PICKWellAcceptedModal">
+<div class="modal fade" id="UpdateEP_PICKWellAcceptedModal" role="dialog">
+ <div class="modal-dialog" role="document">
+  <div class="modal-content">
   <form method="POST" id="update_ep_pick_well_accepted" action="[% c.uri_for( '/user/mark_ep_pick_wells_accepted' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
@@ -81,9 +83,13 @@
       </button>
     </div>
   </form>
+  </div>
+ </div>
 </div>
 
-<div class="modal hide fade" id="DeleteRunModal">
+<div class="modal fade" id="DeleteRunModal" role="dialog">
+ <div class="modal-dialog" role="document">
+  <div class="modal-content">
   <form method="POST" id="qc_run_delete" action="[% c.uri_for( '/user/delete_qc_run' ) %]" class="modal-form"  enctype="multipart/form-data" >
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">×</button>
@@ -102,6 +108,8 @@
       </button>
     </div>
   </form>
+  </div>
+ </div>
 </div>
 
 <table class="table table-striped table-condensed">

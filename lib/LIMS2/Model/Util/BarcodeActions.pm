@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.387';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.423';
 }
 ## use critic
 
@@ -438,6 +438,16 @@ sub _create_qc_piq_and_child_wells{
         well_name    => $validated_params->{qc_piq_well_name},
         created_by   => $validated_params->{user},
         process_data => $process_data,
+    });
+
+    # Create a well accepted override with value "FALSE"
+    # to prevent these wells being automatically released
+    # when they pass QC
+    # This is due to requirments change in April 2016
+    $model->create_well_accepted_override({
+       well_id    => $qc_well->id,
+       created_by => $validated_params->{user},
+       accepted   => 0,
     });
 
     # Create temporary plate containing daughter PIQ wells

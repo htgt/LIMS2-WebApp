@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.387';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.423';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use LIMS2::Model::Util::AlleleDetermination qw( determine_allele_types_for_genot
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+use Data::Dumper;
 
 requires qw( schema check_params throw );
 
@@ -548,6 +549,7 @@ my $sql_result =  $self->schema->storage->dbh_do(
              'Accepted' => 1,
              'Override' => 1,
              'Lab Number' => 1,
+             'Barcode' => 1,
          });
     }
 );
@@ -655,6 +657,7 @@ sub populate_well_attributes {
     $datum->{'plate_name'} = $row->{'plate'};
     $datum->{'plate_type'} = $row->{'plate_type'};
     $datum->{'well'} = $row->{'well'};
+    $datum->{'barcode'} = $row->{'Barcode'};
 
     if (defined $row->{'Accepted'} ) {
         $datum->{'accepted'} = ($row->{'Accepted'} ? 'yes' : 'no') // '-';
@@ -670,6 +673,12 @@ sub populate_well_attributes {
     $datum->{'targeting_pass'} = $row->{'Tgt pass'} // '-';
     $datum->{'targeting_puro_pass'} = $row->{'Puro pass'} // '-';
     $datum->{'targeting_neo_pass'} = $row->{'Neo pass'} // '-';
+
+    # Retrieve the well so we can check it's actual release status
+    # without rewriting the accepted/override logic here
+    my $well = $self->retrieve_well({ id => $datum->{'id'} });
+    $datum->{'release_status'} = ( $well->is_accepted ? 'released' : 'not released' );
+
     return;
 }
 
@@ -713,6 +722,7 @@ with wd as (
     , w.name "well"
     , w.id "Well ID"
     , w.accepted "Accepted"
+    , w.barcode "Barcode"
     , wgt.genotyping_result_type_id
     , wgt.call
     , wgt.copy_number
@@ -726,7 +736,7 @@ with wd as (
         and w.plate_id = p.id
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
-    wd."Accepted",
+    wd."Accepted",wd."Barcode",
     wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",
@@ -778,6 +788,7 @@ with wd as (
     , w.name "well"
     , w.id "Well ID"
     , w.accepted "Accepted"
+    , w.barcode "Barcode"
     , wgt.genotyping_result_type_id
     , wgt.call
     , wgt.copy_number
@@ -791,7 +802,7 @@ with wd as (
         and w.plate_id = p.id
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
-    wd."Accepted",
+    wd."Accepted",wd."Barcode",
     wd.copy_number, wd.copy_number_range, wd.confidence, wd.vic,
     well_chromosome_fail.result "Chr fail",
     well_targeting_pass.result "Tgt pass",

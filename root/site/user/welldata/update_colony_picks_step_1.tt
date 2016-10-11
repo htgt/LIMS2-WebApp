@@ -10,7 +10,7 @@
         <legend>Select Well</legend>
         <input type= "text" id="plate_name" name="plate_name" placeholder="Plate Name" autocomplete="off">
         <input type= "text" name="well_name" placeholder="Well Name">
-        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i>Go</button>
+        <button name="submit" id="submit" type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-arrow-right"></i>Go</button>
       </fieldset>
     </form>
 </div>
@@ -18,8 +18,8 @@
 <form method="POST" id="colony_count_upload" action="[% c.uri_for( '/user/upload_well_colony_counts_file_data' ) %]" class="well" enctype="multipart/form-data">
   <fieldset>
     <legend>Or Upload Well Data from File</legend>
-        <input name="datafile" type="file">
-    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="icon-arrow-right icon-white"></i> Go</button>
+        <input name="datafile" class="col-md-4" type="file">
+    <button name="upload" id="upload" type="submit" value="Go" class="btn btn-primary"><i class="glyphicon glyphicon-arrow-right"></i> Go</button>
   </fieldset>
 </form>
 

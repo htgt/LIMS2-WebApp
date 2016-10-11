@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Browser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.387';
+    $LIMS2::WebApp::Controller::API::Browser::VERSION = '0.423';
 }
 ## use critic
 
@@ -12,18 +12,22 @@ use LIMS2::Model::Util::GenomeBrowser qw/
     crisprs_for_region
     crisprs_to_gff
     crispr_pairs_for_region
-    crispr_pairs_to_gff 
+    crispr_pairs_to_gff
     gibson_designs_for_region
     design_oligos_to_gff
     generic_designs_for_region
     generic_design_oligos_to_gff
     primers_for_crispr_pair
     crispr_primers_to_gff
-    unique_crispr_data 
+    unique_crispr_data
     unique_crispr_data_to_gff
     crispr_groups_for_region
     crispr_groups_to_gff
+    design_params_to_gff
+    single_experiment_gff
 /;
+use JSON;
+use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -256,6 +260,43 @@ sub unique_crispr_GET {
     my $unique_crispr_data_gff = unique_crispr_data_to_gff( $crispr_data, $c->request->params );
     $c->response->content_type( 'text/plain' );
     my $body = join "\n", @{$unique_crispr_data_gff};
+    return $c->response->body( $body );
+}
+
+sub single_experiment_track :Path('/api/single_experiment_track') :Args(0) :ActionClass('REST'){
+}
+
+sub single_experiment_track_GET{
+    my ($self, $c) = @_;
+
+    $c->log->debug('getting experiment');
+    my $experiment = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $c->req->param('id') });
+    $c->log->debug('got experiment');
+    my $experiment_gff = single_experiment_gff($experiment);
+    $c->response->content_type('text/plain');
+    my $body  = join "\n", @{ $experiment_gff };
+    return $c->response->body( $body );
+}
+
+=head design_region_coords
+Given: target_start, target_end, chr, assembly, design_type, list of specified region lengths and offsets
+Returns GFF containing coords of regions to search in for design oligo generation
+=cut
+
+sub design_region_coords :Path('/api/design_region_coords') :Args(0) :ActionClass('REST') {
+}
+
+sub design_region_coords_GET{
+    my ( $self, $c ) = @_;
+    my $region_coords = c_get_design_region_coords($c->req->params);
+    my $general_params = {
+        chr_name    => $c->req->param('chr'),
+        design_type => $c->req->param('design_type'),
+    };
+
+    my $params_gff = design_params_to_gff($region_coords, $general_params);
+    $c->response->content_type('text/plain');
+    my $body = join "\n", @{$params_gff};
     return $c->response->body( $body );
 }
 

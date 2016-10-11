@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.387';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.423';
 }
 ## use critic
 
@@ -267,6 +267,22 @@ sub _build_plate_name {
     return $self->plate->name;
 }
 
+# Get ancestor trees for all plate wells with one query
+# and pre-load them into well objects
+sub prefetch_well_ancestors{
+    my $self = shift;
+
+    my @wells = $self->plate->wells;
+
+    # Pre-populate ancestors for all plate wells using batch query
+    my @well_ids = map { $_->id } @wells;
+    my $well_ancestors = $self->model->fast_get_well_ancestors(@well_ids);
+    foreach my $this_well (@wells){
+        $this_well->set_ancestors( $well_ancestors->{ $this_well->id } );
+    }
+    return;
+}
+
 sub base_columns {
     confess "base_columns() must be implemented by a subclass";
 }
@@ -517,7 +533,7 @@ sub crispr_design_and_gene_cols{
 
     my %designs = map{ $_->id => $_->design_type_id } $crispr->related_designs;
     my $gene_finder = sub { $self->model->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr, $self->model ) };
 
     my @symbols;
     for my $gene_id ( @gene_ids ) {

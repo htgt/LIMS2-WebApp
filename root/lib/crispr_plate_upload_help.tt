@@ -1,15 +1,15 @@
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> Crispr Plate Create Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> Crispr Plate Create Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to create a crispr plate using well names and crispr ids from csv files.
           The csv file must be formatted into two columns with the two column headers: well_name and crispr_id. 
@@ -24,7 +24,7 @@
           be created. Once the data is proven valid then the plate will be created and a success message will appear. This may take some time depending on the additional options chosen.
         </p>
 
-        <div class="well">
+        <div class="well-sm">
           <h6>Setup</h6>
           <p>
             Fill in basic plate details, the compulsory field is.

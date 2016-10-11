@@ -1,0 +1,36 @@
+[% META title="Crispr ES Cell Het Status Upload"; META tab_name = 'QC' %]
+
+<div class="page-header">
+  <h1>Het Status File Upload</h1>
+</div>
+
+<p>Use this page to upload a <strong>.csv</strong> file containing the three_prime and five_prime PCR band status for a
+multiple wells, e.g. from a het recovery plate. Note that this does not create a het recovery plate layout in LIMS2, it just adds the het status info to the original plate.</p>
+
+<p>File columns:
+ <ul>
+   <li><strong>well_name</strong> (name of the well on the het recovery plate - optional)</li>
+   <li><strong>parent_plate_name</strong> (name of the plate to add het status to)</li>
+   <li><strong>parent_well_name</strong> (name of the well to add het status to)</li>
+   <li><strong>five_prime</strong> (PCR band status: true or false)</li>
+   <li><strong>three_prime</strong> (PCR band status: true or false)</li>
+ </ul>
+</p>
+
+<div class="row">
+
+  <div class="col-md-6 col-md-offset-3">
+    <form method="POST" id="het_status_file" action="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]" class="form well"  enctype="multipart/form-data" >
+
+        <label>Het Status File</label>
+        <input name="datafile" type="file">
+
+        <br>
+        <br>
+        <button name="upload_het_status" id="upload_het_status" type="submit" value="upload_het_status" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Upload Het Status
+        </button>
+    </form>
+  </div>
+
+</div

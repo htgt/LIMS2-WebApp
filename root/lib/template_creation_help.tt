@@ -1,21 +1,21 @@
-<div class="accordion" id="accordian">
+<div class="panel-group" id="accordian">
 
-  <div class="accordion-group">
+  <div class="panel panel-default">
 
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-        <i class="icon-question-sign"></i> QC Template Create Help
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+        <i class="glyphicon glyphicon-question-sign"></i> QC Template Create Help
       </a>
     </div>
 
-    <div id="collapseOne" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseOne" class="panel-body collapse">
+      <div class="panel-body">
         <p>
           This form is used to create QC templates from a whole source plate, or from a CSV file listing the required source wells.
         </p>
 
         <div class="well">
-          <h6>Create from plate</h6>
+          <h4>Create from plate</h4>
           <p>
           Enter the name of a source plate to create a QC template using all wells on this plate. If the template will have
           a different cassette, backbone or recombinase to the source plate then select the relevant items for the template
@@ -24,7 +24,7 @@
         </div>
 
         <div class="well">
-          <h6>Create from spreadsheet</h6>
+          <h4>Create from spreadsheet</h4>
           <p>
            <a href="[% c.uri_for('/static/files/plate_upload/qc_template_plate_template.csv') %]">
             <i class="icon-download"></i> Download Example CSV File

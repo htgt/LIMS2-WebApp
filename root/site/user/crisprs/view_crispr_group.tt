@@ -9,6 +9,7 @@
     <tr><th>ID</th> <td>[% cg.id %]</td></tr>
     <tr><th>Species</th> <td>[% cg.species %]</td></tr>
     <tr><th>Gene ID</th> <td>[% cg.gene_id %]</td></tr>
+    <tr><th>Gene Symbol</th> <td>[% cg.gene_symbol %]</td></tr>
   </table>
 </div>
 
@@ -83,8 +84,7 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
-        <th>Rejected</th>
-        <th>Validation State</th>
+        <th class="text-right">Validation State</th>
       </tr>
     </thead>
     <tbody>
@@ -98,9 +98,7 @@
         <td>[% datum.gc_content %]</td>
         [% IF datum.is_rejected %]
             <td> <span class="label label-important pull-right">Rejected</span> </td>
-            <td></td>
         [% ELSE %]
-            <td></td>
             <td class="validation-state-cell"
                 data-validated="[% datum.is_validated %]"
                 data-primer-name="[% datum.primer_name %]">
@@ -112,6 +110,12 @@
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr group</em></p>
+  [% IF c.check_user_roles( 'edit' ) %]
+    <p>
+    <a class="btn btn-primary" href="[% c.uri_for("/user/crispr_group/${cg.id}/view/", { generate_primers => 1 }) %]">Generate Primers</a>
+    <small>this action may take a few minutes</small>
+    </p>
+  [% END %]
 [% END %]
 
 

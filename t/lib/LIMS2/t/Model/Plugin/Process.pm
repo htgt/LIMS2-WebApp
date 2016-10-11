@@ -21,7 +21,7 @@ Test module structured for running under Test::Class
 
 =cut
 
-sub process_types : Tests() {
+sub process_types : Tests(5) {
 
     note("Testing process types and fields creation");
     my @process_types = qw(
@@ -52,6 +52,9 @@ sub process_types : Tests() {
         cgap_qc
         ms_qc
         doubling
+        group_crispr_assembly
+        vector_cloning
+        crispr_sep
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
@@ -76,7 +79,7 @@ sub process_types : Tests() {
     );
 }
 
-sub create_di_process : Tests() {
+sub create_di_process : Test(17) {
     note("Testing create_di process creation");
     my $create_di_process_data = test_data('create_di_process.yaml');
 
@@ -119,7 +122,7 @@ sub create_di_process : Tests() {
 
 }
 
-sub create_crispr_process : Tests() {
+sub create_crispr_process : Test(13) {
 
     note("Testing create_crispr process creation");
     my $create_crispr_process_data = test_data('create_crispr_process.yaml');
@@ -159,7 +162,7 @@ sub create_crispr_process : Tests() {
 
 }
 
-sub int_recom_process : Tests() {
+sub int_recom_process : Test(20) {
     note("Testing int_recom process creation");
     my $int_recom_process_data = test_data('int_recom_process.yaml');
 
@@ -212,7 +215,7 @@ sub int_recom_process : Tests() {
     qr/Process should have 1 output well \(got 2\)/;
 }
 
-sub two_way_gateway_process : Tests() {
+sub two_way_gateway_process : Test(22) {
     note("Testing 2w_gateway process creation");
     my $process_data_2w_gateway = test_data('2w_gateway_process.yaml');
 
@@ -280,7 +283,7 @@ sub two_way_gateway_process : Tests() {
 
 }
 
-sub legacy_gateway_process : Tests() {
+sub legacy_gateway_process : Test(22) {
     note("Testing legacy_gateway process creation");
     my $process_data_legacy_gateway = test_data('legacy_gateway_process.yaml');
 
@@ -334,7 +337,7 @@ sub legacy_gateway_process : Tests() {
     qr/legacy_gateway process output well should be type FINAL_PICK \(got FINAL\)/;
 }
 
-sub three_way_gateway_process : Tests() {
+sub three_way_gateway_process : Test(22) {
     note("Testing 3w_gateway process creation");
     my $process_data_3w_gateway = test_data('3w_gateway_process.yaml');
 
@@ -388,7 +391,7 @@ sub three_way_gateway_process : Tests() {
     qr/3w_gateway process output well should be type (FINAL|,|POSTINT)+ \(got DESIGN\)/;
 }
 
-sub cre_bac_recom_process : Tests() {
+sub cre_bac_recom_process : Test(18) {
     note("Testing cre_bac_recom process creation");
     my $cre_bac_recom_process_data = test_data('cre_bac_recom_process.yaml');
 
@@ -431,7 +434,7 @@ sub cre_bac_recom_process : Tests() {
     qr/cre_bac_recom process output well should be type INT \(got EP\)/;
 }
 
-sub recombinase_process : Tests() {
+sub recombinase_process : Test(22) {
     note("Testing recombinase process creation");
     my $recombinase_process_data = test_data('recombinase_process.yaml');
 
@@ -523,7 +526,7 @@ sub recombinase_process : Tests() {
     }
 }
 
-sub final_pick_process : Tests() {
+sub final_pick_process : Test(13) {
     note("Testing final_pick process creation");
     my $final_pick_process_data = test_data('final_pick_process.yaml');
 
@@ -554,7 +557,7 @@ sub final_pick_process : Tests() {
     qr/final_pick process output well should be type (FINAL|FINAL_PICK)+ \(got SEP\)/;
 }
 
-sub rearray_process : Tests() {
+sub rearray_process : Test(13) {
     note("Testing rearray process creation");
     my $rearray_process_data = test_data('rearray_process.yaml');
 
@@ -586,7 +589,7 @@ sub rearray_process : Tests() {
     qr/rearray process should have input and output wells of the same type/;
 }
 
-sub dna_prep_process : Tests() {
+sub dna_prep_process : Test(14) {
     note("Testing dna_prep process creation");
     my $dna_prep_process_data = test_data('dna_prep_process.yaml');
 
@@ -622,7 +625,7 @@ sub dna_prep_process : Tests() {
     qr/dna_prep process output well should be type DNA \(got INT\)/;
 }
 
-sub first_electroporation_process : Tests() {
+sub first_electroporation_process : Test(22) {
     note("Testing first_electroporation process creation");
     my $first_electroporation_data = test_data('first_electroporation.yaml');
 
@@ -669,7 +672,7 @@ sub first_electroporation_process : Tests() {
     }
 }
 
-sub second_electroporation_process : Tests() {
+sub second_electroporation_process : Test(23) {
     note("Testing second_electroporation process creation");
     my $second_electroporation_data = test_data('second_electroporation.yaml');
 
@@ -722,7 +725,7 @@ sub second_electroporation_process : Tests() {
     }
 }
 
-sub clone_pick_process : Tests() {
+sub clone_pick_process : Test(24) {
     note("Testing clone_pick process creation");
     my $clone_pick_process_data = test_data('clone_pick_process.yaml');
 
@@ -771,7 +774,7 @@ sub clone_pick_process : Tests() {
     }
 }
 
-sub clone_pool_process : Tests() {
+sub clone_pool_process : Test(13) {
     note("Testing clone_pool process creation");
     my $clone_pool_process_data = test_data('clone_pool_process.yaml');
 
@@ -804,7 +807,7 @@ sub clone_pool_process : Tests() {
     qr/clone_pool process output well should be type (SEP_POOL|,|XEP_POOL)+ \(got SEP\)/;
 }
 
-sub freeze_process : Tests() {
+sub freeze_process : Test(13) {
     note("Testing freeze process creation");
     my $freeze_process_data = test_data('freeze_process.yaml');
 
@@ -835,7 +838,7 @@ sub freeze_process : Tests() {
     qr/freeze process output well should be type (FP|,|SFP)+ \(got SEP\)/;
 }
 
-sub dist_qc_process : Tests() {
+sub dist_qc_process : Test(13) {
     note("Testing dist_qc process creation");
     my $dist_qc_process_data = test_data('dist_qc_process.yaml');
 
@@ -870,16 +873,15 @@ sub dist_qc_process : Tests() {
 
         # check that process can be deleted
         lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
-
         throws_ok {
             my $invalid_output_process
                 = model->create_process( $dist_qc_process_data->{invalid_output} );
         }
-        qr/dist_qc process output well should be type (PIQ)+ \(got SEP\)/;
+        qr/dist_qc process output well should be type S_PIQ,PIQ \(got SEP\)/;
     }
 }
 
-sub xep_pool_process : Tests() {
+sub xep_pool_process : Test(19) {
     note("Testing xep_pool process creation");
     my $xep_pool_process_data = test_data('xep_pool_process.yaml');
     {
@@ -931,7 +933,7 @@ sub xep_pool_process : Tests() {
 #     single_crispr_assembly
 #     paired_crispr_assembly
 # TODO use fixture data for the tests so they can be split up
-sub crispr_vector_and_assembly_processes : Tests() {
+sub crispr_vector_and_assembly_processes : Test(55) {
     note("Testing crispr_vector process creation");
     my $crispr_vector_process_data = test_data('crispr_vector_process.yaml');
     {
@@ -1066,7 +1068,7 @@ sub crispr_vector_and_assembly_processes : Tests() {
 
 }
 
-sub crispr_ep_process : Tests() {
+sub crispr_ep_process : Test(15) {
     note("Testing crispr_ep process creation");
     my $crispr_ep_process_data = test_data('crispr_ep_process.yaml');
     ok my $process = model->create_process( $crispr_ep_process_data->{ep_valid_input} ),
@@ -1106,7 +1108,37 @@ sub crispr_ep_process : Tests() {
     qr/crispr_ep process input well should be type ASSEMBLY,OLIGO_ASSEMBLY \(got CRISPR\)/;
 }
 
-sub global_arm_shortening_process : Tests() {
+sub crispr_sep_process : Test(14){
+    note("Testing crispr_sep process creation");
+    my $crispr_sep_data = test_data('crispr_sep_process.yaml');
+
+    {
+        ok my $process = model->create_process( $crispr_sep_data->{valid_input} ),
+           'create crispr_sep process should succeed';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'crispr_sep', 'correct process type';
+
+        ok my $input_wells = $process->input_wells, 'process can return input wells resultset';
+        is $input_wells->count, 2, '2 input wells';
+        my $piq = grep { $_->plate_type eq 'PIQ'} $input_wells->all;
+        my $assembly = grep { $_->plate_type eq 'ASSEMBLY'} $input_wells->all;
+        is $piq, 1, 'PIQ input found';
+        is $assembly, 1, 'ASSEMBLY input found';
+
+        ok my $output_wells = $process->output_wells, 'process can return output wells resultset';
+        is $output_wells->count, 1, 'only one output well';
+        my $output_well = $output_wells->next;
+        is $output_well->name, 'A01', 'output well has correct name';
+        is $output_well->plate->name, 'CRISPR_SEP', '..and is on correct plate';
+
+        is $output_well->first_allele->crispr->id, '69531', 'first CRISPR correct';
+        is $output_well->second_allele->crispr->id, '113', 'second CRISPR correct';
+
+        lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
+    }
+}
+
+sub global_arm_shortening_process : Test(21) {
     note("Testing global_arm_shortening process creation");
     my $global_arm_shortening_process_data = test_data('global_arm_shortening_process.yaml');
 
@@ -1171,7 +1203,7 @@ sub global_arm_shortening_process : Tests() {
     qr/The antibiotic resistance on the intermediate backbone used in a global_arm_shortening process should be Chloramphenicol/;
 }
 
-sub oligo_assembly_process : Tests() {
+sub oligo_assembly_process : Test(18) {
     note("Testing oligo_assembly process creation");
     my $oligo_assembly_process_data = test_data('oligo_assembly_process.yaml');
 

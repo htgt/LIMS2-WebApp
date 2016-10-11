@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.387';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.423';
 }
 ## use critic
 
@@ -34,11 +34,14 @@ use Sub::Exporter -setup => {
         unique_crispr_data_to_gff
         crispr_groups_for_region
         crispr_groups_to_gff
+        design_params_to_gff
+        single_experiment_gff
     ) ]
 };
 
 use Log::Log4perl qw( :easy );
 use Data::Dumper;
+use LIMS2::Model::Util::GFFGenerator;
 
 =head2 crisprs_for_region
 
@@ -237,6 +240,8 @@ sub crisprs_to_gff {
 
     my @crisprs_gff;
 
+    my $generator = LIMS2::Model::Util::GFFGenerator->new();
+
     push @crisprs_gff, "##gff-version 3";
     push @crisprs_gff, '##sequence-region lims2-region '
         . $params->{'start_coord'}
@@ -254,33 +259,7 @@ sub crisprs_to_gff {
         . $params->{'end_coord'} ;
 
         while ( my $crispr_r = $crisprs_rs->next ) {
-            my %crispr_format_hash = (
-                'seqid' => $params->{'chromosome_number'},
-                'source' => 'LIMS2',
-                'type' => 'Crispr',
-                'start' => $crispr_r->chr_start,
-                'end' => $crispr_r->chr_end,
-                'score' => '.',
-                'strand' => $crispr_r->chr_strand eq '-1' ? '-' : '+' ,
-                'phase' => '.',
-                'attributes' => 'ID='
-                    . 'C_' . $crispr_r->crispr_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $crispr_r->crispr_id . ';'
-                    . 'seq=' . $crispr_r->crispr->seq . ';'
-                    . 'pam_right=' . ($crispr_r->crispr->pam_right // 'N/A') . ';'
-                    . 'wge_ref=' . ($crispr_r->crispr->wge_crispr_id // 'N/A')
-                );
-            my $crispr_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_parent_datum;
-
-            my $crispr_display_info = {
-                id => $crispr_r->crispr_id,
-                chr_start => $crispr_r->chr_start,
-                chr_end => $crispr_r->chr_end,
-                pam_right => $crispr_r->crispr->pam_right,
-                colour => '#45A825', # greenish
-            };
-            push @crisprs_gff, _make_crispr_and_pam_cds($crispr_display_info, \%crispr_format_hash, 'C_' . $crispr_r->crispr_id);
+            push @crisprs_gff, $generator->generate_gff($crispr_r);
         }
 
     return \@crisprs_gff;
@@ -299,6 +278,8 @@ sub crispr_pairs_to_gff {
 
     my @crisprs_gff;
 
+    my $generator = LIMS2::Model::Util::GFFGenerator->new();
+
     push @crisprs_gff, "##gff-version 3";
     push @crisprs_gff, '##sequence-region lims2-region '
         . $params->{'start_coord'}
@@ -316,45 +297,7 @@ sub crispr_pairs_to_gff {
         . $params->{'end_coord'} ;
 
         while ( my $crispr_r = $crisprs_rs->next ) {
-            my $pair_id = $crispr_r->pair_id;
-            my %crispr_format_hash = (
-                'seqid' => $params->{'chromosome_number'},
-                'source' => 'LIMS2',
-                'type' => 'crispr_pair',
-                'start' => $crispr_r->left_crispr_start,
-                'end' => $crispr_r->right_crispr_end,
-                'score' => '.',
-                'strand' => '+' ,
-#                'strand' => '.',
-                'phase' => '.',
-                'attributes' => 'ID='
-                    . $pair_id . ';'
-                    . 'Name=' . 'LIMS2' . '-' . $pair_id
-                );
-            my $crispr_pair_parent_datum = prep_gff_datum( \%crispr_format_hash );
-            push @crisprs_gff, $crispr_pair_parent_datum;
-
-            my $crispr_display_info = {
-                left => {
-                    id    => $crispr_r->left_crispr_id,
-                    chr_start => $crispr_r->left_crispr_start,
-                    chr_end   => $crispr_r->left_crispr_end,
-                    pam_right => $crispr_r->left_crispr_pam_right,
-                    colour => crispr_colour('left'),
-                },
-                right => {
-                    id    => $crispr_r->right_crispr_id,
-                    chr_start => $crispr_r->right_crispr_start,
-                    chr_end   => $crispr_r->right_crispr_end,
-                    pam_right => $crispr_r->right_crispr_pam_right,
-                    colour => crispr_colour('right'),
-                }
-            };
-
-            foreach my $side ( qw(left right) ){
-                my $crispr = $crispr_display_info->{$side};
-                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $pair_id);
-            }
+            push @crisprs_gff, $generator->generate_gff($crispr_r);
         }
 
 
@@ -372,6 +315,8 @@ sub crispr_groups_to_gff {
     my $params = shift;
 
     my @crisprs_gff;
+
+    my $generator = LIMS2::Model::Util::GFFGenerator->new();
 
     push @crisprs_gff, "##gff-version 3";
     push @crisprs_gff, '##sequence-region lims2-region '
@@ -417,7 +362,7 @@ sub crispr_groups_to_gff {
                     pam_right => $group_member->{'pam_right'},
                     colour => '#45A825', # greenish
                 };
-                push @crisprs_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_group);
+                push @crisprs_gff, $generator->_make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_group);
             }
         }
 
@@ -649,6 +594,45 @@ sub generic_design_oligos_to_gff {
 }
 
 
+sub design_params_to_gff{
+    my ($design_params, $general_params) = @_;
+
+    my @gff;
+
+    push @gff, "##gff-version 3";
+
+    my $id = "design_oligo_regions";
+    my $parent_item = {
+        'seqid' => $general_params->{'chr_name'},
+        'source' => 'LIMS2',
+        'type' =>  $general_params->{'design_type'}." oligo search regions",
+        'start' => $design_params->{'start'},
+        'end' => $design_params->{'end'},
+        'score' => '.',
+        'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+        'phase' => '.',
+        'attributes' => "ID=$id;Name=$id;",
+    };
+    push @gff, prep_gff_datum($parent_item);
+
+    foreach my $region ( @{ $design_params->{region_list} } ){
+        my $child_item = {
+            'seqid' => $general_params->{'chr_name'},
+            'source' => 'LIMS2',
+            'type' =>  'CDS',
+            'start' => $design_params->{$region.'_start'},
+            'end' => $design_params->{$region.'_end'},
+            'score' => '.',
+            'strand' => ( $design_params->{'strand'} == 1 ? '+' : '-' ),
+            'phase' => '.',
+            'attributes' => "ID=$region;Parent=$id;Name=$region;color=".generic_colour($region),
+        };
+        push @gff, prep_gff_datum($child_item);
+    }
+
+    return \@gff;
+}
+
 =head parse_gibson_designs
 Given and GibsonDesignBrowser Resultset.
 Returns hashref of hashrefs keyd on design_id
@@ -821,6 +805,10 @@ sub generic_colour {
         'N' => '#18D6CD',
         'f5F' => '#68D310',
         'f3R' => '#BF249B',
+        # These are for design oligo search regions:
+        '5R_EF' => '#68D310',
+        'ER_3F' => '#BF249B',
+        'target' => '#000000',
     );
     return $colours{ $oligo_type_id };
 }
@@ -1088,63 +1076,30 @@ sub unique_crispr_data_to_gff {
     return \@crispr_data_gff;
 }
 
-sub _make_crispr_and_pam_cds{
-    my ($crispr_display_info, $crispr_format_hash, $parent_id) = @_;
+sub single_experiment_gff{
+    my ($experiment) = @_;
 
-    # crispr display info must contain keys:
-    # id, chr_start, chr_end, pam_right, colour
+    DEBUG "starting experiment GFF generation";
+    # Display crispr entity, design and related primers
+    my @gff;
+    my $generator = LIMS2::Model::Util::GFFGenerator->new();
 
-    my $crispr = $crispr_display_info;
-    if(defined $crispr->{pam_right}){
-        my ($pam_start, $pam_end);
-        if($crispr->{pam_right}){
-            $crispr_format_hash->{'start'} = $crispr->{chr_start};
-            $crispr_format_hash->{'end'} = $crispr->{chr_end} - 2;
-            $pam_start =  $crispr->{chr_end} - 2;
-            $pam_end = $crispr->{chr_end};
+    if($experiment->design){
+        push @gff, $generator->generate_gff($experiment->design);
+        foreach my $primer ($experiment->design->genotyping_primers){
+            push @gff, $generator->generate_gff($primer);
         }
-        else{
-            $crispr_format_hash->{'start'} = $crispr->{chr_start} + 2;
-            $crispr_format_hash->{'end'} = $crispr->{chr_end};
-            $pam_start = $crispr->{chr_start};
-            $pam_end = $crispr->{chr_start} + 2;
-        }
-
-        # This is the crispr without PAM
-        $crispr_format_hash->{'type'} = 'CDS';
-        $crispr_format_hash->{'attributes'} =     'ID='
-            . 'Crispr_' . $crispr->{id} . ';'
-            . 'Parent=' . $parent_id . ';'
-            . 'Name=LIMS2-' . $crispr->{id} . ';'
-            . 'color=' .$crispr->{colour};
-        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
-
-        # This is the PAM
-        $crispr_format_hash->{start} = $pam_start;
-        $crispr_format_hash->{end} = $pam_end;
-        $crispr_format_hash->{'attributes'} = 'ID='
-                . 'PAM_' . $crispr->{id} . ';'
-                . 'Parent=' . $parent_id . ';'
-                . 'Name=LIMS2-' . $crispr->{id} . ';'
-                . 'color=' . crispr_colour('pam');
-        my $pam_child_datum = prep_gff_datum( $crispr_format_hash );
-
-        return ($crispr_datum, $pam_child_datum);
-    }
-    else{
-        # We don't have pam right flag so just make the crispr cds
-        $crispr_format_hash->{start} = $crispr->{chr_start};
-        $crispr_format_hash->{end} = $crispr->{chr_end};
-        $crispr_format_hash->{'type'} = 'CDS';
-        $crispr_format_hash->{'attributes'} =     'ID='
-            . $crispr->{id} . ';'
-            . 'Parent=' . $parent_id . ';'
-            . 'Name=' . $crispr->{id} . ';'
-            . 'color=' .$crispr->{colour};
-        my $crispr_datum = prep_gff_datum( $crispr_format_hash );
-        return $crispr_datum;
     }
 
-    return;
+    if(my $crispr = $experiment->crispr_entity){
+        push @gff, $generator->generate_gff($crispr);
+        foreach my $primer ($crispr->crispr_primers){
+             push @gff, $generator->generate_gff($primer);
+        }
+    }
+
+    return \@gff;
 }
+
+
 1;

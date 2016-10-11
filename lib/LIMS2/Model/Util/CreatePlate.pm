@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.387';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.423';
 }
 ## use critic
 
@@ -85,6 +85,10 @@ sub pspec_find_parent_well_ids {
         design_well          => { validate => 'well_name',  optional => 1 },
         crispr_plate         => { validate => 'plate_name', optional => 1 },
         crispr_well          => { validate => 'well_name',  optional => 1 },
+        assembly_plate       => { validate => 'plate_name', optional => 1 },
+        assembly_well        => { validate => 'well_name', optional => 1 },
+        piq_plate            => { validate => 'plate_name', optional => 1 },
+        piq_well             => { validate => 'well_name', optional => 1 },
         DEPENDENCY_GROUPS    => { parent   => [qw( parent_plate parent_well )] },
         DEPENDENCY_GROUPS    => { vector   => [qw( vector_plate vector_well )] },
         DEPENDENCY_GROUPS    => { allele   => [qw( allele_plate allele_well )] },
@@ -111,6 +115,7 @@ sub find_parent_well_ids {
         = $model->check_params( $params, pspec_find_parent_well_ids, ignore_unknown => 1 );
 
     my %process_parents = (
+        'crispr_sep'             => \&crispr_sep_parents,
         'second_electroporation' => \&second_electroporation_parents,
         'single_crispr_assembly' => \&single_crispr_assembly_parents,
         'paired_crispr_assembly' => \&paired_crispr_assembly_parents,
@@ -149,6 +154,27 @@ sub merge_plate_process_data {
         if exists $well_data->{recombinase};
 }
 ## use critic
+
+sub crispr_sep_parents{
+    my ( $model, $params ) = @_;
+
+    my @parent_well_ids;
+
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{assembly_plate},
+            well_name  => substr( $params->{assembly_well}, -3 )
+        }
+    );
+    push @parent_well_ids, well_id_for(
+        $model, {
+            plate_name => $params->{piq_plate},
+            well_name  => substr( $params->{piq_well}, -3 )
+        }
+    );
+
+    return @parent_well_ids;
+}
 
 sub second_electroporation_parents {
     my ( $model, $params ) = @_;

@@ -1,16 +1,16 @@
 [% META title = "Login" %]
-<div class="login_form">
+<div class="container">
   <form method="POST" action="[% c.uri_for( '/login' ) %]" name="login_form" class="well form-inline">
     <fieldset>
-      <legend>Login</legend>
+      <legend class="form-signin-heading">Login</legend>
       <input name="goto_on_success" type="hidden" value="[% goto_on_success %]" />
       <input name="htgtsession" type="hidden" value="[% htgtsession %]" />
-      <input name="username" id="username_field" type="text" placeholder="Username" value="[% c.req.param('username') %]"/>
-      <input name="password" id="password_field" type="password" placeholder="Password" />
+      <input name="username" class="form-control" id="username_field" type="text" placeholder="Username" value="[% c.req.param('username') %]"/>
+      <input name="password" class="form-control" id="password_field" type="password" placeholder="Password" />
       <input class="btn btn-primary" name="login" id="login_button" type="submit" value="Login" />
     </fieldset>
   </form>
 </div>
-<div>
-Or continue as an anonymous user to view public reports: <a href="[% c.uri_for('/public_reports/sponsor_report') %]">Public Reports</a>
+<div class="col-md-12"><br>
+Or continue as an anonymous user to view public reports: <a href="[% c.http_uri_for('/public_reports/sponsor_report') %]">Public Reports</a>
 </div>

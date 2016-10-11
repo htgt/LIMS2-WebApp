@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateQC::VERSION = '0.387';
+    $LIMS2::Model::Util::CreateQC::VERSION = '0.423';
 }
 ## use critic
 
@@ -45,7 +45,9 @@ sub create_or_retrieve_eng_seq {
 }
 
 sub build_qc_template_search_params {
-    my ( $params ) = @_;
+    my ( $params, $schema ) = @_;
+
+    my $dtf = $schema->storage->datetime_parser;
 
     if ( defined $params->{id} ) {
         return { 'me.id' => $params->{id} };
@@ -66,7 +68,7 @@ sub build_qc_template_search_params {
     }
 
     if ( $params->{created_before} ) {
-        $search{'me.created_at'} = { '<=', $params->{created_before} };
+        $search{'me.created_at'} = { '<=', $dtf->format_datetime( $params->{created_before} ) };
     }
 
     if ( $params->{latest} ) {
@@ -74,7 +76,7 @@ sub build_qc_template_search_params {
             $search{'me.created_at'} = {
                 '=' => \[
                     '( select max(created_at) from qc_templates where name = me.name and created_at <= ? )',
-                    [ created_at => $params->{created_before} ]
+                    [ created_at => $dtf->format_datetime( $params->{created_before} ) ]
                 ]
             };
         }

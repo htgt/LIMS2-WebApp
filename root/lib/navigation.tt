@@ -1,14 +1,72 @@
-<div class="navbar navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
-  <div class="navbar-inner">
-    <div class="container">
-      <a class="brand" href="[% c.uri_for( '/' ) %]">HTGT LIMS2</a>
+<style type="text/css">
+    body { padding-top: 70px; }
+
+.navbar .divider-vertical {
+    height: 50px;
+    margin: 0 9px;
+    border-right: 1px solid #ffffff;
+    border-left: 1px solid #f2f2f2;
+}
+
+.navbar-inverse .divider-vertical {
+    border-right-color: #222222;
+    border-left-color: #111111;
+}
+
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > .divider {
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #ffffff;
+  background-color: #3691c8;
+}
+.navbar-default .navbar-toggle {
+  border-color: #3691c8;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #3691c8;
+}
+
+@media (max-width: 767px) {
+    .navbar-collapse .nav > .divider-vertical {
+        display: none;
+     }
+}
+</style>
+
+<div class="navbar navbar-default navbar-fixed-top[% IF c.session.selected_species == "Mouse" %] navbar-inverse[% END %]">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="nav navbar-brand" href="[% c.http_uri_for( '/' ) %]">HTGT LIMS2</a>
+      </div>
       [% IF template.title != 'Login' %]
-      <ul class="nav">
+      <ul class="nav navbar-nav">
 
       [% IF c.user %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes<b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/report/gene' ) %]">
@@ -32,7 +90,6 @@
             </li>
           </ul>
         </li>
-
 
         <li class="dropdown[% IF template.tab_name == "Designs" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Designs <b class="caret"></b></a>
@@ -159,6 +216,9 @@
             </li>
             <li>
               <a href="[% c.uri_for( '/user/create_qc_plate' ) %]">Create QC Plate</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crisprqc/upload_het_status_file' ) %]">Upload het status</a>
             </li>
 
             <li class="divider"></li>
@@ -300,26 +360,29 @@
           </ul>
         </li>
 
-      </ul>
 
-      <ul class="nav pull-right">
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right" style="align:right">
         <li class="divider-vertical"></li>
+
+        <li onclick="getAnnouncements()"><a><i class="glyphicon glyphicon-envelope"></i></a></li>
 
         [% IF c.session.display_type %]
             <li><a id="display_type_default" data-display-type="default"
                 [% IF c.session.display_type == 'default' %]style="display: none"[% END %]>
                 [% IF c.session.selected_species == 'Human' %]
-                    <i class="icon-resize-small"></i>
+                    <i class="glyphicon glyphicon-resize-small"></i>
                 [% ELSE %]
-                    <i class="icon-resize-small icon-white"></i>
+                    <i class="glyphicon glyphicon-resize-small"></i>
                 [% END %]
                 </a></li>
             <li><a id="display_type_wide" data-display-type="wide"
                 [% IF c.session.display_type == 'wide' %]style="display: none"[% END %]>
                 [% IF c.session.selected_species == 'Human' %]
-                    <i class="icon-fullscreen"></i>
+                    <i class="glyphicon glyphicon-fullscreen"></i>
                 [% ELSE %]
-                    <i class="icon-fullscreen icon-white"></i>
+                    <i class="glyphicon glyphicon-fullscreen"></i>
                 [% END %]
                 </a></li>
         [% END %]
@@ -330,11 +393,11 @@
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
             <ul class="dropdown-menu">
-              <li>&nbsp Switch species:</li>
+              <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.request.uri } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -344,42 +407,41 @@
           </li>
         [% END %]
 
-
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
             [% IF c.check_user_roles( 'admin' ) %]
-            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="icon-user"></i> User Admin</a></li>
+            <li><a href="[% c.uri_for( '/admin' ) %]"><i class="glyphicon glyphicon-user"></i> User Admin</a></li>
+            <li><a href="[% c.uri_for( '/admin/announcements' ) %]"><i class="glyphicon glyphicon-envelope"></i> Manage Announcements</a></li>
             [% END %]
-            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="icon-pencil"></i> Change Password</a></li>
+            <li><a href="[% c.uri_for('/user/change_password') %]"><i class="glyphicon glyphicon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
-            <li><a href="[% c.uri_for('/logout') %]"><i class="icon-off"></i> Logout</a></li>
+            <li><a href="[% c.uri_for('/logout') %]"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
           </ul>
         </li>
-      </ul>
-
       <!-- Non Logged in User -->
       [% ELSE %]
-        <li class="dropdown active">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Public Reports <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]">Clone Genotyping Search</a>
-            </li>
-          </ul>
-        </li>
+        <li class="active"><a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a></li>
       </ul>
-
-      <ul class="nav pull-right">
+      <ul class="nav navbar-nav navbar-right">
         <li class="divider-vertical"></li>
-          <p class="nav pull-right">
-            <a class="btn" href="[% c.uri_for('/login') %]">Login</a>
-          </p>
+          <div class="col-md-3">
+            <a class="btn btn-default navbar-btn" href="[% c.uri_for('/login') %]"><i class="glyphicon glyphicon-log-in"></i> Login</a>
+          </div>
       </ul>
-
+        <ul>
       [% END %]
-
+    </ul>
     </div>
     [% END %]
   </div>
 </div>
+
+
+[% INCLUDE message/announcements.tt sys = 'lims' %]
+<script type="text/javascript">
+function getAnnouncements(){
+    $('#announceModal').modal({show: true});
+}
+
+</script>

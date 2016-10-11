@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.387';
+    $LIMS2::WebApp::Controller::User::Crisprs::VERSION = '0.423';
 }
 ## use critic
 
@@ -17,7 +17,7 @@ use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use Hash::MoreUtils qw( slice_def );
 
-use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr crispr_groups_for_crispr crispr_pairs_for_crispr );
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr crispr_groups_for_crispr crispr_pairs_for_crispr crispr_wells_for_crispr );
 use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
@@ -213,7 +213,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
     }
 
     my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr, $c->model('Golgi') ) };
 
     my @genes;
     for my $gene_id ( @gene_ids ) {
@@ -225,6 +225,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
 
     my @pairs = crispr_pairs_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
     my @groups = crispr_groups_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
+    my @wells = crispr_wells_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
 
     $c->stash(
         crispr_data             => $crispr->as_hash,
@@ -234,6 +235,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
         groups                  => [ map{ $_->as_hash } @groups ],
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
         genes                   => \@genes,
+        wells                   => [ map{ $_->as_hash } @wells ],
     );
 
     return;
@@ -309,7 +311,7 @@ sub view_crispr_pair : PathPart('view') Chained('crispr_pair') Args(0) {
     my $cp_data = $crispr_pair->as_hash;
 
     my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); }; #gene finder method
-    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair ) };
+    my @gene_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_pair, $c->model('Golgi') ) };
 
     my @genes;
     for my $gene_id ( @gene_ids ) {
@@ -375,6 +377,12 @@ sub crispr_group : PathPart('user/crispr_group') Chained('/') CaptureArgs(1) {
         $c->assert_user_roles( 'edit' );
         _generate_primers_for_crispr_entity($c, $crispr_group);
     }
+    my $crispr_hash = $crispr_group->as_hash;
+    $crispr_group->{gene_symbol} = $c->model('Golgi')->retrieve_gene({
+            species => $crispr_hash->{group_crisprs}[0]->{species},
+            search_term => $crispr_hash->{gene_id},
+    })->{gene_symbol};
+
     $c->stash(
         cg           => $crispr_group,
         group_crisprs => [ map { $_->as_hash } $crispr_group->crispr_group_crisprs ],

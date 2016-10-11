@@ -9,7 +9,7 @@
   .table-striped tbody tr td.successful { background-color: #80FF80; }
 </style>
 <script type="text/javascript" src="[% c.uri_for( "/js/jquery.qtip.min.js" ) %]"></script>
-<script type="text/javascript"> 
+<script type="text/javascript">
     //load tooltips for all last stage links
     $(document).ready(function() {
         $('.laststage').qtip({
@@ -54,7 +54,15 @@
         [% td_class = "" %]
       [% END %]
     <tr>
-      <td [% td_class %]>[% l.qc_run_id %]</td>
+      <td [% td_class %]>
+      [% IF l.ended and !l.failed %]
+        <a href="[% c.uri_for('/user/view_qc_run', { qc_run_id => l.qc_run_id }) %]">
+          [% l.qc_run_id %]
+        </a>
+      [% ELSE %]
+        [% l.qc_run_id %]
+      [% END %]
+      </td>
       <td [% td_class %]>[% l.created %]</td>
       <td [% td_class %]>[% l.profile %]</td>
       <td [% td_class %]>[% l.seq_projects %]</td>
@@ -62,9 +70,9 @@
       <td [% td_class %]>
           [%# the code below stores text in the title attribute of each link,
               to create the tooltips on the page. (I'm sorry) %]
-          <a 
-            href="[%c.uri_for( "/user/qc_farm_error_rpt/${l.qc_run_id}___${l.last_stage}" ) %]" 
-            class="laststage" 
+          <a
+            href="[%c.uri_for( "/user/qc_farm_error_rpt/${l.qc_run_id}___${l.last_stage}" ) %]"
+            class="laststage"
             title='
             [% IF l.previous_stages && l.previous_stages.size %]
               [% FOREACH stage IN l.previous_stages -%]
@@ -89,6 +97,6 @@
   </tbody>
 </table>
 
-</div> 
+</div>
 
 

@@ -3,7 +3,9 @@
 <form method="POST" action="[% c.uri_for( '/user/view_sequencing_project' ) %]" class="well">
   <fieldset>
     <legend>Search by Project ID</legend>
-    <input type="text" name="seq_id" placeholder="Sequencing Project ID" id="seq_id" />
+    <div class="col-md-3">
+      <input type="text" name="seq_id" class="form-control" placeholder="Sequencing Project ID" id="seq_id" />
+    </div>
     <input type="submit" name="action" class="btn btn-primary" value="Search" />
   </fieldset>
 </form>
@@ -11,7 +13,9 @@
 <form method="POST" action="[% c.uri_for( '/user/browse_sequencing_projects' ) %]" class="well">
   <fieldset>
     <legend>Search by Project Name</legend>
-    <input type="text" name="seq_name" placeholder="Sequencing Project Name" id="seq_name" />
+    <div class="col-md-3">
+      <input type="text" class="form-control" name="seq_name" placeholder="Sequencing Project Name" id="seq_name" />
+    </div>
     <input type="submit" name="action" class="btn btn-primary" value="Search" />
   </fieldset>
 </form>
@@ -19,12 +23,14 @@
 <form method="POST" action="[% c.uri_for( '/user/browse_sequencing_projects' ) %]" class="well">
   <fieldset>
     <legend>Search by Primer Type</legend>
-    <select name="dd_primer" id="dd_primer">
+    <div class="col-md-3">
+    <select name="dd_primer" class="form-control" id="dd_primer">
       <option value="" selected="selected"></option>
       [%- FOR primer IN primer_list %]
         <option value="[% primer %]">[% primer %]</option>
       [%- END %]
-    </select>
+      </select>
+    </div>
     <input type="submit" name="action" class="btn btn-primary" value="Search" />
   </fieldset>
 </form>
@@ -59,7 +65,7 @@
 </form>
 [% ELSE %]
 
-<table class="table span6 offset3" style="table-layout:fixed" align="center">
+<table class="table col-md-10" style="table-layout:fixed" align="center">
     <thead>
         <h4 align="center">Recently Added</h4>
         <tr>

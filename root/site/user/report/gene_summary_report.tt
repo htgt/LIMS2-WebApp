@@ -12,6 +12,10 @@
     font-weight: bold
 }
 
+.panel {
+    margin-top: 0px;
+}
+
 span0 {
     background-color:yellow;
 }
@@ -39,27 +43,99 @@ $(document).ready(function() {
       addQCVerifiedLabel($(this),value);
     });
 
-    // crispr qc trace view button
-    $(".traces").click(function(e) {
-        e.preventDefault();
-
-        //the code for this is inside jquery.flot.traceviewer.js
-        var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
-    });
-
     $(".crispr_qc_accepted").each(function () {
+        var display_qc_link = $(this);
         $(this).click(function(e) {
             e.preventDefault();
+            if(display_qc_link.attr('data-toggle')){
+              // we've already got the alignment html so nothing to do
+              console.log('already have alignment popover');
+              display_qc_link.popover('toggle');
+            }
+            else{
+              // add a spinner while we wait
+              display_qc_link.before("<img class='spinner' src='[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]'/>");
+              // Fetch alignment html
+              var qc_well_id = $(this).data('qc_well_id');
+              var url = "[% c.uri_for('/user/crisprqc/well_alignment/') %]" + qc_well_id;
+              $.get(url)
+              .done(function(data){
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.after('<div style="display:none">' + data + '</div>');
+                  var inner = display_qc_link.parent().find(".alignment_inner");
+                  // crispr-qc.js method to colour the alignments
+                  colour_alignment_pair(inner);
+                  display_qc_link.popover({
+                      content: display_qc_link.parent().find(".alignment"),
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  // tried display_qc_link.popover('show') but this caused incorrect toggle
+                  // on next click
+                  display_qc_link.click();
+              })
+              .fail(function(data){
+                  console.log("failed to get alignment from " + url);
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.popover({
+                      content: "Failed to get alignment for QC well ID: " + qc_well_id,
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  display_qc_link.click();
+              });
+            }
         });
+    });
 
-        $(this).popover({
-            content: $(this).parent().find(".alignment"),
-//          trigger: "hover",
-//          title: "test",
-            container: 'body',
-            html: true,
-            placement: 'left'
-        })
+    $("#crispr_qc_expand").click(function(e){
+        console.log('clicked to expand crispr qc');
+        if($(this).data('populated') == 0){
+            console.log('fetching all qc details');
+            $(this).data('populated',1);
+            var all_requests = [];
+            $(".qc_result").each(function(){
+                var result_td = $(this);
+                var qc_well_id = $(this).data('qc_well_id');
+                var url = "[% c.uri_for('/user/crisprqc/qc_well_details/') %]" + qc_well_id;
+                var request = $.get(url)
+                .done(function(data){
+                    result_td.after(data);
+                    result_td.parent().find(".seq_spinner").remove();
+                    var inner = result_td.parent().find(".alignment_inner");
+                    // crispr-qc.js method to colour the alignments
+                    colour_alignment_pair(inner);
+                    // disable view traces button for now. We'll make it active
+                    // after all alignments have loaded.
+                    result_td.parent().find(".traces").addClass('disabled');
+                })
+                .fail(function(data){
+                    result_td.parent().find(".seq_spinner").html(
+                      "Could not get QC details for QC well ID: " + qc_well_id
+                    );
+                    console.log("failed to get qc details from " + url);
+                });
+
+                all_requests.push(request);
+            });
+
+            $.when.apply(null,all_requests).always(function(){
+                // Activate the trace button after all alignment api requests are complete
+                // NB: activating it immediately means that if user clicks it takes ages
+                // for trace to appear as request is stuck in queue behind alignment requests
+                console.log("Activating view traces buttons");
+                $(".traces").click(function(e) {
+                    e.preventDefault();
+                    //the code for this is inside jquery.flot.traceviewer.js
+                    var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+                });
+                $(".traces").removeClass('disabled');
+            });
+        }
     });
 
   show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
@@ -111,7 +187,7 @@ function toggle_btn(btn, show_or_hide) {
 
 <form id="gene_report_form" class="well form-horizontal">
   <input type="text" class="span3" id="gene_id_input" name="gene_id" placeholder="Gene identifier" autocomplete="off" />
-  <button type="submit" class="btn">Show Summary</button>
+  <button type="submit" class="btn btn-primary">Show Summary</button>
 </form>
 
 [% MACRO plate_link(well) BLOCK -%]
@@ -134,7 +210,7 @@ function toggle_btn(btn, show_or_hide) {
   <b>Sponsor: </b>
     [%- sponsor %]
   [%- END %]
-  <a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_gene_view', {
+  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_gene_view', {
                gene_id => info.gene_id,
                browser_target => info.gene_symbol,
                gene_symbol => info.gene_symbol
@@ -143,21 +219,21 @@ function toggle_btn(btn, show_or_hide) {
 [%- END %]
 
 [%- IF info.defined %]
-<input type="text" class="span3" id="query"  placeholder="Find in page" autocomplete="on" />
-<button class="btn" onclick=searchThroughAccordion();>Find</button>
+<input type="text" class="col-md-3" id="query"  placeholder="Find in page" autocomplete="on" />
+<button class="btn btn-default" onclick=searchThroughAccordion();>Find</button>
 [% END %]
 
-<div class="accordion" id="gene_report_accordion">
+<div class="panel-group " id="gene_report_accordion">
 [% IF timeline %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseTimeline_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Date Report</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseTimeline">Date Report</a>
       </h3>
     </div>
-    <div id="collapseTimeline" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseTimeline" class="panel-body collapse">
+      <div class="panel-body">
 
         <table class="table table-striped">
           <thead>
@@ -185,16 +261,16 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--CRISPR QC-->
 [%- IF crispr_qc %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseCrisprQC_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprQC" data-populated="0" id="crispr_qc_expand">Clone Sequencing Information <small>Accepted EP_PICK & PIQ</small></a>
       </h3>
     </div>
-    <div id="collapseCrisprQC" class="accordion-body collapse" style="overflow-x:auto">
-      <div class="accordion-inner">
-        <table class="table table-striped">
+    <div id="collapseCrisprQC" class="panel-body collapse" style="overflow-x:auto">
+      <div class="panel-body">
+        <table class="table table-striped" id="crispr_qc_table">
           <thead>
               <tr>
                   <th>Well</th>
@@ -207,29 +283,21 @@ function toggle_btn(btn, show_or_hide) {
           <tbody>
             [% FOREACH qc IN crispr_qc %]
             <tr>
-                <td>
+                <td class="qc_result" data-qc_well_id=[% qc.epd_qc_well_id %]>
                     <strong>[% qc.epd_well %]</strong>
                     [% IF !qc.to_report %]
                     <br>
                     <span class="label label-important">Not to Report</span>
                     [% END %]
                 </td>
-                [% INCLUDE 'crispr_qc_view.tt'
-                    row                    = qc.epd_qc
-                    accept                 = 0
-                    edit                   = 0
-                    hide_crispr_well_id    = 1
-                    complete_info          = 0
-                    hide_well_name         = 1
-                    hide_gene              = 1
-                    hide_crispr_validation = 1
-                    hide_het_validation    = 1
-                %]
+                <td colspan="6" class="seq_spinner">
+                    <img src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/>
+                </td>
             </tr>
 
             <tr>
-              [% IF qc.piq_qc %]
-                <td>
+              [% IF qc.piq_qc_well_id %]
+                <td class="qc_result" data-qc_well_id=[% qc.piq_qc_well_id %]>
                     <strong>[% qc.piq_well %]</strong>
                     <br>
                     <span class="label label-info">PIQ</span>
@@ -237,20 +305,12 @@ function toggle_btn(btn, show_or_hide) {
                     <span class="label label-important">Not to Report</span>
                     [% END %]
                 </td>
-                [% INCLUDE 'crispr_qc_view.tt'
-                    row                    = qc.piq_qc
-                    accept                 = 0
-                    edit                   = 0
-                    hide_crispr_well_id    = 1
-                    complete_info          = 0
-                    hide_well_name         = 1
-                    hide_gene              = 1
-                    hide_crispr_validation = 1
-                    hide_het_validation    = 1
-                %]
+                <td colspan="6" class="seq_spinner">
+                    <img src="[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]"/>
+                </td>
               [% ELSE %]
                 <td colspan="7">
-                  <span class="label">No Accepted PIQ Crispr QC</span>
+                  <span class="label label-primary">No Accepted PIQ Crispr QC</span>
                 </td>
               [% END %]
             </tr>
@@ -266,15 +326,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--SFP WELLS-->
 [%- IF sorted_wells.sfp %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseSFP_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSFP">Second Electroporation Freezes</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSFP">Second Electroporation Freezes</a>
       </h3>
     </div>
-    <div id="collapseSFP" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseSFP" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -308,15 +368,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--PIQ WELLS-->
 [%- IF sorted_wells.piq %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapsePIQ_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Distribution QC</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePIQ">Distribution QC</a>
       </h3>
     </div>
-    <div id="collapsePIQ" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapsePIQ" class="panel-body collapse">
+      <div class="panel-body">
         <button type="button" class="btn btn-info" data-toggle="button" id="piq_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
         <table class="table table-striped" id="piq_well_table">
           <thead>
@@ -340,12 +400,8 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.fp_well %]</td>
               <td class="accepted">[% well.is_accepted %]</td>
               <td>
-                [% IF well.crispr_qc_data %]
-                <a href="#" class="crispr_qc_accepted">
-                <!-- insert alignments but hidden -->
-                <div style="display:none">
-                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
-                </div>
+                [% IF well.crispr_es_qc_well_id %]
+                <a href="#" class="crispr_qc_accepted" data-qc_well_id="[% well.crispr_es_qc_well_id %]">
                 [% END %]
                 [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
@@ -363,15 +419,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--FP WELLS-->
 [%- IF sorted_wells.fp %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseFP_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFP">Electroporation Freezer Instances</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFP">Electroporation Freezer Instances</a>
       </h3>
     </div>
-    <div id="collapseFP" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseFP" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -407,15 +463,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--SEP_PICK WELLS-->
 [%- IF sorted_wells.sep_pick %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseSepPick_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSepPick">Second Electroporation Picks</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSepPick">Second Electroporation Picks</a>
       </h3>
     </div>
-    <div id="collapseSepPick" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseSepPick" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -446,15 +502,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--SEP WELLS-->
 [%- IF sorted_wells.sep %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseSEP_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEP">Second Electroporations</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSEP">Second Electroporations</a>
       </h3>
     </div>
-    <div id="collapseSEP" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseSEP" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -488,15 +544,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--XEP WELLS-->
 [%- IF sorted_wells.xep %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseXEP_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseXEP">XEP Pools</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseXEP">XEP Pools</a>
       </h3>
     </div>
-    <div id="collapseXEP" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseXEP" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -532,15 +588,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--EP_PICK WELLS-->
 [%- IF sorted_wells.ep_pick %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseEpPick_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">Primary QC</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEpPick">Primary QC</a>
       </h3>
     </div>
-    <div id="collapseEpPick" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseEpPick" class="panel-body collapse">
+      <div class="panel-body">
         <button type="button" class="btn btn-info" data-toggle="button" id="epd_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
         <table class="table table-striped" id="epd_well_table">
           <thead>
@@ -564,12 +620,8 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.ep_well %]</td>
               <td class="accepted">[% well.is_accepted %]</td>
               <td>
-                [% IF well.crispr_qc_data %]
-                <a href="#" class="crispr_qc_accepted">
-                <!-- insert alignments but hidden -->
-                <div style="display:none">
-                [% INCLUDE 'crispr_qc_alignment.tt' qc = well.crispr_qc_data %]
-                </div>
+                [% IF well.crispr_es_qc_well_id %]
+                <a href="#" class="crispr_qc_accepted" data-qc_well_id="[% well.crispr_es_qc_well_id %]">
                 [% END %]
                 [% well.damage_type %]
                 [% IF well.crispr_qc_data %]</a>[% END %]
@@ -587,15 +639,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--EP WELLS-->
 [%- IF sorted_wells.ep %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseEP_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEP">Electroporations</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseEP">Electroporations</a>
       </h3>
     </div>
-    <div id="collapseEP" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseEP" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -642,15 +694,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--ASSEMBLY WELLS-->
 [%- IF sorted_wells.assembly %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseAssembly_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseAssembly">Assemblies</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseAssembly">Assemblies</a>
       </h3>
     </div>
-    <div id="collapseAssembly" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseAssembly" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -668,10 +720,10 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.well_id_string %]</td>
               <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
               <td>[% well.well_name %]</td>
-              <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="label">[% well.crispr_type.replace('\_', ' ') %]</span></td>
+              <td><a href="[% c.uri_for( '/user/' _ well.crispr_type, well.crispr_type_id, 'view'  ) %]">[% well.crispr_type_id %]</a> <span class="badge badge-default">[% well.crispr_type.replace('\_', ' ') %]</span></td>
               <td>[% well.created_at %]</td>
               <td class="assembly_qc_verified">[% well.qc_verified %]</td>
-              <td><a class="btn btn-info btn-small" href="[% c.uri_for( '/user/genoverse_primer_view', {
+              <td><a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_primer_view', {
                       crispr_type_id => well.crispr_type_id,
                       design_id => well.design_id,
                       crispr_type => well.crispr_type _ '_id',
@@ -693,15 +745,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--CRISPR DNA WELLS-->
 [%- IF sorted_wells.crispr_dna %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseCrisprDNA_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprDNA">Crispr DNA Preparations</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprDNA">Crispr DNA Preparations</a>
       </h3>
     </div>
-    <div id="collapseCrisprDNA" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseCrisprDNA" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -737,15 +789,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--DNA WELLS-->
 [%- IF sorted_wells.dna %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseDNA_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDNA">DNA Preparations</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDNA">DNA Preparations</a>
       </h3>
     </div>
-    <div id="collapseDNA" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseDNA" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -783,15 +835,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--CRISPR VECTORS-->
 [%- IF sorted_wells.crispr_vector %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseCrisprVector_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprVector">Crispr Vectors</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprVector">Crispr Vectors</a>
       </h3>
     </div>
-    <div id="collapseCrisprVector" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseCrisprVector" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -825,15 +877,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--FINAL PICK VECTORS-->
 [%- IF sorted_wells.final_pick %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseFinalPick_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinalPick">Final Pick Vectors</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinalPick">Final Pick Vectors</a>
       </h3>
     </div>
-    <div id="collapseFinalPick" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseFinalPick" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -871,15 +923,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--FINAL VECTORS-->
 [%- IF sorted_wells.final %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseFinal_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinal">Final Vectors</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseFinal">Final Vectors</a>
       </h3>
     </div>
-    <div id="collapseFinal" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseFinal" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -917,15 +969,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--INTERMEDIATE VECTORS-->
 [%- IF sorted_wells.int %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseIntermediateVectors_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseIntermediateVectors">Intermediate Vectors</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseIntermediateVectors">Intermediate Vectors</a>
       </h3>
     </div>
-    <div id="collapseIntermediateVectors" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseIntermediateVectors" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -964,15 +1016,15 @@ function toggle_btn(btn, show_or_hide) {
 <!--DESIGN & CRISPR WELLS-->
 [%- IF wells.defined %]
   [%- IF sorted_wells.design %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseDesignInstances_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesignInstances">Design Instances</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesignInstances">Design Instances</a>
       </h3>
     </div>
-    <div id="collapseDesignInstances" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseDesignInstances" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -994,7 +1046,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.design_id %]</td>
               <td>[% well.recombineering_result %]</td>
               <td>[% well.is_accepted %]</td>
-              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-mini" type="submit">Show</a></td>
+              <td><a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]" class="btn btn-info btn-xs" type="submit">Show</a></td>
             </tr>
             [%- END %]
           </tbody>
@@ -1005,15 +1057,15 @@ function toggle_btn(btn, show_or_hide) {
   [%- END %]
 
   [%- IF sorted_wells.crispr %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseCrisprInstances_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprInstances">Crispr Instances</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseCrisprInstances">Crispr Instances</a>
       </h3>
     </div>
-    <div id="collapseCrisprInstances" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseCrisprInstances" class="panel-body collapse">
+      <div class="panel-body">
         <table class="table table-striped">
           <thead>
             <th>Well name</td>
@@ -1043,15 +1095,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!--DESIGNS -->
 [%- IF designs.defined %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseDesigns_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseDesigns">Designs</a>
       </h3>
     </div>
-    <div id="collapseDesigns" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseDesigns" class="panel-body collapse">
+      <div class="panel-body">
         [%- IF designs.defined AND designs.size > 0 %]
         <table class="table table-striped">
           <thead>
@@ -1102,15 +1154,15 @@ function toggle_btn(btn, show_or_hide) {
 
 <!-- EXPERIMENTS -->
 [%- IF experiments.defined %]
-  <div class="accordion-group">
+  <div class="panel panel-default">
     <p id="collapseExperiments_id"></p>
-    <div class="accordion-heading">
+    <div class="panel-heading">
       <h3>
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseExperiments">Experiments</a>
+        <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseExperiments">Experiments</a>
       </h3>
     </div>
-    <div id="collapseExperiments" class="accordion-body collapse">
-      <div class="accordion-inner">
+    <div id="collapseExperiments" class="panel-body collapse">
+      <div class="panel-body">
         [%- IF experiments.size > 0 %]
         <table class="table table-striped">
           <thead>
@@ -1163,18 +1215,18 @@ $('#transition_time').popover();
 
 $(function() {
 
-    $('.accordion').on('show', function (e) {
-         $(e.target).prev('.accordion-heading').find('.accordion-toggle').addClass('active');
+    $('.panel').on('show', function (e) {
+         $(e.target).prev('.panel-heading').find('.panel-toggle').addClass('active');
     });
 
-    $('.accordion').on('hide', function (e) {
-        $(this).find('.accordion-toggle').not($(e.target)).removeClass('active');
+    $('.panel').on('hide', function (e) {
+        $(this).find('.panel-toggle').not($(e.target)).removeClass('active');
     });
 
 });
 
 function searchThroughAccordion() {
-    var collection = document.getElementsByClassName('accordion-body collapse');
+    var collection = document.getElementsByClassName('panel-body collapse');
     var states = [];
     for (var i = 0; i < collection.length; i++) {
         states.push(collection[i].id);

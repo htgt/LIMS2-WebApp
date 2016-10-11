@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicAPI;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.387';
+    $LIMS2::WebApp::Controller::PublicAPI::VERSION = '0.423';
 }
 ## use critic
 
@@ -14,9 +14,9 @@ use Bio::SCF;
 use Bio::Perl qw( revcom );
 use namespace::autoclean;
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
-use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het);
+use LIMS2::Model::Util::CrisprESQCView qw(ep_pick_is_het crispr_damage_type_for_ep_pick);
 use Data::Dumper;
-
+use JSON;
 with "MooseX::Log::Log4perl";
 
 BEGIN {extends 'Catalyst::Controller::REST'; }
@@ -43,7 +43,7 @@ sub trace_data_GET{
     my $trace;
     my $traceserver_error;
     try{
-        $trace = $self->traceserver->get_trace( $params->{name} );
+        $trace = $self->traceserver->get_trace( $params->{name}, $params->{version} );
     }
     catch{
         $traceserver_error = $_;
@@ -87,7 +87,6 @@ sub trace_data_GET{
     }
 
     my $data = $self->_extract_region( \%scf, $match->{start} - $context, $match->{end} + $context, $params->{reverse} );
-
     return $self->status_ok( $c, entity => $data );
 }
 
@@ -185,7 +184,7 @@ sub _extract_region {
         };
     }
 
-    return { labels => \@labels, series => \@series, length => $length };
+    return { labels => \@labels, series => \@series, length => $length, bases => \%sample_to_base };
 }
 
 =head1 NAME
@@ -321,6 +320,18 @@ sub mutation_signatures_info_GET{
             $data->{chromosome} = $chromosome;
             $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $well->id, $chromosome, $damage) unless !$damage;
         }
+
+        unless (exists $data->{is_het}){
+            # PIQ QC may be missing for hets in which case we go back to the ep_pick well to get this
+            my $ep_pick = try{ $well->first_ep_pick };
+            if($ep_pick){
+                my $damage = crispr_damage_type_for_ep_pick($c->model('Golgi'), $ep_pick->id);
+                $data->{is_het} = ep_pick_is_het($c->model('Golgi'), $ep_pick->id, $data->{chromosome}, $damage);
+            }
+            else{
+                $c->log->warn("Could not set is_het flag for barcode $barcode");
+            }
+        }
         $c->stash->{json_data} = $data;
     }
     catch {
@@ -331,6 +342,40 @@ sub mutation_signatures_info_GET{
 
     $c->forward('View::JSON');
     return;
+}
+
+sub announcements :Path('/public_api/announcements') : Args(0) :ActionClass('REST') {
+}
+
+sub announcements_GET {
+    my ( $self, $c ) = @_;
+    my $schema = $c->model( 'Golgi' )->schema;
+
+    my $sys = $c->request->param( 'sys' );
+
+    my $feed = $schema->resultset('Message')->search({
+        $sys => 1,
+        expiry_date => { '>=', \'now()' }
+    },
+    {
+        order_by => { -desc => 'created_date' }
+    });
+    my @messages;
+    my @high_prior;
+    while (my $status = $feed->next){
+        my $message = $status->as_hash;
+        if ($message->{priority} eq 'high'){
+            push @high_prior, $message;
+        } else {
+            push @messages, $message;
+        }
+    }
+    my %body = (
+        high => \@high_prior,
+        normal => \@messages,
+    );
+    my $json = encode_json \%body;
+    return $c->response->body( $json );
 }
 =head1 LICENSE
 

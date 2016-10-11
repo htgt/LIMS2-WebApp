@@ -17,7 +17,7 @@
       }
     </style>
     <!-- jQuery UI stylesheets -->
-    <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/ui-lightness/jquery-ui-1.8.21.custom.css' ) %]">
+    <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/ui-lightness/jquery-ui-1.12.0.custom.css' ) %]">
 
     <!-- Custom Styles -->
     <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/lims2.css' ) %]">
@@ -31,10 +31,10 @@
 
     <!-- Le javascript
     ================================================== -->
-    <script src="[% c.uri_for( '/static/js/jquery-1.7.2.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/js/jquery-1.12.3.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/bootstrap/js/bootstrap.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/js/poller.js' ) %]"></script>
-    <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.8.21.custom.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/jquery/js/jquery-ui-1.12.0.custom.min.js' ) %]"></script>
 
     <!-- Wide Screen
     ================================================== -->
@@ -78,11 +78,10 @@
 
   <body>
 
-    [% INCLUDE 'navigation.tt' %]
-
+      [% INCLUDE 'navigation.tt' %]
     <div id="main" class="[% IF c.session.display_type && c.session.display_type == 'wide' %]container-fluid[% ELSE %]container[% END %]">
       [% SET error = error_msg || c.flash.error_msg; IF error.length %]
-      <div class="alert alert-error">
+      <div class="alert alert-danger">
         <button class="close" data-dismiss="alert" href="#">&times;</button>
         <p>[% error | html_line_break %]</p>
       </div>
@@ -102,10 +101,10 @@
       [% content | none %]
     </div> <!-- /container -->
 
-    <div class="navbar navbar-fixed-bottom">
+    <div class="navbar navbar-default navbar-fixed-bottom">
       <div class="navbar-inner">
         <div class="container">
-          <p class="nav pull-right navbar-text">
+          <p class="navbar-nav pull-right navbar-text">
           version: <strong>[% c.model('Golgi').software_version %]</strong> |
           database: <strong>[% c.model('Golgi').database_name %]</strong>
           </p>
@@ -117,12 +116,16 @@
 </html>
 
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+var dev = "[% c.model('Golgi').software_version %]";
 
-  ga('create', 'UA-43136334-1', 'sanger.ac.uk');
-  ga('send', 'pageview');
+if (dev != 'dev') {
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+}
+
+ga('create', 'UA-43136334-1', 'sanger.ac.uk');
+ga('send', 'pageview');
 
 </script>

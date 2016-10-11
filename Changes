@@ -1,3 +1,134 @@
+0.423     2016-10-11 12:31:54 Europe/London
+
+0.425     2016-10-05 15:29:37 Europe/London
+    Conditional-Inversion LIMS2 changes
+0.424     2016-09-21 12:42:40 Europe/London
+    Bugfix - dramtically reduced JS testing time
+0.423     2016-09-14 15:30:54 Europe/London
+    Added dzil release options script
+0.422     2016-09-08 15:03:12 Europe/London
+
+   Bugfix to CRISPR_SEP plate upload
+
+0.421     2016-09-08 11:10:00 Europe/London
+
+   Support added for crispr second electroporation (double gene targeting)
+
+0.420     2016-09-05 16:11:49 Europe/London
+
+    Added JS tests
+0.419     2016-08-23 15:19:33 Europe/London
+
+    bugfix on well genotyping info
+
+0.418     2016-08-22 15:13:44 Europe/London
+
+    add support for https on login page
+
+0.417     2016-08-05 11:48:45 Europe/London
+
+    small changes to landing page
+
+0.416     2016-08-02 16:18:02 Europe/London
+
+    well_genotyping_info updated to support wells on uknown location
+    crispr primers validation state display updated
+    minor html display issues fixed
+
+0.415     2016-08-01 11:54:10 Europe/London
+
+    Gene summary bootstrap issues fixed
+    Plate report, plate name added to browser tab
+    Rearray plate upload, added required DNA template for INT plates
+
+0.414     2016-07-25 10:18:37 Europe/London
+
+	Create Announcement fix
+
+0.413     2016-07-21 15:21:12 Europe/London
+
+   CSV report download fix
+
+0.412     2016-07-21 12:55:47 Europe/London
+
+   Speed up front page report generation
+
+0.411     2016-07-08 15:07:49 Europe/London
+    Changes to the front page reports
+0.410     2016-07-06 13:49:49 Europe/London
+
+   Faster page load for gene summary
+
+0.409     2016-07-04 13:16:33 Europe/London
+
+    Run vector QC from LIMS2 without using HTGT API 
+
+0.408     2016-06-28 14:31:33 Europe/London
+    Added import dates to the view seq traces
+0.407     2016-06-21 09:46:07 Europe/London
+
+    Additions to QC plasmid view to support viewing of failed QC results
+
+0.406     2016-06-15 14:47:16 Europe/London
+
+    Added mthod to view and create announcement messages for the webapp
+
+0.405     2016-06-14 14:45:06 Europe/London
+    Added custom and pair Eurofins spreadsheet generation
+0.404     2016-06-10 09:45:56 Europe/London
+
+    Implemented method to get wells from crispr ID
+
+0.403     2016-06-07 14:21:52 Europe/London
+
+   Modified Crispr ES QC to use blat for alignment instead of BWA
+
+0.402     2016-05-24 14:27:53 Europe/London
+
+    Fixes to bootstrap migration on QC submission and QC view pages
+
+0.401     2016-05-23 15:04:35 Europe/London
+    Bootstrap fixes: Qc Template
+0.400     2016-05-18 12:31:14 Europe/London
+    Bootstrap fixes
+0.399     2016-05-16 12:27:42 Europe/London
+    Bootstrap V3
+0.398     2016-05-10 11:59:11 Europe/London
+
+   Display design oligo search regions in genoverse and UCSC
+
+0.397     2016-04-28 11:27:05 Europe/London
+
+   Support manual release of PIQ barcoded wells to mutation signatures
+
+0.396     2016-04-21 16:48:37 Europe/London
+    Moved announcements api to public
+0.395     2016-04-20 16:19:56 Europe/London
+    Added announcements
+0.394     2016-04-14 11:53:56 Europe/London
+
+    Handle multiple versions of sequencing data for a seq project
+
+0.393     2016-04-11 09:35:15 Europe/London
+    Traceviewer bug fixes
+0.392     2016-04-05 13:20:55 Europe/London
+
+0.391     2016-04-05 12:25:32 Europe/London
+   Improved the accuracy of the traceviewer
+
+0.390     2016-04-04 15:14:33 Europe/London
+
+   Redirect not logged in users to clone request info page
+
+0.389     2016-03-24 14:02:34 Europe/London
+
+   Update to front page report queries to allow for wells without plates
+
+0.388     2016-03-23 09:30:07 Europe/London
+
+   Another attempt to speed up summary generation
+   More report fixes
+
 0.387     2016-03-21 16:29:00 Europe/London
 
     Updates to the EP reports

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.387';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.423';
 }
 ## use critic
 
@@ -697,6 +697,7 @@ sub plate_sponsor{
     my $self = shift;
     return $self->last_known_plate->sponsor_id;
 }
+
 has ancestors => (
     is         => 'rw',
     isa        => 'LIMS2::Model::ProcessGraph',
@@ -706,7 +707,7 @@ has ancestors => (
 
 sub _build_ancestors {
     my $self = shift;
-
+DEBUG "Building ancestors for well $self";
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );
@@ -755,11 +756,65 @@ sub _build_is_double_targeted {
         if ( $well->plate_type eq 'SEP' ) {
             return 1;
         }
+        if( $well->plate_type eq 'CRISPR_SEP'){
+            return 1;
+        }
     }
 
     return 0;
 }
 
+has first_allele => (
+    is => 'ro',
+    isa => 'LIMS2::Model::Schema::Result::Well',
+    lazy_build => 1,
+);
+
+## no critic(RequireFinalReturn)
+sub _build_first_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate_type eq 'XEP' ) {
+            return $input;
+        }
+        if ( $input->plate_type eq 'PIQ' ){
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine first allele for $self"
+    );
+}
+## use critic
+
+has second_allele => (
+    is => 'ro',
+    isa => 'LIMS2::Model::Schema::Result::Well',
+    lazy_build => 1,
+);
+
+## no critic(RequireFinalReturn)
+sub _build_second_allele {
+    my $self = shift;
+
+    for my $input ( $self->second_electroporation_process->input_wells ) {
+        if ( $input->plate_type eq 'DNA' ) {
+            return $input;
+        }
+        if( $input->plate_type eq 'ASSEMBLY'){
+            return $input;
+        }
+    }
+
+    require LIMS2::Exception::Implementation;
+    LIMS2::Exception::Implementation->throw(
+        "Failed to determine second allele for $self"
+    );
+}
+## use critic
 
 sub last_known_plate{
     my $self = shift;
@@ -1017,7 +1072,7 @@ sub designs {
     }
 
     # ok its double targeted, grab design from the first and second allele wells
-	my @designs;
+	  my @designs;
     push @designs, $self->first_allele->design;
     push @designs, $self->second_allele->design;
 
@@ -1105,46 +1160,15 @@ sub _build_second_electroporation_process {
             if ( $process->type_id eq 'second_electroporation' ) {
                 return $process;
             }
+            if( $process->type_id eq 'crispr_sep' ){
+                return $process;
+            }
         }
     }
 
     require LIMS2::Exception::Implementation;
     LIMS2::Exception::Implementation->throw(
         "Cannot request second_electroporation_process for single-targeted construct"
-    );
-}
-## use critic
-
-## no critic(RequireFinalReturn)
-sub first_allele {
-    my $self = shift;
-
-    for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate_type eq 'XEP' ) {
-            return $input;
-        }
-    }
-
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw(
-        "Failed to determine first allele for $self"
-    );
-}
-## use critic
-
-## no critic(RequireFinalReturn)
-sub second_allele {
-    my $self = shift;
-
-    for my $input ( $self->second_electroporation_process->input_wells ) {
-        if ( $input->plate_type ne 'XEP' ) {
-            return $input;
-        }
-    }
-
-    require LIMS2::Exception::Implementation;
-    LIMS2::Exception::Implementation->throw(
-        "Failed to determine second allele for $self"
     );
 }
 ## use critic
@@ -1793,7 +1817,10 @@ sub genotyping_info {
      unless $accepted_qc_well;
 
   if ( $only_qc_data ) {
-    return $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data";
+    my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+    DEBUG "Formatting QC data DONE";
+    return $data;
   }
   my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
@@ -1843,6 +1870,7 @@ sub genotyping_info {
       gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
       design_id        => $design->id,
       well_id          => $self->id,
+      barcode          => $self->barcode,
       well_name        => $self->name,
       plate_name       => $self->plate_name,
       epd_plate_name   => $epd->plate_name,
@@ -1908,52 +1936,27 @@ sub ms_qc_data{
 }
 
 sub accepted_crispr_es_qc_well{
-    my ($self) = @_;
+    my ($self, $allele_number) = @_;
     my @qc_wells = $self->crispr_es_qc_wells;
-
-    # But QC might be linked to a parent of this well
-    # which sits on an old version of the plate so we
-    # need to search these too
-    # FIXME: Plate versioning is truly horrible!
-    # it would be better to refactor lims2 to allow
-    # tubes to move from one plate location to another
-
-    push @qc_wells, map { $_->crispr_es_qc_wells } $self->old_versions;
 
     my $accepted_qc_well;
     for my $qc_well ( @qc_wells ) {
         if ( $qc_well->accepted ) {
-            $accepted_qc_well = $qc_well;
-            last;
+            if ($allele_number){
+                # optional check of QC run allele number for use with double targeted wells
+                my $well_allele_number = ( $qc_well->crispr_es_qc_run->allele_number || 0 );
+                if($allele_number == $well_allele_number){
+                    $accepted_qc_well = $qc_well;
+                }
+            }
+            else{
+                $accepted_qc_well = $qc_well;
+                last;
+            }
         }
     }
 
     return $accepted_qc_well;
-}
-
-# Use this method to find all ancestors of this well
-# that exist in LIMS2 as a result of plate versioning
-# Wells will be returned in an array from most recent
-# to oldest
-sub old_versions{
-    my ($self) = @_;
-
-    my @versioned_parents;
-    my $ancestors = $self->ancestors->depth_first_traversal($self, 'in');
-    while ( my $ancestor = $ancestors->next ) {
-      # Ancestor list contains self - skip it
-      next if $ancestor->id == $self->id;
-        # FIXME: this will break if user changes the name of the current plate
-        # as the old version of the plate will no longer have the same name
-        if($ancestor->plate and $ancestor->plate->version and $ancestor->plate->name eq $self->plate->name){
-            DEBUG "Found old version of well: $ancestor";
-            push @versioned_parents, $ancestor;
-        }
-        else{
-            last;
-        }
-    }
-    return @versioned_parents;
 }
 
 sub _qc_info{

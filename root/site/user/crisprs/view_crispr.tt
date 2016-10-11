@@ -205,8 +205,7 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
-        <th>Rejected</th>
-        <th>Validation State</th>
+        <th class="text-right">Validation State</th>
       </tr>
     </thead>
     <tbody>
@@ -220,9 +219,7 @@
         <td>[% datum.gc_content %]</td>
         [% IF datum.is_rejected %]
             <td> <span class="label label-important pull-right">Rejected</span> </td>
-            <td></td>
         [% ELSE %]
-            <td></td>
             <td class="validation-state-cell"
                 data-validated="[% datum.is_validated %]"
                 data-primer-name="[% datum.primer_name %]">
@@ -240,6 +237,30 @@
     <small>this action may take a few minutes</small>
     </p>
   [% END %]
+[% END %]
+
+<h2>Crispr Wells</h2>
+[% IF wells.size > 0 %]
+  <table class="table table-condensed table-striped">
+    <thead>
+      <tr>
+        <th>Well Name</th>
+        <th>Plate Name</th>
+        <th>Well</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- FOR well IN wells %]
+      <tr>
+        <td>[% well.plate_name %]_[% well.well_name %]</td>
+        <td><a href="[% c.uri_for( '/user/view_plate', { name => well.plate_name } ) %]"> [% well.plate_name %]</a></td>
+        <td>[% well.well_name %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+[% ELSE %]
+  <p><em>No CRISPR wells with this crispr</em></p>
 [% END %]
 
 [% IF crispr_data.off_targets.size > 0 %]
@@ -264,7 +285,7 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% crispr_data.fwd_seq %]</td>
         <td>[% crispr_data.type %]</td>
         <td> [% crispr_data.locus.chr_name %]:[% crispr_data.locus.chr_start %]-[% crispr_data.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , crispr_data.id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- FOR datum IN crispr_data.off_targets %]
       <tr class="ots">
@@ -273,7 +294,7 @@ Typically only off targets with 3 or less mismatches are stored</p>
         <td class="seq">[% datum.ot_crispr.fwd_seq %]</td>
         <td>[% datum.ot_crispr.type %]</td>
         <td> [% datum.ot_crispr.locus.chr_name %]:[% datum.ot_crispr.locus.chr_start %]-[% datum.ot_crispr.locus.chr_end %] </td>
-        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-mini btn-primary">UCSC BLAT</a></td>
+        <td><a href="[% c.uri_for( '/user/crispr' , datum.off_target_crispr_id ,'blat' ) %]" target="_blank" class="btn btn-xs btn-primary">UCSC BLAT</a></td>
       </tr>
       [%- END %]
     </tbody>

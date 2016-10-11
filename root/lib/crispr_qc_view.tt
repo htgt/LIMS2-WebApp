@@ -15,17 +15,17 @@
     <a href="[% c.uri_for( '/user/crispr_pair' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Crispr Pair</span>
+    <span class="badge badge-default">Crispr Pair</span>
   [% ELSIF row.is_crispr_group %]
     <a href="[% c.uri_for( '/user/crispr_group' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Crispr Group</span>
+    <span class="badge badge-default">Crispr Group</span>
   [% ELSE %]
     <a href="[% c.uri_for( '/user/crispr' , row.crispr_id , 'view' ) %]" target="_blank">
       [% row.crispr_id %]
     </a>
-    <span class="label">Single Crispr</span>
+    <span class="badge badge-default">Single Crispr</span>
   [% END %]
 </td>
 
@@ -40,7 +40,7 @@
     [% INCLUDE 'crispr_qc_alignment.tt' qc = row %]
 
     [% UNLESS hide_crispr_validation AND hide_het_validation %]
-    <div class="validation_well well well-small" style="min-width:750px">
+    <div class="validation_well well well-sm" style="min-width:750px;height:50px">
         [% INCLUDE 'crispr_validation.tt' row = row %]
 
       <div class="validate_het" style="float:left;width:250px;">
@@ -74,7 +74,7 @@
     [% END %]
 
     [% IF row.fwd_read or row.rev_read %]
-        <a class="btn traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+        <a class="btn btn-info traces" href="#" data-fwd="[% row.fwd_read.split("\n").first.substr(1) %]" data-rev="[% row.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
     [% END %]
 </td>
 
@@ -92,7 +92,7 @@
                        class="update_crispr_es_qc_well"
                        data-crispr_well_id="[% row.es_qc_well_id %]"
                        data-crispr_data_type="accepted"
-                       [% row.well_accepted ? "checked='checked'" : "" %]
+                       [% row.qc_well_accepted ? "checked='checked'" : "" %]
                        [% IF row.damage_type == 'mosaic' || row.damage_type == 'no-call' %] disabled [% END %]
                 />
             [% ELSE %]
@@ -120,7 +120,7 @@
     <td>
         <div class="control-group">
           <div class="controls">
-           <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-mini" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
+           <input type="text" name="variant_size_[% row.well_id %]" class="update_crispr_es_qc_well input-xs" data-crispr_well_id="[% row.es_qc_well_id %]" data-crispr_data_type="variant_size" value="[% row.variant_size %]" />
          </div>
        </div>
     </td>

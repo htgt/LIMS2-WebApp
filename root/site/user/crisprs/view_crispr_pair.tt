@@ -99,8 +99,7 @@
         <th>Strand</th>
         <th>Melting Temp (&deg;C)</th>
         <th>GC Content (%)</th>
-        <th>Rejected</th>
-        <th>Validation State</th>
+        <th class="text-right">Validation State</th>
       </tr>
     </thead>
     <tbody>
@@ -114,9 +113,7 @@
         <td>[% datum.gc_content %]</td>
         [% IF datum.is_rejected %]
             <td> <span class="label label-important pull-right">Rejected</span> </td>
-            <td></td>
         [% ELSE %]
-            <td></td>
             <td class="validation-state-cell"
                 data-validated="[% datum.is_validated %]"
                 data-primer-name="[% datum.primer_name %]">
@@ -128,6 +125,12 @@
   </table>
 [% ELSE %]
   <p><em>No primers linked to this crispr pair</em></p>
+  [% IF c.check_user_roles( 'edit' ) %]
+    <p>
+    <a class="btn btn-primary" href="[% c.uri_for("/user/crispr_pair/${cp.id}/view/", { generate_primers => 1 }) %]">Generate Primers</a>
+    <small>this action may take a few minutes</small>
+    </p>
+  [% END %]
 [% END %]
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>

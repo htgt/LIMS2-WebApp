@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Genoverse;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.387';
+    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.423';
 }
 ## use critic
 
@@ -22,6 +22,7 @@ use LIMS2::Model::Util::GenoverseSupport qw(
         get_genotyping_primer_extent
         get_design_extent
         get_gene_extent
+        get_experiment_extent
         );
 
 BEGIN { extends 'Catalyst::Controller' };
@@ -197,6 +198,35 @@ sub genoverse_design_view : Path( '/user/genoverse_design_view' ) : Args(0) {
         );
     }
 
+    return;
+}
+
+=head genoverse_experiment_view
+
+Show all design components and related primers
+
+=cut
+sub genoverse_experiment_view : Path( '/user/genoverse_experiment_view' ) : Args(0){
+    my ( $self, $c ) = @_;
+
+    my $extent;
+    try {
+        $extent = get_experiment_extent(
+            $c->model('Golgi'),
+            $c->request->params,
+            $c->session->{'selected_species'},
+        );
+    }
+    catch {
+       $c->stash( error_msg => $_->as_string );
+    };
+
+    if($extent){
+        $c->stash(
+            'extent'  => $extent,
+            'context' => $c->request->params,
+        );
+    }
     return;
 }
 

@@ -93,8 +93,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Tests
-{
+sub all_tests  : Test(127) {
     my $mech = mech();
 =head causing issues in dzil release but unable to replicate in dzil test, prove or local
     note "Testing sequence trace view page";
@@ -400,7 +399,7 @@ sub all_tests  : Tests
 	    $template = decode_json( $res->content )
 	} '...decoding JSON lives';
 
-	like $res->header('location') || '', qr(\Q/api/qc_template?id=$template->{id}\E$), '...location header is correct';
+	like $res->header('location') || '', qr{\Q/api/qc_template?id=$template->{id}\E$}, '...location header is correct';
     }
 
     note "Testing creation and retrieval of QC run";
@@ -413,7 +412,7 @@ sub all_tests  : Tests
 	ok my $res = $mech->request( POST '/api/qc_run', 'Content-Type' => 'application/json', Content => encode_json( $run_data ) ), "POST qc_run $run_data->{id}";
 	ok $res->is_success, '...request should succeed';
 	is $res->code, HTTP_CREATED, '..status is created';
-	like $res->header('location'), qr(\Q/api/qc_run?id=$run_data->{id}\E$), '...location header is correct';
+	like $res->header('location'), qr{\Q/api/qc_run?id=$run_data->{id}\E$}, '...location header is correct';
     }
 
     note "Testing creation and retrieval of QC sequencing reads";
@@ -425,7 +424,7 @@ sub all_tests  : Tests
 	    ok my $res = $mech->request( POST '/api/qc_seq_read', 'Content-Type' => 'application/json', Content => encode_json( $s ) ), "POST qc_seq_read $s->{id}";
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is "created"';
-	    like $res->header('location'), qr(\Q/api/qc_seq_read?id=$s->{id}\E$), '...location header is correct';
+	    like $res->header('location'), qr{\Q/api/qc_seq_read?id=$s->{id}\E$}, '...location header is correct';
 	}
     }
 
@@ -457,7 +456,7 @@ sub all_tests  : Tests
 	    ok my $res = $mech->request( POST '/api/qc_test_result', 'Content-Type' => 'application/json', Content => encode_json( $test_result ) ), 'POST /api/qc_test_result';
 	    ok $res->is_success, '...request should succeed';
 	    is $res->code, HTTP_CREATED, '...status is created';
-	    like $res->header('location'), qr(\Q/api/qc_test_result?id=\E\d+$), '...location header is correct';
+	    like $res->header('location'), qr{\Q/api/qc_test_result?id=\E\d+$}, '...location header is correct';
 	    ( $test_result_id ) = $res->header('location') =~ m/(\d+)$/;
 	}
 	{

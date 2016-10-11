@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.387';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.423';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ LIMS2::Model::Util::Crisprs
 =cut
 
 use Sub::Exporter -setup => {
-    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids', 'crispr_groups_for_crispr', 'crispr_pairs_for_crispr' ]
+    exports => [ 'crispr_pick', 'crisprs_for_design', 'gene_ids_for_crispr', 'get_crispr_group_by_crispr_ids', 'crispr_groups_for_crispr', 'crispr_pairs_for_crispr', 'crispr_wells_for_crispr' ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -468,9 +468,10 @@ usually this will be sub { $c->model('Golgi')->find_genes( @_ ) }
 
 =cut
 sub gene_ids_for_crispr {
-    my ( $gene_finder, $crispr ) = @_;
+    my ( $gene_finder, $crispr, $model ) = @_;
     my @gene_ids;
 
+    # if a group, get it's gene id
     if ( $crispr->is_group ) {
         push @gene_ids, $crispr->gene_id;
     }
@@ -479,8 +480,22 @@ sub gene_ids_for_crispr {
         my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
         push @gene_ids, uniq @design_gene_ids;
     }
-    else {
-        # now we have a crispr or crispr pair and no linked designs, need to look at sequence
+    # not a group a no linked design? check if there is an experiment
+    elsif ( $model && (my @groups = $crispr->crispr_groups->all) ) {
+        my @groups_ids = map { $_->id } @groups;
+
+        my @experiments = $model->schema->resultset('Experiment')->search(
+            {
+                crispr_group_id => { -in => \@groups_ids },
+                gene_id => { '!=', undef }
+            }
+        )->all;
+
+        @gene_ids = map { $_->gene_id } @experiments;
+    }
+
+    # if no gene_id yet, look at the genomic location
+    if (!@gene_ids) {
         my $slice = try{ $crispr->target_slice };
         return [] unless $slice;
         my @genes = @{ $slice->get_all_Genes };
@@ -601,6 +616,45 @@ sub crispr_pairs_for_crispr {
     );
 
     return @crispr_pairs;
+}
+
+=head2 crispr_wells_for_crispr
+
+Given a crispr ID returns a list of wells that contain it
+
+=cut
+sub crispr_wells_for_crispr {
+    my ($schema, $params) = @_;
+    my $crispr_id = $params->{crispr_id}
+        or die "No crispr_id provided to crispr_wells_for_crispr";
+
+    my @crispr_process = $schema->resultset('ProcessCrispr')->search(
+        {
+            'me.crispr_id' => [ $crispr_id ],
+        },
+        {
+            order_by    => { -asc   => 'me.crispr_id'},
+        }
+    );
+
+    my @well_id_all;
+    foreach my $current_crispr_process (@crispr_process) {
+        my @well_id = $schema->resultset('Well')->search(
+            {
+                'process_output_wells.process_id' => { -in => $current_crispr_process->get_column('process_id')},
+            },
+            {
+                order_by    => { -asc   => 'process_output_wells.process_id' },
+                join        => 'process_output_wells',
+                distinct    => 1,
+            }
+        );
+
+        push @well_id_all, @well_id;
+
+    }
+
+    return @well_id_all;
 }
 
 

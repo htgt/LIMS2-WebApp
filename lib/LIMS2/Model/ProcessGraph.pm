@@ -1,7 +1,7 @@
 package LIMS2::Model::ProcessGraph;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::ProcessGraph::VERSION = '0.387';
+    $LIMS2::Model::ProcessGraph::VERSION = '0.423';
 }
 ## use critic
 
@@ -422,8 +422,11 @@ sub render {
     );
 
     # URL attribute is not working properly because the basapath on the webapp is sanger.ac.uk/htgt/lims2 ... temporary fix
+    my $total = scalar ( $self->wells );
+    my $count = 0;
     for my $well ( $self->wells ) {
-        $self->log->debug( "Adding $well to GraphViz" );
+        $count++;
+        $self->log->debug( "Adding $well to GraphViz ($count of $total)" );
         my @labels = ( $well->as_string, 'Plate Type: ' . $well->last_known_plate->type_id );
         if($well->barcode){
             push @labels, 'Barcode: '.$well->barcode;

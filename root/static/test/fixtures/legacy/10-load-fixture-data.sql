@@ -764,6 +764,7 @@ INSERT INTO crisprs VALUES (113, 'GTCTGTGGCTGTTTGCTCTGTGG', 'Mouse', 'Exonic', N
 INSERT INTO crisprs VALUES (200, 'GTCTGTGACTGTTAGCTCAGTGG', 'Mouse', 'Intronic', NULL);
 
 
+
 --
 -- Data for Name: crispr_loci; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
@@ -11375,7 +11376,7 @@ INSERT INTO project_sponsors VALUES (12, 'Syboss');
 -- Name: wells_id_seq; Type: SEQUENCE SET; Schema: public; Owner: lims2_test_admin
 --
 
-SELECT pg_catalog.setval('wells_id_seq', 3000, true);
+SELECT pg_catalog.setval('wells_id_seq', 4000, true);
 
 
 --

@@ -18,6 +18,10 @@ build_requires:
   LIMS2::Report::VectorProductionSummary: 0
   LIMS2::ReportGenerator::ProductionDetail: 0
   LIMS2::WebApp::Controller::User::SummaryReports: 0
+  LIMS2::t::js::Admin::Announcements: 0
+  LIMS2::t::js::PublicReports::Reports: 0
+  LIMS2::t::js::User::Barcodes::MutationSignatures: 0
+  LIMS2::t::js::User::QC::ViewTraces: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -78,6 +82,7 @@ requires:
   DateTime::Duration: 0
   DateTime::Format::ISO8601: 0
   DateTime::Format::Pg: 0
+  DateTime::Format::Strptime: 0
   DesignCreate::Types: 0
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
@@ -97,12 +102,15 @@ requires:
   GraphViz2: 0
   HTGT::QC::Config: 0
   HTGT::QC::Constants: 0
+  HTGT::QC::Run: 0
   HTGT::QC::Util::Alignment: 0
   HTGT::QC::Util::CigarParser: 0
   HTGT::QC::Util::CreateSuggestedQcPlateMap: 0
   HTGT::QC::Util::CrisprDamageVEP: 0
   HTGT::QC::Util::KillQCFarmJobs: 0
   HTGT::QC::Util::ListLatestRuns: 0
+  HTGT::QC::Util::SubmitQCFarmJob::ESCell: 0
+  HTGT::QC::Util::SubmitQCFarmJob::Vector: 0
   HTTP::Status: 0
   Hash::Merge: 0
   Hash::MoreUtils: 0
@@ -157,6 +165,7 @@ requires:
   Pod::Usage: 0
   Readonly: 0
   Scalar::Util: 0
+  Selenium::Firefox: 0
   Spreadsheet::XLSX: 0
   Sub::Exporter: 0
   Template::AutoFilter: 0
@@ -174,9 +183,11 @@ requires:
   WWW::JSON: 0
   WebAppCommon::Crispr::SubmitInterface: 0
   WebAppCommon::Design::CreateInterface: 0
+  WebAppCommon::Design::DesignParameters: 0
   WebAppCommon::Design::FusionConversion: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
+  WebAppCommon::Testing::JS: 0
   WebAppCommon::Util::EnsEMBL: 0
   WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
@@ -189,4 +200,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.387
+version: 0.423

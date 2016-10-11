@@ -1,18 +1,20 @@
 $(document).ready(function() {
     $(".alignment_inner").each(function() {
-        var parent = $( this );
-
-        var seq_a = parent.find(".seq_a").text();
-        var c_a = seq_a.colour_alignment();
-        c_a.append( $("<span>", {text: "(F)"}) );
-
-        var seq_b = parent.find(".seq_b").text();
-        var c_b = seq_b.colour_alignment();
-        c_b.append( $("<span>", {text: "(R)"}) );
-
-        parent.empty().append(c_a).append(c_b);
+        colour_alignment_pair($( this ));
     });
 });
+
+function colour_alignment_pair (parent){
+    var seq_a = parent.find(".seq_a").text();
+    var c_a = seq_a.colour_alignment();
+    c_a.append( $("<span>", {text: "(F)"}) );
+
+    var seq_b = parent.find(".seq_b").text();
+    var c_b = seq_b.colour_alignment();
+    c_b.append( $("<span>", {text: "(R)"}) );
+
+    parent.empty().append(c_a).append(c_b);
+}
 
 String.prototype.colour_alignment = function() {
     //a span to hold all the other spans

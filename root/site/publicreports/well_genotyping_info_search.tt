@@ -45,6 +45,10 @@ $(document).ready(function () {
     $("#id_button").click();
   });
 
+  $("#plate_well_name").enterKey(function(ev) {
+    $("#plate_well_search_button").click();
+  });
+
   $("#well_name, #plate_name").enterKey(function(ev) {
     $("#search_button").click();
   });
@@ -72,6 +76,12 @@ function create_alert(text, alert_class) {
 }
 </script>
 
+<p class="lead">To request clones for your gene of interest please contact the Stem Cell Engineering team at the Welcome Trust Sanger Institute:</p>
+
+<p class="lead"><strong>Stem Cell Engineering: <a href="mailto:[% email %]?subject=clone request">[% email %]</a></strong></p>
+
+<p class="lead">If you have already received clones from us you can find information about them by entering an identifier in this form.</p>
+
 <div class="well" id="barcode_group">
   <fieldset>
     <legend>Barcode Search</legend>
@@ -87,15 +97,16 @@ function create_alert(text, alert_class) {
 <div class="well">
   <fieldset>
     <legend>Plate/Well Search</legend>
-      <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
       <div class="control-group">
+       <label>Enter combined plate_well name, e.g. HUFP0037_1_A_C01</label>
         <div class="form-inline">
           <input type="text" name="plate_well_name" id="plate_well_name" placeholder="Plate_Well Name" />
           <input type="button" id="plate_well_search_button" name="action" class="btn btn-primary" value="Get data" />
         </div>
       </div>
-      <label>OR plate name and well name separately</label>
+      <br />
       <div class="control-group">
+      <label>OR plate name and well name separately</label>
         <div class="form-inline">
           <input type="text" name="plate_name" id="plate_name" placeholder="Plate Name" />
           <input type="text" name="well_name" id="well_name" placeholder="Well Name" />

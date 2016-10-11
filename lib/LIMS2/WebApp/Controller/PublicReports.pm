@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.387';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.423';
 }
 ## use critic
 
@@ -22,6 +22,7 @@ use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -226,7 +227,6 @@ sub _generate_front_page_report {
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-
     my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
 
     # Fetch details from returned report parameters
@@ -444,6 +444,52 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 }
 
 
+sub add_ep_rows {
+    my ($c, $column, $body, @csv_colums) = @_;
+    my %keys = (
+        'cell_line'           => 'EP_cell_line',
+        'dna_template'        => 'DNA_source_cell_line',
+        'ep_pick_count'       => 'colonies_picked',
+        'ep_pick_pass_count'  => 'targeted_clones',
+        'experiment'          => 'experiment_ID',
+        'frameshift'          => 'fs_count',
+        'in-frame'            => 'if_count',
+        'mosaic'              => 'ms_count',
+        'no-call'             => 'nc_count',
+        'total_colonies'      => 'total_colonies',
+        'wild_type'           => 'wt_count',
+    );
+    my @expand_cols;
+    foreach my $ep_col ( @{$column->{ep_data}} ) {
+        push @expand_cols, $ep_col;
+    }
+    foreach my $ep_col ( @expand_cols ) {
+        my $sub_col = {
+            gene_id                 => $column->{gene_id},
+            gene_symbol             => $column->{gene_symbol},
+            chromosome              => $column->{chromosome},
+            sponsors                => $column->{sponsors},
+            crispr_wells            => ' ',
+            accepted_crispr_vector  => ' ',
+            vector_wells            => ' ',
+            vector_pcr_passes       => ' ',
+            passing_vector_wells    => ' ',
+            electroporations        => ' ',
+            ep_pick_het             => ' ',
+            distrib_clones          => ' ',
+            priority                => ' ',
+            recovery_class          => ' ',
+        }; #Reduces warnings
+        foreach my $key (keys %{$ep_col}) {
+            if ($key eq 'experiment') {
+                $ep_col->{experiment} = join(', ', @{$ep_col->{experiment}});
+            }
+            $sub_col->{$keys{$key}} = $ep_col->{$key};
+        }
+        $body .= join(',', map { $sub_col->{$_} } @csv_colums ) . "\n";
+    }
+    return $body;
+}
 
 sub _simple_transform {
     my $self = shift;
@@ -524,7 +570,13 @@ Page to choose the desired well, no arguments
 
 =cut
 sub well_genotyping_info_search :Path( '/public_reports/well_genotyping_info_search' ) :Args(0) {
-my ( $self, $c ) = @_;
+    my ( $self, $c ) = @_;
+
+    $ENV{ LIMS2_URL_CONFIG } or die "LIMS2_URL_CONFIG environment variable not set";
+    my $conf = Config::Tiny->read( $ENV{ LIMS2_URL_CONFIG } );
+    my $email = $conf->{_}->{clone_request_email};
+
+    $c->stash->{email} = $email;
     return;
 }
 
@@ -538,54 +590,64 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
     if ( @args == 1 ) {
         my $barcode = shift @args;
+        my $well;
+
         try {
-            $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
+            $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
+            # $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
         } catch {
-            $c->stash( error_msg => "$_" );
+            $c->stash( error_msg => "Barcode doesn't exist" );
+        };
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
             $c->go( 'well_genotyping_info_search' );
             return;
-        };
+        }
     }
     elsif ( @args == 2 ) {
         my ( $plate_name, $well_name ) = @args;
+        my $well;
 
         try {
-            $self->_stash_well_genotyping_info(
-                $c, { plate_name => $plate_name, well_name => $well_name }
-            );
-        } catch {
-            $c->stash( error_msg => "$_" );
+            $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+        };
+
+        unless($well){
+            try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( { plate_name => $plate_name, well_name => $well_name } ) };
+            if($well){
+                $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
+                    $well->plate->name.". Reporting info for this well on version ".$well->plate->version
+                    ." of the plate.");
+            }
+        }
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
+            try {
+                my $plate_id = $c->model('Golgi')->retrieve_plate({ name => $plate_name })->id;
+                my $barcode_id = $c->model('Golgi')->schema->resultset('BarcodeEvent')->find({ old_plate_id => $plate_id, old_well_name => $well_name, new_well_name => undef } )->barcode->barcode;
+                $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode_id } );
+            } catch {
+                $c->stash( error_msg => "Well doesn't exist" );
+            };
+        }
+
+        if ($well) {
+            $self->_stash_well_genotyping_info( $c, $well );
+        } else {
             $c->go( 'well_genotyping_info_search' );
             return;
-        };
-    }
-    else {
-        $c->stash( error_msg => "Invalid number of arguments" );
+        }
     }
 
     return;
 }
 
 sub _stash_well_genotyping_info {
-    my ( $self, $c, $search ) = @_;
-
-    #well_id will become barcode
-    my $well;
-    try { $well = $c->model('Golgi')->retrieve_well( $search ) };
-
-    unless($well){
-        try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( $search ) };
-        if($well){
-            $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
-                $well->plate->name.". Reporting info for this well on version ".$well->plate->version
-                ." of the plate.");
-        }
-    }
-
-    unless ( $well ) {
-        $c->stash( error_msg => "Well doesn't exist" );
-        return;
-    }
+    my ( $self, $c, $well ) = @_;
 
     try {
         #needs to be given a method for finding genes
@@ -610,11 +672,11 @@ sub _stash_well_genotyping_info {
         my $type;
         try{
             #Depending on type of crispr, retrieve crispr hash ref
-            if ($data->{qc_data}->{is_crispr_pair} == 1){
+            if ($data->{qc_data}->{is_crispr_pair}){
                 $type = 'CrisprPair';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
-            elsif ($data->{qc_data}->{is_crispr_pair} == 1){
+            elsif ($data->{qc_data}->{is_crispr_group}){
                 $type = 'CrisprGroup';
                 $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
             }
@@ -708,6 +770,7 @@ sub search_primers {
     }
     return;
 }
+
 =head2 public_gene_report
 
 Public gene report, only show targeted clone details:
@@ -724,9 +787,9 @@ Public gene report, only show targeted clone details:
 sub public_gene_report :Path( '/public_reports/gene_report' ) :Args(1) {
     my ( $self, $c, $gene_id ) = @_;
 
-    # FIXME: temporarily require logged in user for this page
-    # to stop robot access
-    $c->assert_user_roles('read');
+    unless($c->user){
+        return $c->response->redirect( $c->uri_for('/public_reports/well_genotyping_info_search') );
+    }
 
     # by default type is Targeted, Distributable as an option
     my $type = 'Targeted';

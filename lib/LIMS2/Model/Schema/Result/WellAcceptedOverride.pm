@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::WellAcceptedOverride;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::WellAcceptedOverride::VERSION = '0.387';
+    $LIMS2::Model::Schema::Result::WellAcceptedOverride::VERSION = '0.423';
 }
 ## use critic
 
@@ -136,6 +136,13 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+use overload '""' => \&as_string;
+
+sub as_string {
+    my $self = shift;
+    return ($self->accepted ? 'TRUE' : 'FALSE');
+}
 
 sub as_hash {
     my $self = shift;
