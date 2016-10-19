@@ -203,7 +203,7 @@ document.title = "[%- sponsor_id %]";
               [%- END %]
               </td>
         [%- ELSIF col == "DNA_source_cell_line"
-               || col == "EP_cell_line" 
+               || col == "EP_cell_line"
                || col == "experiment_ID" %]
             <td><a onclick="displayRow('[%- row.item('gene_symbol') %]')"><span class="exp [% row.item('gene_symbol') %] glyphicon glyphicon-minus"></span></a></td>
         [%- ELSIF col == "ep_data" %]
@@ -223,7 +223,9 @@ document.title = "[%- sponsor_id %]";
                       <td></td>
                       <td></td>
                       <td></td>
+                    [%- IF c.user %]
                       <td></td>
+                    [%- END %]
                       <td>[%- vector_dna %]</td>
                       <td>[%- ep_data.item('cell_line') %]</td>
                       <td>
@@ -240,10 +242,10 @@ document.title = "[%- sponsor_id %]";
                       <td>[%- ep_data.item('mosaic') %]</td>
                       <td>[%- ep_data.item('no-call') %]</td>
                       <td>[%- ep_data.item('het') %]</td>
+                      <td></td>
+                      <td></td>
                     [%- IF c.user %]
-                      <td colspan=3></td>
-                    [%- ELSE %]
-                      <td colspan=2></td>
+                      <td></td>
                     [%- END %]
                     </tr>
 
@@ -289,7 +291,7 @@ function displayAll() {
         rows[row].style.display = state;
     }
     $('.exp').each(function() {
-        if (state == 'none') { 
+        if (state == 'none') {
             $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus");
         } else {
             $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");

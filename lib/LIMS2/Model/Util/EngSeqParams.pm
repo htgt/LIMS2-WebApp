@@ -169,17 +169,19 @@ values: chromosome, strand, assembly, five_arm_start, five_arm_end, three_arm_st
 (and optionally) target_region_start, target_region_end
 
 =cut
+
+## no critic(Subroutines::ProhibitExcessComplexity)
 sub build_eng_seq_params_from_loci{
 	my ($loci, $type) = @_;
     my $params;
 
-    if ( $type =~ /gibson/ ) {
+    if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
         $params->{chromosome} = $loci->{'5F'}->{chr_name};
         $params->{strand}     = $loci->{'5F'}->{chr_strand};
         $params->{assembly}   = $loci->{'5F'}->{assembly};
     }
     #fusion added
-    elsif ( $type eq 'fusion-deletion') {
+    elsif ( $type eq 'fusion-deletion' ) {
         $params->{chromosome} = $loci->{'f5F'}->{chr_name};
         $params->{strand}     = $loci->{'f5F'}->{chr_strand};
         $params->{assembly}   = $loci->{'f5F'}->{assembly};
@@ -192,14 +194,14 @@ sub build_eng_seq_params_from_loci{
     }
 
     if ( $params->{strand} == 1 ) {
-        if ( $type =~ /gibson/ ) {
+        if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
             $params->{five_arm_start}  = $loci->{'5F'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'5R'}->{chr_end};
             $params->{three_arm_start} = $loci->{'3F'}->{chr_start};
             $params->{three_arm_end}   = $loci->{'3R'}->{chr_end};
         }
         #fusion added
-        elsif ( $type eq 'fusion-deletion') {
+        elsif ( $type eq 'fusion-deletion' ) {
             $params->{five_arm_start}  = $loci->{'f5F'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'U5'}->{chr_end};
             $params->{three_arm_start} = $loci->{'D3'}->{chr_start};
@@ -214,14 +216,14 @@ sub build_eng_seq_params_from_loci{
         }
     }
     else {
-        if ( $type =~ /gibson/ ) {
+        if ( $type =~ /gibson/ || $type eq 'conditional-inversion' ) {
             $params->{five_arm_start}  = $loci->{'5R'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'5F'}->{chr_end};
             $params->{three_arm_start} = $loci->{'3R'}->{chr_start};
             $params->{three_arm_end}   = $loci->{'3F'}->{chr_end};
         }
         #fusion added
-        elsif ( $type eq 'fusion-deletion') {
+        elsif ( $type eq 'fusion-deletion' ) {
             $params->{five_arm_start}  = $loci->{'U5'}->{chr_start};
             $params->{five_arm_end}    = $loci->{'f5F'}->{chr_end};
             $params->{three_arm_start} = $loci->{'f3R'}->{chr_start};
@@ -236,11 +238,12 @@ sub build_eng_seq_params_from_loci{
         }
     }
     my %exceptions = (
-        'deletion'          => 1,
-        'insertion'         => 1,
-        'gibson-deletion'   => 1,
-        'gibson'            => 1,
-        'fusion-deletion'   => 1,
+        'deletion'              => 1,
+        'insertion'             => 1,
+        'gibson-deletion'       => 1,
+        'gibson'                => 1,
+        'fusion-deletion'       => 1,
+        'conditional-inversion' => 1,
     );
     #return $params if ( $type eq 'deletion' or $type eq 'insertion' or $type eq 'gibson-deletion' );
     # for now all gibson designs are treated as deletions
@@ -270,7 +273,6 @@ sub build_eng_seq_params_from_loci{
     return $params;
 }
 
-## no critic ( Subroutines::ProhibitExcessComplexity )
 sub fetch_well_eng_seq_params {
 	my ( $well, $params ) = @_;
 
@@ -325,7 +327,7 @@ sub fetch_eng_seq_params {
             'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_allele_seq'); },
             'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_allele_seq'); },
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
-            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
+            'conditional-inversion'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
         );
@@ -342,7 +344,7 @@ sub fetch_eng_seq_params {
             'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_vector_seq'); },
             'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_vector_seq'); },
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
-            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
+            'conditional-inversion'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
         );
