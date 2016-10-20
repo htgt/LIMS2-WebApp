@@ -61,6 +61,12 @@ __PACKAGE__->table("users");
   default_value: true
   is_nullable: 0
 
+=head2 key
+
+  data_type: 'char'
+  is_nullable: 1
+  size: 304
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +83,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "active",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "key",
+  { data_type => "char", is_nullable => 1, size => 304 },
 );
 
 =head1 PRIMARY KEY
@@ -523,8 +531,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-11-30 10:23:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tz8L7rtR2we19EctCc9o5Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-10-18 16:23:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ma+xhS2W7u3TMrPlDHqCxQ
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -535,7 +543,8 @@ sub as_hash {
         id     => $self->id,
         name   => $self->name,
         active => $self->active,
-        roles  => [ sort map { $_->name } $self->roles ]
+        roles  => [ sort map { $_->name } $self->roles ],
+        key    => $self->key,
     };
 }
 

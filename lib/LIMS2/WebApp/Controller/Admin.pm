@@ -4,6 +4,7 @@ use Moose;
 use TryCatch;
 use namespace::autoclean;
 use DateTime::Format::Strptime;
+use Data::UUID;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
@@ -104,11 +105,29 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     my $user = $self->_retrieve_user_by_id($c);
+$DB::single=1;
 
-    $c->stash(
+    my $_conf = YAML::Tiny->read($ENV{LIMS2_API_CONFIG});
+    my $serial = Data::Serializer->new();
+    $serial = Data::Serializer->new(
+        serializer  => 'Storable',
+        digester    => 'SHA-256',
+        cipher      => 'Blowfish',
+        secret      => $_conf->[0]->{salt},
+        compress    => 0,
+    );
+
+    if ($user->as_hash->{key}) {
+
+        my $thaw = $serial->thaw($user->as_hash->{key});
+        $c->stash (
+            key => $thaw->{key},
+        );
+    }
+    $c->stash (
         user         => $user,
         roles        => $c->model('Golgi')->list_roles,
-        checked_role => { map { $_->name => 1 } $user->roles }
+        checked_role => { map { $_->name => 1 } $user->roles },
     );
 
     return unless $c->request->method eq 'POST';
@@ -121,18 +140,25 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
         return $c->forward('reset_user_password');
     }
 
+    if ( $c->request->param('api') ) {
+        generate_api_key($c, $user->as_hash);
+        $user = $self->_retrieve_user_by_id($c);
+        $c->stash (
+            key =>$serial->thaw($user->as_hash->{key})->{key},
+        );
+    }
+
     $c->stash( error_msg => 'No action selected' );
 
     return;
 }
 
 =head2 update_user_roles
-
-=cut
+xst
 
 sub update_user_roles : Private {
     my ( $self, $c ) = @_;
-
+    
     my $user = $c->stash->{user};
 
     my @roles = $c->request->param('user_roles');
@@ -332,6 +358,18 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
+sub generate_api_key {
+    my ($c, $user) = @_;
+$DB::single=1;
+    my $key = Data::UUID->new->create_str();
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_api_key( { new_key => $key, id => $c->request->param('user_id') } );
+        }
+    );
+    return $key;
+}
 =head1 AUTHOR
 
 Ray Miller

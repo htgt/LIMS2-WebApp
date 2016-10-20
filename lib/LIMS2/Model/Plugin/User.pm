@@ -9,7 +9,9 @@ use Const::Fast;
 use Crypt::SaltedHash;
 use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
-
+use Digest::SHA;
+use Data::Serializer;
+use YAML::Tiny;
 
 requires qw( schema check_params throw retrieve );
 
@@ -255,6 +257,7 @@ sub pspec_change_user_password {
     };
 }
 
+
 sub change_user_password {
     my ( $self, $params ) = @_;
 
@@ -269,6 +272,38 @@ sub change_user_password {
     $csh->add( $validated_params->{new_password} );
 
     $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+sub pspec_create_api_key {
+    return {
+        id      => { validate => 'integer' },
+        new_key => { validate => 'uuid' },
+    };
+}
+
+sub create_api_key {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_api_key );
+$DB::single=1;
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+
+    my $conf = YAML::Tiny->read($ENV{LIMS2_API_CONFIG});
+
+    my $serial = Data::Serializer->new();
+    $serial = Data::Serializer->new(
+        serializer  => 'Storable',
+        digester    => 'SHA-256',
+        cipher      => 'Blowfish',
+        secret      => $conf->[0]->{salt},
+        compress    => 0,
+    );
+
+    my $frozen = $serial->freeze({ key => $validated_params->{new_key} });
+ 
+    $user->update( { key => $frozen } );
 
     return $user;
 }
