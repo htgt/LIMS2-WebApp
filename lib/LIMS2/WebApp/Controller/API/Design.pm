@@ -58,7 +58,7 @@ $DB::single=1;
         $c->req->base(URI->new($base));
         $c->req->secure(1);
     }
-
+$DB::single=1;
     $c->require_ssl;
     
     my $design = $c->model( 'Golgi' )->txn_do(
