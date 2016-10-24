@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.427     2016-10-24 15:06:07 Europe/London
+
+    Front page cached reports columns fix
+
 0.426     2016-10-11 13:43:27 Europe/London
 
     vector generation for conditional-inversion allowed
