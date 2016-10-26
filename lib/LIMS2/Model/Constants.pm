@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.427';
+    $LIMS2::Model::Constants::VERSION = '0.428';
 }
 ## use critic
 
@@ -66,6 +66,7 @@ const our %PROCESS_PLATE_TYPES => (
     'ms_qc'                  => [qw( MS_QC )],
     'doubling'               => [qw( PIQ )],
     'vector_cloning'         => [qw( PREINT )],
+    'golden_gate'            => [qw( FINAL )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -75,6 +76,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'global_arm_shortening'  => [qw( intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
+    'golden_gate'            => [qw( final_cassette final_backbone recombinase )],
     'recombinase'            => [qw( recombinase )],
     'clone_pick'             => [qw( recombinase )],
     'first_electroporation'  => [qw( cell_line recombinase )],
@@ -94,6 +96,7 @@ const our %PROCESS_TEMPLATE => (
     'global_arm_shortening'  => 'global_arm_shortening_template',
     '2w_gateway'             => 'gateway_template',
     '3w_gateway'             => 'gateway_template',
+    'golden_gate'            => 'gateway_template',
     'final_pick'             => 'standard_template',
     'dna_prep'               => 'standard_template',
     'recombinase'            => 'recombinase_template',
@@ -225,6 +228,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'vector_cloning' => {
+        type   => [qw( DESIGN )],
+        number => 1,
+    },
+    'golden_gate' => {
         type   => [qw( DESIGN )],
         number => 1,
     },
