@@ -1,0 +1,1 @@
+INSERT INTO process_types VALUES ('golden_gate','Create FINAL from condition-inversion DESIGN');
