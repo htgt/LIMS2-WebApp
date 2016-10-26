@@ -171,6 +171,7 @@ my %process_check_well = (
     'ms_qc'                  => \&_check_wells_ms_qc,
     'doubling'               => \&_check_wells_doubling,
     'vector_cloning'         => \&_check_wells_vector_cloning,
+    'golden_gate'            => \&_check_wells_golden_gate,
 );
 
 sub check_process_wells {
@@ -317,6 +318,16 @@ sub _check_wells_3w_gateway {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_legacy_gateway {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_golden_gate {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -861,6 +872,7 @@ my %process_aux_data = (
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
     'doubling'               => \&_create_process_aux_data_doubling,
     'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
+    'golden_gate'            => \&_create_process_aux_data_golden_gate,
 );
 
 sub create_process_aux_data {
@@ -1117,6 +1129,34 @@ sub pspec__create_process_aux_data_legacy_gateway {
         REQUIRE_SOME => { cassette_or_backbone => [ 1, qw( cassette backbone ) ], },
     };
 }
+
+sub pspec__create_process_aux_data_golden_gate {
+    return {
+        cassette    => { validate => 'existing_final_cassette' },
+        backbone    => { validate => 'existing_backbone' },
+        recombinase => { optional => 1 },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_golden_gate {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_golden_gate );
+
+    $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
+
+    return;
+}
+## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 # legacy_gateway is like a gateway process but goes from INT to FINAL_PICK

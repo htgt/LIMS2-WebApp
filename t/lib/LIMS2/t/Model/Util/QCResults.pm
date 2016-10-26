@@ -285,12 +285,12 @@ sub almost_all_tests  : Test(48)
 
 }
 
-sub test_infer_qc_process_type : Test(29) {
+sub test_infer_qc_process_type : Test(31) {
     note( 'DESIGN source plates' );
     throws_ok {
-        infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'POSTINT', 'DESIGN' )
-    } qr/Can only create PREINT or INT plate from a DESIGN template plate/
-        , 'throws error when trying to create non INT plate';
+        infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'FINAL_PICK', 'DESIGN' )
+    } qr/Can only create PREINT, INT or FINAL plate from a DESIGN template plate, not a FINAL_PICK plate/
+        , 'throws error when trying to create FINAL_PICK plate';
 
     throws_ok {
         infer_qc_process_type( { cassette => 'foo' }, 'INT', 'DESIGN' )
@@ -302,8 +302,14 @@ sub test_infer_qc_process_type : Test(29) {
     } qr/A recombinase was specified when the DESIGN template plate was created/
         , 'throws error for unwanted recombinase';
 
+    is infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'PREINT', 'DESIGN' ), 'vector_cloning',
+        'correctly infers vector_cloning process for DESIGN to PREINT';
+
     is infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'INT', 'DESIGN' ), 'int_recom',
         'correctly infers int_recom process for DESIGN to INT';
+
+    is infer_qc_process_type( { cassette => 'foo', backbone => 'bar' }, 'FINAL', 'DESIGN' ), 'golden_gate',
+        'correctly infers golden_gate process for DESIGN to FINAL';
 
 
     note( 'INT source plates' );

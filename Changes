@@ -1,5 +1,17 @@
 {{$NEXT}}
 
+0.427     2016-10-24 15:06:07 Europe/London
+
+    Front page cached reports columns fix
+
+0.426     2016-10-11 13:43:27 Europe/London
+
+    vector generation for conditional-inversion allowed
+
+0.423     2016-10-11 12:31:54 Europe/London
+
+0.425     2016-10-05 15:29:37 Europe/London
+    Conditional-Inversion LIMS2 changes
 0.424     2016-09-21 12:42:40 Europe/London
     Bugfix - dramtically reduced JS testing time
 0.423     2016-09-14 15:30:54 Europe/London

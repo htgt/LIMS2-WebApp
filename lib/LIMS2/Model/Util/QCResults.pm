@@ -687,19 +687,23 @@ Help infer process type where the template well is derived from a DESIGN plate
 sub _design_source_plate {
     my ( $new_plate_type, $reagent_count, $params ) = @_;
 
-    unless ( $new_plate_type eq 'PREINT' || $new_plate_type eq 'INT' ) {
+    unless ( $new_plate_type eq 'PREINT' || $new_plate_type eq 'INT' || $new_plate_type eq 'FINAL' ) {
         LIMS2::Exception->throw(
-            "Can only create PREINT or INT plate from a DESIGN template plate, not a $new_plate_type plate");
+            "Can only create PREINT, INT or FINAL plate from a DESIGN template plate, not a $new_plate_type plate");
     }
 
     if ( $new_plate_type eq 'PREINT' ) {
         return 'vector_cloning';
     }
 
+    if ( $new_plate_type eq 'FINAL' ) {
+        return 'golden_gate';
+    }
+
     if ( $params->{recombinase} ) {
         LIMS2::Exception->throw(
             'A recombinase was specified when the DESIGN template plate was created, '
-            . ' this does not fit with creating a INT plate here'
+            . " this does not fit with creating a $new_plate_type plate here"
         );
     }
     elsif ( $reagent_count == 2 ) {
@@ -708,7 +712,7 @@ sub _design_source_plate {
     else {
         LIMS2::Exception->throw(
             'A cassette and backbone were not specified when the DESIGN template plate was created, '
-            . ' this information is required when creating a INT plate from a DESIGN template plate'
+            . " this information is required when creating a $new_plate_type plate from a DESIGN template plate"
         );
     }
 

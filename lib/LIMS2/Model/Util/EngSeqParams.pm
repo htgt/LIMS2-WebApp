@@ -327,7 +327,7 @@ sub fetch_eng_seq_params {
             'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_allele_seq'); },
             'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_allele_seq'); },
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
-            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
+            'conditional-inversion'  => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
             'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_allele_seq'); },
         );
@@ -344,7 +344,7 @@ sub fetch_eng_seq_params {
             'artificial-intron' => sub{ return conditional_params($params, $cassette_first, $well_params, 'conditional_vector_seq'); },
             'insertion'         => sub{ return construct_params($params, $well_params, 'insertion_vector_seq'); },
             'deletion'          => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
-            'gibson-condition'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
+            'conditional-inversion'  => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'gibson-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
             'fusion-deletion'   => sub{ return construct_params($params, $well_params, 'deletion_vector_seq'); },
         );
