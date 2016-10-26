@@ -1,1 +1,2 @@
-ALTER TABLE audit.users ADD COLUMN key character(256);
+ALTER TABLE audit.users ADD COLUMN access_key character(36);
+ALTER TABLE audit.users ADD COLUMN secret_key character(67);

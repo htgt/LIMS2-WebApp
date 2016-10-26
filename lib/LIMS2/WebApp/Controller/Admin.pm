@@ -105,23 +105,11 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
     my ( $self, $c ) = @_;
 
     my $user = $self->_retrieve_user_by_id($c);
-$DB::single=1;
 
-    my $_conf = YAML::Tiny->read($ENV{LIMS2_API_CONFIG});
-    my $serial = Data::Serializer->new();
-    $serial = Data::Serializer->new(
-        serializer  => 'Storable',
-        digester    => 'SHA-256',
-        cipher      => 'Blowfish',
-        secret      => $_conf->[0]->{salt},
-        compress    => 0,
-    );
-
-    if ($user->as_hash->{key}) {
-
-        my $thaw = $serial->thaw($user->as_hash->{key});
+    if ($user->as_hash->{access}) {
         $c->stash (
-            key => $thaw->{key},
+            access => $user->as_hash->{access},
+            secret => 'Secret',
         );
     }
     $c->stash (
@@ -141,11 +129,13 @@ $DB::single=1;
     }
 
     if ( $c->request->param('api') ) {
-        generate_api_key($c, $user->as_hash);
+        my $secret = generate_api_key($c, $user->as_hash);
         $user = $self->_retrieve_user_by_id($c);
         $c->stash (
-            key =>$serial->thaw($user->as_hash->{key})->{key},
+            access => $user->as_hash->{access},
+            secret => $secret,
         );
+        return;
     }
 
     $c->stash( error_msg => 'No action selected' );
@@ -360,15 +350,16 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
 
 sub generate_api_key {
     my ($c, $user) = @_;
-$DB::single=1;
-    my $key = Data::UUID->new->create_str();
+
+    my $access_key = Data::UUID->new->create_from_name_str($c, $user->{name});
+    my $secret_key = Data::UUID->new->create_str();
 
     $c->model('Golgi')->txn_do(
         sub {
-            shift->create_api_key( { new_key => $key, id => $c->request->param('user_id') } );
+            shift->create_api_key( { access_key => $access_key, secret_key => $secret_key, id => $c->request->param('user_id') } );
         }
     );
-    return $key;
+    return $secret_key;
 }
 =head1 AUTHOR
 

@@ -1,7 +1,8 @@
 package LIMS2::WebApp::Controller::API;
 use Moose;
 use namespace::autoclean;
-use Data::Serializer; 
+use Data::Serializer;
+use Config::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -35,33 +36,32 @@ sub update_user_display_type_POST {
 
 sub auto : Private {
     my ( $self, $c ) = @_;
-$DB::single=1;
     # This allows a logged-in user to access the REST API without
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
     unless ( $c->user_exists ) {
         #my $username = delete $c->req->parameters->{ 'username' };
         #my $password = delete $c->req->parameters->{ 'password' };
-        my $key = delete $c->req->data->{ 'crypted' };
-        
+        my $key = delete $c->req->headers->{pass};
+
         unless ( $key ) {
             $self->status_forbidden( $c, message => 'Key not specified' );
             $c->detach();
         }
-        
-        my $_conf = YAML::Tiny->read($ENV{LIMS2_API_CONFIG});
+
+        my $_conf = Config::Tiny->read($ENV{LIMS2_REST_CLIENT_CONFIG});
         my $serial = Data::Serializer->new();
         $serial = Data::Serializer->new(
             serializer  => 'Storable',
             digester    => 'SHA-256',
             cipher      => 'Blowfish',
-            secret      => $_conf->[0]->{transport},
+            secret      => $_conf->{api}->{transport},
             compress    => 0,
         );
 
         my $frozen = $serial->thaw($key);
 
-        unless ( $c->authenticate( { name => $frozen->{username}, key => $frozen->{key} }, 'rest' ) ) {
+        unless ( $c->authenticate( { access_key => $frozen->{access}, secret_key => $frozen->{secret} }, 'rest' ) ) {
             $self->status_forbidden( $c, message => 'Key not correct' );
             $c->detach();
         }
