@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::VERSION = '0.429';
+    $LIMS2::WebApp::Controller::API::VERSION = '0.430';
 }
 ## use critic
 
@@ -58,7 +58,7 @@ sub auto : Private {
         my $_conf = Config::Tiny->read($ENV{LIMS2_REST_CLIENT_CONFIG});
         my $serial = Data::Serializer->new();
         $serial = Data::Serializer->new(
-            serializer  => 'Storable',
+            serializer  => 'Data::Dumper',
             digester    => 'SHA-256',
             cipher      => 'Blowfish',
             secret      => $_conf->{api}->{transport},
