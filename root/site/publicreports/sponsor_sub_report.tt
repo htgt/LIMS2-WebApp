@@ -195,13 +195,7 @@ document.title = "[%- sponsor_id %]";
                   %]
           <td style="background:#E5E4E2">[%- colval %]</td>
         [%- ELSIF col == 'electroporations' %]
-          <td style="background:#E5E4E2">
-              [%- IF row.item('electroporations') %]
-                <a onclick="displayRow('[%- row.item('gene_symbol') %]')">[%- colval %]</a>
-              [%- ELSE %]
-                [%- colval %]
-              [%- END %]
-              </td>
+          <td style="background:#E5E4E2">[%- colval %]</td>
         [%- ELSIF col == "DNA_source_cell_line"
                || col == "EP_cell_line"
                || col == "experiment_ID" %]
