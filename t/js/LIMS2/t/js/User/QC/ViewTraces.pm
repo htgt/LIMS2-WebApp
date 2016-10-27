@@ -74,6 +74,7 @@ ok( find_by($driver, 'id', 'get_reads'), "Fetch reads");
 
 #Test TV
 my $seq = check_traceviewer($driver, $scroll);
+$driver->pause(2000);
 isnt ($seq,'','Check TV click');
 isnt ($seq,'GGCTCGTA','Check TV loc');
 
@@ -94,6 +95,7 @@ is ($check, '2016-04-18 15:02:42', 'Check version');
 #Test TV again
 $seq = check_traceviewer($driver);
 
+$driver->pause(2000);
 isnt ($seq,'','Check backup TV click');
 isnt ($seq,'GGCTCGTA','Check backup TV loc');
 

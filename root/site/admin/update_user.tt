@@ -5,7 +5,7 @@
 </div>
 
 <div>
-  <form method="POST" action="[% c.uri_for( '/admin/update_user' ) %]" name="update_user_form" class="well">
+  <form method="POST" action="[% c.uri_for( '/admin/update_user' ) %]" name="update_user_form" class="well col-md-8">
     <fieldset>
       <label for="roles_field">Roles</label>
       [%- FOR r IN roles %]
@@ -14,8 +14,32 @@
     </fieldset>
     <br>
     <input type="hidden" name="user_id" value="[% user.id %]" />
-    <a href="[% c.uri_for( '/admin' ) %]" class="btn btn-info">Cancel</a>
+    <div class="row">
+    <label for="api" class="control-label col-md-2">Access Key</label>
+    <div class="col-md-6">
+        [% IF access %]
+        <input class="form-control" value=[% access %]>
+        [% ELSE %]
+        <input class="form-control" value="No key set">
+        [% END %]
+    </div>
+    </div>
+    <div class="row">
+    <label for="api" class="control-label col-md-2">Secret Key</label>
+    <div class="col-md-6">
+        [% IF secret %]
+        <input class="form-control" value=[% secret %]>
+        [% ELSE %]
+        <input class="form-control" value="No key set">
+        [% END %]
+    </div>
+    </div>
+    <br>
+    <input class="col-md-4 btn btn-info" name="api" id="api" type="submit" value="Generate API key">
+    <br>
+    <br>
     <input class="btn btn-primary" name="update_roles" id="update_user_button"  type="submit" value="Update Roles" />
     <input class="btn btn-warning" name="reset_password" id="reset_passwd_button" type="submit" value="Reset Password" />
+    <a href="[% c.uri_for( '/admin' ) %]" class="btn btn-danger">Cancel</a>
   </form>
 </div>
