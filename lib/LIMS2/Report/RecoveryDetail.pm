@@ -2,7 +2,7 @@
 package LIMS2::Report::RecoveryDetail;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::RecoveryDetail::VERSION = '0.430';
+    $LIMS2::Report::RecoveryDetail::VERSION = '0.431';
 }
 ## use critic
 

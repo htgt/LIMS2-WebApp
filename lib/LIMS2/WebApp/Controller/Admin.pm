@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.430';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.431';
 }
 ## use critic
 
@@ -150,11 +150,12 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
 }
 
 =head2 update_user_roles
-xst
+
+=cut
 
 sub update_user_roles : Private {
     my ( $self, $c ) = @_;
-    
+
     my $user = $c->stash->{user};
 
     my @roles = $c->request->param('user_roles');
