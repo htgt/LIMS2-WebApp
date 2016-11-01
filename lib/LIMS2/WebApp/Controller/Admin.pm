@@ -149,7 +149,7 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
 
 sub update_user_roles : Private {
     my ( $self, $c ) = @_;
-    
+
     my $user = $c->stash->{user};
 
     my @roles = $c->request->param('user_roles');
