@@ -144,7 +144,8 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
 }
 
 =head2 update_user_roles
-xst
+
+=cut
 
 sub update_user_roles : Private {
     my ( $self, $c ) = @_;
