@@ -1,5 +1,13 @@
 {{$NEXT}}
 
+0.431     2016-11-01 10:43:54 Europe/London
+    Fixed user roles
+0.430     2016-10-27 12:17:09 Europe/London
+    Storable incompat
+0.429     2016-10-26 15:43:54 Europe/London
+
+0.426     2016-10-26 14:59:51 Europe/London
+    Moved REST authentication to API keys
 0.428     2016-10-26 12:38:02 Europe/London
 
     Added new process type golden-gate related to conditional-inversion designs
