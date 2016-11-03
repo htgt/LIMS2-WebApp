@@ -1,12 +1,14 @@
 package LIMS2::WebApp::Controller::API;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::VERSION = '0.428';
+    $LIMS2::WebApp::Controller::API::VERSION = '0.432';
 }
 ## use critic
 
 use Moose;
 use namespace::autoclean;
+use Data::Serializer;
+use Config::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -40,20 +42,33 @@ sub update_user_display_type_POST {
 
 sub auto : Private {
     my ( $self, $c ) = @_;
-
     # This allows a logged-in user to access the REST API without
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
     unless ( $c->user_exists ) {
-        my $username = delete $c->req->parameters->{ 'username' };
-        my $password = delete $c->req->parameters->{ 'password' };
-        unless ( $username && $password ) {
-            $self->status_forbidden( $c, message => 'username or password not specified' );
+        #my $username = delete $c->req->parameters->{ 'username' };
+        #my $password = delete $c->req->parameters->{ 'password' };
+        my $key = delete $c->req->headers->{pass};
+
+        unless ( $key ) {
+            $self->status_forbidden( $c, message => 'Key not specified' );
             $c->detach();
         }
 
-        unless ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
-            $self->status_forbidden( $c, message => 'username or password not correct' );
+        my $_conf = Config::Tiny->read($ENV{LIMS2_REST_CLIENT_CONFIG});
+        my $serial = Data::Serializer->new();
+        $serial = Data::Serializer->new(
+            serializer  => 'Data::Dumper',
+            digester    => 'SHA-256',
+            cipher      => 'Blowfish',
+            secret      => $_conf->{api}->{transport},
+            compress    => 0,
+        );
+
+        my $frozen = $serial->thaw($key);
+
+        unless ( $c->authenticate( { access_key => $frozen->{access}, secret_key => $frozen->{secret} }, 'rest' ) ) {
+            $self->status_forbidden( $c, message => 'Key not correct' );
             $c->detach();
         }
     }
