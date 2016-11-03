@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.432     2016-11-03 11:30:57 Europe/London
+
+    bugfix viewplate without INT ancestors
+    bugfix crispr es qc well validation
+
 0.431     2016-11-01 10:43:54 Europe/London
     Fixed user roles
 0.430     2016-10-27 12:17:09 Europe/London
