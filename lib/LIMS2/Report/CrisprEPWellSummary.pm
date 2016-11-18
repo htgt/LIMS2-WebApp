@@ -122,7 +122,7 @@ override iterator => sub {
 
             my $assembly = $crispr_ep_well->assembly_plate_name . '_' . $crispr_ep_well->assembly_well_name;
 
-            my $final_pick = $crispr_ep_well->final_pick_plate_name . '_' . $crispr_ep_well->final_pick_well_name;
+            my $final_pick = $crispr_ep_well->final_pick_plate_name . '_' . $crispr_ep_well->final_pick_well_name // '';
 
             my $to_report = 'no';
             if ($crispr_ep_well->to_report) {
