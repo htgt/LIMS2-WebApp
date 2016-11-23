@@ -43,7 +43,7 @@
     </div>
     <div id="key" class="col-md-5">
         <h5>Colour Key: </h5>
-        <svg width="120" height="70">
+        <svg width="150" height="90">
             <g class="legend" transform="translate(0)">
                 <rect width="18" height="18" style="fill: #887bf7; stroke: #887bf7;"></rect>
                 <text x="22" y="14">Well</text>
@@ -54,7 +54,11 @@
             </g>
             <g class="legend" transform="translate(0,40)">
                 <rect width="18" height="18" style="fill: #ffaa00; stroke: #ffaa00;"></rect>
-                <text x="22" y="14">NHEJ clones</text>
+                <text x="22" y="14">NHEJ Clones</text>
+            </g>
+            <g class="legend" transform="translate(0,60)">
+                <rect width="18" height="18" style="fill: #d6757f; stroke: #d6757f;"></rect>
+                <text x="22" y="14">Scanned-out Well</text>
             </g>
         </svg>
     </div>
@@ -91,8 +95,8 @@
 
 var data = '[% wells %]';
 var json = JSON.parse(data.replace(/&quot;/g,'"'));
-var genes = [];
-var prevGene = "";
+var allExps = [];
+var prevExp = "";
 
 var tau = 2 * Math.PI;
 
@@ -150,21 +154,22 @@ d3.selectAll("g.node").append("svg:text").attr("class","nodetext").attr("dx","-0
 
 $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();   
-    buildGenes();
+    buildExps();
 });
 
 function tooltip(node) {
     var oligoIndex = twoDigits(node.parent()[0].id);
     var dataPoint = json.summary[oligoIndex];
     var response = "";
-    var focusGene = document.getElementById('geneSelect').value;
-    if (dataPoint.gene.some(function(e){ return e == focusGene })) {
+    var focusExp = document.getElementById('expSelect').value;
+
+    if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
         response = `
             Oligo Index: ` + oligoIndex + `<br>
             Genes: ` + dataPoint.gene.sort().toString() + `<br>
             Status: ` + dataPoint.status + `<br>
-            NHEJ: ` + dataPoint.percentages[focusGene].nhej + `<br>
-            WT: ` + dataPoint.percentages[focusGene].wt;
+            NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
+            WT: ` + dataPoint.percentages[focusExp].wt + " reads";
     } else { 
         response = `
             Oligo Index: ` + oligoIndex + `<br>
@@ -182,75 +187,78 @@ function twoDigits(n) {
     return n > 9 ? "" + n: "0" + n;
 }
 
-function buildGenes() {
+function buildExps() {
     var wells = json.summary;
     var nodes = d3.selectAll('td').nodes();
-    var dropdown = document.getElementById('geneSelect');
+    var dropdown = document.getElementById('expSelect');
 
     for (var i = 0; i < nodes.length; i++) {
         var wellData = wells[twoDigits(nodes[i].id)];
         if (wellData.status == 'Scanned-out') {
-            //d3.select(nodes[i]).style("stroke", "red")
-            //    .style("fill", "red");
-            //d3.select(nodes[i].nextSibling).style("fill","white");
+            d3.select(nodes[i].childNodes[0]).append("circle")
+                .attr("cx", 45).attr("cy", 45)
+                .attr("r", function(){ return Math.min(67,67)/2; })
+                .style("fill", 'ff001a')
+                .style("opacity", 0.5);
         }
-        for (var geneInt = 0; geneInt < wellData.gene.length; geneInt++) {
+        for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var nhejArc = $(node).find('.nhej');
             var wildArc = $(node).find('.wild');
-            d3.select(nhejArc[0]).classed(wellData.gene[geneInt], true);
-            d3.select(wildArc[0]).classed(wellData.gene[geneInt], true);
-            if (genes.includes(wellData.gene[geneInt]) == false) {
-                genes.push(wellData.gene[geneInt]);
-                var option = document.createElement("option");
-                option.text = wellData.gene[geneInt];
-                dropdown.add(option);
-            }
+            d3.select(nhejArc[0]).classed(wellData.experiments[expInt], true);
+            d3.select(wildArc[0]).classed(wellData.experiments[expInt], true);
+            //if (allExps.includes(wellData.experiments[expInt]) == false) {
+            //    allExps.push(wellData.experiments[expInt]);
+            //    var option = document.createElement("option");
+            //    option.text = wellData.experiments[expInt];
+            //   dropdown.add(option);
+            //}
         }
     }
 }
 
-geneSelect.onchange = function() {
+expSelect.onchange = function() {
     clearHighlight();
 
-    var selection = document.getElementById('geneSelect').value;
+    var selection = document.getElementById('expSelect').value;
     if (selection != 'All') {
         setTimeout(function() { d3.selectAll('.' + selection).filter(".wild").transition().duration(500).attrTween("d", arcTween(tau)); }, 250);
         setTimeout(function() { buildDonut(selection); }, 250);
     }
-    prevGene = selection;
+    prevExp = selection;
 }
 
-function buildDonut(gene) {
+function buildDonut(exp) {
     var wells = json.summary;
     
-    var nodes = d3.selectAll('.' + gene).filter(".nhej").nodes();
+    var nodes = d3.selectAll('.' + exp).filter(".nhej").nodes();
     for (var nodeIt = 0; nodeIt < nodes.length; nodeIt++) {
         var id = $(nodes[nodeIt]).closest("td")[0].id;
-        var values = wells[twoDigits(id)].percentages[gene];
-        var nhejTau = values.nhej / 100;
+        var values = wells[twoDigits(id)].percentages[exp];
+        var total = +values.nhej + +values.wt;
+        var nhejTau = (values.nhej / total);
         d3.select(nodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(nhejTau * tau));
     }
 }
 
 function clearHighlight() {
-    if (prevGene == "") {
+    if (prevExp == "") {
         d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0.0 * tau));
     } else {
-        d3.selectAll("." + prevGene).transition().duration(250).attrTween("d", arcTween(0.0 * tau));
+        d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau));
     }
     d3.selectAll(".svgTool").attr("data-original-title", function(){ return tooltip($(this)) });
-    buildGenes()
+    buildExps()
 }
 
 function arcTween(newAngle) {
-  return function(d) {
-    var interpolate = d3.interpolate(d.endAngle, newAngle);
-    return function(t) {
-      d.endAngle = interpolate(t);
-      return arc(d);
+    return function(d) {
+        var interpolate = d3.interpolate(d.endAngle, newAngle);
+        return function(t) {
+            d.endAngle = interpolate(t);
+            return arc(d);
+        };
     };
-  };
 }
 
 </script>

@@ -78,16 +78,17 @@ $DB::single=1;
         @exps = sort @exps;
         my @selection;
         my $percentages;
-        
+        my @found_exps;
+
         foreach my $exp (@exps) {
-            #Serves no purpose past dev. Used just for adding multiple genes to a well
+            #Serves no purpose past dev. Used just for adding multiple genes to a well. GET RID WHEN YOU HAVE REAL DATA FOR GENES
             my $point = ord($exp) - 65;
             push (@selection, $genes[$point]);
-            my $res = int(rand(3));
-            my $perc = $options->{$res}();
+            #my $res = int(rand(3));
+            #my $perc = $options->{$res}();
 
-            $percentages->{$genes[$point]}->{nhej} = @$perc[0];
-            $percentages->{$genes[$point]}->{wt} = @$perc[1];
+            #$percentages->{$genes[$point]}->{nhej} = @$perc[0];
+            #$percentages->{$genes[$point]}->{wt} = @$perc[1];
 
             #Actual NHEJ data
             my $quant = find_file($base, $i, $exp);
@@ -102,11 +103,13 @@ $DB::single=1;
 
                 $percentages->{$exp}->{nhej} = $wt[0];
                 $percentages->{$exp}->{wt} = $nhej[0];
+                push(@found_exps, $exp); #In case of missing data
             }
         }
         
         $wells->{sprintf("%02d", $i)} = {
             gene        => \@selection,
+            experiments => \@found_exps,
             barcode     => [$ug->create_str(), $ug->create_str()],
             status      => $status[int(rand(6))],
             percentages => $percentages,
