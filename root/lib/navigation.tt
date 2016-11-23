@@ -231,6 +231,11 @@
             <li>
               <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
             </li>
+
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/point_mutation' ) %]">Point Mutations</a>
+            </li>
             [% END %]
           </ul>
         </li>
