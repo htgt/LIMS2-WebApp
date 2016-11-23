@@ -98,6 +98,7 @@ var json = JSON.parse(data.replace(/&quot;/g,'"'));
 var allExps = [];
 var prevExp = "";
 
+//One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
 var tau = 2 * Math.PI;
 
 var width = 90,
@@ -154,7 +155,7 @@ d3.selectAll("g.node").append("svg:text").attr("class","nodetext").attr("dx","-0
 
 $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();   
-    buildExps();
+    buildExps(1);
 });
 
 function tooltip(node) {
@@ -187,14 +188,14 @@ function twoDigits(n) {
     return n > 9 ? "" + n: "0" + n;
 }
 
-function buildExps() {
+function buildExps(first) {
     var wells = json.summary;
     var nodes = d3.selectAll('td').nodes();
     var dropdown = document.getElementById('expSelect');
 
     for (var i = 0; i < nodes.length; i++) {
         var wellData = wells[twoDigits(nodes[i].id)];
-        if (wellData.status == 'Scanned-out') {
+        if (wellData.status == 'Scanned-out' && first != null) {
             d3.select(nodes[i].childNodes[0]).append("circle")
                 .attr("cx", 45).attr("cy", 45)
                 .attr("r", function(){ return Math.min(67,67)/2; })
@@ -207,12 +208,6 @@ function buildExps() {
             var wildArc = $(node).find('.wild');
             d3.select(nhejArc[0]).classed(wellData.experiments[expInt], true);
             d3.select(wildArc[0]).classed(wellData.experiments[expInt], true);
-            //if (allExps.includes(wellData.experiments[expInt]) == false) {
-            //    allExps.push(wellData.experiments[expInt]);
-            //    var option = document.createElement("option");
-            //    option.text = wellData.experiments[expInt];
-            //   dropdown.add(option);
-            //}
         }
     }
 }

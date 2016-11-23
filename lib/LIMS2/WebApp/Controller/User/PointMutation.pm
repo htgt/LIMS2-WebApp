@@ -51,16 +51,13 @@ sub generate_summary_data {
     my ( $c ) = @_;
 $DB::single=1;
 
+    #Used for testing data generation
     my @genes = ('FOXA1','BRCA1','SOX9','MSC6','DEC1','UNG','ITGA6','NF1');
     my @status = ('Freezer','Freezer','Freezer','Freezer','Scanned-out','Contaminated');
-    my $wells;
     my $ug = Data::UUID->new;
+    #End of
 
-    my $options = {
-        0 => sub { return [100,0]; },
-        1 => sub { return [0,100]; },
-        2 => sub { my $i = int(rand(100)); return [$i, 100 - $i]; },
-    };
+    my $wells;
 
     for (my $i = 1; $i < 97; $i++) {
         my $reg = "S" . $i . "_exp[ABCDEFGH]";
@@ -81,14 +78,9 @@ $DB::single=1;
         my @found_exps;
 
         foreach my $exp (@exps) {
-            #Serves no purpose past dev. Used just for adding multiple genes to a well. GET RID WHEN YOU HAVE REAL DATA FOR GENES
+            #Serves no purpose past dev. Used just for generating multiple genes for a well. GET RID WHEN YOU HAVE REAL DATA FOR GENES
             my $point = ord($exp) - 65;
             push (@selection, $genes[$point]);
-            #my $res = int(rand(3));
-            #my $perc = $options->{$res}();
-
-            #$percentages->{$genes[$point]}->{nhej} = @$perc[0];
-            #$percentages->{$genes[$point]}->{wt} = @$perc[1];
 
             #Actual NHEJ data
             my $quant = find_file($base, $i, $exp);
@@ -107,6 +99,7 @@ $DB::single=1;
             }
         }
         
+        #Genes, Barcodes and Status are randomly generated at the moment
         $wells->{sprintf("%02d", $i)} = {
             gene        => \@selection,
             experiments => \@found_exps,
