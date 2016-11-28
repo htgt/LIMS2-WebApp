@@ -489,8 +489,12 @@ sub write_well_fa_file{
     my $read_file = $work_dir->file("primer_reads.fa");
     my $reads_fh = $read_file->openw or die $!;
     my $reads_out = Bio::SeqIO->new( -fh => $reads_fh, -format => 'fasta' );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} );
+
+    $self->log->warn( "No forward primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{forward});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} ) unless (! $self->primer_reads->{ $well_name }->{forward});
+
+    $self->log->warn( "No reverse primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{reverse});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} ) unless (! $self->primer_reads->{ $well_name }->{reverse});
 
     return $read_file;
 }
