@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.435     2016-11-29 15:41:27 Europe/London
+
+    Added experiment ids to CRISPR plates
+
 0.434     2016-11-29 10:07:50 Europe/London
 
     Added barcode uploads to SFP and S_PIQ plates
