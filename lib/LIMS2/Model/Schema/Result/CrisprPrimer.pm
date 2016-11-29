@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.419';
+    $LIMS2::Model::Schema::Result::CrisprPrimer::VERSION = '0.433';
 }
 ## use critic
 
@@ -323,6 +323,10 @@ sub chr_id {
 
 sub chr_name {
     return shift->current_locus->chr->name;
+}
+
+sub chr_strand{
+    return shift->current_locus->chr_strand;
 }
 
 sub get_target{

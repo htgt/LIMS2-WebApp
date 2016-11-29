@@ -1,7 +1,7 @@
 package LIMS2::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::VERSION = '0.419';
+    $LIMS2::Report::VERSION = '0.433';
 }
 ## use critic
 
@@ -78,6 +78,7 @@ sub get_report_status {
 
 sub read_report_from_disk {
     my ( $report_id ) = @_;
+
     my $dir = $WORK_DIR->subdir( $report_id );
 
     my $report_fh   = $dir->file( 'report.csv' )->openr;

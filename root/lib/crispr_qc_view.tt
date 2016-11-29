@@ -92,7 +92,7 @@
                        class="update_crispr_es_qc_well"
                        data-crispr_well_id="[% row.es_qc_well_id %]"
                        data-crispr_data_type="accepted"
-                       [% row.well_accepted ? "checked='checked'" : "" %]
+                       [% row.qc_well_accepted ? "checked='checked'" : "" %]
                        [% IF row.damage_type == 'mosaic' || row.damage_type == 'no-call' %] disabled [% END %]
                 />
             [% ELSE %]

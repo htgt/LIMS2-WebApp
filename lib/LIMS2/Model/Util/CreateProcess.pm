@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.419';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.433';
 }
 ## use critic
 
@@ -171,11 +171,13 @@ my %process_check_well = (
     'paired_crispr_assembly' => \&_check_wells_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_check_wells_group_crispr_assembly,
     'crispr_ep'              => \&_check_wells_crispr_ep,
+    'crispr_sep'             => \&_check_wells_crispr_sep,
     'oligo_assembly'         => \&_check_wells_oligo_assembly,
     'cgap_qc'                => \&_check_wells_cgap_qc,
     'ms_qc'                  => \&_check_wells_ms_qc,
     'doubling'               => \&_check_wells_doubling,
     'vector_cloning'         => \&_check_wells_vector_cloning,
+    'golden_gate'            => \&_check_wells_golden_gate,
 );
 
 sub check_process_wells {
@@ -331,6 +333,16 @@ sub _check_wells_legacy_gateway {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_golden_gate {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_final_pick {
     my ( $model, $process ) = @_;
 
@@ -403,6 +415,17 @@ sub _check_wells_clone_pick {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'CRISPR_SEP'){
+        if($output_well->plate_type ne 'SEP_PICK'){
+            my $msg = 'clone_pick process with CRISPR_SEP input well must produce SEP_PICK output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
+    }
+
     return;
 }
 ## use critic
@@ -455,6 +478,17 @@ sub _check_wells_freeze {
 
     check_input_wells( $model, $process);
     check_output_wells( $model, $process);
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'SEP_PICK'){
+        if($output_well->plate_type ne 'SFP'){
+            my $msg = 'freeze process with SEP_PICK input well must produce SFP output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
+    }
+
     return;
 }
 ## use critic
@@ -539,6 +573,16 @@ sub _check_wells_dist_qc {
         #       '; one FP well cannot be used to make more than one PIQ well' . "\n"
         #     );
         # }
+    }
+
+    my ($input_well) = $process->input_wells;
+    my ($output_well) = $process->output_wells;
+    if($input_well->plate_type eq 'SFP'){
+        if($output_well->plate_type ne 'S_PIQ'){
+            my $msg = 'dist_qc process with SFP input well must produce S_PIQ output well, not '
+                      .$output_well->plate_type;
+            LIMS2::Exception::Validation->throw($msg);
+        }
     }
 
     check_output_wells( $model, $process);
@@ -710,6 +754,28 @@ sub _check_wells_crispr_ep {
 ## use critic
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_crispr_sep {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+
+    #two input wells, one must be PIQ, other ASSEMBLY
+    my @input_well_types = map{ $_->plate_type } $process->input_wells;
+
+    if ( ( none { $_ eq 'PIQ' } @input_well_types ) || ( none { $_ eq 'ASSEMBLY' } @input_well_types ) ) {
+        LIMS2::Exception::Validation->throw(
+            'crispr_sep (second electroporation) processes require two input wells, one of type PIQ '
+            . 'and the other of type ASSEMBLY'
+            . ' (got ' . join( ',', @input_well_types ) . ')'
+        );
+    }
+
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_oligo_assembly {
     my ( $model, $process ) = @_;
 
@@ -806,11 +872,13 @@ my %process_aux_data = (
     'paired_crispr_assembly' => \&_create_process_aux_data_paired_crispr_assembly,
     'group_crispr_assembly'  => \&_create_process_aux_data_group_crispr_assembly,
     'crispr_ep'              => \&_create_process_aux_data_crispr_ep,
+    'crispr_sep'             => \&_create_process_aux_data_crispr_sep,
     'oligo_assembly'         => \&_create_process_aux_data_oligo_assembly,
     'cgap_qc'                => \&_create_process_aux_data_cgap_qc,
     'ms_qc'                  => \&_create_process_aux_data_ms_qc,
     'doubling'               => \&_create_process_aux_data_doubling,
     'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
+    'golden_gate'            => \&_create_process_aux_data_golden_gate,
 );
 
 sub create_process_aux_data {
@@ -1068,6 +1136,34 @@ sub pspec__create_process_aux_data_legacy_gateway {
     };
 }
 
+sub pspec__create_process_aux_data_golden_gate {
+    return {
+        cassette    => { validate => 'existing_final_cassette' },
+        backbone    => { validate => 'existing_backbone' },
+        recombinase => { optional => 1 },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_golden_gate {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_golden_gate );
+
+    $process->create_related( process_cassette => { cassette_id => _cassette_id_for( $model, $validated_params->{cassette} ) } );
+    $process->create_related( process_backbone => { backbone_id => _backbone_id_for( $model, $validated_params->{backbone} ) } );
+
+    if ( $validated_params->{recombinase} ) {
+        create_process_aux_data_recombinase(
+            $model,
+            { recombinase => $validated_params->{recombinase} }, $process );
+    }
+
+    return;
+}
+## use critic
+
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 # legacy_gateway is like a gateway process but goes from INT to FINAL_PICK
 # also it can have eith cassette or backbone, or both
@@ -1317,7 +1413,29 @@ sub _create_process_aux_data_crispr_ep {
     return;
 }
 ## use critic
-#
+
+sub pspec__create_process_aux_data_crispr_sep {
+    return {
+        nuclease     => { validate => 'existing_nuclease' },
+    };
+}
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_crispr_sep {
+    my ($model, $params, $process) = @_;
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_crispr_sep, ignore_unknown => 1 );
+
+    $process->create_related(
+        process_nuclease => {
+            nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} )
+        }
+    );
+
+    return;
+}
+## use critic
+
 sub pspec__create_process_aux_data_oligo_assembly {
     return {
         crispr_tracker_rna => { validate => 'existing_crispr_tracker_rna' },

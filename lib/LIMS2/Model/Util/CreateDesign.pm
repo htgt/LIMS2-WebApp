@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.419';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.433';
 }
 ## use critic
 
@@ -168,6 +168,7 @@ sub designs_for_exons {
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
                     design_type_id  => 'fusion-deletion',
+                    design_type_id  => 'conditional-inversion',
                 ],
             ],
         },

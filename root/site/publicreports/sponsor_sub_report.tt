@@ -3,8 +3,10 @@
 document.title = "[%- sponsor_id %]";
 </SCRIPT>
 
+
 <span style="float:right">
   <a id='expand' type='button' class='btn btn-info btn-sm' onclick=displayAll();><i class="glyphicon glyphicon-resize-small"></i><b> Collapse all</b></a>
+
   [%- IF type == 'full' %]
   <a id='type_simple' type='button' class='btn btn-info btn-sm'
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
@@ -22,25 +24,10 @@ document.title = "[%- sponsor_id %]";
     }
   ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
   [%- END %]
-  [% IF c.user %]
   <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
   href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
     {
-        csv => 1, user => 1,
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        xlsx => 1, user => 1,
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
-
-  [% ELSE %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        csv => 1,
+        csv => 1
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
@@ -49,7 +36,6 @@ document.title = "[%- sponsor_id %]";
         xlsx => 1
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
-  [% END %] 
 </span>
 </span>
 <div class="page-header">
@@ -131,7 +117,7 @@ document.title = "[%- sponsor_id %]";
               [%- END %]
             [%- END %]
         [%- ELSIF col == 'recovery_class' %]
-            [%- IF c.user %]   <!-- PCR passing is hidden from public users -->
+            [%- IF c.user %]
               [%- IF row.item('fs_count') && row.item('effort_concluded') %]
                 <td style="background:#8AD95A;white-space:nowrap">[%- colval %]</td>
               [%- ELSIF row.item('effort_concluded') %]
@@ -209,15 +195,9 @@ document.title = "[%- sponsor_id %]";
                   %]
           <td style="background:#E5E4E2">[%- colval %]</td>
         [%- ELSIF col == 'electroporations' %]
-          <td style="background:#E5E4E2">
-              [%- IF row.item('electroporations') %]
-                <a onclick="displayRow('[%- row.item('gene_symbol') %]')">[%- colval %]</a>
-              [%- ELSE %]
-                [%- colval %]
-              [%- END %]
-              </td>
+          <td style="background:#E5E4E2">[%- colval %]</td>
         [%- ELSIF col == "DNA_source_cell_line"
-               || col == "EP_cell_line" 
+               || col == "EP_cell_line"
                || col == "experiment_ID" %]
             <td><a onclick="displayRow('[%- row.item('gene_symbol') %]')"><span class="exp [% row.item('gene_symbol') %] glyphicon glyphicon-minus"></span></a></td>
         [%- ELSIF col == "ep_data" %]
@@ -227,7 +207,7 @@ document.title = "[%- sponsor_id %]";
           <tbody id="[%- row.item('gene_symbol') %]" class="gene_row" style="display:none">
                 [%- FOREACH ep_data IN row.item('ep_data') %]
                   [% FOREACH vector_dna IN ep_data.item('dna_template') %]
-                    <tr>
+                    <tr class="sub_info">
                       <td>[%- row.item('gene_id') %]</td>
                       <td>[%- row.item('gene_symbol') %]</td>
                       <td>[%- row.item('chromosome') %]</td>
@@ -235,11 +215,11 @@ document.title = "[%- sponsor_id %]";
                       <td></td>
                       <td></td>
                       <td></td>
-                      [%- IF c.user %]    <!-- PCR passing is hidden from public users -->
-                        <td></td>
-                      [% END %]
                       <td></td>
                       <td></td>
+                    [%- IF c.user %]
+                      <td></td>
+                    [%- END %]
                       <td>[%- vector_dna %]</td>
                       <td>[%- ep_data.item('cell_line') %]</td>
                       <td>
@@ -256,10 +236,10 @@ document.title = "[%- sponsor_id %]";
                       <td>[%- ep_data.item('mosaic') %]</td>
                       <td>[%- ep_data.item('no-call') %]</td>
                       <td>[%- ep_data.item('het') %]</td>
+                      <td></td>
+                      <td></td>
                     [%- IF c.user %]
-                      <td colspan=3></td>
-                    [%- ELSE %]
-                      <td colspan=2></td>
+                      <td></td>
                     [%- END %]
                     </tr>
 
@@ -286,18 +266,9 @@ document.title = "[%- sponsor_id %]";
 
 <script type="text/javascript">
 $(document).ready(function() {
-
-    var simple = '[% type %]';
-    if (simple != 'simple') {
-        $('.gene_row').each(function(ele) {
-            $('.gene_row')[ele].style.display = '';
-        });
-    } else {
-        $('.gene_row').each(function(ele) {
-            $('.gene_row')[ele].style.display = 'none';
-        });
-        $('#expand').html("<i class='glyphicon glyphicon-resize-full'></i><b> Expand all</b></a>");
-    }
+    $('.gene_row').each(function(ele) {
+        $('.gene_row')[ele].style.display = '';
+    });
 });
 
 function displayAll() {
@@ -314,7 +285,7 @@ function displayAll() {
         rows[row].style.display = state;
     }
     $('.exp').each(function() {
-        if (state == 'none') { 
+        if (state == 'none') {
             $(this).removeClass("glyphicon-minus").addClass("glyphicon-plus");
         } else {
             $(this).removeClass("glyphicon-plus").addClass("glyphicon-minus");

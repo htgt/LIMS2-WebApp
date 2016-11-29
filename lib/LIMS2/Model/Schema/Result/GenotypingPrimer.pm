@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::GenotypingPrimer;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.419';
+    $LIMS2::Model::Schema::Result::GenotypingPrimer::VERSION = '0.433';
 }
 ## use critic
 
@@ -200,11 +200,7 @@ __PACKAGE__->has_many(
 sub as_hash {
     my $self = shift;
 
-    my $locus;
-    if ( my $default_assembly = $self->design->species->default_assembly ) {
-        $locus = $self->search_related( 'genotyping_primer_loci',
-            { assembly_id => $default_assembly->assembly_id } )->first;
-    }
+    my $locus = $self->current_locus;
 
     return {
         id      => $self->id,
@@ -228,5 +224,14 @@ sub primer_seq{
     return shift->seq;
 }
 
+sub current_locus{
+    my $self = shift;
+    my $locus;
+    if ( my $default_assembly = $self->design->species->default_assembly ) {
+        $locus = $self->search_related( 'genotyping_primer_loci',
+            { assembly_id => $default_assembly->assembly_id } )->first;
+    }
+    return $locus;
+}
 __PACKAGE__->meta->make_immutable;
 1;

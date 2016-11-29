@@ -1,7 +1,7 @@
 package LIMS2::Report::SFPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SFPPlate::VERSION = '0.419';
+    $LIMS2::Report::SFPPlate::VERSION = '0.433';
 }
 ## use critic
 
@@ -10,6 +10,14 @@ use Moose;
 use namespace::autoclean;
 
 extends qw( LIMS2::ReportGenerator::Plate::DoubleTargeted );
+
+sub BUILD{
+    my $self = shift;
+    $self->show_cassette_info(0);
+    $self->show_recombinase_info(0);
+    $self->show_crispr_info(0);
+    return;
+}
 
 override plate_types => sub {
     return [ 'SFP' ];
@@ -27,31 +35,23 @@ override _build_columns => sub {
 
     return [
         $self->base_columns,
-        'Parent Well',
+        'Barcode',
     ];
 };
 
 override iterator => sub {
     my $self = shift;
 
-
-    my $wells_rs = $self->plate->search_related(
-        wells => {},
-        {
-            prefetch => [
-                'well_accepted_override', 'well_qc_sequencing_result'
-            ],
-            order_by => { -asc => 'me.name' }
-        }
-    );
+    $self->prefetch_well_ancestors;
+    my @wells = $self->plate->wells;
 
     return Iterator::Simple::iter sub {
-        my $well = $wells_rs->next
+        my $well = shift @wells
             or return;
 
         return [
             $self->base_data( $well ),
-            $well->get_input_wells_as_string,
+            $well->barcode,
         ];
     };
 };

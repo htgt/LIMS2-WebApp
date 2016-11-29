@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.419';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.433';
 }
 ## use critic
 
@@ -121,6 +121,12 @@ has species => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
+);
+
+has allele_number => (
+    is       => 'ro',
+    isa      => 'Int',
+    required => 0,
 );
 
 has assembly => (
@@ -259,6 +265,10 @@ sub _build_qc_run {
         sub_project        => $self->sub_seq_project,
     };
 
+    if($self->allele_number){
+        $qc_run_data->{allele_number} = $self->allele_number;
+    }
+
     my $qc_run;
     $self->model->txn_do(
         sub {
@@ -344,7 +354,21 @@ sub analyse_plate {
     for my $well ( $self->plate->wells->all ) {
         next if $self->well_name && $well->name ne $self->well_name;
 
-        my $qc_data = $self->analyse_well( $well );
+        # Retrieve the well ancestor that is specific to the allele we want to QC
+        my $allele_well;
+        if($self->allele_number){
+            if($self->allele_number == 1){
+                $allele_well = $well->first_allele;
+            }
+            elsif($self->allele_number == 2){
+                $allele_well = $well->second_allele;
+            }
+            else{
+                die "Sorry, allele number ".$self->allele_number." QC not yet supported";
+            }
+        }
+
+        my $qc_data = $self->analyse_well( $well, $allele_well );
 
         #make analysis_data a json string
         if ( $qc_data ) {
@@ -400,14 +424,17 @@ Analyse a well on the plate.
 
 =cut
 sub analyse_well {
-    my ( $self, $well ) = @_;
+    my ( $self, $well, $allele_well ) = @_;
     $self->log->info( "Analysing well $well" );
 
     my $work_dir = $self->base_dir->subdir( $well->as_string );
     $work_dir->mkpath;
 
-    my $crispr = $well->crispr_entity;
-    my $design = $well->design;
+    $allele_well ||= $well;
+
+    $self->log->info( "Getting design and crispr for well $allele_well");
+    my $crispr = $allele_well->crispr_entity;
+    my $design = $allele_well->design;
 
     my ( $analyser, %analysis_data, $well_reads );
     if ( !$crispr ) {
@@ -468,8 +495,12 @@ sub write_well_fa_file{
     my $read_file = $work_dir->file("primer_reads.fa");
     my $reads_fh = $read_file->openw or die $!;
     my $reads_out = Bio::SeqIO->new( -fh => $reads_fh, -format => 'fasta' );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} );
+
+    $self->log->warn( "No forward primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{forward});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} ) unless (! $self->primer_reads->{ $well_name }->{forward});
+
+    $self->log->warn( "No reverse primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{reverse});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} ) unless (! $self->primer_reads->{ $well_name }->{reverse});
 
     return $read_file;
 }
@@ -577,6 +608,18 @@ sub fix_no_header_sam{
         # Only use the alignment with the highest score for each read
         # Score is in col 12 (index 11), format AS:i:468
         my $read_name = $value_array->[0];
+        my $flag = $value_array->[1];
+
+        # But first exclude reads not in the right orientation for the primer
+        if($flag == 16){
+            my $rev_primer = $self->reverse_primer_name;
+            next unless $read_name =~ /$rev_primer/;
+        }
+        elsif($flag == 0){
+            my $fwd_primer = $self->forward_primer_name;
+            next unless $read_name =~ /$fwd_primer/;
+        }
+
         my $score_string = $value_array->[11];
         my $score = (split ":", $score_string)[2];
         if(exists $sam_values_unique->{$read_name}){

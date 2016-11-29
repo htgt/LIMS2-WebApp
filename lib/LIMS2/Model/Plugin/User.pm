@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.419';
+    $LIMS2::Model::Plugin::User::VERSION = '0.433';
 }
 ## use critic
 
@@ -15,7 +15,9 @@ use Const::Fast;
 use Crypt::SaltedHash;
 use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
-
+use Digest::SHA;
+use Crypt::PBKDF2;
+use Try::Tiny;
 
 requires qw( schema check_params throw retrieve );
 
@@ -261,6 +263,7 @@ sub pspec_change_user_password {
     };
 }
 
+
 sub change_user_password {
     my ( $self, $params ) = @_;
 
@@ -275,6 +278,37 @@ sub change_user_password {
     $csh->add( $validated_params->{new_password} );
 
     $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+sub pspec_create_api_key {
+    return {
+        id          => { validate => 'integer' },
+        access_key  => { validate => 'uuid' },
+        secret_key  => { validate => 'uuid' },
+    };
+}
+
+sub create_api_key {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_api_key );
+
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+    my $pbk = Crypt::PBKDF2->new(
+        hash_class => 'HMACSHA3',
+        iterations => 1000,
+        output_len => 20,
+        salt_len => 4,
+    );
+
+    $user->update(
+        {
+            access_key => $validated_params->{access_key},
+            secret_key => $pbk->generate($validated_params->{secret_key}),
+        }
+    );
 
     return $user;
 }

@@ -1,6 +1,6 @@
 [% META title = "PIQ Well Freeze Back", tab_name = 'Barcodes' -%]
 
-[% number_of_subclones = 3 %]
+[% number_of_subclones = 4 %]
 
 <h1>PIQ Well Freeze Back</h1>
 [% barcode_state_error = (well_details.barcode_state != 'doubling_in_progress') %]

@@ -1,3 +1,51 @@
+0.433     2016-11-28 17:04:15 Europe/London
+
+    Crispr QC allowed to continue when primer sequence reads are missing
+
+0.432     2016-11-03 11:30:57 Europe/London
+
+    bugfix viewplate without INT ancestors
+    bugfix crispr es qc well validation
+
+0.431     2016-11-01 10:43:54 Europe/London
+    Fixed user roles
+0.430     2016-10-27 12:17:09 Europe/London
+    Storable incompat
+0.429     2016-10-26 15:43:54 Europe/London
+
+0.426     2016-10-26 14:59:51 Europe/London
+    Moved REST authentication to API keys
+0.428     2016-10-26 12:38:02 Europe/London
+
+    Added new process type golden-gate related to conditional-inversion designs
+
+0.427     2016-10-24 15:06:07 Europe/London
+
+    Front page cached reports columns fix
+
+0.426     2016-10-11 13:43:27 Europe/London
+
+    vector generation for conditional-inversion allowed
+
+0.423     2016-10-11 12:31:54 Europe/London
+
+0.425     2016-10-05 15:29:37 Europe/London
+    Conditional-Inversion LIMS2 changes
+0.424     2016-09-21 12:42:40 Europe/London
+    Bugfix - dramtically reduced JS testing time
+0.423     2016-09-14 15:30:54 Europe/London
+    Added dzil release options script
+0.422     2016-09-08 15:03:12 Europe/London
+
+   Bugfix to CRISPR_SEP plate upload
+
+0.421     2016-09-08 11:10:00 Europe/London
+
+   Support added for crispr second electroporation (double gene targeting)
+
+0.420     2016-09-05 16:11:49 Europe/London
+
+    Added JS tests
 0.419     2016-08-23 15:19:33 Europe/London
 
     bugfix on well genotyping info

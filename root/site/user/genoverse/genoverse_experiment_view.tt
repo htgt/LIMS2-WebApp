@@ -1,0 +1,100 @@
+[% META title="Genoverse Gene Browser"; META tab_name = '' %]
+<div class="page-header">
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- context.design_id %]";
+</SCRIPT>
+  <small><h1>
+  Experiment: [%- context.id -%]
+  chr: [%- extent.chr_name -%]
+  assembly: [%- extent.assembly -%]
+  </small>
+  </h1>
+</div>
+
+
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 2} )%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 5})%]"></script>
+    <script>
+      var genoverseConfig = {
+        container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+        // If no genome supplied, it must have at least chromosomeSize, e.g.:
+        // chromosomeSize : 249250621, // chromosome 1, human
+        width: $( document ).width(),
+        [% USE String(extent.assembly) %]
+        genome    : '[% String.lower() %]', // see js/genomes/
+        chr       : '[% extent.chr_name %]',
+        start     : [% extent.chr_start %] - 2000,  // 2Kb context
+        end       : [% extent.chr_end %] + 2000,
+        plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+        tracks    : [
+          Genoverse.Track.Scalebar,
+          Genoverse.Track.SequenceSelect.extend({
+            name      : 'Sequence',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            [% ELSE  %]
+            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            [% END %]
+            resizable : 'auto',
+            100000    : false
+          }),
+          Genoverse.Track.DesignsLIMS2.extend({
+            name      : 'Experiment [% context.id %]',
+            url       : "[% c.uri_for('/api/single_experiment_track/', { id => context.id })%]",
+            resizable : 'auto',
+            height    : 150,
+            design_report_uri : "[%  c.uri_for('/user/view_design') %]",
+            drawFeature: function(transcript, featureContext, labelContext, scale) {
+              this.base(transcript, featureContext, labelContext, scale);
+              addExonArrows(transcript, featureContext, labelContext, scale);
+            },
+            populateMenu: function(f){
+              // get up to date feature object
+              var feature = this.track.model.featuresById[f.id] || f;
+
+              var atts;
+
+              if(feature.oligo_name){
+                atts = {
+                  Name  : (feature.oligo_name + this.track.name_suffix),
+                  'Oligo Start' : feature.start,
+                  'Oligo End'   : feature.end,
+                  Strand : feature.strand,
+                  Design: feature.name,
+
+                };
+              }
+              else{
+                atts = {
+                  Name : feature.name,
+                  Type : feature.type,
+                  Start : feature.start,
+                  End : feature.end,
+
+                };
+              }
+
+              return atts;
+            }
+          }),
+          Genoverse.Track.Genes.extend({
+            name   : 'Genes',
+            [% IF c.session.selected_species == 'Mouse' %]
+            url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% ELSE %]
+            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            [% END %]
+            height : 200
+          })
+        ]
+      };
+
+      document.addEventListener('DOMContentLoaded', function () {
+        window.genoverse = new Genoverse(genoverseConfig);
+        // From WebApp-Common/shared_static
+        [% INCLUDE 'genoverse_mods/selector_size_display.tt' %]
+      });
+    </script>
+
+    <div id="genoverse"></div>
