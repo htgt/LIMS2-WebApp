@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.433     2016-11-28 17:04:15 Europe/London
+
+    Crispr QC allowed to continue when primer sequence reads are missing
+
 0.432     2016-11-03 11:30:57 Europe/London
 
     bugfix viewplate without INT ancestors
