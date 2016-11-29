@@ -1,7 +1,7 @@
 package LIMS2::Report::SPIQPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SPIQPlate::VERSION = '0.433';
+    $LIMS2::Report::SPIQPlate::VERSION = '0.434';
 }
 ## use critic
 

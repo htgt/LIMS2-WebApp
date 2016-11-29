@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::ColonyCounts;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::ColonyCounts::VERSION = '0.433';
+    $LIMS2::ReportGenerator::ColonyCounts::VERSION = '0.434';
 }
 ## use critic
 
