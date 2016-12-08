@@ -1163,19 +1163,21 @@ sub _well_display_details{
 
     $well_details->{is_double_targeted} = $well->is_double_targeted;
 
-    foreach my $design_id ( map { $_->id } $well->designs ){
-        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-            design_id => $design_id,
-        });
+    try {
+        foreach my $design_id ( map { $_->id } $well->designs ){
+            my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+                design_id => $design_id,
+            });
 
-        my $design = {
-            design_id   => $design_id,
-            gene_id     => $gene_ids->[0],
-            gene_symbol => $gene_symbols->[0],
-        };
+            my $design = {
+                design_id   => $design_id,
+                gene_id     => $gene_ids->[0],
+                gene_symbol => $gene_symbols->[0],
+            };
 
-        push @{ $well_details->{designs} }, $design;
-    }
+            push @{ $well_details->{designs} }, $design;
+        }
+    };
 
     return $well_details;
 }
