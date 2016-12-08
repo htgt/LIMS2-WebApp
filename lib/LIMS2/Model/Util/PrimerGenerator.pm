@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.435';
+    $LIMS2::Model::Util::PrimerGenerator::VERSION = '0.436';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.435';
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.436';
 }
 ## use critic
 
@@ -1167,14 +1167,23 @@ sub _well_display_details{
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
     }
 
-    if($well->design){
-        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-            design_id => $well->design->id,
-        });
+    $well_details->{is_double_targeted} = $well->is_double_targeted;
 
-        $well_details->{design_gene_symbol} = $gene_symbols->[0];
-    }
+    try {
+        foreach my $design_id ( map { $_->id } $well->designs ){
+            my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+                design_id => $design_id,
+            });
 
+            my $design = {
+                design_id   => $design_id,
+                gene_id     => $gene_ids->[0],
+                gene_symbol => $gene_symbols->[0],
+            };
+
+            push @{ $well_details->{designs} }, $design;
+        }
+    };
 
     return $well_details;
 }
