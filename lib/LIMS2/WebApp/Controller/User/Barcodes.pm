@@ -210,7 +210,7 @@ sub get_barcode_information : Path('/user/get_barcode_information/') : Args(1){
 
 sub scan_barcode : Path( '/user/scan_barcode' ) : Args(0){
     my ($self, $c) = @_;
-print "!!!!!! scan_barcode\n";
+
     $c->assert_user_roles( 'read' );
 
     # User Scans a barcode
@@ -230,15 +230,13 @@ print "!!!!!! scan_barcode\n";
                 barcode => $bc,
             });
         };
-print "!!!!!! got well\n";
+
         unless($well){
             $c->stash->{error_msg} = "Barcode $bc not found";
             return;
         }
 
         my $well_details = $self->_well_display_details($c, $well);
-
-print "!!!!!! got well_details\n";
 
         $c->stash->{well_details} = $well_details;
         $c->stash->{can_edit} = $c->check_user_roles( 'edit' );
@@ -1163,7 +1161,7 @@ sub _well_display_details{
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
     }
 
-   $well_details->{is_double_targeted} = $well->is_double_targeted;
+    $well_details->{is_double_targeted} = $well->is_double_targeted;
 
     foreach my $design_id ( map { $_->id } $well->designs ){
         my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
