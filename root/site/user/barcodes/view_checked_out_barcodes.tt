@@ -19,18 +19,23 @@
 <tr>
   <td>[% bc.checkout_date %]</td>
   <td>[% bc.checkout_user %]</td>
-  <td>[% bc.design_gene_id %]</td>
-  <td>[% bc.design_gene_symbol %]</td>
+[% IF !bc.is_double_targeted %]
+  <td>[% bc.designs.0.gene_id %]</td>
+  <td>[% bc.designs.0.gene_symbol %]</td>
+[% ELSIF bc.is_double_targeted %]
+   <td> <item class="first_gene_report_col">[% bc.designs.0.gene_id %]</item> <br /> <item class="second_gene_report_col">[% bc.designs.1.gene_id %]</item> </td>
+   <td> <item class="first_gene_report_col">[% bc.designs.0.gene_symbol %]</item> <br /> <item class="second_gene_report_col">[% bc.designs.1.gene_symbol %]</item> </td>
+[% END %]
   <td>[% bc.parent_epd %]</td>
   <td>[% bc.last_known_location %]</td>
   <td>[% bc.barcode %]</td>
   <td>[% bc.lab_number %]</td>
   <td>
-  [% IF plate_type == 'FP' %]
-    <a href="[% c.uri_for('/user/freeze_back', barcode => bc.barcode, freeze_back_type => 'FP' ) %]" class="btn btn-primary">
+  [% IF (plate_type == 'FP' || plate_type == 'SFP' || plate_type == 'Freeze') %]
+    <a href="[% c.uri_for('/user/freeze_back', barcode => bc.barcode, freeze_back_type => bc.plate_type ) %]" class="btn btn-primary">
     Freeze Back
     </a>
-  [% ELSIF plate_type == 'PIQ' %]
+  [% ELSIF (plate_type == 'PIQ' || plate_type == 'S_PIQ') %]
     <a  href="[% c.uri_for('/user/piq_send_out', barcode => bc.barcode ) %]" class="btn btn-primary">
     Send Out
     </a>
@@ -43,7 +48,7 @@
   <td>
   	<form class="form-inline" method="POST" action="[% c.uri_for( '/user/discard_barcode' ) %]">
   	  <input type="hidden" name="barcode" value="[% bc.barcode %]">
-  	  <input type="hidden" name="plate_type" value="[% plate_type %]">
+  	  <input type="hidden" name="plate_type" value="[% bc.plate_type %]">
       <div class="col-md-2" id="div_[% bc.barcode %]">
           <select class="form-control" name="reason" id="reason_[% bc.barcode %]">
             <option value="" disabled selected>select discard reason</option>
