@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.437     2016-12-14 15:03:15 Europe/London
+
+    SFP well support to view_checked_out_barcodes
+
 0.436     2016-12-08 13:17:16 Europe/London
 
     Added barcode view support for double targeted wells
