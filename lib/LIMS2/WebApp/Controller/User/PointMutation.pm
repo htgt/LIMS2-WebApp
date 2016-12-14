@@ -49,7 +49,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
 sub generate_summary_data { 
     my ( $c ) = @_;
-$DB::single=1;
 
     #Used for testing data generation
     my @genes = ('FOXA1','BRCA1','SOX9','MSC6','DEC1','UNG','ITGA6','NF1');
@@ -83,7 +82,9 @@ $DB::single=1;
             push (@selection, $genes[$point]);
 
             #Actual NHEJ data
+
             my $quant = find_file($base, $i, $exp);
+
             if ($quant) {
                 my $fh;
                 open ($fh, $quant) or die "$!";
@@ -92,9 +93,14 @@ $DB::single=1;
                 
                 my @wt = ($lines[1] =~ qr/^,- Unmodified:(\d+)/);
                 my @nhej = ($lines[2] =~ qr/^,- NHEJ:(\d+)/);
+                my @hdr = ($lines[3] =~ qr/^,- HDR:(\d+)/);
+                my @mixed = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/);
 
-                $percentages->{$exp}->{nhej} = $wt[0];
-                $percentages->{$exp}->{wt} = $nhej[0];
+                $percentages->{$exp}->{nhej} = $nhej[0];
+                $percentages->{$exp}->{wt} = $wt[0];
+                $percentages->{$exp}->{hdr} = $hdr[0];
+                $percentages->{$exp}->{mix} = $mixed[0];
+
                 push(@found_exps, $exp); #In case of missing data
             }
         }
@@ -114,23 +120,32 @@ $DB::single=1;
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
     my $index = $c->req->param('oligoIndex');
-
+    my $exp_sel = $c->req->param('exp');
+$DB::single=1;
     my $reg = "S" . $index . "_exp[ABCDEFGH]";
     my $base = $ENV{LIMS2_RNA_SEQ};
     my @files = find_children($base, $reg);
     my @exps;
 
+    my $well_name;
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-H])/g);
         foreach my $match (@matches) {
             push (@exps,$match);
         }
+        my $path = $base . $file;
+        my $fh;
+        opendir $fh, $path; 
+        $well_name = find_folder($path, $fh);
+        closedir $fh;
     }
     @exps = sort @exps;
     
     $c->stash(
         oligo_index => $index,
+        selection   => $exp_sel,
         experiments => \@exps,
+        well_name   => $well_name,
         indel       => '1b.Indel_size_distribution_percentage.png',
     );
     
@@ -155,6 +170,21 @@ sub find_file {
     find($wanted, $dir);
 
     return @$nhej_files[0];
+}
+
+sub find_folder {
+    my ($path, $fh) = @_;
+    
+    my $res;
+    while ( my $entry = readdir $fh ) {
+        next unless -d $path . '/' . $entry;
+        next if $entry eq '.' or $entry eq '..';
+        my @matches = ($entry =~ /CRISPResso_on_Homo-sapiens_(\S*$)/g); #Max 1
+
+        $res = $matches[0];
+    }
+
+    return $res;
 }
 
 sub _wanted {

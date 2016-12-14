@@ -1,8 +1,10 @@
 [%- META title = 'Point Mutation Alleles' %]
 <style>
-
+body { 
+    padding-bottom: 65px; 
+}
 .lb-md {
-  font-size: 22px;
+    font-size: 22px;
 }
 
 .images {
@@ -10,12 +12,131 @@
     max-height: 60%;
 }
 
+.details {
+    margin-left: 0 auto;
+}
+
+.baseA {
+    background-color: #63aa5a;
+    color: white;
+}
+
+.baseC {
+    background-color: #e4ed6d;
+    color: black;
+}
+
+.baseT {
+    background-color: #45719b;
+    color: white;
+}
+
+.baseG {
+    background-color: #e88d1e;
+    color: black;
+}
+
+.base- {
+    background-color: #cc1019;
+    color: white;
+}
+
+.sequence {
+    width: 400px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+}
+
+ /* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
 </style>
-<div class="page-header">
-  <h1>Point Mutation Alleles - [% oligo_index %]</h1>
+
+<div class="page-header row">
+    <div class="col-md-8">
+        <h1>Point Mutation Alleles - [% oligo_index %]</h1>
+    </div>    
+    <div class="col-md-4" align="right">
+        <div class="col-md-7">
+            <label class="lb-md">Display Colours: </label>
+        </div>
+        <div class="col-md-4">
+            <label class="switch">
+                <input type="checkbox">
+                <div class="slider round"></div>
+            </label>    
+        </div>
+    </div>
 </div>
 
 <div class="row">
+    <div class="col-md-3">
+        <button class="btn btn-primary" onclick="overview();">
+            <i class="glyphicon glyphicon-arrow-left"></i> Back to Overview 
+        </button>
+    </div>
+</div>
+
+<br>
+
+<div class="clearfix row">
     <div class="col-md-2">
         <label class="lb-md">Classification: </label>
     </div>
@@ -29,14 +150,50 @@
             <option value="Mixed">Mixed</option>
         </select>
     </div>
-</div>
-<div>
 
-[% FOREACH exp IN experiments %]
-    <h2>Experiment: [% exp %]</h2>
-    <div class='genes [% exp %]'></div>
-    <button type="button" class="btn btn-primary" onclick="displayIndels([% exp %])">Allele Frequency - [% exp %]</button>
-    <div id='[% exp %]'></div>
+</div>
+<br>
+<div class="row">
+    <div class="col-md-6">
+        <table class="details table table-striped">
+            <tr>
+                <td>Illumina Index</td>
+                <td>[% oligo_index %]</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Well Barcode</td>
+                <td>[% well_name %]</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Barcode</td>
+                <td id="barcode">This is a barcode</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td id="statusContainer">Freezer</td>
+                <td><button class="btn btn-info">Change Status <i class="glyphicon glyphicon-pencil"></i></button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+[% IF selection %]
+    <div class="row">
+        <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
+    </div>
+    <h2>Experiment: [% selection %]</h2>
+    <div class='genes [% selection %]'></div>
+    <button type="button" class="allele btn btn-primary" onclick="displayIndels([% selection %])">Allele Frequency - [% selection %]  <i class="glyphicon glyphicon-chevron-down"></i></button>
+    <div id='[% selection %]'></div>
+[% ELSE %]
+    [% FOREACH experiment IN experiments %]
+        <h2>Experiment: [% experiment %]</h2>
+        <div class='genes [% experiment %]'></div>
+        <button type="button" class="allele btn btn-primary" onclick="displayIndels([% experiment %])">Allele Frequency - [% experiment %]  <i class="glyphicon glyphicon-chevron-down"></i></button>
+        <div id='[% experiment %]'></div>
+    [% END %]
 [% END %]
 
 <script type="text/javascript" charset="utf-8">
@@ -56,6 +213,10 @@ $(document).ready(function() {
         getImages(exps[expIndex], '[% indel %]');
         //getSummary(exps[expIndex]);
     }
+});
+
+$('.allele').click(function(){
+    $(this).find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
 });
 
 var test;
@@ -96,6 +257,10 @@ function getImages(letter, chart, div) {
             } else {
                 $('#' + div).html('<img src="data:image/png;base64,' + result + '"/>');
             }
+        },
+        error: function() {
+            console.log('Failure to receive indel size distribution graph for ' + letter);
+            $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
         }
     });
 }
@@ -115,6 +280,9 @@ function getSummary(letter) {
         },
         success: function(result){
             createTable(letter, result);
+        },
+        error: function() {
+            $('#' + letter).html('<p>Allele frequency summary for well ' + index + ' experiment ' + letter + ' was not found.</p>');
         }
     });
 
@@ -123,7 +291,8 @@ function getSummary(letter) {
 
 function createTable(exp, result) {
     var rows = result.split("\n");
-    $('#' + exp).append('<table id="table' + exp + '"></table>');
+    console.log(rows);
+    $('#' + exp).append('<table id="table' + exp + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
     var header = table.createTHead();
     var headerRow = header.insertRow(0);
@@ -138,15 +307,49 @@ function createTable(exp, result) {
     var body = table.createTBody();
 
     for (var rowCount = 0; rowCount < rows.length; rowCount++) {
+        if (rows[rowCount] == "") {
+            continue;
+        }
         var bodyRow = body.insertRow(-1);
         var rowData = rows[rowCount].split(",");
         for (var cellCount = 0; cellCount < rowData.length; cellCount++) {
             var bodyCell = bodyRow.insertCell(-1);
-            bodyCell.innerHTML = rowData[cellCount];
+            if (cellCount == 0) {
+                var highlight = highlightBases(rowData[cellCount]);
+                
+                bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
+            } else {
+                if ($.isNumeric(rowData[cellCount])) {
+                    rowData[cellCount] = Math.round(rowData[cellCount] * 100) / 100;
+                }
+                bodyCell.innerHTML = rowData[cellCount];
+            }
         }
     }
+
     table.style.display = "table";
-    table.className = "table table-striped";
+    $('.seq' + exp + ':last').css('overflow-x','scroll');
+    $('.seq' + exp + ':last').scroll(function() {
+        $('.seq' + exp).scrollLeft($(this).scrollLeft());
+    });
+}
+
+function highlightBases(seq) {
+    var formattedSequence = "";
+    for (var base = 0; base < seq.length; base++) {
+        var letter = seq[base];
+        var format = '<span class="base' + letter + '">' + letter + '</span>';
+        formattedSequence += format;
+    }
+    return formattedSequence;
+}
+
+function showAll() {
+    window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]'); 
+}
+
+function overview() {
+    window.location.href = '[% c.uri_for('/user/point_mutation/') %]'; 
 }
 
 </script>
