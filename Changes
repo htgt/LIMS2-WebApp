@@ -1,3 +1,7 @@
+0.438     2016-12-15 09:39:51 Europe/London
+
+    bugfix in retrieve_crispr_hash on well_genotyping_info report
+
 0.437     2016-12-14 15:03:15 Europe/London
 
     SFP well support to view_checked_out_barcodes
