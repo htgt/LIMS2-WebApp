@@ -101,9 +101,10 @@ $DB::single=1;
     close $fh;
     
     my @targets = ($lines[40] =~ qr/\-g\s(\w+)\Z/);
-    my $fwd = $targets[0];
-    my $rev = revcom_as_string($fwd);
-    my $body = "Forward: " . $fwd . "\nRevcom: " . $rev;
+    my $reads->{fwd} = $targets[0];
+    $reads->{revcom} = revcom_as_string($reads->{fwd});
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($reads);
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );

@@ -357,6 +357,26 @@ function getSummary(letter, downloadFlag) {
     return res;
 }
 
+function getTargets(letter) {
+    var index = '[% oligo_index %]';
+    $.ajax({
+        url: '[% c.uri_for('/api/point_mutation_target_region/') %]',
+        type: "GET",
+        contentType: 'text/plain',
+        data: {
+            oligo: index,
+            experiment: letter,
+        },
+        success: function(result){
+            var res = JSON.parse(result);
+            console.log(res.fwd);
+        },
+        error: function() {
+            console.log("Found no targets for this experiment");
+        }
+    });
+}
+
 function createTable(exp, result) {
     var rows = result.split("\n");
     console.log(rows);
@@ -426,6 +446,12 @@ function downloadCSV(letter, result) {
     hiddenElement.download = 'MiSeq_[% oligo_index %]_exp' + letter + '.csv';
     document.body.appendChild(hiddenElement);
     hiddenElement.click();
+}
+
+//Region highlighting - Unfinished
+function changeHighlight(letter) {
+    $('span').removeClass("baseA baseC baseT baseG base-");
+    var targets = getTargets(letter);
 }
 
 </script>
