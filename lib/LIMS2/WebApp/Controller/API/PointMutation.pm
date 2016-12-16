@@ -7,6 +7,7 @@ use File::Find;
 use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
+use Bio::Perl;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -66,7 +67,7 @@ $DB::single=1;
     my $sum_dir = find_file($oligo_index, $experiment, 'Alleles_frequency_table.txt');
     my $fh;
     open ($fh, $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh, $limit);
+    my @lines = read_file_lines($fh);
     close $fh;
     
     my $body;
@@ -83,6 +84,32 @@ $DB::single=1;
     return;
 }
 
+sub point_mutation_target_region : Path( '/api/point_mutation_target_region' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub point_mutation_target_region_GET {
+    my ( $self, $c ) = @_;
+$DB::single=1;    
+    $c->assert_user_roles('read');
+    my $oligo_index = $c->request->param( 'oligo' );
+    my $experiment = $c->request->param( 'experiment' );
+    
+    my $sum_dir = find_file($oligo_index, $experiment, 'job.out');
+    my $fh;
+    open ($fh, $sum_dir) or die "$!";
+    my @lines = read_file_lines($fh, 1);
+    close $fh;
+    
+    my @targets = ($lines[40] =~ qr/\-g\s(\w+)\Z/);
+    my $fwd = $targets[0];
+    my $rev = revcom_as_string($fwd);
+    my $body = "Forward: " . $fwd . "\nRevcom: " . $rev;
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
 sub find_file {
     my ($index, $exp, $file) = @_;
     
@@ -104,13 +131,17 @@ sub _wanted {
 }
 
 sub read_file_lines {
-    my ($fh) = @_;
+    my ($fh, $plain) = @_;
     
     my @data;
     my $count = 0;
     while (my $row = <$fh>) {
         chomp $row;
-        push(@data, join(',', split(/\t/,$row)));
+        if ($plain) {
+            push(@data, $row);
+        } else {
+            push(@data, join(',', split(/\t/,$row)));
+        }
         $count++;
     }
 
