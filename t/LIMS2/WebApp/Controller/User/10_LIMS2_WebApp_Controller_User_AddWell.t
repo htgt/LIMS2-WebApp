@@ -4,10 +4,10 @@
 use strict;
 use warnings FATAL => 'all';
 
-BEGIN {
-    use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
-}
+# BEGIN {
+#     use Log::Log4perl qw( :easy );
+#     Log::Log4perl->easy_init( $FATAL );
+# }
 
 use FindBin qw($Bin);
 use lib "$Bin/../../../../lib";
@@ -20,3 +20,5 @@ Test::Class->runtests;
 
 
 1;
+
+__END__
