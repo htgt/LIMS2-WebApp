@@ -836,3 +836,10 @@ id,type_id
 1995,create_di
 1996,create_crispr
 1997,create_crispr
+1998,clone_pick
+1999,freeze
+2000,dist_qc
+2001,create_crispr
+2002,crispr_vector
+2003,dna_prep
+2004,single_crispr_assembly
