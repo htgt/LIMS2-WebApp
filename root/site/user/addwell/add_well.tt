@@ -1,0 +1,62 @@
+[%- META title = 'Add Well' %]
+<head>
+
+  <title>Add Well</title>
+
+  <style type="text/css">
+    .container {
+      width: 800px;
+      clear: both;
+    }
+    .container input {
+      width: 100%;
+      clear: both;
+    }
+  </style>
+  <script type="text/javascript">
+    $( function() {
+      $( "#add_well_to_plate_form" ).accordion();
+    } );
+
+  </script>
+
+
+</head>
+
+<body>
+	<div class="page-header">
+  		<h1>Add Well to Plate</h1>
+	</div>
+
+  	<div class="container">
+    <form method="POST" id="add_well_to_plate_form" action="[% c.uri_for( '/user/add_well' ) %]" onsubmit="" name="add_well_to_plate_form" class="well" >
+
+        <h3>Parents</h3>
+        <div>
+          <label>Parent Plate: <i class="glyphicon glyphicon-question-sign id" title="Please enter the id for the Parent Plate here"></i></label>
+            <input type="text" name="parent_plate" id="parent_plate" required="true" ><br><br>
+          <label>Parent Well: <i class="glyphicon glyphicon-question-sign id" title="Please enter the id for the Parent Well here"></i></label>
+            <input type="text" name="parent_well" id="parent_well" required="true" ><br><br>
+
+          <button type="button" onclick="$('#add_well_to_plate_form').accordion('option', 'active', 1);" style="float: right;">Next</button>
+        </div>
+        <h3>Templates</h3>
+        <div>
+          <label>Target Plate: <i class="glyphicon glyphicon-question-sign id" title="Please enter the id for the Target Plate here"></i></label>
+            <input type="text" name="target_plate" id="target_plate" required="true" ><br><br>
+          <label>Template Well: <i class="glyphicon glyphicon-question-sign id" title="Please enter the id for the Template Well here"></i></label>
+            <input type="text" name="template_well" id="template_well" required="true" ><br><br>
+
+          <button type="button" onclick="$('#add_well_to_plate_form').accordion('option', 'active', 0);">Prev</button>
+          <button type="button" onclick="$('#add_well_to_plate_form').accordion('option', 'active', 2);" style="float: right;">Next</button>
+        </div>
+        <h3>Well Information</h3>
+        <div>
+          <label>Target Well: <i class="glyphicon glyphicon-question-sign id" title="Please enter the id for the Target Well here"></i></label>
+            <input type="text" name="target_well" id="target_well" required="true" ><br><br>
+          <button type="button" onclick="$('#add_well_to_plate_form').accordion('option', 'active', 1);">Prev</button>
+          <button class="btn btn-primary" name="add_well_to_plate" id="add_well_to_plate_button" type="submit" style="float: right;" >Submit</button>
+        </div>
+    	</form>
+  	</div>
+</body>

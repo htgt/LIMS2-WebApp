@@ -149,24 +149,24 @@ function ValidateForm(){
     <form method="POST" id="create_announcement_form" action="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" onsubmit="return ValidateForm()" name="create_announcement_form" class="well" >
       <label for="message_field">Message</label><br>
       <fieldset>
-      <textarea name="message" id="message_field" value= "[% message_field %]" rows="6" cols="60" required>[% message_field %]</textarea>
-      <br><br>
-      <label for="expiry_date">Expiry Date</label>
-      <input type="text" id="expiry_date" name="expiry_date" placeholder="DD/MM/YYYY" required value="[% expiry_date %]" >
-      <br><br>
-      <label for="priority">Priority</label>
-      [%- FOR p IN priorities %]
-        <br>&#160;<input type="radio" name="priority" value="[% p.id %]" required> [% p.id.ucfirst %]
-      [% END %]
-      <br><br>
-      <label for="webapps">Webapps</label>
-      <br>&#160;<input type="checkbox" name="wge_checkbox" value="1"> WGE
-      <input name="wge_checkbox" type="hidden" value="0" />
-      <br>&#160;<input type="checkbox" name="lims_checkbox" value="1"> LIMS2
-      <input name="lims_checkbox" type="hidden" value="0" />
-      <br>&#160;<input type="checkbox" name="htgt_checkbox" value="1"> HTGT<br>
-      <input name="htgt_checkbox" type="hidden" value="0" />
-      <br>
+        <textarea name="message" id="message_field" value= "[% message_field %]" rows="6" cols="60" required>[% message_field %]</textarea>
+        <br><br>
+        <label for="expiry_date">Expiry Date</label>
+        <input type="text" id="expiry_date" name="expiry_date" placeholder="DD/MM/YYYY" required value="[% expiry_date %]" >
+        <br><br>
+        <label for="priority">Priority</label>
+        [%- FOR p IN priorities %]
+          <br>&#160;<input type="radio" name="priority" value="[% p.id %]" required> [% p.id.ucfirst %]
+        [% END %]
+        <br><br>
+        <label for="webapps">Webapps</label>
+        <br>&#160;<input type="checkbox" name="wge_checkbox" value="1"> WGE
+        <input name="wge_checkbox" type="hidden" value="0" />
+        <br>&#160;<input type="checkbox" name="lims_checkbox" value="1"> LIMS2
+        <input name="lims_checkbox" type="hidden" value="0" />
+        <br>&#160;<input type="checkbox" name="htgt_checkbox" value="1"> HTGT<br>
+        <input name="htgt_checkbox" type="hidden" value="0" />
+        <br>
       </fieldset>
       <a href="[% c.uri_for( '/admin/announcements' ) %]" class="btn btn-info">Cancel</a>
       <button class="btn btn-primary" name="create_announcement" id="create_announcement_button" type="submit" >Create Announcement</button>

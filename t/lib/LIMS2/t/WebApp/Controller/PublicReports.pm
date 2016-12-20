@@ -115,7 +115,7 @@ sub all_tests  : Tests {
 
 =head1 AUTHOR
 
-Joshua T. Kent
+Josh Kent
 based on template by
 Lars G. Erlandsen
 
