@@ -465,6 +465,9 @@ sub create_plate_csv_upload {
     if ( $params->{plate_type} eq 'INT' ) {
         $plate_process_data{dna_template} = $params->{source_dna};
     }
+
+    # FIXME: horrible if,else cascade should be replaced with a method from
+    # LIMS2::Model::Util::CreatePlate since this is where all the parent well handling is specified
     my $expected_csv_headers;
     if ( $params->{process_type} eq 'second_electroporation' ) {
         $expected_csv_headers = [ 'well_name', 'xep_plate', 'xep_well', 'dna_plate', 'dna_well' ];
@@ -496,6 +499,10 @@ sub create_plate_csv_upload {
         # require one design well and one crispr well
         $expected_csv_headers
             = [ 'well_name', 'design_plate', 'design_well', 'crispr_plate', 'crispr_well' ];
+    }
+    elsif ( $params->{process_type} eq 'crispr_sep'){
+        $expected_csv_headers
+           = [ 'well_name', 'piq_plate', 'piq_well', 'assembly_plate', 'assembly_well' ];
     }
     else {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];

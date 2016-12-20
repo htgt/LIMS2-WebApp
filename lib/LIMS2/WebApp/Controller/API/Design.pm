@@ -50,6 +50,15 @@ sub design_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+    $c->require_ssl;
 
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {

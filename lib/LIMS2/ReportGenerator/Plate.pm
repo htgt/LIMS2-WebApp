@@ -261,6 +261,22 @@ sub _build_plate_name {
     return $self->plate->name;
 }
 
+# Get ancestor trees for all plate wells with one query
+# and pre-load them into well objects
+sub prefetch_well_ancestors{
+    my $self = shift;
+
+    my @wells = $self->plate->wells;
+
+    # Pre-populate ancestors for all plate wells using batch query
+    my @well_ids = map { $_->id } @wells;
+    my $well_ancestors = $self->model->fast_get_well_ancestors(@well_ids);
+    foreach my $this_well (@wells){
+        $this_well->set_ancestors( $well_ancestors->{ $this_well->id } );
+    }
+    return;
+}
+
 sub base_columns {
     confess "base_columns() must be implemented by a subclass";
 }

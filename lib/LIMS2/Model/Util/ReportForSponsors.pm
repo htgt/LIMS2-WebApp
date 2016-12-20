@@ -110,7 +110,6 @@ has sponsor_data => (
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
-
     my @sponsor_ids = @{ $self->sponsors };
 
     foreach my $sponsor_id ( @sponsor_ids ) {
@@ -1216,7 +1215,7 @@ sub genes {
         my $piq_pass_count = scalar @piq;
         my $toggle;
         if ($ep_count) {
-            $toggle = '-';
+            $toggle = 'y';
         }
         # push the data for the report
         push @genes_for_display, {

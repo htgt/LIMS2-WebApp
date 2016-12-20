@@ -48,17 +48,19 @@ const our %PROCESS_PLATE_TYPES => (
     'clone_pool'             => [qw( SEP_POOL XEP_POOL )],
     'freeze'                 => [qw( FP SFP )],
     'xep_pool'               => [qw( XEP )],
-    'dist_qc'                => [qw( PIQ )],
+    'dist_qc'                => [qw( PIQ S_PIQ )],
     'crispr_vector'          => [qw( CRISPR_V )],
     'single_crispr_assembly' => [qw( ASSEMBLY )],
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'crispr_sep'             => [qw( CRISPR_SEP)],
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
     'cgap_qc'                => [qw( CGAP_QC )],
     'ms_qc'                  => [qw( MS_QC )],
     'doubling'               => [qw( PIQ )],
     'vector_cloning'         => [qw( PREINT )],
+    'golden_gate'            => [qw( FINAL )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -68,6 +70,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'global_arm_shortening'  => [qw( intermediate_backbone )],
     '2w_gateway'             => [qw( final_cassette final_backbone recombinase )],
     '3w_gateway'             => [qw( final_cassette final_backbone recombinase )],
+    'golden_gate'            => [qw( final_cassette final_backbone recombinase )],
     'recombinase'            => [qw( recombinase )],
     'clone_pick'             => [qw( recombinase )],
     'first_electroporation'  => [qw( cell_line recombinase )],
@@ -77,6 +80,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
     'vector_cloning'         => [qw( backbone )],
+    'crispr_sep'             => [qw( nuclease )],
 );
 
 # Upload template to use for each process type, downloadable from bottom of upload screen
@@ -86,6 +90,7 @@ const our %PROCESS_TEMPLATE => (
     'global_arm_shortening'  => 'global_arm_shortening_template',
     '2w_gateway'             => 'gateway_template',
     '3w_gateway'             => 'gateway_template',
+    'golden_gate'            => 'gateway_template',
     'final_pick'             => 'standard_template',
     'dna_prep'               => 'standard_template',
     'recombinase'            => 'recombinase_template',
@@ -100,6 +105,7 @@ const our %PROCESS_TEMPLATE => (
     'paired_crispr_assembly' => 'paired_crispr_assembly_template',
     'group_crispr_assembly'  => 'group_crispr_assembly_template',
     'crispr_ep'              => 'crispr_ep_template',
+    'crispr_sep'             => 'crispr_sep_template',
     'oligo_assembly'         => 'oligo_assembly',
     'vector_cloning'         => 'vector_cloning_template',
 );
@@ -148,7 +154,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP CRISPR_EP )],
+        type   => [qw( EP XEP SEP CRISPR_EP CRISPR_SEP )],
         number => 1,
     },
     'clone_pool' => {
@@ -195,6 +201,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
         number => 1,
     },
+    'crispr_sep' => {
+        type   => [qw( ASSEMBLY PIQ )],
+        number => 2,
+    },
     'oligo_assembly' => {
         type   => [qw( DESIGN CRISPR )],
         number => 2,
@@ -212,6 +222,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'vector_cloning' => {
+        type   => [qw( DESIGN )],
+        number => 1,
+    },
+    'golden_gate' => {
         type   => [qw( DESIGN )],
         number => 1,
     },

@@ -306,31 +306,44 @@ sub well_checkout : Path( '/user/well_checkout' ) : Args(0){
 }
 
 sub view_checked_out_barcodes : Path( '/user/view_checked_out_barcodes' ) : Args(1){
-    my ($self, $c, $plate_type) = @_;
+    my ($self, $c, $plate_str) = @_;
+
+    my @plate_types = ($plate_str);
+
+    if ($plate_str eq 'Freeze') {
+        @plate_types = ('FP','SFP');
+    }
+    # Need to add PIQ/S_PIQ merge?
 
     $c->assert_user_roles( 'read' );
 
     my @checked_out = $c->model('Golgi')->schema->resultset('Well')->search(
         {
             'me.barcode_state' => 'checked_out',
-        },
+        }
     );
 
-    @checked_out = grep { $_->plate_species->id eq $c->session->{selected_species} and $_->plate_type eq $plate_type }
-                   @checked_out;
+    my @filtered_checked_out;
+    foreach my $plate_type (@plate_types) {
+        push @filtered_checked_out, grep { $_->plate_species->id eq $c->session->{selected_species} and $_->plate_type eq $plate_type } @checked_out;
+    }
 
-    my $display_details = $self->_multiple_well_display_details($c,\@checked_out);
+    my $display_details = $self->_multiple_well_display_details($c,\@filtered_checked_out);
 
     my @sorted = sort { $a->{checkout_date} cmp $b->{checkout_date} } @$display_details;
-    foreach my $barcode (@sorted){
-        my $gene = $c->model('Golgi')->retrieve_gene({
-            species => $c->session->{selected_species},
-            search_term => $barcode->{design_gene_symbol},
-        })->{gene_id};
-        $barcode->{design_gene_id} = $gene;
-    }
-    $c->stash->{plate_type} = $plate_type;
+
+    # Deprecaded gene_id search
+    # foreach my $barcode (@sorted){
+    #     my $gene = $c->model('Golgi')->retrieve_gene({
+    #         species => $c->session->{selected_species},
+    #         search_term => $barcode->{design_gene_symbol},
+    #     })->{gene_id};
+    #     $barcode->{design_gene_id} = $gene;
+    # }
+
+    $c->stash->{plate_type} = $plate_str;
     $c->stash->{barcodes} = \@sorted;
+
     $c->stash->{discard_reasons} = [ "contamination", "failed QC", "failed to recover",  "used for testing" ];
     return;
 }
@@ -347,7 +360,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
     my $type = $c->req->param('freeze_back_type');
     my $redirect_on_completion;
-    if($type eq 'FP'){
+    if($type eq 'FP' || $type eq 'SFP'){
         $c->stash->{template} = 'user/barcodes/fp_freeze_back.tt';
         $redirect_on_completion = $c->uri_for('/user/scan_barcode');
     }
@@ -1150,7 +1163,7 @@ sub search_cgap_friendly_name : Path( '/user/search_cgap_friendly_name' ) : Args
 sub _well_display_details{
     my ($self, $c, $well) = @_;
 
-    my $well_details = $self->_basic_well_display_details($well);
+    my $well_details = $self->_basic_well_display_details($c, $well);
 
     my $epd;
     try{
@@ -1161,14 +1174,23 @@ sub _well_display_details{
         $well_details->{parent_epd} = $epd->plate->name."_".$epd->name;
     }
 
-    if($well->design){
-        my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
-            design_id => $well->design->id,
-        });
+    $well_details->{is_double_targeted} = $well->is_double_targeted;
 
-        $well_details->{design_gene_symbol} = $gene_symbols->[0];
-    }
+    try {
+        foreach my $design_id ( map { $_->id } $well->designs ){
+            my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+                design_id => $design_id,
+            });
 
+            my $design = {
+                design_id   => $design_id,
+                gene_id     => $gene_ids->[0],
+                gene_symbol => $gene_symbols->[0],
+            };
+
+            push @{ $well_details->{designs} }, $design;
+        }
+    };
 
     return $well_details;
 }
@@ -1181,21 +1203,22 @@ sub _multiple_well_display_details{
 
     return [] unless @well_ids;
 
-    # Use ProcessTree to get ancestors and design data for all well IDs
-    my $well_designs = $c->model('Golgi')->get_design_data_for_well_id_list(\@well_ids);
+    # Deprecated
+    # # Use ProcessTree to get ancestors and design data for all well IDs
+    # my $well_designs = $c->model('Golgi')->get_design_data_for_well_id_list(\@well_ids);
 
-    # Use design IDs to get gene symbols from summary table
-    # $well_designs->{<well_id>}->{design_id}
-    my @design_ids = map { $well_designs->{$_}->{design_id} } keys %$well_designs;
-    my @summaries = $c->model('Golgi')->schema->resultset('Summary')->search({
-        design_id => { '-in' => \@design_ids }
-    });
+    # # Use design IDs to get gene symbols from summary table
+    # # $well_designs->{<well_id>}->{design_id}
+    # my @design_ids = map { $well_designs->{$_}->{design_id} } keys %$well_designs;
+    # my @summaries = $c->model('Golgi')->schema->resultset('Summary')->search({
+    #     design_id => { '-in' => \@design_ids }
+    # });
 
-    # Generate hash of design IDs to gene symbols
-    my $design_gene_symbols = {};
-    foreach my $summary (@summaries){
-        $design_gene_symbols->{$summary->design_id} = $summary->design_gene_symbol;
-    }
+    # # Generate hash of design IDs to gene symbols
+    # my $design_gene_symbols = {};
+    # foreach my $summary (@summaries){
+    #     $design_gene_symbols->{$summary->design_id} = $summary->design_gene_symbol;
+    # }
 
     # Find ancestor EP_PICK wells
     my $well_ancestors = $c->model('Golgi')->get_ancestors_for_well_id_list(\@well_ids);
@@ -1216,7 +1239,7 @@ sub _multiple_well_display_details{
 
 
     foreach my $well (@$wells){
-        my $well_details = $self->_basic_well_display_details($well);
+        my $well_details = $self->_basic_well_display_details($c, $well);
 
         # Find first ancestor of this well which is an EPD (we have stored the names of all EPD ancestors)
         my $ancestors = $ancestors_for_well->{$well->id};
@@ -1225,10 +1248,10 @@ sub _multiple_well_display_details{
             $well_details->{parent_epd} = $epd_name;
         }
 
-        # Find gene symbol for this well using design IDs and symbols retrieved by batch query
-        my $design_id = $well_designs->{$well->id}->{design_id};
-        $well_details->{design_gene_symbol} = $design_gene_symbols->{$design_id};
-
+        # Deprecated
+        # # Find gene symbol for this well using design IDs and symbols retrieved by batch query
+        # my $design_id = $well_designs->{$well->id}->{design_id};
+        # $well_details->{design_gene_symbol} = $design_gene_symbols->{$design_id};
 
         push @display_data, $well_details;
     }
@@ -1238,7 +1261,7 @@ sub _multiple_well_display_details{
 }
 
 sub _basic_well_display_details{
-    my ($self, $well) = @_;
+    my ($self, $c, $well) = @_;
 
     my $well_details = $well->as_hash;
 
@@ -1249,6 +1272,27 @@ sub _basic_well_display_details{
     $well_details->{barcode} = $well->barcode;
 
     $well_details->{last_known_location} = $well->last_known_location_str;
+
+    $well_details->{plate_type} = $well->plate_type;
+
+    $well_details->{is_double_targeted} = $well->is_double_targeted;
+
+    # replaces the deprecated code in _multiple_well_display_details
+    try {
+        foreach my $design_id ( map { $_->id } $well->designs ){
+            my($gene_ids, $gene_symbols) = $c->model('Golgi')->design_gene_ids_and_symbols({
+                design_id => $design_id,
+            });
+
+            my $design = {
+                design_id   => $design_id,
+                gene_id     => $gene_ids->[0],
+                gene_symbol => $gene_symbols->[0],
+            };
+
+            push @{ $well_details->{designs} }, $design;
+        }
+    };
 
     if($well->well_lab_number){
         $well_details->{lab_number} = $well->well_lab_number->lab_number;

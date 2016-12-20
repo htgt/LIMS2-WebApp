@@ -319,6 +319,10 @@ sub chr_name {
     return shift->current_locus->chr->name;
 }
 
+sub chr_strand{
+    return shift->current_locus->chr_strand;
+}
+
 sub get_target{
     my $self = shift;
     if($self->crispr_id){

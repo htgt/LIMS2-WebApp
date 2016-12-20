@@ -16,9 +16,36 @@
  <tr>
   <th>Well Name</th><td>[% well_details.well_name %]</td>
  </tr>
+[% IF !well_details.is_double_targeted %]
  <tr>
-  <th>Gene Symbol</th><td>[% well_details.design_gene_symbol %]</td>
+  <th>Design ID</th><td>[% well_details.designs.0.design_id %]</td>
  </tr>
+ <tr>
+  <th>Gene ID</th><td>[% well_details.designs.0.gene_id %]</td>
+ </tr>
+ <tr>
+  <th>Gene Symbol</th><td>[% well_details.designs.0.gene_symbol %]</td>
+ </tr>
+[% ELSIF well_details.is_double_targeted %]
+ <tr class="first_gene_report_col">
+  <th>First Design ID [% well_details.designs.is_double_targeted %]</th><td>[% well_details.designs.0.design_id %]</td>
+ </tr>
+ <tr class="first_gene_report_col">
+  <th>First Gene ID</th><td>[% well_details.designs.0.gene_id %]</td>
+ </tr>
+ <tr class="first_gene_report_col">
+  <th>First Gene Symbol</th><td>[% well_details.designs.0.gene_symbol %]</td>
+ </tr>
+ <tr class="second_gene_report_col">
+  <th>Second Design ID [% well_details.designs.is_double_targeted %]</th><td>[% well_details.designs.1.design_id %]</td>
+ </tr>
+ <tr class="second_gene_report_col">
+  <th>Second Gene ID</th><td>[% well_details.designs.1.gene_id %]</td>
+ </tr>
+ <tr class="second_gene_report_col">
+  <th>Second Gene Symbol</th><td>[% well_details.designs.1.gene_symbol %]</td>
+ </tr>
+[% END %]
  <tr>
   <th>Parent EPD</th><td>[% well_details.parent_epd %]</td>
  </tr>

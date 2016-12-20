@@ -48,7 +48,7 @@ sub create_crispr_plate :Path( '/user/create_crispr_plate' ) :Args(0){
             }
             $c->model('Golgi')->create_plate( $c->{crispr_plate_data} );
             unless($c->stash->{error_msg}){
-                $c->stash->{info_msg} = 'Successful design plate creation';
+                $c->stash->{info_msg} = 'Successful crispr plate creation';
             }
         } catch {
             $c->stash->{error_msg} = "Error creating plate: " . $_;

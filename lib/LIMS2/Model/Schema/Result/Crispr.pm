@@ -428,6 +428,9 @@ sub as_hash {
         wge_crispr_id  => $self->wge_crispr_id,
         crispr_primers => [ map { $_->as_hash } $self->crispr_primers ],
         nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
+        # pairs          => $self->pair_ids,
+        # groups         => $self->group_ids,
+        experiments    => $self->experiment_ids,
     );
 
     if ( !$options->{no_off_targets} ) {
@@ -599,6 +602,74 @@ sub pairs {
 
   return ($self->pam_right) ? $self->crispr_pairs_right_crisprs : $self->crispr_pairs_left_crisprs;
 }
+
+
+sub pair_ids {
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+    my @crispr_pairs = $schema->resultset('CrisprPair')->search(
+        {
+            -or => [
+                'left_crispr_id'  => $self->id,
+                'right_crispr_id' => $self->id,
+            ]
+        },
+        {
+            distinct => 1,
+        }
+    );
+
+    my @pair_ids;
+    foreach my $pair ( @crispr_pairs ) {
+        push @pair_ids, $pair->id;
+    }
+
+    return \@pair_ids;
+}
+
+sub group_ids {
+    my $self = shift;
+
+    my @group_ids;
+    foreach my $group ( $self->crispr_groups->all ) {
+        push @group_ids, $group->id;
+    }
+
+    return \@group_ids;
+}
+
+sub experiment_ids {
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+
+    my $pair_ids = $self->pair_ids;
+
+    my $group_ids = $self->group_ids;
+
+    my @experiments = $schema->resultset('Experiment')->search(
+        {
+            -or => [
+                'crispr_id'       => $self->id,
+                'crispr_pair_id'  => { '-in' => $pair_ids },
+                'crispr_group_id' => { '-in' => $group_ids },
+            ]
+        },
+        {
+            distinct => 1,
+        }
+    );
+
+    my @experiment_ids;
+    foreach my $experiment ( @experiments ) {
+        push @experiment_ids, $experiment->id;
+    }
+
+    return \@experiment_ids;
+}
+
+
 
 # Designs may be linked to single crispr directly or to crispr pair
 sub related_designs {
