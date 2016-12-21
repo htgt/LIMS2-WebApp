@@ -3,7 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::AddWell;
 
-use LIMS2::Test;
+use LIMS2::Test model => { classname => __PACKAGE__ };
 
 use strict;
 
@@ -27,13 +27,13 @@ Loading other test classes at compile time
 
 =cut
 
-# BEGIN
-# {
-#     # compile time requirements
-#     #{REQUIRE_PARENT}
-#     use Log::Log4perl qw( :easy );
-#     Log::Log4perl->easy_init( $FATAL );
-# };
+BEGIN
+{
+    # compile time requirements
+    #{REQUIRE_PARENT}
+    use Log::Log4perl qw( :easy );
+    Log::Log4perl->easy_init( $FATAL );
+};
 
 =head2 before
 
@@ -113,16 +113,26 @@ sub all_tests  : Tests {
 	my $mech = LIMS2::Test::mech();
     $mech->get_ok('/user/add_well');
 
+    # ok my $res = $mech->submit_form(
+    #         fields => {
+    #             parent_plate        => 'FEP0017',
+    #             parent_well         => 'C01',
+    #             target_plate        => 'FEPD0017_4',
+    #             template_well       => 'E11',
+    #             target_well         => 'E13',
+    #         },
+    #         button => 'add_well_to_plate',
+    #     );
     ok my $res = $mech->submit_form(
-            fields => {
-                parent_plate        => 'FEP0017',
-                parent_well         => 'C01',
-                target_plate        => 'FEPD0017_4',
-                template_well       => 'E11',
-                target_well         => 'E13',
-            },
-            button => 'add_well_to_plate',
-        );
+        fields => {
+            parent_plate        => 'HCL16',
+            parent_well         => 'A01',
+            target_plate        => 'HCL0016_A',
+            template_well       => 'A02',
+            target_well         => 'B01',
+        },
+        button => 'add_well_to_plate',
+    );
 
     ok $res->is_success, '...response is_success';
 
