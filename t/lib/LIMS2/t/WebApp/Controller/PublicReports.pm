@@ -96,6 +96,7 @@ sub all_tests  : Tests {
 
     my $mech = LIMS2::Test::mech();
     $mech->get_ok('/public_reports/well_genotyping_info_search');
+    $mech->title_is('Design Target Report');
     $mech->get_ok('/public_reports/well_genotyping_info/1117507060');
     $mech->content_contains($plate_name);
     $mech->content_contains($well_name);

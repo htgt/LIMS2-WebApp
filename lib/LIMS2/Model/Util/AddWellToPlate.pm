@@ -3,12 +3,13 @@ package LIMS2::Model::Util::AddWellToPlate;
 use strict;
 use warnings FATAL => 'all';
 use Smart::Comments;
+use Try::Tiny;
 
 use Sub::Exporter -setup => {
     exports => [
         qw(
-            get_relationship_data
-            add_well_to_plate
+            create_well
+            get_well
           )
     ]
 };
@@ -35,41 +36,77 @@ my %FIELD_NAMES = (
 );
 
 
-sub get_relationship_data {
-	my ($model, $params) = @_;
+sub create_well {
+    my ($model, $params) = @_;
 
-	foreach my $field ( @{ $PROCESS_TYPE_DATA{$params->{process_data}->{type}} } ) {
+    foreach my $field ( @{ $PROCESS_TYPE_DATA{$params->{process_data}->{type}} } ) {
 
-		my @result = $params->{process}->$field;
+        my @result = $params->{process}->$field;
 
-		my $relationship 	= $FIELD_NAMES{$field}->{relationship};
-		my $column 			= $FIELD_NAMES{$field}->{column};
+        my $relationship    = $FIELD_NAMES{$field}->{relationship};
+        my $column          = $FIELD_NAMES{$field}->{column};
 
-		foreach my $entry ( @result ) {
-			if ( defined $params->{process_data}->{$relationship} ) {
-				if ( ref $params->{process_data}->{$relationship} ne 'ARRAY' ) {
-					$params->{process_data}->{$relationship} = [ $params->{process_data}->{$relationship} ];
-				}
+        foreach my $entry ( @result ) {
+            if ( defined $params->{process_data}->{$relationship} ) {
+                if ( ref $params->{process_data}->{$relationship} ne 'ARRAY' ) {
+                    $params->{process_data}->{$relationship} = [ $params->{process_data}->{$relationship} ];
+                }
 
-				push @{ $params->{process_data}->{$relationship} }, $entry->$relationship->$column;
-			}
-			else {
-				$params->{process_data}->{$relationship} = $entry->$relationship->$column;
-			}
-		}
-	}
+                push @{ $params->{process_data}->{$relationship} }, $entry->$relationship->$column;
+            }
+            else {
+                $params->{process_data}->{$relationship} = $entry->$relationship->$column;
+            }
+        }
+    }
 
+    return $model->txn_do(
+        sub {
+            my $well = $model->create_well( {
+                plate_name  => $params->{params}->{target_plate},
+                well_name   => $params->{params}->{target_well},
+                process_data    => $params->{process_data},
+                created_by      => $params->{params}->{user},
+            } );
 
-	return $model->txn_do(
-		sub {
-			my $well = $model->create_well( {
-				plate_name 	=> $params->{params}->{target_plate},
-				well_name 	=> $params->{params}->{target_well},
-				process_data 	=> $params->{process_data},
-				created_by 		=> $params->{params}->{user},
-			} );
-
-			return $well;
-		}
-	);
+            return $well;
+        }
+    );
 }
+
+sub get_well {
+    my ($model, $params) = @_;
+    my $well;
+    my $stash;
+    my $success = 1;
+    my $result;
+    my $data = $params->{params};
+
+    try {
+        $well = $model->retrieve_well({
+            plate_name  => $params->{plate},
+            well_name   => $params->{well},
+        });
+    }
+    catch {
+        $stash = {
+            parent_plate   => $data->{parent_plate},
+            parent_well    => $data->{parent_well},
+            target_plate   => $data->{target_plate},
+            target_well    => $data->{target_well},
+            template_well  => $data->{template_well},
+            error_msg      => "Unable to retrieve well: $params->{plate}_$params->{well}. \n\n Error: $_",
+        };
+        $success = 0;
+    };
+
+    $result = {
+        well    => $well,
+        stash   => $stash,
+        success => $success,
+    };
+
+    return $result;
+}
+
+1;

@@ -1,11 +1,12 @@
 package LIMS2::t::WebApp::Controller::User::AddWell;
+
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::AddWell;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
-
 use strict;
+
 
 ## no critic
 
@@ -31,8 +32,6 @@ BEGIN
 {
     # compile time requirements
     #{REQUIRE_PARENT}
-    use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
 };
 
 =head2 before
@@ -86,57 +85,101 @@ Code to execute all tests
 
 =cut
 
-#
-#
-#
-# USES LEGACY FIXTURE DATA!
-# for some reason doesn't load dynamic fixture csvs
-# below is the data for the dynamic fixtures
-#
-# ok my $res = $mech->submit_form(
-#     fields => {
-#         parent_plate        => 'HCL16',
-#         parent_well         => 'A01',
-#         target_plate        => 'HCL0016_A',
-#         template_well       => 'A02',
-#         target_well         => 'B01',
-#     },
-#     button => 'add_well_to_plate',
-# );
-#
-#
-#
-
 sub all_tests  : Tests {
     ok(1, "Test of LIMS2::WebApp::Controller::User::AddWell");
 
-	my $mech = LIMS2::Test::mech();
-    $mech->get_ok('/user/add_well');
+    my $mech = LIMS2::Test::mech();
 
-    # ok my $res = $mech->submit_form(
-    #         fields => {
-    #             parent_plate        => 'FEP0017',
-    #             parent_well         => 'C01',
-    #             target_plate        => 'FEPD0017_4',
-    #             template_well       => 'E11',
-    #             target_well         => 'E13',
-    #         },
-    #         button => 'add_well_to_plate',
-    #     );
+    $mech->get_ok( '/user/add_well' );
+    $mech->title_is('Add Well');
     ok my $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
         fields => {
             parent_plate        => 'HCL16',
             parent_well         => 'A01',
             target_plate        => 'HCL0016_A',
             template_well       => 'A02',
-            target_well         => 'B01',
+            target_well         => 'D01',
         },
         button => 'add_well_to_plate',
     );
-
-    ok $res->is_success, '...response is_success';
-
+    ok $res->is_success, '...response is success';
     $mech->content_contains('Well successfully added');
+
+    is $res->base->path, '/user/add_well', 'we are still on importer page';
+    ok $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
+        fields => {
+            parent_plate        => 'HL16Z',
+            parent_well         => 'A01',
+            target_plate        => 'HCL0016_A',
+            template_well       => 'A02',
+            target_well         => 'D01',
+        },
+        button => 'add_well_to_plate',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Unable to retrieve well: HL16Z_A01');
+
+    is $res->base->path, '/user/add_well', 'we are still on importer page';
+    ok $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
+        fields => {
+            parent_plate        => 'HCL16',
+            parent_well         => 'Z01',
+            target_plate        => 'HCL0016_A',
+            template_well       => 'A02',
+            target_well         => 'D01',
+        },
+        button => 'add_well_to_plate',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Unable to retrieve well: HCL16_Z01');
+
+    is $res->base->path, '/user/add_well', 'we are still on importer page';
+    ok $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
+        fields => {
+            parent_plate        => 'HCL16',
+            parent_well         => 'A01',
+            target_plate        => 'HZL0016_A',
+            template_well       => 'A02',
+            target_well         => 'D01',
+        },
+        button => 'add_well_to_plate',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Unable to retrieve well: HZL0016_A_A02');
+
+    is $res->base->path, '/user/add_well', 'we are still on importer page';
+    ok $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
+        fields => {
+            parent_plate        => 'HCL16',
+            parent_well         => 'A01',
+            target_plate        => 'HCL0016_A',
+            template_well       => 'AZ02',
+            target_well         => 'D01',
+        },
+        button => 'add_well_to_plate',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Unable to retrieve well: HCL0016_A_AZ02');
+
+    is $res->base->path, '/user/add_well', 'we are still on importer page';
+    ok $res = $mech->submit_form(
+        form_id => 'add_well_to_plate_form',
+        fields => {
+            parent_plate        => 'HCL16',
+            parent_well         => 'A01',
+            target_plate        => 'HCL0016_A',
+            template_well       => 'Z02',
+            target_well         => 'D01',
+        },
+        button => 'add_well_to_plate',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Unable to retrieve well: HCL0016_A_Z02');
 
 }
 

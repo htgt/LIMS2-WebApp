@@ -1,13 +1,13 @@
 package LIMS2::WebApp::Controller::User::AddWell;
 
 use Moose;
-use TryCatch;
 use Data::Dump 'pp';
+use Try::Tiny;
 use Const::Fast;
 use Smart::Comments;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
 use namespace::autoclean;
-use LIMS2::Model::Util::AddWellToPlate qw( get_relationship_data );
+use LIMS2::Model::Util::AddWellToPlate qw( create_well get_well );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -32,11 +32,33 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
         user            => $c->user->name,
     };
 
+    my $well;
+    my $result;
+    my $success = 1;
 
-    my $well = $c->model('Golgi')->retrieve_well({
-        plate_name  => $params->{target_plate},
-        well_name   => $params->{template_well},
+    $result = get_well($c->model('Golgi'), {
+        plate   => $params->{target_plate},
+        well    => $params->{template_well},
+        params  => $params,
     });
+
+    $well = $result->{well};
+
+    if ($result->{success} == 0) {
+        $c->stash ( $result->{stash} );
+        return;
+    }
+
+    $result = get_well($c->model('Golgi'), {
+        plate  => $params->{parent_plate},
+        well   => $params->{parent_well},
+        params  => $params,
+    });
+
+    if ($result->{success} == 0) {
+        $c->stash ( $result->{stash} );
+        return;
+    }
 
     $params->{process} = ($well->parent_processes)[0];
 
@@ -46,16 +68,11 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
         output_wells    => [ { plate_name => $params->{target_plate}, well_name => $params->{target_well} } ],
     };
 
-    my $created_well = get_relationship_data( $c->model('Golgi'), {
+    my $created_well = create_well( $c->model('Golgi'), {
         process_data => $process_data_ref,
         process => $params->{process},
         params => $params,
     });
-
-    # foreach my $field ( @{$PROCESS_TYPE_DATA{$process_data_ref->{type}}}) {
-
-
-    # }
 
     $c->flash( success_msg => "ID: " . $created_well->id . " - Well successfully added" );
 
