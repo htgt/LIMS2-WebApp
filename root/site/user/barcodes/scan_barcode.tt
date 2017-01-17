@@ -88,6 +88,8 @@ Actions:
     </button>
 [% END %]
 
+<br /><br />
+
 <script type="text/javascript">
   $(document).ready(function() {
     if ('[% well_details %]') {

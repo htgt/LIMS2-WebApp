@@ -1,7 +1,7 @@
 package LIMS2::TestJS;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::TestJS::VERSION = '0.438';
+    $LIMS2::TestJS::VERSION = '0.439';
 }
 ## use critic
 
