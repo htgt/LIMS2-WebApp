@@ -20,7 +20,7 @@
 </style>
 
 <div class="page-header">
-  <h1>Point Mutation</h1>
+  <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
 </div>
 
 <div class="row">
@@ -30,6 +30,9 @@
     <div class="col-md-2">
         <select class="form-control" align="center" id="geneSelect">
             <option value="All" selected="selected">All</option>
+            [% FOREACH gene IN genes %]
+                <option value="[% gene %]">[% gene %]</option>
+            [% END %]
         </select>
     </div>
     <div class="col-md-2">
@@ -42,6 +45,9 @@
                 <option value="[% exp %]">[% exp %]</option>
             [% END %]
         </select>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
     </div>
     <div id="key" class="col-md-3">
         <h5>Colour Key: </h5>
@@ -106,6 +112,10 @@
 
 var data = '[% wells %]';
 var json = JSON.parse(data.replace(/&quot;/g,'"'));
+var raw_exp = '[% overview %]';
+var overview = JSON.parse(raw_exp.replace(/&quot;/g,'"'));
+var raw_link = '[% gene_exp %]';
+var link = JSON.parse(raw_link.replace(/&quot;/g,'"'));
 var allExps = [];
 var prevExp = "";
 
@@ -194,6 +204,39 @@ $(document).ready(function() {
     highlightSelection();
 });
 
+$('#geneSelect').change(function() {
+    if ($('#geneSelect').val() != 'All') { 
+        $("#expSelect").children('option').hide();
+        $("#expSelect").children('option[value^=All]').show();
+        var geneExps = link.summary[$('#geneSelect').val()];
+        for (var count = 0; count < geneExps.length; count++) {
+            $("#expSelect").children('option[value^=' + geneExps[count] + ']').show();
+        }
+    } else {
+        $("#expSelect").children('option').show();
+    }
+});
+
+$('#expSelect').change(function() {
+    if ($('#expSelect').val() != 'All') { 
+        $("#geneSelect").children('option').hide();
+        $("#geneSelect").children('option[value^=All]').show();
+        var expGenes = overview.summary[$('#expSelect').val()];
+        for (var count = 0; count < expGenes.length; count++) {
+            $("#geneSelect").children('option[value^=' + expGenes[count].split(/[^A-Za-z0-9]/)[0] + ']').show();
+        }
+    } else {
+        $("#geneSelect").children('option').show();
+    }
+});
+
+function clearSelection() {
+    $("#expSelect").children('option').show();
+    $("#geneSelect").children('option').show();
+    $('select').each(function() { this.selectedIndex = 0 });
+    highlightSelection();
+}
+
 $(window).resize(function() {
     console.log("Updating");
     highlightSelection('All');
@@ -231,12 +274,16 @@ function tooltip(node) {
     if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
-            Genes: ` + dataPoint.gene.sort().toString() + `<br>
+            Gene: ` + overview.summary[focusExp].sort().toString() + `<br>
             Status: ` + dataPoint.status + `<br>
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
             Mixed: ` + dataPoint.percentages[focusExp].mix + " reads";
+    } else if (focusExp != 'All'){
+        response = `
+            Oligo Index: ` + oligoIndex + `<br>
+            Status: ` + dataPoint.status;
     } else { 
         response = `
             Oligo Index: ` + oligoIndex + `<br>
@@ -249,9 +296,9 @@ function tooltip(node) {
 function wellArc(node) {
     var exp = document.getElementById('expSelect').value;
     if (exp == 'All') {
-        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=' + node.parentNode.id); 
+        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id); 
     } else {
-        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=' + node.parentNode.id + '&exp=' + exp); 
+        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id + '&exp=' + exp); 
     }
 }
 

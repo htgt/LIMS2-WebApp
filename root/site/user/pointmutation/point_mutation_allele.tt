@@ -22,22 +22,22 @@ body {
     margin-left: 0 auto;
 }
 
-.baseA {
+.baseA.baseSwitch {
     background-color: #63aa5a;
     color: white;
 }
 
-.baseC {
+.baseC.baseSwitch {
     background-color: #e4ed6d;
     color: black;
 }
 
-.baseT {
+.baseT.baseSwitch {
     background-color: #45719b;
     color: white;
 }
 
-.baseG {
+.baseG.baseSwitch {
     background-color: #e88d1e;
     color: black;
 }
@@ -49,6 +49,11 @@ body {
 
 .target {
     background-color: #0a606d;
+    color: white;
+}
+
+.possibleTarget {
+    background-color: #e59e18;
     color: white;
 }
 
@@ -124,72 +129,72 @@ input:checked + .slider:before {
     <div class="col-md-5">
         <h1>Point Mutation Alleles - [% oligo_index %]</h1>
     </div>    
-    <div class="col-md-4 col-md-offset-3">
+    <div class="col-md-2 col-md-offset-1">
+        <div id="keyContainer">
+            <h5>Colour Key: </h5>
+            <svg width="450" height="40">
+                <g class="legend" transform="translate(0)">
+                    <rect width="18" height="18" style="fill: #0a606d; stroke: #0a606d;"></rect>
+                    <text x="22" y="14">Crispr Match</text>
+                </g>
+                <g class="legend" transform="translate(0,20)">
+                    <rect width="18" height="18" style="fill: #e59e18; stroke: #e59e18;"></rect>
+                    <text x="22" y="14">Possible Crispr Location</text>
+                </g>
+            </svg>
+        </div>
+    </div> 
+    <div class="col-md-4">
         <div class="col-md-7">
-            <label class="lb-colour">Display Colours: </label>
+            <label class="lb-colour">Highlight Crispr: </label>
         </div>
         <div class="col-md-4">
             <label class="switch">
-                <input type="checkbox">
+                <input type="checkbox" id="styles">
                 <div class="slider round"></div>
             </label>    
         </div>
     </div>
 </div>
+<div class="well">
+    <div class="row">
+        <div class="col-md-3">
+            <button class="btn btn-primary" onclick="overview();">
+                <i class="glyphicon glyphicon-arrow-left"></i> Back to Overview 
+            </button>
+        </div>
+    </div>
 
-<div class="row">
-    <div class="col-md-3">
-        <button class="btn btn-primary" onclick="overview();">
-            <i class="glyphicon glyphicon-arrow-left"></i> Back to Overview 
-        </button>
+    <h3 class="col-md-12">Well Details</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="details table table-striped">
+                <tr>
+                    <td>Illumina Index</td>
+                    <td>[% oligo_index %]</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Well Barcode</td>
+                    <td>[% well_name %]</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Barcode</td>
+                    <td id="barcode">This is a barcode</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td><form action="#" method="post" name="statusContainer" id="statusContainer">[% state %]</form></td>
+                    <td id="buttonContainer"><button id="statusButton" class="btn btn-info" onclick="changeStatus();">Change Status <i class="glyphicon glyphicon-pencil"></i></button></td>
+                </tr>
+            </table>
+        </div>
     </div>
 </div>
-
-<br>
-
-<div class="clearfix row">
-    <div class="col-md-2">
-        <label class="lb-md">Classification: </label>
-    </div>
-    <div class="col-md-2">
-        <select class="form-control" align="center" id="classSelect">
-            <option value="Not called" selected="selected">Not called</option>
-            <option value="Wild type">Wild Type</option>
-            <option value="Het">Het</option>
-            <option value="Hom1">Hom - 1 Allele</option>
-            <option value="Hom2">Hom - 2 Alleles</option>
-            <option value="Mixed">Mixed</option>
-        </select>
-    </div>
-
-</div>
-<br>
-<div class="row">
-    <div class="col-md-6">
-        <table class="details table table-striped">
-            <tr>
-                <td>Illumina Index</td>
-                <td>[% oligo_index %]</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Well Barcode</td>
-                <td>[% well_name %]</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Barcode</td>
-                <td id="barcode">This is a barcode</td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <td id="statusContainer">Freezer</td>
-                <td><button class="btn btn-info">Change Status <i class="glyphicon glyphicon-pencil"></i></button></td>
-            </tr>
-        </table>
-    </div>
-</div>
+<form action="#" method="post" id="formSubmit"></form>
 [% IF selection %]
     <div class="row">
         <div class="col-md-4">
@@ -197,6 +202,21 @@ input:checked + .slider:before {
         </div>
     </div>
     <h2>Experiment: [% selection %]</h2>
+    <div class="clearfix row">
+        <div class="col-md-2">
+            <label class="lb-md">Classification: </label>
+        </div>
+        <div class="col-md-2">
+            <select class="form-control" align="center" id="classSelect">
+                <option value="Not called" selected="selected">Not called</option>
+                <option value="Wild type">Wild Type</option>
+                <option value="Het">Het</option>
+                <option value="Hom1">Hom - 1 Allele</option>
+                <option value="Hom2">Hom - 2 Alleles</option>
+                <option value="Mixed">Mixed</option>
+            </select>
+        </div>
+    </div>
     <div class='genes [% selection %]'></div>
     <div class="row">
         <div class="col-md-3">
@@ -215,6 +235,21 @@ input:checked + .slider:before {
 [% ELSE %]
     [% FOREACH experiment IN experiments %]
         <h2>Experiment: [% experiment %]</h2>
+        <div class="clearfix row">
+            <div class="col-md-2">
+                <label class="lb-md">Classification: </label>
+            </div>
+            <div class="col-md-2">
+                <select class="form-control" align="center" id="classSelect">
+                    <option value="Not Called" selected="selected">Not called</option>
+                    <option value="Wild type">Wild Type</option>
+                    <option value="Het">Het</option>
+                    <option value="Hom1">Hom - 1 Allele</option>
+                    <option value="Hom2">Hom - 2 Alleles</option>
+                    <option value="Mixed">Mixed</option>
+                </select>
+            </div>
+        </div>
         <div class='genes [% experiment %]'></div>
         <div class="row">
             <div class="col-md-2">
@@ -233,10 +268,13 @@ input:checked + .slider:before {
 [% END %]
 
 <script type="text/javascript" charset="utf-8">
-
 var exps = [];
+var statesRaw = '[% status %]';
+var states = JSON.parse(statesRaw.replace(/&quot;/g,'"'));
+
 $(document).ready(function() {
     $('.download').hide();
+    $('#keyContainer').hide();
     $('.genes').each(function() {
         $($(this).attr('class').split(/\s+/)).each(function() {
             var exp = this.toString();
@@ -251,7 +289,7 @@ $(document).ready(function() {
         //getSummary(exps[expIndex]);
     }
 });
-var test;
+
 $('.allele').click(function() {
     $(this).find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     var value = $(this).val();
@@ -266,7 +304,11 @@ $('.download').click(function() {
     getSummary(value,'1');
 });
 
-var test;
+$('#styles').change(function() {
+    console.log( "Handler for .change() called." );
+    $('span').toggleClass('baseSwitch');
+    $('#keyContainer').toggle();
+});
 
 function displayIndels(exp) {
     var expTable = document.getElementById("table" + exp.id);
@@ -291,8 +333,9 @@ function getImages(letter, chart, div) {
         type: "GET",
         contentType: 'image/png',
         data: {
+            miseq: '[% miseq %]', 
             oligo: index,
-            experiment: letter,
+            exp: letter,
             name: chart
         },
         success: function(result){
@@ -310,8 +353,6 @@ function getImages(letter, chart, div) {
 }
 
 function getSummary(letter, downloadFlag) {
-    console.log("summary");
-    console.log(letter);
     var index = '[% oligo_index %]';
     var res; 
     if (downloadFlag == null) {
@@ -321,8 +362,9 @@ function getSummary(letter, downloadFlag) {
             type: "GET",
             contentType: 'text/plain',
             data: {
+                miseq: '[% miseq %]', 
                 oligo: index,
-                experiment: letter,
+                exp: letter,
                 limit: 10,
             },
             success: function(result){
@@ -330,23 +372,21 @@ function getSummary(letter, downloadFlag) {
             },
             error: function() {
                 $('#' + letter).html('<p>Allele frequency summary for well ' + index + ' experiment ' + letter + ' was not found.</p>');
+                $('#dl' + letter).hide();
             }
         });
     } else {
         //Full summary for downloading
-        console.log("else");
-        console.log(index);
-        console.log(letter);
         $.ajax({
             url: '[% c.uri_for('/api/point_mutation_summary/') %]',
             type: "GET",
             contentType: 'text/plain',
             data: {
+                miseq: '[% miseq %]', 
                 oligo: index,
-                experiment: letter,
+                exp: letter,
             },
             success: function(result){
-                console.log("success");
                 downloadCSV(letter, result);
             },
             error: function() {
@@ -364,12 +404,12 @@ function getTargets(letter) {
         type: "GET",
         contentType: 'text/plain',
         data: {
+            miseq: '[% miseq %]', 
             oligo: index,
-            experiment: letter,
+            exp: letter,
         },
         success: function(result){
             var res = JSON.parse(result);
-            console.log(res.fwd);
         },
         error: function() {
             console.log("Found no targets for this experiment");
@@ -378,8 +418,8 @@ function getTargets(letter) {
 }
 
 function createTable(exp, result) {
-    var rows = result.split("\n");
-    console.log(rows);
+    result = JSON.parse(result);
+    var rows = result.data.split("\n");
     $('#' + exp).append('<table id="table' + exp + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
     var header = table.createTHead();
@@ -403,9 +443,9 @@ function createTable(exp, result) {
         for (var cellCount = 0; cellCount < rowData.length; cellCount++) {
             var bodyCell = bodyRow.insertCell(-1);
             if (cellCount == 0) {
-                var highlight = highlightBases(rowData[cellCount]);
-                
+                var highlight = highlightBases(rowData[cellCount], result.crispr); 
                 bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
+
             } else {
                 if ($.isNumeric(rowData[cellCount])) {
                     rowData[cellCount] = Math.round(rowData[cellCount] * 100) / 100;
@@ -413,6 +453,7 @@ function createTable(exp, result) {
                 bodyCell.innerHTML = rowData[cellCount];
             }
         }
+
     }
 
     table.style.display = "table";
@@ -420,24 +461,54 @@ function createTable(exp, result) {
     $('.seq' + exp + ':last').scroll(function() {
         $('.seq' + exp).scrollLeft($(this).scrollLeft());
     });
+    if ($('#styles').prop("checked") == true) {
+        $('.seq' + exp).find('span').toggleClass('baseSwitch');
+    }
 }
 
-function highlightBases(seq) {
+function highlightBases(seq, crispr) {
     var formattedSequence = "";
+    var start = seq.indexOf(crispr.crispr);
+    var accuracy = 0;
+    if (start == -1) {
+        accuracy = 1;
+        start = seq.indexOf(crispr.crispr.substring(0,5));
+        if (start == -1 || start > crispr.position + 5 || start < crispr.position - 5) {
+            console.log('No match');
+            start = crispr.position;
+        }
+    }
+
+    console.log(start);
+
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
-        var format = '<span class="base' + letter + '">' + letter + '</span>';
+        var front = "";
+        var back = "";
+        if (base == start) {
+            if (accuracy == 0) {
+                front = '<span class="target">';
+            } else {
+                front = '<span class="possibleTarget">';
+            }
+        }
+
+        if (base == start + crispr.crispr.length - 1) {
+            back = "</span>";
+        }
+        var format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
         formattedSequence += format;
     }
+    console.log(crispr.crispr);
     return formattedSequence;
 }
 
 function showAll() {
-    window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]'); 
+    window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]&miseq=[% miseq %]'); 
 }
 
 function overview() {
-    window.location.href = '[% c.uri_for('/user/point_mutation/') %]'; 
+    window.location.href = '[% c.uri_for('/user/point_mutation/') %]' + encodeURI('?miseq=[% miseq %]'); 
 }
 
 function downloadCSV(letter, result) {
@@ -448,10 +519,43 @@ function downloadCSV(letter, result) {
     hiddenElement.click();
 }
 
-//Region highlighting - Unfinished
-function changeHighlight(letter) {
-    $('span').removeClass("baseA baseC baseT baseG base-");
-    var targets = getTargets(letter);
+function changeStatus() {
+    console.log("Reached");
+   
+    var options = states.summary;
+    var current = $('#statusContainer').text();
+    var index = options.indexOf(current);
+    if (index > -1) {
+        options.splice(index, 1);
+        options.unshift(current);
+    } else {
+        console.log("Something very wrong has happened.");
+    }
+ 
+    var select = document.createElement('select');
+    select.className += " btn btn-default";
+    select.name = "statusOption";
+    select.onchange = function() { this.form.submit(); };
+    
+    $('#statusContainer').html("");
+    for (var count = 0; count < options.length; count++) {
+        var option = document.createElement('option');
+        option.setAttribute("value", options[count]);
+        option.appendChild(document.createTextNode(options[count]));
+        select.appendChild(option);
+    }
+
+    var div = document.getElementById('statusContainer');
+    div.appendChild(select);
+
+    $('#statusButton').remove();
 }
+
+$('body').on("click", "button.save", function() {
+    console.log("test");
+    console.log();
+    var form = document.getElementById('statusContainer');
+    form.submit();    
+});
 
 </script>

@@ -23,8 +23,10 @@ sub point_mutation_image_GET {
     );
 
     $c->assert_user_roles('read');
+
+    my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'experiment');
+    my $experiment = $c->request->param( 'exp');
     my $file_name = $c->request->param( 'name' );
     
     #Sanitise inputs since it's a broad search
@@ -34,8 +36,8 @@ sub point_mutation_image_GET {
         return;
     }
 
-    my $graph_dir = find_file($oligo_index, $experiment, $file_name);
-    
+    my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
+
     open (IMAGE, $graph_dir) or die "$!";
     my $raw_string = do{ local $/ = undef; <IMAGE>; };
     close IMAGE;
@@ -58,63 +60,71 @@ sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : A
 
 sub point_mutation_summary_GET {
     my ( $self, $c ) = @_;
-$DB::single=1;    
     $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'experiment' );
+    my $experiment = $c->request->param( 'exp' );
     my $limit = $c->request->param( 'limit' );
     
-    my $sum_dir = find_file($oligo_index, $experiment, 'Alleles_frequency_table.txt');
+    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
     my $fh;
     open ($fh, $sum_dir) or die "$!";
     my @lines = read_file_lines($fh);
     close $fh;
     
-    my $body;
+    my $res;
     if ($limit) {
-        $body = join("\n", @lines[0..$limit]);
+        $res->{data} = join("\n", @lines[0..$limit]);
     } else {
-        $body = join("\n", @lines);
+        $res->{data} = join("\n", @lines);
+    }
+    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
+
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($res); 
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+
+
+sub crispr_seq {
+    my ( $c, $miseq, $req ) = @_;
+    
+    my $sum_dir = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
+    my $fh;
+    
+    my $csv = Text::CSV->new ({
+        binary    => 1,
+    });
+
+    my @lines;
+    open ($fh, $sum_dir) or die "$!";
+    while (my $row = $csv->getline($fh)) {
+        push (@lines, $row);
+    }
+    close $fh;
+    shift @lines;
+    
+    my $res;
+    foreach my $exp (@lines) {
+        if (@$exp[0] eq $req) {
+            my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
+            $res->{crispr} = @$exp[2];
+            $res->{position} = $index;
+        }
     }
 
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $body );
-
-    return;
+    return $res;
 }
 
-sub point_mutation_target_region : Path( '/api/point_mutation_target_region' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub point_mutation_target_region_GET {
-    my ( $self, $c ) = @_;
-$DB::single=1;    
-    $c->assert_user_roles('read');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'experiment' );
-    
-    my $sum_dir = find_file($oligo_index, $experiment, 'job.out');
-    my $fh;
-    open ($fh, $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh, 1);
-    close $fh;
-    
-    my @targets = ($lines[40] =~ qr/\-g\s(\w+)\Z/);
-    my $reads->{fwd} = $targets[0];
-    $reads->{revcom} = revcom_as_string($reads->{fwd});
-    my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($reads);
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $body );
-
-    return;
-}
 sub find_file {
-    my ($index, $exp, $file) = @_;
-    
-    my $base = $ENV{LIMS2_RNA_SEQ} . 'S' . $index . '_exp' . $exp;
+    my ($miseq, $index, $exp, $file) = @_;
+    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
     
     my $charts = [];
     my $wanted = sub { _wanted($charts, $file) };
@@ -125,10 +135,10 @@ sub find_file {
 }
 
 sub _wanted {
-   return if ! -e; 
-   my ($charts, $file_name) = @_;
+    return if ! -e; 
+    my ($charts, $file_name) = @_;
 
-   push( @$charts, $File::Find::name ) if $File::Find::name=~ /$file_name/;
+    push( @$charts, $File::Find::name ) if $File::Find::name =~ /$file_name/;
 }
 
 sub read_file_lines {
