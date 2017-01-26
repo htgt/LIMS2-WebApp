@@ -25,7 +25,7 @@ sub pspec_create_miseq_plate_well {
 # we need to convert this into a format expected by create_well
 sub create_miseq_plate_well {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_create_miseq_plate_well);
 
     my $miseq = $self->schema->resultset('MiseqProjectWell')->create(
@@ -48,7 +48,7 @@ sub pspec_update_miseq_plate_well {
 
 sub update_miseq_plate_well {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_update_miseq_plate_well);
 
     my %search;
@@ -73,7 +73,7 @@ sub pspec_miseq_well_experiment {
 # we need to convert this into a format expected by create_well
 sub create_miseq_well_experiment {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_miseq_well_experiment);
 
     my $miseq = $self->schema->resultset('MiseqProjectWellExp')->create(
@@ -89,7 +89,7 @@ $DB::single=1;
 
 sub update_miseq_well_experiment {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_miseq_well_experiment);
 
     my %search;

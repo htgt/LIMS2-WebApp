@@ -121,8 +121,8 @@ use Try::Tiny;
 
 sub as_hash {
     my ( $self, $options ) = @_;
-    my %h;    
-    try { 
+    my %h;
+    try {
         %h = (
             miseq_well_id       => $self->miseq_well_id,
             experiment          => $self->experiment,

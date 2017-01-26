@@ -279,7 +279,8 @@ function tooltip(node) {
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
-            Mixed: ` + dataPoint.percentages[focusExp].mix + " reads";
+            Mixed: ` + dataPoint.percentages[focusExp].mix + ` reads<br>
+            Classification: ` + dataPoint.classes[focusExp];
     } else if (focusExp != 'All'){
         response = `
             Oligo Index: ` + oligoIndex + `<br>

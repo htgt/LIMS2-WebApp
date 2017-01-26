@@ -120,7 +120,7 @@ sub as_hash {
         date    => $self->creation_date->datetime,
     );
 
-    return \%h; 
+    return \%h;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
