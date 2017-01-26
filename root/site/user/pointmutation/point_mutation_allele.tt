@@ -182,7 +182,7 @@ input:checked + .slider:before {
                 </tr>
                 <tr>
                     <td>Barcode</td>
-                    <td id="barcode">This is a barcode</td>
+                    <td id="barcode"></td>
                     <td></td>
                 </tr>
                 <tr>
@@ -201,69 +201,82 @@ input:checked + .slider:before {
             <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
         </div>
     </div>
-    <h2>Experiment: [% selection %]</h2>
+    <h2>Experiment: [% selection.id %]</h2>
     <div class="clearfix row">
         <div class="col-md-2">
             <label class="lb-md">Classification: </label>
         </div>
         <div class="col-md-2">
-            <select class="form-control" align="center" id="classSelect">
-                <option value="Not called" selected="selected">Not called</option>
-                <option value="Wild type">Wild Type</option>
-                <option value="Het">Het</option>
-                <option value="Hom1">Hom - 1 Allele</option>
-                <option value="Hom2">Hom - 2 Alleles</option>
-                <option value="Mixed">Mixed</option>
-            </select>
+            <form action="#" method="post" name="class[% selection.id %]" id="class[% selection.id %]">
+                <select class="form-control" align="center" id="classSelect" name="class[% selection.id %]" onchange="this.form.submit();">
+                    [% FOR class IN classifications %]
+                        [% IF class == selection.class %]
+                            <option value="[% class %]" selected="selected">[% class %]</option>
+                        [% ELSE %]
+                            <option value="[% class %]">[% class %]</option>
+                        [% END %]
+                    [% END %]
+                    
+                    <!---<option value="not called" selected="selected">not called</option>
+                    <option value="Wild type">Wild Type</option>
+                    <option value="Het">Het</option>
+                    <option value="Hom1">Hom - 1 Allele</option>
+                    <option value="Hom2">Hom - 2 Alleles</option>
+                    <option value="Mixed">Mixed</option> -->
+                </select>
+            </form>
         </div>
     </div>
-    <div class='genes [% selection %]'></div>
+    <div class='genes [% selection.id %]'></div>
     <div class="row">
         <div class="col-md-3">
-            <button class="allele btn btn-primary" onclick="displayIndels([% selection %])" value='[% selection %]'>
-                Allele Frequency - [% selection %]  <i class="glyphicon glyphicon-chevron-down"></i>
+            <button class="allele btn btn-primary" onclick="displayIndels([% selection.id %])" value='[% selection.id %]'>
+                Allele Frequency - [% selection.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
             </button>
         </div>
         <div class="col-md-3">
-            <button id="dl[% selection %]" class="download btn btn-success" value="[% selection %]">
+            <button id="dl[% selection.id %]" class="download btn btn-success" value="[% selection.id %]">
                 Download CSV <i class="glyphicon glyphicon-download-alt"></i>
             </button>
         </div>
     </div>
-    <div id='[% selection %]'></div>
+    <div id='[% selection.id %]'></div>
 
 [% ELSE %]
     [% FOREACH experiment IN experiments %]
-        <h2>Experiment: [% experiment %]</h2>
+        <h2>Experiment: [% experiment.id %]</h2>
         <div class="clearfix row">
             <div class="col-md-2">
                 <label class="lb-md">Classification: </label>
             </div>
             <div class="col-md-2">
-                <select class="form-control" align="center" id="classSelect">
-                    <option value="Not Called" selected="selected">Not called</option>
-                    <option value="Wild type">Wild Type</option>
-                    <option value="Het">Het</option>
-                    <option value="Hom1">Hom - 1 Allele</option>
-                    <option value="Hom2">Hom - 2 Alleles</option>
-                    <option value="Mixed">Mixed</option>
-                </select>
+                <form action="#" method="post" name="class[% experiment.id %]" id="class[% experiment.id %]">
+                    <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
+                    [% FOR class IN classifications %]
+                        [% IF class == experiment.class %]
+                            <option value="[% class %]" selected="selected">[% class %]</option>
+                        [% ELSE %]
+                            <option value="[% class %]">[% class %]</option>
+                        [% END %]
+                    [% END %]
+                    </select>
+                </form>
             </div>
         </div>
-        <div class='genes [% experiment %]'></div>
+        <div class='genes [% experiment.id %]'></div>
         <div class="row">
             <div class="col-md-2">
-                <button class="allele btn btn-primary" onclick="displayIndels([% experiment %])" value="[% experiment %]">
-                    Allele Frequency - [% experiment %]  <i class="glyphicon glyphicon-chevron-down"></i>
+                <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
+                    Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
                 </button>
             </div>
             <div class="col-md-2">
-                <button id="dl[% experiment %]" class="download btn btn-success" value="[% experiment %]">
+                <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
                     Download CSV <i class="glyphicon glyphicon-download-alt"></i>
                 </button>
             </div>
         </div>
-        <div id='[% experiment %]'></div>
+        <div id='[% experiment.id %]'></div>
     [% END %]
 [% END %]
 

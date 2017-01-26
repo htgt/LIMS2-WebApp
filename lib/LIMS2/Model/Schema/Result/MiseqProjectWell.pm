@@ -38,12 +38,12 @@ __PACKAGE__->table("miseq_project_well");
 
 =head1 ACCESSORS
 
-=head2 miseq_well_id
+=head2 id
 
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'miseq_project_well_miseq_well_id_seq'
+  sequence: 'miseq_project_well_id_seq'
 
 =head2 miseq_plate_id
 
@@ -65,12 +65,12 @@ __PACKAGE__->table("miseq_project_well");
 =cut
 
 __PACKAGE__->add_columns(
-  "miseq_well_id",
+  "id",
   {
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "miseq_project_well_miseq_well_id_seq",
+    sequence          => "miseq_project_well_id_seq",
   },
   "miseq_plate_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
@@ -84,13 +84,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</miseq_well_id>
+=item * L</id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("miseq_well_id");
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
@@ -130,9 +130,31 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-23 11:34:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aseEhUSy9lu9oHdzMiV8nw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-26 09:49:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jmPrK0nqA50DxbXmEHV9cA
 
+use Try::Tiny;
+
+sub as_hash {
+    my ( $self, $options ) = @_;
+    my %h;    
+    try { 
+        %h = (
+            miseq_plate_id      => $self->miseq_plate_id,
+            id                  => $self->id,
+            illumina_index      => $self->illumina_index,
+            status              => $self->status->as_string,
+        );
+    } catch {
+        %h = (
+            miseq_plate_id      => $self->miseq_plate_id,
+            id                  => $self->id,
+            illumina_index      => $self->illumina_index,
+        );
+    };
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

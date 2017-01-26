@@ -10,6 +10,7 @@ use JSON;
 use Data::UUID;
 use File::Find;
 use Text::CSV;
+use Try::Tiny;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -59,9 +60,15 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
+$DB::single=1;
     my $index = $c->req->param('oligoIndex');
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
+    my $updated_status = $c->req->param('statusOption');
+    check_class($self, $c, $miseq, $index);
+    if ($updated_status) {
+        update_status($self, $c, $miseq, $index, $updated_status);
+    }
     
     my $reg = "S" . $index . "_exp[A-Z]+";
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
@@ -72,7 +79,12 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-Z]+)/g);
         foreach my $match (@matches) {
-            push (@exps,$match);
+            my $class = find_classes($c, $miseq, $index, $match);
+            my $rs = {
+                id      => $match, 
+                class   => $class,
+            };
+            push (@exps, $rs);
         }
         my $path = $base . $file;
         my $fh;
@@ -80,20 +92,43 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         $well_name = find_folder($path, $fh);
         closedir $fh;
     }
-    @exps = sort @exps;
-    
+    my $selection;
+    if ($exp_sel) {
+        my $class = find_classes($c, $miseq, $index, $exp_sel);
+        $selection = {
+            id      => $exp_sel,
+            class   => $class,
+        };
+    }
+
+    @exps = sort { $a->{id} cmp $b->{id} } @exps;
 $DB::single=1;
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
     my $states = encode_json({ summary => @status });
+    my $state;
+    try {
+        my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+        $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+        if ($state) {
+            $state = $state->as_hash->{status};
+        } else {
+            $state = 'Plated';
+        }
+    } catch {
+        $state = 'Plated';
+    };
+$DB::single=1;
+    my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
     $c->stash(
         miseq       => $miseq,
         oligo_index => $index,
-        selection   => $exp_sel,
+        selection   => $selection,
         experiments => \@exps,
         well_name   => $well_name,
         indel       => '1b.Indel_size_distribution_percentage.png',
         status      => $states,
-        state       => 'Contaminated',
+        state       => $state,
+        classifications => \@classifications,
     );
     
     return;
@@ -173,7 +208,8 @@ sub generate_summary_data {
     my ( $c, $miseq, $overview ) = @_;
 
     my $wells;
-
+    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    
     for (my $i = 1; $i < 97; $i++) {
         my $reg = "S" . $i . "_exp[A-Z]+";
         my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
@@ -218,6 +254,12 @@ sub generate_summary_data {
             }
         }
         #status
+        my $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $i });
+        if ($state) {
+            $state = $state->as_hash->{status};
+        } else {
+            $state = 'Plated';
+        }
 
  
         #Genes, Barcodes and Status are randomly generated at the moment
@@ -225,7 +267,7 @@ sub generate_summary_data {
             gene        => \@selection,
             experiments => \@found_exps,
             #barcode     => [$ug->create_str(), $ug->create_str()],
-            #status      => $status[int(rand(6))],
+            status      => $state,
             percentages => $percentages,
         };
     }
@@ -262,7 +304,7 @@ sub find_folder {
         next if $entry eq '.' or $entry eq '..';
         #my @matches = ($entry =~ /CRISPResso_on_Homo-sapiens_(\S*$)/g); #Max 1
 
-        my @matches = ($entry =~ /CRISPResso_on_Homo-sapiens_(\S*$)/g); #Max 1
+        my @matches = ($entry =~ /CRISPResso_on\S*_(S\S*$)/g); #Max 1
 
         $res = $matches[0];
     }
@@ -289,6 +331,120 @@ sub read_file_lines {
     return @data;
 }
 
+sub update_status {
+    my ($self, $c, $miseq, $index, $status) = @_;
+$DB::single=1;
+    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    unless ($plate) {
+        return;
+    }
+    my $well_details = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+    my $params;
+    if ($well_details) {
+        if ($well_details->as_hash->{status} eq $status) {
+            return;  
+        }
+        $params = {
+            id      => $well_details->as_hash->{id},
+            status  => $status,
+        };
+        $c->model('Golgi')->update_miseq_plate_well( $params );
+    }
+    else { 
+        $params = {
+            miseq_plate_id  => $plate->{id},
+            illumina_index  => $index,
+            status          => $status,
+        };
+        $c->model('Golgi')->create_miseq_plate_well( $params );
+    }
+    return;
+}
+
+
+sub check_class {
+    my ($self, $c, $miseq, $index) = @_;
+$DB::single=1;
+    my $params = $c->req->params;
+    my $result;
+
+    foreach my $key (keys %$params) {
+        my @matches = ($key =~ /^class([A-Z]+)$/g);
+        if (@matches) {
+            $result = $matches[0];
+        }
+    }
+
+    if ($result) {
+        my $class = $c->req->param('class' . $result);
+    
+        my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+        my $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+        unless ($well) {
+            update_status($self, $c, $miseq, $index, 'Plated');
+            $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+        }
+        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->as_hash->{id}, experiment => $result });
+        my $exp_params = {
+            miseq_well_id           => $well->as_hash->{id},
+            experiment              => $result,
+            classification          => $class,
+        };
+
+        if ($exp_record) {
+            if ($exp_record->as_hash->{classification} eq $class) {
+                return;  
+            }
+            $c->model('Golgi')->update_miseq_well_experiment( $exp_params );
+        } else {
+            $c->model('Golgi')->create_miseq_well_experiment( $exp_params );
+        }
+    }
+    return;
+}
+
+sub find_classes {
+    my ($c, $miseq, $index, $selection) = @_;
+$DB::single=1;
+    my $result;
+    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    my $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+    unless ($well) {
+        return; 
+    }
+    $well = $well->as_hash;
+
+    my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->{id}, experiment => $selection });
+    if ($well_exp) {
+        $result = $well_exp->as_hash->{classification};
+    } else {
+        $result = 'Not called';
+    }
+
+=head
+    if ($selection) {
+        $result = search_exp($c, $well->{id}, $selection, $result);
+    } else {
+        foreach my $exp (@exps) {
+            $result = search_exp($c, $well->{id}, $exp, $result);
+        }
+    }
+=cut
+    return $result;
+}
+
+sub search_exp {
+    my ($c, $id, $exp, $result) = @_;
+
+    my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $id, experiment => $exp });
+    if ($well_exp) {
+        $result->{$exp} = $well_exp->as_hash->{classification};
+    } else {
+        $result->{$exp} = 'Not called';
+    }
+
+    return $result;
+}
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -58,7 +58,7 @@
             </g>
             <g class="legend" transform="translate(0,20)">
                 <rect width="18" height="18" style="fill: #d6757f; stroke: #d6757f;"></rect>
-                <text x="22" y="14">Scanned-out Well</text>
+                <text x="22" y="14">Scanned-Out Well</text>
             </g>
             <g class="legend" transform="translate(150,0)">
                 <rect width="18" height="18" style="fill: #66c2a5; stroke: #66c2a5;"></rect>
@@ -313,7 +313,7 @@ function buildExps(first) {
 
     for (var i = 0; i < nodes.length; i++) {
         var wellData = wells[twoDigits(nodes[i].id)];
-        if (wellData.status == 'Scanned-out' && first != null) {
+        if ((wellData.status == 'Scanned-Out' || wellData.status == 'Empty') && first != null) {
             d3.select(nodes[i].childNodes[0]).append("circle")
                 .attr("cx", width / 2).attr("cy", height / 2)
                 .attr("r", function(){ return radius - arcWidth; })

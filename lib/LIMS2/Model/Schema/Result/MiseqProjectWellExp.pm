@@ -38,6 +38,13 @@ __PACKAGE__->table("miseq_project_well_exp");
 
 =head1 ACCESSORS
 
+=head2 id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'miseq_project_well_exp_id_seq'
+
 =head2 miseq_well_id
 
   data_type: 'integer'
@@ -57,6 +64,13 @@ __PACKAGE__->table("miseq_project_well_exp");
 =cut
 
 __PACKAGE__->add_columns(
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "miseq_project_well_exp_id_seq",
+  },
   "miseq_well_id",
   { data_type => "integer", is_nullable => 0 },
   "experiment",
@@ -64,6 +78,18 @@ __PACKAGE__->add_columns(
   "classification",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
@@ -88,8 +114,29 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-23 11:34:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kY/TJoJfjgCFS/Ooc1J1xA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-26 09:49:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:utmsk0Hw76LRwCA6rt98lw
+
+use Try::Tiny;
+
+sub as_hash {
+    my ( $self, $options ) = @_;
+    my %h;    
+    try { 
+        %h = (
+            miseq_well_id       => $self->miseq_well_id,
+            experiment          => $self->experiment,
+            classification      => $self->classification->as_string,
+        );
+    } catch {
+        %h = (
+            miseq_well_id       => $self->miseq_well_id,
+            experiment          => $self->experiment,
+        );
+    };
+
+    return \%h;
+}
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

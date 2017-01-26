@@ -233,9 +233,9 @@
             </li>
 
             <li class="divider"></li>
-            <li>
+<!---            <li>
               <a href="[% c.uri_for( '/user/create_point_mutation' ) %]">Create Point Mutations</a>
-            </li>
+            </li> -->
             <li>
               <a href="[% c.uri_for( '/user/browse_point_mutation' ) %]">Search Point Mutations</a>
             </li>

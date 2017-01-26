@@ -8,10 +8,9 @@ INSERT INTO miseq_classification VALUES ('Hom - 2 Allele');
 INSERT INTO miseq_classification VALUES ('Mixed');
 
 
-INSERT INTO miseq_status VALUES ('Freezer');
-INSERT INTO miseq_status VALUES ('Checked Out');
+INSERT INTO miseq_status VALUES ('Plated');
+INSERT INTO miseq_status VALUES ('Scanned-Out');
+INSERT INTO miseq_status VALUES ('Empty');
 
-INSERT INTO miseq_projects(name) VALUES ('Test_001');
-INSERT INTO miseq_projects(name) VALUES ('Test_002');
-INSERT INTO miseq_projects(name) VALUES ('Test_003');
-INSERT INTO miseq_projects(name) VALUES ('Test_004');
+INSERT INTO miseq_projects(name) VALUES ('Miseq_001');
+INSERT INTO miseq_projects(name) VALUES ('Miseq_004');
