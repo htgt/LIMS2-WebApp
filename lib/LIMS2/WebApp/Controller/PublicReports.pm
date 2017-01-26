@@ -741,13 +741,7 @@ sub retrieve_crispr_hash {
     #Single crispr search
     else {
         @crispr_schema = $c->model('Golgi')->schema->resultset($type)->search({ id => $id })->all;
-        $crispr_data = $c->model('Golgi')->retrieve_crispr(
-            {
-                id => $crispr_schema[0]->{_column_data}->{id}
-            },
-            {
-                distinct => 1,
-            }->all);
+        $crispr_data = $c->model('Golgi')->retrieve_crispr( { id => $crispr_schema[0]->{_column_data}->{id} });
     }
 
     return $crispr_data->as_hash;

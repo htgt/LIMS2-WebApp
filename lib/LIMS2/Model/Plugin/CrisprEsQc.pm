@@ -192,6 +192,17 @@ sub delete_crispr_es_qc_run {
     #if we can later create plates off this we will have to add a check in here
     #to make sure none have been made
 
+    foreach my $qc_well ($run->crispr_es_qc_wells) {
+        # for each qc well we are about to delete
+        # update validation to false
+        $qc_well->update( { accepted => 0 } );
+
+        # if well is not accepted elsewhere, unaccept well
+        if (! $qc_well->well_accepted_any_run) {
+            $self->schema->resultset('Well')->find( { id => $qc_well->well->id } )->update( { accepted => 0 } );
+        }
+    }
+
     $run->crispr_es_qc_wells->delete;
     $run->delete;
 

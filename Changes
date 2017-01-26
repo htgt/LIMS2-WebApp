@@ -1,5 +1,46 @@
 {{$NEXT}}
 
+0.439     2017-01-16 16:51:02 Europe/London
+
+    Freeze back support added for SFP wells
+
+0.438     2016-12-15 09:39:51 Europe/London
+
+    bugfix in retrieve_crispr_hash on well_genotyping_info report
+
+0.437     2016-12-14 15:03:15 Europe/London
+
+    SFP well support to view_checked_out_barcodes
+
+0.436     2016-12-08 13:17:16 Europe/London
+
+    Added barcode view support for double targeted wells
+
+0.435     2016-11-29 15:41:27 Europe/London
+
+    Added experiment ids to CRISPR plates
+
+0.434     2016-11-29 10:07:50 Europe/London
+
+    Added barcode uploads to SFP and S_PIQ plates
+
+0.433     2016-11-28 17:04:15 Europe/London
+
+    Crispr QC allowed to continue when primer sequence reads are missing
+
+0.432     2016-11-03 11:30:57 Europe/London
+
+    bugfix viewplate without INT ancestors
+    bugfix crispr es qc well validation
+
+0.431     2016-11-01 10:43:54 Europe/London
+    Fixed user roles
+0.430     2016-10-27 12:17:09 Europe/London
+    Storable incompat
+0.429     2016-10-26 15:43:54 Europe/London
+
+0.426     2016-10-26 14:59:51 Europe/London
+    Moved REST authentication to API keys
 0.428     2016-10-26 12:38:02 Europe/London
 
     Added new process type golden-gate related to conditional-inversion designs

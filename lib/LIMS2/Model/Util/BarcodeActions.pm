@@ -371,6 +371,11 @@ sub _fetch_barcode_for_freeze_back{
 sub _fetch_qc_piq_for_freeze_back{
     my ($model, $well, $validated_params) = @_;
 
+    my $type = 'PIQ';
+    if ($well->plate_type eq 'SFP') {
+        $type = 'S_PIQ';
+    }
+
     my $qc_plate = $model->schema->resultset('Plate')->search({
         name => $validated_params->{qc_piq_plate_name},
     })->first;
@@ -386,7 +391,7 @@ sub _fetch_qc_piq_for_freeze_back{
         $qc_plate = $model->create_plate({
             name       => $validated_params->{qc_piq_plate_name},
             species    => $well->last_known_plate->species_id,
-            type       => 'PIQ',
+            type       => $type,
             created_by => $validated_params->{user},
         });
     }
@@ -466,11 +471,11 @@ sub _create_qc_piq_and_child_wells{
 
     # In some cases there are no child wells
     if(@child_well_data){
-        my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
+        my $random_name = $model->random_plate_name({ prefix => 'TMP_'. $qc_plate->type_id .'_' });
         $tmp_piq_plate = $model->create_plate({
             name       => $random_name,
             species    => $bc_well->last_known_plate->species_id,
-            type       => 'PIQ',
+            type       => $qc_plate->type_id,
             created_by => $validated_params->{user},
             wells      => \@child_well_data,
             is_virtual => 1,

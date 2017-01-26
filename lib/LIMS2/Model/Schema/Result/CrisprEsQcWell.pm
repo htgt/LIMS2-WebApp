@@ -346,7 +346,7 @@ sub format_well_data {
 
     my $show_checkbox = 1; #by default we show the accepted checkbox
     #if the well itself is accepted, we need to see if it was this run that made it so
-    if ( $self->well->accepted && ! $self->accepted ) {
+    if ( $self->well_accepted_any_run && ! $self->accepted ) {
         #the well was accepted on another QC run
         $show_checkbox = 0;
     }

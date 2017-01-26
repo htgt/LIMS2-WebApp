@@ -346,7 +346,7 @@
               <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/Freeze' ) %]">Checked Out FP/SFP Barcodes</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>
