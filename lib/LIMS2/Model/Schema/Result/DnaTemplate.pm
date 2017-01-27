@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::DnaTemplate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::DnaTemplate::VERSION = '0.431';
+    $LIMS2::Model::Schema::Result::DnaTemplate::VERSION = '0.441';
 }
 ## use critic
 

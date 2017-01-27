@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.431';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.441';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ LIMS2::Model::Schema::Result::Plate
 
 use strict;
 use warnings;
-
+use Try::Tiny;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
@@ -370,9 +370,11 @@ sub parent_plates_by_process_type{
 	    	my $type = $process->type_id;
 	    	$parents->{$type} ||= {};
 	    	foreach my $input ($process->input_wells){
-	    		my $plate = $input->plate;
-	    		$parents->{$type}->{$plate->name} = $plate;
-	        }
+          try{
+  	    		my $plate = $input->plate;
+  	    		$parents->{$type}->{$plate->name} = $plate;
+          };
+	      }
 	    }
 	}
 
