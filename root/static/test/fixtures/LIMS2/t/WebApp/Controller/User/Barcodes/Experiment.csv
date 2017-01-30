@@ -1,0 +1,6 @@
+id,design_id,crispr_id,crispr_pair_id,crispr_group_id,gene_id,plated,deleted
+1673,1016222,,,289,HGNC:12630,f,f
+476,10000553,,,221,HGNC:25356,t,f
+169,3181,186017,,,HGNC:11998,f,f
+320,3181,186034,,,HGNC:11998,f,f
+185,3181,,246090,,HGNC:11998,t,f
