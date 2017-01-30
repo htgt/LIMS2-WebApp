@@ -321,6 +321,7 @@ sub load_dynamic_files {
             CrisprOffTargetSummary
             CrisprLocus
             CrisprPair
+            CrisprGroup
             Design
             DesignOligo
             DesignOligoLocus

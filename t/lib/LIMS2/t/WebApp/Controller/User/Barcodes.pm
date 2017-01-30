@@ -4,7 +4,7 @@ use Test::Most;
 use LIMS2::WebApp::Controller::User::Barcodes;
 use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 
-use LIMS2::Test;
+use LIMS2::Test model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 use JSON;
 
@@ -12,13 +12,13 @@ use strict;
 
 BEGIN
 {
-    use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
+    # use Log::Log4perl qw( :easy );
+    # Log::Log4perl->easy_init( $FATAL );
 };
 
 
 sub mutation_signatures_workflow_test : Test(16){
-    my $mech = mech();
+    my $mech = LIMS2::Test::mech();
     my $model = model();
 
     my $plate = "PIQ0002";
@@ -106,15 +106,15 @@ sub mutation_signatures_workflow_test : Test(16){
 
 }
 
-sub all_tests  : Test(25)
-{
-    my $mech = mech();
+sub all_tests  : Test(45) {
+    my $mech = LIMS2::Test::mech();;
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     my $res;
 
     note("Create QC plate");
 
     $mech->get_ok('/user/create_qc_plate');
+    $mech->title_is('Create Plate for QC');
 
     # no name: error
     $mech->set_fields(
@@ -226,6 +226,41 @@ sub all_tests  : Test(25)
     # well on new plate has correct parent well
     ok my ($parent_well) = $new_well->parent_wells, 'can find parent well';
     is $parent_well->barcode, 'mybarcode','parent well has correct barcode';
+
+    # test double targeted plates '''SFP'''
+    $mech->get_ok('/user/scan_barcode');
+
+    ok $res = $mech->submit_form(
+        fields => {
+            barcode => 1127078153
+        },
+        button => 'submit_barcode',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Well details for barcode 1127078153');
+    $mech->content_contains('HUFP0130_2_B');
+    $mech->content_contains('HGNC:12630');
+    $mech->content_contains('USP7');
+    $mech->content_contains('1016222');
+
+    $mech->get_ok('/user/scan_barcode');
+    ok $res = $mech->submit_form(
+        fields => {
+            barcode => 1128143241
+        },
+        button => 'submit_barcode',
+    );
+    ok $res->is_success, '...response is success';
+    $mech->content_contains('Well details for barcode 1128143241');
+    $mech->content_contains('HUSFP0001_1_A');
+    $mech->content_contains('HGNC:11998');
+    $mech->content_contains('TP53');
+    $mech->content_contains('3181');
+    $mech->content_contains('10000553');
+    $mech->content_contains('HGNC:25356');
+    $mech->content_contains('SPRTN');
+
+
 
 }
 

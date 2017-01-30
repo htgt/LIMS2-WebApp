@@ -124,7 +124,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     '3w_gateway' => {
-        type   => [qw( INT )],
+        type   => [qw( INT POSTINT )],
         number => 1,
     },
     'legacy_gateway' => {

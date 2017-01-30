@@ -23,6 +23,62 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
 
     return unless $c->request->method eq 'POST';
 
+    if ( $c->request->param('csv') ) {
+        my $result = $self->add_well_csv($c);
+        return $result;
+    }
+    else {
+        my $result = $self->add_well_single($c);
+        return $result;
+    }
+}
+
+sub add_well_csv {
+    my ( $self, $c ) = @_;
+
+    my $csv = $c->request->upload('csv_upload');
+    my @ids;
+
+    my $data = $csv->fh;
+
+    while (my $line = <$data>) {
+        chomp $line;
+
+        my @values = split(",", $line);
+
+        my $params = {
+            parent_plate    => $values[0],
+            parent_well     => $values[1],
+            target_plate    => $values[2],
+            target_well     => $values[3],
+            template_well   => $values[4],
+            user            => $c->user->name,
+        };
+
+        my $result = $self->_create_well($c, $params);
+
+        unless ($result->{success} == 1) {
+            $c->stash( $result->{stash} );
+            return;
+        }
+        else {
+            push @ids, $result->{well_id};
+        }
+
+
+    }
+
+    close $data;
+    my $created_ids = join(', ', @ids);
+
+    $c->flash( success_msg => "Successfully created wells: " . $created_ids );
+
+    return $c->response->redirect( $c->uri_for('/user/add_well') );
+}
+
+sub add_well_single {
+    my ( $self, $c ) = @_;
+
     my $params = {
         parent_plate    => $c->request->param('parent_plate'),
         parent_well     => $c->request->param('parent_well'),
@@ -31,6 +87,22 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
         template_well   => $c->request->param('template_well'),
         user            => $c->user->name,
     };
+
+    my $result = $self->_create_well($c, $params);
+
+    unless ($result->{success} == 1) {
+        $c->stash( $result->{stash} );
+        return;
+    }
+
+    $c->flash( success_msg => "ID: " . $result->{well_id} . " - Well successfully added" );
+
+    return $c->response->redirect( $c->uri_for('/user/add_well') );
+
+}
+
+sub _create_well {
+    my ($self, $c, $params) = @_;
 
     my $well;
     my $result;
@@ -44,10 +116,7 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
 
     $well = $result->{well};
 
-    if ($result->{success} == 0) {
-        $c->stash ( $result->{stash} );
-        return;
-    }
+    return $result unless $result->{success} == 1;
 
     $result = get_well($c->model('Golgi'), {
         plate  => $params->{parent_plate},
@@ -55,10 +124,7 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
         params  => $params,
     });
 
-    if ($result->{success} == 0) {
-        $c->stash ( $result->{stash} );
-        return;
-    }
+    return $result unless $result->{success} == 1;
 
     $params->{process} = ($well->parent_processes)[0];
 
@@ -74,9 +140,9 @@ sub add_well : Path( '/user/add_well' ) : Args(0) {
         params => $params,
     });
 
-    $c->flash( success_msg => "ID: " . $created_well->id . " - Well successfully added" );
+    $result->{well_id} = $created_well->id;
 
-    return $c->response->redirect( $c->uri_for('/user/add_well') );
+    return $result;
 
 }
 

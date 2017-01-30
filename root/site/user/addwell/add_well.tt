@@ -25,8 +25,16 @@
 
 <body>
 	<div class="page-header">
-  		<h1>Add Well to Plate</h1>
+  	<h1>Add Well to Plate</h1>
 	</div>
+  <div class="container">
+    <form method="POST" enctype="multipart/form-data" id="add_well_to_plate_csv_form" action="[% c.uri_for( '/user/add_well' ) %]" onsubmit="" name="add_well_to_plate_csv_form" class="well">
+      <input type="file" name="csv_upload" id="csv_upload" accept=".csv">
+      <input type="hidden" name="csv" value="1">
+      <button class="btn btn-primary" name="add_well_csv_upload" id="add_well_csv_upload_submit" type="submit">Submit</button>
+    </form>
+
+  </div>
 
   	<div class="container">
     <form method="POST" id="add_well_to_plate_form" action="[% c.uri_for( '/user/add_well' ) %]" onsubmit="" name="add_well_to_plate_form" class="well" >
@@ -57,6 +65,7 @@
           <button type="button" onclick="$('#add_well_to_plate_form').accordion('option', 'active', 1);">Prev</button>
           <button class="btn btn-primary" name="add_well_to_plate" id="add_well_to_plate_button" type="submit" style="float: right;" >Submit</button>
         </div>
-    	</form>
+    	  <input type="hidden" name="csv" value="0">
+      </form>
   	</div>
 </body>

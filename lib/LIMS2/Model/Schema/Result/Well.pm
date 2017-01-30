@@ -603,6 +603,8 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 use List::MoreUtils qw( any uniq );
 
+use Try::Tiny;
+
 use Log::Log4perl qw(:easy);
 BEGIN {
     #try not to override the lims2 logger
@@ -701,7 +703,7 @@ has ancestors => (
 
 sub _build_ancestors {
     my $self = shift;
-DEBUG "Building ancestors for well $self";
+    DEBUG "Building ancestors for well $self";
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );

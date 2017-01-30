@@ -86,7 +86,7 @@ sub all_tests : Test(40) {
         $mech->text_contains('Crispr Electroporation Plate HG1_EP_TEST');
         $mech->text_contains('HGNC:29499');
         $mech->text_contains('All/Pathogen');
-        $mech->text_contains('Cas9 Church D10A (+neo)');
+        $mech->text_contains('Cas9 Church D10A (+bsd)');
     }
 
     {
