@@ -213,7 +213,7 @@ $('#geneSelect').change(function() {
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
         var geneExps = link.summary[$('#geneSelect').val()];
         for (var count = 0; count < geneExps.length; count++) {
-            $("#expSelect").children('option[value^=' + geneExps[count] + ']').show().prop('disabled', false);
+            $("#expSelect").children('option[value~=' + geneExps[count] + ']').show().prop('disabled', false);
         }
     } else {
         $("#expSelect").children('option').show().prop('disabled', false);
