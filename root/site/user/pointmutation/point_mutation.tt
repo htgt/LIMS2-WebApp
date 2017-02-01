@@ -209,8 +209,6 @@ $(document).ready(function() {
 
 $('#geneSelect').change(function() {
     if ($('#geneSelect').val() != 'All') { 
-        //$("#expSelect").children('option').hide();
-        //$("#expSelect").children('option[value^=All]').show();
         $("#expSelect").children('option').hide().prop('disabled', true);
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
         var geneExps = link.summary[$('#geneSelect').val()];
@@ -338,26 +336,13 @@ function buildExps(first) {
         for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
-            /*
+            /* 
             if (wellData.percentages[expName].miss != null) {
                 console.log(i);
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
             } else {
-            
-            var nhejArc = $(node).find('.nhej');
-            var wildArc = $(node).find('.wild');
-            var hdrArc = $(node).find('.hdr');
-            var mixArc = $(node).find('.mix');
-            d3.select(nhejArc[0]).classed(expName, true);
-            d3.select(wildArc[0]).classed(expName, true);
-            d3.select(hdrArc[0]).classed(expName, true);
-            d3.select(mixArc[0]).classed(expName, true);
-            if (totalReads(wellData.percentages[expName]) < 1000) {
-                d3.select(nhejArc[0]).classed('lowReadCount', true);
-                d3.select(wildArc[0]).classed('lowReadCount', true);
-                d3.select(hdrArc[0]).classed('lowReadCount', true);
-                d3.select(mixArc[0]).classed('lowReadCount', true);
+                VVVV
             }
             */
             
@@ -372,14 +357,6 @@ function buildExps(first) {
 function buildArcs(node, type, expName, wellData, expInt) {
     var arc = $(node).find('.' + type);
     d3.select(arc[0]).classed(expName, true);
-    /*
-    if (totalReads(wellData.percentages[expName]) < 1000) {
-        if (expName == 'I') {
-            console.log("exp: " + expName + " Index: " + expInt + " total: " + totalReads(wellData.percentages[expName]));
-        }
-        d3.select(arc[0]).classed('lowReadCount', true);
-    }
-    */
 }
 
 
@@ -390,12 +367,6 @@ function highlightSelection(selection) {
     if (selection != 'All') {
         setTimeout(function() { d3.selectAll('.' + selection).filter(".wild").transition().duration(500).attrTween("d", arcTween(tau)); }, 250);
         setTimeout(function() { buildDonut(selection); }, 250);
-        /*
-        if ($('#filterReads').is(':checked')) {
-            console.log("Cleaning");
-            setTimeout(function() { d3.selectAll('.' + selection).filter(".lowReadCount").transition().duration(500).attrTween("d", arcTween(0)); }, 250);
-        }
-        */
     }
     prevExp = selection;
 
@@ -435,7 +406,6 @@ function clearHighlight() {
         d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau));
     }
     d3.selectAll(".svgTool").attr("data-original-title", function(){ return tooltip($(this)) });
-    //buildExps();
 }
 
 function arcTween(newAngle) {
