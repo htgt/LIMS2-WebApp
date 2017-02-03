@@ -1,0 +1,38 @@
+[% META title = "Browse MiSeq Projects" %]
+
+<div class="col-md-8 col-md-offset-2">
+    <form method="POST" action="[% c.uri_for( '/user/browse_point_mutation' ) %]" class="well">
+        <fieldset>
+            <legend>Search by MiSeq Name</legend>
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="miseq_name" placeholder="MiSeq project" id="miseq_name" />
+            </div>
+            <input type="submit" name="action" class="btn btn-primary" value="Search" />
+        </fieldset>
+    </form>
+</div>
+<div class="col-md-6 col-md-offset-3">
+    <table class="table" style="table-layout:fixed" align="center">
+        <thead>
+            <h4 align="center">Recently Added</h4>
+            <tr>
+                <th class="span2">ID</th>
+                <th class="span2">Name</th>
+                <th class="span2">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            [% FOR result IN miseqs %]
+                <tr>
+                    <td>[% result.id %]</td>
+                    <td>      
+                        <a class="brand" href="[% c.uri_for('/user/point_mutation/' , { miseq => result.name }) %]">
+                            [% result.name %]
+                        </a>
+                    </td>
+                    <td>[% result.date %]</td>
+                </tr>
+            [% END %]
+        </tbody>
+    </table>
+</div>

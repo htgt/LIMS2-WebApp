@@ -1,0 +1,64 @@
+<div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                <i class="glyphicon glyphicon-question-sign"></i> Create MiSeq Project
+            </a>
+        </div>
+        <div id="collapseOne" class="panel-body collapse">
+            <div class="panel-body">
+                <p>
+                    
+                </p>
+                <div class="well">
+                    <h5>Explaination of each header</h5>
+                    <p>
+                    </p>
+                    <dl class="dl-horizontal">
+                        <dt>Experiment</dt>
+                        <dd>A-ZZ</dd>
+                        <dt>Gene</dt>
+                        <dd>BRCA1</dd>
+                        <dt>Crispr</dt>
+                        <dd>ACTG</dd>
+                        <dt>Strand</dt>
+                        <dd>+/-</dd>
+                        <dt>Amplicon</dt>
+                        <dd>ACTGACTG</dd>
+                        <dt>Wells</dt>
+                        <dd>1-96</dd>
+                    </dl>
+                </div>
+                <div class="well">
+                    <h5>Example CSV file</h5>
+                    <table class="table table-striped">
+                        <tr>
+                            <th>Experiment</th>
+                            <th>Gene</th>
+                            <th>Crispr</th>
+                            <th>Strand</th>
+                            <th>Amplicon</th>
+                            <th>Range</th>
+                        </tr>
+                        <tr>
+                            <td>A</td>
+                            <td>ZMYND11_1</td>
+                            <td>ACTGACTGACTG...(20 bases)</td>
+                            <td>-</td>
+                            <td>ACTGACTGACTGACTGACTGACTGACTGACTGACTGACTG...(~150 bases)</td>
+                            <td>1-48</td>
+                        </tr>
+                        <tr>
+                            <td>B</td>
+                            <td>KDM5B_1</td>
+                            <td>ACTGACTGACTG...(20 bases)</td>
+                            <td>+</td>
+                            <td>ACTGACTGACTGACTGACTGACTGACTGACTGACTGACTG...(~150 bases)</td>
+                            <td>49-96</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

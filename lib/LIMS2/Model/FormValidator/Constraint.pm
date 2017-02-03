@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.440';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.444';
 }
 ## use critic
 
@@ -344,6 +344,30 @@ sub in_enum_column{
     my $col_info = $self->model->schema->resultset($resultset_name)->result_source->column_info($column_name);
     my $list = $col_info->{extra}->{list};
     return $self->in_set(@{ $list });
+}
+
+sub existing_miseq_status {
+    return shift->in_resultset( 'MiseqStatus', 'id' );
+}
+
+sub existing_miseq_plate {
+    return shift->in_resultset( 'MiseqProject', 'id' );
+}
+
+sub illumina_index_range {
+    return shift->regexp_matches(qr/^[1-9]$|^[1-8][0-9]$|^9[0-6]$/);
+}
+
+sub existing_miseq_well {
+    return shift->in_resultset( 'MiseqProjectWell', 'id' );
+}
+
+sub miseq_experiment {
+    return shift->regexp_matches(qr/^[A-Z]+$/);
+}
+
+sub existing_miseq_classification {
+    return shift->in_resultset( 'MiseqClassification', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

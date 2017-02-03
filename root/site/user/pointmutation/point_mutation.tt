@@ -1,0 +1,409 @@
+[%- META title = 'Point Mutation' %]
+<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+<style>
+
+.tooltip {
+    position: absolute;
+    text-align: left;
+    width: 150px;
+    height: 20px;
+    padding: 8px;
+    margin-top: -20px;
+    font: 10px sans-serif;
+    background: #ddd;
+    pointer-events: none;
+}
+
+.lb-md {
+    font-size: 22px;
+}
+
+</style>
+
+<div class="page-header">
+  <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-1">
+        <label class="lb-md">Gene: </label>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" align="center" id="geneSelect">
+            <option value="All" selected="selected">All</option>
+            [% FOREACH gene IN genes %]
+                <option value="[% gene %]">[% gene %]</option>
+            [% END %]
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="lb-md">Experiment: </label>
+    </div>
+    <div class="col-md-2">
+        <select class="form-control" align="center" id="expSelect">
+            <option value="All" selected="selected">All</option>
+            [% FOREACH exp IN experiments %]
+                <option class="ddExp" value="[% exp %]">[% exp %]</option>
+            [% END %]
+        </select>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+    </div>
+    <div id="key" class="col-md-3">
+        <h5>Colour Key: </h5>
+        <svg width="450" height="40">
+            <g class="legend" transform="translate(0)">
+                <rect width="18" height="18" style="fill: #887bf7; stroke: #887bf7;"></rect>
+                <text x="22" y="14">Well</text>
+            </g>
+            <g class="legend" transform="translate(0,20)">
+                <rect width="18" height="18" style="fill: #d6757f; stroke: #d6757f;"></rect>
+                <text x="22" y="14">Scanned-Out Well</text>
+            </g>
+            <g class="legend" transform="translate(150,0)">
+                <rect width="18" height="18" style="fill: #66c2a5; stroke: #66c2a5;"></rect>
+                <text x="22" y="14">Wild Types</text>
+            </g>
+            <g class="legend" transform="translate(150,20)">
+                <rect width="18" height="18" style="fill: #ffaa00; stroke: #ffaa00;"></rect>
+                <text x="22" y="14">NHEJ Clones</text>
+            </g>
+            <g class="legend" transform="translate(300,0)">
+                <rect width="18" height="18" style="fill: #d9e354; stroke: #d9e354;"></rect>
+                <text x="22" y="14">HDR</text>
+            </g>
+            <g class="legend" transform="translate(300,20)">
+                <rect width="18" height="18" style="fill: #73667a; stroke: #73667a;"></rect>
+                <text x="22" y="14">Mixed HDR-NHEJ</text>
+            </g>
+        </svg>
+    </div>
+
+</div>
+</br>
+<table id='grid-basic' class="table table-condensed table-hover">
+    <thead>
+        <tr>
+            <th></th>
+            [% SET count = 0 %]
+            [% WHILE count < 12 %]
+                [% count = count + 1 %]
+                <th data-column-id="[% count %]">
+                    [% count %]
+                </th>
+            [% END %]
+        </tr>
+    </thead>
+    <tbody>
+        [% SET base = 0 %]
+        [% FOREACH letter IN [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ] %]
+            <tr id="[% letter %]">
+                <th id="[% letter %]-H">[% letter %]</th>
+            [% FOREACH cell IN [ '01', '09', '17', '25', '33', '41', '49', '57', '65', '73', '81', '89' ] %]
+                <td id="[% base + cell %]" class="svgContainer"></td>
+            [% END %]
+            </tr>
+            [% base = base + 1 %]
+        [% END %]
+    </tbody>
+</table>
+
+<script type="text/javascript" charset="utf-8">
+
+var data = '[% wells %]';
+var json = JSON.parse(data.replace(/&quot;/g,'"'));
+var raw_exp = '[% overview %]';
+var overview = JSON.parse(raw_exp.replace(/&quot;/g,'"'));
+var raw_link = '[% gene_exp %]';
+var link = JSON.parse(raw_link.replace(/&quot;/g,'"'));
+var allExps = [];
+var prevExp = "";
+
+//One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
+var tau = 2 * Math.PI;
+
+var width = window.innerWidth / 20,
+    height = window.innerHeight / 13,
+    radius = (Math.min(width, height) / 2) - 1,
+    arcWidth = Math.min(width, height) / 7;
+
+var pie = d3.pie()
+    .sort(null)
+    .value(function(d) { return d.population; });
+
+var arc = d3.arc()
+    .innerRadius(radius - arcWidth)
+    .outerRadius(radius)
+    .startAngle(0);
+
+var svg = d3.selectAll("td")
+    .append("svg:svg")
+    .attr("width", '100%')
+    .attr("height", height)
+    .attr("class","svgTool")
+    .attr("onclick","wellArc(this)")
+    .attr("data-toggle","tooltip")
+    .attr("data-html","true")
+    .attr("title", function(){ return tooltip($(this)) })
+    .append("svg:g")
+    .attr("class","node")
+    .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+
+//Base ring
+d3.selectAll("g.node")
+    .append("path")
+    .datum({endAngle: tau})
+    .style("fill","#887bf7")
+    .attr("d",arc);
+
+var initDonut = d3.pie()([0,0]);
+
+var wt = d3.selectAll("g.node")
+    .append("path")
+    .datum(initDonut[0])
+    .style("fill","#66c2a5")
+    .attr("d", arc)
+    .attr("class","donut")
+    .attr("class","wild");
+
+var nhej = d3.selectAll("g.node")
+    .append("path").datum(initDonut[1])
+    .style("fill","#ffaa00")
+    .attr("d", arc)
+    .attr("class", "donut")
+    .attr("class", "nhej");
+
+var hdr = d3.selectAll("g.node")
+    .append("path").datum(initDonut[1])
+    .style("fill","#d9e354")
+    .attr("d", arc)
+    .attr("class", "donut")
+    .attr("class", "hdr");
+
+var mixed = d3.selectAll("g.node")
+    .append("path").datum(initDonut[1])
+    .style("fill","#73667a")
+    .attr("d", arc)
+    .attr("class", "donut")
+    .attr("class", "mix");   
+/*
+var missingData = d3.selectAll("g")
+    .append("path").datum(initDonut[1])
+    .style("fill","#8f0a0b")
+    .attr("d", arc)
+    .attr("class", "donut")
+    .attr("class", "miss");
+*/
+
+d3.selectAll("g.node").append("svg:text").attr("class","nodetext").attr("dx","-0.5em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
+
+$(document).ready(function() {
+    windowDims();
+    $('[data-toggle="tooltip"]').tooltip();
+    buildExps(1);
+    highlightSelection();
+});
+
+$('#geneSelect').change(function() {
+    if ($('#geneSelect').val() != 'All') { 
+        //$("#expSelect").children('option').hide();
+        //$("#expSelect").children('option[value^=All]').show();
+        $("#expSelect").children('option').hide().prop('disabled', true);
+        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+        var geneExps = link.summary[$('#geneSelect').val()];
+        for (var count = 0; count < geneExps.length; count++) {
+            $("#expSelect").children('option[value~=' + geneExps[count] + ']').show().prop('disabled', false);
+        }
+    } else {
+        $("#expSelect").children('option').show().prop('disabled', false);
+    }
+});
+
+$('#expSelect').change(function() {
+    if ($('#expSelect').val() != 'All') { 
+        $("#geneSelect").children('option').hide().prop('disabled', true);
+        $("#geneSelect").children('option[value^=All]').show().prop('disabled', false);
+        var expGenes = overview.summary[$('#expSelect').val()];
+        for (var count = 0; count < expGenes.length; count++) {
+            $("#geneSelect").children('option[value^=' + expGenes[count].split(/[^A-Za-z0-9]/)[0] + ']').show().prop('disabled', false);
+        }
+    } else {
+        $("#geneSelect").children('option').show().prop('disabled', false);
+    }
+});
+
+function clearSelection() {
+    $("#expSelect").children('option').show().prop('disabled', false);
+    $("#geneSelect").children('option').show().prop('disabled', false);
+    $('select').each(function() { this.selectedIndex = 0 });
+    highlightSelection();
+}
+
+$(window).resize(function() {
+    console.log("Updating");
+    highlightSelection('All');
+    windowDims();
+    d3.selectAll('.svgTool')
+        .attr('width', width)
+        .attr('height', height);
+    d3.selectAll('g.node')
+        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+    setTimeout(function(d) { d3.selectAll('path').attr('d', arc) }, 300 );
+    d3.selectAll('.scan')
+        .attr("cx", width / 2).attr("cy", height / 2)
+        .attr("r", function(){ return radius - arcWidth; })
+    highlightSelection();
+});
+
+function windowDims() { 
+    width = window.innerWidth / 20;
+    height = window.innerHeight / 13;
+    radius = (Math.min(width, height) / 2) - 1;
+    arcWidth = Math.min(width, height) / 7;
+    arc = d3.arc()
+        .innerRadius(radius - arcWidth)
+        .outerRadius(radius)
+        .startAngle(0);
+    return;
+}
+
+function tooltip(node) {
+    var oligoIndex = twoDigits(node.parent()[0].id);
+    var dataPoint = json.summary[oligoIndex];
+    var response = "";
+    var focusExp = document.getElementById('expSelect').value;
+
+    if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
+        response = `
+            Illumina Index: ` + oligoIndex + `<br>
+            Gene: ` + overview.summary[focusExp].sort().toString() + `<br>
+            Status: ` + dataPoint.status + `<br>
+            NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
+            WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
+            HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
+            Mixed: ` + dataPoint.percentages[focusExp].mix + ` reads<br>
+            Classification: ` + dataPoint.classes[focusExp];
+    } else if (focusExp != 'All'){
+        response = `
+            Oligo Index: ` + oligoIndex + `<br>
+            Status: ` + dataPoint.status;
+    } else { 
+        response = `
+            Oligo Index: ` + oligoIndex + `<br>
+            Genes: ` + dataPoint.gene.sort().toString() + `<br>
+            Status: ` + dataPoint.status;
+    }
+    return response;
+}
+
+function wellArc(node) {
+    var exp = document.getElementById('expSelect').value;
+    if (exp == 'All') {
+        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id); 
+    } else {
+        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id + '&exp=' + exp); 
+    }
+}
+
+function twoDigits(n) {
+    return n > 9 ? "" + n: "0" + n;
+}
+
+function buildExps(first) {
+    var wells = json.summary;
+    var nodes = d3.selectAll('td').nodes();
+    var dropdown = document.getElementById('expSelect');
+
+    for (var i = 0; i < nodes.length; i++) {
+        var wellData = wells[twoDigits(nodes[i].id)];
+        if ((wellData.status == 'Scanned-Out' || wellData.status == 'Empty') && first != null) {
+            d3.select(nodes[i].childNodes[0]).append("circle")
+                .attr("cx", width / 2).attr("cy", height / 2)
+                .attr("r", function(){ return radius - arcWidth; })
+                .attr("class", "scan")
+                .style("opacity", 0.4)
+                .style("fill", '#ff001a');
+        }
+        for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
+            var node = nodes[i];
+            var expName = wellData.experiments[expInt];
+            /*
+            if (wellData.percentages[expName].miss != null) {
+                console.log(i);
+                var missArc = $(node).find('.miss');
+                d3.select(missArc[0]).classed(expName, true);
+            } else {
+            */
+            var nhejArc = $(node).find('.nhej');
+            var wildArc = $(node).find('.wild');
+            var hdrArc = $(node).find('.hdr');
+            var mixArc = $(node).find('.mix');
+            d3.select(nhejArc[0]).classed(expName, true);
+            d3.select(wildArc[0]).classed(expName, true);
+            d3.select(hdrArc[0]).classed(expName, true);
+            d3.select(mixArc[0]).classed(expName, true);
+            //}
+        }
+    }
+}
+
+expSelect.onchange = function() {
+    highlightSelection()
+}
+
+function highlightSelection(selection) {
+    clearHighlight();
+
+    selection = selection || document.getElementById('expSelect').value;
+    if (selection != 'All') {
+        setTimeout(function() { d3.selectAll('.' + selection).filter(".wild").transition().duration(500).attrTween("d", arcTween(tau)); }, 250);
+        setTimeout(function() { buildDonut(selection); }, 250);
+    }
+
+    prevExp = selection;
+
+}
+
+function buildDonut(exp) {
+    var wells = json.summary;
+    
+    var nhejNodes = d3.selectAll('.' + exp).filter(".nhej").nodes();
+    var hdrNodes = d3.selectAll('.' + exp).filter(".hdr").nodes();
+    var mixNodes = d3.selectAll('.' + exp).filter(".mix").nodes();
+    
+    for (var nodeIt = 0; nodeIt < nhejNodes.length; nodeIt++) {
+        var id = $(nhejNodes[nodeIt]).closest("td")[0].id;
+        var values = wells[twoDigits(id)].percentages[exp];
+        var total = +values.nhej + +values.wt + +values.hdr + +values.mix;
+        var arcTau = values.mix / total;
+        d3.select(mixNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+        arcTau = (+values.hdr + +values.mix) / total;
+        d3.select(hdrNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+        arcTau = (+values.nhej + +values.hdr + +values.mix) / total;
+        d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+    }
+    var missingDataNodes = d3.selectAll('.' + exp).filter(".miss").transition().duration(500).attrTween("d", arcTween(1 * tau));
+}
+
+function clearHighlight() {
+    if (prevExp == "") {
+        d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0.0 * tau));
+    } else {
+        d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau));
+    }
+    d3.selectAll(".svgTool").attr("data-original-title", function(){ return tooltip($(this)) });
+    buildExps()
+}
+
+function arcTween(newAngle) {
+    return function(d) {
+        var interpolate = d3.interpolate(d.endAngle, newAngle);
+        return function(t) {
+            d.endAngle = interpolate(t);
+            return arc(d);
+        };
+    };
+}
+
+</script>
