@@ -239,7 +239,7 @@ function lims2_devel {
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
-    export LIMS2_PRIMER_DIR=/lustre/scratch109/sanger/team87/lims2_primer_generation/
+    export LIMS2_PRIMER_DIR=/lustre/scratch117/sciops/team87/lims2_primer_generation/
     export LIMS2_TEMP=/opt/t87/local/tmp
 }
 
