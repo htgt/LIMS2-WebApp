@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# 10_LIMS2_WebApp_Controller_User_AddWell.t
+# 10_LIMS2_WebApp_Controller_User_EditWells.t
 
 use strict;
 use warnings FATAL => 'all';
@@ -13,7 +13,7 @@ use FindBin qw($Bin);
 use lib "$Bin/../../../../lib";
 
 use Test::Class;
-use LIMS2::t::WebApp::Controller::User::AddWell;
+use LIMS2::t::WebApp::Controller::User::EditWells;
 
 
 Test::Class->runtests;

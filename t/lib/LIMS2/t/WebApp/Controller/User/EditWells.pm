@@ -1,8 +1,8 @@
-package LIMS2::t::WebApp::Controller::User::AddWell;
+package LIMS2::t::WebApp::Controller::User::EditWells;
 
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::WebApp::Controller::User::AddWell;
+use LIMS2::WebApp::Controller::User::EditWells;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use strict;
@@ -12,7 +12,7 @@ use strict;
 
 =head1 NAME
 
-LIMS2/t/WebApp/Controller/User/AddWell.pm - test class for LIMS2::WebApp::Controller::User::AddWell
+LIMS2/t/WebApp/Controller/User/EditWells.pm - test class for LIMS2::WebApp::Controller::User::EditWells
 
 =head1 DESCRIPTION
 
@@ -86,7 +86,7 @@ Code to execute all tests
 =cut
 
 sub all_tests  : Tests {
-    ok(1, "Test of LIMS2::WebApp::Controller::User::AddWell");
+    ok(1, "Test of LIMS2::WebApp::Controller::User::EditWells");
 
     my $mech = LIMS2::Test::mech();
 
