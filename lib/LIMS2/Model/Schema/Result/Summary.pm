@@ -939,6 +939,11 @@ __PACKAGE__->table("summaries");
   data_type: 'text'
   is_nullable: 1
 
+=head2 requester
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -1305,6 +1310,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "piq_crispr_es_qc_well_call",
   { data_type => "text", is_nullable => 1 },
+  "requester",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1342,8 +1349,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-14 11:33:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+dv4P9sJyY1ZU6FuK0HMjw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-02 11:27:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7lBcH7QNkFJk6XBhEJ/4Ug
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

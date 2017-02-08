@@ -27,6 +27,8 @@ sub manage_projects :Path('/user/manage_projects'){
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+$DB::single=1;
+
 
     my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
     $c->stash->{cell_line_options} = \@cell_lines;
@@ -132,6 +134,8 @@ sub manage_projects :Path('/user/manage_projects'){
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
 
     $c->stash->{sponsors} = \@sponsors;
+
+
     return;
 }
 
@@ -139,7 +143,10 @@ sub view_project :Path('/user/view_project'){
     my ( $self, $c) = @_;
 
     $c->assert_user_roles('read');
-
+        if (my $new_request = $c->req->param('newRequest')) {
+            my $params->{id} = $new_request;
+            my $request = $c->model('Golgi')->create_requester($params);
+        }
     my $proj_id = $c->req->param('project_id');
 
     my $project = $c->model('Golgi')->retrieve_project_by_id({
@@ -202,10 +209,14 @@ sub view_project :Path('/user/view_project'){
     }
 
     if($c->req->param('add_experiment')){
+$DB::single=1;
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};
         delete $params->{project_id};
+        if ($params->{requester} eq "") {
+            delete $params->{requester};
+        }
         $params->{gene_id} = $project->gene_id;
         try{
             my $experiment = $c->model('Golgi')->create_experiment($params);
@@ -236,7 +247,9 @@ sub view_project :Path('/user/view_project'){
                             $c->model('Golgi')->schema->resultset('CrisprGroup')->search({ gene_id => $project->gene_id });
 
     my @recovery_class_names =  map { $_->name } $c->model('Golgi')->schema->resultset('ProjectRecoveryClass')->search( {}, {order_by => { -asc => 'name' } });
+    my @requesters = sort map { $_->id } $c->model('Golgi')->schema->resultset('Requester')->all;
 
+    $c->stash->{requesters} = \@requesters;
     $c->stash->{project} = $project->as_hash;
     if($gene_info->{gene_symbol}){
         $c->stash->{gene_symbol} = $gene_info->{gene_symbol};

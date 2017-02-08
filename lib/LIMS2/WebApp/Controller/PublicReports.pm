@@ -440,6 +440,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
 sub add_ep_rows {
     my ($c, $column, $body, @csv_colums) = @_;
+$DB::single=1;
     my %keys = (
         'cell_line'           => 'EP_cell_line',
         'dna_template'        => 'DNA_source_cell_line',
@@ -452,6 +453,7 @@ sub add_ep_rows {
         'no-call'             => 'nc_count',
         'total_colonies'      => 'total_colonies',
         'wild_type'           => 'wt_count',
+        'requester'           => 'requester',
     );
     my @expand_cols;
     foreach my $ep_col ( @{$column->{ep_data}} ) {

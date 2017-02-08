@@ -86,6 +86,11 @@ __PACKAGE__->table("experiments");
   default_value: false
   is_nullable: 0
 
+=head2 requester
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -110,6 +115,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "deleted",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "requester",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -207,8 +214,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 12:24:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1V5OvWyV0Ze3tthsOkhBg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-06 14:16:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pix8eqXpasccJZRiaVimXA
 
 sub as_hash{
     my $self = shift;

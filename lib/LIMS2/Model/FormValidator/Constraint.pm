@@ -364,9 +364,29 @@ sub existing_miseq_classification {
     return shift->in_resultset( 'MiseqClassification', 'id' );
 }
 
+sub email {
+    return shift->regexp_matches(qr{
+        ^(                                      # Capture [example]@sanger.ac.uk
+            (
+                [^<>()\[\]\.,;:\s@\"]+          # Match any char not present in the list
+                (\.[^<>()\[\]\.,;:\s@\"]+)*     # Allows for john.smith@sanger.ac.uk. Match any char not in the list again
+            )
+            |                                   # Or
+            (\".+\")                            # "john"
+        )
+        @                                       # Match literally
+        (
+            ([^<>()[\]\.,;:\s@\"]+\.)+          # Capture example@[sanger].ac.uk. Match any char not present
+            [^<>()[\]\.,;:\s@\"]{2,}            # match not present two or more times example@sanger.[ac.uk]
+        )$
+    }xms);
+}
+
+sub existing_requester {
+    return shift->in_resultset( 'Requester', 'id' );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
-
-__END__
 

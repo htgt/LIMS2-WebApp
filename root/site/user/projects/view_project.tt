@@ -5,13 +5,13 @@
   [% IF project.effort_concluded %]
   <span class="label label-info">Effort Concluded</span>
   [% ELSIF c.check_user_roles('edit') and c.user.is_sanger %]
-  <button class="btn" id="conclude_effort_button" href="#ConcludeEffortModal" data-toggle="modal" style="display:none"><i class="icon-stop"></i> Mark Project as Concluded</button>
+  <button class="btn btn-warning" id="conclude_effort_button" href="#ConcludeEffortModal" data-toggle="modal" style="display:none"><i class="glyphicon glyphicon-stop"></i> Mark Project as Concluded</button>
   [% END %]
   </h1>
 </div>
 <p>
   <a href="[% c.uri_for('/user/manage_projects') %]" class="btn btn-primary">
-    <i class="icon-hand-left icon-white"></i>
+    <i class="glyphicon glyphicon-hand-left"></i>
     Back to project search
   </a>
 </p>
@@ -61,7 +61,7 @@
           </option>
           [% END %]
         </select>
-        <button type="submit" class="btn" id="recovery_class_btn">Update</button>
+        <button type="submit" class="btn btn-info" id="recovery_class_btn">Update</button>
       </form>
       [% ELSE %]
         [% project.recovery_class %]
@@ -73,8 +73,8 @@
     <td>
       [% IF c.check_user_roles( 'edit' ) %]
       <form class="form-inline">
-        <input type="text" id="recovery_comment_value" value="[% project.recovery_comment %]"></input>
-        <button type="submit" class="btn" id="recovery_comment_btn">Update</button>
+        <input type="text" id="recovery_comment_value" value="[% project.recovery_comment %]" class="form-control"></input>
+        <button type="submit" class="btn btn-info" id="recovery_comment_btn">Update</button>
       </form>
       [% ELSE %]
         [% project.recovery_comment %]
@@ -95,15 +95,15 @@
 
 
 [% IF c.check_user_roles( 'edit' ) %]
-<div class="accordion" id="update_sponsors_div">
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#update_sponsors_dev" href="#update_sponsors_form">
-        <strong>Edit Sponsors <i class="icon-edit"></i></strong>
+<div class="panel panel-default" id="update_sponsors_div">
+  <div class="panel-group">
+    <div class="panel-heading">
+      <a class="panel-toggle" data-toggle="collapse" data-parent="#update_sponsors_dev" href="#update_sponsors_form">
+        <strong>Edit Sponsors <i class="glyphicon glyphicon-edit"></i></strong>
       </a>
     </div>
-    <div id="update_sponsors_form" class="accordion-body collapse in">
-      <div class="accordion-inner">
+    <div id="update_sponsors_form" class="panel-body collapse">
+      <div class="panel-inner">
 		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id } ) %]" class="well" name="update_sponsors_form" id="sponsors_form">
 		  <input type="hidden" name="project_id" value="[% project.id %]">
       <table>
@@ -130,7 +130,7 @@
 		  [% END %]
       </table>
 		  <br>
-		  <button type="submit" class="btn" name="update_sponsors" value="1">Update Project Sponsors</button>
+		  <button type="submit" class="btn btn-primary" name="update_sponsors" value="1">Update Project Sponsors</button>
 		</form>
       </div>
     </div>
@@ -170,7 +170,7 @@
     <td>
       <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" name="delete_experiment_form" id="delete_experiment_[% exp.id %]">
         <button type="submit" class="btn btn-danger delete_experiment_btn" name="delete_experiment" value="[% exp.id %]" href="#DeleteExperimentModal" data-toggle="modal" data-exp-id="[% exp.id %]">
-          <i class="icon-remove icon-white"></i>
+          <i class="glyphicon glyphicon-remove"></i>
         </button>
       </form>
     </td>
@@ -194,9 +194,9 @@ No experiments for this project
       </div>
 
       <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
         <button type="submit" name="delete_experiment" class="btn btn-danger" value="" id="delete_exp_id_value">
-          <i class="icon-remove icon-white"></i> Confirm Delete Experiment
+          <i class="glyphicon glyphicon-remove"></i> Confirm Delete Experiment
         </button>
       </div>
     </form>
@@ -214,34 +214,54 @@ No experiments for this project
       </div>
 
       <div class="modal-footer">
-        <button class="btn" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
         <button type="submit" name="conclude_project" class="btn btn-danger" value="conclude" id="conclude_project">
-          <i class="icon-remove icon-white"></i> Confirm Conclude Project
+          <i class="glyphicon glyphicon-remove"></i> Confirm Conclude Project
         </button>
       </div>
     </form>
 </div>
 
 [% IF c.check_user_roles( 'edit' ) %]
-<div class="accordion" id="add_experiment_div">
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#add_experiment_dev" href="#add_experiment_form">
-        <strong>Add Experiment <i class="icon-edit"></i></strong>
-      </a>
+
+<div class="panel-group">
+    <div class="panel panel-default" id="add_experiment_div">
+        <div class="panel-heading">
+            <a class="panel-toggle" data-toggle="collapse" data-parent="#add_experiment_dev" href="#add_experiment_form">
+                <strong>Add Experiment <i class="glyphicon glyphicon-edit"></i></strong>
+            </a>
+        </div>
+        <div id="add_experiment_form" class="panel-body collapse">
+		    <form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well" name="add_experiment_form">
+                <div class="row">
+                    <input class="form-control col-md-2" type="text" name="design_id" placeholder="Design ID">
+                    <div class="col-md-3 col-md-offset-1" id="requestContainer">
+                        <select class="form-control" name="requester">
+                            <option value="" hidden>Requester</option>
+                            [% FOREACH rq IN requesters %]
+                                <option value="[% rq %]" [% IF sponsor == sp %]selected[% END %]>[% rq %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div id="actionReq" class="col-md-2">
+                        <button class="btn btn-info" id="addRequest" onclick="addRequester();">Add Requester</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <input class="form-control col-md-2" type="text" name="crispr_id" placeholder="Crispr ID">
+                </div>
+                <div class="row">
+                    <input class="form-control col-md-2" type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">
+                </div>
+                <div class="row">
+                    <input class="form-control col-md-2" type="text" name="crispr_group_id" placeholder="Crispr Group ID">
+                    <div class="col-md-2 col-md-offset-7">
+		                <button type="submit" class="btn btn-primary" name="add_experiment" value="1">Add Experiment</button>
+		            </div>
+                </div>
+            </form>
+        </div>
     </div>
-    <div id="add_experiment_form" class="accordion-body collapse in">
-      <div class="accordion-inner">
-		<form method="POST" action="[% c.uri_for( '/user/view_project', { project_id => project.id }) %]" class="form-inline well" name="add_experiment_form">
-          <input type="text" name="design_id" placeholder="Design ID">
-          <input type="text" name="crispr_id" placeholder="Crispr ID">
-          <input type="text" name="crispr_pair_id" placeholder="Crispr Pair ID">
-          <input type="text" name="crispr_group_id" placeholder="Crispr Group ID">
-		  <button type="submit" class="btn" name="add_experiment" value="1">Add Experiment</button>
-		</form>
-      </div>
-    </div>
-  </div>
 </div>
 
 [% END %]
@@ -339,7 +359,7 @@ $( document ).ready(function() {
 
       if(data.length == 0){
         var btn_id = 'create_issue_' + $(item).data('expId');
-        $(item).append("<button class='btn' id='" + btn_id + "'>Create Tracker Issue</button>");
+        $(item).append("<button class='btn btn-default' id='" + btn_id + "'>Create Tracker Issue</button>");
         $("#" + btn_id).click( function(){
           var exp_td = $(this).parent( $(".tracker_exp_issues") );
           this.remove();
@@ -402,4 +422,52 @@ $("input[name='crispr_group_id']").autocomplete({
   source: groups,
   minLength: 0,
 });
+
+function addRequester() {
+    console.log("Reached");
+ 
+    var input = document.createElement('input');
+    input.className += " form-control newReq";
+    input.id = "newRequest";
+    input.name = "newRequest";
+    input.placeholder = "e.g. example@sanger.ac.uk";
+    
+    $('#requestContainer').html("");
+
+    var div = document.getElementById('requestContainer');
+    div.appendChild(input);
+
+    $('#addRequest').remove();
+
+    var button = document.createElement('button');
+    button.className += " btn btn-danger";
+    button.id = "createReq";
+    button.innerHTML = 'Save <i class="glyphicon glyphicon-pencil"></i>';
+    button.disabled = "true";
+
+    div = document.getElementById('actionReq');
+    div.appendChild(button);
+}
+
+$('body').on("keyup", "input.newReq", function() {
+    console.log($('#newRequest').val());
+    console.log(validateEmail($('#newRequest').val()));
+    var entry = $('#newRequest').val();
+    if (entry.length > 4 ) {
+        if (validateEmail(entry)) {
+            $('#createReq').prop('disabled', false);
+            $('#newRequest').css('background-color', '#ccebc5');
+        } else {
+            $('#createReq').prop('disabled', true);
+            $('#newRequest').css('background-color', '#fbb4ae');
+        }
+    } else {
+        $('#newRequest').css('background-color', 'transparent');
+    }
+});
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+    return re.test(email);
+}
 </script>

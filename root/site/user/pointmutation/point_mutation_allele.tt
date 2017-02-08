@@ -564,11 +564,4 @@ function changeStatus() {
     $('#statusButton').remove();
 }
 
-$('body').on("click", "button.save", function() {
-    console.log("test");
-    console.log();
-    var form = document.getElementById('statusContainer');
-    form.submit();    
-});
-
 </script>
