@@ -37,7 +37,8 @@ sub create_crispr_es_qc_run {
     my $wells = delete $validated_params->{wells};
 
     my $qc_id_check = $self->schema->resultset('CrisprEsQcRuns')->find( { id => $validated_params->{id} } );
-    my $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $validated_params ) unless $qc_id_check;
+    my $qc_run;
+    $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $validated_params ) unless $qc_id_check;
 
     #later this will be moved to its own method as we won't create
     #wells when we create the qc

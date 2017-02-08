@@ -99,12 +99,14 @@ sub all_tests  : Tests {
             parent_well         => 'A01',
             target_plate        => 'HCL0016_A',
             template_well       => 'A02',
-            target_well         => 'D01',
+            target_well         => 'D04',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
     ok $res->is_success, '...response is success';
     $mech->content_contains('Well successfully added');
+    $mech->content_contains('duplicate key value violates unique constraint');
 
     is $res->base->path, '/user/add_well', 'we are still on importer page';
     ok $res = $mech->submit_form(
@@ -115,6 +117,7 @@ sub all_tests  : Tests {
             target_plate        => 'HCL0016_A',
             template_well       => 'A02',
             target_well         => 'D01',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
@@ -130,6 +133,7 @@ sub all_tests  : Tests {
             target_plate        => 'HCL0016_A',
             template_well       => 'A02',
             target_well         => 'D01',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
@@ -145,6 +149,7 @@ sub all_tests  : Tests {
             target_plate        => 'HZL0016_A',
             template_well       => 'A02',
             target_well         => 'D01',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
@@ -160,6 +165,7 @@ sub all_tests  : Tests {
             target_plate        => 'HCL0016_A',
             template_well       => 'AZ02',
             target_well         => 'D01',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
@@ -175,6 +181,7 @@ sub all_tests  : Tests {
             target_plate        => 'HCL0016_A',
             template_well       => 'Z02',
             target_well         => 'D01',
+            csv                 => '0',
         },
         button => 'add_well_to_plate',
     );
@@ -186,7 +193,6 @@ sub all_tests  : Tests {
 =head1 AUTHOR
 
 Josh Kent
-Lars G. Erlandsen
 
 =cut
 
@@ -194,4 +200,4 @@ Lars G. Erlandsen
 
 1;
 
-__END__
+#__END__
