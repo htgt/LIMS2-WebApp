@@ -440,7 +440,6 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
 sub add_ep_rows {
     my ($c, $column, $body, @csv_colums) = @_;
-$DB::single=1;
     my %keys = (
         'cell_line'           => 'EP_cell_line',
         'dna_template'        => 'DNA_source_cell_line',

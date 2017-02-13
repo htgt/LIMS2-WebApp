@@ -27,7 +27,6 @@ sub manage_projects :Path('/user/manage_projects'){
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-$DB::single=1;
 
 
     my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
@@ -209,7 +208,6 @@ sub view_project :Path('/user/view_project'){
     }
 
     if($c->req->param('add_experiment')){
-$DB::single=1;
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};

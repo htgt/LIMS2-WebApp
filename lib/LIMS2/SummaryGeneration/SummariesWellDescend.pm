@@ -870,7 +870,7 @@ sub fetch_values_for_type_ASSEMBLY {
         $stored_values->{ 'stored_assembly_well_accepted' }          = try{ $curr_well->is_accepted }; # well accepted (with override)
         $stored_values->{ 'stored_assembly_sponsor' }                = try{ $curr_well->plate_sponsor }; # sponsor
         $stored_values->{ 'stored_experiments' }                     = try{ join ",", map { $_->id } @experiments }; # experiment
-        $stored_values->{ 'stored_requesters' }                      = try{ join ",", uniq( map { $_->requester = '' if (!defined $_->requester); $_->requester } @experiments) }; # experiment
+        $stored_values->{ 'stored_requesters' }                      = try{ join ",", uniq( map { check_requester($_->requester) } @experiments) }; # experiment
     }
 
     $summary_row_values->{ 'assembly_well_id' }               = $stored_values->{ stored_assembly_well_id };
@@ -882,9 +882,19 @@ sub fetch_values_for_type_ASSEMBLY {
     $summary_row_values->{ 'assembly_well_accepted' }         = $stored_values->{ stored_assembly_well_accepted };
     $summary_row_values->{ 'experiments' }                    = $stored_values->{ stored_experiments };
     $summary_row_values->{ 'requester' }                      = $stored_values->{ stored_requesters };
-$DB::single=1;
     if ($stored_values->{ 'stored_assembly_sponsor' }) { $summary_row_values->{ 'sponsor_id' } = $stored_values->{ stored_assembly_sponsor } };
     return;
+}
+
+# Perlcritic doesn't like map one liners.
+sub check_requester {
+    my $req = shift;
+
+    if (!defined $req) {
+        return '';
+    }
+
+    return $req;
 }
 
 

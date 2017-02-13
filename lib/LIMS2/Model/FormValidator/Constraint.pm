@@ -365,21 +365,14 @@ sub existing_miseq_classification {
 }
 
 sub email {
-    return shift->regexp_matches(qr{
-        ^(                                      # Capture [example]@sanger.ac.uk
-            (
-                [^<>()\[\]\.,;:\s@\"]+          # Match any char not present in the list
-                (\.[^<>()\[\]\.,;:\s@\"]+)*     # Allows for john.smith@sanger.ac.uk. Match any char not in the list again
-            )
-            |                                   # Or
-            (\".+\")                            # "john"
-        )
-        @                                       # Match literally
-        (
-            ([^<>()[\]\.,;:\s@\"]+\.)+          # Capture example@[sanger].ac.uk. Match any char not present
-            [^<>()[\]\.,;:\s@\"]{2,}            # match not present two or more times example@sanger.[ac.uk]
-        )$
-    }xms);
+    my $leading = qr{ [^<>()\[\]\.,;:\s@\"]+ }xms;  # Capture [example]@sanger.ac.uk - Match any char not present in the list
+    my $following = qr{ (\.[^<>()\[\]\.,;:\s@\"]+)* }xms;   # Match any char not present in the list
+    my $option = qr{ (\".+\") }xms; # Or 'john'
+    my $domain = qr{ ([^<>()[\]\.,;:\s@\"]+\.)+ }xms;   # Capture example@[sanger].ac.uk. Match any char not present
+    my $suffix = qr{ [^<>()[\]\.,;:\s@\"]{2,} }xms; # match not present two or more times example@sanger.[ac.uk]
+    my $complete = qr{ ^(($leading$following)|$option)@($domain$suffix)$ }xms; #Full e-mail
+
+    return shift->regexp_matches($complete);
 }
 
 sub existing_requester {

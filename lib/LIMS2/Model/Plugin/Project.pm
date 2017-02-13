@@ -416,7 +416,7 @@ sub _pspec_create_requester{
 
 sub create_requester {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params( $params, $self->_pspec_create_requester);
 
     my $current_req = $self->schema->resultset('Requester')->find( {

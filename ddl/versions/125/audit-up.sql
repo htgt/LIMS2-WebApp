@@ -21,4 +21,5 @@ $requesters_audit$ LANGUAGE plpgsql;
 CREATE TRIGGER requesters_audit
 AFTER INSERT OR UPDATE OR DELETE ON public.requesters
     FOR EACH ROW EXECUTE PROCEDURE public.process_requesters_audit();
+ALTER TABLE audit.miseq_projects ADD COLUMN run_id integer;
 ALTER TABLE audit.experiments ADD COLUMN requester text;

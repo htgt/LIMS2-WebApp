@@ -5,3 +5,5 @@ CREATE TABLE requesters (
 );
 
 ALTER TABLE experiments ADD COLUMN requester TEXT REFERENCES requesters(id);
+
+ALTER TABLE miseq_projects ADD COLUMN run_id INTEGER;
