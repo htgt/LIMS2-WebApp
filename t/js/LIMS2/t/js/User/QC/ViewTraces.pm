@@ -13,7 +13,6 @@ use Test::More tests => 15;
 use Selenium::Firefox;
 use feature qw(say);
 use Getopt::Long;
-use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use LIMS2::TestJS qw( setup_user );
 use WebAppCommon::Testing::JS qw( find_by scroll_window );
@@ -50,7 +49,9 @@ $driver->maximize_window();
 
 #Check creation
 find_by($driver, 'link_text', 'QC');
+$driver->pause(5000);
 find_by($driver, 'link_text', 'Create Sequencing Project');
+$driver->pause(10000);
 is ($driver->get_title(), 'External Project', 'Create seq');
 find_by($driver, 'id', 'check_qc');
 find_by($driver, 'id', 'qc_type');
@@ -132,6 +133,7 @@ sub check_traceviewer {
     }; 
 
     scroll_window($driver, 400);
+    $driver->pause(10000);
     ok( find_by($driver, 'class', 'traces'), "Open traceviewer" );
     $driver->pause(5000);
     ok( find_by($driver, 'class', 'trace_sequence'), "Click on TV seq");
