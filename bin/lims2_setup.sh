@@ -2,6 +2,8 @@ export L2I_STRING=LIMS2-Information
 export L2W_STRING=LIMS2-Warning
 export L2E_STRING=LIMS2-Error
 export LIMS2_DEBUG_DEFINITION="perl -d"
+export LIMS2_TEMP=/opt/t87/local/tmp
+export LIMS2_RNA_SEQ=/warehouse/team229_wh01/lims2_managed_miseq_data/
 
 #TODO: check that we are in the correct directory
 export LIMS2_MIGRATION_ROOT=`pwd`;
@@ -240,7 +242,6 @@ function lims2_devel {
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
     export WGE_REST_CLIENT_CONFIG=/nfs/team87/farm3_lims2_vms/conf/wge-devel-rest-client.conf
     export LIMS2_PRIMER_DIR=/lustre/scratch117/sciops/team87/lims2_primer_generation/
-    export LIMS2_TEMP=/opt/t87/local/tmp
 }
 
 function lims2_pg9.3 {
@@ -279,6 +280,7 @@ LIMS2 useful environment variables:
 \$DESIGN_CREATION_MOUSE_FA     : $DESIGN_CREATION_MOUSE_FA
 \$BWA_REF_GENOME_HUMAN_FA      : $BWA_REF_GENOME_HUMAN_FA
 \$BWA_REF_GENOME_MOUSE_FA      : $BWA_REF_GENOME_MOUSE_FA
+\$LIMS2_RNA_SEQ                : $LIMS2_RNA_SEQ
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG

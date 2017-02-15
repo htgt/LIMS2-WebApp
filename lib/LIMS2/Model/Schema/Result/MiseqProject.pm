@@ -57,6 +57,11 @@ __PACKAGE__->table("miseq_projects");
   is_nullable: 0
   original: {default_value => \"now()"}
 
+=head2 run_id
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -76,6 +81,8 @@ __PACKAGE__->add_columns(
     is_nullable   => 0,
     original      => { default_value => \"now()" },
   },
+  "run_id",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -108,8 +115,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-23 11:34:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PuOJr1KsEnOFfLPAi45mww
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-09 15:43:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UDn6eSHi9gZRXIe1djvmCg
 
 sub as_hash {
     my $self = shift;

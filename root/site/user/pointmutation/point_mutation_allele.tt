@@ -400,6 +400,7 @@ function getSummary(letter, downloadFlag) {
                 exp: letter,
             },
             success: function(result){
+                console.log(result);
                 downloadCSV(letter, result);
             },
             error: function() {
@@ -525,16 +526,16 @@ function overview() {
 }
 
 function downloadCSV(letter, result) {
+    result = JSON.parse(result);
+    console.log(result);
     var hiddenElement = document.createElement('a');
-    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result);
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
     hiddenElement.download = 'MiSeq_[% oligo_index %]_exp' + letter + '.csv';
     document.body.appendChild(hiddenElement);
     hiddenElement.click();
 }
 
 function changeStatus() {
-    console.log("Reached");
-   
     var options = states.summary;
     var current = $('#statusContainer').text();
     var index = options.indexOf(current);
@@ -563,12 +564,5 @@ function changeStatus() {
 
     $('#statusButton').remove();
 }
-
-$('body').on("click", "button.save", function() {
-    console.log("test");
-    console.log();
-    var form = document.getElementById('statusContainer');
-    form.submit();    
-});
 
 </script>
