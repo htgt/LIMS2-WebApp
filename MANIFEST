@@ -3251,4 +3251,3 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
-t/test_manifest

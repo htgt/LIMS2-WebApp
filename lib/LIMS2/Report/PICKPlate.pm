@@ -1,7 +1,7 @@
 package LIMS2::Report::PICKPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::PICKPlate::VERSION = '0.443';
+    $LIMS2::Report::PICKPlate::VERSION = '0.444';
 }
 ## use critic
 
