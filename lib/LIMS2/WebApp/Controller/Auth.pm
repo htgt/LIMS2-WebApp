@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Auth::VERSION = '0.445';
+    $LIMS2::WebApp::Controller::Auth::VERSION = '0.446';
 }
 ## use critic
 

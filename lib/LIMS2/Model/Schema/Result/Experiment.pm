@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.445';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.446';
 }
 ## use critic
 
@@ -92,6 +92,12 @@ __PACKAGE__->table("experiments");
   default_value: false
   is_nullable: 0
 
+=head2 requester
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -116,6 +122,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "deleted",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
+  "requester",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -212,9 +220,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 requester
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 12:24:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r1V5OvWyV0Ze3tthsOkhBg
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Requester>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "requester",
+  "LIMS2::Model::Schema::Result::Requester",
+  { id => "requester" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-09 15:43:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yFbEZdXASXrZehv3A1JBUw
 
 sub as_hash{
     my $self = shift;

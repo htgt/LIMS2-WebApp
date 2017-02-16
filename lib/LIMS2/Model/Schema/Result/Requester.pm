@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::GenotypingResultType;
+package LIMS2::Model::Schema::Result::Requester;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GenotypingResultType::VERSION = '0.446';
+    $LIMS2::Model::Schema::Result::Requester::VERSION = '0.446';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::GenotypingResultType;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::GenotypingResultType
+LIMS2::Model::Schema::Result::Requester
 
 =cut
 
@@ -36,11 +36,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<genotyping_result_types>
+=head1 TABLE: C<requesters>
 
 =cut
 
-__PACKAGE__->table("genotyping_result_types");
+__PACKAGE__->table("requesters");
 
 =head1 ACCESSORS
 
@@ -65,26 +65,9 @@ __PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
 
 __PACKAGE__->set_primary_key("id");
 
-=head1 RELATIONS
 
-=head2 well_genotyping_results
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::WellGenotypingResult>
-
-=cut
-
-__PACKAGE__->has_many(
-  "well_genotyping_results",
-  "LIMS2::Model::Schema::Result::WellGenotypingResult",
-  { "foreign.genotyping_result_type_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P/PVuQS2kp4g5VzAJjGzJQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-02 15:26:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ycc/LvLTEo/pG0W57YqjFQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

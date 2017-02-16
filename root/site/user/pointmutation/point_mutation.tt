@@ -46,6 +46,9 @@
                 <option class="ddExp" value="[% exp %]">[% exp %]</option>
             [% END %]
         </select>
+        <div class="checkbox">
+            <label class="lb-sm"><input type="checkbox" id="filterReads" value="">Read Counts > 1000</label>
+        </div>
     </div>
     <div class="col-md-1">
         <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
@@ -79,7 +82,6 @@
             </g>
         </svg>
     </div>
-
 </div>
 </br>
 <table id='grid-basic' class="table table-condensed table-hover">
@@ -126,15 +128,22 @@ var tau = 2 * Math.PI;
 var width = window.innerWidth / 20,
     height = window.innerHeight / 13,
     radius = (Math.min(width, height) / 2) - 1,
-    arcWidth = Math.min(width, height) / 7;
+    arcWidth = Math.min(width, height) / 7,
+    fsRadius = radius - arcWidth;
 
 var pie = d3.pie()
     .sort(null)
     .value(function(d) { return d.population; });
 
+
 var arc = d3.arc()
-    .innerRadius(radius - arcWidth)
+    .innerRadius(fsRadius)
     .outerRadius(radius)
+    .startAngle(0);
+
+var fsArc = d3.arc()
+    .innerRadius(fsRadius - (arcWidth / 2))
+    .outerRadius(fsRadius)
     .startAngle(0);
 
 var svg = d3.selectAll("td")
@@ -207,8 +216,6 @@ $(document).ready(function() {
 
 $('#geneSelect').change(function() {
     if ($('#geneSelect').val() != 'All') { 
-        //$("#expSelect").children('option').hide();
-        //$("#expSelect").children('option[value^=All]').show();
         $("#expSelect").children('option').hide().prop('disabled', true);
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
         var geneExps = link.summary[$('#geneSelect').val()];
@@ -231,6 +238,14 @@ $('#expSelect').change(function() {
     } else {
         $("#geneSelect").children('option').show().prop('disabled', false);
     }
+});
+
+$('#expSelect').change(function() {
+    highlightSelection();
+});
+
+$('#filterReads').change(function() {
+    highlightSelection();
 });
 
 function clearSelection() {
@@ -328,29 +343,29 @@ function buildExps(first) {
         for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
-            /*
+            /* 
             if (wellData.percentages[expName].miss != null) {
                 console.log(i);
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
             } else {
+                Place below code here
+            }
             */
-            var nhejArc = $(node).find('.nhej');
-            var wildArc = $(node).find('.wild');
-            var hdrArc = $(node).find('.hdr');
-            var mixArc = $(node).find('.mix');
-            d3.select(nhejArc[0]).classed(expName, true);
-            d3.select(wildArc[0]).classed(expName, true);
-            d3.select(hdrArc[0]).classed(expName, true);
-            d3.select(mixArc[0]).classed(expName, true);
-            //}
+            
+            var types = ['nhej', 'wild', 'hdr', 'mix'];
+            for (var type = 0; type < types.length; type++) {
+                buildArcs(node, types[type], expName, wellData, i);
+            }
         }
     }
 }
 
-expSelect.onchange = function() {
-    highlightSelection()
+function buildArcs(node, type, expName, wellData, expInt) {
+    var arc = $(node).find('.' + type);
+    d3.select(arc[0]).classed(expName, true);
 }
+
 
 function highlightSelection(selection) {
     clearHighlight();
@@ -360,7 +375,6 @@ function highlightSelection(selection) {
         setTimeout(function() { d3.selectAll('.' + selection).filter(".wild").transition().duration(500).attrTween("d", arcTween(tau)); }, 250);
         setTimeout(function() { buildDonut(selection); }, 250);
     }
-
     prevExp = selection;
 
 }
@@ -377,13 +391,19 @@ function buildDonut(exp) {
         var values = wells[twoDigits(id)].percentages[exp];
         var total = +values.nhej + +values.wt + +values.hdr + +values.mix;
         var arcTau = values.mix / total;
-        d3.select(mixNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
-        arcTau = (+values.hdr + +values.mix) / total;
-        d3.select(hdrNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
-        arcTau = (+values.nhej + +values.hdr + +values.mix) / total;
-        d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+        if ($('#filterReads').is(':checked') && total < 1000) {
+            console.log("Filtering: " + id);
+            var wtArc = $($(nhejNodes[nodeIt]).closest("td")[0]).find('path.wild');
+            d3.select(wtArc[0]).transition().duration(500).attrTween("d", arcTween(0));
+        } else {
+            d3.select(mixNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+            arcTau = (+values.hdr + +values.mix) / total;
+            d3.select(hdrNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+            arcTau = (+values.nhej + +values.hdr + +values.mix) / total;
+            d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau));
+        }
     }
-    var missingDataNodes = d3.selectAll('.' + exp).filter(".miss").transition().duration(500).attrTween("d", arcTween(1 * tau));
+    //var missingDataNodes = d3.selectAll('.' + exp).filter(".miss").transition().duration(500).attrTween("d", arcTween(1 * tau));
 }
 
 function clearHighlight() {
@@ -393,7 +413,6 @@ function clearHighlight() {
         d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau));
     }
     d3.selectAll(".svgTool").attr("data-original-title", function(){ return tooltip($(this)) });
-    buildExps()
 }
 
 function arcTween(newAngle) {
@@ -404,6 +423,16 @@ function arcTween(newAngle) {
             return arc(d);
         };
     };
+}
+
+function totalReads(well) {
+    var keys = Object.keys(well);
+    var total = 0;
+    for (var i = 0; i < keys.length; i++) {
+        var reads = well[keys[i]];
+        total += +reads;
+    }
+    return total; 
 }
 
 </script>

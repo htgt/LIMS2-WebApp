@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.445';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.446';
 }
 ## use critic
 
@@ -450,6 +450,7 @@ sub generate_sub_report {
                                             'DNA_source_cell_line',
                                             'EP_cell_line',
                                             'experiment_ID',
+                                            'requester',
 
                                             'total_colonies',
 
@@ -495,6 +496,7 @@ sub generate_sub_report {
                                             'DNA source vector',
                                             'EP cell line',
                                             'experiment ID',
+                                            'requester',
 
                                             '# colonies',
                                             'iPSC colonies picked',
@@ -1053,7 +1055,7 @@ sub genes {
                 to_report => 't',
             },
             {
-                columns => [ qw/experiments dna_template ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id crispr_ep_well_cell_line/ ],
+                columns => [ qw/experiments dna_template requester ep_plate_name ep_well_name crispr_ep_plate_name crispr_ep_well_name ep_well_id crispr_ep_well_id crispr_ep_well_cell_line/ ],
                 distinct => 1
             }
         );
@@ -1084,6 +1086,7 @@ sub genes {
             # dna_template is actually a foreign key so we need to use get_column
             # to get the value rather than the DNATemplate result object
             $curr_ep_data{'dna_template'} = $curr_ep->get_column('dna_template') // '-' ;
+            $curr_ep_data{'requester'} = $curr_ep->get_column('requester') // '-' ;
             $curr_ep_data{'experiment'} = [ split ",", $curr_ep->experiments ];
             $curr_ep_data{'cell_line'} = $curr_ep->crispr_ep_well_cell_line;
 
@@ -1241,6 +1244,7 @@ sub genes {
             'DNA_source_cell_line'   => $toggle,
             'EP_cell_line'           => $toggle,
             'experiment_ID'          => $toggle,
+            'requester'              => $toggle,
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,

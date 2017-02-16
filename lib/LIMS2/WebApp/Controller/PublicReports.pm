@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.445';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.446';
 }
 ## use critic
 
@@ -458,6 +458,7 @@ sub add_ep_rows {
         'no-call'             => 'nc_count',
         'total_colonies'      => 'total_colonies',
         'wild_type'           => 'wt_count',
+        'requester'           => 'requester',
     );
     my @expand_cols;
     foreach my $ep_col ( @{$column->{ep_data}} ) {

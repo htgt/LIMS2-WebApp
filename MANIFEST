@@ -177,6 +177,7 @@ lib/LIMS2/Model/Schema/Result/QcTemplateWellRecombinase.pm
 lib/LIMS2/Model/Schema/Result/QcTestResult.pm
 lib/LIMS2/Model/Schema/Result/Recombinase.pm
 lib/LIMS2/Model/Schema/Result/RecombineeringResultType.pm
+lib/LIMS2/Model/Schema/Result/Requester.pm
 lib/LIMS2/Model/Schema/Result/Role.pm
 lib/LIMS2/Model/Schema/Result/SchemaVersion.pm
 lib/LIMS2/Model/Schema/Result/SequencingPrimerType.pm
