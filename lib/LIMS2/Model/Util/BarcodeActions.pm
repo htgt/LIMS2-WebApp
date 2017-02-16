@@ -432,6 +432,8 @@ sub _get_doubling_processes{
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc_well, $process_data, $validated_params) = @_;
 
+    my $wells_96 = $model->generate_96_well_annotations();
+
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
@@ -452,8 +454,9 @@ sub _create_qc_piq_and_child_wells{
     # Create temporary plate containing daughter PIQ wells
     my @child_well_data;
     foreach my $num (1..$validated_params->{number_of_wells}){
+        my $temp_well_name = $wells_96->{$num};
         my $well_data = {
-            well_name => sprintf("A%02d",$num),
+            well_name => $temp_well_name,
             parent_plate => $qc_plate->name,
             parent_plate_version => $qc_plate->version,
             parent_well => $qc_well->name,
