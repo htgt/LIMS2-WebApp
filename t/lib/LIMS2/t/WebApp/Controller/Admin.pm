@@ -1,7 +1,10 @@
 package LIMS2::t::WebApp::Controller::Admin;
+
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::Admin;
+
+use LIMS2::Test model => { classname => __PACKAGE__ };
 
 use strict;
 
@@ -82,14 +85,43 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Tests
 {
     ok(1, "Test of LIMS2::WebApp::Controller::Admin");
+
+    my $mech = LIMS2::Test::mech();
+
+    note( "Tests for Announcements" );
+
+    $mech->get_ok( '/admin/announcements' );
+    $mech->title_is( 'LIMS2 - Announcements' );
+
+    note( "Create announcement" );
+
+    $mech->get_ok( '/admin/announcements/create_announcement' );
+    $mech->title_is( 'LIMS2 - Create Announcement' );
+
+    ok my $res = $mech->submit_form(
+    	form_id 	=> 'create_announcement_form',
+    	fields 		=> {
+    		message  		=> 'Message test 1',
+    		expiry_date 	=> '01/01/2050',
+    		priority 		=> 'normal',
+    		webapp 			=> 'LIMS2',
+    	},
+    	button 		=> 'create_announcement',
+    ), 'Submit form with valid data';
+
+    ok (1,$mech->content);
+
+    ok $res->is_success, '...response is success';
+    $mech->base_like( qr{/admin/announcements} );
+    $mech->content_contains('Message successfully created');
 }
 
 =head1 AUTHOR
 
-Lars G. Erlandsen
+Josh Kent
 
 =cut
 

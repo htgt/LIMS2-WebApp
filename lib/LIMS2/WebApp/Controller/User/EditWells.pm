@@ -18,10 +18,15 @@ sub begin :Private {
     return;
 }
 
-sub add_well : Path( '/user/add_well' ) : Args(0) {
-    my ( $self, $c ) = @_;
+sub add_well : Path( '/user/add_well' ) : Args(0) :ActionClass( 'REST' ) {
+}
 
-    return unless $c->request->method eq 'POST';
+sub add_well_GET {
+    # body...
+}
+
+sub add_well_POST {
+    my ( $self, $c ) = @_;
 
     if ( $c->request->param('csv') ) {
         my $result = $self->add_well_csv($c);
@@ -38,6 +43,7 @@ sub add_well_csv {
 
     my $csv = $c->request->upload('csv_upload');
     my @ids;
+    my $result;
 
     my $data = $csv->fh;
 
@@ -55,17 +61,17 @@ sub add_well_csv {
             user            => $c->user->name,
         };
 
-        my $result = $self->_create_well($c, $params);
+        unless ($values[0] =~ m/^[parent]+(\s|_)[plate]+/gxmsi) {
+            $result = $self->_create_well($c, $params);
 
-        unless ($result->{success} == 1) {
-            $c->stash( $result->{stash} );
-            return;
+            unless ($result->{success} == 1) {
+                $c->stash( $result->{stash} );
+                return;
+            }
+            else {
+                push @ids, $result->{well_id};
+            }
         }
-        else {
-            push @ids, $result->{well_id};
-        }
-
-
     }
 
     close $data;
@@ -79,14 +85,8 @@ sub add_well_csv {
 sub add_well_single {
     my ( $self, $c ) = @_;
 
-    my $params = {
-        parent_plate    => $c->request->param('parent_plate'),
-        parent_well     => $c->request->param('parent_well'),
-        target_plate    => $c->request->param('target_plate'),
-        target_well     => $c->request->param('target_well'),
-        template_well   => $c->request->param('template_well'),
-        user            => $c->user->name,
-    };
+    my $params = $c->request->params;
+    $params->{user} = $c->user->name;
 
     my $result = $self->_create_well($c, $params);
 
@@ -106,25 +106,29 @@ sub _create_well {
 
     my $well;
     my $result;
-    my $success = 1;
+    my $success = 0;
 
-    $result = get_well($c->model('Golgi'), {
-        plate   => $params->{target_plate},
-        well    => $params->{template_well},
-        params  => $params,
-    });
+    $params->{plate} = $params->{target_plate};
+    $params->{well}  = $params->{template_well};
+    $result = get_well($c->model('Golgi'), $params);
 
     $well = $result->{well};
 
     return $result unless $result->{success} == 1;
+    $result->{success} = 0;
 
-    $result = get_well($c->model('Golgi'), {
-        plate  => $params->{parent_plate},
-        well   => $params->{parent_well},
-        params  => $params,
-    });
+    $params->{plate} = $params->{parent_plate};
+    $params->{well}  = $params->{parent_well};
+    $result = get_well($c->model('Golgi'), $params);
 
     return $result unless $result->{success} == 1;
+    $result->{success} = 0;
+
+    unless ($params->{target_well} =~ m{^[A-H](0[1-9]|1[0-2])$}) {
+
+        $result->{stash}->{error_msg} = "Well will not fit in a 96 well plate: $params->{target_well}";
+        return $result;
+    }
 
     $params->{process} = ($well->parent_processes)[0];
 
@@ -134,13 +138,11 @@ sub _create_well {
         output_wells    => [ { plate_name => $params->{target_plate}, well_name => $params->{target_well} } ],
     };
 
-    my $created_well = create_well( $c->model('Golgi'), {
-        process_data => $process_data_ref,
-        process => $params->{process},
-        params => $params,
-    });
+    $params->{process_data} = $process_data_ref;
+    my $created_well = create_well( $c->model('Golgi'), $params);
 
     $result->{well_id} = $created_well->id;
+    $result->{success} = 1;
 
     return $result;
 

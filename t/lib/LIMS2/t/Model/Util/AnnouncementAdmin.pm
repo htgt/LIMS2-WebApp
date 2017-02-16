@@ -28,33 +28,33 @@ sub message_creation_and_deletion : Test(9) {
   can_ok(__PACKAGE__, 'list_priority');
   can_ok(__PACKAGE__, 'list_messages');
 
-  my $priority_list = list_priority( model->schema );
+  my $priority_list = list_priority( model );
   my $priority_item = shift @{$priority_list};
 
   is( $priority_item->id, 'high', "list_priority works");
 
   my $announcement_params = {
     message         => 'This is a message',
-    expiry_date     => '01/01/2099',
-    created_date    => '01/01/2000',
+    expiry_date     => '01-01-2099',
+    created_date    => '01-01-2000',
     priority        => 'normal',
     wge             => '0',
     htgt            => '1',
     lims            => '0',
   };
 
-  ok my $announcement = create_message( model->schema, $announcement_params );
+  ok my $announcement = create_message( model, $announcement_params );
 
-  my $message_list = list_messages( model->schema );
+  my $message_list = list_messages( model );
 
   is( @{$message_list}, @{$announcement}, "list_messages works");
 
   my $message_item = shift @{$message_list};
   my $message_item_id = $message_item->id;
 
-  delete_message( model->schema, { message_id => $message_item_id } );
+  delete_message( model, { message_id => $message_item_id } );
 
-  $message_list = list_messages( model->schema );
+  $message_list = list_messages( model );
 
   is( @{$message_list}, '0', "delete_message works");
 

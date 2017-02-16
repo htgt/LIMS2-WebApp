@@ -35,13 +35,15 @@
       	<h1>Add Well to Plate</h1>
     </div>
 
+
     <div class="container">
-        <form method="POST" enctype="multipart/form-data" id="add_well_to_plate_csv_form" action="[% c.uri_for( '/user/add_well' ) %]" class="well">
+        <form method="POST" enctype="multipart/form-data" id="add_well_to_plate_csv_form" action="[% c.uri_for( '/user/add_well' ) %]" class="well" onsubmit="">
             <div class="row">
                 <div class="col-md-3">
                     <label class="btn btn-default btn-file">
-                        Browse <i class="glyphicon glyphicon-search"></i><input type="file" id="csv_upload" style="display:none;" accept=".csv">
+                        Browse <i class="glyphicon glyphicon-search"></i><input type="file" name="csv_upload" style="display:none;" accept=".csv" required size="50">
                     </label><br>
+                    <input type="hidden" name="csv" value="1"><br>
 
                 </div>
                 <span class="label label-info" id="upload_file"></span>
@@ -49,10 +51,10 @@
             <div class="row">
                 <div class="col-md-3">
 
-                    <input type="hidden" name="csv" value="1"><br>
+
                     <button class="btn btn-primary" name="add_well_csv_upload" id="add_well_csv_upload_submit" type="submit">Submit</button>
                         <label><i class="glyphicon glyphicon-question-sign id" title="Please upload CSV in format:
-                        'parent plate, parent well, target plate, template well, target well'"></i></label>
+                        'parent_plate,parent_well,target_plate,template_well,target_well'"></i></label>
                 </div>
             </div>
         </form>

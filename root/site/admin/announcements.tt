@@ -1,13 +1,17 @@
 [% META title = 'LIMS2 - Announcements'; META tab_name = "Admin" -%]
 
 <head>
-<script src="[% c.uri_for( '/static/js/jquery-1.12.3.min.js' ) %]"></script>
+  <script src="[% c.uri_for( '/static/js/jquery-1.12.3.min.js' ) %]"></script>
   <script>
     $(document).ready(function(){
+
       $("[name='delete_message_button']").click(function(){
         var delete_message_id = ($(this).attr('id'));
         $("#message_to_delete").val(delete_message_id);
       });
+
+
+
     });
   </script>
 </head>
@@ -19,7 +23,7 @@
 <a href="[% c.uri_for( '/admin/announcements/create_announcement' ) %]" class="btn btn-primary">Create Announcement</a><br><br>
 
 <div>
-	<form method="POST" action="[% c.uri_for( '/admin/announcements' ) %]" name="announcements_form" class="well"  >
+	<form method="POST" action="[% c.uri_for( '/admin/announcements' ) %]" name="announcements_form" class="well" onsubmit="return confirm('Do you really want to delete the announcement?');" >
 		<h2>Messages</h2>
 		[% IF messages.size > 0 %]
   			<table class="table table-condensed table-striped">

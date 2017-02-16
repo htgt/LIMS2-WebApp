@@ -259,26 +259,33 @@ sub _retrieve_user_by_id {
 
 =cut
 
-sub announcements : Path( '/admin/announcements' ) : Args(0) {
+sub announcements : Path( '/admin/announcements' ) : Args(0) :ActionClass( 'REST' ) {
+}
+
+sub announcements_GET {
     my ( $self, $c ) = @_;
 
-    my $messages = list_messages( $c->model('Golgi')->schema );
+    my $messages = list_messages( $c->model('Golgi') );
 
     $c->stash ( messages => [ map { $_->as_hash } @{$messages} ] );
 
-    return unless $c->request->method eq 'POST';
+    return;
+}
 
+sub announcements_POST {
+    my ( $self, $c ) = @_;
 
     my $deleted_message = $c->request->param('delete_message');
 
     return unless ($deleted_message);
 
 
-    delete_message( $c->model('Golgi')->schema, { message_id => $deleted_message } );
+    delete_message( $c->model('Golgi'), { message_id => $deleted_message } );
 
     $c->flash( success_msg => "Message successfully deleted");
 
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
+
 }
 
 =head2 create_announcement
@@ -287,60 +294,68 @@ sub announcements : Path( '/admin/announcements' ) : Args(0) {
 
 sub create_announcement : Path( '/admin/announcements/create_announcement' ) : Args(0) {
     my ( $self, $c ) = @_;
+    my $params;
+    my $results;
+
+    my $webapp_dispatch = {
+        'WGE'   => sub { return { htgt => 0, lims => 0, wge => 1, }; },
+        'LIMS2' => sub { return { htgt => 0, lims => 1, wge => 0, }; },
+        'HTGT'  => sub { return { htgt => 1, lims => 0, wge => 0, }; },
+    };
 
 
     $c->stash(
-        priorities    => list_priority( $c->model('Golgi')->schema ),
+        priorities    => list_priority( $c->model('Golgi') ),
     );
 
     return unless $c->request->method eq 'POST';
 
+    $params = $c->request->params;
+
     my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
-    my $expiry_date = DateTime->new(
+    $params->{expiry_date} = DateTime->new(
        year      => $y,
        month     => $m,
        day       => $d,
        time_zone => 'local',
     );
 
-    my $message = $c->request->param('message');
-    my $created_date = DateTime->now(time_zone=>'local');
-    my $priority = $c->request->param('priority');
-    my $wge = $c->request->param('wge_checkbox');
-    my $htgt = $c->request->param('htgt_checkbox');
-    my $lims = $c->request->param('lims_checkbox');
+    $params->{created_date} = DateTime->now( time_zone => 'local' );
 
-    unless ($wge or $htgt or $lims) {
+
+    if ( exists $webapp_dispatch->{ $params->{webapp} } ) {
+        $results = $webapp_dispatch->{ $params->{webapp} }->();
+    }
+    else {
+        # throw an error
         $c->stash (
-            message_field   => $message,
+            message_field   => $params->{message},
             expiry_date     => $c->request->param('expiry_date'),
-            priority        => $priority,
+            priority        => $params->{priority},
             error_msg       => 'Please specify a system for the announcement'
         );
         return;
     }
 
-    unless ( $created_date < $expiry_date ) {
+    unless ( $params->{created_date} < $params->{expiry_date} ) {
         $c->stash (
-            message_field   => $message,
+            message_field   => $params->{message},
             expiry_date     => $c->request->param('expiry_date'),
-            priority        => $priority,
-            wge_checkbox    => $wge,
-            htgt_checkbox   => $htgt,
-            lims_checkbox   => $lims,
+            priority        => $params->{priority},
+            webapp          => $params->{webapp},
             error_msg       => 'Please enter an expiry date which is in the future'
         );
         return;
     }
 
-    my $announcement = create_message( $c->model('Golgi')->schema, {
-            message         => $message,
-            expiry_date     => $expiry_date,
-            created_date    => $created_date,
-            priority        => $priority,
-            wge             => $wge,
-            htgt            => $htgt,
-            lims            => $lims,
+    my $announcement = create_message( $c->model('Golgi'), {
+            message         => $params->{message},
+            expiry_date     => $params->{expiry_date},
+            created_date    => $params->{created_date},
+            priority        => $params->{priority},
+            wge             => $results->{wge},
+            lims            => $results->{lims},
+            htgt            => $results->{htgt},
         }
     );
 

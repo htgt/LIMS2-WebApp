@@ -160,12 +160,9 @@ function ValidateForm(){
         [% END %]
         <br><br>
         <label for="webapps">Webapps</label>
-        <br>&#160;<input type="checkbox" name="wge_checkbox" value="1"> WGE
-        <input name="wge_checkbox" type="hidden" value="0" />
-        <br>&#160;<input type="checkbox" name="lims_checkbox" value="1"> LIMS2
-        <input name="lims_checkbox" type="hidden" value="0" />
-        <br>&#160;<input type="checkbox" name="htgt_checkbox" value="1"> HTGT<br>
-        <input name="htgt_checkbox" type="hidden" value="0" />
+        <br>&#160;<input type="radio" name="webapp" value="WGE"> WGE
+        <br>&#160;<input type="radio" name="webapp" value="LIMS2"> LIMS2
+        <br>&#160;<input type="radio" name="webapp" value="HTGT"> HTGT
         <br>
       </fieldset>
       <a href="[% c.uri_for( '/admin/announcements' ) %]" class="btn btn-info">Cancel</a>

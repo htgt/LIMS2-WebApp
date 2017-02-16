@@ -17,7 +17,7 @@ requires qw( schema check_params throw retrieve log trace );
 sub pspec_create_crispr {
     return {
         type                 => { validate => 'existing_crispr_loci_type', rename => 'crispr_loci_type_id' },
-        seq                  => { validate =>  'dna_seq' },
+        seq                  => { validate => 'dna_seq' },
         species              => { validate => 'existing_species', rename => 'species_id' },
         comment              => { validate => 'non_empty_string', optional => 1 },
         off_target_summary   => { validate => 'non_empty_string', optional => 1 },
