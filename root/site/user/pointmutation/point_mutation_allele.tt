@@ -10,7 +10,7 @@ body {
 
 .lb-colour {
     font-size: 22px;
-    height: 20px;
+    height: 0px;
 }
 
 .images {
@@ -127,7 +127,7 @@ input:checked + .slider:before {
 
 <div class="page-header row">
     <div class="col-md-5">
-        <h1>Point Mutation Alleles - [% oligo_index %]</h1>
+        <h2>Mutation Alleles - [% miseq %]: [% oligo_index %]</h2>
     </div>    
     <div class="col-md-2 col-md-offset-1">
         <div id="keyContainer">
@@ -157,29 +157,27 @@ input:checked + .slider:before {
     </div>
 </div>
 <div class="well">
-    <div class="row">
-        <div class="col-md-3">
-            <button class="btn btn-primary" onclick="overview();">
-                <i class="glyphicon glyphicon-arrow-left"></i> Back to Overview 
-            </button>
-        </div>
-    </div>
-
     <h3 class="col-md-12">Well Details</h3>
 
     <div class="row">
         <div class="col-md-6">
             <table class="details table table-striped">
                 <tr>
+                    <td>Project Name</td>
+                    <td>[% miseq %]</td>
+                    <td></td>
+                <tr>
                     <td>Illumina Index</td>
                     <td>[% oligo_index %]</td>
                     <td></td>
                 </tr>
-                <tr>
-                    <td>Well Barcode</td>
-                    <td>[% well_name %]</td>
-                    <td></td>
-                </tr>
+                [% IF selection %]
+                    <tr>
+                        <td>Gene</td>
+                        <td>[% selection.gene %]</td>
+                        <td></td>
+                    </tr>
+                [% END %]
                 <tr>
                     <td>Barcode</td>
                     <td id="barcode"></td>
@@ -300,6 +298,12 @@ $(document).ready(function() {
     for (var expIndex = 0; expIndex < exps.length; expIndex++) {
         getImages(exps[expIndex], '[% indel %]');
         //getSummary(exps[expIndex]);
+    }
+    var expSel = '[% selection.gene %]';
+    if (expSel) {
+        document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
+    } else {
+        document.title = '[% oligo_index %]:All - [% miseq %]';
     }
 });
 

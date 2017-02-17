@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.446';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.447';
 }
 ## use critic
 
@@ -49,7 +49,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $ov_json = encode_json ({ summary => $overview });
     my $gene_keys = get_genes($c, $overview);
     my $revov = encode_json({ summary => $gene_keys });
-
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
     $c->stash(
@@ -101,9 +100,11 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $selection;
     if ($exp_sel) {
         my $class = find_classes($c, $miseq, $index, $exp_sel);
+        my $overview = get_experiments($c, $miseq)->{$exp_sel}[0];
         $selection = {
             id      => $exp_sel,
             class   => $class,
+            gene    => $overview,
         };
     }
 
