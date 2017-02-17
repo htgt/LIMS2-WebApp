@@ -83,7 +83,7 @@
     <tr>
      <td>
       <label>Number of PIQ wells to create</label>
-      <input type="number" name="number_of_wells_[% num %]" min="1" max="10" value="[% ${"number_of_wells_$num"} %]"/>
+      <input type="number" name="number_of_wells_[% num %]" min="1" max="30" value="[% ${"number_of_wells_$num"} %]"/>
      </td>
      <td>
       <label>Lab Number</label>

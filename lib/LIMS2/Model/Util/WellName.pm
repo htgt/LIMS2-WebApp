@@ -430,7 +430,6 @@ sub generate_96_well_annotations
             $wells->{$counter} = $item;
         }
     }
-
     return $wells;
 }
 
