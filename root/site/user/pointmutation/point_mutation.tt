@@ -47,7 +47,7 @@
             [% END %]
         </select>
         <div class="checkbox">
-            <label class="lb-sm"><input type="checkbox" id="filterReads" value="">Read Counts > 1000</label>
+            <label class="lb-sm"><input type="checkbox" id="filterReads" value="" checked>Read Counts > 1000</label>
         </div>
     </div>
     <div class="col-md-1">
