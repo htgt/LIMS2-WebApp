@@ -23,6 +23,7 @@ use Sub::Exporter -setup => {
     ]
 };
 
+use LIMS2::Model::Util::WellName qw( generate_96_well_annotations );
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
@@ -432,7 +433,7 @@ sub _get_doubling_processes{
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc_well, $process_data, $validated_params) = @_;
 
-    my $wells_96 = $model->generate_96_well_annotations();
+    my $wells_96 = &generate_96_well_annotations;
 
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,

@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ qw( to96 to384 ) ]
+    exports => [ qw( to96 to384 generate_96_well_annotations ) ]
 };
 
 use Log::Log4perl qw( :easy );
