@@ -211,6 +211,7 @@ $(document).ready(function() {
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
     buildExps(1);
+    document.title = '[% miseq %] - Point Mutation';
     highlightSelection();
 });
 
@@ -222,11 +223,14 @@ $('#geneSelect').change(function() {
         for (var count = 0; count < geneExps.length; count++) {
             $("#expSelect").children('option[value~=' + geneExps[count] + ']').show().prop('disabled', false);
         }
+        $('#expSelect').val(geneExps[0]);
     } else {
         $("#expSelect").children('option').show().prop('disabled', false);
+        $('#expSelect').val('All');
     }
+    highlightSelection();
 });
-
+/*
 $('#expSelect').change(function() {
     if ($('#expSelect').val() != 'All') { 
         $("#geneSelect").children('option').hide().prop('disabled', true);
@@ -239,7 +243,7 @@ $('#expSelect').change(function() {
         $("#geneSelect").children('option').show().prop('disabled', false);
     }
 });
-
+*/
 $('#expSelect').change(function() {
     highlightSelection();
 });
@@ -315,9 +319,9 @@ function tooltip(node) {
 function wellArc(node) {
     var exp = document.getElementById('expSelect').value;
     if (exp == 'All') {
-        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id); 
+        window.open('[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id)); 
     } else {
-        window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id + '&exp=' + exp); 
+        window.open('[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?miseq=' + '[% miseq %]' + '&oligoIndex=' + node.parentNode.id + '&exp=' + exp)); 
     }
 }
 
