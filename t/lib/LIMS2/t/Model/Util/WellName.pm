@@ -194,12 +194,12 @@ sub all_tests  : Test(1)
         $well = $wells->{$rand_int};
         if (defined $well && $well eq $expected_data{$rand_int})
         {
-            print "Test ok - $rand_int corresponds to $well\n";
+            ok (1, "Test ok - $rand_int corresponds to $well\n");
         } elsif (defined $well && $well ne $expected_data{$rand_int})
         {
-            die $!, "Test error - Incorrect well $well for index $rand_int\n";
+            ok (0, "Test error - Incorrect well $well for index $rand_int\n");
         } else {
-            print "Test ok - No value for $rand_int\n";
+            ok (1, "Test ok - No value for $rand_int\n");
         }
     }
 }
