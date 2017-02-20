@@ -82,7 +82,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(1)
+sub all_tests  : Tests
 {
     ok(1, "Test of LIMS2::Model::Util::WellName");
 
