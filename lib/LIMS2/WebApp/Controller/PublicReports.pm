@@ -452,6 +452,7 @@ sub add_ep_rows {
         'no-call'             => 'nc_count',
         'total_colonies'      => 'total_colonies',
         'wild_type'           => 'wt_count',
+        'requester'           => 'requester',
     );
     my @expand_cols;
     foreach my $ep_col ( @{$column->{ep_data}} ) {

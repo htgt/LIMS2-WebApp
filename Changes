@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.447     2017-02-17 12:41:20 Europe/London
+    Miseq - various features and tweaks
+0.446     2017-02-16 10:15:21 Europe/London
+
+0.445     2017-02-15 16:19:16 Europe/London
+    Added requester to front page    
 0.444     2017-02-03 15:36:22 Europe/London
 
     Switch from scratch109 to scratch117
