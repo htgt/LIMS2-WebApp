@@ -1,7 +1,9 @@
 package LIMS2::t::Model::Util::WellName;
 use base qw(Test::Class);
 use Test::Most;
-use LIMS2::Model::Util::WellName;
+use LIMS2::Model::Util::WellName qw/
+	generate_96_well_annotations
+/;
 
 use strict;
 
@@ -186,7 +188,7 @@ sub all_tests  : Tests
         96 => 'H12'
     );
 
-    my $wells = &generate_well_notations;
+    my $wells = &generate_96_well_annotations;
     foreach (my $count=0; $count <10; $count++)
     {
         my $rand_int = int(rand(120));
