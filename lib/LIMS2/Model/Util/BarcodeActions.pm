@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.422';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.448';
 }
 ## use critic
 
@@ -29,6 +29,7 @@ use Sub::Exporter -setup => {
     ]
 };
 
+use LIMS2::Model::Util::WellName qw( generate_96_well_annotations );
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
@@ -377,6 +378,11 @@ sub _fetch_barcode_for_freeze_back{
 sub _fetch_qc_piq_for_freeze_back{
     my ($model, $well, $validated_params) = @_;
 
+    my $type = 'PIQ';
+    if ($well->plate_type eq 'SFP') {
+        $type = 'S_PIQ';
+    }
+
     my $qc_plate = $model->schema->resultset('Plate')->search({
         name => $validated_params->{qc_piq_plate_name},
     })->first;
@@ -392,7 +398,7 @@ sub _fetch_qc_piq_for_freeze_back{
         $qc_plate = $model->create_plate({
             name       => $validated_params->{qc_piq_plate_name},
             species    => $well->last_known_plate->species_id,
-            type       => 'PIQ',
+            type       => $type,
             created_by => $validated_params->{user},
         });
     }
@@ -433,6 +439,8 @@ sub _get_doubling_processes{
 sub _create_qc_piq_and_child_wells{
     my ($model, $qc_plate, $bc_well, $process_data, $validated_params) = @_;
 
+    my $wells_96 = &generate_96_well_annotations;
+
     my $qc_well = $model->create_well({
         plate_name   => $qc_plate->name,
         well_name    => $validated_params->{qc_piq_well_name},
@@ -453,8 +461,9 @@ sub _create_qc_piq_and_child_wells{
     # Create temporary plate containing daughter PIQ wells
     my @child_well_data;
     foreach my $num (1..$validated_params->{number_of_wells}){
+        my $temp_well_name = $wells_96->{$num};
         my $well_data = {
-            well_name => sprintf("A%02d",$num),
+            well_name => $temp_well_name,
             parent_plate => $qc_plate->name,
             parent_plate_version => $qc_plate->version,
             parent_well => $qc_well->name,
@@ -472,11 +481,11 @@ sub _create_qc_piq_and_child_wells{
 
     # In some cases there are no child wells
     if(@child_well_data){
-        my $random_name = $model->random_plate_name({ prefix => 'TMP_PIQ_' });
+        my $random_name = $model->random_plate_name({ prefix => 'TMP_'. $qc_plate->type_id .'_' });
         $tmp_piq_plate = $model->create_plate({
             name       => $random_name,
             species    => $bc_well->last_known_plate->species_id,
-            type       => 'PIQ',
+            type       => $qc_plate->type_id,
             created_by => $validated_params->{user},
             wells      => \@child_well_data,
             is_virtual => 1,

@@ -10,7 +10,8 @@ use Selenium::Firefox;
 use feature qw(say);
 use Data::Dumper;
 use LIMS2::Test model => { classname => __PACKAGE__ };
-use LIMS2::TestJS qw( setup_public setup_user find_by cycle_windows close_additional_windows);
+use LIMS2::TestJS qw( setup_public setup_user );
+use WebAppCommon::Testing::JS qw( find_by cycle_windows close_additional_windows );
 use Test::More tests => 42;
 
 
@@ -26,6 +27,7 @@ foreach my $page (@pages) {
 }
 
 $driver->shutdown_binary;
+$driver->pause(2000);
 
 sub check_cache {
     my ($driver, $page) = @_;

@@ -1,3 +1,88 @@
+0.448     2017-02-20 22:22:18 Europe/London
+
+	increased the number of piq_expand wells
+
+0.447     2017-02-17 12:41:20 Europe/London
+    Miseq - various features and tweaks
+0.446     2017-02-16 10:15:21 Europe/London
+
+0.445     2017-02-15 16:19:16 Europe/London
+    Added requester to front page    
+0.444     2017-02-03 15:36:22 Europe/London
+
+    Switch from scratch109 to scratch117
+
+0.443     2017-01-30 15:51:08 Europe/London
+    Miseq - Safari fix
+0.442     2017-01-27 11:17:20 Europe/London
+    Miseq Audit
+0.441     2017-01-27 10:07:16 Europe/London
+    MiSeq v1
+0.440     2017-01-26 10:07:26 Europe/London
+
+    tmp plate name updated
+
+0.439     2017-01-16 16:51:02 Europe/London
+
+    Freeze back support added for SFP wells
+
+0.438     2016-12-15 09:39:51 Europe/London
+
+    bugfix in retrieve_crispr_hash on well_genotyping_info report
+
+0.437     2016-12-14 15:03:15 Europe/London
+
+    SFP well support to view_checked_out_barcodes
+
+0.436     2016-12-08 13:17:16 Europe/London
+
+    Added barcode view support for double targeted wells
+
+0.435     2016-11-29 15:41:27 Europe/London
+
+    Added experiment ids to CRISPR plates
+
+0.434     2016-11-29 10:07:50 Europe/London
+
+    Added barcode uploads to SFP and S_PIQ plates
+
+0.433     2016-11-28 17:04:15 Europe/London
+
+    Crispr QC allowed to continue when primer sequence reads are missing
+
+0.432     2016-11-03 11:30:57 Europe/London
+
+    bugfix viewplate without INT ancestors
+    bugfix crispr es qc well validation
+
+0.431     2016-11-01 10:43:54 Europe/London
+    Fixed user roles
+0.430     2016-10-27 12:17:09 Europe/London
+    Storable incompat
+0.429     2016-10-26 15:43:54 Europe/London
+
+0.426     2016-10-26 14:59:51 Europe/London
+    Moved REST authentication to API keys
+0.428     2016-10-26 12:38:02 Europe/London
+
+    Added new process type golden-gate related to conditional-inversion designs
+
+0.427     2016-10-24 15:06:07 Europe/London
+
+    Front page cached reports columns fix
+
+0.426     2016-10-11 13:43:27 Europe/London
+
+    vector generation for conditional-inversion allowed
+
+0.423     2016-10-11 12:31:54 Europe/London
+
+0.425     2016-10-05 15:29:37 Europe/London
+    Conditional-Inversion LIMS2 changes
+0.424     2016-09-21 12:42:40 Europe/London
+    Bugfix - dramtically reduced JS testing time
+0.423     2016-09-14 15:30:54 Europe/London
+    Added dzil release options script
 0.422     2016-09-08 15:03:12 Europe/London
 
    Bugfix to CRISPR_SEP plate upload

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.422';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.448';
 }
 ## use critic
 
@@ -341,6 +341,7 @@ sub _pspec_create_experiment{
         crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
         crispr_group_id => { validate => 'existing_crispr_group_id', optional => 1},
         plated          => { validate => 'boolean', default => 0 },
+        requester       => { validate => 'existing_requester', optional => 1 },
         REQUIRE_SOME    => { design_or_crisprs => [ 1, qw( design_id crispr_id crispr_pair_id crispr_group_id ) ] },
     }
 }
@@ -413,6 +414,29 @@ sub _add_sponsor_all_if_appropriate{
     return;
 }
 
+sub _pspec_create_requester{
+    return {
+        id  => { validate => 'email' },
+    };
+}
+
+sub create_requester {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->_pspec_create_requester);
+
+    my $current_req = $self->schema->resultset('Requester')->find( {
+        id  => $validated_params->{id},
+    } );
+
+    if ($current_req) {
+        $self->throw( Validation => 'Requester ' . $validated_params->{id} . ' already exists' );
+    }
+
+    my $requester = $self->schema->resultset('Requester')->create($validated_params);
+
+    return $requester;
+}
 1;
 
 __END__

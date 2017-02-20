@@ -16,7 +16,7 @@
 [% END %]
 
 <h2>Experiment Details</h2>
-
+<a href="[% c.uri_for('/user/genoverse_experiment_view', { id => experiment_id }) %]" class="btn btn-primary">View in Genoverse</a>
 <table class="table experiment">
   <tr>
     <th>Experiment ID</th>

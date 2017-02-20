@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.422';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.448';
 }
 ## use critic
 
@@ -67,6 +67,18 @@ __PACKAGE__->table("users");
   default_value: true
   is_nullable: 0
 
+=head2 access_key
+
+  data_type: 'char'
+  is_nullable: 1
+  size: 36
+
+=head2 secret_key
+
+  data_type: 'char'
+  is_nullable: 1
+  size: 67
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -83,6 +95,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "active",
   { data_type => "boolean", default_value => \"true", is_nullable => 0 },
+  "access_key",
+  { data_type => "char", is_nullable => 1, size => 36 },
+  "secret_key",
+  { data_type => "char", is_nullable => 1, size => 67 },
 );
 
 =head1 PRIMARY KEY
@@ -529,8 +545,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-11-30 10:23:31
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tz8L7rtR2we19EctCc9o5Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-10-26 12:28:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GKvFJV3bGZZkYNOCsgrfZg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
@@ -541,7 +557,8 @@ sub as_hash {
         id     => $self->id,
         name   => $self->name,
         active => $self->active,
-        roles  => [ sort map { $_->name } $self->roles ]
+        roles  => [ sort map { $_->name } $self->roles ],
+        access => $self->access_key,
     };
 }
 

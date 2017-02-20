@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.422';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.448';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use Moose;
 use TryCatch;
 use namespace::autoclean;
 use DateTime::Format::Strptime;
+use Data::UUID;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
@@ -111,10 +112,16 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
 
     my $user = $self->_retrieve_user_by_id($c);
 
-    $c->stash(
+    if ($user->as_hash->{access}) {
+        $c->stash (
+            access => $user->as_hash->{access},
+            secret => 'Secret',
+        );
+    }
+    $c->stash (
         user         => $user,
         roles        => $c->model('Golgi')->list_roles,
-        checked_role => { map { $_->name => 1 } $user->roles }
+        checked_role => { map { $_->name => 1 } $user->roles },
     );
 
     return unless $c->request->method eq 'POST';
@@ -125,6 +132,16 @@ sub update_user : Path( '/admin/update_user' ) : Args(0) {
 
     if ( $c->request->param('reset_password') ) {
         return $c->forward('reset_user_password');
+    }
+
+    if ( $c->request->param('api') ) {
+        my $secret = generate_api_key($c, $user->as_hash);
+        $user = $self->_retrieve_user_by_id($c);
+        $c->stash (
+            access => $user->as_hash->{access},
+            secret => $secret,
+        );
+        return;
     }
 
     $c->stash( error_msg => 'No action selected' );
@@ -338,6 +355,19 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }
 
+sub generate_api_key {
+    my ($c, $user) = @_;
+
+    my $access_key = Data::UUID->new->create_from_name_str($c, $user->{name});
+    my $secret_key = Data::UUID->new->create_str();
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->create_api_key( { access_key => $access_key, secret_key => $secret_key, id => $c->request->param('user_id') } );
+        }
+    );
+    return $secret_key;
+}
 =head1 AUTHOR
 
 Ray Miller

@@ -4,7 +4,6 @@ author:
   - 'Wellcome Trust Sanger Institute'
 build_requires:
   English: 0
-  File::Find: 0
   HTTP::Request: 0
   HTTP::Request::Common: 0
   IO::Scalar: 0
@@ -18,6 +17,10 @@ build_requires:
   LIMS2::Report::VectorProductionSummary: 0
   LIMS2::ReportGenerator::ProductionDetail: 0
   LIMS2::WebApp::Controller::User::SummaryReports: 0
+  LIMS2::t::js::Admin::Announcements: 0
+  LIMS2::t::js::PublicReports::Reports: 0
+  LIMS2::t::js::User::Barcodes::MutationSignatures: 0
+  LIMS2::t::js::User::QC::ViewTraces: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -58,6 +61,7 @@ requires:
   Config::Tiny: 0
   Const::Fast: 0
   Crypt::CBC: 0
+  Crypt::PBKDF2: 0
   Crypt::SaltedHash: 0
   DBIx::Class::Core: 0
   DBIx::Class::ResultSet: 0
@@ -71,6 +75,7 @@ requires:
   Data::Dumper: 0
   Data::Pageset: 0
   Data::Printer: 0
+  Data::Serializer: 0
   Data::UUID: 0
   Date::Calc: 0
   Date::Parse: 0
@@ -83,11 +88,13 @@ requires:
   DesignCreate::Util::BWA: 0
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
+  Digest::SHA: 0
   EngSeqBuilder: 0
   Excel::Writer::XLSX: 0
   Exporter: 0
   Fcntl: 0
   File::Basename: 0
+  File::Find: 0
   File::Path: 0
   File::Slurp: 0
   File::Temp: 0
@@ -116,6 +123,7 @@ requires:
   IO::String: 0
   IPC::Run: 0
   IPC::System::Simple: 0
+  Image::PNG: 0
   Iterator::Simple: 0
   JSON: 0
   LIMS2::Exception: 0
@@ -141,6 +149,7 @@ requires:
   Log::Log4perl: 0
   Log::Log4perl::Catalyst: 0
   Log::Log4perl::Level: 0
+  MIME::Base64: 0
   Math::Round: 0
   Module::Pluggable::Object: 0
   Moose: 0
@@ -183,6 +192,7 @@ requires:
   WebAppCommon::Design::FusionConversion: 0
   WebAppCommon::FormValidator: 0
   WebAppCommon::FormValidator::Constraint: 0
+  WebAppCommon::Testing::JS: 0
   WebAppCommon::Util::EnsEMBL: 0
   WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
@@ -195,4 +205,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.422
+version: 0.448

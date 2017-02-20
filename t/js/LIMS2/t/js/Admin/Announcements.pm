@@ -8,7 +8,8 @@ BEGIN {
 use Test::More tests => 15;
 use Selenium::Firefox;
 use LIMS2::Test model => { classname => __PACKAGE__ }; #Required for fixtures
-use LIMS2::TestJS qw( setup_user find_by );
+use LIMS2::TestJS qw( setup_user );
+use WebAppCommon::Testing::JS qw( find_by );
 
 #Scripts
 my $alert = q/
@@ -59,6 +60,7 @@ alert_modal($driver, $alerts);
 
 #Remember to close your browser handle.
 $driver->shutdown_binary;
+$driver->pause(1000);
 
 sub alert_modal {
     my ($driver, $alerts) = @_;

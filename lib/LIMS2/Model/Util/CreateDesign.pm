@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateDesign::VERSION = '0.422';
+    $LIMS2::Model::Util::CreateDesign::VERSION = '0.448';
 }
 ## use critic
 
@@ -28,7 +28,7 @@ use namespace::autoclean;
 use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
-                                    '/lustre/scratch109/sanger/team87/lims2_designs';
+                                    '/lustre/scratch117/sciops/team87/lims2_designs';
 
 has model => (
     is       => 'ro',
@@ -168,6 +168,7 @@ sub designs_for_exons {
                     design_type_id  => 'gibson',
                     design_type_id  => 'gibson-deletion',
                     design_type_id  => 'fusion-deletion',
+                    design_type_id  => 'conditional-inversion',
                 ],
             ],
         },

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprESQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.422';
+    $LIMS2::Model::Util::CrisprESQC::VERSION = '0.448';
 }
 ## use critic
 
@@ -43,7 +43,7 @@ use Bio::Perl qw( revcom );
 with 'MooseX::Log::Log4perl';
 
 const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
-                                    '/lustre/scratch109/sanger/team87/lims2_crispr_es_qc';
+                                    '/lustre/scratch117/sciops/team87/lims2_crispr_es_qc';
 const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD} //
                                     '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my $BLAT_CMD => $ENV{BLAT_CMD} //
@@ -495,8 +495,12 @@ sub write_well_fa_file{
     my $read_file = $work_dir->file("primer_reads.fa");
     my $reads_fh = $read_file->openw or die $!;
     my $reads_out = Bio::SeqIO->new( -fh => $reads_fh, -format => 'fasta' );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} );
-    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} );
+
+    $self->log->warn( "No forward primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{forward});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{forward} ) unless (! $self->primer_reads->{ $well_name }->{forward});
+
+    $self->log->warn( "No reverse primer reads for well " . $well_name) unless ($self->primer_reads->{ $well_name }->{reverse});
+    $reads_out->write_seq( $self->primer_reads->{ $well_name }->{reverse} ) unless (! $self->primer_reads->{ $well_name }->{reverse});
 
     return $read_file;
 }
@@ -604,6 +608,18 @@ sub fix_no_header_sam{
         # Only use the alignment with the highest score for each read
         # Score is in col 12 (index 11), format AS:i:468
         my $read_name = $value_array->[0];
+        my $flag = $value_array->[1];
+
+        # But first exclude reads not in the right orientation for the primer
+        if($flag == 16){
+            my $rev_primer = $self->reverse_primer_name;
+            next unless $read_name =~ /$rev_primer/;
+        }
+        elsif($flag == 0){
+            my $fwd_primer = $self->forward_primer_name;
+            next unless $read_name =~ /$fwd_primer/;
+        }
+
         my $score_string = $value_array->[11];
         my $score = (split ":", $score_string)[2];
         if(exists $sam_values_unique->{$read_name}){

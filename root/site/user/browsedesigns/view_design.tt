@@ -235,7 +235,7 @@
     </tbody>
   </table>
 [% ELSE %]
-  <p><em>No crispr pairs linked to this design</em></p>
+  <p><em>No crispr groups linked to this design</em></p>
 [% END %]
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
@@ -258,7 +258,7 @@
     $(".mutant_seq").each(function(){
         var seq = $(this).text();
         console.log('mutant seq: ' + seq);
-        
+
         var mismatch_char = /[actgn]/;
 
         var result = "";

@@ -39,7 +39,7 @@ Only barcodes which are currently in the freezer can be checked out<br>
     <input type="submit" name="submit_barcode" class="btn btn-primary" value="Checkout" />
   </fieldset>
 </form>
-<a href="[% c.uri_for('/user/view_checked_out_barcodes/FP') %]">Go to list of all checked out FP wells</a>
+<a href="[% c.uri_for('/user/view_checked_out_barcodes/Freeze') %]">Go to list of all checked out FP/SFP wells</a>
 <br>
 <a href="[% c.uri_for('/user/view_checked_out_barcodes/PIQ') %]">Go to list of all checked out PIQ wells</a>
 [% END %]

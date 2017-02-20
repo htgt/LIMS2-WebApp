@@ -454,7 +454,8 @@ function findCoords(seqs, point, selection, dir) {
       </div>
 
       <div class="modal-body" align="center">
-        Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>?
+        Are you sure you want to delete QC run <strong>[% qc_run_id %]</strong>? <br />
+        <strong>Warning:</strong> All wells accepted in this run will be unaccepted.
       </div>
 
       <div class="modal-footer">

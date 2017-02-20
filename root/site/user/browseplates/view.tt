@@ -362,7 +362,7 @@
 [% END %]
 </div>
 
-[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' %]
+[% IF plate.type_id == 'FP' OR plate.type_id == 'PIQ' OR plate.type_id == 'SFP' OR plate.type_id == 'S_PIQ'%]
   <div class="col-md-6">
   <div class="well well-sm">
     <h4>Tube Barcodes</h4>

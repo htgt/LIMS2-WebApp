@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignTargets;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignTargets::VERSION = '0.422';
+    $LIMS2::Model::Util::DesignTargets::VERSION = '0.448';
 }
 ## use critic
 
@@ -136,6 +136,7 @@ sub bulk_designs_for_design_targets {
                     'design.design_type_id' => 'gibson',
                     'design.design_type_id' => 'gibson-deletion',
                     'design.design_type_id' => 'fusion-deletion',
+                    'design.design_type_id' => 'conditional-inversion',
                 ],
             ],
         },

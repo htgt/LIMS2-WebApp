@@ -8,7 +8,8 @@ BEGIN {
 use Test::More tests => 39;
 use Selenium::Firefox;
 use LIMS2::Test model => { classname => __PACKAGE__ }; #Required for fixtures
-use LIMS2::TestJS qw( setup_user find_by );
+use LIMS2::TestJS qw( setup_user );
+use WebAppCommon::Testing::JS qw( find_by );
 use feature qw(say);
 use Data::Dumper;
 
@@ -54,6 +55,7 @@ iterate_accordions($driver, "panel-body collapse", %accordions);
 
 #Remember to close your browser handle.
 $driver->shutdown_binary;
+$driver->pause(1000);
 
 sub iterate_accordions {
     my ($driver, $collapse_state, %accordions) = @_;

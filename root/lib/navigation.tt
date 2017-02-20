@@ -231,6 +231,14 @@
             <li>
               <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
             </li>
+
+            <li class="divider"></li>
+<!---            <li>
+              <a href="[% c.uri_for( '/user/create_point_mutation' ) %]">Create Point Mutations</a>
+            </li> -->
+            <li>
+              <a href="[% c.uri_for( '/user/browse_point_mutation' ) %]">Search Point Mutations</a>
+            </li>
             [% END %]
           </ul>
         </li>
@@ -338,7 +346,7 @@
               <a href="[% c.uri_for( '/user/well_checkout' ) %]">Checkout Barcode</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/FP' ) %]">Checked Out FP Barcodes</a>
+              <a href="[% c.uri_for( '/user/view_checked_out_barcodes/Freeze' ) %]">Checked Out FP/SFP Barcodes</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/view_checked_out_barcodes/PIQ' ) %]">Checked Out PIQ Barcodes</a>

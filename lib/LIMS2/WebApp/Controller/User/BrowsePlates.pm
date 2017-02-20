@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowsePlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.422';
+    $LIMS2::WebApp::Controller::User::BrowsePlates::VERSION = '0.448';
 }
 ## use critic
 
@@ -98,7 +98,7 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     }
     if ($plate->as_hash->{type} eq 'FINAL_PICK') {
         my $focus = $plate;
-        while ($focus->type_id ne 'INT') {
+        while ($focus->type_id ne 'INT' && $focus->type_id ne 'DESIGN') {
             my @parents = @{$focus->parent_names};
             $focus = $c->model('Golgi')->retrieve_plate({ name => $parents[0]->{name} });
         }

@@ -1,8 +1,4 @@
 Changes
-Js_tests/Admin/10_LIMS2_Js_Admin_Announcements.t
-Js_tests/PublicReports/10_LIMS2_Js_PublicReports_Reports.t
-Js_tests/User/Barcodes/10_LIMS2_Js_User_Barcodes_MutationSignatures.t
-Js_tests/User/QC/10_LIMS2_Js_User_QC_ViewTraces.t
 LICENSE
 MANIFEST
 META.yml
@@ -15,6 +11,7 @@ bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
 bin/final_vector_report.pl
 bin/lims2_create_users.pl
+bin/lims2_dzil.sh
 bin/lims2_launch_test_app.sh
 bin/lims2_model_dump_schema.pl
 bin/lims2_setup.sh
@@ -50,6 +47,7 @@ lib/LIMS2/Model/Plugin/CrisprSummaries.pm
 lib/LIMS2/Model/Plugin/FpPickingList.pm
 lib/LIMS2/Model/Plugin/Gene.pm
 lib/LIMS2/Model/Plugin/GenotypingQC.pm
+lib/LIMS2/Model/Plugin/Miseq.pm
 lib/LIMS2/Model/Plugin/Plate.pm
 lib/LIMS2/Model/Plugin/Primer.pm
 lib/LIMS2/Model/Plugin/Process.pm
@@ -123,6 +121,11 @@ lib/LIMS2/Model/Schema/Result/GenotypingPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
+lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
+lib/LIMS2/Model/Schema/Result/MiseqProject.pm
+lib/LIMS2/Model/Schema/Result/MiseqProjectWell.pm
+lib/LIMS2/Model/Schema/Result/MiseqProjectWellExp.pm
+lib/LIMS2/Model/Schema/Result/MiseqStatus.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Nuclease.pm
 lib/LIMS2/Model/Schema/Result/OldProject.pm
@@ -174,6 +177,7 @@ lib/LIMS2/Model/Schema/Result/QcTemplateWellRecombinase.pm
 lib/LIMS2/Model/Schema/Result/QcTestResult.pm
 lib/LIMS2/Model/Schema/Result/Recombinase.pm
 lib/LIMS2/Model/Schema/Result/RecombineeringResultType.pm
+lib/LIMS2/Model/Schema/Result/Requester.pm
 lib/LIMS2/Model/Schema/Result/Role.pm
 lib/LIMS2/Model/Schema/Result/SchemaVersion.pm
 lib/LIMS2/Model/Schema/Result/SequencingPrimerType.pm
@@ -230,6 +234,7 @@ lib/LIMS2/Model/Util/DesignInfo.pm
 lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
+lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
@@ -313,6 +318,7 @@ lib/LIMS2/WebApp/Controller/API/CrisprQc.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
+lib/LIMS2/WebApp/Controller/API/PointMutation.pm
 lib/LIMS2/WebApp/Controller/API/Project.pm
 lib/LIMS2/WebApp/Controller/API/QC.pm
 lib/LIMS2/WebApp/Controller/API/Redmine.pm
@@ -343,6 +349,7 @@ lib/LIMS2/WebApp/Controller/User/Graph.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
+lib/LIMS2/WebApp/Controller/User/PointMutation.pm
 lib/LIMS2/WebApp/Controller/User/Primers.pm
 lib/LIMS2/WebApp/Controller/User/Projects.pm
 lib/LIMS2/WebApp/Controller/User/QC.pm
@@ -366,6 +373,7 @@ root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
 root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
+root/lib/miseq_creation_help.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
@@ -381,6 +389,8 @@ root/site/admin/announcements.tt
 root/site/admin/create_announcement.tt
 root/site/admin/create_user.tt
 root/site/admin/index.tt
+root/site/admin/js_overview.tt
+root/site/admin/test.js
 root/site/admin/update_user.tt
 root/site/auth/login.tt
 root/site/publicreports/await_report.tt
@@ -468,6 +478,7 @@ root/site/user/externalproject/view_sequencing_project.tt
 root/site/user/genoverse/genoverse_browse_view.tt
 root/site/user/genoverse/genoverse_crispr_primers_view.tt
 root/site/user/genoverse/genoverse_design_view.tt
+root/site/user/genoverse/genoverse_experiment_view.tt
 root/site/user/genoverse/genoverse_gene_view.tt
 root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
@@ -476,6 +487,10 @@ root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
+root/site/user/pointmutation/browse_point_mutation.tt
+root/site/user/pointmutation/create_point_mutation.tt
+root/site/user/pointmutation/point_mutation.tt
+root/site/user/pointmutation/point_mutation_allele.tt
 root/site/user/primers/generate_primers.tt
 root/site/user/primers/generate_primers_results.tt
 root/site/user/projects/index.tt
@@ -2396,6 +2411,7 @@ root/static/images/btn_88x31_powered.png
 root/static/images/btn_88x31_powered_shadow.png
 root/static/images/catalyst_logo.png
 root/static/images/plasmid_map_help.png
+root/static/images/plasmid_map_help.pptx
 root/static/images/spinner-circle-small.gif
 root/static/images/spinner-circle.gif
 root/static/jasmine/boot.js
@@ -2404,6 +2420,7 @@ root/static/jasmine/jasmine-html.js
 root/static/jasmine/jasmine.css
 root/static/jasmine/jasmine.js
 root/static/jasmine/jasmine_favicon.png
+root/static/jquery/css/jquery.bootgrid.min.css
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_18_b81900_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_flat_10_000000_40x100.png
@@ -2419,7 +2436,9 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ef8c08_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.12.0.custom.css
+root/static/jquery/js/d3.min.js
 root/static/jquery/js/jquery-ui-1.12.0.custom.min.js
+root/static/jquery/js/jquery.bootgrid.min.js
 root/static/js/angularplasmid.complete.min.js
 root/static/js/cookie.jquery.json
 root/static/js/crispr-es-qc-well-update.js
@@ -2776,6 +2795,10 @@ t/LIMS2/AlleleRequest/10_LIMS2_AlleleRequest_DoubleTargeted.t
 t/LIMS2/AlleleRequest/10_LIMS2_AlleleRequest_SingleTargeted.t
 t/LIMS2/Catalyst/Controller/10_LIMS2_Catalyst_Controller_REST.t
 t/LIMS2/DBUtils/10_LIMS2_DBUtils_Databases.t
+t/LIMS2/Js/Admin/10_LIMS2_Js_Admin_Announcements.t
+t/LIMS2/Js/PublicReports/10_LIMS2_Js_PublicReports_Reports.t
+t/LIMS2/Js/User/Barcodes/10_LIMS2_Js_User_Barcodes_MutationSignatures.t
+t/LIMS2/Js/User/QC/10_LIMS2_Js_User_QC_ViewTraces.t
 t/LIMS2/Model/10_LIMS2_Model_AuthDB.t
 t/LIMS2/Model/10_LIMS2_Model_Constants.t
 t/LIMS2/Model/10_LIMS2_Model_DBConnect.t
