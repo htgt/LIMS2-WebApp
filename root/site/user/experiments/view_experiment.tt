@@ -118,6 +118,19 @@
   </tr>
   [% END %]
 
+<h2>Genotyping Primers</h2>
+<table class="table genotyping">
+  <tr>
+    <th>Genotyping Type</th>
+    <th>Sequence</th>
+  </tr>
+  [% FOREACH crispr IN experiment.genotyping %]
+  <tr>
+    <td>[% genotyping.type %]</td>
+    <td>[% genotyping.seq %]</td>
+  </tr>
+  [% END %]
+
 </table>
 [% END %]
 

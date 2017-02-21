@@ -32,10 +32,14 @@ sub view_experiment :Path('/user/view_experiment'){
 
     my $exp_hash = $exp->as_hash_with_detail;
 
+    my $design_id = 1015250 #$exp_hash.design_id
+    my $genotyping = $c->resultset('Experiment')->search({design_id = $design_id});
+
     $c->stash(
         experiment_id => $exp_id,
         experiment => $exp_hash,
         gene_symbol => $gene_info->{'gene_symbol'},
+        genotyping => $genotyping,
     );
 
     return;
