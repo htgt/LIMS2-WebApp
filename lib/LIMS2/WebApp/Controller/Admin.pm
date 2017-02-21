@@ -5,6 +5,7 @@ use TryCatch;
 use namespace::autoclean;
 use DateTime::Format::Strptime;
 use Data::UUID;
+#use Try::Tiny;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
 
@@ -275,7 +276,7 @@ sub announcements_GET {
 sub announcements_POST {
     my ( $self, $c ) = @_;
 
-    my $deleted_message = $c->request->param('delete_message');
+    my $deleted_message = $c->request->param('delete_message_button');
 
     return unless ($deleted_message);
 
@@ -312,15 +313,32 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
 
     $params = $c->request->params;
 
-    my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
-    $params->{expiry_date} = DateTime->new(
-       year      => $y,
-       month     => $m,
-       day       => $d,
-       time_zone => 'local',
-    );
+    try {
 
-    $params->{created_date} = DateTime->now( time_zone => 'local' );
+        my ($d,$m,$y) = ($c->request->param('expiry_date') =~ m{(\d{2})\W(\d{2})\W(\d{4})});
+        $params->{expiry_date} = DateTime->new(
+           year      => $y,
+           month     => $m,
+           day       => $d,
+           time_zone => 'local',
+        );
+
+        $params->{created_date} = DateTime->now( time_zone => 'local' );
+        $params->{max_date}     = DateTime->new(
+            year => $params->{created_date}->year() + 100,
+            time_zone => 'local',
+        );
+
+    }
+    catch {
+        $c->stash(
+            message_field   => $params->{message},
+            expiry_date     => $c->request->param('expiry_date'),
+            priority        => $params->{priority},
+            error_msg       => "Error: please check the date is correct \n Error: $!",
+        );
+        return;
+    };
 
 
     if ( exists $webapp_dispatch->{ $params->{webapp} } ) {
@@ -328,7 +346,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
     }
     else {
         # throw an error
-        $c->stash (
+        $c->stash(
             message_field   => $params->{message},
             expiry_date     => $c->request->param('expiry_date'),
             priority        => $params->{priority},
@@ -348,6 +366,17 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
         return;
     }
 
+    unless ( $params->{max_date} > $params->{expiry_date} ) {
+        $c->stash (
+            message_field   => $params->{message},
+            expiry_date     => $c->request->param('expiry_date'),
+            priority        => $params->{priority},
+            webapp          => $params->{webapp},
+            error_msg       => 'Please enter an expiry date which is no more than 100 years in the future'
+        );
+        return;
+    }
+
     my $announcement = create_message( $c->model('Golgi'), {
             message         => $params->{message},
             expiry_date     => $params->{expiry_date},
@@ -359,7 +388,7 @@ sub create_announcement : Path( '/admin/announcements/create_announcement' ) : A
         }
     );
 
-    $c->flash( success_msg => "Message sucessfully created");
+    $c->flash( success_msg => "Message successfully created");
 
     return $c->response->redirect( $c->uri_for('/admin/announcements') );
 }

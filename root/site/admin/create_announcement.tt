@@ -3,7 +3,7 @@
 
 <script>
   $(document).ready(function(){
-    $("#expiry_date").datepicker();
+    $("#expiry_date").datepicker({ dateFormat: 'dd/mm/yyyy' });
   })
 
 </script>
