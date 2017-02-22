@@ -333,7 +333,7 @@ sub retrieve_genotyping{
     my @records = $self->schema->resultset('GenotypingPrimer')->search( \%search_cond )->all;
     my $count = 0;
     my $res;
-    foreach (@records[1..scalar @records])
+    foreach (@records)
     {
         $res->[$count]->{sequence} = $_->{_column_data}->{seq};
         $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
