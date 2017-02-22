@@ -427,6 +427,19 @@ sub load_files {
             $data_fh->print($content);
             $data_fh->seek( 0, 0 );
             LIMS2::Model::Util::RefdataUpload::load_csv_file( $data_fh, $rs );
+
+            my $result_source = $rs->result_source;
+            my @p_keys = $result_source->primary_columns;
+
+            foreach my $p_key (@p_keys) {
+                my $col_info = $result_source->column_info($p_key);
+
+                if ( defined $col_info->{sequence} ) {
+                    my $seq = $rs->get_column($p_key);
+                    my $next_val = $seq->max + 1;
+                    $dbh->do("ALTER SEQUENCE $col_info->{sequence} RESTART WITH $next_val");
+                }
+            }
         }
         elsif ( $ext eq '' ) {
             # Empty extension - Take it as a directory link and ignore
