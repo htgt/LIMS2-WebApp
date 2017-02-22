@@ -327,6 +327,22 @@ sub retrieve_experiment{
     return $experiment;
 }
 
+sub retrieve_genotyping{
+    my ($self, $my_design_id) = @_;
+    my %search_cond = ( design_id => $my_design_id );
+    my @records = $self->schema->resultset('GenotypingPrimer')->search( \%search_cond )->all;
+    my $count = 0;
+    my $res;
+    foreach (@records[1..scalar @records])
+    {
+        $res->[$count]->{sequence} = $_->{_column_data}->{seq};
+        $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
+        $count++;
+    }
+
+    return $res;
+}
+
 sub _pspec_create_experiment{
     return {
         gene_id         => { validate => 'non_empty_string' },

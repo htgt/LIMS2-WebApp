@@ -4,6 +4,8 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
+use Data::Dumper;
+use LIMS2::Model::Schema;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -32,14 +34,14 @@ sub view_experiment :Path('/user/view_experiment'){
 
     my $exp_hash = $exp->as_hash_with_detail;
 
-    my $design_id = 1015250 #$exp_hash.design_id
-    my $genotyping = $c->resultset('Experiment')->search({design_id = $design_id});
+    my $design_id = $exp_hash->{design_id};
+    my $genotyping_query = $c->model( 'Golgi' )->retrieve_genotyping($design_id);
 
     $c->stash(
         experiment_id => $exp_id,
         experiment => $exp_hash,
         gene_symbol => $gene_info->{'gene_symbol'},
-        genotyping => $genotyping,
+        genotyping => $genotyping_query,
     );
 
     return;
