@@ -4,8 +4,6 @@ use Hash::MoreUtils qw( slice_def slice_exists);
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw( uniq );
-use Data::Dumper;
-use LIMS2::Model::Schema;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
