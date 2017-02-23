@@ -358,6 +358,10 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     my $barcode = $c->request->param('barcode');
     $c->stash->{barcode} = $barcode;
 
+    if ( $c->request->param('freeze_back_type') ) {
+        $c->stash->{freeze_back_type} = $c->request->param('freeze_back_type');
+    }
+
     my $type = $c->req->param('freeze_back_type');
     my $redirect_on_completion;
     if($type eq 'FP' || $type eq 'SFP'){
@@ -395,6 +399,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     }
 
     if($c->request->param('create_piq_wells')){
+
         my $freeze_back_method;
         my $freeze_back_params = {
             barcode => $barcode,
@@ -407,7 +412,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
                 $freeze_back_params->{$item} = $c->req->param($item);
             }
         }
-        elsif($c->req->param('freeze_back_type') eq 'FP'){
+        elsif($c->req->param('freeze_back_type') eq 'FP' || $c->req->param('freeze_back_type') eq 'SFP'){
             $freeze_back_method = \&freeze_back_fp_barcode;
         }
         elsif($c->req->param('freeze_back_type') eq 'PIQ_EXPAND'){

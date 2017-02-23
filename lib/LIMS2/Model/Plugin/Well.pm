@@ -1377,8 +1377,8 @@ sub create_well_lab_number {
     my $well = $self->retrieve_well( { slice_def $validated_params, qw( id plate_name well_name ) } );
 
     # check plate type is PIQ
-    if ( $well->plate_type ne 'PIQ' ) {
-        $self->throw( Validation => 'Well' . $well . ' must have a plate type of PIQ, this plate is type '
+    if ( $well->plate_type ne 'PIQ' && $well->plate_type ne 'S_PIQ' ) {
+        $self->throw( Validation => 'Well ' . $well . ' must have a plate type of PIQ or S_PIQ, this plate is type '
                     . $well->plate_type );
     }
 

@@ -1,0 +1,572 @@
+[%- META title = 'Point Mutation Alleles' %]
+<style>
+body { 
+    padding-bottom: 65px; 
+}
+
+.lb-md {
+    font-size: 22px;
+}
+
+.lb-colour {
+    font-size: 22px;
+    height: 0px;
+}
+
+.images {
+    max-width: 60%;
+    max-height: 60%;
+}
+
+.details {
+    margin-left: 0 auto;
+}
+
+.baseA.baseSwitch {
+    background-color: #63aa5a;
+    color: white;
+}
+
+.baseC.baseSwitch {
+    background-color: #e4ed6d;
+    color: black;
+}
+
+.baseT.baseSwitch {
+    background-color: #45719b;
+    color: white;
+}
+
+.baseG.baseSwitch {
+    background-color: #e88d1e;
+    color: black;
+}
+
+.base- {
+    background-color: #cc1019;
+    color: white;
+}
+
+.target {
+    background-color: #0a606d;
+    color: white;
+}
+
+.possibleTarget {
+    background-color: #e59e18;
+    color: white;
+}
+
+.sequence {
+    width: 400px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+}
+
+ /* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+</style>
+
+<div class="page-header row">
+    <div class="col-md-5">
+        <h2>Mutation Alleles - [% miseq %]: [% oligo_index %]</h2>
+    </div>    
+    <div class="col-md-2 col-md-offset-1">
+        <div id="keyContainer">
+            <h5>Colour Key: </h5>
+            <svg width="450" height="40">
+                <g class="legend" transform="translate(0)">
+                    <rect width="18" height="18" style="fill: #0a606d; stroke: #0a606d;"></rect>
+                    <text x="22" y="14">Crispr Match</text>
+                </g>
+                <g class="legend" transform="translate(0,20)">
+                    <rect width="18" height="18" style="fill: #e59e18; stroke: #e59e18;"></rect>
+                    <text x="22" y="14">Possible Crispr Location</text>
+                </g>
+            </svg>
+        </div>
+    </div> 
+    <div class="col-md-4">
+        <div class="col-md-7">
+            <label class="lb-colour">Highlight Crispr: </label>
+        </div>
+        <div class="col-md-4">
+            <label class="switch">
+                <input type="checkbox" id="styles">
+                <div class="slider round"></div>
+            </label>    
+        </div>
+    </div>
+</div>
+<div class="well">
+    <h3 class="col-md-12">Well Details</h3>
+
+    <div class="row">
+        <div class="col-md-6">
+            <table class="details table table-striped">
+                <tr>
+                    <td>Project Name</td>
+                    <td>[% miseq %]</td>
+                    <td></td>
+                <tr>
+                    <td>Illumina Index</td>
+                    <td>[% oligo_index %]</td>
+                    <td></td>
+                </tr>
+                [% IF selection %]
+                    <tr>
+                        <td>Gene</td>
+                        <td>[% selection.gene %]</td>
+                        <td></td>
+                    </tr>
+                [% END %]
+                <tr>
+                    <td>Barcode</td>
+                    <td id="barcode"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Status</td>
+                    <td><form action="#" method="post" name="statusContainer" id="statusContainer">[% state %]</form></td>
+                    <td id="buttonContainer"><button id="statusButton" class="btn btn-info" onclick="changeStatus();">Change Status <i class="glyphicon glyphicon-pencil"></i></button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<form action="#" method="post" id="formSubmit"></form>
+[% IF selection %]
+    <div class="row">
+        <div class="col-md-4">
+            <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
+        </div>
+    </div>
+    <h2>Experiment: [% selection.id %]</h2>
+    <div class="clearfix row">
+        <div class="col-md-2">
+            <label class="lb-md">Classification: </label>
+        </div>
+        <div class="col-md-2">
+            <form action="#" method="post" name="class[% selection.id %]" id="class[% selection.id %]">
+                <select class="form-control" align="center" id="classSelect" name="class[% selection.id %]" onchange="this.form.submit();">
+                    [% FOR class IN classifications %]
+                        [% IF class == selection.class %]
+                            <option value="[% class %]" selected="selected">[% class %]</option>
+                        [% ELSE %]
+                            <option value="[% class %]">[% class %]</option>
+                        [% END %]
+                    [% END %]
+                    
+                    <!---<option value="not called" selected="selected">not called</option>
+                    <option value="Wild type">Wild Type</option>
+                    <option value="Het">Het</option>
+                    <option value="Hom1">Hom - 1 Allele</option>
+                    <option value="Hom2">Hom - 2 Alleles</option>
+                    <option value="Mixed">Mixed</option> -->
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class='genes [% selection.id %]'></div>
+    <div class="row">
+        <div class="col-md-3">
+            <button class="allele btn btn-primary" onclick="displayIndels([% selection.id %])" value='[% selection.id %]'>
+                Allele Frequency - [% selection.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
+            </button>
+        </div>
+        <div class="col-md-3">
+            <button id="dl[% selection.id %]" class="download btn btn-success" value="[% selection.id %]">
+                Download CSV <i class="glyphicon glyphicon-download-alt"></i>
+            </button>
+        </div>
+    </div>
+    <div id='[% selection.id %]'></div>
+
+[% ELSE %]
+    [% FOREACH experiment IN experiments %]
+        <h2>Experiment: [% experiment.id %]</h2>
+        <div class="clearfix row">
+            <div class="col-md-2">
+                <label class="lb-md">Classification: </label>
+            </div>
+            <div class="col-md-2">
+                <form action="#" method="post" name="class[% experiment.id %]" id="class[% experiment.id %]">
+                    <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
+                    [% FOR class IN classifications %]
+                        [% IF class == experiment.class %]
+                            <option value="[% class %]" selected="selected">[% class %]</option>
+                        [% ELSE %]
+                            <option value="[% class %]">[% class %]</option>
+                        [% END %]
+                    [% END %]
+                    </select>
+                </form>
+            </div>
+        </div>
+        <div class='genes [% experiment.id %]'></div>
+        <div class="row">
+            <div class="col-md-2">
+                <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
+                    Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
+                    Download CSV <i class="glyphicon glyphicon-download-alt"></i>
+                </button>
+            </div>
+        </div>
+        <div id='[% experiment.id %]'></div>
+    [% END %]
+[% END %]
+
+<script type="text/javascript" charset="utf-8">
+var exps = [];
+var statesRaw = '[% status %]';
+var states = JSON.parse(statesRaw.replace(/&quot;/g,'"'));
+
+$(document).ready(function() {
+    $('.download').hide();
+    $('#keyContainer').hide();
+    $('.genes').each(function() {
+        $($(this).attr('class').split(/\s+/)).each(function() {
+            var exp = this.toString();
+            if (exps.includes(exp) == false && exp != 'genes') {
+                exps.push(exp);
+            }
+        });
+    });
+
+    for (var expIndex = 0; expIndex < exps.length; expIndex++) {
+        getImages(exps[expIndex], '[% indel %]');
+        //getSummary(exps[expIndex]);
+    }
+    var expSel = '[% selection.gene %]';
+    if (expSel) {
+        document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
+    } else {
+        document.title = '[% oligo_index %]:All - [% miseq %]';
+    }
+});
+
+$('.allele').click(function() {
+    $(this).find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
+    var value = $(this).val();
+    test = $(this);
+    console.log($(this));
+    console.log("This values " + value); 
+    $('#dl' + value).toggle();
+});
+
+$('.download').click(function() {
+    var value = $(this).val();
+    getSummary(value,'1');
+});
+
+$('#styles').change(function() {
+    console.log( "Handler for .change() called." );
+    $('span').toggleClass('baseSwitch');
+    $('#keyContainer').toggle();
+});
+
+function displayIndels(exp) {
+    var expTable = document.getElementById("table" + exp.id);
+    if (expTable == null) {
+        getSummary(exp.id);
+    }
+    else {
+        toggleTable("table" + exp.id);
+    }
+}
+
+function toggleTable(table) {
+    var expTable = document.getElementById(table);
+    expTable.style.display = (expTable.style.display == "table") ? "none" : "table";
+}
+
+function getImages(letter, chart, div) {
+    var index = '[% oligo_index %]';
+    
+    $.ajax({
+        url: '[% c.uri_for('/api/point_mutation_img/') %]',
+        type: "GET",
+        contentType: 'image/png',
+        data: {
+            miseq: '[% miseq %]', 
+            oligo: index,
+            exp: letter,
+            name: chart
+        },
+        success: function(result){
+            if (div == null) {
+                $('.' + letter).html('<img src="data:image/png;base64,' + result + '"/>');
+            } else {
+                $('#' + div).html('<img src="data:image/png;base64,' + result + '"/>');
+            }
+        },
+        error: function() {
+            console.log('Failure to receive indel size distribution graph for ' + letter);
+            $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
+        }
+    });
+}
+
+function getSummary(letter, downloadFlag) {
+    var index = '[% oligo_index %]';
+    var res; 
+    if (downloadFlag == null) {
+        //Preview for tables
+        $.ajax({
+            url: '[% c.uri_for('/api/point_mutation_summary/') %]',
+            type: "GET",
+            contentType: 'text/plain',
+            data: {
+                miseq: '[% miseq %]', 
+                oligo: index,
+                exp: letter,
+                limit: 10,
+            },
+            success: function(result){
+                createTable(letter, result);
+            },
+            error: function() {
+                $('#' + letter).html('<p>Allele frequency summary for well ' + index + ' experiment ' + letter + ' was not found.</p>');
+                $('#dl' + letter).hide();
+            }
+        });
+    } else {
+        //Full summary for downloading
+        $.ajax({
+            url: '[% c.uri_for('/api/point_mutation_summary/') %]',
+            type: "GET",
+            contentType: 'text/plain',
+            data: {
+                miseq: '[% miseq %]', 
+                oligo: index,
+                exp: letter,
+            },
+            success: function(result){
+                console.log(result);
+                downloadCSV(letter, result);
+            },
+            error: function() {
+                console.log("Failed to retrieve data");
+            }
+        });
+    }
+    return res;
+}
+
+function getTargets(letter) {
+    var index = '[% oligo_index %]';
+    $.ajax({
+        url: '[% c.uri_for('/api/point_mutation_target_region/') %]',
+        type: "GET",
+        contentType: 'text/plain',
+        data: {
+            miseq: '[% miseq %]', 
+            oligo: index,
+            exp: letter,
+        },
+        success: function(result){
+            var res = JSON.parse(result);
+        },
+        error: function() {
+            console.log("Found no targets for this experiment");
+        }
+    });
+}
+
+function createTable(exp, result) {
+    result = JSON.parse(result);
+    var rows = result.data.split("\n");
+    $('#' + exp).append('<table id="table' + exp + '" class="table table-striped table-bordered"></table>');
+    var table = document.getElementById("table" + exp);
+    var header = table.createTHead();
+    var headerRow = header.insertRow(0);
+    var headers = rows.shift().split(",");
+
+    for (var count = 0; count < headers.length; count++) {
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = headers[count];
+        headerRow.appendChild(headerCell);
+    }
+
+    var body = table.createTBody();
+
+    for (var rowCount = 0; rowCount < rows.length; rowCount++) {
+        if (rows[rowCount] == "") {
+            continue;
+        }
+        var bodyRow = body.insertRow(-1);
+        var rowData = rows[rowCount].split(",");
+        for (var cellCount = 0; cellCount < rowData.length; cellCount++) {
+            var bodyCell = bodyRow.insertCell(-1);
+            if (cellCount == 0) {
+                var highlight = highlightBases(rowData[cellCount], result.crispr); 
+                bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
+
+            } else {
+                if ($.isNumeric(rowData[cellCount])) {
+                    rowData[cellCount] = Math.round(rowData[cellCount] * 100) / 100;
+                }
+                bodyCell.innerHTML = rowData[cellCount];
+            }
+        }
+
+    }
+
+    table.style.display = "table";
+    $('.seq' + exp + ':last').css('overflow-x','scroll');
+    $('.seq' + exp + ':last').scroll(function() {
+        $('.seq' + exp).scrollLeft($(this).scrollLeft());
+    });
+    if ($('#styles').prop("checked") == true) {
+        $('.seq' + exp).find('span').toggleClass('baseSwitch');
+    }
+}
+
+function highlightBases(seq, crispr) {
+    var formattedSequence = "";
+    var start = seq.indexOf(crispr.crispr);
+    var accuracy = 0;
+    if (start == -1) {
+        accuracy = 1;
+        start = seq.indexOf(crispr.crispr.substring(0,5));
+        if (start == -1 || start > crispr.position + 5 || start < crispr.position - 5) {
+            console.log('No match');
+            start = crispr.position;
+        }
+    }
+
+    console.log(start);
+
+    for (var base = 0; base < seq.length; base++) {
+        var letter = seq[base];
+        var front = "";
+        var back = "";
+        if (base == start) {
+            if (accuracy == 0) {
+                front = '<span class="target">';
+            } else {
+                front = '<span class="possibleTarget">';
+            }
+        }
+
+        if (base == start + crispr.crispr.length - 1) {
+            back = "</span>";
+        }
+        var format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
+        formattedSequence += format;
+    }
+    console.log(crispr.crispr);
+    return formattedSequence;
+}
+
+function showAll() {
+    window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]&miseq=[% miseq %]'); 
+}
+
+function overview() {
+    window.location.href = '[% c.uri_for('/user/point_mutation/') %]' + encodeURI('?miseq=[% miseq %]'); 
+}
+
+function downloadCSV(letter, result) {
+    result = JSON.parse(result);
+    console.log(result);
+    var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
+    hiddenElement.download = 'MiSeq_[% oligo_index %]_exp' + letter + '.csv';
+    document.body.appendChild(hiddenElement);
+    hiddenElement.click();
+}
+
+function changeStatus() {
+    var options = states.summary;
+    var current = $('#statusContainer').text();
+    var index = options.indexOf(current);
+    if (index > -1) {
+        options.splice(index, 1);
+        options.unshift(current);
+    } else {
+        console.log("Something very wrong has happened.");
+    }
+ 
+    var select = document.createElement('select');
+    select.className += " btn btn-default";
+    select.name = "statusOption";
+    select.onchange = function() { this.form.submit(); };
+    
+    $('#statusContainer').html("");
+    for (var count = 0; count < options.length; count++) {
+        var option = document.createElement('option');
+        option.setAttribute("value", options[count]);
+        option.appendChild(document.createTextNode(options[count]));
+        select.appendChild(option);
+    }
+
+    var div = document.getElementById('statusContainer');
+    div.appendChild(select);
+
+    $('#statusButton').remove();
+}
+
+</script>

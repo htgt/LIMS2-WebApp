@@ -463,7 +463,7 @@ sub get_crisprs : Path( '/user/get_crisprs' ) : Args(0) {
         ];
 
         my $bsub_params = {
-            output_dir => dir( '/lustre/scratch109/sanger/team87/crispr_logs' ),
+            output_dir => dir( '/lustre/scratch117/sciops/team87/crispr_logs' ),
             id         => $c->request->param('exon_id'),
         };
 
