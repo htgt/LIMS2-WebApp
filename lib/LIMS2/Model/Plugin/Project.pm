@@ -334,9 +334,11 @@ sub retrieve_genotyping{
     my $res;
     foreach (@{$records})
     {
+    try {
         $res->[$count]->{sequence} = $_->{_column_data}->{seq};
         $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
         $count++;
+    }
     }
     return $res;
 }
