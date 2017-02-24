@@ -32,8 +32,8 @@ sub view_experiment :Path('/user/view_experiment'){
 
     my $exp_hash = $exp->as_hash_with_detail;
 
-    my $design_id = $exp_hash->{design_id};
-    my $genotyping_query = $c->model( 'Golgi' )->retrieve_genotyping($design_id);
+    my $genotyping_param = {design_id => $exp_hash->{design_id}};
+    my $genotyping_query = $c->model( 'Golgi' )->retrieve_genotyping($genotyping_param);
 
     $c->stash(
         experiment_id => $exp_id,

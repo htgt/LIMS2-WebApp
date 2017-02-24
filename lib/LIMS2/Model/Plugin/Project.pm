@@ -328,18 +328,16 @@ sub retrieve_experiment{
 }
 
 sub retrieve_genotyping{
-    my ($self, $my_design_id) = @_;
-    my %search_cond = ( design_id => $my_design_id );
-    my @records = $self->schema->resultset('GenotypingPrimer')->search( \%search_cond )->all;
+    my ($self, $param) = @_;
+    my $records = $self->retrieve_list('GenotypingPrimer', $param);
     my $count = 0;
     my $res;
-    foreach (@records)
+    foreach (@{$records})
     {
         $res->[$count]->{sequence} = $_->{_column_data}->{seq};
         $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
         $count++;
     }
-
     return $res;
 }
 
