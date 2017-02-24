@@ -36,7 +36,7 @@ sub all_tests : Test(4) {
             $fields->{'cell_line'}->{'values'},
             [   'oct4:puro iCre/iFlpO #8', 'oct4:puro iCre/iFlpO #11',
                 'JM8.F6',                  'JM8.N4',
-                'JM8A3.N1', 'BOBSC-T6/8_B1'
+                'JM8A3.N1', 'BOBSC-T6/8_B1', 'KOLF_2_C1'
             ],
             'cell line list correct'
         );

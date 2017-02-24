@@ -254,6 +254,12 @@
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload Plate</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/add_well' ) %]">Upload Well</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/move_well' ) %]">Move Well</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/dna_concentration_upload' ) %]">Upload DNA Concentrations</a>
             </li>
             <li>
