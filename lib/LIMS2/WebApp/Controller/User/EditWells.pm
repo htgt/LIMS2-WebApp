@@ -11,14 +11,10 @@ use LIMS2::Model::Util::AddWellToPlate qw( create_well get_well );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
-sub begin :Private {
+sub add_well : Path( '/user/add_well' ) : Args(0) :ActionClass( 'REST' ) {
     my ( $self, $c ) = @_;
-
     $c->assert_user_roles( 'edit' );
     return;
-}
-
-sub add_well : Path( '/user/add_well' ) : Args(0) :ActionClass( 'REST' ) {
 }
 
 sub add_well_GET {
@@ -150,6 +146,8 @@ sub _create_well {
 
 sub move_well : Path( '/user/move_well' ) : Args(0) {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
 
     $c->stash(
         stages_complete  => $c->request->param('stages_complete') || '0',

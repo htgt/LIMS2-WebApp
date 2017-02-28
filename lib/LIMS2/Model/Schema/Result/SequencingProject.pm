@@ -230,7 +230,9 @@ sub as_hash {
 
 sub backup_directories {
     my $self = shift;
-    my $backup_rs = $self->result_source->schema->resultset('SequencingProjectBackup')->search({ 'seq_project_id'    => $self->id });
+    my $backup_rs = $self->result_source->schema->resultset('SequencingProjectBackup')->search({
+      'seq_project_id'    => $self->id,
+    });
 
     my @subdirs;
 

@@ -20,6 +20,8 @@
 </script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-es-qc-well-update.js' ) %]"></script>
 
+<div id = "error_placeholder"></div>
+
 
 <div class="page-header">
   <h1>View Sequencing Traces</h1>
@@ -181,7 +183,7 @@ $(document).ready(function() {
     console.log("removing");
   });
 
- 
+
   $("#sequencing_sub_project").change(function() {
     var primer_data = $("#sequencing_sub_project option:selected").data();
 
@@ -202,7 +204,7 @@ $(document).ready(function() {
       $("#primer_names").val("");
     }
     find_old_versions();
-});
+  });
 
   function populate_subproject_list(data, selected_value){
     // Show the dowload button at the same time
@@ -250,7 +252,18 @@ $(document).ready(function() {
     minLength: 5,
     select: function (event, ui) {
         begin_population(ui.item.value);
-    }
+    },
+    response: function (event, ui) {
+      console.log(ui.content.length);
+      if ( ui.content.length == 0 ){
+          $('#error_placeholder').html(
+            '<div class="alert alert-danger alert-dismissible">'
+            + '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'
+            + '<strong>Error!</strong> Project ' + this.value + ' does not exist.'
+            + '</div>'
+        );
+      }
+    },
   });
 
   function begin_population(ui) {
@@ -326,7 +339,7 @@ function find_old_versions() {
                 console.log("Removing option: " + $('#data_set option')[count].value);
                 $('#data_set option')[count].remove();
             }
-            
+
             if (data.length !== 0) {
                 console.log("Data found");
                 $('#data_set').removeClass('hide');
