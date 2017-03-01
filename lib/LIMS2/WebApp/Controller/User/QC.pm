@@ -977,8 +977,9 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
     # Store form values
     $c->stash->{sequencing_project}     = $c->req->param('sequencing_project');
     $c->stash->{sequencing_sub_project} = $c->req->param('sequencing_sub_project');
-    $c->stash->{primer_data} = $c->req->param('primer_data');
-    $c->stash->{well_name} = $c->req->param('well_name');
+    $c->stash->{primer_data}            = $c->req->param('primer_data');
+    $c->stash->{well_name}              = $c->req->param('well_name');
+    $c->stash->{project_exists}         = $c->req->param('project_exists');
     #Create recently added list
     my $recent = $c->model('Golgi')->schema->resultset('SequencingProject')->search(
         {
@@ -1005,7 +1006,14 @@ sub view_traces :Path('/user/qc/view_traces') :Args(0){
         my $sub_project = $c->req->param('sequencing_sub_project');
         my $well_name = $c->req->param('well_name');
         my $date = $c->req->param('data_set');
+        my $project_exists = $c->req->param('project_exists');
         my $version;
+
+        if ($project_exists == 0) {
+            $c->stash->{error_msg} = "<strong>Error!</strong> Project $project does not exist.";
+            return;
+        }
+
         if ($date ne 'Latest') {
             my $seq_rs = $c->model('Golgi')->schema->resultset('SequencingProject')->find({
                 name => $project

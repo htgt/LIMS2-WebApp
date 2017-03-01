@@ -39,6 +39,7 @@
           <input name="sequencing_project" class="form-control" id="sequencing_project" type="text"
             [% IF sequencing_project %]value="[% sequencing_project %]"[% END %] />
       </div>
+      <input type="hidden" name="project_exists" id="project_exists_id">
     </div>
 </div>
 
@@ -256,12 +257,16 @@ $(document).ready(function() {
     response: function (event, ui) {
       console.log(ui.content.length);
       if ( ui.content.length == 0 ){
-          $('#error_placeholder').html(
-            '<div class="alert alert-danger alert-dismissible">'
-            + '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'
-            + '<strong>Error!</strong> Project ' + this.value + ' does not exist.'
-            + '</div>'
+        $("#project_exists_id").val(0);
+        $('#error_placeholder').html(
+          '<div class="alert alert-danger alert-dismissible">'
+          + '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'
+          + '<strong>Error!</strong> Project ' + this.value + ' does not exist.'
+          + '</div>'
         );
+      }
+      else {
+        $("#project_exists_id").val(0);
       }
     },
   });
