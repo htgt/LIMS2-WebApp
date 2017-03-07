@@ -15,7 +15,7 @@ BEGIN {
 
 my $mech = LIMS2::Test::mech();
 
-sub manage_projects_tests : Test(23) {
+sub manage_projects_tests : Test(22) {
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/manage_projects');
