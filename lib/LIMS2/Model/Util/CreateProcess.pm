@@ -941,7 +941,9 @@ sub pspec__create_process_aux_data_create_crispr {
 sub _create_process_aux_data_create_crispr {
     my ( $model, $params, $process ) = @_;
 
-    my $validated_params
+    my $validated_params;
+
+    $validated_params
         = $model->check_params( $params, pspec__create_process_aux_data_create_crispr() );
 
     $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
@@ -1095,7 +1097,7 @@ sub _create_process_aux_data_2w_gateway {
 
 sub pspec__create_process_aux_data_3w_gateway {
     return {
-        cassette    => { validate => 'existing_final_cassette' },
+        cassette    => { validate => 'existing_cassette' },
         backbone    => { validate => 'existing_backbone' },
         recombinase => { optional => 1 },
     };

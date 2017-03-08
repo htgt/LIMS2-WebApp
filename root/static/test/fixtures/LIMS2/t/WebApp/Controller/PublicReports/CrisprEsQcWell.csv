@@ -1,0 +1,2 @@
+id,crispr_es_qc_run_id,well_id,fwd_read,rev_read,crispr_chr_id,crispr_start,crispr_end,comment,analysis_data,accepted,vcf_file,crispr_damage_type_id,variant_size
+22,4093385A-D3AD-11E4-9503-893EE7766273,553,fwd_read,rev_read,3193,4712443,4712506,,"{""analysis_data"":""blah""}",t,vcf_file,frameshift,-4

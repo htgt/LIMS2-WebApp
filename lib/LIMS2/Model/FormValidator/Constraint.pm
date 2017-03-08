@@ -174,6 +174,14 @@ sub existing_plate_id {
     return shift->existing_row( 'Plate', 'id' );
 }
 
+sub existing_message_id {
+    return shift->existing_row( 'Message', 'id' );
+}
+
+sub existing_priority {
+    return shift->existing_row( 'Priority', 'id' );
+}
+
 sub existing_qc_run_id {
     return shift->existing_row( 'QcRun', 'id' );
 }

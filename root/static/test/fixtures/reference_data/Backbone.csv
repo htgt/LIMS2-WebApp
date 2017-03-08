@@ -14,3 +14,5 @@
 13,U6_BsaI_gRNA,"mouse crispr vector",,
 14,puc19_RV_GIBSON,"AmpR from puc19 E coli",AmpR,2-way
 15,pAYAC184,"intermediate backbone for shortening arm process",Chloramphenicol,2-way
+16,U6_BsaI_only_SP6R_gRNA_R,Backbones sequence used in crispr vectors, SP6R primer only, missing T3 primer, can use to clone in right gRNA,,
+17,U6_BsaI_only_T3_gRNA_L,Backbones sequence used in crispr vectors, T3 primer only, missing SP6R primer, can use to clone in left gRNA,,

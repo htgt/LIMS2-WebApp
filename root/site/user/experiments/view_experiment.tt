@@ -117,6 +117,21 @@
     <td>[% crispr.seq %]</td>
   </tr>
   [% END %]
+</table>
+
+<h2>Genotyping Primers</h2>
+<table class="table genotyping">
+  <tr>
+    <th>Genotyping Type</th>
+    <th>Sequence</th>
+  </tr>
+  [% FOREACH geno IN genotyping %]
+  <tr>
+    <td>[% geno.type %]</td>
+    <td>[% geno.sequence %]</td>
+  </tr>
+  [% END %]
+</table>
 
 </table>
 [% END %]
