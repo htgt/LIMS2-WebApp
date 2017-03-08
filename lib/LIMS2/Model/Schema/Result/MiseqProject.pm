@@ -99,6 +99,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.miseq_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 miseq_projects_well
 
 Type: has_many
@@ -115,8 +130,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-09 15:43:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UDn6eSHi9gZRXIe1djvmCg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-01 14:10:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZKJmykMlK6rWtSMCeMiXDw
 
 sub as_hash {
     my $self = shift;

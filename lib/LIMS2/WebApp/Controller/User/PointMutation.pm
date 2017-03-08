@@ -45,6 +45,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $revov = encode_json({ summary => $gene_keys });
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
+    my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq) });
     $c->stash(
         wells => $json,
         experiments => \@exps,
@@ -52,6 +53,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         overview => $ov_json,
         genes => \@genes,
         gene_exp => $revov,
+        efficiency => $efficiencies,
     );
 
     return;
@@ -394,18 +396,20 @@ sub check_class {
             update_status($self, $c, $miseq, $index, 'Plated');
             $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
         }
-        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->as_hash->{id}, experiment => $result });
+        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate->{id}, name => $result })->as_hash;
+        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->as_hash->{id}, miseq_exp_id => $miseq_exp->{id} });
         my $exp_params = {
             miseq_well_id           => $well->as_hash->{id},
-            experiment              => $result,
+            miseq_exp_id            => $miseq_exp->{id},
             classification          => $class,
         };
 
         if ($exp_record) {
-            if ($exp_record->as_hash->{classification} eq $class) {
-                return;
+            $exp_params->{id} = $exp_record->as_hash->{id};
+            delete $exp_params->{miseq_well_id};
+            if ($exp_record->as_hash->{classification} ne $class) {
+                $c->model('Golgi')->update_miseq_well_experiment( $exp_params );
             }
-            $c->model('Golgi')->update_miseq_well_experiment( $exp_params );
         } else {
             $c->model('Golgi')->create_miseq_well_experiment( $exp_params );
         }
@@ -424,12 +428,13 @@ sub find_classes {
     }
     $well = $well->as_hash;
 
-    my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->{id}, experiment => $selection });
-    if ($well_exp) {
-        $result = $well_exp->as_hash->{classification};
-    } else {
+    try {
+        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate->{id}, name => $selection })->as_hash;
+        my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->{id}, miseq_exp_id => $miseq_exp->{id} })->as_hash;
+        $result = $well_exp->{classification};
+    } catch {
         $result = 'Not called';
-    }
+    };
 
 =head
     if ($selection) {
@@ -443,6 +448,31 @@ sub find_classes {
     return $result;
 }
 
+sub get_efficiencies {
+    my ($c, $miseq) = @_;
+
+    my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash->{id};
+    my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+
+    my $efficiencies = {
+        nhej => 0,
+        total => 0,
+    };
+
+    while (my $exp_rs = $experiments->next) {
+        my $exp = {
+            nhej    => $exp_rs->mutation_reads,
+            total   => $exp_rs->total_reads,
+        };
+        $efficiencies->{$exp_rs->name} = $exp;
+        $efficiencies->{all}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{all}->{total} += $exp_rs->total_reads;
+    }
+
+    return $efficiencies;
+}
+
+=head
 sub search_exp {
     my ($c, $id, $exp, $result) = @_;
 
@@ -455,6 +485,7 @@ sub search_exp {
 
     return $result;
 }
+=cut
 __PACKAGE__->meta->make_immutable;
 
 1;

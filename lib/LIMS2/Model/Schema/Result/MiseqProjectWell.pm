@@ -109,6 +109,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 miseq_project_well_exps
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqProjectWellExp>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_project_well_exps",
+  "LIMS2::Model::Schema::Result::MiseqProjectWellExp",
+  { "foreign.miseq_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 status
 
 Type: belongs_to
@@ -130,8 +145,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-26 09:49:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jmPrK0nqA50DxbXmEHV9cA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-01 15:23:12
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HjEeYsuklwZ1N2klIggbWw
 
 use Try::Tiny;
 

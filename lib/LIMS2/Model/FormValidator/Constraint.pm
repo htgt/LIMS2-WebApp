@@ -356,8 +356,12 @@ sub existing_miseq_well {
     return shift->in_resultset( 'MiseqProjectWell', 'id' );
 }
 
-sub miseq_experiment {
-    return shift->regexp_matches(qr/^[A-Z]+$/);
+sub existing_miseq_well_exp {
+    return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
+}
+
+sub existing_miseq_experiment {
+    return shift->in_resultset( 'MiseqExperiment', 'id' );
 }
 
 sub existing_miseq_classification {
