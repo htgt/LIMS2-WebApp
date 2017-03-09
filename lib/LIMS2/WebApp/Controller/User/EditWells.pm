@@ -4,7 +4,6 @@ use Moose;
 use Data::Dump 'pp';
 use Try::Tiny;
 use Const::Fast;
-use Smart::Comments;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
 use namespace::autoclean;
 use LIMS2::Model::Util::AddWellToPlate qw( add_well_create_well get_well );
