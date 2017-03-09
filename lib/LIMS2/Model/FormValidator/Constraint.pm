@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.447';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.449';
 }
 ## use critic
 
@@ -178,6 +178,14 @@ sub existing_plate_name {
 
 sub existing_plate_id {
     return shift->existing_row( 'Plate', 'id' );
+}
+
+sub existing_message_id {
+    return shift->existing_row( 'Message', 'id' );
+}
+
+sub existing_priority {
+    return shift->existing_row( 'Priority', 'id' );
 }
 
 sub existing_qc_run_id {
@@ -362,8 +370,12 @@ sub existing_miseq_well {
     return shift->in_resultset( 'MiseqProjectWell', 'id' );
 }
 
-sub miseq_experiment {
-    return shift->regexp_matches(qr/^[A-Z]+$/);
+sub existing_miseq_well_exp {
+    return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
+}
+
+sub existing_miseq_experiment {
+    return shift->in_resultset( 'MiseqExperiment', 'id' );
 }
 
 sub existing_miseq_classification {

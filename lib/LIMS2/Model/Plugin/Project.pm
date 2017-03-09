@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.447';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.449';
 }
 ## use critic
 
@@ -331,6 +331,26 @@ sub retrieve_experiment{
     my $validated_params = $self->check_params( $params, $self->_pspec_retrieve_experiment);
     my $experiment = $self->retrieve('Experiment', $validated_params);
     return $experiment;
+}
+
+sub retrieve_genotyping{
+    my ($self, $param) = @_;
+    my $count = 0;
+    my $res;
+
+    try {
+        my $records = $self->retrieve_list('GenotypingPrimer', $param);
+
+        foreach (@{$records})
+        {
+            $res->[$count]->{sequence} = $_->{_column_data}->{seq};
+            $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
+            $count++;
+        }
+    }
+    catch {
+    };
+    return $res;
 }
 
 sub _pspec_create_experiment{

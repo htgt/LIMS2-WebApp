@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.447';
+    $LIMS2::Model::Constants::VERSION = '0.449';
 }
 ## use critic
 
@@ -130,7 +130,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     '3w_gateway' => {
-        type   => [qw( INT )],
+        type   => [qw( INT POSTINT )],
         number => 1,
     },
     'legacy_gateway' => {

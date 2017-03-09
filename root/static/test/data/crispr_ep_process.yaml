@@ -1,26 +1,26 @@
 ---
-ep_valid_input: 
+ep_valid_input:
     type: crispr_ep
     cell_line: JM8.F6
-    nuclease: Cas9 Church D10A (+neo)
+    nuclease: Cas9 Church D10A (+bsd)
     output_wells:
         - plate_name: CRISPR_EP_S1
           well_name: A01
     input_wells:
         - plate_name: ASSEMBLY_S1
           well_name: A01
-ep_missing_information: 
+ep_missing_information:
     type: crispr_ep
     output_wells:
         - plate_name: CRISPR_EP_S1
           well_name: A01
     input_wells:
         - plate_name: ASSEMBLY_S1
-          well_name: A01          
+          well_name: A01
 ep_invalid_output_well:
     type: crispr_ep
     cell_line: JM8.F6
-    nuclease: Cas9 Church D10A (+neo)    
+    nuclease: Cas9 Church D10A (+bsd)
     output_wells:
         - plate_name: XEP0006
           well_name: A01
@@ -30,7 +30,7 @@ ep_invalid_output_well:
 ep_invalid_input_well:
     type: crispr_ep
     cell_line: JM8.F6
-    nuclease: Cas9 Church D10A (+neo)    
+    nuclease: Cas9 Church D10A (+bsd)
     output_wells:
         - plate_name: CRISPR_EP_S1
           well_name: A01

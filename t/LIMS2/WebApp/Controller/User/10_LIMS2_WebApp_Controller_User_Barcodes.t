@@ -20,3 +20,5 @@ Test::Class->runtests;
 
 
 1;
+
+__END__

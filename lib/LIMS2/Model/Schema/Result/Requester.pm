@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Requester;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Requester::VERSION = '0.447';
+    $LIMS2::Model::Schema::Result::Requester::VERSION = '0.449';
 }
 ## use critic
 
@@ -65,9 +65,26 @@ __PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-02 15:26:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ycc/LvLTEo/pG0W57YqjFQ
+=head2 experiments_including_deleted
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "experiments_including_deleted",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { "foreign.requester" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-01 14:11:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ge5LmanfBZhGDERXII46Pw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

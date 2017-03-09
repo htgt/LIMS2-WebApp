@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::CrisprEsQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.447';
+    $LIMS2::Model::Plugin::CrisprEsQc::VERSION = '0.449';
 }
 ## use critic
 
@@ -42,7 +42,9 @@ sub create_crispr_es_qc_run {
     #these will be created separately
     my $wells = delete $validated_params->{wells};
 
-    my $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $validated_params );
+    my $qc_id_check = $self->schema->resultset('CrisprEsQcRuns')->find( { id => $validated_params->{id} } );
+    my $qc_run;
+    $qc_run = $self->schema->resultset('CrisprEsQcRuns')->create( $validated_params ) unless $qc_id_check;
 
     #later this will be moved to its own method as we won't create
     #wells when we create the qc
@@ -51,8 +53,12 @@ sub create_crispr_es_qc_run {
         $well->{species} = $qc_run->species_id;
         $self->create_crispr_es_qc_well( $well );
     }
-
-    return $qc_run;
+    unless ($qc_id_check) {
+        return $qc_run;
+    }
+    else {
+        return $qc_id_check;
+    }
 }
 
 sub pspec_update_crispr_es_qc_run {

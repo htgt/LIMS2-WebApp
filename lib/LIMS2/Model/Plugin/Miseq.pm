@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Miseq::VERSION = '0.447';
+    $LIMS2::Model::Plugin::Miseq::VERSION = '0.449';
 }
 ## use critic
 
@@ -70,7 +70,7 @@ sub update_miseq_plate_well {
 sub pspec_miseq_well_experiment {
     return {
         miseq_well_id   => { validate => 'existing_miseq_well' },
-        experiment      => { validate => 'miseq_experiment' },
+        miseq_exp_id    => { validate => 'existing_miseq_experiment' },
         classification  => { validate => 'existing_miseq_classification' },
     };
 }
@@ -85,7 +85,7 @@ sub create_miseq_well_experiment {
     my $miseq = $self->schema->resultset('MiseqProjectWellExp')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_well_id experiment classification )
+                qw( miseq_well_id miseq_exp_id classification )
             )
         }
     );
@@ -93,19 +93,56 @@ sub create_miseq_well_experiment {
     return;
 }
 
+sub pspec_update_miseq_well_experiment {
+    return {
+        id              => { validate => 'existing_miseq_well_exp' },
+        miseq_exp_id    => { validate => 'existing_miseq_experiment', optional => 1 },
+        classification  => { validate => 'existing_miseq_classification', optional => 1 },
+    };
+}
+
 sub update_miseq_well_experiment {
     my ($self, $params) = @_;
 
-    my $validated_params = $self->check_params($params, pspec_miseq_well_experiment);
+    my $validated_params = $self->check_params($params, pspec_update_miseq_well_experiment);
 
     my %search;
-    #my $well = $self->retrieve_miseq_well({ miseq_well_id => $validated_params });
-    $search{'me.miseq_well_id'} = $validated_params->{miseq_well_id};
-    $search{'me.experiment'} = $validated_params->{experiment};
+    $search{'me.id'} = $validated_params->{id};
 
-    my $class->{classification} = $validated_params->{classification};
     my $well = $self->retrieve( MiseqProjectWellExp => \%search );
+    my $hash_well = $well->as_hash;
+    my $class;
+    $class->{classification} = $validated_params->{classification} || $hash_well->{classification};
+    $class->{miseq_exp_id} = $validated_params->{miseq_exp_id} || $hash_well->{experiment};
     my $update = $well->update($class);
+
+    return;
+}
+
+sub pspec_create_miseq_experiment {
+    return {
+        miseq_id        => { validate => 'existing_miseq_plate' },
+        name            => { validate => 'non_empty_string' },
+        gene            => { validate => 'non_empty_string' },
+        mutation_reads  => { validate => 'integer' },
+        total_reads     => { validate => 'integer' },
+    };
+}
+
+# input will be in the format a user trying to create a plate will use
+# we need to convert this into a format expected by create_well
+sub create_miseq_experiment {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_miseq_experiment);
+
+    my $miseq = $self->schema->resultset('MiseqExperiment')->create(
+        {   slice_def(
+                $validated_params,
+                qw( miseq_id name gene mutation_reads total_reads )
+            )
+        }
+    );
 
     return;
 }

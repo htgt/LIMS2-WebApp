@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProjectWellExp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.447';
+    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.449';
 }
 ## use critic
 
@@ -54,11 +54,13 @@ __PACKAGE__->table("miseq_project_well_exp");
 =head2 miseq_well_id
 
   data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
 
-=head2 experiment
+=head2 miseq_exp_id
 
-  data_type: 'text'
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
 
 =head2 classification
@@ -78,9 +80,9 @@ __PACKAGE__->add_columns(
     sequence          => "miseq_project_well_exp_id_seq",
   },
   "miseq_well_id",
-  { data_type => "integer", is_nullable => 0 },
-  "experiment",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "miseq_exp_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "classification",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
@@ -119,9 +121,39 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 miseq_exp
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-26 09:49:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:utmsk0Hw76LRwCA6rt98lw
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "miseq_exp",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { id => "miseq_exp_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+=head2 miseq_well
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqProjectWell>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "miseq_well",
+  "LIMS2::Model::Schema::Result::MiseqProjectWell",
+  { id => "miseq_well_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-03 16:19:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OlnYkVP+Vxl7Xh4zWPYquA
 
 use Try::Tiny;
 
@@ -130,20 +162,29 @@ sub as_hash {
     my %h;
     try {
         %h = (
+            id                  => $self->id,
             miseq_well_id       => $self->miseq_well_id,
-            experiment          => $self->experiment,
+            experiment          => $self->miseq_exp_id,
             classification      => $self->classification->as_string,
         );
     } catch {
         %h = (
             miseq_well_id       => $self->miseq_well_id,
-            experiment          => $self->experiment,
+            experiment          => $self->miseq_exp_id,
         );
     };
 
     return \%h;
 }
 
+sub plate {
+    my ( $self ) = @_;
+
+    my $well = $self->result_source->schema->resultset('MiseqProjectWell')->find({ id => $self->miseq_well_id })->as_hash;
+    my $plate = $self->result_source->schema->resultset('MiseqProject')->find({ id => $well->{miseq_plate_id} })->as_hash;
+
+    return $plate;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
