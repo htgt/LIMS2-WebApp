@@ -7,7 +7,7 @@ use Const::Fast;
 use Smart::Comments;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
 use namespace::autoclean;
-use LIMS2::Model::Util::AddWellToPlate qw( create_well get_well );
+use LIMS2::Model::Util::AddWellToPlate qw( add_well_create_well get_well );
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -139,7 +139,7 @@ sub _create_well {
     };
 
     $params->{process_data} = $process_data_ref;
-    my $created_well = create_well( $c->model('Golgi'), $params);
+    my $created_well = add_well_create_well( $c->model('Golgi'), $params);
 
     $result->{well_id} = $created_well->id;
     $result->{success} = 1;
@@ -158,7 +158,7 @@ sub move_well : Path( '/user/move_well' ) : Args(0) {
     return unless $c->request->method eq 'POST';
 
     if      ( $c->request->param('stages_complete') == 0 ) {
-        my $result = $self->retrieve_well($c);
+        my $result = $self->edit_well_retrieve_well($c);
         return $result;
     }
     elsif   ( $c->request->param('stages_complete') == 1 ) {
@@ -173,7 +173,7 @@ sub move_well : Path( '/user/move_well' ) : Args(0) {
 }
 
 
-sub retrieve_well {
+sub edit_well_retrieve_well {
     my ( $self, $c ) = @_;
 
     my $plate = $c->request->param('source_plate');
