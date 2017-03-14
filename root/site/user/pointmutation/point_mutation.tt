@@ -1,5 +1,7 @@
 [%- META title = 'Point Mutation' %]
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+
+<script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <style>
 
 .tooltip {
@@ -13,7 +15,33 @@
     background: #ddd;
     pointer-events: none;
 }
+.d3-tip {
+  line-height: 1;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
 
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
 .lb-md {
     font-size: 22px;
 }
@@ -173,18 +201,26 @@ var teArc = d3.arc()
     .outerRadius(radius + 8)
     .startAngle(0);
 
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return tooltip($(this))
+    });
+
 var svg = d3.selectAll("td")
     .append("svg:svg")
     .attr("width", '100%')
     .attr("height", height)
     .attr("class","svgTool")
     .attr("onclick","wellArc(this)")
-    .attr("data-toggle","tooltip")
-    .attr("data-html","true")
-    .attr("title", function(){ return tooltip($(this)) })
+    .on('mouseover', tip.show)
+    .on('mouseout', tip.hide)
     .append("svg:g")
     .attr("class","node")
     .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+
+svg.call(tip);
 
 //Targeting efficiency container
 var teSvg = d3.select("#targetingEfficiency")
@@ -192,7 +228,6 @@ var teSvg = d3.select("#targetingEfficiency")
     .attr("width", width + 20)
     .attr("height", height + 20)
     .attr("class","teSvgTool")
-    .attr("data-html","true")
     .append("svg:g")
     .attr("class","teNode")
     .attr("transform", function(d){ return "translate(" + (width+ 20) / 2 + "," + (height + 20) / 2 + ")"});
@@ -469,7 +504,7 @@ function clearHighlight() {
         d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau, arc));
     }
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0.0 * tau, teArc));
-    d3.selectAll(".svgTool").attr("data-original-title", function(){ return tooltip($(this)) });
+    d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
 }
 
 function arcTween(newAngle, specArc) {
