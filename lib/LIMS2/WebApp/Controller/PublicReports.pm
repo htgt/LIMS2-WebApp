@@ -503,6 +503,7 @@ sub _simple_transform {
                     || $key eq 'ep_data'
                     || $key eq 'recovery_class'
                     || $key eq 'effort_concluded'
+                    || $key eq 'priority'
                     || $key eq 'chromosome' );
             }
         }
