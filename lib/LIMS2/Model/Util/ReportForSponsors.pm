@@ -17,6 +17,8 @@ use Readonly;
 use Try::Tiny;                              # Exception handling
 use Data::Dumper;
 
+use Smart::Comments;
+
 # Uncomment this to add time since last log entry to log output
 #Log::Log4perl->easy_init( { level => 'DEBUG', layout => '%d [%P] %p %m (%R)%n' } );
 
@@ -848,6 +850,57 @@ sub genes {
 
     my $sql_results = $self->run_select_query( $sql_query );
 
+
+# $sql_results = [
+#         { gene_id => 'HGNC:30801' },
+#         { gene_id => 'HGNC:817' },
+#         { gene_id => 'HGNC:1053' },
+#         { gene_id => 'HGNC:28672' },
+#         { gene_id => 'HGNC:1759' },
+#         { gene_id => 'HGNC:1916' },
+#         { gene_id => 'HGNC:2340' },
+#         { gene_id => 'HGNC:2843' },
+#         { gene_id => 'HGNC:32698' },
+#         { gene_id => 'HGNC:3773' },
+#         { gene_id => 'HGNC:24818' },
+#         { gene_id => 'HGNC:5281' },
+#         { gene_id => 'HGNC:1928' },
+#         { gene_id => 'HGNC:21399' },
+#         { gene_id => 'HGNC:21918' },
+#         { gene_id => 'HGNC:15598' },
+#         { gene_id => 'HGNC:15844' },
+#         { gene_id => 'HGNC:5344' },
+#         { gene_id => 'HGNC:16938' },
+#         { gene_id => 'HGNC:17817' },
+#         { gene_id => 'HGNC:5439' },
+#         { gene_id => 'HGNC:5970' },
+#         { gene_id => 'HGNC:5358' },
+#         { gene_id => 'HGNC:6349' },
+#         { gene_id => 'HGNC:6351' },
+#         { gene_id => 'HGNC:7133' },
+#         { gene_id => 'HGNC:6707' },
+#         { gene_id => 'HGNC:7451' },
+#         { gene_id => 'HGNC:8840' },
+#         { gene_id => 'HGNC:9395' },
+#         { gene_id => 'HGNC:9642' },
+#         { gene_id => 'HGNC:9954' },
+#         { gene_id => 'HGNC:30278' },
+#         { gene_id => 'HGNC:20561' },
+#         { gene_id => 'HGNC:11005' },
+#         { gene_id => 'HGNC:11026' },
+#         { gene_id => 'HGNC:11190' },
+#         { gene_id => 'HGNC:11193' },
+#         { gene_id => 'HGNC:11201' },
+#         { gene_id => 'HGNC:11362' },
+#         { gene_id => 'HGNC:11652' },
+#         { gene_id => 'HGNC:25941' },
+#         { gene_id => 'HGNC:23303' },
+#         { gene_id => 'HGNC:12679' },
+#     ];
+
+
+### $sql_results
+
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
 
@@ -1065,6 +1118,7 @@ sub genes {
         my $total_wild_type = 0;
         my $total_mosaic = 0;
         my $total_no_call = 0;
+        my $total_distributable = 0;
         my $total_het;
 
         foreach my $curr_ep (@ep) {
@@ -1128,6 +1182,8 @@ sub genes {
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
 
+            $curr_ep_data{'distributable'} = 0;
+
             ## no critic(ProhibitDeepNests)
 
             foreach my $ep_pick (@ep_pick) {
@@ -1143,7 +1199,7 @@ sub genes {
                 my $is_het = ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call);
 
                 if ( defined $is_het) {
-                    $curr_ep_data{het} += $is_het;
+                    $curr_ep_data{'het'} += $is_het;
                 }
 
             }
@@ -1161,61 +1217,120 @@ sub genes {
 
             if (defined $curr_ep_data{'het'} ) {
                 $total_het += $curr_ep_data{'het'};
+            } else {
+                $curr_ep_data{'het'} = '-';
             }
 
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
-                if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
-                if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '' };
-                if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
-                if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
-                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
+                if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '-' };
+                if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '-' };
+                if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '-' };
+                if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '-' };
+                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '-' };
+                if ( !defined $curr_ep_data{'het'} ) { $curr_ep_data{'het'} = '-' };
+                if ( $curr_ep_data{'distributable'} == 0 ) { $curr_ep_data{'distributable'} = '-' };
             }
+
+            # PIQ wells
+            my @piq = $summary_rs->search(
+                {   piq_well_id => { '!=', undef },
+                    piq_well_accepted=> 't',
+                    -or => [
+                        { ep_well_id => $ep_id },
+                        { crispr_ep_well_id => $ep_id },
+                    ],
+                    to_report => 't' },
+                {
+                    select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    distinct => 1
+                }
+            );
+
+            push @piq, $summary_rs->search(
+                {   ancestor_piq_well_id=> { '!=', undef },
+                    ancestor_piq_well_accepted=> 't',
+                    -or => [
+                        { ep_well_id => $ep_id },
+                        { crispr_ep_well_id => $ep_id },
+                    ],
+                    to_report => 't' },
+                {
+                    select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                    as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    distinct => 1
+                }
+            );
+
+            $curr_ep_data{'distributable'} = scalar @piq;
+
+            $total_distributable += $curr_ep_data{'distributable'};
 
             push @ep_data, \%curr_ep_data;
         }
 
 
-        if ( $total_ep_pick_pass_count == 0) {
-            $total_ep_pick_pass_count = '';
-            $total_frameshift = '';
-            $total_in_frame = '';
-            $total_wild_type = '';
-            $total_mosaic = '';
-            $total_no_call = '';
-            $total_het = '';
-        }
+        # if ( $total_ep_pick_pass_count == 0) {
+        #     $total_ep_pick_pass_count = '';
+        #     $total_frameshift = '';
+        #     $total_in_frame = '';
+        #     $total_wild_type = '';
+        #     $total_mosaic = '';
+        #     $total_no_call = '';
+        #     # $total_distributable = '';
+        #     # $total_het = '';
+        # }
 
 
         @ep_data =  sort {
+                $b->{ 'distributable' }      <=> $a->{ 'distributable' }      ||
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
-        # PIQ wells
-        my @piq = $summary_rs->search(
-            {   piq_well_id => { '!=', undef },
-                piq_well_accepted=> 't',
-                to_report => 't' },
-            {
-                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                distinct => 1
-            }
-        );
+### @ep_data
 
-        push @piq, $summary_rs->search(
-            {   ancestor_piq_well_id=> { '!=', undef },
-                ancestor_piq_well_accepted=> 't',
-                to_report => 't' },
-            {
-                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
-                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                distinct => 1
-            }
-        );
+        # # PIQ wells
+        # my @piq = $summary_rs->search(
+        #     {   piq_well_id => { '!=', undef },
+        #         piq_well_accepted=> 't',
+        #         to_report => 't' },
+        #     {
+        #         select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+        #         as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+        #         distinct => 1
+        #     }
+        # );
 
-        my $piq_pass_count = scalar @piq;
+        # push @piq, $summary_rs->search(
+        #     {   ancestor_piq_well_id=> { '!=', undef },
+        #         ancestor_piq_well_accepted=> 't',
+        #         to_report => 't' },
+        #     {
+        #         select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+        #         as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+        #         distinct => 1
+        #     }
+        # );
+
+
+
+        # if ( !defined $total_het ) { $total_het = '-' };
+
+
+### $total_ep_pick_count
+### $total_ep_pick_pass_count
+### $total_total_colonies
+### $total_frameshift
+### $total_in_frame
+### $total_wild_type
+### $total_mosaic
+### $total_no_call
+### $total_het
+### $total_distributable
+
+
+
         my $toggle;
         if ($ep_count) {
             $toggle = 'y';
@@ -1250,7 +1365,7 @@ sub genes {
             'nc_count'               => $total_no_call,
             'ep_pick_het'            => $total_het // '-',
 
-            'distrib_clones'         => $piq_pass_count,
+            'distrib_clones'         => $total_distributable,
 
             'priority'               => $priority,
             'recovery_class'         => $recovery_class,
@@ -1273,6 +1388,9 @@ sub genes {
         }
         # DEBUG "crispr counts done";
     }
+
+
+
 
     my @sorted_genes_for_display =  sort {
           ( $b->{ 'distrib_clones' } || -1 )   <=> ( $a->{ 'distrib_clones' } || -1 )   ||
