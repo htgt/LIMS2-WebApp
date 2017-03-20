@@ -229,7 +229,7 @@ document.title = "[%- sponsor_id %]";
                         [% END %]
                       </td>
                       <td>[%- ep_data.item('requester') %]</td>
-                      <td>[%- ep_data.item('total_colonies') %]</td>
+                      <!-- <td>[%- ep_data.item('total_colonies') %]</td> -->
                       <td>[%- ep_data.item('ep_pick_count') %]</td>
                       <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
                       <td>[%- ep_data.item('frameshift') %]</td>
