@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Miseq::VERSION = '0.451';
+    $LIMS2::Model::Plugin::Miseq::VERSION = '0.452';
 }
 ## use critic
 
@@ -67,11 +67,12 @@ sub update_miseq_plate_well {
     return;
 }
 
-sub pspec_miseq_well_experiment {
+sub pspec_create_miseq_well_experiment {
     return {
         miseq_well_id   => { validate => 'existing_miseq_well' },
         miseq_exp_id    => { validate => 'existing_miseq_experiment' },
         classification  => { validate => 'existing_miseq_classification' },
+        frameshifted    => { validate => 'boolean', optional => 1 },
     };
 }
 
@@ -80,12 +81,12 @@ sub pspec_miseq_well_experiment {
 sub create_miseq_well_experiment {
     my ($self, $params) = @_;
 
-    my $validated_params = $self->check_params($params, pspec_miseq_well_experiment);
+    my $validated_params = $self->check_params($params, pspec_create_miseq_well_experiment);
 
     my $miseq = $self->schema->resultset('MiseqProjectWellExp')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_well_id miseq_exp_id classification )
+                qw( miseq_well_id miseq_exp_id classification frameshifted )
             )
         }
     );
@@ -98,6 +99,7 @@ sub pspec_update_miseq_well_experiment {
         id              => { validate => 'existing_miseq_well_exp' },
         miseq_exp_id    => { validate => 'existing_miseq_experiment', optional => 1 },
         classification  => { validate => 'existing_miseq_classification', optional => 1 },
+        frameshifted    => { validate => 'boolean', optional => 1 },
     };
 }
 
@@ -114,6 +116,7 @@ sub update_miseq_well_experiment {
     my $class;
     $class->{classification} = $validated_params->{classification} || $hash_well->{classification};
     $class->{miseq_exp_id} = $validated_params->{miseq_exp_id} || $hash_well->{experiment};
+    $class->{frameshifted} = $validated_params->{frameshifted} || $hash_well->{frameshifted};
     my $update = $well->update($class);
 
     return;

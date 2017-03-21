@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProjectWellExp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.451';
+    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.452';
 }
 ## use critic
 
@@ -69,6 +69,12 @@ __PACKAGE__->table("miseq_project_well_exp");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 frameshifted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -85,6 +91,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "classification",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "frameshifted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -152,8 +160,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-03 16:19:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OlnYkVP+Vxl7Xh4zWPYquA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-15 12:13:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LbuNbYTd+n+b+Ec2aRBqWw
 
 use Try::Tiny;
 
@@ -166,6 +174,7 @@ sub as_hash {
             miseq_well_id       => $self->miseq_well_id,
             experiment          => $self->miseq_exp_id,
             classification      => $self->classification->as_string,
+            frameshifted        => $self->frameshifted,
         );
     } catch {
         %h = (
@@ -184,6 +193,11 @@ sub plate {
     my $plate = $self->result_source->schema->resultset('MiseqProject')->find({ id => $well->{miseq_plate_id} })->as_hash;
 
     return $plate;
+}
+
+sub experiment {
+    my ( $self ) = @_;
+    return $self->result_source->schema->resultset('MiseqExperiment')->find({ id => $self->miseq_exp_id })->name;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
