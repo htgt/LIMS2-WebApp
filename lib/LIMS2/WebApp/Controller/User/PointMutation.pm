@@ -109,9 +109,10 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
     my $states = encode_json({ summary => @status });
     my $state;
-
+    my $oversized;
     try {
         my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+        $oversized = $plate->{'384'};
         $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
         if ($state) {
             $state = $state->as_hash->{status};
@@ -134,6 +135,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         status      => $states,
         state       => $state,
         classifications => \@classifications,
+        384         => $oversized,
     );
 
     return;

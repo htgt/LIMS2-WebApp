@@ -94,68 +94,9 @@ body {
 </div>
 
 </br>
-<table id='grid-basic' class="table table-condensed table-hover">
-    <thead>
-        <tr>
-            <th></th>
-            [% SET count = 0 %]
-            [% WHILE count < 12 %]
-                [% count = count + 1 %]
-                <th data-column-id="[% count %]">
-                    [% count %]
-                </th>
-            [% END %]
-        </tr>
-    </thead>
-    <tbody>
-        [% SET base = 0 %]
-        [% FOREACH letter IN [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ] %]
-            <tr id="[% letter %]">
-                <th id="[% letter %]-H">[% letter %]</th>
-            [% FOREACH cell IN [ '01', '09', '17', '25', '33', '41', '49', '57', '65', '73', '81', '89' ] %]
-                <td id="[% base + cell %]" class="svgContainer"></td>
-            [% END %]
-            </tr>
-            [% base = base + 1 %]
-        [% END %]
-    </tbody>
-</table>
-<div class="row">
-    <div id="key" class="col-md-3">
-        <h5>Colour Key: </h5>
-        <svg width="600" height="40">
-            <g class="legend" transform="translate(0)">
-                <rect width="18" height="18" style="fill: #887bf7; stroke: #887bf7;"></rect>
-                <text x="22" y="14">Well</text>
-            </g>
-            <g class="legend" transform="translate(0,20)">
-                <rect width="18" height="18" style="fill: #d6757f; stroke: #d6757f;"></rect>
-                <text x="22" y="14">Scanned-Out Well</text>
-            </g>
-            <g class="legend" transform="translate(150,0)">
-                <rect width="18" height="18" style="fill: #66c2a5; stroke: #66c2a5;"></rect>
-                <text x="22" y="14">Wild Types</text>
-            </g>
-            <g class="legend" transform="translate(150,20)">
-                <rect width="18" height="18" style="fill: #ffaa00; stroke: #ffaa00;"></rect>
-                <text x="22" y="14">NHEJ Clones</text>
-            </g>
-            <g class="legend" transform="translate(300,0)">
-                <rect width="18" height="18" style="fill: #d9e354; stroke: #d9e354;"></rect>
-                <text x="22" y="14">HDR</text>
-            </g>
-            <g class="legend" transform="translate(300,20)">
-                <rect width="18" height="18" style="fill: #73667a; stroke: #73667a;"></rect>
-                <text x="22" y="14">Mixed HDR-NHEJ</text>
-            </g>
-            <g class="legend" transform="translate(450,0)">
-                <rect width="18" height="18" style="fill: #103877; stroke: #103877;"></rect>
-                <text x="22" y="14">Frameshift</text>
-            </g>
 
-        </svg>
-    </div>
-</div>
+[% INCLUDE 'miseq_overview_table.tt' %]
+
 <script type="text/javascript" charset="utf-8">
 
 var data = '[% wells %]';
@@ -319,6 +260,7 @@ $(document).ready(function() {
     buildExps(1);
     document.title = '[% miseq %] - Point Mutation';
     resize();
+    console.log('[% 384 %]');
 });
 
 $('#geneSelect').change(function() {
