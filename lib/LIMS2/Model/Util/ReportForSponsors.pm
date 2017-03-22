@@ -446,7 +446,7 @@ sub generate_sub_report {
                                             'experiment_ID',
                                             'requester',
 
-                                            'total_colonies',
+                                            # 'total_colonies',
 
                                             'colonies_picked',
                                             'targeted_clones',
@@ -492,7 +492,7 @@ sub generate_sub_report {
                                             'experiment ID',
                                             'requester',
 
-                                            '# colonies',
+                                            # '# colonies',
                                             'iPSC colonies picked',
                                             'total genotyped clones',
 
@@ -1065,6 +1065,7 @@ sub genes {
         my $total_wild_type = 0;
         my $total_mosaic = 0;
         my $total_no_call = 0;
+        my $total_distributable = 0;
         my $total_het;
 
         foreach my $curr_ep (@ep) {
@@ -1128,6 +1129,8 @@ sub genes {
             $curr_ep_data{'mosaic'} = 0;
             $curr_ep_data{'no-call'} = 0;
 
+            $curr_ep_data{'distributable'} = 0;
+
             ## no critic(ProhibitDeepNests)
 
             foreach my $ep_pick (@ep_pick) {
@@ -1143,7 +1146,7 @@ sub genes {
                 my $is_het = ep_pick_is_het($self->model, $ep_pick->ep_pick_well_id, $chromosome, $damage_call);
 
                 if ( defined $is_het) {
-                    $curr_ep_data{het} += $is_het;
+                    $curr_ep_data{'het'} += $is_het;
                 }
 
             }
@@ -1161,20 +1164,59 @@ sub genes {
 
             if (defined $curr_ep_data{'het'} ) {
                 $total_het += $curr_ep_data{'het'};
+            } else {
+                $curr_ep_data{'het'} = '-';
             }
 
+
+            # PIQ wells
+            my @piq = $summary_rs->search(
+                {   piq_well_id => { '!=', undef },
+                    piq_well_accepted=> 't',
+                    -or => [
+                        { ep_well_id => $ep_id },
+                        { crispr_ep_well_id => $ep_id },
+                    ],
+                    to_report => 't' },
+                {
+                    select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    distinct => 1
+                }
+            );
+
+            push @piq, $summary_rs->search(
+                {   ancestor_piq_well_id=> { '!=', undef },
+                    ancestor_piq_well_accepted=> 't',
+                    -or => [
+                        { ep_well_id => $ep_id },
+                        { crispr_ep_well_id => $ep_id },
+                    ],
+                    to_report => 't' },
+                {
+                    select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
+                    as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
+                    distinct => 1
+                }
+            );
+
+            $curr_ep_data{'distributable'} = scalar @piq;
+
+            $total_distributable += $curr_ep_data{'distributable'};
+
+
             if ($curr_ep_data{'ep_pick_pass_count'} == 0) {
-                if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '' };
-                if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '' };
-                if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '' };
-                if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '' };
-                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '' };
-                # if ( $curr_ep_data{'het'} == 0 ) { $curr_ep_data{'het'} = '' };
+                if ( $curr_ep_data{'frameshift'} == 0 ) { $curr_ep_data{'frameshift'} = '-' };
+                if ( $curr_ep_data{'in-frame'} == 0 ) { $curr_ep_data{'in-frame'} = '-' };
+                if ( $curr_ep_data{'wild_type'} == 0 ) { $curr_ep_data{'wild_type'} = '-' };
+                if ( $curr_ep_data{'mosaic'} == 0 ) { $curr_ep_data{'mosaic'} = '-' };
+                if ( $curr_ep_data{'no-call'} == 0 ) { $curr_ep_data{'no-call'} = '-' };
+                if ( !defined $curr_ep_data{'het'} ) { $curr_ep_data{'het'} = '-' };
+                if ( $curr_ep_data{'distributable'} == 0 ) { $curr_ep_data{'distributable'} = '-' };
             }
 
             push @ep_data, \%curr_ep_data;
         }
-
 
         if ( $total_ep_pick_pass_count == 0) {
             $total_ep_pick_pass_count = '';
@@ -1184,38 +1226,15 @@ sub genes {
             $total_mosaic = '';
             $total_no_call = '';
             $total_het = '';
+            $total_distributable = '';
         }
 
-
         @ep_data =  sort {
+                $b->{ 'distributable' }      <=> $a->{ 'distributable' }      ||
                 $b->{ 'ep_pick_pass_count' } <=> $a->{ 'ep_pick_pass_count' } ||
                 $b->{ 'ep_pick_count' }      <=> $a->{ 'ep_pick_count' }
         } @ep_data;
 
-        # PIQ wells
-        my @piq = $summary_rs->search(
-            {   piq_well_id => { '!=', undef },
-                piq_well_accepted=> 't',
-                to_report => 't' },
-            {
-                select => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                distinct => 1
-            }
-        );
-
-        push @piq, $summary_rs->search(
-            {   ancestor_piq_well_id=> { '!=', undef },
-                ancestor_piq_well_accepted=> 't',
-                to_report => 't' },
-            {
-                select => [ qw/ancestor_piq_well_id ancestor_piq_plate_name ancestor_piq_well_name ancestor_piq_well_accepted/ ],
-                as => [ qw/piq_well_id piq_plate_name piq_well_name piq_well_accepted/ ],
-                distinct => 1
-            }
-        );
-
-        my $piq_pass_count = scalar @piq;
         my $toggle;
         if ($ep_count) {
             $toggle = 'y';
@@ -1250,7 +1269,7 @@ sub genes {
             'nc_count'               => $total_no_call,
             'ep_pick_het'            => $total_het // '-',
 
-            'distrib_clones'         => $piq_pass_count,
+            'distrib_clones'         => $total_distributable,
 
             'priority'               => $priority,
             'recovery_class'         => $recovery_class,
@@ -1273,6 +1292,9 @@ sub genes {
         }
         # DEBUG "crispr counts done";
     }
+
+
+
 
     my @sorted_genes_for_display =  sort {
           ( $b->{ 'distrib_clones' } || -1 )   <=> ( $a->{ 'distrib_clones' } || -1 )   ||
