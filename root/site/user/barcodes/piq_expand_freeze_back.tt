@@ -11,7 +11,7 @@
 [% INCLUDE 'barcode_well_details.tt' barcode_state_error = barcode_state_error %]
 
 [% IF qc_piq_plate_name_1 %]
-<form method="POST" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
+<form method="POST" enctype="multipart/form-data" action="[% c.uri_for( '/user/freeze_back' ) %]" class="well">
   QC PIQ well has been added to plate [% qc_piq_plate_name_1 %] at well [% qc_piq_well_name_1 %] (no barcode required)<br><br>
   [% IF number_of_wells_1 %]
   PIQ wells with the following lab numbers have been created on temporary plate [% piq_plate_name_1 %]. Please enter barcodes.
@@ -24,12 +24,21 @@
     <input type="hidden" name="qc_piq_plate_name_1" value="[% qc_piq_plate_name_1 %]"/>
     <input type="hidden" name="qc_piq_well_name_1" value="[% qc_piq_well_name_1 %]"/>
     <input type="hidden" name="piq_plate_name_1" value="[% piq_plate_name_1 %]"/>
+
     [% FOREACH well IN piq_wells_1 %]
       Barcode for [% well.well_lab_number.lab_number %]
       [% barcode = 'barcode_' _ well.id %]
       <input type="text" name="barcode_[% well.id %]" placeholder="scan barcode here" value="[% $barcode %]" class="barcode_input">
       <br>
     [% END %]
+
+    <br>
+    <label>Barcode Spreadsheet</label>
+    <input name="barcode_datafile" type="file" class="barcode_input">
+
+    <br>
+    <br>
+
     <button type="submit" name="submit_piq_barcodes" class="btn btn-danger" value="submit_piq_barcodes">
       Submit PIQ Barcodes
       <i class="icon-arrow-right icon-white"></i>

@@ -18,6 +18,7 @@ use LIMS2::Model::Util::BarcodeActions qw(
 );
 use namespace::autoclean;
 use JSON;
+use LIMS2::Model::Util::DataUpload qw(spreadsheet_to_csv);
 
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 use LIMS2::Model::Util::CGAP;
@@ -487,9 +488,36 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
         my $messages = [];
+        my $csv_lines = [];
+
+        if ($c->request->params->{barcode_datafile}) {
+            my $upload = $c->request->upload('barcode_datafile');
+            my $piq_barcode_data = $upload->fh;
+            while (my $line = <$piq_barcode_data>) {
+                chomp $line;
+                $line =~ s/^\s+//;
+                push @{$csv_lines}, $line;
+            }
+        }
+
         $c->model('Golgi')->txn_do( sub {
             try{
+                my @barcode_values;
                 my $params = $c->request->parameters;
+                my @barcodes = grep { $_ =~ /^barcode_[0-9]+$/ } keys %{$params};
+                push @barcode_values, $params->{$_} foreach (keys %{$params});
+
+                foreach my $bar (@barcodes) {
+                    if ($params->{$bar} eq "") {
+                        foreach my $line (@{$csv_lines}) {
+                            if (grep {$_ eq $line} @barcode_values) {
+                                next;
+                            } else {
+                                $params->{$bar} = $line;
+                            }
+                        }
+                    }
+                }
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
             }
             catch($e){
@@ -530,6 +558,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
     return;
 }
+
 ## use critic
 
 sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
