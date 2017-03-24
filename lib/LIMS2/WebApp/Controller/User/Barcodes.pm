@@ -18,7 +18,6 @@ use LIMS2::Model::Util::BarcodeActions qw(
 );
 use namespace::autoclean;
 use JSON;
-use LIMS2::Model::Util::DataUpload qw(spreadsheet_to_csv);
 
 use LIMS2::Model::Util::MutationSignatures qw(get_mutation_signatures_barcode_data);
 use LIMS2::Model::Util::CGAP;
