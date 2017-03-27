@@ -4,43 +4,35 @@
 <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <style>
 
-.tooltip {
-    position: absolute;
-    text-align: left;
-    width: 150px;
-    height: 20px;
-    padding: 8px;
-    margin-top: -20px;
-    font: 10px sans-serif;
-    background: #ddd;
-    pointer-events: none;
-}
 .d3-tip {
-  line-height: 1;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 2px;
+    line-height: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    text-align: center;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center;
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
 }
+
+
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
 }
 .lb-md {
     font-size: 22px;
@@ -129,7 +121,7 @@ body {
 <div class="row">
     <div id="key" class="col-md-3">
         <h5>Colour Key: </h5>
-        <svg width="450" height="40">
+        <svg width="600" height="40">
             <g class="legend" transform="translate(0)">
                 <rect width="18" height="18" style="fill: #887bf7; stroke: #887bf7;"></rect>
                 <text x="22" y="14">Well</text>
@@ -154,6 +146,11 @@ body {
                 <rect width="18" height="18" style="fill: #73667a; stroke: #73667a;"></rect>
                 <text x="22" y="14">Mixed HDR-NHEJ</text>
             </g>
+            <g class="legend" transform="translate(450,0)">
+                <rect width="18" height="18" style="fill: #103877; stroke: #103877;"></rect>
+                <text x="22" y="14">Frameshift</text>
+            </g>
+
         </svg>
     </div>
 </div>
@@ -167,6 +164,7 @@ var raw_link = '[% gene_exp %]';
 var link = JSON.parse(raw_link.replace(/&quot;/g,'"'));
 var raw_targets = '[% efficiency %]';
 var efficiencies = JSON.parse(raw_targets.replace(/&quot;/g,'"'));
+var frameshiftJSON = "";
 var allExps = [];
 var prevExp = "";
 
@@ -191,7 +189,7 @@ var arc = d3.arc()
 
 //frameshift arcs
 var fsArc = d3.arc()
-    .innerRadius(fsRadius - (arcWidth / 2))
+    .innerRadius(fsRadius - (arcWidth - 2))
     .outerRadius(fsRadius)
     .startAngle(0);
 
@@ -272,6 +270,15 @@ var mixed = d3.selectAll("g.node")
     .attr("d", arc)
     .attr("class", "donut mix");
 
+var frameshift = d3.selectAll("g.node")
+    .append("path")
+    .datum(initDonut[1])
+    .style("fill","#103877")
+    .attr("d", fsArc)
+    .attr("class", "frame");
+
+
+//Targeting Efficiency donut
 d3.selectAll("g.teNode")
     .append("path")
     .attr("class","tePath")
@@ -304,6 +311,7 @@ var missingData = d3.selectAll("g")
 d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.5em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
 
 $(document).ready(function() {
+    frameshifts();
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
     buildExps(1);
@@ -372,6 +380,7 @@ function resize() {
         .attr('height', height + 20);
     setTimeout(function(d) { d3.selectAll('path').filter('.wellPath').attr('d', arc) }, 300 );
     setTimeout(function(d) { d3.selectAll('path').filter('.tePath').attr('d', teArc) }, 300 );
+    setTimeout(function(d) { d3.selectAll('frame').attr('d', fsArc) }, 300 );
     d3.selectAll('g.node')
         .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
     d3.selectAll('g.teNode')
@@ -395,6 +404,10 @@ function windowDims() {
     teArc = d3.arc()
         .innerRadius(fsRadius + 8)
         .outerRadius(radius + 8)
+        .startAngle(0);
+    fsArc = d3.arc()
+        .innerRadius(fsRadius - (arcWidth - 2))
+        .outerRadius(fsRadius)
         .startAngle(0);
     return;
 }
@@ -443,13 +456,14 @@ function buildExps(first) {
             
             var types = ['nhej', 'wild', 'hdr', 'mix'];
             for (var type = 0; type < types.length; type++) {
-                buildArcs(node, types[type], expName, wellData, i);
+                buildArcs(node, types[type], expName);
             }
+
         }
     }
 }
 
-function buildArcs(node, type, expName, wellData, expInt) {
+function buildArcs(node, type, expName) {
     var arc = $(node).find('.' + type);
     d3.select(arc[0]).classed(expName, true);
 }
@@ -476,6 +490,7 @@ function buildDonut(exp) {
     var nhejNodes = d3.selectAll('.' + exp).filter(".nhej").nodes();
     var hdrNodes = d3.selectAll('.' + exp).filter(".hdr").nodes();
     var mixNodes = d3.selectAll('.' + exp).filter(".mix").nodes();
+    var frameNodes = d3.selectAll('.' + exp).filter(".frame").nodes();
     
     for (var nodeIt = 0; nodeIt < nhejNodes.length; nodeIt++) {
         var id = $(nhejNodes[nodeIt]).closest("td")[0].id;
@@ -494,16 +509,20 @@ function buildDonut(exp) {
             d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau, arc));
         }
     }
+    for (var nodeIt = 0; nodeIt < frameNodes.length; nodeIt++) {
+        d3.select(frameNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(tau, fsArc));
+    }
     //var missingDataNodes = d3.selectAll('.' + exp).filter(".miss").transition().duration(500).attrTween("d", arcTween(1 * tau));
 }
 
 function clearHighlight() {
     if (prevExp == "") {
-        d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0.0 * tau, arc));
+        d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0, arc));
     } else {
-        d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0.0 * tau, arc));
+        d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0, arc));
     }
-    d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0.0 * tau, teArc));
+    d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
+    d3.select('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
 }
 
@@ -544,6 +563,46 @@ function calculateEfficiency(target) {
     }
 }
 
+function frameshifts() {
+    var index = '[% miseq %]';
+
+    $.ajax({
+        url: '[% c.uri_for('/api/point_mutation_frameshifts/') %]',
+        type: "GET",
+        contentType: 'application/json; charset=utf-8',
+        data: {
+            miseq: '[% miseq %]', 
+        },
+        success: function(result){
+            console.log(result);
+            frameshiftJSON = JSON.parse(result);
+            buildFrameshifts();
+            highlightSelection();
+        },
+        error: function() {
+            console.log("Failed to retrieve data");
+        }
+    });
+    
+    return;
+}
+
+function buildFrameshifts() {
+    var nodes = d3.selectAll('td').nodes();
+
+    for (var key in frameshiftJSON) {
+        console.log(key);
+        var fsIndexes = frameshiftJSON[key];
+        console.log(fsIndexes);
+        for (var i = 0; i < fsIndexes.length; i++) {
+            var node = d3.select($('td#' + fsIndexes[i])).node();
+
+            buildArcs(node, 'frame', key);
+        }
+    }
+
+}
+
 function tooltip(node) {
     var oligoIndex = twoDigits(node.parent()[0].id);
     var dataPoint = json.summary[oligoIndex];
@@ -558,7 +617,7 @@ function tooltip(node) {
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
-            Mixed: ` + dataPoint.percentages[focusExp].mix + ` reads<br>
+            Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
             Classification: ` + dataPoint.classes[focusExp];
     } else if (focusExp != 'All'){
         response = `
