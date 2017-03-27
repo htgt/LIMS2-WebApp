@@ -194,6 +194,7 @@ sub _pspec_create_project{
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
         sponsors_priority => { optional => 1 },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
+        strategy_id       => { validate => 'existing_strategy', optional => 1 },
     };
 }
 

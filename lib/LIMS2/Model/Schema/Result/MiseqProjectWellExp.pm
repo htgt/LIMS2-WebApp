@@ -63,6 +63,12 @@ __PACKAGE__->table("miseq_project_well_exp");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 frameshifted
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -79,6 +85,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "classification",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "frameshifted",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -146,8 +154,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-03 16:19:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OlnYkVP+Vxl7Xh4zWPYquA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-27 12:27:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HvF+ZrSm+MZOUYPAHuKVfQ
 
 use Try::Tiny;
 
