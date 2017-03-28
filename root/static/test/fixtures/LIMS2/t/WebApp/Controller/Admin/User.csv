@@ -1,0 +1,3 @@
+id,name,password,active,access_key,secret_key
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,t
+1082,unknown,,t

@@ -5,60 +5,90 @@
 </div>
 
 <form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="form-horizontal well">
-  <div class="control-group">
-    <label class="control-label">Gene Identifier</label>
-    <div class="controls">
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Gene Identifier</label>
+    <div class="col-md-2">
       <input class="text" name="gene" value="[% gene %]">
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label">Cell Line</label>
-    <div class="controls">
-    <select name="cell_line_id">
-      <option value=""></option>
-      [% FOREACH cell_line IN cell_line_options %]
-        <option value="[% cell_line.id %]" [% IF cell_line.id == cell_line_id %]selected[% END %]>[% cell_line.name %]</option>
-      [% END %]
-    </select>
+  <br>
+  </br>
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Cell Line</label>
+    <div class="col-md-3">
+        <select class="form-control" name="cell_line_id">
+          <option value=""></option>
+          [% FOREACH cell_line IN cell_line_options %]
+            <option value="[% cell_line.id %]" [% IF cell_line.id == cell_line_id %]selected[% END %]>[% cell_line.name %]</option>
+          [% END %]
+        </select>
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label">Targeting Type</label>
-    <div class="controls">
-    <select name="targeting_type">
-      <option value=""></option>
-      <option value="single_targeted" [% IF targeting_type == 'single_targeted' %]selected[% END %]>Single Targeted</option>
-      <option value="double_targeted" [% IF targeting_type == 'double_targeted' %]selected[% END %]>Double Targeted</option>
-    </select>
+  <br>
+  </br>
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Strategy</label>
+    <div class="col-md-3">
+        <select class="form-control" name="strategy_id">
+          <option value=""></option>
+          [% FOREACH strategy IN strategy_options %]
+            <option value="[% strategy %]" [% IF strategy == strategy_id %]selected[% END %]>[% strategy %]</option>
+          [% END %]
+        </select>
     </div>
   </div>
+  <br>
+  </br>
+  <div class="col-md-12 control-group row">
+    <label class="col-md-2 control-label">Targeting Type</label>
+    <div class="col-md-3">
+        <div class="radio">
+            <label><input type="radio" name="targeting_type" value="single_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
+                Single Targeted
+            </label>
+        </div>
+        <div class="radio">
+            <label><input type="radio" name="targeting_type" value="double_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
+                Double Targeted
+            </label>
+        </div>
+    </div>
+  </div>
+  <br>
+  </br>
+  <br />
   [% IF  c.session.selected_species == "Mouse" %]
-  <div class="control-group">
-    <label class="control-label">Targeting Profile</label>
-    <div class="controls">
-    <select name="targeting_profile_id">
-      <option value=""></option>
-      <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
-      <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
-      <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
-    </select>
+  <div class="col-md-12 control-group row">
+    <label class="col-md-2 control-label">Targeting Profile</label>
+    <div class="col-md-3">
+        <select class="form-control" name="targeting_profile_id">
+          <option value=""></option>
+          <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
+          <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
+          <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
+        </select>
     </div>
   </div>
+  <br>
+  </br>
   [% END %]
-  <div class="control-group">
-    <label class="control-label">Sponsor</label>
-    <div class="controls">
-    <select name="sponsor">
-      <option value=""></option>
-      [% FOREACH sp IN sponsors %]
-        <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
-      [% END %]
-    </select>
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Sponsor</label>
+    <div class="col-md-3">
+        <select class="form-control" name="sponsor">
+          <option value=""></option>
+          [% FOREACH sp IN sponsors %]
+            <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
+          [% END %]
+        </select>
     </div>
   </div>
+  <br>
+  </br>
+  <br />
   <div class="control-group">
-    <div class="controls">
-    <button type="submit" class="btn btn-primary" name="search_projects" value="1">Search</button>
+    <div class="row">
+    <button type="submit" class="col-md-offset-2 btn btn-primary" name="search_projects" value="1">Search</button>
     [% IF c.check_user_roles( 'edit' ) %]
     <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
     [% END %]
@@ -108,5 +138,7 @@ $("input[name='gene']").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
 });
+
+
 
 </script>

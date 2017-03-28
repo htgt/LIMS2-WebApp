@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.444';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.453';
 }
 ## use critic
 
@@ -101,6 +101,12 @@ __PACKAGE__->table("projects");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 strategy_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -129,6 +135,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
   "cell_line_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "strategy_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -228,6 +236,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 strategy
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Strategy>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "strategy",
+  "LIMS2::Model::Schema::Result::Strategy",
+  { id => "strategy_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 targeting_profile
 
 Type: belongs_to
@@ -249,8 +277,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 11:09:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:A/NJuU/3iM+F6vxZqf4auA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-27 12:30:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mHgfI8fTlLa0aPck6XCPng
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
@@ -274,6 +302,7 @@ sub as_hash {
           "recovery_comment"  => $self->recovery_comment,
           "priority"          => $self->priority,
           "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
+          "strategy"          => $self->strategy_id,
           "sponsors"          => join "/", @sponsors,
     }
 }
@@ -323,6 +352,12 @@ sub experiments{
     });
 
     return @experiments;
+}
+
+sub strategy {
+    my $self = shift;
+
+    return $self->strategy_id ? $self->strategy_id : undef;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

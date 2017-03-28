@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.444';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.453';
 }
 ## use critic
 
@@ -609,6 +609,8 @@ __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process")
 
 use List::MoreUtils qw( any uniq );
 
+use Try::Tiny;
+
 use Log::Log4perl qw(:easy);
 BEGIN {
     #try not to override the lims2 logger
@@ -707,7 +709,7 @@ has ancestors => (
 
 sub _build_ancestors {
     my $self = shift;
-DEBUG "Building ancestors for well $self";
+    DEBUG "Building ancestors for well $self";
     require LIMS2::Model::ProcessGraph;
 
     return LIMS2::Model::ProcessGraph->new( start_with => $self, type => 'ancestors' );

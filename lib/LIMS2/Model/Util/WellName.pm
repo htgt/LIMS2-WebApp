@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::WellName;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::WellName::VERSION = '0.444';
+    $LIMS2::Model::Util::WellName::VERSION = '0.453';
 }
 ## use critic
 
@@ -10,7 +10,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ qw( to96 to384 ) ]
+    exports => [ qw( to96 to384 generate_96_well_annotations ) ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -418,6 +418,25 @@ sub to384 {
       $quadrant -= 4;
   }
   return $ninetySix_to_384{ uc $well_name . '_' . $quadrant };
+}
+
+sub generate_96_well_annotations
+{
+    my $wells;
+    my @letters = qw(A B C D E F G H);
+    my $counter = 0;
+
+    for my $letter (@letters)
+    {
+        for my $numb (1..12)
+        {
+            $counter++;
+            my $edited = sprintf("%02d", $numb);
+            my $item = join("", $letter, $edited);
+            $wells->{$counter} = $item;
+        }
+    }
+    return $wells;
 }
 
 1;
