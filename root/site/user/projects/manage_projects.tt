@@ -108,6 +108,7 @@
    [% IF  c.session.selected_species == "Mouse" %]
    <th>Targeting Profile</th>
    [% END %]
+   <th>Strategy</th>
    <th>Sponsor</th>
   </tr>
   [% FOREACH project IN projects %]
@@ -125,6 +126,7 @@
      [% IF  c.session.selected_species == "Mouse" %]
      <td>[% project.targeting_profile_id %]</td>
      [% END %]
+     <td>[% project.strategy %]</td>
      <td>[% project.sponsors %]</td>
    </tr>
   [% END %]
