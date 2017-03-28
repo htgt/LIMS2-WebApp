@@ -62,6 +62,12 @@ __PACKAGE__->table("miseq_projects");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 is_384
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -83,6 +89,8 @@ __PACKAGE__->add_columns(
   },
   "run_id",
   { data_type => "integer", is_nullable => 1 },
+  "is_384",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -130,8 +138,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-01 14:10:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZKJmykMlK6rWtSMCeMiXDw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KXpRo4+nprJ3E1IozT8uGw
 
 sub as_hash {
     my $self = shift;
