@@ -157,6 +157,42 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PubRxfce/G52E6yQdogl6Q
 
+use Try::Tiny;
+
+sub as_hash {
+    my ( $self, $options ) = @_;
+    my %h;
+    try {
+        %h = (
+            id                  => $self->id,
+            miseq_well_id       => $self->miseq_well_id,
+            experiment          => $self->miseq_exp_id,
+            classification      => $self->classification->as_string,
+            frameshifted        => $self->frameshifted,
+        );
+    } catch {
+        %h = (
+            miseq_well_id       => $self->miseq_well_id,
+            experiment          => $self->miseq_exp_id,
+        );
+    };
+
+    return \%h;
+}
+
+sub plate {
+    my ( $self ) = @_;
+
+    my $well = $self->result_source->schema->resultset('MiseqProjectWell')->find({ id => $self->miseq_well_id })->as_hash;
+    my $plate = $self->result_source->schema->resultset('MiseqProject')->find({ id => $well->{miseq_plate_id} })->as_hash;
+
+    return $plate;
+}
+
+sub experiment {
+    my ( $self ) = @_;
+    return $self->result_source->schema->resultset('MiseqExperiment')->find({ id => $self->miseq_exp_id })->name;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
