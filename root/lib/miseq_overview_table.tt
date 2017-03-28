@@ -1,4 +1,4 @@
-<table id='grid-basic' class="table table-condensed table-hover">
+<table id="grid-basic" class="table table-condensed table-hover">
     <thead>
         <tr>
             <th></th>
@@ -13,10 +13,10 @@
     </thead>
     <tbody>
         [% SET base = 0 %]
-        [% FOREACH letter IN [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ] %]
+        [% FOREACH letter IN [ "A", "B", "C", "D", "E", "F", "G", "H", ] %]
             <tr id="[% letter %]">
                 <th id="[% letter %]-H">[% letter %]</th>
-            [% FOREACH cell IN [ '01', '09', '17', '25', '33', '41', '49', '57', '65', '73', '81', '89' ] %]
+            [% FOREACH cell IN [ "01", "09", "17", "25", "33", "41", "49", "57", "65", "73", "81", "89" ] %]
                 <td id="[% base + cell %]" class="svgContainer"></td>
             [% END %]
             </tr>

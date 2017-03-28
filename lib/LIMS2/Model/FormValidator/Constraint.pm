@@ -286,6 +286,10 @@ sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
 }
 
+sub existing_strategy {
+    return shift->in_resultset( 'Strategy', 'id' );
+}
+
 sub existing_design_id {
     return shift->in_resultset( 'Design', 'id' );
 }

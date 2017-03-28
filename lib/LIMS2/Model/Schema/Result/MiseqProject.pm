@@ -138,8 +138,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-22 11:34:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U7lzydhABinaTMC+pOqsEg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KXpRo4+nprJ3E1IozT8uGw
 
 sub as_hash {
     my $self = shift;

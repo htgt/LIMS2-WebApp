@@ -27,7 +27,6 @@
 }
 
 
-
 /* Style northward tooltips differently */
 .d3-tip.n:after {
     margin: -1px 0 0 0;
@@ -56,6 +55,14 @@ body {
 </div>
 
 <div class="row">
+    [% IF large_plate == 1 %]
+        <div class="col-md-1" id="quadBack" hidden>
+            <button class="btn btn-primary">
+                <i class="glyphicon glyphicon-arrow-left"></i>
+            </button>
+        </div>
+    [% END %]
+
     <div class="col-md-1">
         <label class="lb-md">Gene: </label>
     </div>
@@ -92,22 +99,33 @@ body {
 </div>
 
 </br>
-
-[% INCLUDE 'miseq_overview_table.tt' %]
+<div id="pageFocus">
+    [% IF large_plate == 1 %]
+        [% INCLUDE "miseq_quadrant_table.tt" %];
+    [% ELSE %]
+        [% INCLUDE "miseq_overview_table.tt" %];
+    [% END %]
+</div>
 
 <script type="text/javascript" charset="utf-8">
 
 var data = '[% wells %]';
-var json = JSON.parse(data.replace(/&quot;/g,'"'));
-var raw_exp = '[% overview %]';
-var overview = JSON.parse(raw_exp.replace(/&quot;/g,'"'));
-var raw_link = '[% gene_exp %]';
-var link = JSON.parse(raw_link.replace(/&quot;/g,'"'));
-var raw_targets = '[% efficiency %]';
-var efficiencies = JSON.parse(raw_targets.replace(/&quot;/g,'"'));
+var json = jsonify(data);
+var rawExp = '[% overview %]';
+var overview = jsonify(rawExp);
+var rawLink = '[% gene_exp %]';
+var link = jsonify(rawLink);
+var rawTargets = '[% efficiency %]';
+var efficiencies = jsonify(rawTargets);
+var rawQuads = '[% quadrants %]';
+var quadrants = jsonify(rawQuads);
 var frameshiftJSON = "";
 var allExps = [];
 var prevExp = "";
+
+function jsonify(raw) {
+    return JSON.parse(raw.replace(/&quot;/g,'"'));
+}
 
 //One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
 var tau = 2 * Math.PI;
@@ -147,19 +165,77 @@ var tip = d3.tip()
         return tooltip($(this))
     });
 
-var svg = d3.selectAll("td")
-    .append("svg:svg")
-    .attr("width", '100%')
-    .attr("height", height)
-    .attr("class","svgTool")
-    .attr("onclick","wellArc(this)")
-    .on('mouseover', tip.show)
-    .on('mouseout', tip.hide)
-    .append("svg:g")
-    .attr("class","node")
-    .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+var initDonut = d3.pie()([0,0]);
 
-svg.call(tip);
+function createRings() {
+    var svg = d3.selectAll("td")
+        .append("svg:svg")
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("class","svgTool")
+        .attr("onclick","wellArc(this)")
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .append("svg:g")
+        .attr("class","node")
+        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+
+    svg.call(tip);
+
+    //Base ring
+    d3.selectAll("g.node")
+        .append("path")
+        .attr("class","wellPath")
+        .datum({endAngle: tau})
+        .style("fill","#887bf7")
+        .attr("d",arc);
+
+    var wt = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[0])
+        .style("fill","#66c2a5")
+        .attr("d", arc)
+        .attr("class","donut wild");
+
+    var nhej = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#ffaa00")
+        .attr("d", arc)
+        .attr("class", "donut nhej");
+
+    var hdr = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#d9e354")
+        .attr("d", arc)
+        .attr("class", "donut hdr");
+
+    var mixed = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#73667a")
+        .attr("d", arc)
+        .attr("class", "donut mix");
+
+    var frameshift = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#103877")
+        .attr("d", fsArc)
+        .attr("class", "frame");
+
+    /*
+    var missingData = d3.selectAll("g")
+        .append("path").datum(initDonut[1])
+        .style("fill","#8f0a0b")
+        .attr("d", arc)
+        .attr("class", "donut")
+        .attr("class", "miss");
+    */
+
+    d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.5em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
+}
 
 //Targeting efficiency container
 var teSvg = d3.select("#targetingEfficiency")
@@ -170,54 +246,6 @@ var teSvg = d3.select("#targetingEfficiency")
     .append("svg:g")
     .attr("class","teNode")
     .attr("transform", function(d){ return "translate(" + (width+ 20) / 2 + "," + (height + 20) / 2 + ")"});
-
-//Base ring
-d3.selectAll("g.node")
-    .append("path")
-    .attr("class","wellPath")
-    .datum({endAngle: tau})
-    .style("fill","#887bf7")
-    .attr("d",arc);
-
-
-
-var initDonut = d3.pie()([0,0]);
-
-var wt = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[0])
-    .style("fill","#66c2a5")
-    .attr("d", arc)
-    .attr("class","donut wild");
-
-var nhej = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#ffaa00")
-    .attr("d", arc)
-    .attr("class", "donut nhej");
-
-var hdr = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#d9e354")
-    .attr("d", arc)
-    .attr("class", "donut hdr");
-
-var mixed = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#73667a")
-    .attr("d", arc)
-    .attr("class", "donut mix");
-
-var frameshift = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#103877")
-    .attr("d", fsArc)
-    .attr("class", "frame");
-
 
 //Targeting Efficiency donut
 d3.selectAll("g.teNode")
@@ -240,16 +268,6 @@ var targetText = d3.selectAll("g.teNode")
     .attr("dx","-0.9em")
     .attr("dy","0.4em")
     .attr("id","teText");
-/*
-var missingData = d3.selectAll("g")
-    .append("path").datum(initDonut[1])
-    .style("fill","#8f0a0b")
-    .attr("d", arc)
-    .attr("class", "donut")
-    .attr("class", "miss");
-*/
-
-d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.5em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
 
 $(document).ready(function() {
     frameshifts();
@@ -276,33 +294,49 @@ $('#geneSelect').change(function() {
     }
     highlightSelection();
 });
-/*
+
 $('#expSelect').change(function() {
-    if ($('#expSelect').val() != 'All') { 
-        $("#geneSelect").children('option').hide().prop('disabled', true);
-        $("#geneSelect").children('option[value^=All]').show().prop('disabled', false);
-        var expGenes = overview.summary[$('#expSelect').val()];
-        for (var count = 0; count < expGenes.length; count++) {
-            $("#geneSelect").children('option[value^=' + expGenes[count].split(/[^A-Za-z0-9]/)[0] + ']').show().prop('disabled', false);
-        }
+    console.log("Triggered gene select");
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
     } else {
-        $("#geneSelect").children('option').show().prop('disabled', false);
+        highlightSelection();
     }
-});
-*/
-$('#expSelect').change(function() { 
-    highlightSelection();
 });
 
 $('#filterReads').change(function() {
     highlightSelection();
 });
 
+$('.quad').on('click', function() {
+    console.log("quadrant clicked");
+    var con = `[% INCLUDE "miseq_overview_table.tt" %]`;
+    $('#pageFocus').html(con);
+    createRings();
+    buildExps();
+    prevExp = "";
+    clearHighlight();
+    frameshifts();
+    $('#quadBack').show();
+});
+
+$('#quadBack').on('click', function() {
+    console.log("Quadback pressed");
+    var quads = `[% INCLUDE "miseq_quadrant_table.tt" %]`;
+    $('#pageFocus').html(quads);
+    highlightQuad();
+});
+
 function clearSelection() {
     $("#expSelect").children('option').show().prop('disabled', false);
     $("#geneSelect").children('option').show().prop('disabled', false);
     $('select').each(function() { this.selectedIndex = 0 });
-    highlightSelection();
+
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
+    } else {
+        highlightSelection();
+    }
 }
 
 $(window).resize(function() {
@@ -426,6 +460,36 @@ function highlightSelection(selection) {
 
 }
 
+function highlightQuad(selection) {
+    var rectTransition = d3.selectAll(".quad").transition().style("fill", "white").duration(1000); 
+
+    selection = selection || document.getElementById('expSelect').value;
+    if (selection != 'All') {
+        var range = quadrants.summary[selection];
+        for (var quad = range.first; quad <= range.last; quad++) {
+            switch (quad) {
+                case 0:
+                    d3.select('#firstQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 1:
+                    d3.select('#secondQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 2:
+                    d3.select('#thirdQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 3:
+                    d3.select('#fourthQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                default:
+                    console.log("384 plate not big enough for you?");
+            }
+        }
+    }
+    calculateEfficiency(selection);
+    prevExp = selection;
+}
+
+
 function buildDonut(exp) {
     var wells = json.summary;
     
@@ -464,7 +528,7 @@ function clearHighlight() {
         d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0, arc));
     }
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
-    d3.select('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
+    d3.selectAll('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
 }
 

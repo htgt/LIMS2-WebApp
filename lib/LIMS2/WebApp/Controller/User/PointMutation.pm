@@ -11,6 +11,7 @@ use Data::UUID;
 use File::Find;
 use Text::CSV;
 use Try::Tiny;
+use POSIX qw/floor/;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -36,16 +37,21 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     $c->assert_user_roles( 'edit' );
 
     my $miseq = $c->req->param('miseq');
-    my $path = $ENV{LIMS2_RNA_SEQ} . '/build_data.json';
 
-    my $overview = get_experiments($c, $miseq);
-    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $overview) });
+    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    if ($plate->{'384'} == 1 ) {
+        my $quadrants = experiment_384_distribution($c,$miseq);
+        $c->stash->{quadrants} = encode_json({ summary => $quadrants });
+    }
+    my $overview = get_experiments($c, $miseq, 'genes');
     my $ov_json = encode_json ({ summary => $overview });
+    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $overview) });
     my $gene_keys = get_genes($c, $overview);
     my $revov = encode_json({ summary => $gene_keys });
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq) });
+    
     $c->stash(
         wells => $json,
         experiments => \@exps,
@@ -54,9 +60,29 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         genes => \@genes,
         gene_exp => $revov,
         efficiency => $efficiencies,
+        large_plate => $plate->{'384'},
     );
 
     return;
+}
+
+sub experiment_384_distribution {
+    my ( $c, $miseq ) = @_;
+
+    my $range_summary = get_experiments($c, $miseq, 'range');
+    my $quadrants;
+
+    foreach my $exp (keys %$range_summary) {
+        my $value = $range_summary->{$exp};
+        my @ranges = split(/-/,$value);
+        my @mods = map {floor(($_ - 1) / 96)} @ranges;
+        $quadrants->{$exp} = {
+            'first' => $mods[0],
+            'last'  => $mods[1],
+        };
+    }
+
+    return $quadrants;
 }
 
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
@@ -109,10 +135,8 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
     my $states = encode_json({ summary => @status });
     my $state;
-    my $oversized;
     try {
         my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
-        $oversized = $plate->{'384'};
         $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
         if ($state) {
             $state = $state->as_hash->{status};
@@ -124,7 +148,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     };
 
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
-
     $c->stash(
         miseq       => $miseq,
         oligo_index => $index,
@@ -135,7 +158,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         status      => $states,
         state       => $state,
         classifications => \@classifications,
-        384         => $oversized,
     );
 
     return;
@@ -183,27 +205,32 @@ sub get_genes {
 }
 
 sub get_experiments {
-    my ( $c, $miseq ) = @_;
+    my ( $c, $miseq, $opt ) = @_;
 
     my $csv = Text::CSV->new({ binary => 1 }) or die "Can't use CSV: " . Text::CSV->error_diag();
     my $loc = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
     open my $fh, '<:encoding(UTF-8)', $loc or die "Can't open CSV: $!";
-    my $ov = read_columns($c, $csv, $fh);
+    my $ov = read_columns($c, $csv, $fh, $opt);
     close $fh;
 
     return $ov;
 }
 
 sub read_columns {
-    my ( $c, $csv, $fh ) = @_;
+    my ( $c, $csv, $fh, $opt ) = @_;
 
     my $overview;
 
     while ( my $row = $csv->getline($fh)) {
         next if $. < 2;
-        my @genes;
-        push @genes, $row->[1];
-        $overview->{$row->[0]} = \@genes;
+        if ($opt eq 'range') {
+            my $range = $row->[5];
+            $overview->{$row->[0]} = $range;
+        } else {
+            my @genes;
+            push @genes, $row->[1];
+            $overview->{$row->[0]} = \@genes;
+        } 
     }
 
     return $overview;
@@ -215,7 +242,7 @@ sub generate_summary_data {
     my $wells;
     my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
-    for (my $i = 1; $i < 97; $i++) {
+    for (my $i = 1; $i < 385; $i++) {
         my $reg = "S" . $i . "_exp[A-Z]+";
         my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
         my @files = find_children($base, $reg);
