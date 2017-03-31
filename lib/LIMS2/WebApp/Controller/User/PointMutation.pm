@@ -17,19 +17,15 @@ BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
 
-LIMS2::WebApp::Controller::User::DesignTargets - Catalyst Controller
+LIMS2::WebApp::Controller::User::PointMutation - Catalyst Controller
 
 =head1 DESCRIPTION
 
-Catalyst Controller.
-
-=head1 METHODS
+Miseq QC Controller.
 
 =cut
 
-=head2 index
 
-=cut
 
 sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
@@ -51,7 +47,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq) });
-    
+
     $c->stash(
         wells => $json,
         experiments => \@exps,
@@ -122,7 +118,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $selection;
     if ($exp_sel) {
         my $class = find_classes($c, $miseq, $index, $exp_sel);
-        my $overview = get_experiments($c, $miseq)->{$exp_sel}[0];
+        my $overview = get_experiments($c, $miseq, "genes")->{$exp_sel}[0];
         $selection = {
             id      => $exp_sel,
             class   => $class,
@@ -230,7 +226,7 @@ sub read_columns {
             my @genes;
             push @genes, $row->[1];
             $overview->{$row->[0]} = \@genes;
-        } 
+        }
     }
 
     return $overview;
@@ -501,20 +497,6 @@ sub get_efficiencies {
     return $efficiencies;
 }
 
-=head
-sub search_exp {
-    my ($c, $id, $exp, $result) = @_;
-
-    my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $id, experiment => $exp });
-    if ($well_exp) {
-        $result->{$exp} = $well_exp->as_hash->{classification};
-    } else {
-        $result->{$exp} = 'Not called';
-    }
-
-    return $result;
-}
-=cut
 __PACKAGE__->meta->make_immutable;
 
 1;

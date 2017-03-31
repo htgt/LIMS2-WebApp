@@ -361,7 +361,7 @@ sub existing_miseq_plate {
 }
 
 sub illumina_index_range {
-    return shift->regexp_matches(qr/^[1-9]$|^[1-8][0-9]$|^9[0-6]$/);
+    return shift->regexp_matches(qr/^[1-9]$|^[1-9][0-9]$|^[1-2][0-9]{2}$|^3[0-7][0-9]|^38[0-4]$/);
 }
 
 sub existing_miseq_well {

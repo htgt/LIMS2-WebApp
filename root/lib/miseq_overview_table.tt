@@ -12,7 +12,7 @@
         </tr>
     </thead>
     <tbody>
-        [% SET base = 0 %]
+        [% SET base = 0 + page %]
         [% FOREACH letter IN [ "A", "B", "C", "D", "E", "F", "G", "H", ] %]
             <tr id="[% letter %]">
                 <th id="[% letter %]-H">[% letter %]</th>
