@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.452';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.453';
 }
 ## use critic
 
@@ -509,6 +509,7 @@ sub _simple_transform {
                     || $key eq 'ep_data'
                     || $key eq 'recovery_class'
                     || $key eq 'effort_concluded'
+                    || $key eq 'priority'
                     || $key eq 'chromosome' );
             }
         }

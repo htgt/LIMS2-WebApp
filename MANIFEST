@@ -189,6 +189,7 @@ lib/LIMS2/Model/Schema/Result/SequencingProjectTemplate.pm
 lib/LIMS2/Model/Schema/Result/Species.pm
 lib/LIMS2/Model/Schema/Result/SpeciesDefaultAssembly.pm
 lib/LIMS2/Model/Schema/Result/Sponsor.pm
+lib/LIMS2/Model/Schema/Result/Strategy.pm
 lib/LIMS2/Model/Schema/Result/Summary.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfile.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfileAllele.pm
@@ -377,6 +378,8 @@ root/lib/crispr_qc_view.tt
 root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
 root/lib/miseq_creation_help.tt
+root/lib/miseq_overview_table.tt
+root/lib/miseq_quadrant_table.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
@@ -2441,6 +2444,7 @@ root/static/jquery/css/ui-lightness/images/ui-icons_ef8c08_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 root/static/jquery/css/ui-lightness/images/ui-icons_ffffff_256x240.png
 root/static/jquery/css/ui-lightness/jquery-ui-1.12.0.custom.css
+root/static/jquery/js/barba.min.js
 root/static/jquery/js/d3-tip.js
 root/static/jquery/js/d3.min.js
 root/static/jquery/js/jquery-ui-1.12.0.custom.min.js

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Project::VERSION = '0.452';
+    $LIMS2::Model::Plugin::Project::VERSION = '0.453';
 }
 ## use critic
 
@@ -200,6 +200,7 @@ sub _pspec_create_project{
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
         sponsors_priority => { optional => 1 },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
+        strategy_id       => { validate => 'existing_strategy', optional => 1 },
     };
 }
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProjectWellExp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.452';
+    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.453';
 }
 ## use critic
 
@@ -160,8 +160,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-15 12:13:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LbuNbYTd+n+b+Ec2aRBqWw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PubRxfce/G52E6yQdogl6Q
 
 use Try::Tiny;
 

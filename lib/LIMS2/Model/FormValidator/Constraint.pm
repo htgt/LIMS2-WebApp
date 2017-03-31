@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.452';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.453';
 }
 ## use critic
 
@@ -292,6 +292,10 @@ sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
 }
 
+sub existing_strategy {
+    return shift->in_resultset( 'Strategy', 'id' );
+}
+
 sub existing_design_id {
     return shift->in_resultset( 'Design', 'id' );
 }
@@ -363,7 +367,7 @@ sub existing_miseq_plate {
 }
 
 sub illumina_index_range {
-    return shift->regexp_matches(qr/^[1-9]$|^[1-8][0-9]$|^9[0-6]$/);
+    return shift->regexp_matches(qr/^[1-9]$|^[1-9][0-9]$|^[1-2][0-9]{2}$|^3[0-7][0-9]|^38[0-4]$/);
 }
 
 sub existing_miseq_well {

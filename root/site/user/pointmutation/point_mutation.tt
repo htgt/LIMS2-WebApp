@@ -4,43 +4,34 @@
 <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <style>
 
-.tooltip {
-    position: absolute;
-    text-align: left;
-    width: 150px;
-    height: 20px;
-    padding: 8px;
-    margin-top: -20px;
-    font: 10px sans-serif;
-    background: #ddd;
-    pointer-events: none;
-}
 .d3-tip {
-  line-height: 1;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 2px;
+    line-height: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    text-align: center;
 }
 
 /* Creates a small triangle extender for the tooltip */
 .d3-tip:after {
-  box-sizing: border-box;
-  display: inline;
-  font-size: 10px;
-  width: 100%;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.8);
-  content: "\25BC";
-  position: absolute;
-  text-align: center;
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
 }
+
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
-  margin: -1px 0 0 0;
-  top: 100%;
-  left: 0;
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
 }
 .lb-md {
     font-size: 22px;
@@ -64,6 +55,14 @@ body {
 </div>
 
 <div class="row">
+    [% IF large_plate == 1 %]
+        <div class="col-md-1" id="quadBack" hidden>
+            <button class="btn btn-primary">
+                <i class="glyphicon glyphicon-arrow-left"></i>
+            </button>
+        </div>
+    [% END %]
+
     <div class="col-md-1">
         <label class="lb-md">Gene: </label>
     </div>
@@ -100,81 +99,36 @@ body {
 </div>
 
 </br>
-<table id='grid-basic' class="table table-condensed table-hover">
-    <thead>
-        <tr>
-            <th></th>
-            [% SET count = 0 %]
-            [% WHILE count < 12 %]
-                [% count = count + 1 %]
-                <th data-column-id="[% count %]">
-                    [% count %]
-                </th>
-            [% END %]
-        </tr>
-    </thead>
-    <tbody>
-        [% SET base = 0 %]
-        [% FOREACH letter IN [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ] %]
-            <tr id="[% letter %]">
-                <th id="[% letter %]-H">[% letter %]</th>
-            [% FOREACH cell IN [ '01', '09', '17', '25', '33', '41', '49', '57', '65', '73', '81', '89' ] %]
-                <td id="[% base + cell %]" class="svgContainer"></td>
-            [% END %]
-            </tr>
-            [% base = base + 1 %]
-        [% END %]
-    </tbody>
-</table>
-<div class="row">
-    <div id="key" class="col-md-3">
-        <h5>Colour Key: </h5>
-        <svg width="600" height="40">
-            <g class="legend" transform="translate(0)">
-                <rect width="18" height="18" style="fill: #887bf7; stroke: #887bf7;"></rect>
-                <text x="22" y="14">Well</text>
-            </g>
-            <g class="legend" transform="translate(0,20)">
-                <rect width="18" height="18" style="fill: #d6757f; stroke: #d6757f;"></rect>
-                <text x="22" y="14">Scanned-Out Well</text>
-            </g>
-            <g class="legend" transform="translate(150,0)">
-                <rect width="18" height="18" style="fill: #66c2a5; stroke: #66c2a5;"></rect>
-                <text x="22" y="14">Wild Types</text>
-            </g>
-            <g class="legend" transform="translate(150,20)">
-                <rect width="18" height="18" style="fill: #ffaa00; stroke: #ffaa00;"></rect>
-                <text x="22" y="14">NHEJ Clones</text>
-            </g>
-            <g class="legend" transform="translate(300,0)">
-                <rect width="18" height="18" style="fill: #d9e354; stroke: #d9e354;"></rect>
-                <text x="22" y="14">HDR</text>
-            </g>
-            <g class="legend" transform="translate(300,20)">
-                <rect width="18" height="18" style="fill: #73667a; stroke: #73667a;"></rect>
-                <text x="22" y="14">Mixed HDR-NHEJ</text>
-            </g>
-            <g class="legend" transform="translate(450,0)">
-                <rect width="18" height="18" style="fill: #103877; stroke: #103877;"></rect>
-                <text x="22" y="14">Frameshift</text>
-            </g>
-
-        </svg>
-    </div>
+<div id="pageFocus">
+    [% IF large_plate == 1 %]
+        [% INCLUDE "miseq_quadrant_table.tt" %];
+    [% ELSE %]
+        [% INCLUDE "miseq_overview_table.tt" page = 0 %];
+    [% END %]
 </div>
+
 <script type="text/javascript" charset="utf-8">
 
 var data = '[% wells %]';
-var json = JSON.parse(data.replace(/&quot;/g,'"'));
-var raw_exp = '[% overview %]';
-var overview = JSON.parse(raw_exp.replace(/&quot;/g,'"'));
-var raw_link = '[% gene_exp %]';
-var link = JSON.parse(raw_link.replace(/&quot;/g,'"'));
-var raw_targets = '[% efficiency %]';
-var efficiencies = JSON.parse(raw_targets.replace(/&quot;/g,'"'));
+var json = jsonify(data);
+var rawExp = '[% overview %]';
+var overview = jsonify(rawExp);
+var rawLink = '[% gene_exp %]';
+var link = jsonify(rawLink);
+var rawTargets = '[% efficiency %]';
+var efficiencies = jsonify(rawTargets);
+var rawQuads = '[% quadrants %]';
+var quadrants;
+if (rawQuads) {
+    quadrants = jsonify(rawQuads);
+}
 var frameshiftJSON = "";
 var allExps = [];
 var prevExp = "";
+
+function jsonify(raw) {
+    return JSON.parse(raw.replace(/&quot;/g,'"'));
+}
 
 //One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
 var tau = 2 * Math.PI;
@@ -214,19 +168,77 @@ var tip = d3.tip()
         return tooltip($(this))
     });
 
-var svg = d3.selectAll("td")
-    .append("svg:svg")
-    .attr("width", '100%')
-    .attr("height", height)
-    .attr("class","svgTool")
-    .attr("onclick","wellArc(this)")
-    .on('mouseover', tip.show)
-    .on('mouseout', tip.hide)
-    .append("svg:g")
-    .attr("class","node")
-    .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+var initDonut = d3.pie()([0,0]);
 
-svg.call(tip);
+function createRings() {
+    var svg = d3.selectAll("td")
+        .append("svg:svg")
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("class","svgTool")
+        .attr("onclick","wellArc(this)")
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .append("svg:g")
+        .attr("class","node")
+        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+
+    svg.call(tip);
+
+    //Base ring
+    d3.selectAll("g.node")
+        .append("path")
+        .attr("class","wellPath")
+        .datum({endAngle: tau})
+        .style("fill","#887bf7")
+        .attr("d",arc);
+
+    var wt = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[0])
+        .style("fill","#66c2a5")
+        .attr("d", arc)
+        .attr("class","donut wild");
+
+    var nhej = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#ffaa00")
+        .attr("d", arc)
+        .attr("class", "donut nhej");
+
+    var hdr = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#d9e354")
+        .attr("d", arc)
+        .attr("class", "donut hdr");
+
+    var mixed = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#73667a")
+        .attr("d", arc)
+        .attr("class", "donut mix");
+
+    var frameshift = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#103877")
+        .attr("d", fsArc)
+        .attr("class", "frame");
+
+    /*
+    var missingData = d3.selectAll("g")
+        .append("path").datum(initDonut[1])
+        .style("fill","#8f0a0b")
+        .attr("d", arc)
+        .attr("class", "donut")
+        .attr("class", "miss");
+    */
+
+    d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.6em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
+}
 
 //Targeting efficiency container
 var teSvg = d3.select("#targetingEfficiency")
@@ -236,55 +248,7 @@ var teSvg = d3.select("#targetingEfficiency")
     .attr("class","teSvgTool")
     .append("svg:g")
     .attr("class","teNode")
-    .attr("transform", function(d){ return "translate(" + (width+ 20) / 2 + "," + (height + 20) / 2 + ")"});
-
-//Base ring
-d3.selectAll("g.node")
-    .append("path")
-    .attr("class","wellPath")
-    .datum({endAngle: tau})
-    .style("fill","#887bf7")
-    .attr("d",arc);
-
-
-
-var initDonut = d3.pie()([0,0]);
-
-var wt = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[0])
-    .style("fill","#66c2a5")
-    .attr("d", arc)
-    .attr("class","donut wild");
-
-var nhej = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#ffaa00")
-    .attr("d", arc)
-    .attr("class", "donut nhej");
-
-var hdr = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#d9e354")
-    .attr("d", arc)
-    .attr("class", "donut hdr");
-
-var mixed = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#73667a")
-    .attr("d", arc)
-    .attr("class", "donut mix");
-
-var frameshift = d3.selectAll("g.node")
-    .append("path")
-    .datum(initDonut[1])
-    .style("fill","#103877")
-    .attr("d", fsArc)
-    .attr("class", "frame");
-
+    .attr("transform", function(d){ return "translate(" + (width + 20) / 2 + "," + (height + 20) / 2 + ")"});
 
 //Targeting Efficiency donut
 d3.selectAll("g.teNode")
@@ -307,24 +271,16 @@ var targetText = d3.selectAll("g.teNode")
     .attr("dx","-0.9em")
     .attr("dy","0.4em")
     .attr("id","teText");
-/*
-var missingData = d3.selectAll("g")
-    .append("path").datum(initDonut[1])
-    .style("fill","#8f0a0b")
-    .attr("d", arc)
-    .attr("class", "donut")
-    .attr("class", "miss");
-*/
-
-d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.5em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
 
 $(document).ready(function() {
+    createRings();
     frameshifts();
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
     buildExps(1);
     document.title = '[% miseq %] - Point Mutation';
     resize();
+    highlightSelection();
 });
 
 $('#geneSelect').change(function() {
@@ -340,44 +296,80 @@ $('#geneSelect').change(function() {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
     }
-    highlightSelection();
-});
-/*
-$('#expSelect').change(function() {
-    if ($('#expSelect').val() != 'All') { 
-        $("#geneSelect").children('option').hide().prop('disabled', true);
-        $("#geneSelect").children('option[value^=All]').show().prop('disabled', false);
-        var expGenes = overview.summary[$('#expSelect').val()];
-        for (var count = 0; count < expGenes.length; count++) {
-            $("#geneSelect").children('option[value^=' + expGenes[count].split(/[^A-Za-z0-9]/)[0] + ']').show().prop('disabled', false);
-        }
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
     } else {
-        $("#geneSelect").children('option').show().prop('disabled', false);
+        highlightSelection();
     }
 });
-*/
-$('#expSelect').change(function() { 
-    highlightSelection();
+
+$('#expSelect').change(function() {
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
+    } else {
+        highlightSelection();
+    }
 });
 
 $('#filterReads').change(function() {
     highlightSelection();
 });
 
+$('#pageFocus').on('click','rect.quad' , function() {
+    var con;
+    switch (this.id) {
+        case "firstQuad":
+            con = `[% INCLUDE "miseq_overview_table.tt" page = 0 %]`;
+            break;
+        case "secondQuad":
+            con = `[% INCLUDE "miseq_overview_table.tt" page = 96 %]`;
+            break;
+        case "thirdQuad":
+            con = `[% INCLUDE "miseq_overview_table.tt" page = 192 %]`;
+            break;
+        case "fourthQuad":
+            con = `[% INCLUDE "miseq_overview_table.tt" page = 288 %]`;
+            break;
+        default:
+            console.log("outside of plate limits..");
+    }
+    //Not ideal but unable to transfer js var into tt
+    $('#pageFocus').html(con);
+    createRings();
+    buildExps();
+    prevExp = "";
+    clearHighlight();
+    resize();
+    frameshifts();
+    $('#quadBack').show();
+});
+
+$('#quadBack').on('click', function() {
+    var quads = `[% INCLUDE "miseq_quadrant_table.tt" %]`;
+    $('#pageFocus').html(quads);
+    highlightQuad();
+    $('#quadBack').hide();
+});
+
 function clearSelection() {
     $("#expSelect").children('option').show().prop('disabled', false);
     $("#geneSelect").children('option').show().prop('disabled', false);
     $('select').each(function() { this.selectedIndex = 0 });
-    highlightSelection();
+
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
+    } else {
+        highlightSelection();
+    }
 }
 
 $(window).resize(function() {
     highlightSelection('All');
     resize();
+    highlightSelection();
 });
 
 function resize() {
-    console.log("Updating");
     windowDims();
     $("td").css("width", "8%");
     d3.selectAll('.svgTool')
@@ -396,7 +388,6 @@ function resize() {
     d3.selectAll('.scan')
         .attr("cx", width / 2).attr("cy", height / 2)
         .attr("r", function(){ return radius - arcWidth; });
-    highlightSelection();
 }
 
 function windowDims() { 
@@ -454,7 +445,6 @@ function buildExps(first) {
             var expName = wellData.experiments[expInt];
             /* 
             if (wellData.percentages[expName].miss != null) {
-                console.log(i);
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
             } else {
@@ -479,7 +469,7 @@ function buildArcs(node, type, expName) {
 
 function highlightSelection(selection) {
     clearHighlight();
-
+    console.log("fired");
     selection = selection || document.getElementById('expSelect').value;
     
     if (selection != 'All') {
@@ -491,6 +481,36 @@ function highlightSelection(selection) {
     prevExp = selection;
 
 }
+
+function highlightQuad(selection) {
+    var rectTransition = d3.selectAll(".quad").transition().style("fill", "white").duration(1000); 
+
+    selection = selection || document.getElementById('expSelect').value;
+    if (selection != 'All') {
+        var range = quadrants.summary[selection];
+        for (var quad = range.first; quad <= range.last; quad++) {
+            switch (quad) {
+                case 0:
+                    d3.select('#firstQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 1:
+                    d3.select('#secondQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 2:
+                    d3.select('#thirdQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                case 3:
+                    d3.select('#fourthQuad').transition().style("fill", "yellow").duration(1000);
+                    break;
+                default:
+                    console.log("Mistery quadrant added");
+            }
+        }
+    }
+    calculateEfficiency(selection);
+    prevExp = selection;
+}
+
 
 function buildDonut(exp) {
     var wells = json.summary;
@@ -506,7 +526,6 @@ function buildDonut(exp) {
         var total = +values.nhej + +values.wt + +values.hdr + +values.mix;
         var arcTau = values.mix / total;
         if ($('#filterReads').is(':checked') && total < 1000) {
-            console.log("Filtering: " + id);
             var wtArc = $($(nhejNodes[nodeIt]).closest("td")[0]).find('path.wild');
             d3.select(wtArc[0]).transition().duration(500).attrTween("d", arcTween(0, arc));
         } else {
@@ -526,11 +545,12 @@ function buildDonut(exp) {
 function clearHighlight() {
     if (prevExp == "") {
         d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0, arc));
+        d3.selectAll('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     } else {
         d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0, arc));
+        d3.selectAll('.' + prevExp).filter('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     }
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
-    d3.select('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
 }
 
@@ -582,7 +602,6 @@ function frameshifts() {
             miseq: '[% miseq %]', 
         },
         success: function(result){
-            console.log(result);
             frameshiftJSON = JSON.parse(result);
             buildFrameshifts();
             highlightSelection();
@@ -599,12 +618,9 @@ function buildFrameshifts() {
     var nodes = d3.selectAll('td').nodes();
 
     for (var key in frameshiftJSON) {
-        console.log(key);
         var fsIndexes = frameshiftJSON[key];
-        console.log(fsIndexes);
         for (var i = 0; i < fsIndexes.length; i++) {
             var node = d3.select($('td#' + fsIndexes[i])).node();
-
             buildArcs(node, 'frame', key);
         }
     }
@@ -625,7 +641,7 @@ function tooltip(node) {
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
-            Mixed: ` + dataPoint.percentages[focusExp].mix + ` reads<br>
+            Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
             Classification: ` + dataPoint.classes[focusExp];
     } else if (focusExp != 'All'){
         response = `
@@ -639,4 +655,5 @@ function tooltip(node) {
     }
     return response;
 }
+
 </script>
