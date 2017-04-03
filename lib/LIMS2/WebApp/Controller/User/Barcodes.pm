@@ -36,14 +36,14 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
 
     if ($generate){
         unless($genes){
-        	$c->stash->{error_msg} = "No gene symbols entered";
-        	return;
+            $c->stash->{error_msg} = "No gene symbols entered";
+            return;
         }
 
-    	# Enter list of gene symbols
-    	my $sep = qr/[\s\n,;]+/;
-    	my @symbols = split $sep, $genes;
-    	$c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
+        # Enter list of gene symbols
+        my $sep = qr/[\s\n,;]+/;
+        my @symbols = split $sep, $genes;
+        $c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
 
         my $pick_list;
         try{
@@ -487,7 +487,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
         my $messages = [];
-        my $csv_lines = [];
+        my $csv_lines;
 
         if ($c->request->params->{barcode_datafile}) {
             my $upload = $c->request->upload('barcode_datafile');
@@ -503,20 +503,22 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             try{
                 my @barcode_values;
                 my $params = $c->request->parameters;
-                my @barcodes = grep { $_ =~ /^barcode_[0-9]+$/ } keys %{$params};
-                push @barcode_values, $params->{$_} foreach (keys %{$params});
+                $params->{piq_barcode_csv} = $csv_lines;
+#                my @barcodes = grep { $_ =~ /^barcode_[0-9]+$/ } keys %{$params};
+#                push @barcode_values, $params->{$_} foreach (keys %{$params});
 
-                foreach my $bar (@barcodes) {
-                    if ($params->{$bar} eq "") {
-                        foreach my $line (@{$csv_lines}) {
-                            if (grep {$_ eq $line} @barcode_values) {
-                                next;
-                            } else {
-                                $params->{$bar} = $line;
-                            }
-                        }
-                    }
-                }
+#                foreach my $bar (@barcodes) {
+#                    if ($params->{$bar} eq "") {
+#                        foreach my $line (@{$csv_lines}) {
+#                            if (grep {$_ eq $line} @barcode_values) {
+#                                next;
+#                            } else {
+#                                $params->{$bar} = $line;
+#                            }
+#                        }
+#                    }
+#                }
+
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
             }
             catch($e){
