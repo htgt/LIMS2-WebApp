@@ -101,9 +101,9 @@ body {
 </br>
 <div id="pageFocus">
     [% IF large_plate == 1 %]
-        [% INCLUDE "miseq_quadrant_table.tt" %];
+        [% INCLUDE "miseq_quadrant_table.tt" %]
     [% ELSE %]
-        [% INCLUDE "miseq_overview_table.tt" page = 0 %];
+        [% INCLUDE "miseq_overview_table.tt" page = 0 %]
     [% END %]
 </div>
 
