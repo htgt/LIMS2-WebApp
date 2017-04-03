@@ -495,7 +495,8 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             while (my $line = <$piq_barcode_data>) {
                 chomp $line;
                 $line =~ s/^\s+//;
-                push @{$csv_lines}, $line;
+                my @comma_sep = split /,/, $line;
+                push @{$csv_lines}, @comma_sep;
             }
         }
 
@@ -504,21 +505,6 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
                 my @barcode_values;
                 my $params = $c->request->parameters;
                 $params->{piq_barcode_csv} = $csv_lines;
-#                my @barcodes = grep { $_ =~ /^barcode_[0-9]+$/ } keys %{$params};
-#                push @barcode_values, $params->{$_} foreach (keys %{$params});
-
-#                foreach my $bar (@barcodes) {
-#                    if ($params->{$bar} eq "") {
-#                        foreach my $line (@{$csv_lines}) {
-#                            if (grep {$_ eq $line} @barcode_values) {
-#                                next;
-#                            } else {
-#                                $params->{$bar} = $line;
-#                            }
-#                        }
-#                    }
-#                }
-
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
             }
             catch($e){

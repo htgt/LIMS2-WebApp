@@ -43,7 +43,6 @@ sub add_barcodes_to_wells{
     if ($params->{piq_barcode_csv}) {
         @csv_barcodes = @{$params->{piq_barcode_csv}};
         @barcode_keys = grep { $_ } map { $_ =~ /^(barcode_[0-9]+)$/ } keys %{$params};
-        print Dumper @barcode_keys;
         if (any {$params->{$_} ne ""} @barcode_keys) {
             die "Input already defined. Choose 1 entry mode.";
         } elsif (scalar @barcode_keys != scalar @csv_barcodes) {
@@ -57,7 +56,6 @@ sub add_barcodes_to_wells{
 
     my @messages;
     my @well_ids = grep { $_ } map { $_ =~ /^barcode_([0-9]+)$/ } keys %{$params};
-    print Dumper @well_ids;
 
     foreach my $well_id (@well_ids){
         DEBUG "Adding barcode to well $well_id";
