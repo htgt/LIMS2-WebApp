@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesignPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesignPlate::VERSION = '0.453';
+    $LIMS2::WebApp::Controller::User::CreateDesignPlate::VERSION = '0.454';
 }
 ## use critic
 
