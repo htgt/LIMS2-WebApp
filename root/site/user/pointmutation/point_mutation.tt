@@ -341,6 +341,9 @@ $('#pageFocus').on('click','rect.quad' , function() {
     clearHighlight();
     resize();
     frameshifts();
+    $("#key").draggable({ stack: ".drag", zIndex: 2500  });
+    $("#key").css('boxShadow','0px 0px 1px 1px grey');
+    $("#key").css('z-index', '100');
     $('#quadBack').show();
 });
 
