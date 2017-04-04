@@ -69,13 +69,28 @@ sub experiment_384_distribution {
     my $quadrants;
 
     foreach my $exp (keys %$range_summary) {
+=head
         my $value = $range_summary->{$exp};
+    
         my @ranges = split(/-/,$value);
         my @mods = map {floor(($_ - 1) / 96)} @ranges;
         $quadrants->{$exp} = {
             'first' => $mods[0],
             'last'  => $mods[1],
         };
+=cut
+        my $value = $range_summary->{$exp};
+
+        my @ranges = split(/\|/,$value);
+        foreach my $range (@ranges) {
+            my @pos = split(/-/, $range);
+            my @mods = map {floor(($_ - 1) / 96)} @pos;
+            my $region = {
+                'first' => $mods[0],
+                'last'  => $mods[1],
+            };
+            push(@{$quadrants->{$exp}}, $region);
+        }
     }
 
     return $quadrants;

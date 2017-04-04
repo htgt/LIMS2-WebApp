@@ -487,25 +487,27 @@ function highlightQuad(selection) {
 
     selection = selection || document.getElementById('expSelect').value;
     if (selection != 'All') {
-        var range = quadrants.summary[selection];
-        for (var quad = range.first; quad <= range.last; quad++) {
-            switch (quad) {
-                case 0:
-                    d3.select('#firstQuad').transition().style("fill", "yellow").duration(1000);
-                    break;
-                case 1:
-                    d3.select('#secondQuad').transition().style("fill", "yellow").duration(1000);
-                    break;
-                case 2:
-                    d3.select('#thirdQuad').transition().style("fill", "yellow").duration(1000);
-                    break;
-                case 3:
-                    d3.select('#fourthQuad').transition().style("fill", "yellow").duration(1000);
-                    break;
-                default:
-                    console.log("Mistery quadrant added");
+        var ranges = quadrants.summary[selection];
+        ranges.forEach(function(range) {
+            for (var quad = range.first; quad <= range.last; quad++) { //Needed to fill in gaps i.e. 97-386
+                switch (quad) {
+                    case 0:
+                        d3.select('#firstQuad').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 1:
+                        d3.select('#secondQuad').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 2:
+                        d3.select('#thirdQuad').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 3:
+                        d3.select('#fourthQuad').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    default:
+                        console.log("Mistery quadrant added");
+                }
             }
-        }
+        });
     }
     calculateEfficiency(selection);
     prevExp = selection;
