@@ -43,11 +43,15 @@ sub add_barcodes_to_wells{
     if ($params->{piq_barcode_csv}) {
         @csv_barcodes = @{$params->{piq_barcode_csv}};
         @barcode_keys = grep { $_ } map { $_ =~ /^(barcode_[0-9]+)$/ } keys %{$params};
+
         if (any {$params->{$_} ne ""} @barcode_keys) {
+            ## no barcodes specified in input box
             die "Input already defined. Choose 1 entry mode.";
         } elsif (scalar @barcode_keys != scalar @csv_barcodes) {
+            ## CSV content contains correct number of elements
             die "Incorrect number of barcodes in CSV file.";
         } else {
+            ## set up the barcodes from CSV file content
             foreach my $indx (0..$#barcode_keys) {
                 $params->{$barcode_keys[$indx]} = $csv_barcodes[$indx];
             }
