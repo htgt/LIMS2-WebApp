@@ -7,7 +7,7 @@ use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 use JSON;
-
+use Data::Dumper;
 use strict;
 
 BEGIN
@@ -106,8 +106,58 @@ sub mutation_signatures_workflow_test : Test(16){
 
 }
 
+sub piq_expand_freeze_back_csv_upload  : Test(4) {
+
+    my $mech = LIMS2::Test::mech();
+    my $model = model();
+
+    ## extract checked out wells
+    my $well_rows_rs = $model->schema->resultset( 'Well' )->search(
+        {
+            barcode_state => 'checked_out'
+        },
+        {}
+    );
+    my @well_ids = $well_rows_rs->get_column( 'barcode' )->all;
+    my $barcode = $well_ids[0];
+
+    ## start from the scan_barcode view
+    $mech->get_ok("/user/scan_barcode");
+    $mech->set_fields(
+        barcode => $barcode
+        );
+    $mech->click_button(name => 'submit_barcode');
+    $mech->content_contains("Well details for barcode $barcode");
+
+    ## follow the expand freezeback link
+    $mech->follow_link(tag => "a", text => "Expand and Freeze Back");
+
+    ## set fields for this form and submit
+    $mech->set_fields(
+        number_of_wells_1   => 2,
+        qc_piq_plate_name_1   => 'PIQ_CRE_0001',
+        qc_piq_well_name_1    => 'A01'
+    );
+    $mech->click_button(name => "create_piq_wells");
+
+    ## create the temp CSV file, set fields in this form and submit
+    my $tempfh = File::Temp->new() or die('Could not create temp test file ' . $!);
+    $tempfh->print("barcode1,barcode2\n");
+    $tempfh->seek(0, 0);
+
+    $mech->set_fields(
+        barcode_datafile => $tempfh->filename
+    );
+    $mech->click_button(name => "submit_piq_barcodes");
+
+    ## verify output
+    $mech->content_contains("Barcode barcode1 added to well");
+    $mech->content_contains("Barcode barcode2 added to well");
+
+}
+
 sub all_tests  : Test(45) {
-    my $mech = LIMS2::Test::mech();;
+    my $mech = LIMS2::Test::mech();
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
     my $res;
 
@@ -265,4 +315,3 @@ sub all_tests  : Test(45) {
 }
 
 1;
-

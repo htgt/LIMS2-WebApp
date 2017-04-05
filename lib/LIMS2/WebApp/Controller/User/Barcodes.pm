@@ -487,16 +487,17 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
         my $messages = [];
-        my $csv_lines;
+        my $csv_elems;
 
         if ($c->request->params->{barcode_datafile}) {
             my $upload = $c->request->upload('barcode_datafile');
             my $piq_barcode_data = $upload->fh;
+
             while (my $line = <$piq_barcode_data>) {
                 chomp $line;
                 $line =~ s/^\s+//;
                 my @comma_sep = split /,/, $line;
-                push @{$csv_lines}, @comma_sep;
+                push @{$csv_elems}, @comma_sep;
             }
         }
 
@@ -504,7 +505,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
             try{
                 my @barcode_values;
                 my $params = $c->request->parameters;
-                $params->{piq_barcode_csv} = $csv_lines;
+                $params->{piq_barcode_csv} = $csv_elems;
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
             }
             catch($e){
@@ -544,6 +545,18 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     }
 
     return;
+}
+
+sub read_csv {
+    my $fh = shift;
+    my $csv_elems;
+    while (my $line = <$fh>) {
+        chomp $line;
+        $line =~ s/^\s+//;
+        my @comma_sep = split /,/, $line;
+        push @{$csv_elems}, @comma_sep;
+    }
+    return $csv_elems;
 }
 
 ## use critic

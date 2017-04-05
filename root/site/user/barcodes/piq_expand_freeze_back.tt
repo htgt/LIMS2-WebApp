@@ -34,7 +34,7 @@
 
     <br>
     <label>Barcode Spreadsheet</label>
-    <input name="barcode_datafile" type="file" class="barcode_input">
+    <input type="file" name="barcode_datafile" class="barcode_input">
 
     <br>
     <br>
