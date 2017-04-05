@@ -489,6 +489,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
         my $messages = [];
         my $csv_elems;
 
+        ## if an input CSV file is specified, parse it
         if ($c->request->params->{barcode_datafile}) {
             my $upload = $c->request->upload('barcode_datafile');
             my $piq_barcode_data = $upload->fh;
@@ -545,18 +546,6 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     }
 
     return;
-}
-
-sub read_csv {
-    my $fh = shift;
-    my $csv_elems;
-    while (my $line = <$fh>) {
-        chomp $line;
-        $line =~ s/^\s+//;
-        my @comma_sep = split /,/, $line;
-        push @{$csv_elems}, @comma_sep;
-    }
-    return $csv_elems;
 }
 
 ## use critic

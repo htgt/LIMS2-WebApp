@@ -7,7 +7,7 @@ use LIMS2::Model::Util::BarcodeActions qw(checkout_well_barcode);
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 use JSON;
-use Data::Dumper;
+
 use strict;
 
 BEGIN
