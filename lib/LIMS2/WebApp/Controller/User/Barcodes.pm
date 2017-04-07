@@ -36,14 +36,14 @@ sub generate_picklist : Path( '/user/generate_picklist' ) : Args(0){
 
     if ($generate){
         unless($genes){
-        	$c->stash->{error_msg} = "No gene symbols entered";
-        	return;
+            $c->stash->{error_msg} = "No gene symbols entered";
+            return;
         }
 
-    	# Enter list of gene symbols
-    	my $sep = qr/[\s\n,;]+/;
-    	my @symbols = split $sep, $genes;
-    	$c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
+        # Enter list of gene symbols
+        my $sep = qr/[\s\n,;]+/;
+        my @symbols = split $sep, $genes;
+        $c->log->debug("generating picklist for symbols: ".join ", ",@symbols);
 
         my $pick_list;
         try{
@@ -487,9 +487,26 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
     elsif($c->request->param('submit_piq_barcodes')){
         # Requires: well->barcode mapping
         my $messages = [];
+        my $csv_elems;
+
+        ## if an input CSV file is specified, parse it
+        if ($c->request->params->{barcode_datafile}) {
+            my $upload = $c->request->upload('barcode_datafile');
+            my $piq_barcode_data = $upload->fh;
+
+            while (my $line = <$piq_barcode_data>) {
+                chomp $line;
+                $line =~ s/^\s+//;
+                my @comma_sep = split /,/, $line;
+                push @{$csv_elems}, @comma_sep;
+            }
+        }
+
         $c->model('Golgi')->txn_do( sub {
             try{
+                my @barcode_values;
                 my $params = $c->request->parameters;
+                $params->{piq_barcode_csv} = $csv_elems;
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
             }
             catch($e){
@@ -530,6 +547,7 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
     return;
 }
+
 ## use critic
 
 sub discard_barcode : Path( '/user/discard_barcode' ) : Args(0){
