@@ -25,7 +25,8 @@
     </tbody>
 </table>
 <div class="row">
-    <div id="key" class="col-md-3">
+    <form id="key" class="col-md-6 well">
+        <i id="pan" class="pull-right glyphicon glyphicon-move"></i>
         <h5>Colour Key: </h5>
         <svg width="600" height="40">
             <g class="legend" transform="translate(0)">
@@ -58,5 +59,7 @@
             </g>
 
         </svg>
-    </div>
+    </form>
 </div>
+
+

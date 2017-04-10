@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.454';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.455';
 }
 ## use critic
 
@@ -101,16 +101,17 @@ sub point_mutation_frameshifts : Path( '/api/point_mutation_frameshifts' ) : Arg
 
 sub point_mutation_frameshifts_GET {
     my ( $self, $c ) = @_;
-
     my $miseq = $c->request->param('miseq');
 
     my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->id;
     my $miseq_wells = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->search({ 'miseq_plate_id' => $miseq_id });#->search_related('miseq_well',{ 'miseq_plate_id' => $miseq_id });
     my $summary;
     while (my $well = $miseq_wells->next) {
-        my $exp = $well->search_related('miseq_project_well_exps',{ frameshifted => 't' })->first;
+        my $exp = $well->search_related('miseq_project_well_exps',{ frameshifted => 't' });
         if ($exp) {
-            push (@{$summary->{$exp->experiment}}, $well->illumina_index);
+            while (my $current_exp = $exp->next) {
+                push (@{$summary->{$current_exp->experiment}}, $well->illumina_index);
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.454';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.455';
 }
 ## use critic
 
@@ -76,12 +76,17 @@ sub experiment_384_distribution {
 
     foreach my $exp (keys %$range_summary) {
         my $value = $range_summary->{$exp};
-        my @ranges = split(/-/,$value);
-        my @mods = map {floor(($_ - 1) / 96)} @ranges;
-        $quadrants->{$exp} = {
-            'first' => $mods[0],
-            'last'  => $mods[1],
-        };
+
+        my @ranges = split(/\|/,$value);
+        foreach my $range (@ranges) {
+            my @pos = split(/-/, $range);
+            my @mods = map {floor(($_ - 1) / 96)} @pos;
+            my $region = {
+                'first' => $mods[0],
+                'last'  => $mods[1],
+            };
+            push(@{$quadrants->{$exp}}, $region);
+        }
     }
 
     return $quadrants;
