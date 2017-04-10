@@ -504,7 +504,6 @@ sub freeze_back : Path( '/user/freeze_back' ) : Args(0){
 
         $c->model('Golgi')->txn_do( sub {
             try{
-                my @barcode_values;
                 my $params = $c->request->parameters;
                 $params->{piq_barcode_csv} = $csv_elems;
                 $messages = add_barcodes_to_wells( $c->model('Golgi'), $params, 'checked_out' );
