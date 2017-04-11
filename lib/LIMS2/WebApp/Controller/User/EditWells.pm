@@ -4,7 +4,7 @@ use Moose;
 use Data::Dump 'pp';
 use Try::Tiny;
 use Const::Fast;
-use Smart::Comments;
+use Text::CSV;
 use LIMS2::Model::Constants qw( %PROCESS_PLATE_TYPES %PROCESS_SPECIFIC_FIELDS );
 use namespace::autoclean;
 use LIMS2::Model::Util::AddWellToPlate qw( add_well_create_well get_well );
@@ -44,37 +44,40 @@ sub add_well_csv {
     my $csv = $c->request->upload('csv_upload');
     my @ids;
     my $result;
+    my $csv_h = Text::CSV->new();
+    my $file_h;
 
-    my $data = $csv->fh;
+    open $file_h, "<:encoding(utf8)", $csv->tempname or die;
 
-    while (my $line = <$data>) {
-        chomp $line;
+    $csv_h->column_names( @{ $csv_h->getline( $file_h ) } );
 
-        my @values = split(",", $line);
+    my @columns_array = $csv_h->column_names;
+    my %columns = map { $_ => 1 } @columns_array;
 
-        my $params = {
-            parent_plate    => $values[0],
-            parent_well     => $values[1],
-            target_plate    => $values[2],
-            template_well   => $values[3],
-            target_well     => $values[4],
-            user            => $c->user->name,
-        };
+    unless (exists($columns{'template_well'}) && exists($columns{'parent_well'}) && exists($columns{'target_well'})) {
+        $c->stash->{error_msg} = 'Invalid file. The file must be a csv containing the headers "template_well", "target_well" and "parent_well".';
+        return;
+    }
+    while ( my $data = $csv_h->getline_hr( $file_h ) ) {
+        $c->log->debug( 'Creating well data for: ' . $data->{target_plate} . ' ' . $data->{target_well} );
 
-        unless ($values[0] =~ m/^[parent]+(\s|_)[plate]+/gxmsi) {
-            $result = $self->_create_well($c, $params);
 
-            unless ($result->{success} == 1) {
-                $c->stash( $result->{stash} );
-                return;
-            }
-            else {
-                push @ids, $result->{well_id};
-            }
+        my $params = $data;
+
+        $params->{user} = $c->user->name;
+
+        $result = $self->_create_well($c, $params);
+
+        unless ($result->{success} == 1) {
+            $c->stash( $result->{stash} );
+            return;
+        }
+        else {
+            push @ids, $result->{well_id};
         }
     }
 
-    close $data;
+    close $file_h;
     my $created_ids = join(', ', @ids);
 
     $c->flash( success_msg => "Successfully created wells: " . $created_ids );
@@ -139,11 +142,15 @@ sub _create_well {
     };
 
     $params->{process_data} = $process_data_ref;
-    my $created_well = add_well_create_well( $c->model('Golgi'), $params);
+    try {
+        my $created_well = add_well_create_well( $c->model('Golgi'), $params);
 
-    $result->{well_id} = $created_well->id;
-    $result->{success} = 1;
-
+        $result->{well_id} = $created_well->id;
+        $result->{success} = 1;
+    }
+    catch {
+        $result->{stash}->{error_msg} = "Error creating well: \n\n$_";
+    };
     return $result;
 
 }

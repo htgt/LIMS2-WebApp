@@ -2,7 +2,6 @@ package LIMS2::Model::Util::AddWellToPlate;
 
 use strict;
 use warnings FATAL => 'all';
-use Smart::Comments;
 use Try::Tiny;
 
 use Sub::Exporter -setup => {
