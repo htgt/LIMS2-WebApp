@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProject::VERSION = '0.453';
+    $LIMS2::Model::Schema::Result::MiseqProject::VERSION = '0.456';
 }
 ## use critic
 
@@ -154,6 +154,7 @@ sub as_hash {
         id      => $self->id,
         name    => $self->name,
         date    => $self->creation_date->datetime,
+        384     => $self->is_384,
     );
 
     return \%h;

@@ -1,4 +1,4 @@
-<table id='grid-basic' class="table table-condensed table-hover">
+<table id="grid-basic" class="table table-condensed table-hover">
     <thead>
         <tr>
             <th></th>
@@ -12,11 +12,11 @@
         </tr>
     </thead>
     <tbody>
-        [% SET base = 0 %]
-        [% FOREACH letter IN [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', ] %]
+        [% SET base = 0 + page %]
+        [% FOREACH letter IN [ "A", "B", "C", "D", "E", "F", "G", "H", ] %]
             <tr id="[% letter %]">
                 <th id="[% letter %]-H">[% letter %]</th>
-            [% FOREACH cell IN [ '01', '09', '17', '25', '33', '41', '49', '57', '65', '73', '81', '89' ] %]
+            [% FOREACH cell IN [ "01", "09", "17", "25", "33", "41", "49", "57", "65", "73", "81", "89" ] %]
                 <td id="[% base + cell %]" class="svgContainer"></td>
             [% END %]
             </tr>
@@ -25,7 +25,8 @@
     </tbody>
 </table>
 <div class="row">
-    <div id="key" class="col-md-3">
+    <form id="key" class="col-md-6 well">
+        <i id="pan" class="pull-right glyphicon glyphicon-move"></i>
         <h5>Colour Key: </h5>
         <svg width="600" height="40">
             <g class="legend" transform="translate(0)">
@@ -58,5 +59,7 @@
             </g>
 
         </svg>
-    </div>
+    </form>
 </div>
+
+

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqClassification;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqClassification::VERSION = '0.453';
+    $LIMS2::Model::Schema::Result::MiseqClassification::VERSION = '0.456';
 }
 ## use critic
 
