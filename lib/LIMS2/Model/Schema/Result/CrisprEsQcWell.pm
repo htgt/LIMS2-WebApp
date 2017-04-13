@@ -625,8 +625,8 @@ sub get_localised_pair_coords {
     my ( $self, $json ) = @_;
 
     my $data = {
-        pair_start => $self->crispr_start - $json->{target_sequence_start},
-        pair_end   => $json->{target_sequence_end} - $self->crispr_end,
+        pair_start => $json->{target_sequence_start} ? $self->crispr_start - $json->{target_sequence_start} : $self->crispr_start,
+        pair_end   => $json->{target_sequence_end} ? $json->{target_sequence_end} - $self->crispr_end : $self->crispr_end,
         pair_size  => ($self->crispr_end - $self->crispr_start) + 1,
     };
 
