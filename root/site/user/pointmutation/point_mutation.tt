@@ -584,7 +584,12 @@ function calculateEfficiency(target) {
     if (target != 'All') {
         data = efficiencies.summary[target];
     } else {
-        data = efficiencies.summary.all;
+        var gene = document.getElementById('geneSelect').value;
+        if (gene != 'All') {
+            data = efficiencies.summary[gene];
+        } else {
+            data = efficiencies.summary.all;
+        }
     }
     if (data) { 
         var targetPercentage = data.nhej / data.total;
