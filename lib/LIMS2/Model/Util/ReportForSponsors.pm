@@ -349,9 +349,10 @@ sub generate_top_level_report_for_sponsors {
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
     # build information for report
-    my $columns = $self->build_columns;
-    my $data    = $self->sponsor_data;
-    my $title   = $self->build_page_title;
+    my $columns   = $self->build_columns;
+    my $data      = $self->sponsor_data;
+    my $title     = $self->build_page_title;
+    my $title_ii  = $self->build_page_title('II');
 
     my $rows;
     if ( $self->targeting_type eq 'single_targeted' ) {
@@ -370,6 +371,7 @@ sub generate_top_level_report_for_sponsors {
     my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
+        'title_ii'       => $title_ii,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
@@ -380,12 +382,13 @@ sub generate_top_level_report_for_sponsors {
 
 sub build_page_title {
     my $self = shift;
+    my $strategy = shift || 'I';
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
     my $dt = DateTime->now();
 
-    return 'Pipeline Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
+    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
 };
 
 # columns relate to project sponsors
@@ -910,6 +913,8 @@ sub genes {
 
         my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
         my $sponsors_str = join  ( ';', @sponsors_abbr );
+
+        next if ((scalar @sponsors_abbr == 1) && ($sponsors_abbr[0] eq 'DDD') && ($sponsor_id ne 'Decipher'));
 
         my ($priority, $recovery_class, $effort_concluded);
         try {
@@ -2461,6 +2466,8 @@ SQL_END
 sub create_sql_count_genes_for_a_sponsor {
     my ( $self, $sponsor_id, $targeting_type, $species_id ) = @_;
 
+    my $strategy = ($sponsor_id eq 'Decipher' || $sponsor_id eq 'All') ? 'Pipeline II' : 'Pipeline I';
+
 my $sql_query =  <<"SQL_END";
 SELECT ps.sponsor_id, count(distinct(gene_id)) AS genes
 FROM projects p, project_sponsors ps
@@ -2468,10 +2475,27 @@ WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
+AND p.strategy_id = '$strategy'
 GROUP BY ps.sponsor_id
 SQL_END
 
-    return $sql_query;
+my $sql_query_all =  <<"SQL_END";
+WITH temp as (
+select id, gene_id from projects where strategy_id = '$strategy'
+)
+SELECT ps.sponsor_id, count(distinct(gene_id)) AS genes
+FROM projects p, project_sponsors ps
+WHERE ps.sponsor_id = '$sponsor_id'
+AND ps.project_id = p.id
+AND p.targeting_type = '$targeting_type'
+AND p.species_id = '$species_id'
+AND p.gene_id not in (
+select gene_id from temp where
+(select count(*) from project_sponsors where project_id = id) = 2)
+GROUP BY ps.sponsor_id
+SQL_END
+
+    return ($sponsor_id eq "All") ? $sql_query_all : $sql_query;
 }
 
 # SQL to select targeted genes for a specific sponsor and targeting type
