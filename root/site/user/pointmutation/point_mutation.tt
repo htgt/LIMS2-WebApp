@@ -48,6 +48,15 @@
 body { 
     padding-bottom: 70px; 
 }
+
+.btn-danger {
+    margin-top: 5px;
+}
+
+.btn-primary {
+    margin-top: 2px;
+}
+
 </style>
 
 <div class="page-header">
@@ -55,16 +64,15 @@ body {
 </div>
 
 <div class="row">
-    [% IF large_plate == 1 %]
-        <div class="col-md-1" id="quadBack" hidden>
-            <button class="btn btn-primary">
-                <i class="glyphicon glyphicon-arrow-left"></i>
-            </button>
-        </div>
-    [% END %]
-
     <div class="col-md-1">
         <label class="lb-md">Gene: </label>
+        [% IF large_plate == 1 %]
+            <div id="quadBack" hidden>
+                <button class="btn btn-primary">
+                    <i class="glyphicon glyphicon-arrow-left"></i>
+                </button>
+            </div>
+        [% END %]
     </div>
     <div class="col-md-2">
         <select class="form-control" align="center" id="geneSelect">
@@ -73,10 +81,22 @@ body {
                 <option value="[% gene %]">[% gene %]</option>
             [% END %]
         </select>
+        [% IF large_plate == 1 %]
+            <div class="col-md-1">
+                <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+            </div>
+        [% END %]
     </div>
-    <div class="col-md-2">
-        <label class="lb-md">Experiment: </label>
-    </div>
+
+    [% IF large_plate == 1 %]
+        <div class="col-md-1">
+            <label class="lb-md">Exp: </label>
+        </div>
+    [% ELSE %]
+        <div class="col-md-2">
+            <label class="lb-md">Experiment: </label>
+        </div>
+    [% END %]
     <div class="col-md-2">
         <select class="form-control" align="center" id="expSelect">
             <option value="All" selected="selected">All</option>
@@ -88,9 +108,24 @@ body {
             <label class="lb-xs"><input type="checkbox" id="filterReads" value="" checked>Read Counts > 1000</label>
         </div>
     </div>
-    <div class="col-md-1">
-        <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
-    </div>
+    [% IF large_plate == 1 %]
+        <div class="col-md-1">
+            <label class="lb-md">Plate: </label>
+        </div>
+        <div class="col-md-2">
+            <select class="form-control" align="center" id="quadSelect">
+                <option value="All" selected="selected">All</option>
+                <option class="quadOpt" value="firstQuad">1-96</option>
+                <option class="quadOpt" value="secondQuad">97-192</option>
+                <option class="quadOpt" value="thirdQuad">193-288</option>
+                <option class="quadOpt" value="fourthQuad">289-384</option>
+            </select>
+        </div>
+    [% ELSE %]
+        <div class="col-md-1">
+            <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+        </div>
+    [% END %]
     <div class="col-md-3">
         <label class="col-md-4 lb-sm">Targeting Efficiency: </label>
         <div class="col-md-6" id="targetingEfficiency">
@@ -311,30 +346,75 @@ $('#expSelect').change(function() {
     }
 });
 
+$('#quadSelect').change(function(){
+    var quad = $('#quadSelect').val();
+    if (quad == 'All') {
+        buildOverview();
+    } else {
+        buildQuadrant(quad);
+    }
+});
+
 $('#filterReads').change(function() {
     highlightSelection();
 });
 
 $('#pageFocus').on('click','rect.quad' , function() {
-    var con;
-    switch (this.id) {
+    buildQuadrant(this.id);
+    $('#quadSelect').val(this.id);
+});
+
+$('#quadBack').on('click', function() {
+    buildOverview();
+    $('#quadSelect').val('All');
+});
+
+function clearSelection() {
+    $("#expSelect").children('option').show().prop('disabled', false);
+    $("#geneSelect").children('option').show().prop('disabled', false);
+    $('select').each(function() { this.selectedIndex = 0 });
+
+    if (quadrants != null) {
+        buildOverview();
+        highlightQuad();
+    } else {
+        highlightSelection();
+    }
+    /*
+    if ($('#pageFocus').find('.quad').length != 0) {
+        highlightQuad();
+    } else {
+        highlightSelection();
+    }
+    */
+}
+
+$(window).resize(function() {
+    highlightSelection('All');
+    resize();
+    highlightSelection();
+});
+
+function buildQuadrant(quad) {
+    var construct;
+    switch (quad) {
         case "firstQuad":
-            con = `[% INCLUDE "miseq_overview_table.tt" page = 0 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 %]`;
             break;
         case "secondQuad":
-            con = `[% INCLUDE "miseq_overview_table.tt" page = 96 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 %]`;
             break;
         case "thirdQuad":
-            con = `[% INCLUDE "miseq_overview_table.tt" page = 192 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 %]`;
             break;
         case "fourthQuad":
-            con = `[% INCLUDE "miseq_overview_table.tt" page = 288 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 %]`;
             break;
         default:
             console.log("outside of plate limits..");
     }
     //Not ideal but unable to transfer js var into tt
-    $('#pageFocus').html(con);
+    $('#pageFocus').html(construct);
     createRings();
     buildExps();
     prevExp = "";
@@ -345,32 +425,15 @@ $('#pageFocus').on('click','rect.quad' , function() {
     $("#key").css('boxShadow','0px 0px 1px 1px grey');
     $("#key").css('z-index', '100');
     $('#quadBack').show();
-});
 
-$('#quadBack').on('click', function() {
+}
+
+function buildOverview() {
     var quads = `[% INCLUDE "miseq_quadrant_table.tt" %]`;
     $('#pageFocus').html(quads);
     highlightQuad();
     $('#quadBack').hide();
-});
-
-function clearSelection() {
-    $("#expSelect").children('option').show().prop('disabled', false);
-    $("#geneSelect").children('option').show().prop('disabled', false);
-    $('select').each(function() { this.selectedIndex = 0 });
-
-    if ($('#pageFocus').find('.quad').length != 0) {
-        highlightQuad();
-    } else {
-        highlightSelection();
-    }
 }
-
-$(window).resize(function() {
-    highlightSelection('All');
-    resize();
-    highlightSelection();
-});
 
 function resize() {
     windowDims();
