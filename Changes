@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.456     2017-04-24 09:57:03 Europe/London
+    Miseq - UI changes
 0.456     2017-04-13 15:51:33 Europe/London
 
     ancestor_piq accepted flag updated on crispr_qc validation
