@@ -7,6 +7,11 @@ use TryCatch;
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 with qw( LIMS2::ReportGenerator::ColonyCounts );
 
+has bypass_oligo_assembly => (
+    is         => 'ro',
+    required => 0,
+);
+
 override plate_types => sub {
     return [ 'CRISPR_EP' ];
 };
@@ -14,13 +19,16 @@ override plate_types => sub {
 override _build_name => sub {
     my $self = shift;
 
-    return 'Crispr Electroporation Plate ' . $self->plate_name;
+    return $self->bypass_oligo_assembly ? 'Crispr Protein Electroporation Plate ' . $self->plate_name : 'Crispr Electroporation Plate ' . $self->plate_name;
 };
 
 override _build_columns => sub {
     my $self = shift;
 
-    return [
+    return $self->bypass_oligo_assembly ? [
+        'Well ID', 'Well Name', 'Design ID', 'Design Type', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
+        $self->colony_count_column_names
+    ] : [
         'Well ID', 'Well Name', 'Design ID', 'Design Type', 'Gene ID', 'Gene Symbol', 'Gene Sponsors', 'Genbank File',
         'Cassette', 'Cassette Resistance', 'Cassette Type', 'Backbone', 'Nuclease', 'Cell Line',
         $self->colony_count_column_names,
@@ -56,7 +64,17 @@ override iterator => sub {
         my @crispr_wells = map { $_->{plate_name} . '[' . $_->{well_name} . ']' }
             @{ $well_data->{crispr_wells}{crisprs} };
 
-        my @data = (
+        my @data = $self->bypass_oligo_assembly ? (
+            $well_data->{well_id},
+            $well_data->{well_name},
+            $well_data->{design_id},
+            $well_data->{design_type},
+            $well_data->{gene_ids},
+            $well_data->{gene_symbols},
+            $well_data->{sponsors},
+            $self->well_eng_seq_link( $well_data ),
+            $self->colony_counts( $well )
+        ) : (
             $well_data->{well_id},
             $well_data->{well_name},
             $well_data->{design_id},
