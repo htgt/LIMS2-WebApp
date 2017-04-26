@@ -105,14 +105,14 @@
 <br />
 <h3>[%- title_ii %]</h3>
 
-<table class="table table-striped table-bordered" style="table-layout:fixed">
+<table class="table table-striped table-bordered" style="table-layout:fixed;">
   <thead>
     <tr>
       [%- FOR col IN columns %]
         [%- IF col == "Stage" %]
            <th style="width:240px">[%- col %]</th>
         [%- ELSIF col == "Decipher" %]
-           <th>[%- col %]</th>
+           <th style="width:240px">[%- col %]</th>
         [%- END %]
       [%- END %]
     </tr>
@@ -131,7 +131,7 @@
         [%- IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
         <td style="border-top: 1px solid">
         [%- ELSE %]
-        <td>
+        <td style="width:240px">
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
@@ -157,7 +157,10 @@
   </tbody>
 </table>
 
+<br />
 <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
+<p>* <b>Pipeline I</b> corresponds to Eurofins sequencing.</p>
+<p>* <b>Pipeline II</b> corresponds to MiSeq sequencing.</p>
 </div>
 [%- ELSE %]
 <div>
