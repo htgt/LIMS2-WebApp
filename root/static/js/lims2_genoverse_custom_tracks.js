@@ -37,9 +37,43 @@ Genoverse.Track.Controller.DesignsLIMS2 = Genoverse.Track.Controller.extend({
   }
 });
 
+Genoverse.Track.View.DesignsLIMS2 = Genoverse.Track.View.Transcript.extend({
+  color : "#FFFFFF",
+
+  drawFeature: function (feature, featureContext, labelContext, scale) {
+    this.base.apply(this,arguments);
+
+    var cds = feature.cds;
+    var add = Math.max(scale, this.widthCorrection);
+
+    for (var i = 0; i < cds.length; i++) {
+      x = feature.x + (cds[i].start - feature.start) * scale;
+      w = Math.max((cds[i].end - cds[i].start) * scale + add, this.minScaledWidth);
+
+      if (x > this.width || x + w < 0) {
+        continue;
+      }
+
+      featureContext.fillStyle = cds[i].color;
+      featureContext.fillRect(x, feature.y, w, feature.height);
+    }
+
+  },
+  drawIntron: function (intron, context) {
+        // We have set default view color to white as we do not want lines
+        // around each crispr but we need to set strokeStlye to black to
+        // draw the line connecting the paired crisprs
+        var orig_strokeStyle = context.strokeStyle;
+        context.strokeStyle = '#000000';
+        this.base.apply(this, arguments);
+        context.strokeStyle = orig_strokeStyle;
+    }
+});
+
+
 Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
   model     : Genoverse.Track.Model.Transcript.GFF3,
-  view      : Genoverse.Track.View.Transcript,
+  view      : Genoverse.Track.View.DesignsLIMS2,
   controller : Genoverse.Track.Controller.DesignsLIMS2,
   name_suffix : " oligo",
   populateMenu : function (f) {
@@ -49,6 +83,7 @@ Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
     var link = "<a href='" + this.track.design_report_uri + "?design_id=" + id
                 + "' target='_blank'><font color='#00FFFF'>Design View</font></a>";
 
+    console.log(feature);
     var atts;
     console.log("LIMS2 genoverse custom tracks");
     if(feature.oligo_name){
@@ -75,8 +110,77 @@ Genoverse.Track.DesignsLIMS2 = Genoverse.Track.extend({
   }
 });
 
+Genoverse.Track.View.CrisprsLIMS2 = Genoverse.Track.View.Transcript.extend({
+    color : '#FFFFFF',
+
+    drawFeature: function (feature, featureContext, labelContext, scale) {
+        // Fade color of feature with off-target summary that does not match profile
+        if(feature.ot_summary){
+            var ot_summary = feature.ot_summary;
+            // Quote keys in JSON string
+            var new_ot_summary = _quoteJSONKeys(ot_summary);
+            var off_targets = jQuery.parseJSON(new_ot_summary);
+            var ot_profile = this.track.ot_profile || {};
+            if( fitsOTProfile(off_targets,ot_profile) ){
+                //restoreCDS(feature.cds);
+                this.base.apply(this, arguments);
+
+                var cds = feature.cds;
+                var add = Math.max(scale, this.widthCorrection);
+
+                for (var i = 0; i < cds.length; i++) {
+                  x = feature.x + (cds[i].start - feature.start) * scale;
+                  w = Math.max((cds[i].end - cds[i].start) * scale + add, this.minScaledWidth);
+
+                  if (x > this.width || x + w < 0) {
+                    continue;
+                  }
+
+                  featureContext.fillStyle = cds[i].color;
+                  featureContext.fillRect(x, feature.y, w, feature.height);
+                }
+
+                if(feature.name == this.track.crispr_id){
+                    highlight_feature(feature,featureContext,scale);
+                }
+            }
+            else{
+                // don't draw
+                //fadeCDS(feature.cds);
+                //this.base.apply(this, arguments);
+            }
+        }
+        else{
+            // Lack of off-target summary already indicated by grey feature color
+            this.base.apply(this, arguments);
+
+            var cds = feature.cds;
+            var add = Math.max(scale, this.widthCorrection);
+
+            for (var i = 0; i < cds.length; i++) {
+              x = feature.x + (cds[i].start - feature.start) * scale;
+              w = Math.max((cds[i].end - cds[i].start) * scale + add, this.minScaledWidth);
+
+              if (x > this.width || x + w < 0) {
+                continue;
+              }
+
+              featureContext.fillStyle = cds[i].color;
+              featureContext.fillRect(x, feature.y, w, feature.height);
+            }
+
+
+            if(feature.name == this.track.crispr_id){
+                highlight_feature(feature,featureContext,scale);
+            }
+        }
+    }
+});
+
+
 Genoverse.Track.Crisprs.LIMS2 = Genoverse.Track.Crisprs.extend({
   threshold    : 10000,
+  view         : Genoverse.Track.View.CrisprsLIMS2,
   // override populate menu as we need some LIMS2 specific content
   populateMenu : function (f) {
     // get up to date feature object
@@ -100,8 +204,97 @@ Genoverse.Track.Crisprs.LIMS2 = Genoverse.Track.Crisprs.extend({
   }
 });
 
+
+Genoverse.Track.View.CrisprPairsLIMS2 = Genoverse.Track.View.Transcript.extend({
+    color : '#FFFFFF',
+    drawFeature: function (feature, featureContext, labelContext, scale) {
+        // only draw the pair if its spacer is within the specified range
+        var min = this.track.spacer_min;
+        var max = this.track.spacer_max;
+        if(min !== undefined || max !== undefined){
+            if(min === undefined){ min = -10; }
+            if(max === undefined){ max = 30; }
+            if((feature.spacer <= max) && (feature.spacer >= min)){
+                // carry on to off target check
+            }
+            else{
+                // don't draw
+                return;
+            }
+        }
+        else{
+            // skip spacer length check
+        }
+
+        // Fade color of feature with off-target summary that does not match profile
+        var left_right = ['left_ot_summary','right_ot_summary'];
+        var ot_profile = this.track.ot_profile || {};
+        var fits_profile = left_right.map(function (summary_type){
+            var summary_string = feature[summary_type];
+            if(summary_string && summary_string != "not computed"){
+                var summary_json = _quoteJSONKeys(summary_string);
+                var off_targets = jQuery.parseJSON(summary_json);
+                if( fitsOTProfile(off_targets,ot_profile) ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            else{
+                // ot summary not availble
+                return undefined;
+            }
+        });
+        // If either left or right does not match ot_profile fade the colors
+        if(fits_profile[0] == 0 || fits_profile[1] == 0){
+            // don't draw
+            //fadeCDS(feature.cds);
+            //this.base.apply(this,arguments);
+        }
+        else{
+            // Both match profile or 1 matches profile and 1 has no ots computed
+            // or both have no ots computed
+            // Lack of off-target summary already indicated by grey color
+            //restoreCDS(feature.cds);
+            this.base.apply(this,arguments);
+
+            var cds = feature.cds;
+            var add = Math.max(scale, this.widthCorrection);
+
+            for (var i = 0; i < cds.length; i++) {
+              x = feature.x + (cds[i].start - feature.start) * scale;
+              w = Math.max((cds[i].end - cds[i].start) * scale + add, this.minScaledWidth);
+
+              if (x > this.width || x + w < 0) {
+                continue;
+              }
+
+              featureContext.fillStyle = cds[i].color;
+              featureContext.fillRect(x, feature.y, w, feature.height);
+            }
+
+            if(feature.name == this.track.crispr_pair_id){
+                highlight_feature(feature,featureContext,scale);
+            }
+        }
+    },
+
+    drawIntron: function (intron, context) {
+        // We have set default view color to white as we do not want lines
+        // around each crispr but we need to set strokeStlye to black to
+        // draw the line connecting the paired crisprs
+        var orig_strokeStyle = context.strokeStyle;
+        context.strokeStyle = '#000000';
+        this.base.apply(this, arguments);
+        context.strokeStyle = orig_strokeStyle;
+    }
+});
+
+
 Genoverse.Track.CrisprPairs.LIMS2 = Genoverse.Track.CrisprPairs.extend({
     threshold    : 10000,
+    view         : Genoverse.Track.View.CrisprPairsLIMS2,
     populateMenu : function (f) {
         // get up to date feature object
         var feature = this.track.model.featuresById[f.id];
@@ -120,6 +313,7 @@ Genoverse.Track.CrisprPairs.LIMS2 = Genoverse.Track.CrisprPairs.extend({
         return atts;
     }
 });
+
 
 Genoverse.Track.CrisprGroupsLIMS2 = Genoverse.Track.CrisprPairs.extend({
     threshold    : 10000,

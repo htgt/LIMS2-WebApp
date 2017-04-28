@@ -40,7 +40,7 @@
     ================================================== -->
     <script type="text/javascript">
     $(document).ready(function() {
-        // click display type button
+        /* click display type button */
         $("#display_type_default, #display_type_wide").click(function(e) {
             var element = $(this);
             var display_type = element.attr('data-display-type');

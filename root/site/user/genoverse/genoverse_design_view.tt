@@ -37,15 +37,15 @@ var generic_designs_params = [
 </script>
 
 
-    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
-    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 2} )%]"></script>
-    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 5})%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.nojquery.js')%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js')%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js')%]"></script>
     <script>
       var genoverseConfig = {
         container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
         // If no genome supplied, it must have at least chromosomeSize, e.g.:
         // chromosomeSize : 249250621, // chromosome 1, human
-        width: $( document ).width(),
+        width: 1060,
         [% USE String(extent.assembly) %]
         genome    : '[% String.lower() %]', // see js/genomes/
         chr       : '[% extent.chr_name %]',
@@ -74,6 +74,7 @@ var generic_designs_params = [
           Genoverse.Track.CrisprPairs.LIMS2.extend({
             name      : 'Crispr_pairs',
             url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
+            view      : Genoverse.Track.View.CrisprPairsLIMS2,
             resizable : 'auto',
             height    : 150,
             pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
@@ -88,6 +89,7 @@ var generic_designs_params = [
           Genoverse.Track.Crisprs.LIMS2.extend({
             name      : 'Crisprs',
             url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
+            view      :  Genoverse.Track.View.CrisprsLIMS2,
             resizable : 'auto',
             height    : 150,
             crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
@@ -104,7 +106,7 @@ var generic_designs_params = [
         ]
       };
 
-      document.addEventListener('DOMContentLoaded', function () {
+      $(function () {
         window.genoverse = new Genoverse(genoverseConfig);
         // From WebApp-Common/shared_static
         [% INCLUDE 'genoverse_mods/selector_size_display.tt' %]
