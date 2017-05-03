@@ -7,6 +7,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::GenesForSponsor;
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -126,18 +127,15 @@ sub _build_sponsor_column_data {
     DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
     # select how many genes this sponsor is targeting
-    my $sponsor_gene_counts = $self->select_sponsor_genes( $sponsor_id );
+    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({model => $self->model, targeting_type => $self->targeting_type, species_id => $self->species});
+    my $sponsor_gene_counts = $sponsor_genes_instance->get_sponsor_genes($sponsor_id);
 
-    # NB sponsor may have both single and double targeted projects
-    foreach my $sponsor_genes ( @$sponsor_gene_counts ) {
+    my $number_genes = $sponsor_gene_counts->{ genes };
 
-        my $number_genes = $sponsor_genes->{ genes };
+    DEBUG "number genes = ".$number_genes;
 
-        DEBUG "number genes = ".$number_genes;
-
-        if ( $number_genes > 0 ) {
-            $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
-        }
+    if ( $number_genes > 0 ) {
+        $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
     }
 
     return;
@@ -1263,6 +1261,7 @@ sub genes {
             'EP_cell_line'           => $toggle,
             'experiment_ID'          => $toggle,
             'requester'              => $toggle,
+
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
@@ -2466,8 +2465,6 @@ SQL_END
 sub create_sql_count_genes_for_a_sponsor {
     my ( $self, $sponsor_id, $targeting_type, $species_id ) = @_;
 
-    my $strategy = ($sponsor_id eq 'Decipher' || $sponsor_id eq 'All') ? 'Pipeline II' : 'Pipeline I';
-
 my $sql_query =  <<"SQL_END";
 SELECT ps.sponsor_id, count(distinct(gene_id)) AS genes
 FROM projects p, project_sponsors ps
@@ -2475,27 +2472,10 @@ WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
-AND p.strategy_id = '$strategy'
 GROUP BY ps.sponsor_id
 SQL_END
 
-my $sql_query_all =  <<"SQL_END";
-WITH temp as (
-select id, gene_id from projects where strategy_id = '$strategy'
-)
-SELECT ps.sponsor_id, count(distinct(gene_id)) AS genes
-FROM projects p, project_sponsors ps
-WHERE ps.sponsor_id = '$sponsor_id'
-AND ps.project_id = p.id
-AND p.targeting_type = '$targeting_type'
-AND p.species_id = '$species_id'
-AND p.gene_id not in (
-select gene_id from temp where
-(select count(*) from project_sponsors where project_id = id) = 2)
-GROUP BY ps.sponsor_id
-SQL_END
-
-    return ($sponsor_id eq "All") ? $sql_query_all : $sql_query;
+    return $sql_query;
 }
 
 # SQL to select targeted genes for a specific sponsor and targeting type
