@@ -18,10 +18,16 @@ has 'species_id' => (
     isa    =>   'Str'
 );
 
+has genes_and_sponsors => (
+    is         => 'ro',
+    isa        => 'HashRef',
+    lazy_build => 1,
+);
 
-sub BUILD {
+sub _build_genes_and_sponsors {
 
     my $self = shift;
+
     my $genes_and_sponsors;
     my $species_id = $self->species_id;
     my $targeting_type = $self->targeting_type;
@@ -45,8 +51,10 @@ SQL_END
 
     ## create a map of gene id/sponsor list
     foreach my $record ( @$sql_result ) {
-        push @{$self->{genes_and_sponsors}->{$record->{gene_id}}}, $record->{sponsor_id};
+        push @{$genes_and_sponsors->{$record->{gene_id}}}, $record->{sponsor_id};
     }
+
+    return $genes_and_sponsors;
 }
 
 sub get_sponsor_genes {
@@ -56,8 +64,8 @@ sub get_sponsor_genes {
     my @intermediate_sponsor_genes;
 
     ## get genes that have this sponsor id included in their list of sponsors
-    foreach my $gene_id (keys %{$self->{genes_and_sponsors}}) {
-        my @temp_sponsors = @{$self->{genes_and_sponsors}->{$gene_id}};
+    foreach my $gene_id (keys %{$self->genes_and_sponsors}) {
+        my @temp_sponsors = @{$self->genes_and_sponsors->{$gene_id}};
         if (grep {$_ eq $sponsor_id} @temp_sponsors) {
             push @intermediate_sponsor_genes, $gene_id;
         }
@@ -77,8 +85,8 @@ sub get_sponsor_genes {
 sub get_ddd_genes_only {
     my $self = shift;
     my @ddd_genes;
-    foreach my $gene_id (keys %{$self->{genes_and_sponsors}}) {
-        my @gene_sponsors = @{$self->{genes_and_sponsors}->{$gene_id}};
+    foreach my $gene_id (keys %{$self->genes_and_sponsors}) {
+        my @gene_sponsors = @{$self->genes_and_sponsors->{$gene_id}};
 
         ## get DDD-only genes
         if (scalar @gene_sponsors == 1 && $gene_sponsors[0] eq 'Decipher') {
