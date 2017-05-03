@@ -83,6 +83,7 @@ sub get_sponsor_genes {
 
 sub get_ddd_genes_only {
     my $self = shift;
+
     my @ddd_genes;
     foreach my $gene_id (keys %{$self->genes_and_sponsors}) {
         my @gene_sponsors = @{$self->genes_and_sponsors->{$gene_id}};
