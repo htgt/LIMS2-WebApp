@@ -25,7 +25,6 @@ has genes_and_sponsors => (
 );
 
 sub _build_genes_and_sponsors {
-
     my $self = shift;
 
     my $genes_and_sponsors;
