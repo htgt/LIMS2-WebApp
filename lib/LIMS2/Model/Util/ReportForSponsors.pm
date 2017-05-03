@@ -7,6 +7,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::GenesForSponsor;
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -126,18 +127,15 @@ sub _build_sponsor_column_data {
     DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
     # select how many genes this sponsor is targeting
-    my $sponsor_gene_counts = $self->select_sponsor_genes( $sponsor_id );
+    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({model => $self->model, targeting_type => $self->targeting_type, species_id => $self->species});
+    my $sponsor_gene_counts = $sponsor_genes_instance->get_sponsor_genes($sponsor_id);
 
-    # NB sponsor may have both single and double targeted projects
-    foreach my $sponsor_genes ( @$sponsor_gene_counts ) {
+    my $number_genes = $sponsor_gene_counts->{ genes };
 
-        my $number_genes = $sponsor_genes->{ genes };
+    DEBUG "number genes = ".$number_genes;
 
-        DEBUG "number genes = ".$number_genes;
-
-        if ( $number_genes > 0 ) {
-            $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
-        }
+    if ( $number_genes > 0 ) {
+        $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
     }
 
     return;
@@ -349,9 +347,10 @@ sub generate_top_level_report_for_sponsors {
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
     # build information for report
-    my $columns = $self->build_columns;
-    my $data    = $self->sponsor_data;
-    my $title   = $self->build_page_title;
+    my $columns   = $self->build_columns;
+    my $data      = $self->sponsor_data;
+    my $title     = $self->build_page_title;
+    my $title_ii  = $self->build_page_title('II');
 
     my $rows;
     if ( $self->targeting_type eq 'single_targeted' ) {
@@ -370,6 +369,7 @@ sub generate_top_level_report_for_sponsors {
     my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
+        'title_ii'       => $title_ii,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
@@ -380,12 +380,13 @@ sub generate_top_level_report_for_sponsors {
 
 sub build_page_title {
     my $self = shift;
+    my $strategy = shift || 'I';
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
     my $dt = DateTime->now();
 
-    return 'Pipeline Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
+    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
 };
 
 # columns relate to project sponsors
@@ -911,6 +912,8 @@ sub genes {
         my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
         my $sponsors_str = join  ( ';', @sponsors_abbr );
 
+        next if ((scalar @sponsors_abbr == 1) && ($sponsors_abbr[0] eq 'DDD') && ($sponsor_id ne 'Decipher'));
+
         my ($priority, $recovery_class, $effort_concluded);
         try {
             my @priority_array = map { $_->priority($sponsor_id) } @gene_projects;
@@ -1258,6 +1261,7 @@ sub genes {
             'EP_cell_line'           => $toggle,
             'experiment_ID'          => $toggle,
             'requester'              => $toggle,
+
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,
