@@ -1,0 +1,5 @@
+id,seq,species_id,crispr_loci_type_id,comment,pam_right,wge_crispr_id,nonsense_crispr_original_crispr_id
+186034,CCATCGCTATCTGAGCAGCGCTC,Human,Exonic,1A,f,1143558099,
+186017,GATGGCCATGGCGCGGACGCGGG,Human,Exonic,29B,t,1143558112,
+225142,CCATCCGTCTCAGCGAACCCCTT,Human,Exonic,,f,923163778,
+225143,GCGAACCCCTTTTGAAGTTGAGG,Human,Exonic,,t,923163780,

@@ -1,0 +1,10 @@
+id,name,password,active,access_key,secret_key
+256,256@user.ac.uk,"",t,,
+255,255@users.ac.uk,"",t,,
+370,370@users.ac.uk,"",t,,
+270,270@users.ac.uk,"",t,,
+178,178@users.ac.uk,"",t,,
+413,413@users.ac.uk,"",t,,
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,t
+1082,unknown,,t
+7,7@users.ac.uk,"",t,,

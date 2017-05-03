@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProject::VERSION = '0.448';
+    $LIMS2::Model::Schema::Result::MiseqProject::VERSION = '0.458';
 }
 ## use critic
 
@@ -68,6 +68,12 @@ __PACKAGE__->table("miseq_projects");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 is_384
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -89,6 +95,8 @@ __PACKAGE__->add_columns(
   },
   "run_id",
   { data_type => "integer", is_nullable => 1 },
+  "is_384",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -104,6 +112,21 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.miseq_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 miseq_projects_well
 
@@ -121,8 +144,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-09 15:43:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UDn6eSHi9gZRXIe1djvmCg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KXpRo4+nprJ3E1IozT8uGw
 
 sub as_hash {
     my $self = shift;
@@ -131,6 +154,7 @@ sub as_hash {
         id      => $self->id,
         name    => $self->name,
         date    => $self->creation_date->datetime,
+        384     => $self->is_384,
     );
 
     return \%h;

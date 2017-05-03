@@ -16,7 +16,7 @@
 [% END %]
 
 <h2>Experiment Details</h2>
-<a href="[% c.uri_for('/user/genoverse_experiment_view', { id => experiment_id }) %]" class="btn btn-primary">View in Genoverse</a>
+<a href="[% c.uri_for('/user/genoverse_experiment_view', { id => experiment_id }) %]" class="btn btn-primary">View in Genoverse</a><br>
 <table class="table experiment">
   <tr>
     <th>Experiment ID</th>
@@ -117,8 +117,24 @@
     <td>[% crispr.seq %]</td>
   </tr>
   [% END %]
-
 </table>
+
+[% IF genotyping %]
+<h2>Genotyping Primers</h2>
+<table class="table genotyping">
+  <tr>
+    <th>Genotyping Type</th>
+    <th>Sequence</th>
+  </tr>
+  [% FOREACH geno IN genotyping %]
+  <tr>
+    <td>[% geno.type %]</td>
+    <td>[% geno.sequence %]</td>
+  </tr>
+  [% END %]
+</table>
+[% END %]
+
 [% END %]
 
 <script type="text/javascript">

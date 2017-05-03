@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprEsQcWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.448';
+    $LIMS2::Model::Schema::Result::CrisprEsQcWell::VERSION = '0.458';
 }
 ## use critic
 
@@ -631,8 +631,8 @@ sub get_localised_pair_coords {
     my ( $self, $json ) = @_;
 
     my $data = {
-        pair_start => $self->crispr_start - $json->{target_sequence_start},
-        pair_end   => $json->{target_sequence_end} - $self->crispr_end,
+        pair_start => $json->{target_sequence_start} ? $self->crispr_start - $json->{target_sequence_start} : $self->crispr_start,
+        pair_end   => $json->{target_sequence_end} ? $json->{target_sequence_end} - $self->crispr_end : $self->crispr_end,
         pair_size  => ($self->crispr_end - $self->crispr_start) + 1,
     };
 

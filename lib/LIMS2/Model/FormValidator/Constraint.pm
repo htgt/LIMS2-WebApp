@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.448';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.458';
 }
 ## use critic
 
@@ -180,6 +180,14 @@ sub existing_plate_id {
     return shift->existing_row( 'Plate', 'id' );
 }
 
+sub existing_message_id {
+    return shift->existing_row( 'Message', 'id' );
+}
+
+sub existing_priority {
+    return shift->existing_row( 'Priority', 'id' );
+}
+
 sub existing_qc_run_id {
     return shift->existing_row( 'QcRun', 'id' );
 }
@@ -284,6 +292,10 @@ sub existing_recovery_class {
     return shift->in_resultset( 'ProjectRecoveryClass', 'id' );
 }
 
+sub existing_strategy {
+    return shift->in_resultset( 'Strategy', 'id' );
+}
+
 sub existing_design_id {
     return shift->in_resultset( 'Design', 'id' );
 }
@@ -355,15 +367,19 @@ sub existing_miseq_plate {
 }
 
 sub illumina_index_range {
-    return shift->regexp_matches(qr/^[1-9]$|^[1-8][0-9]$|^9[0-6]$/);
+    return shift->regexp_matches(qr/^[1-9]$|^[1-9][0-9]$|^[1-2][0-9]{2}$|^3[0-7][0-9]|^38[0-4]$/);
 }
 
 sub existing_miseq_well {
     return shift->in_resultset( 'MiseqProjectWell', 'id' );
 }
 
-sub miseq_experiment {
-    return shift->regexp_matches(qr/^[A-Z]+$/);
+sub existing_miseq_well_exp {
+    return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
+}
+
+sub existing_miseq_experiment {
+    return shift->in_resultset( 'MiseqExperiment', 'id' );
 }
 
 sub existing_miseq_classification {

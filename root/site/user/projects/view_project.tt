@@ -39,6 +39,10 @@
     <td>[% project.cell_line %]</td>
   </tr>
   <tr>
+    <th>Strategy</th>
+    <td>[% project.strategy %]</td>
+  </tr>
+  <tr>
     <th>Targeting Type</th>
     <td>[% project.targeting_type %]</td>
   </tr>
@@ -425,13 +429,13 @@ $("input[name='crispr_group_id']").autocomplete({
 
 function addRequester() {
     console.log("Reached");
- 
+
     var input = document.createElement('input');
     input.className += " form-control newReq";
     input.id = "newRequest";
     input.name = "newRequest";
     input.placeholder = "e.g. example@sanger.ac.uk";
-    
+
     $('#requestContainer').html("");
 
     var div = document.getElementById('requestContainer');

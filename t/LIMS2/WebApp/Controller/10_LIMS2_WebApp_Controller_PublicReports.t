@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# 10_LIMS2_WebApp_Controller_PublicReports.t
 
 use strict;
 use warnings FATAL => 'all';
@@ -12,15 +13,21 @@ use FindBin qw($Bin);
 use lib "$Bin/../../../lib";
 
 use Test::Class;
-use LIMS2::t::Model::Util::AnnouncementAdmin;
+use LIMS2::t::WebApp::Controller::PublicReports;
 
 =head1 NAME
 
-10_LIMS2_Model_Util_Crisprs.t - Test file for testing the perl module 'LIMS2::Model::Util::AnnouncementAdmin'
+10_LIMS2_WebApp_Controller_PublicReports.t - Test file for testing the perl module 'LIMS2::WebApp::Controller::PublicReports'
 
 =head1 DESCRIPTION
 
 Test module structured for running under Test::Class
+
+=head1 AUTHOR
+
+Joshua T. Kent
+based on work done by
+Lars G. Erlandsen
 
 =cut
 

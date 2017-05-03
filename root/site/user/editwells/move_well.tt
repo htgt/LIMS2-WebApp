@@ -1,0 +1,98 @@
+[%- META title = 'Move Well' %]
+<head>
+
+    <title>Move Well</title>
+
+    <style type="text/css">
+        .container {
+        width: 800px;
+        clear: both;
+        }
+        .container input {
+          width: 100%;
+          clear: both;
+        }
+    </style>
+    <script type="text/javascript">
+
+        $(document).ready(function(){
+
+            var available_indexes = [0];
+            var stages_complete = [% stages_complete %];
+
+            var myHidden = $("#stages_complete");
+            myHidden.value = stages_complete;
+
+            $('#move_well_to_existing_plate_form').accordion({
+                header: "h3",
+                beforeActivate: function(event, ui) {
+                    var newIndex = $(ui.newHeader).index('h3');
+                    if (jQuery.inArray(newIndex, available_indexes) == -1) {
+                        var oldIndex = $(ui.oldHeader).index('h3');
+                        $(this).accordion( "activate" , oldIndex );
+                    }
+                }
+            });
+
+            if (stages_complete == 1) {
+                if (jQuery.inArray(1, available_indexes) == -1) {
+                    available_indexes.push(1);
+                    $("#move_well_to_existing_plate_form").accordion('option', 'active', 1);
+                    $("#destination_plate").prop('required',true);
+                }
+            }
+            if (stages_complete == 2) {
+                if (jQuery.inArray(2, available_indexes) == -1) {
+                    available_indexes.push(2);
+                    $("#move_well_to_existing_plate_form").accordion('option', 'active', 2);
+                }
+            }
+
+
+        });
+
+    </script>
+
+</head>
+
+<body>
+    <div class="page-header">
+        <h1>Move Well to Existing Plate</h1>
+    </div>
+
+    <div class="container">
+        <form method="POST" id="move_well_to_existing_plate_form" action="[% c.uri_for( '/user/move_well' ) %]" name="move_well_to_existing_plate_form" class="well" >
+
+            <input type="hidden" name="stages_complete" value="[% stages_complete %]">
+
+            <h3>Source Well Information</h3>
+            <div>
+                <label>Source Plate: </label>
+                <input type="text" name="source_plate" id="source_plate" required="true" value="[% source_plate %]" ><br><br>
+                <label>Source Well: </label>
+                <input type="text" name="source_well" id="source_well" required="true" value="[% source_well %]" ><br><br>
+
+
+
+                <button class="btn btn-primary" type="submit" style="float: right;">Retrieve Well</button><br>
+            </div>
+
+            <h3>Destination Plate</h3>
+            <div>
+                <label>Destination Plate: </label>
+                <input type="text" name="destination_plate" id="destination_plate" value="[% destination_plate %]"><br><br>
+
+                <button class="btn btn-primary" type="submit" style="float: right;">Retrieve Plate</button><br>
+            </div>
+
+            <h3>Confirm</h3>
+            <div>
+                <label>Source Plate: [% source_plate %]</label><br>
+                <label>Source Well: [% source_well %]</label><br>
+                <label>Destination Plate: [% destination_plate %]</label><br>
+
+                <button class="btn btn-primary" type="submit" style="float: right;">Confirm</button><br>
+            </div>
+        </form>
+    </div>
+</body>

@@ -73,3 +73,4 @@
 "10486","pL1L2GT2_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox","","1","pL1L2GT?_LF2A_nEGFPOT2A_CreERT2_pAroxbActNeopArox","2","0","1","neo"
 28,L1L2_gt0,"Standard EUCOMM promoterless cassettes with T2 sequences in driving independent translation  of lacZ and neo",false,"L1L2_gt?",,true,false,neo
 78,pR6K_R1R2_ZP_GIBSON,pR6K_R1R2_ZP_GIBSON,false,,,false,false,zeo
+79,pL1L2_frt_EF1a_PURO_frt_lox,pL1L2_frt_EF1a_PURO_frt_lox,true,,,true,false,puro
