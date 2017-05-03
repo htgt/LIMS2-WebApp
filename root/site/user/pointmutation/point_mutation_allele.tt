@@ -150,7 +150,7 @@ input:checked + .slider:before {
         </div>
         <div class="col-md-4">
             <label class="switch">
-                <input type="checkbox" id="styles">
+                <input type="checkbox" id="styles" checked>
                 <div class="slider round"></div>
             </label>    
         </div>
