@@ -161,6 +161,7 @@
 <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
 <p>* <b>Pipeline I</b> corresponds to Eurofins sequencing.</p>
 <p>* <b>Pipeline II</b> corresponds to MiSeq sequencing.</p>
+<p>* If you have any questions please email us at <a href="mailto:htgt@sanger.ac.uk" target="_top"><b>htgt@sanger.ac.uk</b></a>.</p>
 </div>
 [%- ELSE %]
 <div>
