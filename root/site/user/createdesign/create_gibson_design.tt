@@ -58,21 +58,21 @@ function open_ucsc_view(){
 
 </script>
 
-<script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js', {i => 1})%]"></script>
-<script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js', {i => 2} )%]"></script>
-<script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js', {i => 6})%]"></script>
+<script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.nojquery.js') %]"></script>
+<script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js') %]"></script>
+<script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js') %]"></script>
 
 <script>
       var species = '[% c.session.selected_species %]';
       var ensembl_species = species.toLowerCase();
       var ensembl_url = 'http://[% assembly == "GRCh37" ? "grch37." : "" %]rest.ensembl.org';
 
-      document.addEventListener('DOMContentLoaded', function () {
+      function contentLoaded() {
         $("#ucsc_view_button").on('click', function(){
             open_ucsc_view();
         });
 
-      	$("#diagram").on('change','[type=text]', function(){
+        $("#diagram").on('change','[type=text]', function(){
             console.log("something changed");
             reload_design_params_track();
         });
@@ -80,80 +80,96 @@ function open_ucsc_view(){
         // We set up the genoverseConfig after the design param diagram has been created
         // so that we can set the initial inputs for the design params track
         var genoverseConfig = {
-          width     : 1060,
-          container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
-          // If no genome supplied, it must have at least chromosomeSize, e.g.:
-          // chromosomeSize : 249250621, // chromosome 1, human
-          [% USE String(genome) %]
-          genome    : '[% assembly %]', // see js/genomes/
-          chr       : '[% chromosome %]',
-          start     : [% browse_start %] - 500,
-          end       : [% browse_end %] + 500,
-          plugins   : [ 'controlPanelWGE', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
-          tracks    : [
-            Genoverse.Track.Scalebar,
-            Genoverse.Track.SequenceSelect.extend({
-              name      : 'Sequence',
-              id        : 'Sequence', //need this for tracksById
-              url       : ensembl_url + '/sequence/region/' + ensembl_species + '/__CHR__:__START__-__END__?content-type=text/plain',
-              resizable : 'auto',
-              100000    : false,
-              controls  : 'off',
-              unsortable : true
-            }),
-            Genoverse.Track.Genes.extend({
-              name   : 'Genes',
-              id     : 'Genes',
-              //FIXME: should pass species to this template so we do not rely on assembly
-              url    : ensembl_url + '/overlap/region/' + ensembl_species + '/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
-              height : 200,
-              controls  : 'off',
-              unsortable : true
-            }),
-            Genoverse.Track.DesignsLIMS2.extend({
-              name      : 'Design Parameters',
-              id        : 'Design Parameters',
-              url       : "[% c.uri_for('/api/design_region_coords') %]" + build_uri_params(design_params ),
-              height    : 100,
-              name_suffix : " region",
-              urlParams : get_design_params_inputs(),
-            }),
-            Genoverse.Track.DesignsLIMS2.extend({
-              name      : 'Designs',
-              url       : "[% c.uri_for('/api/generic_designs')%]" + build_uri_params( generic_designs_params ) ,
-              resizable : 'auto',
-              height    : 150,
-              design_report_uri : "[%  c.uri_for('/user/view_design') %]"
-            }),
-            Genoverse.Track.CrisprPairs.LIMS2.extend({
-              name      : 'Crispr_pairs',
-              url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
-              resizable : 'auto',
-              height    : 150,
-              pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
-            }),
-            Genoverse.Track.CrisprGroupsLIMS2.extend({
-              name      : 'Crispr_groups',
-              url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
-              resizable : 'auto',
-              height    : 150,
-              group_report_uri : "[% c.uri_for('/user/crispr_group') %]"
-            }),
-            Genoverse.Track.Crisprs.LIMS2.extend({
-              name      : 'Crisprs',
-              url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
-              resizable : 'auto',
-              height    : 150,
-              crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
-            }),
-            Genoverse.Track.Scaleline
-          ]
-        };
+            width     : 1060,
+            container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
+            // If no genome supplied, it must have at least chromosomeSize, e.g.:
+            // chromosomeSize : 249250621, // chromosome 1, human
+            [% USE String(genome) %]
+            genome    : '[% assembly %]', // see js/genomes/
+            chr       : '[% chromosome %]',
+            start     : [% browse_start %] - 500,
+            end       : [% browse_end %] + 500,
+            plugins   : [ 'controlPanel', 'karyotype', 'trackControls', 'resizer', 'fileDrop' ],
+            tracks    : [
+              Genoverse.Track.Scalebar,
+              Genoverse.Track.SequenceSelect.extend({
+                name      : 'Sequence',
+                id        : 'Sequence', //need this for tracksById
+                url       : ensembl_url + '/sequence/region/' + ensembl_species + '/__CHR__:__START__-__END__?content-type=text/plain',
+                resizable : 'auto',
+                100000    : false,
+                controls  : 'off',
+                unsortable : true
+              }),
+              Genoverse.Track.Genes.extend({
+                name   : 'Genes',
+                id     : 'Genes',
+                //FIXME: should pass species to this template so we do not rely on assembly
+                url    : ensembl_url + '/overlap/region/' + ensembl_species + '/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+                height : 200,
+                controls  : 'off',
+                unsortable : true
+              }),
+              Genoverse.Track.DesignsLIMS2.extend({
+                name      : 'Design Parameters',
+                id        : 'Design Parameters',
+                url       : "[% c.uri_for('/api/design_region_coords') %]" + build_uri_params(design_params ),
+                height    : 100,
+                name_suffix : " region",
+                urlParams : get_design_params_inputs(),
+              }),
+              Genoverse.Track.DesignsLIMS2.extend({
+                name      : 'Designs',
+                url       : "[% c.uri_for('/api/generic_designs')%]" + build_uri_params( generic_designs_params ) ,
+                resizable : 'auto',
+                height    : 150,
+                design_report_uri : "[%  c.uri_for('/user/view_design') %]"
+              }),
+              Genoverse.Track.CrisprPairs.LIMS2.extend({
+                name      : 'Crispr_pairs',
+                url       : "[% c.uri_for('/api/crispr_pairs')%]" + build_uri_params( crispr_pairs_for_region_params ) ,
+                resizable : 'auto',
+                height    : 150,
+                pair_report_uri : "[% c.uri_for('/user/crispr_pair') %]"
+              }),
+              Genoverse.Track.CrisprGroupsLIMS2.extend({
+                name      : 'Crispr_groups',
+                url       : "[% c.uri_for('/api/crispr_groups')%]" + build_uri_params( crispr_groups_for_region_params ) ,
+                resizable : 'auto',
+                height    : 150,
+                group_report_uri : "[% c.uri_for('/user/crispr_group') %]"
+              }),
+              Genoverse.Track.Crisprs.LIMS2.extend({
+                name      : 'Crisprs',
+                url       : "[% c.uri_for('/api/crispr')%]" + build_uri_params( crispr_for_region_params ),
+                resizable : 'auto',
+                height    : 150,
+                crispr_report_uri : "[% c.uri_for('/user/crispr') %]"
+              }),
+              Genoverse.Track.Scaleline
+            ]
+          };
+
 
         console.log('starting genoverse');
         window.genoverse = new Genoverse(genoverseConfig);
+      }
 
+      $(function() {
+        if ( document.readyState === 'complete' ) {
+          console.log( 'document is already ready, executing code' );
+          contentLoaded();
+        }
+        else {
+          console.log( 'document was not ready, waiting to execute' );
+          $(document).bind('ready', function() {
+            console.log('executing code');
+            contentLoaded();
+          });
+        }
       });
+
+
 </script>
 
 <div id="genoverse">

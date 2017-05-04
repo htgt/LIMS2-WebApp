@@ -12,7 +12,7 @@ document.title = "[%- context.design_id %]";
 </div>
 
 
-    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.js')%]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/Genoverse/js/genoverse.combined.nojquery.js')%]"></script>
     <script type="text/javascript" src="[% c.uri_for('/js/genoverse_custom_tracks.js' )%]"></script>
     <script type="text/javascript" src="[% c.uri_for('/static/js/lims2_genoverse_custom_tracks.js')%]"></script>
     <script>
