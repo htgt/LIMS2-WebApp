@@ -65,6 +65,16 @@ override iterator => sub {
 
 };
 
+override structured_data => sub {
+    my $self = shift;
+
+    return {
+        plate_id =>  $self->plate_id
+    };
+
+
+};
+
 __PACKAGE__->meta->make_immutable;
 
 1;

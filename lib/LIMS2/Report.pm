@@ -160,6 +160,9 @@ sub generator_for {
     my $generator = load_generator_class( $report )->new(
         +{ %{$params}, model => $model, catalyst => $catalyst }
     );
+use Smart::Comments;
+my $test = $generator->plate_id;
+### $test
 
     return $generator;
 }
