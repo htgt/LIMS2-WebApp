@@ -1,5 +1,31 @@
 {{$NEXT}}
 
+0.457     2017-04-24 10:45:04 Europe/London
+
+0.456     2017-04-24 09:57:03 Europe/London
+    Miseq - UI changes
+0.456     2017-04-13 15:51:33 Europe/London
+
+    ancestor_piq accepted flag updated on crispr_qc validation
+    database backfill on wells that should be accepted
+
+0.455     2017-04-10 13:48:49 Europe/London
+    Frameshift bug fix
+0.454     2017-04-03 09:49:47 Europe/London
+    Miseq 384
+0.453     2017-03-28 14:25:42 Europe/London
+
+    Added strategy to projects
+    Updates to front page report
+
+0.452     2017-03-21 10:32:00 Europe/London
+    Miseq - Frameshifts
+0.451     2017-03-14 13:10:12 Europe/London
+    Miseq - Actual toolip
+0.450     2017-03-14 09:47:57 Europe/London
+    Miseq - New clearer tooltip
+0.449     2017-03-09 16:38:36 Europe/London
+    Miseq - Targeting Efficiency
 0.448     2017-02-20 22:22:18 Europe/London
 
 	increased the number of piq_expand wells

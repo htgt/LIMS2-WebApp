@@ -304,6 +304,11 @@ sub update_crispr_es_qc_well{
             else {
                 $well->update( { accepted => $validated_params->{accepted} } );
                 $self->log->info( "Updated $well well accepted " . $validated_params->{accepted} );
+                # check if there is an ancestor piq and act on it accordingly
+                if ($well->ancestor_piq) {
+                    $well->ancestor_piq->update( { accepted => $validated_params->{accepted} } );
+                    $self->log->info( "Updated ancestor_piq well accepted " . $validated_params->{accepted} );
+                }
             }
         }
     }
