@@ -67,7 +67,8 @@ function open_ucsc_view(){
       var ensembl_species = species.toLowerCase();
       var ensembl_url = 'http://[% assembly == "GRCh37" ? "grch37." : "" %]rest.ensembl.org';
 
-      function contentLoaded() {
+
+      function contentLoaded(wellWidth) {
         $("#ucsc_view_button").on('click', function(){
             open_ucsc_view();
         });
@@ -80,7 +81,7 @@ function open_ucsc_view(){
         // We set up the genoverseConfig after the design param diagram has been created
         // so that we can set the initial inputs for the design params track
         var genoverseConfig = {
-            width     : 1060,
+            width: wellWidth,
             container : '#genoverse', // Where to inject Genoverse (css/jQuery selector)
             // If no genome supplied, it must have at least chromosomeSize, e.g.:
             // chromosomeSize : 249250621, // chromosome 1, human
@@ -156,15 +157,17 @@ function open_ucsc_view(){
       }
 
       $(function() {
+        var wellWidth = $(".well").outerWidth();
+
         if ( document.readyState === 'complete' ) {
           console.log( 'document is already ready, executing code' );
-          contentLoaded();
+          contentLoaded(wellWidth);
         }
         else {
           console.log( 'document was not ready, waiting to execute' );
           $(document).bind('ready', function() {
             console.log('executing code');
-            contentLoaded();
+            contentLoaded(wellWidth);
           });
         }
       });
@@ -175,7 +178,7 @@ function open_ucsc_view(){
 <div id="genoverse">
 </div>
 
-<button class="btn btn-large btn-primary pull-right" id="ucsc_view_button">View in UCSC</button>
+<button class="btn btn-large btn-primary pull-right" id="ucsc_view_button" style="margin: 5px;">View in UCSC</button>
 
 [% INCLUDE 'create_design/exon_target_gibson_parameter_diagram.tt' %]
 
