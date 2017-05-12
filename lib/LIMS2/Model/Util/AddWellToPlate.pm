@@ -2,13 +2,12 @@ package LIMS2::Model::Util::AddWellToPlate;
 
 use strict;
 use warnings FATAL => 'all';
-use Smart::Comments;
 use Try::Tiny;
 
 use Sub::Exporter -setup => {
     exports => [
         qw(
-            create_well
+            add_well_create_well
             get_well
           )
     ]
@@ -35,7 +34,7 @@ my %FIELD_NAMES = (
     process_nuclease     => { relationship => "nuclease",    column => "name" },
 );
 
-sub pspec_create_well {
+sub pspec_add_well_create_well {
     return {
         target_plate    => { validate => 'existing_plate_name' },
         target_well     => { validate => 'well_name' },
@@ -52,10 +51,10 @@ sub pspec_create_well {
 }
 
 
-sub create_well {
+sub add_well_create_well {
     my ($model, $params) = @_;
 
-    my $validated_params = $model->check_params($params, pspec_create_well);
+    my $validated_params = $model->check_params($params, pspec_add_well_create_well);
 
     foreach my $field ( @{ $PROCESS_TYPE_DATA{$validated_params->{process_data}->{type}} } ) {
 

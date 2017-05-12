@@ -194,6 +194,7 @@ sub _pspec_create_project{
         recovery_comment  => { validate => 'non_empty_string', optional => 1 },
         sponsors_priority => { optional => 1 },
         recovery_class_id => { validate => 'existing_recovery_class', optional => 1 },
+        strategy_id       => { validate => 'existing_strategy', optional => 1 },
     };
 }
 
@@ -329,17 +330,21 @@ sub retrieve_experiment{
 
 sub retrieve_genotyping{
     my ($self, $param) = @_;
-    my $records = $self->retrieve_list('GenotypingPrimer', $param);
     my $count = 0;
     my $res;
-    foreach (@{$records})
-    {
+
     try {
-        $res->[$count]->{sequence} = $_->{_column_data}->{seq};
-        $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
-        $count++;
+        my $records = $self->retrieve_list('GenotypingPrimer', $param);
+
+        foreach (@{$records})
+        {
+            $res->[$count]->{sequence} = $_->{_column_data}->{seq};
+            $res->[$count]->{type} = $_->{_column_data}->{genotyping_primer_type_id};
+            $count++;
+        }
     }
-    }
+    catch {
+    };
     return $res;
 }
 

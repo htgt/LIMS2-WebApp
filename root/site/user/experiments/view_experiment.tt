@@ -20,7 +20,7 @@
 [% END %]
 
 <h2>Experiment Details</h2>
-<a href="[% c.uri_for('/user/genoverse_experiment_view', { id => experiment_id }) %]" class="btn btn-primary">View in Genoverse</a>
+<a href="[% c.uri_for('/user/genoverse_experiment_view', { id => experiment_id }) %]" class="btn btn-primary">View in Genoverse</a><br>
 <table class="table experiment">
   <tr>
     <th>Experiment ID</th>
@@ -123,6 +123,7 @@
   [% END %]
 </table>
 
+[% IF genotyping %]
 <h2>Genotyping Primers</h2>
 <table class="table genotyping">
   <tr>
@@ -136,8 +137,8 @@
   </tr>
   [% END %]
 </table>
+[% END %]
 
-</table>
 [% END %]
 
 <script type="text/javascript">

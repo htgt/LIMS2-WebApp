@@ -229,7 +229,7 @@ document.title = "[%- sponsor_id %]";
                         [% END %]
                       </td>
                       <td>[%- ep_data.item('requester') %]</td>
-                      <td>[%- ep_data.item('total_colonies') %]</td>
+                      <!-- <td>[%- ep_data.item('total_colonies') %]</td> -->
                       <td>[%- ep_data.item('ep_pick_count') %]</td>
                       <td>[%- ep_data.item('ep_pick_pass_count') %]</td>
                       <td>[%- ep_data.item('frameshift') %]</td>
@@ -238,7 +238,7 @@ document.title = "[%- sponsor_id %]";
                       <td>[%- ep_data.item('mosaic') %]</td>
                       <td>[%- ep_data.item('no-call') %]</td>
                       <td>[%- ep_data.item('het') %]</td>
-                      <td></td>
+                      <td>[%- ep_data.item('distributable') %]</td>
                       <td></td>
                     [%- IF c.user %]
                       <td></td>
