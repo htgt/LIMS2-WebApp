@@ -53,8 +53,12 @@ sub add_well_csv {
         return;
     }
 
-    my $created_ids = join(', ', @ids);
-    $c->flash( success_msg => "Successfully created wells: " . $created_ids );
+    if (scalar @ids > 0) {
+        my $created_ids = join(', ', @ids);
+        $c->flash( success_msg => "Successfully created wells: " . $created_ids );
+    } else {
+        $c->flash( info_msg => "No wells were created." );
+    }
 
     return $c->response->redirect( $c->uri_for('/user/add_well') );
 }
