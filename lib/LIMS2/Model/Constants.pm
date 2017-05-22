@@ -61,6 +61,7 @@ const our %PROCESS_PLATE_TYPES => (
     'doubling'               => [qw( PIQ )],
     'vector_cloning'         => [qw( PREINT )],
     'golden_gate'            => [qw( FINAL )],
+    'miseq'                  => [qw( MISEQ )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -228,6 +229,10 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'golden_gate' => {
         type   => [qw( DESIGN )],
         number => 1,
+    },
+    'miseq' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
     },
 );
 

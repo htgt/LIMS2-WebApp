@@ -33,7 +33,7 @@ sub _report_plugins {
 ## no critic(RequireFinalReturn)
 sub report_class_for {
     my ( $class, $plate_type ) = @_;
-
+$DB::single=1;
     for my $plugin ( $class->_report_plugins ) {
         if ( $plugin->handles_plate_type( $plate_type ) && !$plugin->additional_report ) {
             return $plugin;

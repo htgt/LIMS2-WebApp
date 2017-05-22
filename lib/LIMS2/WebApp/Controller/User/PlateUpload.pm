@@ -38,7 +38,7 @@ sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
 
 sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     my $process_type = $c->request->params->{process_type};
     unless ( $process_type ) {
         $c->flash->{error_msg} = 'You must specify a process type';
