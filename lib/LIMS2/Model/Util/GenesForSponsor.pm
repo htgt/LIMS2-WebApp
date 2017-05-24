@@ -21,12 +21,12 @@ has model => (
     required   =>   1
 );
 
-has 'targeting_type' => (
+has targeting_type => (
     is     =>   'ro',
     isa    =>   'Str'
 );
 
-has 'species_id' => (
+has species_id => (
     is     =>   'ro',
     isa    =>   'Str'
 );
