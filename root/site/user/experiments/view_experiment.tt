@@ -1,8 +1,4 @@
 [%- META title = 'View Experiment' %]
-<script type="text/javascript">
-  document.title = "[% experiment.gene_id %] - [% experiment_id %]";
-
-</script>
 
 [% IF experiment.deleted %]
 <div class="alert alert-error">

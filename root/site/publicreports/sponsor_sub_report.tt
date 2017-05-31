@@ -100,7 +100,7 @@ document.title = "[%- sponsor_id %]";
 
         [%- ELSIF col == "gene_symbol" %]
             [%- IF c.user %]
-                <td><a target="_blank" class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[%- colval %]</a></td>
+                <td><a class="brand" href="[%- c.uri_for('/user/report/gene/', { gene_id => row.item('gene_id') } ) %]">[%- colval %]</a></td>
             [%- ELSE %]
                 <td>[%- colval %]</td>
             [%- END %]
@@ -142,14 +142,14 @@ document.title = "[%- sponsor_id %]";
 
         [%- ELSIF col == 'targeted_clones' %]
           [%- IF row.item('targeted_clones') && ( row.item('fs_count') || row.item('ep_pick_het') ) %]
-            <td style="background:#8AD95A"><a target="_blank" class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+            <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSIF row.item('targeted_clones') && row.item('effort_concluded') %]
-            <td style="background:#999999"><a target="_blank" class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+            <td style="background:#999999"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
 
           [%- ELSIF row.item('targeted_clones') && row.item('chr') == "X" %]
-            <td style="background:#FFA500"><a target="_blank" class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+            <td style="background:#FFA500"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSIF row.item('targeted_clones') %]
-            <td style="background:#FF4646"><a target="_blank" class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
+            <td style="background:#FF4646"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id') ) %]">[%- colval %]</a></td>
           [%- ELSE %]
             <td></td>
           [%- END %]
@@ -177,7 +177,7 @@ document.title = "[%- sponsor_id %]";
                   %]
           <td style="background:#8AD95A">[%- colval %]</td>
         [%- ELSIF col == 'distrib_clones' %]
-          <td style="background:#8AD95A"><a target="_blank" class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
+          <td style="background:#8AD95A"><a class="brand" href="[%- c.uri_for('/public_reports/gene_report', row.item('gene_id'), { 'type' => 'distributable' } ) %]">[%- colval %]</a></td>
         [%- ELSIF col == 'crispr_pairs'
                || col == 'vector_designs'
                || col == 'vector_wells'
@@ -225,7 +225,7 @@ document.title = "[%- sponsor_id %]";
                       <td>[%- ep_data.item('cell_line') %]</td>
                       <td>
                         [% FOREACH exp IN ep_data.item('experiment') %]
-                          <a target="_blank" class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
+                          <a class="brand" href="[%- c.uri_for('/user/view_experiment', { experiment_id => exp } ) %]">[%- exp %]</a>
                         [% END %]
                       </td>
                       <td>[%- ep_data.item('requester') %]</td>
