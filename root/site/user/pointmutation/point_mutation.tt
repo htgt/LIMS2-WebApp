@@ -1,6 +1,5 @@
 [%- META title = 'Point Mutation' %]
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
-
 <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <style>
 

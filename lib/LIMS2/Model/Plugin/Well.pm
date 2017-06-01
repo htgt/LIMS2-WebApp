@@ -108,7 +108,7 @@ sub pspec_create_well {
 
 sub create_well {
     my ( $self, $params, $plate ) = @_;
-
+$DB::single=1;
     my $process_type = $params->{ 'process_data' }->{ 'type' };
 
     my $validated_params = $self->check_params( $params, $self->pspec_create_well );

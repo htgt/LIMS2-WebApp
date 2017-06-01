@@ -62,30 +62,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     return;
 }
 
-sub experiment_384_distribution {
-    my ( $c, $miseq ) = @_;
-
-    my $range_summary = get_experiments($c, $miseq, 'range');
-    my $quadrants;
-
-    foreach my $exp (keys %$range_summary) {
-        my $value = $range_summary->{$exp};
-
-        my @ranges = split(/\|/,$value);
-        foreach my $range (@ranges) {
-            my @pos = split(/-/, $range);
-            my @mods = map {floor(($_ - 1) / 96)} @pos;
-            my $region = {
-                'first' => $mods[0],
-                'last'  => $mods[1],
-            };
-            push(@{$quadrants->{$exp}}, $region);
-        }
-    }
-
-    return $quadrants;
-}
-
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -173,6 +149,38 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     );
 
     return;
+}
+
+sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
+    my ( $self, $c ) = @_;
+
+    
+
+    return;
+}
+
+sub experiment_384_distribution {
+    my ( $c, $miseq ) = @_;
+
+    my $range_summary = get_experiments($c, $miseq, 'range');
+    my $quadrants;
+
+    foreach my $exp (keys %$range_summary) {
+        my $value = $range_summary->{$exp};
+
+        my @ranges = split(/\|/,$value);
+        foreach my $range (@ranges) {
+            my @pos = split(/-/, $range);
+            my @mods = map {floor(($_ - 1) / 96)} @pos;
+            my $region = {
+                'first' => $mods[0],
+                'last'  => $mods[1],
+            };
+            push(@{$quadrants->{$exp}}, $region);
+        }
+    }
+
+    return $quadrants;
 }
 
 sub get_genes {

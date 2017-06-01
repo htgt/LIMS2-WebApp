@@ -1,0 +1,207 @@
+<style>
+.freezerPlate {
+    margin-left: 12px;
+}
+
+body {
+    padding-bottom: 70px;
+}
+
+</style>
+
+<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+[% INCLUDE 'plate_grid_view.tt' rows = 12 columns = 8 letters_on = "column" row_pixel = 50 column_pixel = 50 %]
+
+<div class="page-header">
+  <h1>Create MiSEQ Plate</h1>
+</div>
+<div class="container">
+    <div id="plateDetails">
+        <h3>Plate Details</h3>
+        <table class="table table-striped">
+            <tr>
+                <td>
+                    <label>Name:</label>
+                </td>
+                <td>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="plateName" oninput="updatePlateName()">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>384 wells?</label>
+                </td>
+                <td>
+                    <input type="checkbox" value="">
+                </td>
+            </tr>
+        </table>
+    </div>
+    <h3>Parent Plates</h3>
+    <div class="row">
+        <div class="col-md-2">
+            <label>Freezer Plate Name:</label>
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="fpPlate">
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-warning" id="addPlate"><i class="glyphicon glyphicon-plus"></i> Add</button>
+        </div>
+    </div>
+    <br>
+</div>
+
+<div id="miseq">
+    <table id="parentCollection" class="table table-striped" hidden>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Details
+            </th>
+            <th>
+                Clear
+            </th>
+        </tr>
+    </table>
+    <br>
+<div>
+
+<div id="plateVisual">
+    <div class="row">
+        <p id="miseqName" class="lb-md col-md-offset-1">MiSEQ Plate Name</p>
+        <select id="freezeName" class="btn btn-default col-md-offset-7" hidden>
+            <option value="-">Freezer Plate</option>
+        </select>
+    </div>
+    <div id="plateRow" class="col-md-12">
+        <div id="firstSplit" class="col-md-6">
+        </div>
+        <div id="secondSplit" class="col-md-6">
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+var parentPlates = [];
+var startWell = "";
+
+var miseqGrid = d3.select("#firstSplit")
+    .append("svg")
+    .attr("width","610px")
+    .attr("height","610px");
+
+var freezeGrid = d3.select("#secondSplit")
+    .append("svg")
+    .attr("width","610px")
+    .attr("height","610px");
+
+$(document).ready(function() {
+    setupPlate(miseqGrid, "miWell");
+    setupPlate(freezeGrid, "fpWell");
+    addWellNames();
+
+    return;
+});
+
+$("#fpPlate").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
+        {
+            term : $('#fpPlate').val(),
+            type : 'FP'
+        }, response);
+    },
+    minLength: 2,
+});
+
+$('#addPlate').click(function() {
+    $('#parentCollection').show();
+    var name = $('#fpPlate').val().trim();
+    if (parentPlates.indexOf(name) == -1) {
+        addTableRow(name);
+        addOption(name);
+    }
+
+    return;
+});
+
+$('#plateVisual').on('click','rect.fpWell' , function() {
+    if (startWell != '') {
+        d3.select(startWell).style('fill','white');
+    }
+    startWell = this;
+    d3.select(startWell).style('fill','#fdfd96');
+});
+
+$('#plateVisual').on('click','rect.miWell' , function() {
+    var well = this;
+    if (startWell != '') {
+        d3.select(well).style('fill','#fdfd96');
+    }
+    var originID = startWell.parentNode.id;
+    var textNode = $(well).siblings('text')[0];
+/*
+    G01
+     v
+    A04
+*/
+    var d3TextObj = d3.select(textNode);
+    d3TextObj.text(originID);
+
+    var arrow = d3TextObj.append('tspan')
+        .attr('dx', '-1.1em')
+        .attr('dy', '0.9em');
+    arrow.html('&#8595');
+
+    var destination = d3TextObj.append('tspan')
+        .attr('dx', '-1.20em')
+        .attr('dy', '1em');
+    destination.text(well.parentNode.id);
+});
+
+
+
+$('#freezeName').change(function() {
+    d3.selectAll('.fpWell').style("fill","white");
+    if ($('#freezeName').val() == '-') {
+        d3.selectAll('.fpWell').style("fill","lightgrey");
+    }
+});
+
+function updatePlateName() { 
+    $('#miseqName').text($('#plateName').val());
+}
+
+function addTableRow(name) {
+    parentPlates.push(name);
+
+    var table = document.getElementById('parentCollection');
+    var row = table.insertRow(-1);
+
+    var nameCell = row.insertCell(0);
+    var detailCell = row.insertCell(1);
+    var clearCell = row.insertCell(2);
+
+    nameCell.innerText = name;
+    detailCell.innerText = "Place-holder";
+    clearCell.innerHTML = '<button class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
+
+    return;
+}
+
+function addOption(name) {
+    var select = document.getElementById('freezeName');
+    var option = document.createElement('option');
+    option.text = option.value = name;
+    select.add(option,-1);
+}
+
+
+
+</script>

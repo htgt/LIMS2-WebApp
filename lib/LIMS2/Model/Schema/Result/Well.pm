@@ -269,6 +269,36 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_well_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 miseqs_well
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWell>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseqs_well",
+  "LIMS2::Model::Schema::Result::MiseqWell",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -595,8 +625,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wwmY0jGQQOTQvpz06fYT0w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kGbccGxebOXw+4nhDoL9TQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

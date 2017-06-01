@@ -179,7 +179,7 @@ sub plate_names_GET {
 
     my $plate_names;
     try {
-        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->request->params->{term} );
+        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->request->params->{term}, $c->request->params->{type} );
     }
     catch {
         $c->log->error( $_ );
@@ -190,11 +190,19 @@ sub plate_names_GET {
 
 sub _entity_column_search {
 
-    my ( $self, $c, $entity_class, $search_column, $search_term ) = @_;
-
-    my %search = (
-        $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
-    );
+    my ( $self, $c, $entity_class, $search_column, $search_term, $plate_type ) = @_;
+$DB::single=1;
+    my %search;
+    if ($plate_type) {
+        %search = (
+            $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' },
+            type_id => $plate_type,
+        );
+    } else {
+        %search = (
+            $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
+        );
+    }
     my $resultset = $c->model('Golgi')->schema->resultset($entity_class);
 
     if ( $resultset->result_source->has_column('species_id') ) {

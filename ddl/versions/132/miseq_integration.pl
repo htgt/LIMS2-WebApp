@@ -9,71 +9,74 @@ use Data::Dumper;
 use Try::Tiny;
 use Text::CSV;
 
-sub read_columns {
-    my ( $model, $csv, $fh ) = @_;
+sub migrate_wells {
+    my ( $model, $plate, @wells ) = @_;
 
-    my $overview;
-    while ( my $row = $csv->getline($fh)) {
-        next if $. < 2;
-        my @genes;
-        push @genes, $row->[1];
-        $overview->{$row->[0]} = {
-            nhej    => $row->[6],
-            total   => $row->[7],
-            genes   => \@genes,
-        };
-    }
-
-    return $overview;
-}
-
-my $model = LIMS2::Model->new({ user => 'tasks' });
-
-my @plates = $model->schema->resultset('MiseqProjects')->search({
-    miseq_exp_id => { '!=' => undef },
-});
-
-say "Found " . scalar(@plates) . " MiSEQ projects.\n\n";
-
+    foreach my $well (@wells) {
 $DB::single=1;
-
-foreach my $plate (@plates) {
-=head
-sub pspec_create_plate {
+        print $well;
+=head 
     return {
-        name        => { validate => 'plate_name' },
-        species     => { validate => 'existing_species', rename => 'species_id' },
-        type        => { validate => 'existing_plate_type', rename => 'type_id' },
-        description => { validate => 'non_empty_string', optional => 1 },
+        plate_name   => { validate => 'existing_plate_name' },
+        well_name    => { validate => 'well_name', rename => 'name' },
+        accepted     => { validate => 'boolean', optional => 1 },
+        process_data => { validate => 'hashref' },
         created_by => {
             validate    => 'existing_user',
             post_filter => 'user_id_for',
             rename      => 'created_by_id'
         },
         created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-        appends    => { optional => 1, validate => 'existing_crispr_plate_appends_type' },
-        comments   => { optional => 1 },
-        wells      => { optional => 1 },
-        is_virtual => { validate => 'boolean', optional => 1 },
-        version    => { validate => 'integer', optional => 1, default => undef },
     };
-}
 =cut
-    print "break";
+        my $params = {
+            plate_name      => $plate->name,
+            well_name       => $well->name,
+            process_data    =>
+            created_by      => 'pk8@sanger.ac.uk',
+            created_at      => $plate->creation_date,
+        };
+    }
+
+}
+
+my $model = LIMS2::Model->new({ user => 'tasks' });
+
+my @plates = $model->schema->resultset('MiseqProject')->search({
+    name => { '!=' => undef },
+});
+
+say "Found " . scalar(@plates) . " MiSEQ projects.";
+
+say "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+
+$DB::single=1;
+
+foreach my $plate (@plates) {
+    my $params = {
+        name        => $plate->name,
+        species     => 'Human',
+        type        => 'MISEQ',
+        created_by  => 'pk8@sanger.ac.uk',
+        created_at  => $plate->creation_date,
+    };
+    
     $model->schema->txn_do( sub {
         try {
-            $model->create_plate($exp_params);
-            print "Inserted Miseq ID: " . $plate->{id} . " Experiment: " . $allele->miseq_exp_id . "\n";
+            my $traditional_plate = $model->create_plate($params);
+            say "Inserted Miseq ID: " . $plate->id . " Name: " . $plate->name . " New Plate id: " . $traditional_plate->id;
         }
         catch {
-            warn "Could not create record for " . $plate->{id} . ": $_";
+            warn "Could not create record for " . $plate->id . ": $_";
             $model->schema->txn_rollback;
         };
     });
+$DB::single=1;
+    my @wells = $model->schema->resultset('MiseqProjectWell')->search({
+        miseq_plate_id => $plate->id,
+    });
 
-
-
-
+    migrate_wells($model, $plate, @wells);
 
 
 
