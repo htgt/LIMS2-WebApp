@@ -101,6 +101,23 @@ var freezeGrid = d3.select("#secondSplit")
     .attr("width","610px")
     .attr("height","610px");
 
+var test;
+$(function() {
+    var initWell;
+    $('#firstSplit').selectable({
+        start: function(event) {
+        },
+        selecting: function() {
+            var outOfSelection = $('text.ui-selectee').not('.ui-selected').siblings('rect');
+            d3.selectAll(outOfSelection).style('fill','white');
+
+            var rectObjs = $('text.ui-selecting').siblings('rect');
+            d3.selectAll(rectObjs).style('fill','#fdfd96');
+        }
+    });
+});
+
+
 $(document).ready(function() {
     setupPlate(miseqGrid, "miWell");
     setupPlate(freezeGrid, "fpWell");
@@ -165,8 +182,6 @@ $('#plateVisual').on('click','rect.miWell' , function() {
     destination.text(well.parentNode.id);
 });
 
-
-
 $('#freezeName').change(function() {
     d3.selectAll('.fpWell').style("fill","white");
     if ($('#freezeName').val() == '-') {
@@ -201,6 +216,7 @@ function addOption(name) {
     option.text = option.value = name;
     select.add(option,-1);
 }
+
 
 
 
