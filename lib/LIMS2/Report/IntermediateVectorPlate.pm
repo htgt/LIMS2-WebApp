@@ -1,7 +1,7 @@
 package LIMS2::Report::IntermediateVectorPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.458';
+    $LIMS2::Report::IntermediateVectorPlate::VERSION = '0.459';
 }
 ## use critic
 
@@ -68,6 +68,16 @@ override iterator => sub {
         $well_data = shift @wells_data;
         return \@data;
     };
+
+};
+
+override structured_data => sub {
+    my $self = shift;
+
+    return {
+        plate_id =>  $self->plate_id
+    };
+
 
 };
 

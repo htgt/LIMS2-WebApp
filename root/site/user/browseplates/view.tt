@@ -151,12 +151,12 @@
       [% ELSE %]
       <p><em>No comments for this plate.</em></p>
       [% END %]
-      <a class="btn btn-primary" role="button" href="#AddCommentModal" data-toggle="modal">
+      <button class="btn btn-primary" data-target="#AddCommentModal" data-toggle="modal">
        <i class="glyphicon glyphicon-pencil"></i> Add Comment
-      </a>
-      <a class="btn btn-danger" role="button" href="#DeleteCommentModal" data-toggle="modal">
+      </button>
+      <button class="btn btn-danger" data-target="#DeleteCommentModal" data-toggle="modal">
         <i class="glyphicon glyphicon-remove"></i> Delete Comment
-      </a>
+      </button>
     </div>
   </div>
 </div>
@@ -261,22 +261,23 @@
 </div>
 
 <div class="modal fade" id="AddCommentModal">
-  <form method="POST" id="add_comment" action="[% c.uri_for( '/user/add_comment_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+  <form method="POST" id="add_comment" action="[% c.uri_for( '/user/add_comment_plate' ) %]" onsubmit="add_comment_submit.disabled = true; return true;" class="modal-dialog"  enctype="multipart/form-data" >
     <div class="modal-content">
       <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">×</button>
           <h3 id="myModalLabel">Comments</h3>
         </div>
 
-        <div class="modal-body" align="center">
+        <div class="modal-body row" align="center" >
           <input type="hidden" name="id" value="[% plate.id %]" />
           <input type="hidden" name="name" value="[% plate.name %]" />
-          Comment on plate <strong>[% plate.name %]</strong>: <input name="comment" id="comment" type="text" />
+          <p class="col-md-4"> Comment on plate <strong>[% plate.name %]</strong>: </p>
+          <textarea class="col-md-7" name="comment" id="comment" type="text" > </textarea>
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">
+          <button class="btn btn-danger" data-dismiss="modal"><i class="glyphicon glyphicon-remove"></i> Cancel</button>
+          <button type="submit" class="btn btn-primary" name="add_comment_submit">
               <i class="glyphicon glyphicon-pencil icon-white"></i> Add Comment
           </button>
       </div>
@@ -285,7 +286,7 @@
 </div>
 
   <div class="modal fade" id="DeleteCommentModal">
-    <form method="POST" id="delete_comment" action="[% c.uri_for( '/user/delete_comment_plate' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+    <form method="POST" id="delete_comment" action="[% c.uri_for( '/user/delete_comment_plate' ) %]" onsubmit="delete_comment_submit.disabled = true; return true;" class="modal-dialog"  enctype="multipart/form-data" >
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">×</button>
@@ -301,7 +302,7 @@
 
         <div class="modal-footer">
           <button class="btn btn-default" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-danger" >
+          <button type="submit" class="btn btn-danger" name="delete_comment_submit" >
             <i class="glyphicon glyphicon-remove"></i> Confirm Delete
           </button>
         </div>

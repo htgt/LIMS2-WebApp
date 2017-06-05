@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.458';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.459';
 }
 ## use critic
 
@@ -80,6 +80,12 @@ has targeting_type => (
     required   => 1,
 );
 
+has sponsor_genes_instance => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Util::GenesForSponsor',
+    lazy_build => 1
+);
+
 #----------------------------------------------------------
 # For Front Page Summary Report
 #----------------------------------------------------------
@@ -114,6 +120,18 @@ has sponsor_data => (
     lazy_build => 1,
 );
 
+
+sub _build_sponsor_genes_instance {
+    my $self = shift;
+
+    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({
+            model => $self->model,
+            targeting_type => $self->targeting_type,
+            species_id => $self->species
+        });
+    return $sponsor_genes_instance;
+}
+
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
@@ -132,11 +150,9 @@ sub _build_sponsor_column_data {
 
     DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
-    # select how many genes this sponsor is targeting
-    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({model => $self->model, targeting_type => $self->targeting_type, species_id => $self->species});
-    my $sponsor_gene_counts = $sponsor_genes_instance->get_sponsor_genes($sponsor_id);
+    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
 
-    my $number_genes = $sponsor_gene_counts->{ genes };
+    my $number_genes = scalar @{$sponsor_gene_counts->{genes}};
 
     DEBUG "number genes = ".$number_genes;
 
@@ -399,10 +415,21 @@ sub build_page_title {
 sub build_columns {
     my $self = shift;
 
-    return [
-        'Stage',
-        @{ $self->sponsors }
-    ];
+    my $sponsor_columns;
+    push @{$sponsor_columns->{pipeline_ii}}, 'Stage';
+    push @{$sponsor_columns->{pipeline_i}}, 'Stage';
+
+    my @pipeline_ii_sponsors = @{$self->sponsor_genes_instance->pipeline_ii_sponsors};
+
+    foreach my $sponsor (@{$self->sponsors}) {
+        if (grep {$_ eq $sponsor} @pipeline_ii_sponsors) {
+            push @{$sponsor_columns->{pipeline_ii}}, $sponsor;
+        } else {
+            push @{$sponsor_columns->{pipeline_i}}, $sponsor;
+        }
+    }
+
+    return $sponsor_columns;
 };
 
 #----------------------------------------------------------
@@ -850,25 +877,20 @@ sub genes {
         return mgp_recovery_genes( $self, $sponsor_id, $query_type );
     }
 
-
-    my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
-
-    my $sql_results = $self->run_select_query( $sql_query );
-
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
 
-    my @gene_list;
-    foreach my $gene_row ( @$sql_results ) {
-         unshift( @gene_list,  $gene_row->{ 'gene_id' });
-    }
+    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
+
+
+    my @gene_list = @{$sponsor_gene_counts->{genes}};
 
     # Store list of designs to get crispr summary info for later
     my $designs_for_gene = {};
     my @all_design_ids;
 
-    foreach my $gene_row ( @$sql_results ) {
-        my $gene_id = $gene_row->{ 'gene_id' };
+    foreach my $gene_row ( @gene_list ) {
+        my $gene_id = $gene_row;
 
         my $gene_info;
 
@@ -917,8 +939,6 @@ sub genes {
 
         my @sponsors_abbr = map { $self->model->schema->resultset('Sponsor')->find({ id => $_ })->abbr } @sponsors;
         my $sponsors_str = join  ( ';', @sponsors_abbr );
-
-        next if ((scalar @sponsors_abbr == 1) && ($sponsors_abbr[0] eq 'DDD') && ($sponsor_id ne 'Decipher'));
 
         my ($priority, $recovery_class, $effort_concluded);
         try {

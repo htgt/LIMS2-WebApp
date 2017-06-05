@@ -49,7 +49,7 @@
     [%- FOR datum IN data %]
     <tr title="[% datum.0 %]">
       [%- FOR val IN datum %]
-      <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% linkify( val ) | none %]</td>
+      <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% plate_id %][% linkify( val ) | none %]</td>
       [%- END %]
     </tr>
     [%- END %]
@@ -163,10 +163,8 @@
         [% END %]
       [% END %]
     [% END %]
-  });
 
   // Add plate name to the document title (name in browser tab)
-  $(document).ready(function() {
     var title = '[% title %]';
     var plateNameRegex = /Plate (.*)/igm;
 
