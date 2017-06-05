@@ -32,7 +32,7 @@ span0 {
 
 <script type="text/javascript">
 
-$(function() {
+$(document).ready(function() {
     if ('[% info.defined %]') {
         document.title = 'Gene: [% info.gene_symbol %]';
     }
@@ -152,26 +152,6 @@ $(function() {
     show_or_hide_non_accepted_rows( $( '#piq_well_table' ), show_or_hide );
   });
 
-  $('.panel').on('show', function (e) {
-       $(e.target).prev('.panel-heading').find('.panel-toggle').addClass('active');
-  });
-
-  $('.panel').on('hide', function (e) {
-      $(this).find('.panel-toggle').not($(e.target)).removeClass('active');
-  });
-
-  $('#gene_report_accordion').on('shown.bs.collapse', function (e) {
-        var myEL = $(this).find('.collapse.in').prev('.panel-heading');
-        var scrollLocation = $(myEL).offset().top - 50;
-
-        $('html, body').animate({
-          scrollTop: scrollLocation
-        }, 500);
-    });
-
-
-
-
 });
 
 function show_or_hide_non_accepted_rows(table, show_or_hide) {
@@ -199,62 +179,6 @@ function toggle_btn(btn, show_or_hide) {
     }
 }
 
-
-$("#gene_id_input").autocomplete({
-  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
-  minLength: 2,
-});
-
-$('#transition_time').popover();
-
-
-function searchThroughAccordion() {
-    var collection = document.getElementsByClassName('panel-body collapse');
-    var states = [];
-    for (var i = 0; i < collection.length; i++) {
-        states.push(collection[i].id);
-    }
-    console.log(states);
-    states.forEach(function(state) {
-        highlightSearch(state);
-    });
-}
-
-
-
-function highlightSearch(state) {
-    var text = document.getElementById("query").value;
-    if (text) {
-        var query = new RegExp("(" + text + ")(?![^<]*>|[^<>]*<\/>\S)", "gim");
-        var accordion = document.getElementById(state).innerHTML;
-        var clearAccord = accordion.replace(/(<span0>|<\/span0>)/igm, "");
-        document.getElementById(state + '_id').innerHTML = "No results found";
-        document.getElementById(state).innerHTML = clearAccord;
-        var newAccord = clearAccord.replace(query, "<span0>$1</span0>");
-        var count;
-        try {
-            count = newAccord.match(query).length;
-        } catch (err) {
-            count = 0;
-        }
-        document.getElementById(state + '_id').innerHTML = "Results found: " + count;
-
-        document.getElementById(state).innerHTML = newAccord;
-        document.getElementById(state + '_id').style = "color:red";
-        var ua = navigator.userAgent;
-        var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-
-        if (browser[1] != "Firefox") {
-            if (count > 0 ){
-                $("#" + state).collapse("show");
-            }
-            else {
-                $("#" + state).collapse("hide");
-            }
-        }
-    }
-}
-
 </script>
 
 <div class="page-header">
@@ -275,34 +199,23 @@ function highlightSearch(state) {
 [%- END %]
 
 [%- IF sorted_wells.design OR sponsor %]
-  <div class="well">
-  <div class="row no-gutter">
-    [%- IF sorted_wells.design %]
-      <div class="col-md-4">
-        <b class="col-md-5" style="padding-right: 0px;">Production Graph: </b>
-        <div class="col-md-6">
-          [% FOREACH well IN sorted_wells.design %]
-            <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a><br>
-          [%- END %]
-        </div>
-      </div>
-    [%- END %]
-    [%- IF sponsor %]
-      <div class="col-md-4">
-        <b>Sponsor: </b>
-        [%- sponsor %]
-      </div>
-    [%- END %]
-
-    <div class="col-md-2">
-      <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_gene_view', {
+<div class="well">
+  [%- IF sorted_wells.design %]
+  <b>Production Graph: </b>
+    [% FOREACH well IN sorted_wells.design %]
+      <a href="[% c.uri_for( '/user/graph', { 'plate_name' => well.plate_name, 'well_name' => well.well_name, 'graph_type' => 'descendants', 'crisprs' => 'crisprs', 'go' => 'Go' } ) %]">[% well.well_id_string %]</a>
+    [%- END %] &nbsp;&nbsp;&nbsp;&nbsp;
+  [%- END %]
+  [%- IF sponsor %]
+  <b>Sponsor: </b>
+    [%- sponsor %]
+  [%- END %]
+  <a class="btn btn-info btn-sm" href="[% c.uri_for( '/user/genoverse_gene_view', {
                gene_id => info.gene_id,
                browser_target => info.gene_symbol,
                gene_symbol => info.gene_symbol
-      } ) %]" target="_blank" >Genoverse</a>
-    </div>
-  </div>
-  </div>
+  } ) %]" target="_blank">Genoverse</a>
+</div>
 [%- END %]
 
 [%- IF info.defined %]
@@ -310,7 +223,7 @@ function highlightSearch(state) {
 <button class="btn btn-default" onclick=searchThroughAccordion();>Find</button>
 [% END %]
 
-<div class="panel-group " id="gene_report_accordion" style="padding-top: 5px;">
+<div class="panel-group " id="gene_report_accordion">
 [% IF timeline %]
   <div class="panel panel-default">
     <p id="collapseTimeline_id"></p>
@@ -328,7 +241,7 @@ function highlightSearch(state) {
               <th>Product Type</th>
               <th>Earliest Date</th>
               <th>Latest Date</th>
-              <th>Transition Time <i class="glyphicon glyphicon-question-sign" title="Number of days that have passed since the first instance of a product type and the first instance of the next product type (or to date if there is no next product type yet)"></i></th>
+              <th>Transition Time <i class="icon-question-sign" id="transition_time" href="#" data-content="Number of days that have passed since the first instance of a product type and the first instance of the next product type (or to date if there is no next product type yet)" rel="popover" data-placement="bottom" data-trigger="hover"></i></th>
             </tr>
           </thead>
           <tbody>
@@ -735,7 +648,7 @@ function highlightSearch(state) {
     </div>
     <div id="collapseEP" class="panel-body collapse">
       <div class="panel-body">
-        <table class="table table-striped" style="display: block; overflow-x: auto;">
+        <table class="table table-striped">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -973,7 +886,7 @@ function highlightSearch(state) {
     </div>
     <div id="collapseFinalPick" class="panel-body collapse">
       <div class="panel-body">
-        <table class="table table-striped" style="display: block; overflow-x: auto;">
+        <table class="table table-striped">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -1019,7 +932,7 @@ function highlightSearch(state) {
     </div>
     <div id="collapseFinal" class="panel-body collapse">
       <div class="panel-body">
-        <table class="table table-striped" style="display: block; overflow-x: auto;">
+        <table class="table table-striped">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -1065,7 +978,7 @@ function highlightSearch(state) {
     </div>
     <div id="collapseIntermediateVectors" class="panel-body collapse">
       <div class="panel-body">
-        <table class="table table-striped" style="display: block; overflow-x: auto;">
+        <table class="table table-striped">
           <thead>
             <th>Well name</td>
             <th>Plate</td>
@@ -1291,3 +1204,69 @@ function highlightSearch(state) {
 
 </div>
 [%- END %]
+
+<script type="text/javascript">
+$("#gene_id_input").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+
+$('#transition_time').popover();
+
+$(function() {
+
+    $('.panel').on('show', function (e) {
+         $(e.target).prev('.panel-heading').find('.panel-toggle').addClass('active');
+    });
+
+    $('.panel').on('hide', function (e) {
+        $(this).find('.panel-toggle').not($(e.target)).removeClass('active');
+    });
+
+});
+
+function searchThroughAccordion() {
+    var collection = document.getElementsByClassName('panel-body collapse');
+    var states = [];
+    for (var i = 0; i < collection.length; i++) {
+        states.push(collection[i].id);
+    }
+    console.log(states);
+    states.forEach(function(state) {
+        highlightSearch(state);
+    });
+}
+
+function highlightSearch(state) {
+    var text = document.getElementById("query").value;
+    if (text) {
+        var query = new RegExp("(" + text + ")(?![^<]*>|[^<>]*<\/>\S)", "gim");
+        var accordion = document.getElementById(state).innerHTML;
+        var clearAccord = accordion.replace(/(<span0>|<\/span0>)/igm, "");
+        document.getElementById(state + '_id').innerHTML = "No results found";
+        document.getElementById(state).innerHTML = clearAccord;
+        var newAccord = clearAccord.replace(query, "<span0>$1</span0>");
+        var count;
+        try {
+            count = newAccord.match(query).length;
+        } catch (err) {
+            count = 0;
+        }
+        document.getElementById(state + '_id').innerHTML = "Results found: " + count;
+
+        document.getElementById(state).innerHTML = newAccord;
+        document.getElementById(state + '_id').style = "color:red";
+        var ua = navigator.userAgent;
+        var browser = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+
+        if (browser[1] != "Firefox") {
+            if (count > 0 ){
+                $("#" + state).collapse("show");
+            }
+            else {
+                $("#" + state).collapse("hide");
+            }
+        }
+    }
+}
+</script>
