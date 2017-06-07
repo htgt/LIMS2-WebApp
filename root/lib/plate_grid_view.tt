@@ -49,7 +49,15 @@ You can create as many plates as you like so long as you create separate contain
 This will create two plates side by side. Add well names must be done after else you'll get duplicates
 
 -->
+<style>
 
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+</style>
 
 <script type="text/javascript">
 
@@ -67,13 +75,13 @@ function setupPlate(grid, wellClass) {
         .enter()
         .append("g")
         .attr("class","sqContainer")
-        .attr("id", function(d) { return d.id; })
+        .attr("id", function(d) { return d.well; })
         .attr("transform", function(d, i) { 
             return "translate(" + d.x + "," +  d.y + ")"; 
         })
         .append("rect")
         .attr("class","square " + wellClass)
-        .attr("id", function(d) { return "turtle"; })
+        .attr("id", function(d) { return wellClass + '_' + d.index; })
         //.attr("x", function(d) { return d.x; })
         //.attr("y", function(d) { return d.y; })
         .attr("width", function(d) { return d.width; })
@@ -85,13 +93,14 @@ function setupPlate(grid, wellClass) {
 function addWellNames() {
     d3.selectAll("g.sqContainer")
         .append("text")
-        .attr("class","wellText")
+        .attr("class","wellText unselectable")
         .attr("dx","0.5em")
         .attr("dy","1.3em")
         .text(function() {
             return $(this).parent()[0].id;
         });
 }
+
 function axes(rowValue, colValue) {
     var request = '[% letters_on %]' || 'row';
     if (request == 'row') {
@@ -106,19 +115,20 @@ function setupGrid() {
     var yPos = 1;
     var width = '[% row_pixel %]';
     var height = '[% column_pixel %]';
-    var click = 0;
+    var numOfElemInRow = '[% columns %]';
 
     for (var row = 0; row < [% rows %]; row++) {
         data.push( new Array() );
         for (var column = 0; column < [% columns %]; column++) {
-            var id = axes(row, column);
+            var well = axes(row, column);
+            var index = (row * numOfElemInRow) + column;
             data[row].push({
-                id: id,
+                well: well,
                 x: xPos,
                 y: yPos,
                 width: width,
                 height: height,
-                click: click
+                index: index
             })
             xPos = +xPos + +width;
         }

@@ -10,7 +10,7 @@ body {
 </style>
 
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
-[% INCLUDE 'plate_grid_view.tt' rows = 12 columns = 8 letters_on = "column" row_pixel = 50 column_pixel = 50 %]
+[% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
 
 <div class="page-header">
   <h1>Create MiSEQ Plate</h1>
@@ -74,14 +74,15 @@ body {
 <div id="plateVisual">
     <div class="row">
         <p id="miseqName" class="lb-md col-md-offset-1">MiSEQ Plate Name</p>
-        <select id="freezeName" class="btn btn-default col-md-offset-7" hidden>
-            <option value="-">Freezer Plate</option>
-        </select>
+
     </div>
     <div id="plateRow" class="col-md-12">
-        <div id="firstSplit" class="col-md-6">
+        <div id="firstSplit" class="col-md-12">
         </div>
-        <div id="secondSplit" class="col-md-6">
+        <select id="freezeName" class="btn btn-default col-md-offset-2" hidden>
+            <option value="-">Freezer Plate</option>
+        </select>
+        <div id="secondSplit" class="col-md-12">
         </div>
     </div>
 </div>
@@ -94,18 +95,20 @@ var startWell = "";
 var miseqGrid = d3.select("#firstSplit")
     .append("svg")
     .attr("width","610px")
-    .attr("height","610px");
+    .attr("height","410px");
 
 var freezeGrid = d3.select("#secondSplit")
     .append("svg")
     .attr("width","610px")
-    .attr("height","610px");
+    .attr("height","410px");
 
 var test;
+/*
 $(function() {
     var initWell;
     $('#firstSplit').selectable({
         start: function(event) {
+            console.log(d3.event);
         },
         selecting: function() {
             var outOfSelection = $('text.ui-selectee').not('.ui-selected').siblings('rect');
@@ -116,6 +119,92 @@ $(function() {
         }
     });
 });
+svg.on("click", function() {
+    console.log(d3.mouse(this));
+});
+
+*/
+var test;
+$(function () {
+    var isMouseDown = false;
+    var startIndex;
+    $("#firstSplit")
+        .mousedown(function(evt) {
+            startIndex = highlighter(evt.target);
+            isMouseDown = true;
+        })
+        .mouseover(function(evt) {
+            if (isMouseDown == true){
+                highlighter(evt.target, startIndex);
+            }
+        });
+
+    $('body').mouseup(function(evt) {
+        isMouseDown = false;
+        $('.selecting').toggleClass('selecting selected');
+        d3.selectAll('.selected').style('fill','#aec6cf');
+    });
+
+});
+
+function highlighter(target, start) {
+    if (target.nodeName != 'rect') {
+        target = $(target).siblings('rect')[0];
+    }
+
+    var index;
+    try {
+        index= target.id;
+    } catch(err) {
+        return;
+    }
+    var originIndex = startWell.id.split('_')[1];
+    index = index.split('_')[1];
+    if (start) {
+        d3.selectAll('rect').classed('selecting',false);
+        //console.log("Start: " + start + ", End: " + index);
+        for (var inc = start; inc <= index; inc++) {
+            var originID = (inc - start) + +originIndex;
+
+            d3.select('#miWell_' + inc).classed('selecting',true);
+            d3.select('#fpWell_' + originID).classed('selecting',true);
+
+            d3.select('#miWell_' + inc).classed('selected',false);
+            d3.select('#fpWell_' + originID).classed('selected',false);
+
+            tracking(inc, originID);
+        }
+        d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected"); }).style('fill','white');
+        d3.selectAll('.selecting').style('fill','#FDFD96');
+    }
+
+    d3.select(target).style('fill','#FDFD96');
+    var empties = $('.miWell').not('.selected').not('.selecting');
+    var textEmpties = empties.siblings('text');
+    textEmpties.text(function() { return $(this).parent()[0].id; });
+
+    return index;
+}
+
+function tracking(miWellID, fpWellID) {
+    var originWell = document.getElementById('fpWell_' + fpWellID);
+    var newWell = $('#miWell_' + miWellID);
+    var originID = originWell.parentNode.id;
+    var textNode = newWell.siblings('text')[0];
+
+    var d3TextObj = d3.select(textNode);
+    d3TextObj.text(originID);
+
+    var arrow = d3TextObj.append('tspan')
+        .attr('dx', '-1.1em')
+        .attr('dy', '0.9em');
+    arrow.html('&#8595');
+
+    var destination = d3TextObj.append('tspan')
+        .attr('dx', '-1.20em')
+        .attr('dy', '1em');
+    destination.text(newWell.parents()[0].id);
+}
 
 
 $(document).ready(function() {
@@ -156,31 +245,7 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
     d3.select(startWell).style('fill','#fdfd96');
 });
 
-$('#plateVisual').on('click','rect.miWell' , function() {
-    var well = this;
-    if (startWell != '') {
-        d3.select(well).style('fill','#fdfd96');
-    }
-    var originID = startWell.parentNode.id;
-    var textNode = $(well).siblings('text')[0];
-/*
-    G01
-     v
-    A04
-*/
-    var d3TextObj = d3.select(textNode);
-    d3TextObj.text(originID);
 
-    var arrow = d3TextObj.append('tspan')
-        .attr('dx', '-1.1em')
-        .attr('dy', '0.9em');
-    arrow.html('&#8595');
-
-    var destination = d3TextObj.append('tspan')
-        .attr('dx', '-1.20em')
-        .attr('dy', '1em');
-    destination.text(well.parentNode.id);
-});
 
 $('#freezeName').change(function() {
     d3.selectAll('.fpWell').style("fill","white");
