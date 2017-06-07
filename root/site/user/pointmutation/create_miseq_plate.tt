@@ -102,32 +102,10 @@ var freezeGrid = d3.select("#secondSplit")
     .attr("width","610px")
     .attr("height","410px");
 
-var test;
-/*
-$(function() {
-    var initWell;
-    $('#firstSplit').selectable({
-        start: function(event) {
-            console.log(d3.event);
-        },
-        selecting: function() {
-            var outOfSelection = $('text.ui-selectee').not('.ui-selected').siblings('rect');
-            d3.selectAll(outOfSelection).style('fill','white');
-
-            var rectObjs = $('text.ui-selecting').siblings('rect');
-            d3.selectAll(rectObjs).style('fill','#fdfd96');
-        }
-    });
-});
-svg.on("click", function() {
-    console.log(d3.mouse(this));
-});
-
-*/
-var test;
 $(function () {
     var isMouseDown = false;
     var startIndex;
+
     $("#firstSplit")
         .mousedown(function(evt) {
             startIndex = highlighter(evt.target);
@@ -144,7 +122,6 @@ $(function () {
         $('.selecting').toggleClass('selecting selected');
         d3.selectAll('.selected').style('fill','#aec6cf');
     });
-
 });
 
 function highlighter(target, start) {
@@ -154,15 +131,15 @@ function highlighter(target, start) {
 
     var index;
     try {
-        index= target.id;
+        index = target.id;
     } catch(err) {
         return;
     }
+
     var originIndex = startWell.id.split('_')[1];
     index = index.split('_')[1];
     if (start) {
         d3.selectAll('rect').classed('selecting',false);
-        //console.log("Start: " + start + ", End: " + index);
         for (var inc = start; inc <= index; inc++) {
             var originID = (inc - start) + +originIndex;
 
@@ -281,8 +258,5 @@ function addOption(name) {
     option.text = option.value = name;
     select.add(option,-1);
 }
-
-
-
 
 </script>
