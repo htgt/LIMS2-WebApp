@@ -74,39 +74,40 @@ sub confluence_report_GET {
     my $cross_symbol = "&#10005;";
 
     ## start compiling the HTML response
-    my $html = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    my $html = '
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
 
-<div style="width:700px;border:1px solid black;margin:0 auto;"><input class="input-lg" style="padding:5px;margin:5px;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search ..." autofocus><i style="font-size:20px;"" class="glyphicon glyphicon-search"></i>
-</div>
+<body>
+<div style="width:700px;border:1px solid black;margin:0 auto;"><input class="input-lg" style="padding:5px;margin:5px;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search ..." autofocus><i style="font-size:20px;"" class="glyphicon glyphicon-search"></i></div>
 <div style="overflow:auto;width:700px;height:500px;border:1px solid black;margin:0 auto;"><table id="myTable" class="table table-bordered table-condensed">';
 
-    ## column names that will be removed from table
-    foreach my $elem ("gene_id", "crispr plasmids constructed", "ordered vector primers", "PCR-passing design oligos", "donor vectors constructed", "DNA source vector", "priority") {
-        my $idx = firstidx { $_ eq $elem } @data_col_names;
-        push @idx_to_rm, $idx;
-    }
-
-    ## column names that will retain their values
-    foreach my $elem ("gene id", "gene symbol", "chr", "sponsor(s)") {
-        my $idx = firstidx { $_ eq $elem } @data_col_names;
-        push @idx_to_edit, $idx;
-    }
-
-    ## prepare table header
     $html .= '<thead>';
-    my $counter = 0;
-    foreach my $name (@data_col_names) {
-        if ( grep {$_ == $counter} @idx_to_rm ) {
-            $counter++;
-            next;
+
+    my @colnames_to_rm = ("gene_id", "crispr plasmids constructed", "ordered vector primers", "PCR-passing design oligos", "donor vectors constructed", "DNA source vector", "priority");
+    my @colnames_to_edit = ("gene id", "gene symbol", "chr", "sponsor(s)");
+
+    ## table header
+    foreach my $elem (@data_col_names) {
+        if ( grep {$_ eq $elem} @colnames_to_rm ) {
+            my $idx = firstidx { $_ eq $elem } @data_col_names;
+            push @idx_to_rm, $idx;
+        } elsif ( grep {$_ eq $elem} @colnames_to_edit ) {
+            my $idx = firstidx { $_ eq $elem } @data_col_names;
+            push @idx_to_edit, $idx;
+            $html .= '<th class="bg-primary" style="text-align:center;">'.$elem.'</th>';
         } else {
-            $html .= '<th class="bg-primary" style="text-align:center;">'.$name.'</th>';
-            $counter++;
+            $html .= '<th class="bg-primary" style="text-align:center;">'.$elem.'</th>';
         }
     }
+
     $html .= '</thead>';
 
     ## table content
@@ -135,8 +136,10 @@ sub confluence_report_GET {
         $html .= '<tr>';
     }
 
+    $html .= '</table></div><br/><br />';
+
     ## Javascript code for searching the table by gene name
-    my $js_code = '
+    $html .= '
 <script>
 function get_genes() {
     var input, filter, table, tr, td, i;
@@ -158,11 +161,13 @@ function get_genes() {
 }
 </script>
 
+</body>
+</html>
 ';
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/html' );
-    $c->response->body( $html . '</table></div><br/><br />' . $js_code );
+    $c->response->body( $html );
 
     return 1;
 }
