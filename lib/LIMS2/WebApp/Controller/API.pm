@@ -43,7 +43,7 @@ sub auto : Private {
     ## API call for the confluence report is public
     if ($c->request->action eq 'api/confluence/report') {
         return 1;
-    }else {
+    } else {
         unless ( $c->user_exists ) {
             #my $username = delete $c->req->parameters->{ 'username' };
             #my $password = delete $c->req->parameters->{ 'password' };
