@@ -4,6 +4,9 @@ use MooseX::Types::Path::Class;
 use LIMS2::Report;
 use namespace::autoclean;
 use List::MoreUtils qw(firstidx);
+use Text::CSV;
+use TryCatch;
+use LIMS2::Model::Util::GenesForSponsor;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -40,9 +43,6 @@ sub confluence_report_GET {
     ## compile cached reports for Pipeline II genes
     my $server_path = $c->uri_for('/');
     my $cache_server;
-    my @pipeline_ii_projects = ('Decipher', 'Cellular Genetics');
-
-    my @lines_out;
 
     for ($server_path) {
         if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
@@ -51,21 +51,36 @@ sub confluence_report_GET {
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
+    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({
+            model => $c->model('Golgi'),
+            targeting_type => 'single_targeted',
+            species_id => 'Mouse'
+        });
+
+    my @pipeline_ii_sponsors = @{$sponsor_genes_instance->pipeline_ii_sponsors};
+    map { $_ =~ s/ /_/g } @pipeline_ii_sponsors;
+
     ## prepare gene data
-    foreach my $csv_name (@pipeline_ii_projects) {
+    my @lines_out;
+    foreach my $csv_name (@pipeline_ii_sponsors) {
 
-        my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
+        try {
+            my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
+            my $fh;
 
-        open( my $csv_handle, "<:encoding(UTF-8)", $cached_file_name ) or next;
-        
-        while (<$csv_handle>) {
-            push @lines_out, $_;
+            my $csv = Text::CSV->new ({
+            });
+
+            open ($fh, '<:encoding(UTF-8)', $cached_file_name) or die "$!";
+            while (my $row = $csv->getline($fh)) {
+                push (@lines_out, $row);
+            }
+            close $fh;
         }
-        close $csv_handle;
     }
 
     my $data_header = shift @lines_out;
-    my @data_col_names = split ",", $data_header;
+    my @data_col_names = @{$data_header};
 
     my @idx_to_rm;
     my @idx_to_edit;
@@ -91,8 +106,8 @@ sub confluence_report_GET {
 
     $html .= '<thead>';
 
-    my @colnames_to_rm = ("gene_id", "crispr plasmids constructed", "ordered vector primers", "PCR-passing design oligos", "donor vectors constructed", "DNA source vector", "priority");
-    my @colnames_to_edit = ("gene id", "gene symbol", "chr", "sponsor(s)");
+    my @colnames_to_rm = ("crispr plasmids constructed", "ordered vector primers", "PCR-passing design oligos", "donor vectors constructed", "DNA source vector", "priority");
+    my @colnames_to_edit = ("gene id", "gene symbol", "chr", "sponsor(s)", "info");
 
     ## table header
     foreach my $elem (@data_col_names) {
@@ -111,10 +126,10 @@ sub confluence_report_GET {
     $html .= '</thead>';
 
     ## table content
-    foreach my $line (@lines_out) {
+    foreach my $line_ref (@lines_out) {
         $html .= '<tr>';
         my $counter = 0;
-        my @line_elems = split ",", $line;
+        my @line_elems = @{$line_ref};
         foreach my $cell (@line_elems) {
             if ( grep {$_ == $counter} @idx_to_rm ) {
                 $counter++;
@@ -122,16 +137,13 @@ sub confluence_report_GET {
             } elsif ( grep {$_ == $counter} @idx_to_edit ) {
                 $html .= '<td class="bg-info">'.$cell.'</td>';
                 $counter++;
+            } elsif ($cell) {
+                $html .= '<td class="bg-info"><span style="color:green;">'.$tick_symbol.'</span></td>';
+                $counter++;
             } else {
-                if ($cell) {
-                    $html .= '<td class="bg-info"><span style="color:green;">'.$tick_symbol.'</span></td>';
-                    $counter++;
-                } else {
-                    $html .= '<td class="bg-info"><span style="color:red;">'.$cross_symbol.'</span></td>';
-                    $counter++;
-                }
+                $html .= '<td class="bg-info"><span style="color:red;">'.$cross_symbol.'</span></td>';
+                $counter++;
             }
-        
         }
         $html .= '<tr>';
     }
