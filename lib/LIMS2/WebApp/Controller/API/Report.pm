@@ -99,10 +99,6 @@ sub confluence_report_GET {
 <html lang="en">
 
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -141,7 +137,7 @@ END_QUOTE
                 $counter++;
                 next;
             } elsif ( grep {$_ == $counter} @idx_to_edit ) {
-                $html .= '<td class="bg-info">'.$cell.'</td>';
+                $html .= '<td class="bg-info"><span style="padding:5px;">'.$cell.'</span></td>';
                 $counter++;
             } elsif ($cell) {
                 $html .= '<td class="bg-info"><span style="color:green;">'.$tick_symbol.'</span></td>';
@@ -178,6 +174,11 @@ function get_genes() {
     }
 }
 </script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 </body>
 </html>
