@@ -57,8 +57,13 @@ sub confluence_report_GET {
             species_id => 'Mouse'
         });
 
-    my @pipeline_ii_sponsors = @{$sponsor_genes_instance->pipeline_ii_sponsors};
-    map { $_ =~ s/ /_/g } @pipeline_ii_sponsors;
+    my @pipeline_ii_sponsors;
+    my @unedited_pipeline_ii_sponsors = @{$sponsor_genes_instance->pipeline_ii_sponsors};
+    #map { $_ =~ s/ /_/g } @pipeline_ii_sponsors;# perlcritic complains if map is used
+    foreach my $sponsor (@unedited_pipeline_ii_sponsors) {
+        $sponsor =~ s/ /_/g;
+        push @pipeline_ii_sponsors, $sponsor;
+    }
 
     ## prepare gene data
     my @lines_out;
@@ -89,7 +94,7 @@ sub confluence_report_GET {
     my $cross_symbol = "&#10005;";
 
     ## start compiling the HTML response
-    my $html = '
+    my $html = <<"END_QUOTE";
 <!DOCTYPE html>
 <html lang="en">
 
@@ -102,7 +107,8 @@ sub confluence_report_GET {
 
 <body>
 <div style="width:700px;border:1px solid black;margin:0 auto;"><input class="input-lg" style="padding:5px;margin:5px;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search ..." autofocus><i style="font-size:20px;"" class="glyphicon glyphicon-search"></i></div>
-<div style="overflow:auto;width:700px;height:500px;border:1px solid black;margin:0 auto;"><table id="myTable" class="table table-bordered table-condensed">';
+<div style="overflow:auto;width:700px;height:500px;border:1px solid black;margin:0 auto;"><table id="myTable" class="table table-bordered table-condensed">
+END_QUOTE
 
     $html .= '<thead>';
 
@@ -151,7 +157,7 @@ sub confluence_report_GET {
     $html .= '</table></div><br/><br />';
 
     ## Javascript code for searching the table by gene name
-    $html .= '
+    $html .= <<"END_QUOTE";
 <script>
 function get_genes() {
     var input, filter, table, tr, td, i;
@@ -175,7 +181,7 @@ function get_genes() {
 
 </body>
 </html>
-';
+END_QUOTE
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/html' );
