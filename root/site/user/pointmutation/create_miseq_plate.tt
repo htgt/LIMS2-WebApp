@@ -72,16 +72,18 @@ body {
 <div>
 
 <div id="plateVisual">
+
+    <div id="plateRow" class="col-md-12">
+        <select id="freezeName" class="btn btn-default col-md-offset-2" hidden>
+            <option value="-">Freezer Plate</option>
+        </select>
+
+        <div id="firstSplit" class="col-md-12">
+        </div>
     <div class="row">
         <p id="miseqName" class="lb-md col-md-offset-1">MiSEQ Plate Name</p>
 
     </div>
-    <div id="plateRow" class="col-md-12">
-        <div id="firstSplit" class="col-md-12">
-        </div>
-        <select id="freezeName" class="btn btn-default col-md-offset-2" hidden>
-            <option value="-">Freezer Plate</option>
-        </select>
         <div id="secondSplit" class="col-md-12">
         </div>
     </div>
@@ -92,12 +94,12 @@ body {
 var parentPlates = [];
 var startWell = "";
 
-var miseqGrid = d3.select("#firstSplit")
+var freezeGrid = d3.select("#firstSplit")
     .append("svg")
     .attr("width","610px")
     .attr("height","410px");
 
-var freezeGrid = d3.select("#secondSplit")
+var miseqGrid = d3.select("#secondSplit")
     .append("svg")
     .attr("width","610px")
     .attr("height","410px");
@@ -106,7 +108,7 @@ $(function () {
     var isMouseDown = false;
     var startIndex;
 
-    $("#firstSplit")
+    $("#secondSplit")
         .mousedown(function(evt) {
             startIndex = highlighter(evt.target);
             isMouseDown = true;
@@ -169,6 +171,8 @@ function tracking(miWellID, fpWellID) {
     var originID = originWell.parentNode.id;
     var textNode = newWell.siblings('text')[0];
 
+    newWell.val(originID);
+
     var d3TextObj = d3.select(textNode);
     d3TextObj.text(originID);
 
@@ -215,7 +219,7 @@ $('#addPlate').click(function() {
 });
 
 $('#plateVisual').on('click','rect.fpWell' , function() {
-    if (startWell != '') {
+    if (startWell != '' && !$(startWell).hasClass('selected')) {
         d3.select(startWell).style('fill','white');
     }
     startWell = this;
