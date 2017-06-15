@@ -54,7 +54,7 @@ sub confluence_report_GET {
     my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({
             model => $c->model('Golgi'),
             targeting_type => 'single_targeted',
-            species_id => 'Mouse'
+            species_id => 'Human'
         });
 
     my @pipeline_ii_sponsors;
