@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.462     2017-06-16 13:45:56 Europe/London
+    Fix to allow for 768 plates in miseq
 0.461     2017-06-16 12:15:05 Europe/London
 
     Fix duplicated headers in confluence report
