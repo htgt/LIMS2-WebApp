@@ -1,5 +1,21 @@
 {{$NEXT}}
 
+0.463     2017-06-16 14:28:24 Europe/London
+
+0.462     2017-06-16 13:45:56 Europe/London
+    Fix to allow for 768 plates in miseq
+0.461     2017-06-16 12:15:05 Europe/London
+
+    Fix duplicated headers in confluence report
+0.460     2017-06-15 22:50:45 Europe/London
+
+    Add an API call to get the confluence gene report table
+0.459     2017-06-05 21:20:50 Europe/London
+
+    front page reporting changes and general bug fixes
+0.458     2017-05-03 21:00:27 Europe/London
+
+    sponsor report and strategy view
 0.457     2017-04-24 10:45:04 Europe/London
 
 0.456     2017-04-24 09:57:03 Europe/London
