@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Report;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Report::VERSION = '0.460';
+    $LIMS2::WebApp::Controller::API::Report::VERSION = '0.461';
 }
 ## use critic
 
@@ -73,6 +73,7 @@ sub confluence_report_GET {
 
     ## prepare gene data
     my @lines_out;
+    my $data_header;
     foreach my $csv_name (@pipeline_ii_sponsors) {
 
         try {
@@ -83,6 +84,7 @@ sub confluence_report_GET {
             });
 
             open ($fh, '<:encoding(UTF-8)', $cached_file_name) or die "$!";
+            $data_header = $csv->getline ($fh);
             while (my $row = $csv->getline($fh)) {
                 push (@lines_out, $row);
             }
@@ -90,7 +92,6 @@ sub confluence_report_GET {
         }
     }
 
-    my $data_header = shift @lines_out;
     my @data_col_names = @{$data_header};
 
     my @idx_to_rm;
