@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.461     2017-06-16 12:15:05 Europe/London
+
+    Fix duplicated headers in confluence report
 0.460     2017-06-15 22:50:45 Europe/London
 
     Add an API call to get the confluence gene report table
