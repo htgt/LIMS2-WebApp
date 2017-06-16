@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.457';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.462';
 }
 ## use critic
 
@@ -104,14 +104,14 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         update_status($self, $c, $miseq, $index, $updated_status);
     }
 
-    my $reg = "S" . $index . "_exp[A-Z]+";
+    my $reg = "S" . $index . "_exp[A-Za-z0-9_]+";
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
     my @files = find_children($base, $reg);
     my @exps;
 
     my $well_name;
     foreach my $file (@files) {
-        my @matches = ($file =~ /S\d+_exp([A-Z]+)/g);
+        my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g);
         foreach my $match (@matches) {
             my $class = find_classes($c, $miseq, $index, $match);
             my $rs = {
@@ -181,21 +181,6 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     return;
 }
 
-
-sub create_point_mutation : Path('/user/create_point_mutation') : Args(0) {
-    my ( $self, $c ) = @_;
-
-    my $name = $c->req->param('miseqName');
-
-    if ($name) {
-        #csv
-        my $file = $c->request->upload('csvUpload');
-        my $bp = 1;
-    }
-
-    return;
-}
-
 sub get_genes {
     my ( $c, $ow) = @_;
 
@@ -250,12 +235,13 @@ sub generate_summary_data {
     my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
     for (my $i = 1; $i < 385; $i++) {
-        my $reg = "S" . $i . "_exp[A-Z]+";
+        my $reg = "S" . $i . "_exp[A-Za-z0-9_]+";
         my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
         my @files = find_children($base, $reg);
         my @exps;
         foreach my $file (@files) {
-            my @matches = ($file =~ /S\d+_exp([A-Z]+)/g);
+            #Get all experiments on this well
+            my @matches = ($file =~ /S$i\_exp([A-Za-z0-9_]+)/g);
             foreach my $match (@matches) {
                 push (@exps,$match);
             }
@@ -347,8 +333,6 @@ sub find_folder {
     while ( my $entry = readdir $fh ) {
         next unless $path . '/' . $entry;
         next if $entry eq '.' or $entry eq '..';
-        #my @matches = ($entry =~ /CRISPResso_on_Homo-sapiens_(\S*$)/g); #Max 1
-
         my @matches = ($entry =~ /CRISPResso_on\S*_(S\S*$)/g); #Max 1
 
         $res = $matches[0];
@@ -417,7 +401,7 @@ sub check_class {
     my $result;
 
     foreach my $key (keys %$params) {
-        my @matches = ($key =~ /^class([A-Z]+)$/g);
+        my @matches = ($key =~ /^class([A-Za-z0-9_]+)$/g);
         if (@matches) {
             $result = $matches[0];
         }
@@ -472,15 +456,6 @@ sub find_classes {
         $result = 'Not called';
     };
 
-=head
-    if ($selection) {
-        $result = search_exp($c, $well->{id}, $selection, $result);
-    } else {
-        foreach my $exp (@exps) {
-            $result = search_exp($c, $well->{id}, $exp, $result);
-        }
-    }
-=cut
     return $result;
 }
 

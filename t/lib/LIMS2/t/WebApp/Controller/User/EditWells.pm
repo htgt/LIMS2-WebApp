@@ -227,7 +227,8 @@ sub all_tests  : Tests {
     note( "CSV of wells to add" );
 
     my $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,A01,HCL0016_A,A02,D01\n"
+    $test_file->print( "parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,A01,HCL0016_A,A02,D01\n"
         . "HCL16,A01,HCL0016_A,A02,D06");
     $test_file->seek( 0, 0 );
 
@@ -242,10 +243,12 @@ sub all_tests  : Tests {
     ), 'upload file with valid data';
 
     ok $res->is_success, '...response is success';
+    #ok(1, $mech->content);
     $mech->content_contains('Successfully created wells:');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HZL16,A01,HCL0016_A,A02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HZL16,A01,HCL0016_A,A02,D01\n"
         . "HZL16,A01,HCL0016_A,A02,D06");
     $test_file->seek( 0, 0 );
 
@@ -264,7 +267,8 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,Z01,HCL0016_A,A02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,Z01,HCL0016_A,A02,D01\n"
         . "HCL16,Z01,HCL0016_A,A02,D06");
     $test_file->seek( 0, 0 );
 
@@ -283,7 +287,8 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,ZX01,HCL0016_A,A02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,ZX01,HCL0016_A,A02,D01\n"
         . "HCL16,ZX01,HCL0016_A,A02,D06");
     $test_file->seek( 0, 0 );
 
@@ -302,7 +307,8 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,A01,HZL0016_A,A02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,A01,HZL0016_A,A02,D01\n"
         . "HCL16,A01,HZL0016_A,A02,D06");
     $test_file->seek( 0, 0 );
 
@@ -321,7 +327,8 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,A01,HCL0016_A,Z02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,A01,HCL0016_A,Z02,D01\n"
         . "HCL16,A01,HCL0016_A,Z02,D06");
     $test_file->seek( 0, 0 );
 
@@ -340,7 +347,8 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("HCL16,A01,HCL0016_A,ZX02,D01\n"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
+        . "HCL16,A01,HCL0016_A,ZX02,D01\n"
         . "HCL16,A01,HCL0016_A,ZX02,D06");
     $test_file->seek( 0, 0 );
 
@@ -359,7 +367,7 @@ sub all_tests  : Tests {
     $mech->content_contains('Unable to validate data');
 
     $test_file = File::Temp->new or die('Could not create temp test file ' . $!);
-    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well"
+    $test_file->print("parent_plate,parent_well,target_plate,template_well,target_well\n"
         . "HCL16,A01,HCL0016_A,A02,D07\n"
         . "HCL16,A01,HCL0016_A,A02,D08");
     $test_file->seek( 0, 0 );

@@ -239,6 +239,7 @@ lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
+lib/LIMS2/Model/Util/GenesForSponsor.pm
 lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/ImportSequencing.pm
@@ -496,7 +497,6 @@ root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/pointmutation/browse_point_mutation.tt
-root/site/user/pointmutation/create_point_mutation.tt
 root/site/user/pointmutation/point_mutation.tt
 root/site/user/pointmutation/point_mutation_allele.tt
 root/site/user/primers/generate_primers.tt

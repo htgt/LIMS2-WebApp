@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.457';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.462';
 }
 ## use critic
 
@@ -232,6 +232,7 @@ sub _generate_front_page_report {
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
     my $title       = $report_params->{ title };
+    my $title_ii    = $report_params->{ title_ii };
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
@@ -239,6 +240,7 @@ sub _generate_front_page_report {
     $c->stash(
         'report_id'      => $report_id,
         'title'          => $title,
+        'title_ii'       => $title_ii,
         'species'        => $species,
         'targeting_type' => $targeting_type,
         'cache_param'    => $cache_param,

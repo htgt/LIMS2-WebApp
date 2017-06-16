@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::VERSION = '0.457';
+    $LIMS2::WebApp::Controller::API::VERSION = '0.462';
 }
 ## use critic
 
@@ -45,42 +45,47 @@ sub auto : Private {
     # This allows a logged-in user to access the REST API without
     # further authentication, and provides an HTTP basic auth fallback
     # for programmatic access
-    unless ( $c->user_exists ) {
-        #my $username = delete $c->req->parameters->{ 'username' };
-        #my $password = delete $c->req->parameters->{ 'password' };
-        my $key = delete $c->req->headers->{pass};
 
-        unless ( $key ) {
-            $self->status_forbidden( $c, message => 'Key not specified' );
-            $c->detach();
+    ## API call for the confluence report is public
+    if ($c->request->action eq 'api/confluence/report') {
+        return 1;
+    } else {
+        unless ( $c->user_exists ) {
+            #my $username = delete $c->req->parameters->{ 'username' };
+            #my $password = delete $c->req->parameters->{ 'password' };
+            my $key = delete $c->req->headers->{pass};
+
+            unless ( $key ) {
+                $self->status_forbidden( $c, message => 'Key not specified' );
+                $c->detach();
+            }
+
+            my $_conf = Config::Tiny->read($ENV{LIMS2_REST_CLIENT_CONFIG});
+            my $serial = Data::Serializer->new();
+            $serial = Data::Serializer->new(
+                serializer  => 'Data::Dumper',
+                digester    => 'SHA-256',
+                cipher      => 'Blowfish',
+                secret      => $_conf->{api}->{transport},
+                compress    => 0,
+            );
+
+            my $frozen = $serial->thaw($key);
+
+            unless ( $c->authenticate( { access_key => $frozen->{access}, secret_key => $frozen->{secret} }, 'rest' ) ) {
+                $self->status_forbidden( $c, message => 'Key not correct' );
+                $c->detach();
+            }
         }
 
-        my $_conf = Config::Tiny->read($ENV{LIMS2_REST_CLIENT_CONFIG});
-        my $serial = Data::Serializer->new();
-        $serial = Data::Serializer->new(
-            serializer  => 'Data::Dumper',
-            digester    => 'SHA-256',
-            cipher      => 'Blowfish',
-            secret      => $_conf->{api}->{transport},
-            compress    => 0,
-        );
-
-        my $frozen = $serial->thaw($key);
-
-        unless ( $c->authenticate( { access_key => $frozen->{access}, secret_key => $frozen->{secret} }, 'rest' ) ) {
-            $self->status_forbidden( $c, message => 'Key not correct' );
-            $c->detach();
+        if ( ! $c->session->{selected_species} ) {
+            my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
+            $c->session->{selected_species} = $prefs->default_species_id;
         }
-    }
 
-    if ( ! $c->session->{selected_species} ) {
-        my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
-        $c->session->{selected_species} = $prefs->default_species_id;
+        return 1;
     }
-
-    return 1;
 }
-
 =head1 AUTHOR
 
 Ray Miller

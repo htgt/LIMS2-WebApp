@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.457';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.462';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
+use LIMS2::Model::Util::GenesForSponsor;
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -79,6 +80,12 @@ has targeting_type => (
     required   => 1,
 );
 
+has sponsor_genes_instance => (
+    is         => 'ro',
+    isa        => 'LIMS2::Model::Util::GenesForSponsor',
+    lazy_build => 1
+);
+
 #----------------------------------------------------------
 # For Front Page Summary Report
 #----------------------------------------------------------
@@ -113,6 +120,18 @@ has sponsor_data => (
     lazy_build => 1,
 );
 
+
+sub _build_sponsor_genes_instance {
+    my $self = shift;
+
+    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({
+            model => $self->model,
+            targeting_type => $self->targeting_type,
+            species_id => $self->species
+        });
+    return $sponsor_genes_instance;
+}
+
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
@@ -131,19 +150,14 @@ sub _build_sponsor_column_data {
 
     DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
-    # select how many genes this sponsor is targeting
-    my $sponsor_gene_counts = $self->select_sponsor_genes( $sponsor_id );
+    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
 
-    # NB sponsor may have both single and double targeted projects
-    foreach my $sponsor_genes ( @$sponsor_gene_counts ) {
+    my $number_genes = scalar @{$sponsor_gene_counts->{genes}};
 
-        my $number_genes = $sponsor_genes->{ genes };
+    DEBUG "number genes = ".$number_genes;
 
-        DEBUG "number genes = ".$number_genes;
-
-        if ( $number_genes > 0 ) {
-            $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
-        }
+    if ( $number_genes > 0 ) {
+        $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
     }
 
     return;
@@ -355,9 +369,10 @@ sub generate_top_level_report_for_sponsors {
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
     # build information for report
-    my $columns = $self->build_columns;
-    my $data    = $self->sponsor_data;
-    my $title   = $self->build_page_title;
+    my $columns   = $self->build_columns;
+    my $data      = $self->sponsor_data;
+    my $title     = $self->build_page_title;
+    my $title_ii  = $self->build_page_title('II');
 
     my $rows;
     if ( $self->targeting_type eq 'single_targeted' ) {
@@ -376,6 +391,7 @@ sub generate_top_level_report_for_sponsors {
     my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
+        'title_ii'       => $title_ii,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
@@ -386,22 +402,34 @@ sub generate_top_level_report_for_sponsors {
 
 sub build_page_title {
     my $self = shift;
+    my $strategy = shift || 'I';
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
     my $dt = DateTime->now();
 
-    return 'Pipeline Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
+    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
 };
 
 # columns relate to project sponsors
 sub build_columns {
     my $self = shift;
 
-    return [
-        'Stage',
-        @{ $self->sponsors }
-    ];
+    my $sponsor_columns;
+    push @{$sponsor_columns->{pipeline_ii}}, 'Stage';
+    push @{$sponsor_columns->{pipeline_i}}, 'Stage';
+
+    my @pipeline_ii_sponsors = @{$self->sponsor_genes_instance->pipeline_ii_sponsors};
+
+    foreach my $sponsor (@{$self->sponsors}) {
+        if (grep {$_ eq $sponsor} @pipeline_ii_sponsors) {
+            push @{$sponsor_columns->{pipeline_ii}}, $sponsor;
+        } else {
+            push @{$sponsor_columns->{pipeline_i}}, $sponsor;
+        }
+    }
+
+    return $sponsor_columns;
 };
 
 #----------------------------------------------------------
@@ -849,25 +877,20 @@ sub genes {
         return mgp_recovery_genes( $self, $sponsor_id, $query_type );
     }
 
-
-    my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
-
-    my $sql_results = $self->run_select_query( $sql_query );
-
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
 
-    my @gene_list;
-    foreach my $gene_row ( @$sql_results ) {
-         unshift( @gene_list,  $gene_row->{ 'gene_id' });
-    }
+    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
+
+
+    my @gene_list = @{$sponsor_gene_counts->{genes}};
 
     # Store list of designs to get crispr summary info for later
     my $designs_for_gene = {};
     my @all_design_ids;
 
-    foreach my $gene_row ( @$sql_results ) {
-        my $gene_id = $gene_row->{ 'gene_id' };
+    foreach my $gene_row ( @gene_list ) {
+        my $gene_id = $gene_row;
 
         my $gene_info;
 
@@ -1264,6 +1287,7 @@ sub genes {
             'EP_cell_line'           => $toggle,
             'experiment_ID'          => $toggle,
             'requester'              => $toggle,
+
 
             'colonies_picked'        => $total_ep_pick_count,
             'targeted_clones'        => $total_ep_pick_pass_count,

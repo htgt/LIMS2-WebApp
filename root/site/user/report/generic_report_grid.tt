@@ -38,12 +38,8 @@
             var arrayData = [
                     [%- first_time_outer = 1 %]
                     [%- FOREACH datum IN data %]
-                        [%- IF first_time_outer == 1 %]
-                            {
-                        [%- ELSE %]
-                            ,{
-                        [%- END %]
-
+                        [%- first_time_outer == 1 ? '' : ',' %]
+                        {
                             [%- first_time_inner = 1 %]
                             [%- index = 0 %]
                             [%- FOREACH val IN datum %]
@@ -134,12 +130,9 @@
                 [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
 
-                [% IF first_column == 1 %]
-                {
+                [% first_column == 1 ?  '' : ',' %]
                 [% first_column = 0 %]
-                [% ELSE %]
-                ,{
-                [% END %]
+                {
 
                     header: "[%- col %]",
                     [%- IF locked.${col.lower} == 1 %]
@@ -196,9 +189,10 @@
 
                     [%- IF col.match( 'recovery comment' ) %]
                     width: 400,
-                    editor: Ext.create('Ext.form.ComboBox', {
+                    editor: Ext.create('Ext.form.field.TextArea', {
                         typeAhead: true,
                         triggerAction: 'all',
+                        grow: true,
                         listeners: {
                             change: function (field, newValue, oldValue) {
                                 console.log('recovery comment listener' );
@@ -510,6 +504,7 @@
             };
 
     });
+
 </script>
 
 <br />
