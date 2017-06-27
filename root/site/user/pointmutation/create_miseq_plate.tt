@@ -72,19 +72,43 @@ body {
 <div>
 
 <div id="plateVisual">
-
     <div id="plateRow" class="col-md-12">
         <select id="freezeName" class="btn btn-default col-md-offset-2" hidden>
             <option value="-">Freezer Plate</option>
         </select>
 
-        <div id="firstSplit" class="col-md-12">
+        <div id="firstSplit" class="col-md-12"></div>
+        <div class="row">
+            <p id="miseqName" class="lb-md col-md-offset-1">MiSEQ Plate Name</p>
         </div>
-    <div class="row">
-        <p id="miseqName" class="lb-md col-md-offset-1">MiSEQ Plate Name</p>
-
+        <div id="secondSplit" class="col-md-12"></div>
     </div>
-        <div id="secondSplit" class="col-md-12">
+    <div class="row">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmationModal" onclick="populateModal();">
+            Submit
+        </button>
+    </div>
+</div>
+
+<div id="confirmationModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="modalMiseqName">MiSEQ Plate: </h4>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="panel-group" id="accordion">
+                <!---
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Freezer plate name</div>
+                    </div>
+                ---->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -93,6 +117,7 @@ body {
 
 var parentPlates = [];
 var startWell = "";
+var miseqData = {};
 
 var freezeGrid = d3.select("#firstSplit")
     .append("svg")
@@ -123,6 +148,11 @@ $(function () {
         isMouseDown = false;
         $('.selecting').toggleClass('selecting selected');
         d3.selectAll('.selected').style('fill','#aec6cf');
+        var key = $('#freezeName').val();
+        if (key != '-') {
+            miseqData[key] = {};
+            $('.miWell.selected').map(function() { return trackWells(key,this); });
+        }
     });
 });
 
@@ -187,6 +217,11 @@ function tracking(miWellID, fpWellID) {
     destination.text(newWell.parents()[0].id);
 }
 
+function trackWells(key, well) {
+    var freezer = miseqData[key];
+    freezer[$(well).parent()[0].id] = well.value;
+    miseqData[key] = freezer;
+}
 
 $(document).ready(function() {
     setupPlate(miseqGrid, "miWell");
@@ -229,11 +264,21 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
 
 
 $('#freezeName').change(function() {
+    d3.selectAll('.selected').classed('selected',false);
     d3.selectAll('.fpWell').style("fill","white");
+    d3.selectAll('.miWell').style("fill","white");
+    $('.miWell').map(function() { resetMiseqText(this); });
     if ($('#freezeName').val() == '-') {
         d3.selectAll('.fpWell').style("fill","lightgrey");
     }
 });
+
+function resetMiseqText(well) {
+    var wellID = well.parentNode.id;
+    var textNode = $(well).siblings('text')[0];
+    $(textNode).text(wellID);
+    return;
+}
 
 function updatePlateName() { 
     $('#miseqName').text($('#plateName').val());
@@ -261,6 +306,69 @@ function addOption(name) {
     var option = document.createElement('option');
     option.text = option.value = name;
     select.add(option,-1);
+    if ($('#freezeName').val() == '-') {
+        select.options[option.index].selected = true;
+    }
 }
+var test; 
+function populateModal(){
+    $('#modalMiseqName').text('MiSEQ Plate: ' + $('#plateName').val());
+
+    var freezerPlates = Object.keys(miseqData);
+
+    var panelOpening = '<div class="panel panel-default">';
+    var panelClosing = '</div>';
+    
+    var header = '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion" href="#collapse';
+    var headerClosing = '</a></h4></div>';
+    
+    var bodyOpen = '<div id="collapse';
+    var bodyClass = '" class="panel-collapse collapse"><div class="panel-body"><p>';
+    var bodyClosing = '</p></div></div>';
+
+    
+    for (var key = 0; key < freezerPlates.length; key++) {
+        var fpName = freezerPlates[key];
+        var fpDetails = miseqData[fpName];
+
+        var wellParagraph = "";
+        var wellKeys = Object.keys(fpDetails);
+        var plateStructure = {};
+        
+        for (var well = 0; well < wellKeys.length; well++) {
+            var miseqWellName = wellKeys[well];
+            var fpWellName = fpDetails[miseqWellName];
+            var row = miseqWellName.charAt(0);
+            if (!(row in plateStructure)) {
+                plateStructure[row] = [];
+                plateStructure[row].push(fpWellName + " &rarr; " + miseqWellName);
+            } else {
+                plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
+            }
+        }
+        test = plateStructure;
+        var rows = Object.keys(plateStructure);
+        for (var row = 0; row < rows.length; row++) {
+            wellParagraph += plateStructure[rows[row]].toString() + '</br>';
+        }
+        var panelHeader = header + fpName + '">' + fpName + headerClosing;
+        var panelBody = bodyOpen + fpName + bodyClass + wellParagraph + bodyClosing;
+        var panel = panelOpening + panelHeader + panelBody + panelClosing;
+        $("#accordion").append(panel);
+    }
+}
+/*
+ *
+ *         <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">1. What is HTML?</a>
+            </h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse">
+            <div class="panel-body">
+                <p>HTML stands for HyperText Markup Language. HTML is the main markup language for describing the structure of Web pages. <a href="https://www.tutorialrepublic.com/html-tutorial/" target="_blank">Learn more.</a></p>
+            </div>
+        </div>
+*/
 
 </script>
