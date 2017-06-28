@@ -98,13 +98,7 @@ body {
                 <h4 class="modal-title" id="modalMiseqName">MiSEQ Plate: </h4>
             </div>
             <div class="modal-body" id="modalBody">
-                <div class="panel-group" id="accordion">
-                <!---
-                    <div class="panel panel-default">
-                        <div class="panel-heading">Freezer plate name</div>
-                    </div>
-                ---->
-                </div>
+                <div class="panel-group" id="accordion"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
@@ -137,6 +131,7 @@ $(function () {
         .mousedown(function(evt) {
             startIndex = highlighter(evt.target);
             isMouseDown = true;
+            console.log("Down.");
         })
         .mouseover(function(evt) {
             if (isMouseDown == true){
@@ -145,16 +140,47 @@ $(function () {
         });
 
     $('body').mouseup(function(evt) {
-        isMouseDown = false;
-        $('.selecting').toggleClass('selecting selected');
-        d3.selectAll('.selected').style('fill','#aec6cf');
-        var key = $('#freezeName').val();
-        if (key != '-') {
-            miseqData[key] = {};
-            $('.miWell.selected').map(function() { return trackWells(key,this); });
+        if (isMouseDown == true) {
+            console.log("Up.");
+            isMouseDown = false;
+            $('.selecting').toggleClass('selecting selected');
+            d3.selectAll('.selected').style('fill','#aec6cf');
+            var key = $('#freezeName').val();
+            if (key != '-') {
+                miseqData[key] = {};
+                $('.miWell.selected').map(function() { return trackWells(key,this); });
+                $('.fpWell.selected').map(function() { return checkTile(this); } )
+            }
         }
     });
 });
+
+$('#freezeName').change(function() {
+    var name = $('#freezeName').val(); 
+    d3.selectAll('.selected').classed('selected',false);
+    d3.selectAll('.fpWell').style("fill","white");
+    d3.selectAll('.miWell').style("fill","white");
+    $('.miWell').map(function() { resetMiseqText(this); });
+    if (name in miseqData) {
+        showPlateHistory(name);
+    }
+});
+
+function showPlateHistory(fpName) {
+    var gene = miseqData[fpName];
+    var miWells = Object.keys(gene);
+    for (var mi = 0; mi < miWells.length; mi++) {
+        var miCont = $('g#' + miWells[mi])[1];
+        var miRect = $(miCont).children('rect')[0];
+        var fpCont = $('g#' + gene[miWells[mi]])[0];
+        var fpRect = $(fpRect).children('rect')[0];
+
+        d3.select(miRect).style('fill','#aec6cf');
+        d3.select(fpRect).style('fill','#aec6cf');
+
+        tracking(miRect.id,fpRect.id);
+    }
+}
 
 function highlighter(target, start) {
     if (target.nodeName != 'rect') {
@@ -170,22 +196,23 @@ function highlighter(target, start) {
 
     var originIndex = startWell.id.split('_')[1];
     index = index.split('_')[1];
-    if (start) {
-        d3.selectAll('rect').classed('selecting',false);
-        for (var inc = start; inc <= index; inc++) {
-            var originID = (inc - start) + +originIndex;
+    
+    start = start || index;
 
-            d3.select('#miWell_' + inc).classed('selecting',true);
-            d3.select('#fpWell_' + originID).classed('selecting',true);
+    d3.selectAll('rect').classed('selecting',false);
+    for (var inc = start; inc <= index; inc++) {
+        var originID = (inc - start) + +originIndex;
 
-            d3.select('#miWell_' + inc).classed('selected',false);
-            d3.select('#fpWell_' + originID).classed('selected',false);
+        d3.select('#miWell_' + inc).classed('selecting',true);
+        d3.select('#fpWell_' + originID).classed('selecting',true);
 
-            tracking(inc, originID);
-        }
-        d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected"); }).style('fill','white');
-        d3.selectAll('.selecting').style('fill','#FDFD96');
+        d3.select('#miWell_' + inc).classed('selected',false);
+        d3.select('#fpWell_' + originID).classed('selected',false);
+
+        tracking(inc, originID);
     }
+    d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected"); }).style('fill','white');
+    d3.selectAll('.selecting').style('fill','#FDFD96');
 
     d3.select(target).style('fill','#FDFD96');
     var empties = $('.miWell').not('.selected').not('.selecting');
@@ -263,16 +290,6 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
 
 
 
-$('#freezeName').change(function() {
-    d3.selectAll('.selected').classed('selected',false);
-    d3.selectAll('.fpWell').style("fill","white");
-    d3.selectAll('.miWell').style("fill","white");
-    $('.miWell').map(function() { resetMiseqText(this); });
-    if ($('#freezeName').val() == '-') {
-        d3.selectAll('.fpWell').style("fill","lightgrey");
-    }
-});
-
 function resetMiseqText(well) {
     var wellID = well.parentNode.id;
     var textNode = $(well).siblings('text')[0];
@@ -310,10 +327,10 @@ function addOption(name) {
         select.options[option.index].selected = true;
     }
 }
-var test; 
+
 function populateModal(){
     $('#modalMiseqName').text('MiSEQ Plate: ' + $('#plateName').val());
-
+    $('#accordion').html("");
     var freezerPlates = Object.keys(miseqData);
 
     var panelOpening = '<div class="panel panel-default">';
@@ -357,18 +374,12 @@ function populateModal(){
         $("#accordion").append(panel);
     }
 }
-/*
- *
- *         <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">1. What is HTML?</a>
-            </h4>
-        </div>
-        <div id="collapseOne" class="panel-collapse collapse">
-            <div class="panel-body">
-                <p>HTML stands for HyperText Markup Language. HTML is the main markup language for describing the structure of Web pages. <a href="https://www.tutorialrepublic.com/html-tutorial/" target="_blank">Learn more.</a></p>
-            </div>
-        </div>
-*/
+
+function checkTile(well) {
+    var wellName = well.parentNode.id;
+    if (Object.values(miseqData[$('#freezeName').val()]).indexOf(wellName) == -1) {
+        d3.select(well).style('fill','white');
+    }
+}
 
 </script>
