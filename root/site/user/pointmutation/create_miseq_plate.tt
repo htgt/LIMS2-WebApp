@@ -123,6 +123,18 @@ var miseqGrid = d3.select("#secondSplit")
     .attr("width","610px")
     .attr("height","410px");
 
+
+$(document).ready(function() {
+    setupPlate(miseqGrid, "miWell");
+    setupPlate(freezeGrid, "fpWell");
+    addWellNames();
+    if ($('#freezeName').val() == '-') {
+        d3.selectAll('.fpWell').style('fill','#93979e');
+    }
+    return;
+});
+
+
 $(function () {
     var isMouseDown = false;
     var startIndex;
@@ -144,7 +156,7 @@ $(function () {
             console.log("Up.");
             isMouseDown = false;
             $('.selecting').toggleClass('selecting selected');
-            d3.selectAll('.selected').style('fill','#aec6cf');
+            d3.selectAll('.selected').style('fill','#03c03c');
             var key = $('#freezeName').val();
             if (key != '-') {
                 miseqData[key] = {};
@@ -156,15 +168,23 @@ $(function () {
 });
 
 $('#freezeName').change(function() {
+    changePlateSelection();
+});
+
+function changePlateSelection() {
     var name = $('#freezeName').val(); 
     d3.selectAll('.selected').classed('selected',false);
-    d3.selectAll('.fpWell').style("fill","white");
+    if (name == '-') {
+        d3.selectAll('.fpWell').style('fill','#93979e');
+    } else {
+        d3.selectAll('.fpWell').style("fill","white");
+    }
     d3.selectAll('.miWell').style("fill","white");
     $('.miWell').map(function() { resetMiseqText(this); });
     if (name in miseqData) {
         showPlateHistory(name);
     }
-});
+}
 
 function showPlateHistory(fpName) {
     var gene = miseqData[fpName];
@@ -173,12 +193,14 @@ function showPlateHistory(fpName) {
         var miCont = $('g#' + miWells[mi])[1];
         var miRect = $(miCont).children('rect')[0];
         var fpCont = $('g#' + gene[miWells[mi]])[0];
-        var fpRect = $(fpRect).children('rect')[0];
+        var fpRect = $(fpCont).children('rect')[0];
 
-        d3.select(miRect).style('fill','#aec6cf');
-        d3.select(fpRect).style('fill','#aec6cf');
+        d3.select(miRect).style('fill','#03c03c');
+        d3.select(fpRect).style('fill','#03c03c');
+        d3.select(miRect).classed('selected',true); 
+        d3.select(fpRect).classed('selected',true);
 
-        tracking(miRect.id,fpRect.id);
+        tracking(miRect.id.split('_')[1], fpRect.id.split('_')[1]);
     }
 }
 
@@ -250,13 +272,6 @@ function trackWells(key, well) {
     miseqData[key] = freezer;
 }
 
-$(document).ready(function() {
-    setupPlate(miseqGrid, "miWell");
-    setupPlate(freezeGrid, "fpWell");
-    addWellNames();
-
-    return;
-});
 
 $("#fpPlate").autocomplete({
     source: function(request, response) {
@@ -284,8 +299,10 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
     if (startWell != '' && !$(startWell).hasClass('selected')) {
         d3.select(startWell).style('fill','white');
     }
-    startWell = this;
-    d3.select(startWell).style('fill','#fdfd96');
+    if ($('#freezeName').val() != '-') {
+        startWell = this;
+        d3.select(startWell).style('fill','#fdfd96');
+    }
 });
 
 
@@ -325,6 +342,7 @@ function addOption(name) {
     select.add(option,-1);
     if ($('#freezeName').val() == '-') {
         select.options[option.index].selected = true;
+        changePlateSelection();
     }
 }
 
