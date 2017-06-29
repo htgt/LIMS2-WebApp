@@ -84,6 +84,9 @@ body {
         <div id="secondSplit" class="col-md-12"></div>
     </div>
     <div class="row">
+        <button type="button" class="btn btn-danger" onclick="clearPlate();">
+            Clear
+        </button>
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmationModal" onclick="populateModal();">
             Submit
         </button>
@@ -102,6 +105,7 @@ body {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit();">Submit</button>
             </div>
         </div>
     </div>
@@ -173,7 +177,6 @@ $(function () {
 
 $('#freezeName').change(function() {
     changePlateSelection();
-
 });
 
 $("#fpPlate").autocomplete({
@@ -208,7 +211,6 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
     }
 });
 
-var test;
 function validateWells(fp, result) {
     var resJson = JSON.parse(result);
     var wells = resJson[fp];
@@ -224,9 +226,11 @@ function validateWells(fp, result) {
     var invalidWells = $('.fpWell').not('.valid');
     d3.selectAll(invalidWells).style('fill', grey);
     d3.selectAll(invalidWells).classed('invalid',true);
+    d3.selectAll('.valid').classed('valid',false);
 }
 
 function changePlateSelection() {
+    d3.selectAll('.invalid').classed('invalid',false);
     var name = $('#freezeName').val(); 
     d3.selectAll('.selected').classed('selected',false);
     if (name == '-') {
@@ -313,6 +317,9 @@ function highlighter(target, start) {
 }
 
 function selectionHighlighting(inc, originID) {
+    if (!document.getElementById('fpWell_' + originID)) {
+        return;
+    }
     if ($('#fpWell_' + originID).hasClass('invalid')) {
         return selectionHighlighting(inc, originID + 1);
     }
@@ -382,9 +389,18 @@ function addTableRow(name) {
 
     nameCell.innerText = name;
     detailCell.innerText = "Place-holder";
-    clearCell.innerHTML = '<button class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
+    clearCell.innerHTML = '<button class="btn btn-danger" onclick="clearRow(this);"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
 
     return;
+}
+
+function clearRow(button) {
+    var row = $(button).closest('tr');
+    var name = row[0].cells[0].textContent;
+    delete miseqData[name];
+    $('#freezeName option[value="' + name + '"]').remove();
+    row.remove();
+    changePlateSelection();
 }
 
 function addOption(name) {
@@ -450,6 +466,19 @@ function checkTile(well) {
     if (Object.values(miseqData[$('#freezeName').val()]).indexOf(wellName) == -1) {
         d3.select(well).style('fill','white');
     }
+}
+
+function clearPlate() {
+    var rects = $('rect').not('.invalid');
+    $('.miWell').map(function() { resetMiseqText(this); });
+    d3.selectAll(rects).style('fill', 'white');
+    d3.selectAll(rects).classed('selected', false);
+    var name = $('#freezeName').val();
+    miseqData[name] = {};
+}
+
+function submit() {
+    //PUSH data to LIMS2
 }
 
 </script>
