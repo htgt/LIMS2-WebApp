@@ -112,11 +112,28 @@ sub point_mutation_frameshifts_GET {
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($summary);
 
+
+    return;
+}
+
+sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub freezer_wells_GET {
+    my ( $self, $c ) = @_;
+    my $fp = $c->request->param('name');
+$DB::single=1;
+    my $fp_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $fp })->id;
+
+    my @wells = map { $_->name } $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $fp_id });
+$DB::single=1;
+    my $json = JSON->new->allow_nonref;
+    my $summary->{$fp} = \@wells;
+
+    my $body = $json->encode($summary);
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
-
-    return;
 }
 
 sub crispr_seq {

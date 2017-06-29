@@ -169,7 +169,53 @@ $(function () {
 
 $('#freezeName').change(function() {
     changePlateSelection();
+
 });
+
+$("#fpPlate").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
+        {
+            term : $('#fpPlate').val(),
+            type : 'FP'
+        }, response);
+    },
+    minLength: 2,
+});
+
+$('#addPlate').click(function() {
+    $('#parentCollection').show();
+    var name = $('#fpPlate').val().trim();
+    if (parentPlates.indexOf(name) == -1) {
+        addTableRow(name);
+        addOption(name);
+    }
+
+    return;
+});
+
+$('#plateVisual').on('click','rect.fpWell' , function() {
+    if (startWell != '' && !$(startWell).hasClass('selected')) {
+        d3.select(startWell).style('fill','white');
+    }
+    if ($('#freezeName').val() != '-') {
+        startWell = this;
+        d3.select(startWell).style('fill','#fdfd96');
+    }
+});
+
+var test;
+function validateWells(fp, result) {
+    var resJson = JSON.parse(result);
+    var wells = resJson[fp];
+    test = resJson;
+    console.log(wells);
+
+   // d3.selectAll('.fpWell').style('fill','#93979e');
+
+ //   for (var mi = 0; mi < miWells.length; mi++) {
+   // }
+}
 
 function changePlateSelection() {
     var name = $('#freezeName').val(); 
@@ -178,31 +224,49 @@ function changePlateSelection() {
         d3.selectAll('.fpWell').style('fill','#93979e');
     } else {
         d3.selectAll('.fpWell').style("fill","white");
+        $.ajax({
+            url: '[% c.uri_for('/api/freezer_wells/') %]',
+            type: "GET",
+            contentType: 'application/json; charset=utf-8',
+            data: {
+                name: name, 
+            },
+            success: function(result){
+                validateWells(name, result);
+            },
+            error: function() {
+                console.log("Failed to retrieve data");
+            }
+        });
     }
     d3.selectAll('.miWell').style("fill","white");
     $('.miWell').map(function() { resetMiseqText(this); });
     if (name in miseqData) {
         showPlateHistory(name);
     }
+
 }
 
 function showPlateHistory(fpName) {
     var gene = miseqData[fpName];
     var miWells = Object.keys(gene);
     for (var mi = 0; mi < miWells.length; mi++) {
-        var miCont = $('g#' + miWells[mi])[1];
-        var miRect = $(miCont).children('rect')[0];
-        var fpCont = $('g#' + gene[miWells[mi]])[0];
-        var fpRect = $(fpCont).children('rect')[0];
-
-        d3.select(miRect).style('fill','#03c03c');
-        d3.select(fpRect).style('fill','#03c03c');
-        d3.select(miRect).classed('selected',true); 
-        d3.select(fpRect).classed('selected',true);
-
-        tracking(miRect.id.split('_')[1], fpRect.id.split('_')[1]);
+        var miID = wellHistory(miWells[mi],1);
+        var fpID = wellHistory(gene[miWells[mi]],0);
+        tracking(miID, fpID);
     }
 }
+
+function wellHistory(well,plate) {
+    var cont = $('g#' + well)[plate];
+    var rect = $(cont).children('rect')[0];
+
+    d3.select(rect).style('fill','#03c03c');
+    d3.select(rect).classed('selected',true);
+
+    return rect.id.split('_')[1];
+}
+
 
 function highlighter(target, start) {
     if (target.nodeName != 'rect') {
@@ -271,39 +335,6 @@ function trackWells(key, well) {
     freezer[$(well).parent()[0].id] = well.value;
     miseqData[key] = freezer;
 }
-
-
-$("#fpPlate").autocomplete({
-    source: function(request, response) {
-        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
-        {
-            term : $('#fpPlate').val(),
-            type : 'FP'
-        }, response);
-    },
-    minLength: 2,
-});
-
-$('#addPlate').click(function() {
-    $('#parentCollection').show();
-    var name = $('#fpPlate').val().trim();
-    if (parentPlates.indexOf(name) == -1) {
-        addTableRow(name);
-        addOption(name);
-    }
-
-    return;
-});
-
-$('#plateVisual').on('click','rect.fpWell' , function() {
-    if (startWell != '' && !$(startWell).hasClass('selected')) {
-        d3.select(startWell).style('fill','white');
-    }
-    if ($('#freezeName').val() != '-') {
-        startWell = this;
-        d3.select(startWell).style('fill','#fdfd96');
-    }
-});
 
 
 
