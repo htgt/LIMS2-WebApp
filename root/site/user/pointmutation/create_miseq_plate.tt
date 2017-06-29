@@ -113,6 +113,10 @@ var parentPlates = [];
 var startWell = "";
 var miseqData = {};
 
+var grey = '#93979e';
+var green = '#03c03c';
+var yellow = '#fdfd96';
+
 var freezeGrid = d3.select("#firstSplit")
     .append("svg")
     .attr("width","610px")
@@ -129,7 +133,7 @@ $(document).ready(function() {
     setupPlate(freezeGrid, "fpWell");
     addWellNames();
     if ($('#freezeName').val() == '-') {
-        d3.selectAll('.fpWell').style('fill','#93979e');
+        d3.selectAll('.fpWell').style('fill', grey);
     }
     return;
 });
@@ -156,7 +160,7 @@ $(function () {
             console.log("Up.");
             isMouseDown = false;
             $('.selecting').toggleClass('selecting selected');
-            d3.selectAll('.selected').style('fill','#03c03c');
+            d3.selectAll('.selected').style('fill', green);
             var key = $('#freezeName').val();
             if (key != '-') {
                 miseqData[key] = {};
@@ -200,7 +204,7 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
     }
     if ($('#freezeName').val() != '-') {
         startWell = this;
-        d3.select(startWell).style('fill','#fdfd96');
+        d3.select(startWell).style('fill', yellow);
     }
 });
 
@@ -211,17 +215,22 @@ function validateWells(fp, result) {
     test = resJson;
     console.log(wells);
 
-   // d3.selectAll('.fpWell').style('fill','#93979e');
+    for (var index = 0; index < wells.length; index++) {
+        var well = wells[index];
+        var rect = $('#' + well).children('rect')[0];
+        $(rect).addClass('valid');
+    }
 
- //   for (var mi = 0; mi < miWells.length; mi++) {
-   // }
+    var invalidWells = $('.fpWell').not('.valid');
+    d3.selectAll(invalidWells).style('fill', grey);
+    d3.selectAll(invalidWells).classed('invalid',true);
 }
 
 function changePlateSelection() {
     var name = $('#freezeName').val(); 
     d3.selectAll('.selected').classed('selected',false);
     if (name == '-') {
-        d3.selectAll('.fpWell').style('fill','#93979e');
+        d3.selectAll('.fpWell').style('fill', grey);
     } else {
         d3.selectAll('.fpWell').style("fill","white");
         $.ajax({
@@ -261,7 +270,7 @@ function wellHistory(well,plate) {
     var cont = $('g#' + well)[plate];
     var rect = $(cont).children('rect')[0];
 
-    d3.select(rect).style('fill','#03c03c');
+    d3.select(rect).style('fill', green);
     d3.select(rect).classed('selected',true);
 
     return rect.id.split('_')[1];
@@ -286,27 +295,39 @@ function highlighter(target, start) {
     start = start || index;
 
     d3.selectAll('rect').classed('selecting',false);
+    var invalidWellOffset = 0;
+    var originID = +start + +originIndex;
     for (var inc = start; inc <= index; inc++) {
-        var originID = (inc - start) + +originIndex;
-
-        d3.select('#miWell_' + inc).classed('selecting',true);
-        d3.select('#fpWell_' + originID).classed('selecting',true);
-
-        d3.select('#miWell_' + inc).classed('selected',false);
-        d3.select('#fpWell_' + originID).classed('selected',false);
-
-        tracking(inc, originID);
+        originID = selectionHighlighting(inc, originID);
+        originID++;
     }
-    d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected"); }).style('fill','white');
-    d3.selectAll('.selecting').style('fill','#FDFD96');
+    d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected") && !$(this).hasClass("invalid"); }).style('fill','white');
+    d3.selectAll('.selecting').style('fill', yellow);
 
-    d3.select(target).style('fill','#FDFD96');
+    d3.select(target).style('fill', yellow);
     var empties = $('.miWell').not('.selected').not('.selecting');
     var textEmpties = empties.siblings('text');
     textEmpties.text(function() { return $(this).parent()[0].id; });
 
     return index;
 }
+
+function selectionHighlighting(inc, originID) {
+    if ($('#fpWell_' + originID).hasClass('invalid')) {
+        return selectionHighlighting(inc, originID + 1);
+    }
+
+    d3.select('#miWell_' + inc).classed('selecting',true);
+    d3.select('#fpWell_' + originID).classed('selecting',true);
+
+    d3.select('#miWell_' + inc).classed('selected',false);
+    d3.select('#fpWell_' + originID).classed('selected',false);
+
+    tracking(inc, originID);
+
+    return originID;
+}
+
 
 function tracking(miWellID, fpWellID) {
     var originWell = document.getElementById('fpWell_' + fpWellID);
