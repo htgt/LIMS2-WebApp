@@ -189,9 +189,8 @@ sub plate_names_GET {
 }
 
 sub _entity_column_search {
-
     my ( $self, $c, $entity_class, $search_column, $search_term, $plate_type ) = @_;
-$DB::single=1;
+
     my %search;
     if ($plate_type) {
         %search = (

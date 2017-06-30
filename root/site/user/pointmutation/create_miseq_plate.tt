@@ -142,7 +142,6 @@ $(document).ready(function() {
     return;
 });
 
-
 $(function () {
     var isMouseDown = false;
     var startIndex;
@@ -280,7 +279,6 @@ function wellHistory(well,plate) {
     return rect.id.split('_')[1];
 }
 
-
 function highlighter(target, start) {
     if (target.nodeName != 'rect') {
         target = $(target).siblings('rect')[0];
@@ -335,7 +333,6 @@ function selectionHighlighting(inc, originID) {
     return originID;
 }
 
-
 function tracking(miWellID, fpWellID) {
     var originWell = document.getElementById('fpWell_' + fpWellID);
     var newWell = $('#miWell_' + miWellID);
@@ -363,8 +360,6 @@ function trackWells(key, well) {
     freezer[$(well).parent()[0].id] = well.value;
     miseqData[key] = freezer;
 }
-
-
 
 function resetMiseqText(well) {
     var wellID = well.parentNode.id;
@@ -449,7 +444,6 @@ function populateModal(){
                 plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
             }
         }
-        test = plateStructure;
         var rows = Object.keys(plateStructure);
         for (var row = 0; row < rows.length; row++) {
             wellParagraph += plateStructure[rows[row]].toString() + '</br>';
@@ -478,7 +472,22 @@ function clearPlate() {
 }
 
 function submit() {
-    //PUSH data to LIMS2
+    var plateName = $('#plateName').val();
+    var data = JSON.stringify(miseqData);
+    console.log(data);
+    if (plateName != '') {
+        $.ajax({
+            url: '[% c.uri_for('/api/miseq_plate/') %]',
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                json: data
+            },
+            success: function(result) {
+                console.log(result);
+            }
+        });
+    }
 }
 
 </script>

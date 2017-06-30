@@ -122,11 +122,11 @@ sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST'
 sub freezer_wells_GET {
     my ( $self, $c ) = @_;
     my $fp = $c->request->param('name');
-$DB::single=1;
+
     my $fp_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $fp })->id;
 
     my @wells = map { $_->name } $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $fp_id });
-$DB::single=1;
+
     my $json = JSON->new->allow_nonref;
     my $summary->{$fp} = \@wells;
 
@@ -134,6 +134,38 @@ $DB::single=1;
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
+}
+
+sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub miseq_plate_POST {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles('edit');
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+$DB::single=1;
+
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+    $c->require_ssl;
+
+
+    my $test = $c->request->param('json');
+    # my $design = $c->model( 'Golgi' )->txn_do(
+    #    sub {
+    #        shift->c_create_design( $c->request->data );
+    #    }
+    #);
+
+    #return $self->status_created(
+    #    $c,
+    #    location => $c->uri_for( '/api/miseq_plate', { id => $design->id } ),
+    #    entity   => $design
+    #);
 }
 
 sub crispr_seq {
