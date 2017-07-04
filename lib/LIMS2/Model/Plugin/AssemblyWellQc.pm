@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::AssemblyWellQc;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::AssemblyWellQc::VERSION = '0.463';
+    $LIMS2::Model::Plugin::AssemblyWellQc::VERSION = '0.464';
 }
 ## use critic
 
