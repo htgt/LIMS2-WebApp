@@ -302,7 +302,7 @@ $(document).ready(function() {
     var expSel = '[% selection.gene %]';
     if (expSel) {
         document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
-        displayIndels(document.getElementById('PTK2B_w50'));
+        displayIndels(document.getElementById('[% selection.id %]'));
         $('.allele').find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     } else {
         document.title = '[% oligo_index %]:All - [% miseq %]';
