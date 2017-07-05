@@ -473,7 +473,11 @@ function clearPlate() {
 
 function submit() {
     var plateName = $('#plateName').val();
-    var data = JSON.stringify(miseqData);
+    var container = {
+        name : plateName,
+        data : miseqData
+    };
+    var data = JSON.stringify(container);
     console.log(data);
     if (plateName != '') {
         $.ajax({

@@ -9,6 +9,8 @@ use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
 
+use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
+
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 sub point_mutation_image : Path( '/api/point_mutation_img' ) : Args(0) : ActionClass( 'REST' ) {
@@ -153,18 +155,25 @@ $DB::single=1;
     }
     $c->require_ssl;
 
-    my $test = $c->request->param('json');
-    # my $design = $c->model( 'Golgi' )->txn_do(
-    #    sub {
-    #        shift->c_create_design( $c->request->data );
-    #    }
-    #);
+    my $json = $c->request->param('json');
 
-    #return $self->status_created(
-    #    $c,
-    #    location => $c->uri_for( '/api/miseq_plate', { id => $design->id } ),
-    #    entity   => $design
-    #);
+    my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $json);
+    
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/miseq_plate', { id => $miseq->id } ),
+        entity   => $miseq
+    );
+}
+
+sub miseq_plate_GET {
+    my ( $self, $c ) = @_;
+
+    my $body;
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
 }
 
 sub crispr_seq {

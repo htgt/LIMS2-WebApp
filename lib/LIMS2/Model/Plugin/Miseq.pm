@@ -10,6 +10,7 @@ use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
+use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -140,6 +141,28 @@ sub create_miseq_experiment {
             )
         }
     );
+
+    return;
+}
+
+sub pspec_upload_miseq_plate {
+    return {
+        json => { validate => 'json' },
+    };
+}
+
+# input will be in the format a user trying to create a plate will use
+# we need to convert this into a format expected by create_well
+sub upload_miseq_plate {
+    my ($self, $params) = @_;
+
+    my $data = {
+        json => $params,
+    };
+
+    my $validated_params = $self->check_params($data, pspec_upload_miseq_plate);
+
+    miseq_plate_from_json($self, $params);
 
     return;
 }

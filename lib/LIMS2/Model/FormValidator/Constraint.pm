@@ -395,6 +395,23 @@ sub existing_requester {
     return shift->in_resultset( 'Requester', 'id' );
 }
 
+sub hash_of_plates_and_wells {
+    my $data = shift;
+    my $valid = 1;
+    foreach my $fp (keys %{$data}) {
+        unless (existing_plate_name($fp)) {
+            $valid = 0;
+        }
+        my $plate = $data->{$fp};
+        foreach my $well (keys %{$plate}) {
+            unless (well_name($well)) {
+                $valid = 0;
+            }
+        }
+    }
+    return $valid;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
