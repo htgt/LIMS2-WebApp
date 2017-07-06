@@ -154,7 +154,7 @@ sub pspec_upload_miseq_plate {
 # input will be in the format a user trying to create a plate will use
 # we need to convert this into a format expected by create_well
 sub upload_miseq_plate {
-    my ($self, $params) = @_;
+    my ($self, $c, $params) = @_;
 
     my $data = {
         json => $params,
@@ -162,7 +162,7 @@ sub upload_miseq_plate {
 
     my $validated_params = $self->check_params($data, pspec_upload_miseq_plate);
 
-    miseq_plate_from_json($self, $params);
+    miseq_plate_from_json($self, $c, $validated_params->{json});
 
     return;
 }

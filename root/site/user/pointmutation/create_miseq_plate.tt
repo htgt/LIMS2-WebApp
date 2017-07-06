@@ -98,7 +98,12 @@ body {
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title" id="modalMiseqName">MiSEQ Plate: </h4>
+                <div class="col-md-12">
+                    <h4 class="modal-title col-md-4" id="modalMiseqName">MiSEQ Plate: </h4>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="modalName">
+                    </div>
+                </div>
             </div>
             <div class="modal-body" id="modalBody">
                 <div class="panel-group" id="accordion"></div>
@@ -410,7 +415,7 @@ function addOption(name) {
 }
 
 function populateModal(){
-    $('#modalMiseqName').text('MiSEQ Plate: ' + $('#plateName').val());
+    $('#modalName').val($('#plateName').val());
     $('#accordion').html("");
     var freezerPlates = Object.keys(miseqData);
 
