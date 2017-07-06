@@ -28,7 +28,7 @@ sub pspec_miseq_plate_from_json {
 
 sub miseq_plate_from_json {
     my ( $self, $c, $params ) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_miseq_plate_from_json);
 
     my $lims_plate_data = {
@@ -39,9 +39,15 @@ $DB::single=1;
         created_at  => $validated_params->{time},
     };
 
-    my $plate_data = $c->model('Golgi')->create_plate($lims_plate_data);
+    my $lims_plate = $c->model('Golgi')->create_plate($lims_plate_data);
+$DB::single=1;
+    my $miseq_plate_data = {
+        plate_id    => $lims_plate->id,
+        is_384      => $validated_params->{large},
+    };
+   
+    my $miseq_plate = $c->model('Golgi')->create_miseq_plate($miseq_plate_data);
 
-    
     return;
 }
 

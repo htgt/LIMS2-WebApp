@@ -16,17 +16,9 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_create_miseq_plate {
     return {
-        run_id  => { validate => 'existing_miseq_plate' },
-        is_384  => { validate => 'illumina_index_range' },
-        name        => { validate => 'plate_name' },
-        species     => { validate => 'existing_species', rename => 'species_id' },
-        type        => { validate => 'existing_plate_type', rename => 'type_id' },
-        created_by => {
-            validate    => 'existing_user',
-            post_filter => 'user_id_for',
-            rename      => 'created_by_id'
-        },
-        created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+        plate_id    => { validate => 'existing_plate_id' },
+        is_384      => { validate => 'boolean' },
+        run_id      => { optional => 1 },
     };
 }
 # input will be in the format a user trying to create a plate will use
@@ -36,10 +28,10 @@ sub create_miseq_plate {
 
     my $validated_params = $self->check_params($params, pspec_create_miseq_plate);
 
-    my $miseq = $self->schema->resultset('MiseqProjectWell')->create(
+    my $miseq = $self->schema->resultset('MiseqPlate')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_plate_id illumina_index status )
+                qw( plate_id is_384 run_id )
             )
         }
     );
