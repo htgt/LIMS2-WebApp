@@ -34,7 +34,7 @@ body {
                     <label>384 wells?</label>
                 </td>
                 <td>
-                    <input type="checkbox" value="">
+                    <input type="checkbox" id="largeBox" value="1">
                 </td>
             </tr>
         </table>
@@ -478,9 +478,11 @@ function clearPlate() {
 
 function submit() {
     var plateName = $('#plateName').val();
+    var largePlate = $('#largeBox:checked').val() || 0;
     var container = {
-        name : plateName,
-        data : miseqData
+        name    : plateName,
+        data    : miseqData,
+        large   : largePlate
     };
     var data = JSON.stringify(container);
     console.log(data);

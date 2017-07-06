@@ -14,6 +14,41 @@ use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
 
 requires qw( schema check_params throw retrieve log trace );
 
+sub pspec_create_miseq_plate {
+    return {
+        run_id  => { validate => 'existing_miseq_plate' },
+        is_384  => { validate => 'illumina_index_range' },
+        name        => { validate => 'plate_name' },
+        species     => { validate => 'existing_species', rename => 'species_id' },
+        type        => { validate => 'existing_plate_type', rename => 'type_id' },
+        created_by => {
+            validate    => 'existing_user',
+            post_filter => 'user_id_for',
+            rename      => 'created_by_id'
+        },
+        created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
+    };
+}
+# input will be in the format a user trying to create a plate will use
+# we need to convert this into a format expected by create_well
+sub create_miseq_plate {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_miseq_plate);
+
+    my $miseq = $self->schema->resultset('MiseqProjectWell')->create(
+        {   slice_def(
+                $validated_params,
+                qw( miseq_plate_id illumina_index status )
+            )
+        }
+    );
+
+    return;
+}
+
+
+
 sub pspec_create_miseq_plate_well {
     return {
         miseq_plate_id  => { validate => 'existing_miseq_plate' },
@@ -145,24 +180,10 @@ sub create_miseq_experiment {
     return;
 }
 
-sub pspec_upload_miseq_plate {
-    return {
-        json => { validate => 'json' },
-    };
-}
-
-# input will be in the format a user trying to create a plate will use
-# we need to convert this into a format expected by create_well
 sub upload_miseq_plate {
     my ($self, $c, $params) = @_;
 
-    my $data = {
-        json => $params,
-    };
-
-    my $validated_params = $self->check_params($data, pspec_upload_miseq_plate);
-
-    miseq_plate_from_json($self, $c, $validated_params->{json});
+    miseq_plate_from_json($self, $c, $params);
 
     return;
 }

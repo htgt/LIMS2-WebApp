@@ -18,17 +18,19 @@ use JSON;
 sub pspec_miseq_plate_from_json {
     return {
         name    => { validate => 'plate_name' },
-        data    => { validate => 'hashref' }
+        data    => { validate => 'hashref' },
+        large   => { validate => 'boolean' },
+        user    => { validate => 'existing_user_id' },
+        time    => { validate => 'psql_date' },
+        species => { validate => 'existing_species' },
     };
 }
 
-# input will be in the format a user trying to create a plate will use
-# we need to convert this into a format expected by create_well
 sub miseq_plate_from_json {
     my ( $self, $c, $params ) = @_;
 $DB::single=1;
-    my $data = decode_json $params;
-    my $validated_params = $self->check_params( $data, pspec_miseq_plate_from_json );
+    my $validated_params = $self->check_params($params, pspec_miseq_plate_from_json);
+
     
     return;
 }

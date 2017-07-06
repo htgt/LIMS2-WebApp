@@ -8,6 +8,7 @@ use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
+use POSIX;
 
 use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
 
@@ -156,8 +157,13 @@ $DB::single=1;
     $c->require_ssl;
 
     my $json = $c->request->param('json');
+    my $data = decode_json $json;
+    $data->{user} = $c->user->id;
+    $data->{species} = $c->session->{selected_species};
+    $data->{time} = strftime("%Y-%m-%d %H:%M:%S", localtime(time));
 
-    my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $json);
+
+    my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
     
     return $self->status_created(
         $c,
