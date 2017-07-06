@@ -20,8 +20,8 @@ sub pspec_miseq_plate_from_json {
         name    => { validate => 'plate_name' },
         data    => { validate => 'hashref' },
         large   => { validate => 'boolean' },
-        user    => { validate => 'existing_user_id' },
-        time    => { validate => 'psql_date' },
+        user    => { validate => 'existing_user' },
+        time    => { validate => 'date_time' },
         species => { validate => 'existing_species' },
     };
 }
@@ -30,6 +30,16 @@ sub miseq_plate_from_json {
     my ( $self, $c, $params ) = @_;
 $DB::single=1;
     my $validated_params = $self->check_params($params, pspec_miseq_plate_from_json);
+
+    my $lims_plate_data = {
+        name        => $validated_params->{name},
+        species     => $validated_params->{species},
+        type        => 'MISEQ',
+        created_by  => $validated_params->{user},
+        created_at  => $validated_params->{time},
+    };
+
+    my $plate_data = $c->model('Golgi')->create_plate($lims_plate_data);
 
     
     return;

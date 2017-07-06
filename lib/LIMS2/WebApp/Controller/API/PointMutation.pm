@@ -158,9 +158,9 @@ $DB::single=1;
 
     my $json = $c->request->param('json');
     my $data = decode_json $json;
-    $data->{user} = $c->user->id;
+    $data->{user} = $c->user->name;
     $data->{species} = $c->session->{selected_species};
-    $data->{time} = strftime("%Y-%m-%d %H:%M:%S", localtime(time));
+    $data->{time} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
 
 
     my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
