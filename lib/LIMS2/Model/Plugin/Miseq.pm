@@ -40,26 +40,24 @@ sub create_miseq_plate {
 }
 
 
-
-sub pspec_create_miseq_plate_well {
+sub pspec_create_miseq_well {
     return {
-        miseq_plate_id  => { validate => 'existing_miseq_plate' },
-        illumina_index  => { validate => 'illumina_index_range' },
-        status          => { validate => 'existing_miseq_status' },
+        well_id => { validate => 'existing_well_id' },
+        status  => { validate => 'existing_miseq_status' },
     };
 }
 
 # input will be in the format a user trying to create a plate will use
 # we need to convert this into a format expected by create_well
-sub create_miseq_plate_well {
+sub create_miseq_well {
     my ($self, $params) = @_;
 
-    my $validated_params = $self->check_params($params, pspec_create_miseq_plate_well);
+    my $validated_params = $self->check_params($params, pspec_create_miseq_well);
 
-    my $miseq = $self->schema->resultset('MiseqProjectWell')->create(
+    my $miseq = $self->schema->resultset('MiseqWell')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_plate_id illumina_index status )
+                qw( well_id status )
             )
         }
     );
@@ -67,17 +65,18 @@ sub create_miseq_plate_well {
     return;
 }
 
-sub pspec_update_miseq_plate_well {
+sub pspec_update_miseq_well {
     return {
         id      => { validate => 'existing_miseq_well' },
+        well_id => { validate => 'existing_well_id' },
         status  => { validate => 'existing_miseq_status' },
     };
 }
 
-sub update_miseq_plate_well {
+sub update_miseq_well {
     my ($self, $params) = @_;
 
-    my $validated_params = $self->check_params($params, pspec_update_miseq_plate_well);
+    my $validated_params = $self->check_params($params, pspec_update_miseq_well);
 
     my %search;
     $search{'me.id'} = $validated_params->{id};

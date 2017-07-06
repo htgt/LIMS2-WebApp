@@ -55,7 +55,7 @@ sub add_well_create_well {
     my ($model, $params) = @_;
 
     my $validated_params = $model->check_params($params, pspec_add_well_create_well);
-
+$DB::single=1;
     foreach my $field ( @{ $PROCESS_TYPE_DATA{$validated_params->{process_data}->{type}} } ) {
 
         my @result = $validated_params->{process}->$field;

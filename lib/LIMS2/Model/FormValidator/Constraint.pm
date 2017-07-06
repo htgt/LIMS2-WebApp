@@ -365,7 +365,7 @@ sub illumina_index_range {
 }
 
 sub existing_miseq_well {
-    return shift->in_resultset( 'MiseqProjectWell', 'id' );
+    return shift->in_resultset( 'MiseqWell', 'id' );
 }
 
 sub existing_miseq_well_exp {

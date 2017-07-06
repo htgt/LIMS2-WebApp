@@ -48,6 +48,57 @@ $DB::single=1;
    
     my $miseq_plate = $c->model('Golgi')->create_miseq_plate($miseq_plate_data);
 
+    my $well_data = $validated_params->{data};
+    my $miseq_well_hash;
+    
+    foreach my $fp (keys %{$well_data}) {
+        foreach my $fp_well_name (keys %{$well_data->{$fp}}) {
+            my $well = $well_data->{$fp}->{$fp_well_name};
+            $miseq_well_hash->{$well}->{$fp} = $fp_well_name;
+        }
+    }
+
+    miseq_well_relations($self, $c, $miseq_well_hash, $validated_params->{name}, $validated_params->{user}, $validated_params->{time});
+
+    return;
+}
+
+sub miseq_well_relations {
+    my ($self, $c, $wells, $miseq_name, $user, $time) = @_;
+
+    foreach my $well (keys %{$wells}) {
+        my @parent_wells;
+        foreach my $fp (keys %{$wells->{$well}}) {
+            my $parent_well = {
+                plate_name  => $fp,
+                well_name   => $wells->{$well}->{$fp},
+            };
+            push (@parent_wells, $parent_well);
+        }
+        my $process = {
+            input_wells => \@parent_wells,
+            output_wells => [{
+                plate_name  => $miseq_name,
+                well_name   => $well,
+            }],
+            type => 'miseq',
+        };
+
+        my $params = {
+            plate_name      => $miseq_name,
+            well_name       => $well,
+            process_data    => $process,
+            created_by      => $user,
+            created_at      => $time,
+        };
+        my $lims_well = $c->model('Golgi')->create_well($params);
+        
+        my $miseq_well_params = {
+            well_id     => $lims_well->id,
+            status      => 'Plated',
+        };
+    }
+
     return;
 }
 
