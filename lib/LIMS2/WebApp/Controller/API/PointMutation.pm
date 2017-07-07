@@ -175,7 +175,7 @@ $DB::single=1;
 sub miseq_plate_GET {
     my ( $self, $c ) = @_;
 
-    my $body;
+    my $body = $c->model('Golgi')->schema->resultset('MiseqPlate')->find ({ id => $c->request->param('id') })->as_hash;   
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
