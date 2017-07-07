@@ -52,15 +52,15 @@ $DB::single=1;
     my $miseq_well_hash;
     
     foreach my $fp (keys %{$well_data}) {
-        foreach my $fp_well_name (keys %{$well_data->{$fp}}) {
-            my $well = $well_data->{$fp}->{$fp_well_name};
-            $miseq_well_hash->{$well}->{$fp} = $fp_well_name;
+        foreach my $miseq_well_name (keys %{$well_data->{$fp}}) {
+            my $fp_well = $well_data->{$fp}->{$miseq_well_name};
+            $miseq_well_hash->{$miseq_well_name}->{$fp} = $fp_well;
         }
     }
 
     miseq_well_relations($self, $c, $miseq_well_hash, $validated_params->{name}, $validated_params->{user}, $validated_params->{time});
 
-    return;
+    return $miseq_plate;
 }
 
 sub miseq_well_relations {
@@ -97,6 +97,8 @@ sub miseq_well_relations {
             well_id     => $lims_well->id,
             status      => 'Plated',
         };
+
+        my $miseq_well = $c->model('Golgi')->create_miseq_well($miseq_well_params);
     }
 
     return;

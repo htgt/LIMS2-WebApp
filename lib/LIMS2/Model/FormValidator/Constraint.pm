@@ -118,6 +118,11 @@ sub bac_plate {
 sub existing_well_barcode {
     return shift->in_resultset( 'Well', 'barcode' );
 }
+
+sub existing_well_id {
+    return shift->in_resultset( 'Well', 'id' );
+}
+
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
 }

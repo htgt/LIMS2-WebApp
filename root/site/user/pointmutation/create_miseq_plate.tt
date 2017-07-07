@@ -25,7 +25,7 @@ body {
                 </td>
                 <td>
                     <div class="col-md-4">
-                        <input type="text" class="form-control" id="plateName" oninput="updatePlateName()">
+                        <input type="text" class="form-control" id="plateName" oninput="updatePlateName(0);">
                     </div>
                 </td>
             </tr>
@@ -109,7 +109,7 @@ body {
                 <div class="panel-group" id="accordion"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="updatePlateName(1);">Close</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit();">Submit</button>
             </div>
         </div>
@@ -373,8 +373,14 @@ function resetMiseqText(well) {
     return;
 }
 
-function updatePlateName() { 
-    $('#miseqName').text($('#plateName').val());
+function updatePlateName(dir) {
+    if (dir == 0) {
+        $('#miseqName').text($('#plateName').val());
+        $('#modalName').val($('#plateName').val());
+    } else {
+        $('#miseqName').text($('#modalName').val());
+        $('#plateName').val($('#modalName').val());
+    }
 }
 
 function addTableRow(name) {
@@ -477,12 +483,13 @@ function clearPlate() {
 }
 
 function submit() {
-    var plateName = $('#plateName').val();
+    var plateName = $('#modalName').val();
     var largePlate = $('#largeBox:checked').val() || 0;
     var container = {
         name    : plateName,
-        data    : miseqData,
-        large   : largePlate
+        large   : largePlate,
+
+        data    : miseqData
     };
     var data = JSON.stringify(container);
     console.log(data);

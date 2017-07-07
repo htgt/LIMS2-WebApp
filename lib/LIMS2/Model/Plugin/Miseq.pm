@@ -36,13 +36,15 @@ sub create_miseq_plate {
         }
     );
 
-    return;
+    $self->log->info('Created MiSEQ Plate: ' . $miseq->id);
+
+    return $miseq;
 }
 
 
 sub pspec_create_miseq_well {
     return {
-        well_id => { validate => 'existing_well_id' },
+        well_id => { validate => 'integer' },
         status  => { validate => 'existing_miseq_status' },
     };
 }
@@ -62,7 +64,9 @@ sub create_miseq_well {
         }
     );
 
-    return;
+    $self->log->info('Created MiSEQ Well: ' . $miseq->id);
+
+    return $miseq;
 }
 
 sub pspec_update_miseq_well {
