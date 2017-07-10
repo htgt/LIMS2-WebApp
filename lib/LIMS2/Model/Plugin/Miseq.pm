@@ -178,9 +178,9 @@ sub create_miseq_experiment {
 sub upload_miseq_plate {
     my ($self, $c, $params) = @_;
 
-    miseq_plate_from_json($self, $c, $params);
+    my $miseq = miseq_plate_from_json($self, $c, $params);
 
-    return;
+    return $miseq;
 }
 
 1;
