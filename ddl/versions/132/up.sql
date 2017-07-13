@@ -8,7 +8,8 @@ CREATE TABLE miseq_plate (
     id SERIAL PRIMARY KEY,
     plate_id INTEGER REFERENCES plates(id) NOT NULL,
     run_id INTEGER,
-    is_384 BOOLEAN NOT NULL
+    is_384 BOOLEAN NOT NULL,
+    results_available BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE miseq_well_experiment (
