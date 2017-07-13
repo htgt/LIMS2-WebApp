@@ -369,10 +369,6 @@ sub illumina_index_range {
     return shift->regexp_matches(qr/^[1-9]$|^[1-9][0-9]$|^[1-2][0-9]{2}$|^3[0-7][0-9]|^38[0-4]$/);
 }
 
-sub existing_miseq_well {
-    return shift->in_resultset( 'MiseqWell', 'id' );
-}
-
 sub existing_miseq_well_exp {
     return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
 }

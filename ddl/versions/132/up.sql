@@ -1,9 +1,3 @@
-CREATE TABLE miseq_well (
-    id SERIAL PRIMARY KEY,
-    well_id INTEGER REFERENCES wells(id) NOT NULL,
-    status TEXT REFERENCES miseq_status NOT NULL
-);
-
 CREATE TABLE miseq_plate (
     id SERIAL PRIMARY KEY,
     plate_id INTEGER REFERENCES plates(id) NOT NULL,
@@ -17,5 +11,6 @@ CREATE TABLE miseq_well_experiment (
     well_id INTEGER REFERENCES wells(id) NOT NULL,
     miseq_exp_id INTEGER REFERENCES miseq_experiment(id) NOT NULL,
     classification TEXT REFERENCES miseq_classification(id),
-    frameshifted BOOLEAN DEFAULT FALSE
+    frameshifted BOOLEAN DEFAULT FALSE,
+    status TEXT REFERENCES miseq_status NOT NULL
 );

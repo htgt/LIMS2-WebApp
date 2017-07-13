@@ -17,12 +17,13 @@ use JSON;
 
 sub pspec_miseq_plate_from_json {
     return {
-        name    => { validate => 'plate_name' },
-        data    => { validate => 'hashref' },
-        large   => { validate => 'boolean' },
-        user    => { validate => 'existing_user' },
-        time    => { validate => 'date_time' },
-        species => { validate => 'existing_species' },
+        name            => { validate => 'plate_name' },
+        data            => { validate => 'hashref' },
+        large           => { validate => 'boolean' },
+        user            => { validate => 'existing_user' },
+        time            => { validate => 'date_time' },
+        species         => { validate => 'existing_species' },
+        process_type    => { validate => 'existing_process_type' },
     };
 }
 
@@ -58,13 +59,13 @@ $DB::single=1;
         }
     }
 
-    miseq_well_relations($self, $c, $miseq_well_hash, $validated_params->{name}, $validated_params->{user}, $validated_params->{time});
+    miseq_well_relations($self, $c, $miseq_well_hash, $validated_params->{name}, $validated_params->{user}, $validated_params->{time}, $validated_params->{process_type});
 
     return $miseq_plate;
 }
 
 sub miseq_well_relations {
-    my ($self, $c, $wells, $miseq_name, $user, $time) = @_;
+    my ($self, $c, $wells, $miseq_name, $user, $time, $process_type) = @_;
 
     foreach my $well (keys %{$wells}) {
         my @parent_wells;
@@ -81,7 +82,7 @@ sub miseq_well_relations {
                 plate_name  => $miseq_name,
                 well_name   => $well,
             }],
-            type => 'miseq',
+            type => $process_type,
         };
 
         my $params = {
@@ -92,13 +93,6 @@ sub miseq_well_relations {
             created_at      => $time,
         };
         my $lims_well = $c->model('Golgi')->create_well($params);
-        
-        my $miseq_well_params = {
-            well_id     => $lims_well->id,
-            status      => 'Plated',
-        };
-
-        my $miseq_well = $c->model('Golgi')->create_miseq_well($miseq_well_params);
     }
 
     return;
