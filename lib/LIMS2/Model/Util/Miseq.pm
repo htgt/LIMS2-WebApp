@@ -23,7 +23,6 @@ sub pspec_miseq_plate_from_json {
         user            => { validate => 'existing_user' },
         time            => { validate => 'date_time' },
         species         => { validate => 'existing_species' },
-        process_type    => { validate => 'existing_process_type' },
     };
 }
 
@@ -41,7 +40,7 @@ sub miseq_plate_from_json {
     };
 
     my $lims_plate = $c->model('Golgi')->create_plate($lims_plate_data);
-$DB::single=1;
+
     my $miseq_plate_data = {
         plate_id    => $lims_plate->id,
         is_384      => $validated_params->{large},
@@ -53,20 +52,29 @@ $DB::single=1;
     my $miseq_well_hash;
     
     foreach my $fp (keys %{$well_data}) {
-        foreach my $miseq_well_name (keys %{$well_data->{$fp}}) {
-            my $fp_well = $well_data->{$fp}->{$miseq_well_name};
-            $miseq_well_hash->{$miseq_well_name}->{$fp} = $fp_well;
+        my $process = $well_data->{$fp}->{process};
+        foreach my $miseq_well_name (keys %{$well_data->{$fp}->{wells}}) {
+            my $fp_well = $well_data->{$fp}->{wells}->{$miseq_well_name};
+            $miseq_well_hash->{$process}->{$miseq_well_name}->{$fp} = $fp_well;
         }
     }
 
-    miseq_well_relations($self, $c, $miseq_well_hash, $validated_params->{name}, $validated_params->{user}, $validated_params->{time}, $validated_params->{process_type});
+    my $process_types = {
+        nhej    => 'miseq_no_template',
+        oligo   => 'miseq_oligo',
+        vector  => 'miseq_vector',
+    };
+
+    foreach my $process (keys %{$miseq_well_hash}) {
+        miseq_well_relations($self, $c, $miseq_well_hash->{$process}, $validated_params->{name}, $validated_params->{user}, $validated_params->{time}, $process_types->{$process});
+    }
 
     return $miseq_plate;
 }
 
 sub miseq_well_relations {
     my ($self, $c, $wells, $miseq_name, $user, $time, $process_type) = @_;
-
+$DB::single=1;
     foreach my $well (keys %{$wells}) {
         my @parent_wells;
         foreach my $fp (keys %{$wells->{$well}}) {

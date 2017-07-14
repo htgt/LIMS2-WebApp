@@ -40,18 +40,6 @@ h4 {
                     <input type="checkbox" id="largeBox" value="1">
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <label>Process:</label>
-                </td>
-                <td>
-                    <select id="process" class="btn btn-default">
-                        <option value="nhej" selected="selected">No Template (NHEJ/WT only)</option>
-                        <option value="oligo">Oligo</option>
-                        <option value="vector">Vector</option>
-                    </select>
-                </td>
-            </tr>
         </table>
     </div>
     <h3>Parent Plates</h3>
@@ -95,8 +83,18 @@ h4 {
 
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
-                <h4 class="col-md-offset-2">MiSEQ Plate: </h4>
-                <h4 id="miseqName">MiSEQ Plate Name</h4>
+                <div class="col-md-4">
+                    <h4>MiSEQ Plate: </h4>
+                    <h4 id="miseqName">MiSEQ Plate Name</h4>
+                </div>
+                <div class="col-md-6">
+                    <h4>Process:</h4>
+                    <select id="process" class="btn btn-default">
+                        <option value="nhej" selected="selected">No Template (NHEJ/WT only)</option>
+                        <option value="oligo">Oligo</option>
+                        <option value="vector">Vector</option>
+                    </select>
+                </div>
             </div>
         <div id="secondSplit" class="col-md-12"></div>
     </div>
@@ -188,7 +186,10 @@ $(function () {
             d3.selectAll('.selected').style('fill', green);
             var key = $('#freezeName').val();
             if (key != '-') {
-                miseqData[key] = {};
+                miseqData[key] = {
+                    wells   : {},
+                    process : $('#process').val(),
+                };
                 $('.miWell.selected').map(function() { return trackWells(key,this); });
                 $('.fpWell.selected').map(function() { return checkTile(this); } )
             }
@@ -198,6 +199,13 @@ $(function () {
 
 $('#freezeName').change(function() {
     changePlateSelection();
+});
+
+$('#process').change(function() {
+    var fp = $('#freezeName').val(); 
+    if (fp != '-') {
+        miseqData[fp].process = $('#process').val();
+    }
 });
 
 $("#fpPlate").autocomplete({
@@ -226,6 +234,7 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
     if (startWell != '' && !$(startWell).hasClass('selected')) {
         d3.select(startWell).style('fill','white');
     }
+
     if ($('#freezeName').val() != '-') {
         startWell = this;
         d3.select(startWell).style('fill', yellow);
@@ -278,7 +287,6 @@ function changePlateSelection() {
     if (name in miseqData) {
         showPlateHistory(name);
     }
-
 }
 
 function showPlateHistory(fpName) {
@@ -378,9 +386,9 @@ function tracking(miWellID, fpWellID) {
 }
 
 function trackWells(key, well) {
-    var freezer = miseqData[key];
+    var freezer = miseqData[key].wells;
     freezer[$(well).parent()[0].id] = well.value;
-    miseqData[key] = freezer;
+    miseqData[key].wells = freezer;
 }
 
 function resetMiseqText(well) {
@@ -455,7 +463,8 @@ function populateModal(){
     
     for (var key = 0; key < freezerPlates.length; key++) {
         var fpName = freezerPlates[key];
-        var fpDetails = miseqData[fpName];
+        var fpDetails = miseqData[fpName].wells;
+        var process = miseqData[fpName].process;
 
         var wellParagraph = "";
         var wellKeys = Object.keys(fpDetails);
@@ -473,10 +482,12 @@ function populateModal(){
             }
         }
         var rows = Object.keys(plateStructure);
+
         for (var row = 0; row < rows.length; row++) {
             wellParagraph += plateStructure[rows[row]].toString() + '</br>';
         }
-        var panelHeader = header + fpName + '">' + fpName + headerClosing;
+
+        var panelHeader = header + fpName + '">' + fpName + '&nbsp ~ &nbsp Process: ' + process + headerClosing;
         var panelBody = bodyOpen + fpName + bodyClass + wellParagraph + bodyClosing;
         var panel = panelOpening + panelHeader + panelBody + panelClosing;
         $("#accordion").append(panel);
@@ -485,7 +496,7 @@ function populateModal(){
 
 function checkTile(well) {
     var wellName = well.parentNode.id;
-    if (Object.values(miseqData[$('#freezeName').val()]).indexOf(wellName) == -1) {
+    if (Object.values(miseqData[$('#freezeName').val()].wells).indexOf(wellName) == -1) {
         d3.select(well).style('fill','white');
     }
 }
@@ -502,12 +513,10 @@ function clearPlate() {
 function submit() {
     var plateName = $('#modalName').val();
     var largePlate = $('#largeBox:checked').val() || 0;
-    var process = $('#process').val();
     var container = {
         name            : plateName,
         large           : largePlate,
-        data            : miseqData,
-        process_type    : process
+        data            : miseqData
     };
     var data = JSON.stringify(container);
     console.log(data);

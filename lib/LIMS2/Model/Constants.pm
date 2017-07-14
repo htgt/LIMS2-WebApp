@@ -230,7 +230,15 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( DESIGN )],
         number => 1,
     },
-    'miseq' => {
+    'miseq_no_template' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
+    },
+    'miseq_oligo' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
+    },
+    'miseq_vector' => {
         type   => [qw( FP )],
         number => 'MULTIPLE',
     },
