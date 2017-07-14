@@ -161,7 +161,12 @@ $DB::single=1;
     $data->{user} = $c->user->name;
     $data->{species} = $c->session->{selected_species};
     $data->{time} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
-
+    my $validator = {
+        nhej    => 'miseq_no_template',
+        vector  => 'miseq_vector',
+        oligo   => 'miseq_oligo'
+    };
+    $data->{process_type} = $validator->{$data->{process_type}} || 'miseq_no_template'; 
 
     my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
     

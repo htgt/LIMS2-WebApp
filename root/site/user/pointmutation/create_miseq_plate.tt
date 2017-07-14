@@ -502,10 +502,12 @@ function clearPlate() {
 function submit() {
     var plateName = $('#modalName').val();
     var largePlate = $('#largeBox:checked').val() || 0;
+    var process = $('#process').val();
     var container = {
-        name    : plateName,
-        large   : largePlate,
-        data    : miseqData
+        name            : plateName,
+        large           : largePlate,
+        data            : miseqData,
+        process_type    : process
     };
     var data = JSON.stringify(container);
     console.log(data);
