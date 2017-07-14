@@ -69,6 +69,12 @@ __PACKAGE__->table("miseq_well_experiment");
   default_value: false
   is_nullable: 1
 
+=head2 status
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -87,6 +93,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
   "frameshifted",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
+  "status",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -138,6 +146,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 status
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqStatus>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "status",
+  "LIMS2::Model::Schema::Result::MiseqStatus",
+  { id => "status" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 well
 
 Type: belongs_to
@@ -154,8 +177,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qrJhOB10cN0NBHvK69fYcw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r2SH7Oo75nCsoGyqDd2qlg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

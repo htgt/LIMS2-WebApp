@@ -61,6 +61,12 @@ __PACKAGE__->table("miseq_plate");
   data_type: 'boolean'
   is_nullable: 0
 
+=head2 results_available
+
+  data_type: 'boolean'
+  default_value: false
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -77,6 +83,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "is_384",
   { data_type => "boolean", is_nullable => 0 },
+  "results_available",
+  { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -109,8 +117,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:knnGgB524rV+j2W3ey8hMQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DqcORUSwtvhWutPrezbFRA
 
 sub as_hash {
     my $self = shift;

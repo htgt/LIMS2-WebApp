@@ -76,24 +76,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 miseqs_well
+=head2 miseq_well_experiments
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::MiseqWell>
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
 
 =cut
 
 __PACKAGE__->has_many(
-  "miseqs_well",
-  "LIMS2::Model::Schema::Result::MiseqWell",
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
   { "foreign.status" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YN6qd8CUuePEOi1Jg3LkWg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Cbvlfyxfm1CBNlfc7K3Ag
 
 sub as_string {
     return shift->id;
