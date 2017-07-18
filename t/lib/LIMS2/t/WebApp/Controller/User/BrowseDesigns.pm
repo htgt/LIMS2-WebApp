@@ -44,7 +44,7 @@ my %design_id = (
     invalidid2=>{id => '10293840', content => 'Design 10293840 not found'},
 
     invalidid3=>{id => '102 9&gf5', content => 'Design A'} 
-    #for when id has letters/symbols or spaces
+    
 );
 
 
@@ -65,9 +65,7 @@ print Dumper($design_id{$s});
     ),'Submit Design Id with correct id';
     ok $res->is_success,'Response is success';
     $mech->content_contains($design_id{$s}->{content}); 
-    #$mech->field( 'design_id', '10000841' );
-    #$mech->click_button(name => 'action');
-    #ok(1, $mech->content());
+
 }
 }
 
