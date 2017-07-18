@@ -14,7 +14,7 @@ h4 {
 
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
-
+<div id="response" class="alert"></div>
 <div class="page-header">
   <h1>Create MiSEQ Plate</h1>
 </div>
@@ -125,7 +125,7 @@ h4 {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="updatePlateName(1);">Close</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="submit();">Submit</button>
+                <button type="button" class="btn btn-primary" onclick="submit();">Submit</button>
             </div>
         </div>
     </div>
@@ -519,8 +519,8 @@ function submit() {
         data            : miseqData
     };
     var data = JSON.stringify(container);
-    console.log(data);
     if (plateName != '') {
+        $('#response').attr('class','alert');
         $.ajax({
             url: '[% c.uri_for('/api/miseq_plate/') %]',
             type: 'POST',
@@ -529,10 +529,23 @@ function submit() {
                 json: data
             },
             success: function(result) {
-                console.log(result);
+                $('#response').addClass('alert-success');
+                $('#response').text('Created MiSeq Plate: ' + result.name + ' with id: ' + result.id);
+                closeModal();
+            },
+            error: function(err) {
+                $('#response').addClass('alert-danger');
+                $('#response').text('Failed to create MiSeq plate: ' + err.responseJSON.error);
+                closeModal();
             }
         });
     }
 }
 
+function closeModal() {
+    $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling
+    $("html, body").animate({
+        scrollTop: 0
+    }, 600);
+}
 </script>

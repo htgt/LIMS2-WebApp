@@ -127,6 +127,7 @@ sub as_hash {
         id          => $self->id,
         plate_id    => $self->plate_id,
         384         => $self->is_384,
+        name        => $self->plate->name,
     );
 
     return \%h;
