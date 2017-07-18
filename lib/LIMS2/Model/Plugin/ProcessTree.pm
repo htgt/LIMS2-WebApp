@@ -1,4 +1,10 @@
 package LIMS2::Model::Plugin::ProcessTree;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose::Role;
 use LIMS2::Model;

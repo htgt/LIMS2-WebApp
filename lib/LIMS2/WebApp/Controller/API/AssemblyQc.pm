@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::AssemblyQc;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::AssemblyQc::VERSION = '0.466';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;

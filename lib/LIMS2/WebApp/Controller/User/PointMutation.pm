@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.466';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

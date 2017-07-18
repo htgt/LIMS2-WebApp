@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::GenesForSponsor;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::GenesForSponsor::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use Try::Tiny;

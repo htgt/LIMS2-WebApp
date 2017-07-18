@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::AnnouncementAdmin;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::AnnouncementAdmin::VERSION = '0.466';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

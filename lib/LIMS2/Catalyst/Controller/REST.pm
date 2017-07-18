@@ -1,4 +1,10 @@
 package LIMS2::Catalyst::Controller::REST;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Catalyst::Controller::REST::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use Scalar::Util qw( blessed );

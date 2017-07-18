@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;

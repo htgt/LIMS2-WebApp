@@ -1,4 +1,10 @@
 package LIMS2::Model::Schema::Result::PlateChildWells;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Schema::Result::PlateChildWells::VERSION = '0.466';
+}
+## use critic
+
 
 =head1 NAME
 

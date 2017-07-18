@@ -1,4 +1,10 @@
 package LIMS2::Report::PICKPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::PICKPlate::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;

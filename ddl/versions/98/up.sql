@@ -1,1 +1,0 @@
-ALTER TYPE qc_element_type ADD VALUE 'No Insert';

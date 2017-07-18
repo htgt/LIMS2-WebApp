@@ -1,4 +1,10 @@
 package LIMS2::WebApp;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;

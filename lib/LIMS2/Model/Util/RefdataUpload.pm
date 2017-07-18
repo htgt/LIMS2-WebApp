@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::RefdataUpload;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::RefdataUpload::VERSION = '0.466';
+}
+## use critic
+
 
 use LIMS2::Model::Util::DataUpload qw(parse_csv_file);
 use Log::Log4perl qw( :easy );

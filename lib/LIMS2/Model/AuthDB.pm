@@ -1,6 +1,12 @@
 use utf8;
 
 package LIMS2::Model::AuthDB;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::AuthDB::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use MooseX::MarkAsMethods autoclean => 1;

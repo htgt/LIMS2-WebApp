@@ -1,4 +1,10 @@
 package LIMS2::Model::Plugin::Primer;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Plugin::Primer::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );

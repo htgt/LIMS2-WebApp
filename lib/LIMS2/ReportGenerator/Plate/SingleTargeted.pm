@@ -1,4 +1,10 @@
 package LIMS2::ReportGenerator::Plate::SingleTargeted;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::ReportGenerator::Plate::SingleTargeted::VERSION = '0.466';
+}
+## use critic
+
 
 use strict;
 use warnings;

@@ -1,4 +1,10 @@
 package LIMS2::Report::SEPPOOLPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::SEPPOOLPlate::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;

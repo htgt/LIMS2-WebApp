@@ -1,4 +1,10 @@
 package LIMS2::DBUtils::Databases;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::DBUtils::Databases::VERSION = '0.466';
+}
+## use critic
+
 use Moose;
 
 #use strict;

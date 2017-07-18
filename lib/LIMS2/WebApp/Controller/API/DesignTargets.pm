@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::DesignTargets;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::DesignTargets::VERSION = '0.466';
+}
+## use critic
+
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( get_design_targets_data );
 use namespace::autoclean;

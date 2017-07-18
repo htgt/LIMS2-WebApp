@@ -1,4 +1,10 @@
 package LIMS2::Report::QcRunSummary;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::QcRunSummary::VERSION = '0.466';
+}
+## use critic
+
 
 use Moose;
 use LIMS2::Model::Util::QCResults qw( retrieve_qc_run_summary_results );

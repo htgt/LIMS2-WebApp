@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::Barcodes;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::Barcodes::VERSION = '0.466';
+}
+## use critic
+
 use Moose;
 use TryCatch;
 use Data::Dump 'pp';

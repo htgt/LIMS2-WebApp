@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.466';
+}
+## use critic
+
 use Moose;
 use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );

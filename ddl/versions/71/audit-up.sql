@@ -1,1 +1,0 @@
-ALTER TABLE audit.crispr_designs ADD COLUMN crispr_group_id integer;
