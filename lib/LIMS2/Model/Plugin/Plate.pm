@@ -244,6 +244,7 @@ sub check_xep_pool_wells {
             push @revised_wells, $well_hash;
             next WELL_HASH;
         }
+$DB::single=1;
         my $target_well = $well_hash->{'well_name'};
         my $parent_well = $well_hash->{'parent_well'};
         my $parent_plate = $well_hash->{'parent_plate'};

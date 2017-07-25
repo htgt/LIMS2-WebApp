@@ -10,18 +10,21 @@ use Try::Tiny;
 use Text::CSV;
 use Getopt::Long;
 
+sub well {
+    my $name = shift;
+
+    my $letter = substr($name, 0, 1);
+    my $val = sprintf("%02d", substr($name, 1));
+    
+    return $letter . $val;
+}
+
 GetOptions(
     'file=s' => \my $file,
     'name=s' => \my $miseq,
 );
 
 my $model = LIMS2::Model->new({ user => 'tasks' });
-
-say "Found " . scalar(@plates) . " MiSEQ projects.";
-
-say "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-
-$DB::single=1;
 
 my $csv = Text::CSV->new();
 
@@ -31,20 +34,17 @@ open my $fh, '<', $file or die "$!";
 my @cols = @{$csv->getline($fh)};
 $csv->column_names(@cols);
 while (my $row = $csv->getline($fh)) {
-    $data->{$row->[1]}->{$row->[4]} = $row->[5];
+    $data->{well($row->[1])}->{$row->[4]} = well($row->[5]);
 }
 close $fh;
-use Data::Dumper;
-print Dumper $data;
 
 my @well_names;
-foreach my $number (1..12){
-    foreach my $letter ( qw(A B C D E F G H)){
+foreach my $number (1..12) {
+    foreach my $letter ( qw(A B C D E F G H) ) {
 		my $well = sprintf("%s%02d",$letter,$number);
-		push @well_names, $well;
+		push (@well_names, $well);
 	}
 }
-$DB::single=1;
 
 my $plate = $model->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
@@ -55,6 +55,14 @@ my @wells = map { $_->as_hash } $model->schema->resultset('MiseqProjectWell')->s
 my @well_data;
 foreach my $well (@wells) {
     my $well_name = $well_names[$well->{illumina_index} - 1];
+    
+    my $well_params = {
+        plate   => $miseq,
+        well    => $well_name,
+        created_by  => 'pk8@sanger.ac.uk',
+        created_at  => $plate->{date},
+    };
+
     my $parent_data = $data->{$well_name};
     my @inherit_wells;
     foreach my $fp (keys %{$parent_data}) {
@@ -70,17 +78,20 @@ foreach my $well (@wells) {
         output_wells    => [{ plate_name => $plate->{name}, well_name => $well_name }],
     };
 
+    $well_params->{process_data} = $process;
+
+    push (@well_data, $well_params);
 }
 
 my $params = {
-    name        => $plate->name,
+    name        => $miseq,
     species     => 'Human',
     type        => 'MISEQ',
     created_by  => 'pk8@sanger.ac.uk',
-    created_at  => $plate->creation_date,
-    wells       => @wells,
+    created_at  => $plate->{date},
+    wells       => \@well_data,
 };
-
+$DB::single=1;
 $model->schema->txn_do( sub {
     try {
         my $traditional_plate = $model->create_plate($params);
@@ -91,7 +102,5 @@ $model->schema->txn_do( sub {
         $model->schema->txn_rollback;
     };
 });
-$DB::single=1;
 
-
-migrate_wells($model, $plate, @wells);
+1;
