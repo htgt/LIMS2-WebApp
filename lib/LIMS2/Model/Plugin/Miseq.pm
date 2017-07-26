@@ -127,6 +127,38 @@ sub create_miseq_experiment {
     return;
 }
 
+sub pspec_update_miseq_experiment {
+    return {
+        id              => { validate => 'existing_miseq_exp' },
+        miseq_id        => { validate => 'existing_miseq_plate', optional => 1 },
+        name            => { validate => 'non_empty_string', optional => 1 },
+        gene            => { validate => 'non_empty_string', optional => 1 },
+        mutation_reads  => { validate => 'integer', optional => 1 },
+        total_reads     => { validate => 'integer', optional => 1 },
+    };
+}
+
+sub update_miseq_experiment {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_update_miseq_experiment);
+
+    my %search;
+    $search{'me.id'} = $validated_params->{id};
+
+    my $exp = $self->retrieve( MiseqExperiment => \%search );
+    my $hash_well = $exp->as_hash;
+    my $class;
+    $class->{miseq_id} = $validated_params->{miseq_id} || $hash_well->{miseq_id};
+    $class->{name} = $validated_params->{name} || $hash_well->{name};
+    $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
+    $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{mutation_reads};
+    $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{total_reads};
+    my $update = $well->update($class);
+    return;
+}
+
+
 sub upload_miseq_plate {
     my ($self, $c, $params) = @_;
 

@@ -94,9 +94,10 @@ my $params = {
     wells       => \@well_data,
 };
 $DB::single=1;
+my $traditional_plate;
 $model->schema->txn_do( sub {
     try {
-        my $traditional_plate = $model->create_plate($params);
+        $traditional_plate = $model->create_plate($params);
         say "Inserted Miseq ID: " . $plate->{id} . " Name: " . $plate->{name} . " New Plate id: " . $traditional_plate->id;
     }
     catch {
@@ -104,5 +105,10 @@ $model->schema->txn_do( sub {
         $model->schema->txn_rollback;
     };
 });
-
+=head2
+plate_id    => { validate => 'existing_plate_id' },
+        is_384      => { validate => 'boolean' },
+        run_id      => { validate => 'integer', optional => 1 },
+=cut
+$DB::single=1; 
 1;
