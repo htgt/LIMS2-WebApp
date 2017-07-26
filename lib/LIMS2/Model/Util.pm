@@ -29,7 +29,7 @@ sub sanitize_like_expr {
 
 sub well_id_for {
     my ( $model, $data ) = @_;
-
+$DB::single=1;
     my $well = try { $model->retrieve_well($data) }
     catch {
         my $message = 'Can not find parent well ' . $data->{plate_name} . '[' . $data->{well_name} . ']' ;
