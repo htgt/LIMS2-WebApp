@@ -118,7 +118,7 @@ Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
 __PACKAGE__->has_many(
   "miseq_experiments",
   "LIMS2::Model::Schema::Result::MiseqExperiment",
-  { "foreign.miseq_id" => "self.id" },
+  { "foreign.old_miseq_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -138,8 +138,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-28 10:12:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KXpRo4+nprJ3E1IozT8uGw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-26 16:29:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NyALpH6+0Z9cjQL3E2PFzA
 
 sub as_hash {
     my $self = shift;

@@ -30,12 +30,17 @@ my $model = LIMS2::Model->new({ user => 'tasks' });
 my $csv = Text::CSV->new();
 
 my $data;
+my $exps;
 
 open my $fh, '<', $file or die "$!"; 
 my @cols = @{$csv->getline($fh)};
 $csv->column_names(@cols);
 while (my $row = $csv->getline($fh)) {
     $data->{well($row->[1])}->{$row->[4]} = well($row->[5]);
+    $exp->{$row->[6]} = {
+        exp     => $row->[0],
+        gene    => $row->[3],
+    };
 }
 close $fh;
 
@@ -98,17 +103,46 @@ my $traditional_plate;
 $model->schema->txn_do( sub {
     try {
         $traditional_plate = $model->create_plate($params);
-        say "Inserted Miseq ID: " . $plate->{id} . " Name: " . $plate->{name} . " New Plate id: " . $traditional_plate->id;
+        say "LIMS2: Inserted Miseq ID: " . $plate->{id} . " Name: " . $plate->{name} . " New Plate id: " . $traditional_plate->id;
     }
     catch {
         warn "Could not create record for " . $plate->{id} . ": $_";
         $model->schema->txn_rollback;
     };
 });
-=head2
-plate_id    => { validate => 'existing_plate_id' },
-        is_384      => { validate => 'boolean' },
-        run_id      => { validate => 'integer', optional => 1 },
-=cut
-$DB::single=1; 
+
+$DB::single=1;
+
+my $miseq_plate = {
+    plate_id    => $traditional_plate->as_hash->{id},
+    is_384      => $plate->{is_384},
+};
+
+if ($plate->{run_id}) {
+    $miseq_plate->{run_id} = $plate->{run_id};
+}
+my $new_miseq;
+$model->schema->txn_do( sub {
+    try {
+        $new_miseq = $model->create_miseq_plate($miseq_plate);
+        say "Miseq: Inserted Miseq ID: " . $plate->{id} . " Name: " . $plate->{name} . " New Miseq Plate id: " . $new_miseq->id;
+    }
+    catch {
+        warn "Could not create miseq record for " . $plate->{id} . ": $_";
+        $model->schema->txn_rollback;
+    };
+});
+
+my $miseq_exp_rs = $model->schema->resultset('MiseqExperiment')->search({ old_miseq_id => $plate->{id} });
+
+while (my $rs = $miseq_exp_rs->next->as_hash) {
+    my $params = {
+        id              => $rs->{id},
+        miseq_id        => $new_miseq->{id},
+        name            => $exp->{$rs->name}->{exp},
+        gene            => $exp->{$rs->name}->{gene},
+    };
+
+
+}
 1;
