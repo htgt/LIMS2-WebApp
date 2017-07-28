@@ -6,6 +6,7 @@ INSERT INTO process_types VALUES ('miseq_oligo','Create miseq plate with oligo f
 INSERT INTO process_types VALUES ('miseq_vector','Create miseq plate with vector for HDR events');
 INSERT INTO process_types VALUES ('miseq_no_template','Create miseq plate for analysis of NHEJ events only');
 
+
 DO $$
 DECLARE
     _col varchar;
@@ -15,7 +16,7 @@ DECLARE
     _well varchar;
     _wellRS varchar;
 BEGIN
-    FOR fp IN 1..13 LOOP
+    FOR fp IN 1..15 LOOP
         _fp := 'MiSeq_TT_FP_' || fp;
         INSERT INTO plates (name, type_id, created_by_id, species_id) VALUES (_fp, 'FP', 432, 'Human');
         SELECT id INTO _id FROM plates WHERE name = _fp;

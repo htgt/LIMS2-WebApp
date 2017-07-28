@@ -331,7 +331,7 @@ sub miseq_child {
             }
         );
     }
-$DB::single=1;
+
     return @parent_well_ids;
 }
 

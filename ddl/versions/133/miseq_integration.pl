@@ -37,7 +37,7 @@ my @cols = @{$csv->getline($fh)};
 $csv->column_names(@cols);
 while (my $row = $csv->getline($fh)) {
     $data->{well($row->[1])}->{$row->[4]} = well($row->[5]);
-    $exp->{$row->[6]} = {
+    $exps->{$row->[6]} = {
         exp     => $row->[0],
         gene    => $row->[3],
     };
@@ -47,7 +47,7 @@ close $fh;
 my @well_names;
 foreach my $number (1..12) {
     foreach my $letter ( qw(A B C D E F G H) ) {
-		my $well = sprintf("%s%02d",$letter,$number);
+		my $well = sprintf("%s%02d", $letter, $number);
 		push (@well_names, $well);
 	}
 }
@@ -112,10 +112,10 @@ $model->schema->txn_do( sub {
 });
 
 $DB::single=1;
-
+my $lims_plate = $traditional_plate->as_hash;
 my $miseq_plate = {
-    plate_id    => $traditional_plate->as_hash->{id},
-    is_384      => $plate->{is_384},
+    plate_id    => $lims_plate->{id},
+    is_384      => $plate->{384},
 };
 
 if ($plate->{run_id}) {
@@ -134,15 +134,47 @@ $model->schema->txn_do( sub {
 });
 
 my $miseq_exp_rs = $model->schema->resultset('MiseqExperiment')->search({ old_miseq_id => $plate->{id} });
+my @exp_ids;
+while (my $rs = $miseq_exp_rs->next) {
+    if ($rs->as_hash) {
+        $rs = $rs->as_hash;
+        my $params = {
+            id              => $rs->{id},
+            miseq_id        => $new_miseq->id,
+            name            => $exps->{$rs->{name}}->{exp},
+            gene            => $exps->{$rs->{name}}->{gene},
+            mutation_reads  => $rs->{nhej_count},
+            total_reads     => $rs->{read_count},
+        };
 
-while (my $rs = $miseq_exp_rs->next->as_hash) {
-    my $params = {
-        id              => $rs->{id},
-        miseq_id        => $new_miseq->{id},
-        name            => $exp->{$rs->name}->{exp},
-        gene            => $exp->{$rs->name}->{gene},
-    };
+        print Dumper $params;
 
+        $model->update_miseq_experiment($params);
 
+        push (@exp_ids, $rs->{id});
+    }
+}
+$DB::single=1;
+foreach my $exp_id (@exp_ids) {
+    my $wells_rs = $model->schema->resultset('MiseqProjectWellExp')->search({ miseq_exp_id => $exp_id });
+    while (my $well_rs = $wells_rs->next) {
+        my $well_exp = $well_rs->as_hash;
+
+        my $index = $well_rs->index;
+        my $well = $model->schema->resultset('Well')->find({ 
+            plate_id    => $lims_plate->{id},
+            name        => $well_names[$index - 1],
+        });
+
+        my $params = {
+            well_id         => $well->id,
+            miseq_exp_id    => $exp_id,
+            classification  => $well_exp->{classification},
+            frameshifted    => $well_exp->{frameshifted},
+            status          => 'Plated',
+        };
+
+        $model->create_miseq_well_experiment($params);
+    }
 }
 1;

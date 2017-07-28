@@ -58,10 +58,10 @@ sub create_miseq_well_experiment {
 
     my $validated_params = $self->check_params($params, pspec_create_miseq_well_experiment);
 
-    my $miseq = $self->schema->resultset('MiseqWellExp')->create(
+    my $miseq = $self->schema->resultset('MiseqWellExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_well_id miseq_exp_id classification frameshifted )
+                qw( well_id miseq_exp_id classification frameshifted status )
             )
         }
     );
@@ -129,7 +129,7 @@ sub create_miseq_experiment {
 
 sub pspec_update_miseq_experiment {
     return {
-        id              => { validate => 'existing_miseq_exp' },
+        id              => { validate => 'existing_miseq_experiment' },
         miseq_id        => { validate => 'existing_miseq_plate', optional => 1 },
         name            => { validate => 'non_empty_string', optional => 1 },
         gene            => { validate => 'non_empty_string', optional => 1 },
@@ -154,7 +154,9 @@ sub update_miseq_experiment {
     $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
     $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{mutation_reads};
     $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{total_reads};
-    my $update = $well->update($class);
+    $class->{old_miseq_id} = $hash_well->{old_miseq_id};
+    my $update = $exp->update($class);
+
     return;
 }
 

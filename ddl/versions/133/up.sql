@@ -16,4 +16,5 @@ CREATE TABLE miseq_well_experiment (
 );
 
 ALTER TABLE miseq_experiment RENAME COLUMN miseq_id TO old_miseq_id;
+ALTER TABLE miseq_experiment ALTER COLUMN old_miseq_id DROP NOT NULL;
 ALTER TABLE miseq_experiment ADD COLUMN miseq_id INTEGER REFERENCES miseq_plate(id);

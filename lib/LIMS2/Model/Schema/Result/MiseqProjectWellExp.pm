@@ -194,6 +194,11 @@ sub experiment {
     return $self->result_source->schema->resultset('MiseqExperiment')->find({ id => $self->miseq_exp_id })->name;
 }
 
+sub index {
+    my ( $self ) = @_;
+    return $self->result_source->schema->resultset('MiseqProjectWell')->find({ id => $self->miseq_well_id })->illumina_index;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
