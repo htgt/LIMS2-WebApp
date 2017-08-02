@@ -201,7 +201,16 @@ foreach my $exp_id (@exp_ids) {
             status          => 'Plated',
         };
 
-        $model->create_miseq_well_experiment($params);
+        $model->schema->txn_do( sub {
+            try {
+                $new_well_exp = $model->create_miseq_well_experiment($params);
+                say "Miseq: Inserted Plate ID: " . $lims2_plate->{id} . " Well: " . $well->id . " New Miseq well exp id: " . $new_miseq_exp->id;
+            }
+            catch {
+                warn "Could not create miseq well record for " . $well->id . ": $_";
+                $model->schema->txn_rollback;
+            };
+        });
     }
 }
 1;
