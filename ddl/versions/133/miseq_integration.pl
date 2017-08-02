@@ -19,6 +19,18 @@ sub well {
     return $letter . $val;
 }
 
+sub well_builder {
+    my ($mod, @well_names) = @_;
+    foreach my $number (1..12) {
+        my $well_num = $number + $mod->{mod};
+        foreach my $letter ( @{$mod->{letters}} ) {
+            my $well = sprintf("%s%02d", $letter, $well_num);
+            push (@well_names, $well);
+        }
+    }
+    return @well_names;
+}
+
 GetOptions(
     'file=s'    => \my $file,
     'name=s'    => \my $miseq,
@@ -45,13 +57,28 @@ while (my $row = $csv->getline($fh)) {
 close $fh;
 
 my @well_names;
-foreach my $number (1..12) {
-    foreach my $letter ( qw(A B C D E F G H) ) {
-		my $well = sprintf("%s%02d", $letter, $number);
-		push (@well_names, $well);
-	}
+my $quads = {
+    '0' => {
+        mod     => 0,
+        letters => ['A','B','C','D','E','F','G','H'],
+    },
+    '1' => {
+        mod     => 12,
+        letters => ['A','B','C','D','E','F','G','H'],
+    },
+    '2' => {
+        mod     => 0,
+        letters => ['I','J','K','L','M','N','O','P'], 
+    },
+    '3' => {
+        mod     => 12,
+        letters => ['I','J','K','L','M','N','O','P'], 
+    }
+};
+for (my $ind = 0; $ind < 4; $ind++) {
+    @well_names = well_builder($quads->{$ind}, @well_names);
 }
-
+$DB::single=1;
 my $plate = $model->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
 my @wells = map { $_->as_hash } $model->schema->resultset('MiseqProjectWell')->search({

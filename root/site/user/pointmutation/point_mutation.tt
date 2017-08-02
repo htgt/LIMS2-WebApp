@@ -57,6 +57,8 @@ body {
 }
 
 </style>
+[% SET y1 = [ "A", "B", "C", "D", "E", "F", "G", "H" ] %]
+[% SET y2 = [ "I", "J", "K", "L", "M", "N", "O", "P" ] %]
 
 <div class="page-header">
   <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
@@ -137,7 +139,7 @@ body {
     [% IF large_plate == 1 %]
         [% INCLUDE "miseq_quadrant_table.tt" %]
     [% ELSE %]
-        [% INCLUDE "miseq_overview_table.tt" page = 0 %]
+        [% INCLUDE "miseq_overview_table.tt" page = 0 x = 0 y = y1 %]
     [% END %]
 </div>
 
@@ -398,16 +400,16 @@ function buildQuadrant(quad) {
     var construct;
     switch (quad) {
         case "firstQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 x = 0 y = y1 %]`;
             break;
         case "secondQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 x = 12 y = y1 %]`;
             break;
         case "thirdQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 x = 0 y = y2 %]`;
             break;
         case "fourthQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 x = 12 y = y2 %]`;
             break;
         default:
             console.log("outside of plate limits..");
@@ -424,7 +426,7 @@ function buildQuadrant(quad) {
     $("#key").css('boxShadow','0px 0px 1px 1px grey');
     $("#key").css('z-index', '100');
     $('#quadBack').show();
-
+    highlightSelection();
 }
 
 function buildOverview() {

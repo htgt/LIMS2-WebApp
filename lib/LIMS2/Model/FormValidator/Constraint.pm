@@ -100,7 +100,7 @@ sub plate_name {
 }
 ;
 sub well_name {
-    return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
+    return shift->regexp_matches(qr/^[A-P](0[1-9]|1[0-9]|2[0-4])$/);
 }
 
 sub plate_barcode {
