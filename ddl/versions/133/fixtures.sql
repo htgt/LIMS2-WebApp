@@ -34,19 +34,9 @@ BEGIN
             END LOOP;
         END LOOP;
     END LOOP;
-    RETURN;
-END; $$
 
 -- 384 
 
-DO $$
-DECLARE
-    _col varchar;
-    _row varchar;
-    _fp varchar;
-    _id integer;
-    _well varchar;
-BEGIN
     _fp := 'Miseq_004_FP';
     INSERT INTO plates (name, type_id, created_by_id, species_id) VALUES (_fp, 'FP', 432, 'Human');
     SELECT id INTO _id FROM plates WHERE name = _fp;
