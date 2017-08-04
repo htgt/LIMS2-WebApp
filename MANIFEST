@@ -2690,6 +2690,17 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/ProcessOutputW
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Design.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/DesignOligo.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/DesignOligoLocus.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/GeneDesign.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Plate.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Process.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/ProcessDesign.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/ProcessOutputWell.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/UserRole.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Well.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/Crispr.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/CrisprLocus.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/CrisprOffTargetSummaries.csv

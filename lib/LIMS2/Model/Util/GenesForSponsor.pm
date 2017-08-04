@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenesForSponsor;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenesForSponsor::VERSION = '0.461';
+    $LIMS2::Model::Util::GenesForSponsor::VERSION = '0.467';
 }
 ## use critic
 
@@ -158,6 +158,21 @@ sub get_sponsor_genes {
         }
         return {sponsor_id => $sponsor_id, genes => \@sponsor_genes};
     }
+
+    ## Use "Crispr Plasmids Constructed" to filter out true Pipeline II genes
+    if (grep {$_ eq $sponsor_id} @{$self->pipeline_ii_sponsors}) {
+        my @genes_and_cpc;
+        foreach my $sponsor_gene_id (@intermediate_sponsor_genes) {
+            my $crispr_plasmid_constructed = $self->crispr_plasmid_constructed_for_gene($sponsor_gene_id, $sponsor_id);
+            if ($crispr_plasmid_constructed) {
+                next;
+            } else {
+                push @genes_and_cpc, $sponsor_gene_id;
+            }
+        }
+        return {sponsor_id => $sponsor_id, genes => \@genes_and_cpc};
+    }
+
     return {sponsor_id => $sponsor_id, genes => \@intermediate_sponsor_genes};
 }
 
@@ -187,6 +202,82 @@ sub get_pipeline_ii_genes_only {
         }
     }
     return @pipeline_ii_genes;
+}
+
+
+=head2 crispr_plasmid_constructed_for_gene
+
+Will return the total number of crispr plasmids constructed.
+Excerpt from ReposrtsForSponsors.pm
+
+=cut
+sub crispr_plasmid_constructed_for_gene {
+    my ($self, $gene_id, $sponsor_id) = @_;
+
+    my %search = ( design_gene_id => $gene_id );
+
+    if ($self->species_id eq 'Human' || $sponsor_id eq 'Pathogen Group 2' || $sponsor_id eq 'Pathogen Group 3' ) {
+        $search{'-or'} = [
+                { design_type => 'gibson' },
+                { design_type => 'gibson-deletion' },
+                { design_type => 'fusion-deletion' },
+            ];
+    }
+
+    if ($sponsor_id eq 'Pathogen Group 1' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'Barry Short Arm Recovery') {
+        $search{'sponsor_id'} = $sponsor_id;
+    }
+
+    my $summary_rs = $self->model->schema->resultset("Summary")->search(
+        { %search },
+    );
+
+    my @design_ids = map { $_->design_id } $summary_rs->all;
+    @design_ids = uniq @design_ids;
+
+    my $designs_for_gene = {};
+    my @all_design_ids;
+
+    foreach my $design_id (uniq @design_ids){
+        $designs_for_gene->{$gene_id} ||= [];
+
+        my $arrayref = $designs_for_gene->{$gene_id};
+        push @$arrayref, $design_id;
+        push @all_design_ids, $design_id;
+    }
+
+    my $design_crispr_summary = $self->model->get_crispr_summaries_for_designs({ id_list => \@all_design_ids });
+
+    return crispr_well_counts_for_gene($gene_id, $designs_for_gene, $design_crispr_summary);
+}
+
+=head2 crispr_well_counts_for_gene
+
+For crispr plasmids constructed count.
+Excerpt from ReportsForSponsors.pm
+
+=cut
+sub crispr_well_counts_for_gene{
+    my ($gene_id, $gene_designs, $crispr_design_summary) = @_;
+
+    my $crispr_vector_accepted_count = 0;
+
+    foreach my $design_id (@{ $gene_designs->{$gene_id} || []}){
+        my $plated_crispr_summary = $crispr_design_summary->{$design_id}->{plated_crisprs};
+
+        foreach my $crispr_id (keys %$plated_crispr_summary){
+            my @crispr_well_ids = keys %{ $plated_crispr_summary->{$crispr_id} };
+            foreach my $crispr_well_id (@crispr_well_ids){
+
+                # CRISPR_V well count
+                my $vector_rs = $plated_crispr_summary->{$crispr_id}->{$crispr_well_id}->{CRISPR_V};
+
+                my @accepted = grep { $_->is_accepted } $vector_rs->all;
+                $crispr_vector_accepted_count += scalar(@accepted);
+            }
+        }
+    }
+    return $crispr_vector_accepted_count;
 }
 
 1;
