@@ -64,81 +64,66 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
-
+$DB::single=1;
     my $index = $c->req->param('oligoIndex');
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
     my $updated_status = $c->req->param('statusOption');
 
     my $well_name = convert_index_to_well_name($index);
+
     my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
+    my $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
+    my $miseq_plate_id = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->id;
+    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $exp_sel })->as_hash;
 
-    check_class($self, $c, $miseq, $well_name, $plate->{id});
+    check_class($self, $c, $miseq_plate_id, $well_id, $plate->{id});
 
-    if ($updated_status) {
-        update_status($self, $c, $miseq, $index, $updated_status);
+$DB::single=1;
+    my $reg;
+    if ($exp_sel) {
+        if ($updated_status) {
+            update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
+        }
+        $reg = "S" . $index . "_exp" . $exp_sel;
+    } else {
+        $reg = "S" . $index . "_exp[A-Za-z0-9_]+";
     }
-
-    my $reg = "S" . $index . "_exp[A-Za-z0-9_]+";
+    
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-    my @files = find_children($base, $reg);
-    my @exps;
+    my @files = find_children($base, $reg); #Structure - S(Index)_exp(Experiment)
 
-    my $well_name;
+    #Get all well experiment details relating to well
+    my @exps;
     foreach my $file (@files) {
-        my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g);
+        my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
         foreach my $match (@matches) {
-            my $class = find_classes($c, $miseq, $index, $match);
+            my $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $match })->as_hash;
+            my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
+
             my $rs = {
                 id      => $match,
-                class   => $class,
+                class   => $well_exp->{class},
+                gene    => $exp_rs->{gene},
+                status  => $well_exp->{status} || 'Plated',
             };
             push (@exps, $rs);
         }
-        my $path = $base . $file;
-        my $fh;
-        opendir $fh, $path;
-        $well_name = find_folder($path, $fh);
-        closedir $fh;
     }
-    my $selection;
-    if ($exp_sel) {
-        my $class = find_classes($c, $miseq, $index, $exp_sel);
-        my $overview = get_experiments($c, $miseq, "genes")->{$exp_sel}[0];
-        $selection = {
-            id      => $exp_sel,
-            class   => $class,
-            gene    => $overview,
-        };
-    }
-
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
 
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
     my $states = encode_json({ summary => @status });
-    my $state;
-    try {
-        my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
-        $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
-        if ($state) {
-            $state = $state->as_hash->{status};
-        } else {
-            $state = 'Plated';
-        }
-    } catch {
-        $state = 'Plated';
-    };
-
+    
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
+
     $c->stash(
         miseq       => $miseq,
         oligo_index => $index,
-        selection   => $selection,
         experiments => \@exps,
         well_name   => $well_name,
         indel       => '1b.Indel_size_distribution_percentage.png',
         status      => $states,
-        state       => $state,
         classifications => \@classifications,
     );
 
@@ -157,10 +142,8 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
 }
 
 sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
-    my ( $self, $c ) = @_;
-
-    
-
+    my ( $self, $c ) = @_;    
+    #Only used for navigation purposes. All data retrieval and submission is dynamic thus handled by APIs
     return;
 }
 
@@ -370,43 +353,39 @@ sub read_file_lines {
 }
 
 sub update_status {
-    my ($self, $c, $miseq, $index, $status) = @_;
+    my ($self, $c, $miseq_exp, $well_id, $status) = @_;
 
-    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
-    unless ($plate) {
-        return;
-    }
-
-    my $well_details = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
+    my $well_details = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $miseq_exp });
     my $params;
     if ($well_details) {
-        if ($well_details->as_hash->{status} eq $status) {
-            return;
+        $well_details = $well_details->as_hash;
+        if ($well_details->{status} ne $status) {
+            $params = {
+                id      => $well_details->{id},
+                status  => $status,
+            };
+            $c->model('Golgi')->update_miseq_plate_well($params);
         }
-        $params = {
-            id      => $well_details->as_hash->{id},
-            status  => $status,
-        };
-        $c->model('Golgi')->update_miseq_plate_well( $params );
     }
     else {
         $params = {
-            miseq_plate_id  => $plate->{id},
-            illumina_index  => $index,
+            well_id         => $well_id,
+            miseq_exp_id    => $miseq_exp,
             status          => $status,
         };
-        $c->model('Golgi')->create_miseq_plate_well( $params );
+        $c->model('Golgi')->create_miseq_well_experiment($params);
     }
     return;
 }
 
 
 sub check_class {
-    my ($self, $c, $miseq, $well_name, $plate_id) = @_;
+    my ($self, $c, $miseq, $well_id, $plate_id) = @_;
 
     my $params = $c->req->params;
     my $result;
 
+    #Page contains a class changer for each exp attached to the well. If one is changed, it'll appear in the request e.g. classPTK2B
     foreach my $key (keys %$params) {
         my @matches = ($key =~ /^class([A-Za-z0-9_]+)$/g);
         if (@matches) {
@@ -416,23 +395,19 @@ sub check_class {
 
     if ($result) {
         my $class = $c->req->param('class' . $result);
-        my $well = $c->model('Golgi')->schema->resultset('Well')->find({ 
-                plate_id    => $plate_id,
-                name        => $well_name,
-        })->id;
-
-        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate_id, name => $result })->as_hash;
-        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well, miseq_exp_id => $miseq_exp->{id} });
+        
+        my $exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq, name => $result })->as_hash;
+        my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp->{id} });
         my $exp_params = {
-            well_id                 => $well,
-            miseq_exp_id            => $miseq_exp->{id},
+            well_id                 => $well_id,
+            miseq_exp_id            => $exp->{id},
             classification          => $class,
         };
 
-        if ($exp_record) {
-            $exp_params->{id} = $exp_record->as_hash->{id};
+        if ($well_exp) {
+            $exp_params->{id} = $well_exp->as_hash->{id};
             delete $exp_params->{well_id};
-            if ($exp_record->as_hash->{classification} ne $class) {
+            if ($well_exp->as_hash->{classification} ne $class) {
                 $c->model('Golgi')->update_miseq_well_experiment($exp_params);
             }
         } else {
@@ -443,19 +418,12 @@ sub check_class {
 }
 
 sub find_classes {
-    my ($c, $miseq, $index, $selection) = @_;
+    my ($c, $miseq_plate_id, $well_id, $miseq_exp) = @_;
 
     my $result;
-    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
-    my $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
-    unless ($well) {
-        return;
-    }
-    $well = $well->as_hash;
 
     try {
-        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate->{id}, name => $selection })->as_hash;
-        my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->{id}, miseq_exp_id => $miseq_exp->{id} })->as_hash;
+        my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ well_id => $well_id, miseq_exp_id => $miseq_exp })->as_hash;
         $result = $well_exp->{classification};
     } catch {
         $result = 'Not called';
