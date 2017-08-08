@@ -12,6 +12,7 @@ use File::Find;
 use Text::CSV;
 use Try::Tiny;
 use POSIX qw/floor/;
+use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -25,8 +26,6 @@ Miseq QC Controller.
 
 =cut
 
-
-
 sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
@@ -34,7 +33,8 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $miseq = $c->req->param('miseq');
 
-    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
+    my $plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
     if ($plate->{'384'} == 1 ) {
         my $quadrants = experiment_384_distribution($c,$miseq);
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
@@ -69,7 +69,12 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
     my $updated_status = $c->req->param('statusOption');
-    check_class($self, $c, $miseq, $index);
+
+    my $well_name = convert_index_to_well_name($index);
+    my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
+
+    check_class($self, $c, $miseq, $well_name, $plate->{id});
+
     if ($updated_status) {
         update_status($self, $c, $miseq, $index, $updated_status);
     }
@@ -113,7 +118,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $states = encode_json({ summary => @status });
     my $state;
     try {
-        my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+        my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
         $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
         if ($state) {
             $state = $state->as_hash->{status};
@@ -397,7 +402,7 @@ sub update_status {
 
 
 sub check_class {
-    my ($self, $c, $miseq, $index) = @_;
+    my ($self, $c, $miseq, $well_name, $plate_id) = @_;
 
     my $params = $c->req->params;
     my $result;
@@ -411,29 +416,27 @@ sub check_class {
 
     if ($result) {
         my $class = $c->req->param('class' . $result);
+        my $well = $c->model('Golgi')->schema->resultset('Well')->find({ 
+                plate_id    => $plate_id,
+                name        => $well_name,
+        })->id;
 
-        my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
-        my $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
-        unless ($well) {
-            update_status($self, $c, $miseq, $index, 'Plated');
-            $well = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
-        }
-        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate->{id}, name => $result })->as_hash;
-        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ miseq_well_id => $well->as_hash->{id}, miseq_exp_id => $miseq_exp->{id} });
+        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $plate_id, name => $result })->as_hash;
+        my $exp_record = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well, miseq_exp_id => $miseq_exp->{id} });
         my $exp_params = {
-            miseq_well_id           => $well->as_hash->{id},
+            well_id                 => $well,
             miseq_exp_id            => $miseq_exp->{id},
             classification          => $class,
         };
 
         if ($exp_record) {
             $exp_params->{id} = $exp_record->as_hash->{id};
-            delete $exp_params->{miseq_well_id};
+            delete $exp_params->{well_id};
             if ($exp_record->as_hash->{classification} ne $class) {
-                $c->model('Golgi')->update_miseq_well_experiment( $exp_params );
+                $c->model('Golgi')->update_miseq_well_experiment($exp_params);
             }
         } else {
-            $c->model('Golgi')->create_miseq_well_experiment( $exp_params );
+            $c->model('Golgi')->create_miseq_well_experiment($exp_params);
         }
     }
     return;
@@ -486,6 +489,9 @@ sub get_efficiencies {
 
     return $efficiencies;
 }
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 

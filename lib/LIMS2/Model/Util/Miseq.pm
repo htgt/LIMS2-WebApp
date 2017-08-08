@@ -7,6 +7,8 @@ use Sub::Exporter -setup => {
     exports => [
         qw(
               miseq_plate_from_json
+              wells_generator
+              convert_index_to_well_name
           )
     ]
 };
@@ -105,6 +107,59 @@ $DB::single=1;
 
     return;
 }
+
+sub convert_index_to_well_name {
+    my $index = shift;
+
+    my @wells = wells_generator();
+    my $name = $wells[$index - 1];
+
+    return $name;
+}
+
+sub wells_generator {
+    my @well_names;
+    my $quads = {
+        '0' => {
+            mod     => 0,
+            letters => ['A','B','C','D','E','F','G','H'],
+        },
+        '1' => {
+            mod     => 12,
+            letters => ['A','B','C','D','E','F','G','H'],
+        },
+        '2' => {
+            mod     => 0,
+            letters => ['I','J','K','L','M','N','O','P'], 
+        },
+        '3' => {
+            mod     => 12,
+            letters => ['I','J','K','L','M','N','O','P'], 
+        }
+    };
+
+    for (my $ind = 0; $ind < 4; $ind++) {
+        @well_names = well_builder($quads->{$ind}, @well_names);
+    }
+    
+    return @well_names;
+}
+
+sub well_builder {
+    my ($mod, @well_names) = @_;
+    
+    foreach my $number (1..12) {
+        my $well_num = $number + $mod->{mod};
+        foreach my $letter ( @{$mod->{letters}} ) {
+            my $well = sprintf("%s%02d", $letter, $well_num);
+            push (@well_names, $well);
+        }
+    }
+
+    return @well_names;
+}
+
+
 
 1;
 
