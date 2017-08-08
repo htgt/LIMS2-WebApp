@@ -1,0 +1,12 @@
+perl ./miseq_integration.pl --file ./Miseq_001.csv --name Miseq_001 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_002.csv --name Miseq_002 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_002.csv --name Miseq_002_v2 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_003.csv --name Miseq_003 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_004.csv --name Miseq_004 --process miseq_oligo
+perl ./miseq_integration.pl --file ./Miseq_004.csv --name Miseq_004_Paired --process miseq_oligo
+perl ./miseq_integration.pl --file ./Miseq_005.csv --name Miseq_005 --process miseq_oligo
+perl ./miseq_integration.pl --file ./Miseq_006.csv --name Miseq_006 --process miseq_oligo
+perl ./miseq_integration.pl --file ./Miseq_007.csv --name Miseq_007 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_008.csv --name Miseq_008 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_009.csv --name Miseq_009 --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_009.csv --name Miseq_009_2ndQC --process miseq_no_template
