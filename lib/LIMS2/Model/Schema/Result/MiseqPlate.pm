@@ -143,6 +143,7 @@ sub as_hash {
         plate_id    => $self->plate_id,
         384         => $self->is_384,
         name        => $self->plate->name,
+        date        => $self->plate->created_at->datetime,
     );
 
     return \%h;

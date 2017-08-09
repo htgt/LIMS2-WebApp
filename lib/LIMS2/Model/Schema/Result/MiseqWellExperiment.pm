@@ -180,6 +180,20 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r2SH7Oo75nCsoGyqDd2qlg
 
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        id                  => $self->id,
+        well_id             => $self->well_id,
+        miseq_exp_id        => $self->miseq_exp_id,
+        classification      => $self->classification->as_string,
+        frameshifted        => $self->frameshifted,
+        well_name           => $self->well->name,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -12,7 +12,7 @@ use File::Find;
 use Text::CSV;
 use Try::Tiny;
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name );
+use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name wells_generator );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -34,19 +34,20 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $miseq = $c->req->param('miseq');
 
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
-    my $plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
-    if ($plate->{'384'} == 1 ) {
-        my $quadrants = experiment_384_distribution($c,$miseq);
+    my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
+    if ($miseq_plate->{'384'} == 1 ) {
+        my $quadrants = experiment_384_distribution($c, $miseq, $plate_id, $miseq_plate->{id});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
     }
+
     my $overview = get_experiments($c, $miseq, 'genes');
     my $ov_json = encode_json ({ summary => $overview });
-    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $overview) });
+    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $plate_id, $miseq_plate->{id}, $overview) });
     my $gene_keys = get_genes($c, $overview);
     my $revov = encode_json({ summary => $gene_keys });
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
-    my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq) });
+    my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
 
     $c->stash(
         wells => $json,
@@ -56,7 +57,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         genes => \@genes,
         gene_exp => $revov,
         efficiency => $efficiencies,
-        large_plate => $plate->{'384'},
+        large_plate => $miseq_plate->{'384'},
     );
 
     return;
@@ -80,18 +81,14 @@ $DB::single=1;
     check_class($self, $c, $miseq_plate_id, $well_id, $plate->{id});
 
 $DB::single=1;
-    my $reg;
-    if ($exp_sel) {
-        if ($updated_status) {
-            update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
-        }
-        $reg = "S" . $index . "_exp" . $exp_sel;
-    } else {
-        $reg = "S" . $index . "_exp[A-Za-z0-9_]+";
+    if ($updated_status) {
+        update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
     }
-    
+
+    my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
+    my $regex = "S" . $index . "_exp" . $matching_criteria;
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-    my @files = find_children($base, $reg); #Structure - S(Index)_exp(Experiment)
+    my @files = find_children($base, $regex); #Structure - S(Index)_exp(Experiment)
 
     #Get all well experiment details relating to well
     my @exps;
@@ -99,7 +96,7 @@ $DB::single=1;
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
         foreach my $match (@matches) {
             my $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $match })->as_hash;
-            my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
+            my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
 
             my $rs = {
                 id      => $match,
@@ -133,7 +130,7 @@ $DB::single=1;
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
-    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqProject')->search( { }, { rows => 15 } );
+    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15 });
     $c->stash(
         miseqs => \@miseqs,
     );
@@ -171,21 +168,6 @@ sub experiment_384_distribution {
     return $quadrants;
 }
 
-sub get_genes {
-    my ( $c, $ow) = @_;
-
-    my $genes;
-    foreach my $key (keys %$ow) {
-        my @exps;
-        foreach my $value (@{$ow->{$key}}) {
-            my @gene = ($value =~ qr/^([A-Za-z0-9\-]*)/);
-            push (@{$genes->{$gene[0]}}, $key);
-        }
-    }
-
-    return $genes;
-}
-
 sub get_experiments {
     my ( $c, $miseq, $opt ) = @_;
 
@@ -218,22 +200,59 @@ sub read_columns {
     return $overview;
 }
 
+sub get_genes {
+    my ( $c, $ow) = @_;
+
+    my $genes;
+    foreach my $key (keys %$ow) {
+        my @exps;
+        foreach my $value (@{$ow->{$key}}) {
+            my @gene = ($value =~ qr/^([A-Za-z0-9\-]*)/);
+            push (@{$genes->{$gene[0]}}, $key);
+        }
+    }
+
+    return $genes;
+}
+
+
 sub generate_summary_data {
-    my ( $c, $miseq, $overview ) = @_;
+    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
 
     my $wells;
-    my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+    my @well_conversion = wells_generator();
 
-    for (my $i = 1; $i < 385; $i++) {
-        my $reg = "S" . $i . "_exp[A-Za-z0-9_]+";
+    my $exp_ref;
+    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+    foreach my $miseq_exp (@miseq_exp_rs) {
+        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        foreach my $well (@well_exps) {
+            $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
+                class   => $well->{class} || 'Not called',
+                status  => $well->{status} || 'Plated',
+            };
+        }
+    }
+
+    my $blank = {
+        class   => 'Not called',
+        status  => 'Plated',
+    };
+$DB::single=1;
+    for (my $index = 1; $index < 385; $index++) { 
+        #Could use wells but then we'd lose the ability to drag and drop files into miseq.
+        #Staying till standalone miseq work begins
+        my $well_name = $well_conversion[$index - 1];
+
+        my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
         my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-        my @files = find_children($base, $reg);
+        my @files = find_children($base, $regex);
         my @exps;
         foreach my $file (@files) {
             #Get all experiments on this well
-            my @matches = ($file =~ /S$i\_exp([A-Za-z0-9_]+)/g);
+            my @matches = ($file =~ /S$index\_exp([A-Za-z0-9_]+)/g);
             foreach my $match (@matches) {
-                push (@exps,$match);
+                push (@exps, $match);
             }
         }
 
@@ -241,14 +260,13 @@ sub generate_summary_data {
         my @selection;
         my $percentages;
         my @found_exps;
-        my $classes;
-
+        my $details;
         foreach my $exp (@exps) {
             foreach my $gene ($overview->{$exp}) {
                 push (@selection, $gene);
             }
 
-            my $quant = find_file($base, $i, $exp);
+            my $quant = find_file($base, $index, $exp);
 
             if ($quant) {
                 my $fh;
@@ -256,42 +274,25 @@ sub generate_summary_data {
                 my @lines = read_file_lines($fh);
                 close $fh;
 
-                my @wt = ($lines[1] =~ qr/^,- Unmodified:(\d+)/);
-                my @nhej = ($lines[2] =~ qr/^,- NHEJ:(\d+)/);
-                my @hdr = ($lines[3] =~ qr/^,- HDR:(\d+)/);
-                my @mixed = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/);
-
-                $percentages->{$exp}->{nhej} = $nhej[0];
-                $percentages->{$exp}->{wt} = $wt[0];
-                $percentages->{$exp}->{hdr} = $hdr[0];
-                $percentages->{$exp}->{mix} = $mixed[0];
+                $percentages->{$exp}->{nhej} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
+                $percentages->{$exp}->{wt} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
+                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
+                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
 
                 push(@found_exps, $exp); #In case of missing data
             }
-
-            my $class = find_classes($c, $miseq, $i, $exp);
-            $class = $class ? $class : 'Not called';
-            $classes->{$exp} = $class;
+            $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
         }
-        #status
-        my $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $i });
-        if ($state) {
-            $state = $state->as_hash->{status};
-        } else {
-            $state = 'Plated';
-        }
-
-
         #Genes, Barcodes and Status are randomly generated at the moment
-        $wells->{sprintf("%02d", $i)} = {
+        $wells->{sprintf("%02d", $index)} = {
             gene        => \@selection,
             experiments => \@found_exps,
             #barcode     => [$ug->create_str(), $ug->create_str()],
-            status      => $state,
             percentages => $percentages,
-            classes     => $classes,
+            details     => $details,
         };
     }
+$DB::single=1;
     return $wells;
 }
 
@@ -417,25 +418,9 @@ sub check_class {
     return;
 }
 
-sub find_classes {
-    my ($c, $miseq_plate_id, $well_id, $miseq_exp) = @_;
-
-    my $result;
-
-    try {
-        my $well_exp = $c->model('Golgi')->schema->resultset('MiseqProjectWellExp')->find({ well_id => $well_id, miseq_exp_id => $miseq_exp })->as_hash;
-        $result = $well_exp->{classification};
-    } catch {
-        $result = 'Not called';
-    };
-
-    return $result;
-}
-
 sub get_efficiencies {
-    my ($c, $miseq) = @_;
+    my ($c, $miseq_id) = @_;
 
-    my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash->{id};
     my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
 
     my $efficiencies = {
@@ -457,9 +442,6 @@ sub get_efficiencies {
 
     return $efficiencies;
 }
-
-
-
 
 __PACKAGE__->meta->make_immutable;
 
