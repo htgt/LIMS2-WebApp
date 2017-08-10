@@ -36,17 +36,17 @@ my %FIELD_NAMES = (
 
 sub pspec_add_well_create_well {
     return {
-        target_plate    => { validate => 'existing_plate_name' },
-        target_well     => { validate => 'well_name' },
-        template_well   => { validate => 'well_name' },
-        parent_plate    => { validate => 'existing_plate_name' },
-        parent_well     => { validate => 'well_name' },
-        user            => { validate => 'existing_user' },
-        process_data    => { validate => 'hashref' },
-        process         => { optional => 0 },
-        plate           => { validate => 'existing_plate_name' },
-        well            => { validate => 'well_name' },
-        csv             => { validate => 'boolean', optional => 1 },
+        target_plate    => { validate => 'existing_plate_name'      },
+        target_well     => { validate => 'well_name'                },
+        template_well   => { validate => 'well_name'                },
+        parent_plate    => { validate => 'existing_plate_name'      },
+        parent_well     => { validate => 'well_name'                },
+        user            => { validate => 'existing_user'            },
+        process_data    => { validate => 'hashref'                  },
+        process         => { optional => 0                          },
+        plate           => { validate => 'existing_plate_name'      },
+        well            => { validate => 'well_name'                },
+        csv             => { validate => 'boolean', optional => 1   },
     };
 }
 

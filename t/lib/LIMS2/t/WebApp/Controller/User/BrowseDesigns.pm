@@ -1,9 +1,13 @@
 package LIMS2::t::WebApp::Controller::User::BrowseDesigns;
+use warnings;
+use strict;
+
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::BrowseDesigns;
+use LIMS2::Test model => { classname => __PACKAGE__ };
 
-use strict;
+
 
 ## no critic
 
@@ -84,6 +88,8 @@ Code to execute all tests
 
 sub all_tests  : Test(1)
 {
+	my $mech = LIMS2::Test::mech();
+
     ok(1, "Test of LIMS2::WebApp::Controller::User::BrowseDesigns");
 }
 
