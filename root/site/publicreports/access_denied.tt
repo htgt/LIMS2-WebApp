@@ -1,0 +1,16 @@
+[% META title = "Access Denied" %]
+<div class="container">
+  <form method="POST" action="[% c.uri_for( '/access_denied' ) %]" name="login_form" class="well form-inline">
+    <fieldset>
+      <h1 class="">Access Denied</h1>
+<div class="col-md-12"><br>
+
+      <p>Sorry, you do not have access to this page. Please <a href="[% c.http_uri_for('/login') %]">login</a> or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for more information on accessing clones from the HTGT Group.<br> 
+
+      <a href="[% c.http_uri_for('/public_reports/sponsor_report') %]">Return to home page</a>
+
+      </p>
+
+    </fieldset>
+  </form>
+</div> 

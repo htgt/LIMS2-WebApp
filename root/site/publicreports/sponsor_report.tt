@@ -79,13 +79,15 @@
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
-            [%- IF cache_param == "with_cache" %]
+
+        [%- IF c.user == '' %]
+                <b><a href="[%- c.uri_for( '/public_reports/access_denied' ) %]">[%- countval %]</a></b></td>
+        [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
-                  { species => species, cache_param => 'without_cache', type => 'full' }
-                ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+        [%- ELSE %]
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td> 
             [%- END %]
+
           [%- ELSE %]
             <b>[%- countval %]</b></td>
           [%- END %]
@@ -135,13 +137,15 @@
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
-            [%- IF cache_param == "with_cache" %]
+
+        [%- IF c.user == '' %]
+                <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+        [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
-                  { species => species, cache_param => 'without_cache', type => 'full' }
-                ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+        [%- ELSE %]
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
             [%- END %]
+
           [%- ELSE %]
             <b>[%- countval %]</b></td>
           [%- END %]
