@@ -37,7 +37,10 @@ BEGIN
 
 -- 384 
     FOR fp IN 4..10 LOOP
-        _fp := 'Miseq_00' || fp || '_FP';
+        IF fp < 10 THEN _fp := 'Miseq_00' || fp || '_FP'
+            ELSE _fp := 'Miseq_0' || fp || '_FP'
+        END IF;
+
         INSERT INTO plates (name, type_id, created_by_id, species_id) VALUES (_fp, 'FP', 432, 'Human');
         SELECT id INTO _id FROM plates WHERE name = _fp;
         RAISE NOTICE 'PlateID: %', _id;
