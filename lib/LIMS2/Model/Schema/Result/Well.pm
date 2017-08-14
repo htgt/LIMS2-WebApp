@@ -694,6 +694,11 @@ sub well_name {
     return $self->name // '';
 }
 
+sub well_id {
+    my $self = shift;
+    return $self->id // '';
+}
+
 sub plate_type{
     my $self = shift;
     return $self->last_known_plate->type_id;

@@ -716,7 +716,7 @@ function tooltip(node) {
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
             Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
-            Classification: ` + dataPoint.classes[focusExp];
+            Classification: ` + dataPoint.details[focusExp].class;
     } else if (focusExp != 'All'){
         response = `
             Oligo Index: ` + oligoIndex + `<br>
