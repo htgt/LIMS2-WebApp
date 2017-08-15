@@ -146,7 +146,6 @@ sub miseq_plate_POST {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('edit');
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-$DB::single=1;
 
     if($protocol eq 'HTTPS'){
         my $base = $c->req->base;
@@ -161,7 +160,14 @@ $DB::single=1;
     $data->{user} = $c->user->name;
     $data->{species} = $c->session->{selected_species};
     $data->{time} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
-
+    foreach my $fp (keys %{$data->{data}}) {
+        my $wells;
+        foreach my $quad (keys %{$data->{data}->{$fp}->{wells}}) {
+            $wells = ($wells, $data->{data}->{$fp}->{wells}->{$quad});
+        }
+        $data->{data}->{$fp}->{wells} = $wells;
+    }
+$DB::single=1;
     my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
     
     return $self->status_created(

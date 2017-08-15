@@ -10,3 +10,4 @@ perl ./miseq_integration.pl --file ./Miseq_007.csv --name Miseq_007 --process mi
 perl ./miseq_integration.pl --file ./Miseq_008.csv --name Miseq_008 --process miseq_no_template
 perl ./miseq_integration.pl --file ./Miseq_009.csv --name Miseq_009 --process miseq_no_template
 perl ./miseq_integration.pl --file ./Miseq_009.csv --name Miseq_009_2ndQC --process miseq_no_template
+perl ./miseq_integration.pl --file ./Miseq_010.csv --name Miseq_010 --process miseq_oligo

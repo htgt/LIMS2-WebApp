@@ -41,8 +41,8 @@ You can create as many plates as you like so long as you create separate contain
         .attr("width","610px")
         .attr("height","610px");
     
-    setupPlate(leftGrid);
-    setupPlate(rightGrid);
+    setupPlate(leftGrid, 'A', 1);
+    setupPlate(rightGrid, 'A', 1);
     addWellNames();
 
     </script>
@@ -61,8 +61,8 @@ This will create two plates side by side. Add well names must be done after else
 
 <script type="text/javascript">
 
-function setupPlate(grid, wellClass) {
-    gridData = setupGrid();    
+function setupPlate(grid, wellClass, letter, initVal) {
+    gridData = setupGrid(letter, initVal);    
  
     var row = grid.selectAll(".row")
         .data(gridData)
@@ -101,15 +101,16 @@ function addWellNames() {
         });
 }
 
-function axes(rowValue, colValue) {
+function axes(letter, colInit, rowValue, colValue) {
+    var ascii = letter.charCodeAt(0);
     var request = '[% letters_on %]' || 'row';
     if (request == 'row') {
-        return String.fromCharCode(65 + rowValue) + twoSignificantFigures(colValue + 1);
+        return String.fromCharCode(+ascii + +rowValue) + twoSignificantFigures(+colValue + +colInit);
     } 
-    return String.fromCharCode(65 + colValue) + twoSignificantFigures(rowValue + 1);
+    return String.fromCharCode(+ascii + +colValue) + twoSignificantFigures(+rowValue + +colInit);
 } 
 
-function setupGrid() {
+function setupGrid(letter, initVal) {
     var data = new Array();
     var xPos = 1; 
     var yPos = 1;
@@ -120,7 +121,7 @@ function setupGrid() {
     for (var row = 0; row < [% rows %]; row++) {
         data.push( new Array() );
         for (var column = 0; column < [% columns %]; column++) {
-            var well = axes(row, column);
+            var well = axes(letter, initVal, row, column);
             var index = (row * numOfElemInRow) + column;
             data[row].push({
                 well: well,

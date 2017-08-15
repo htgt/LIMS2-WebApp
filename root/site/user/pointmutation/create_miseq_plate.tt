@@ -76,18 +76,28 @@ h4 {
 
 <div id="plateVisual">
     <div id="plateRow" class="col-md-12">
-        <h4 class="col-md-offset-2">Freezer Plate: </h4>
-        <select id="freezeName" class="btn btn-default">
-            <option value="-">Freezer Plate</option>
-        </select>
-
+        <div class="col-md-4">
+            <h4>Freezer Plate: </h4>
+            <select id="freezeName" class="btn btn-default">
+                <option value="-">Freezer Plate</option>
+            </select>
+        </div>
+        <div class="col-md-4" id="fpQuadDiv">
+            <h4>Plate:</h4>
+            <select id="fpQuad" class="btn btn-default">
+                <option value="A_1" selected="selected">1-96 (A01-H12)</option>
+                <option value="A_13">97-192 (A13-H24)</option>
+                <option value="I_1">193-288 (I1-P12)</option>
+                <option value="I_13">289-384 (I13-P24)</option>
+            </select>           
+        </div>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
                 <div class="col-md-4">
                     <h4>MiSEQ Plate: </h4>
                     <h4 id="miseqName">MiSEQ Plate Name</h4>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <h4>Process:</h4>
                     <select id="process" class="btn btn-default">
                         <option value="nhej" selected="selected">No Template (NHEJ/WT only)</option>
@@ -95,6 +105,16 @@ h4 {
                         <option value="vector">Vector</option>
                     </select>
                 </div>
+                <div id="quadDiv" class="col-md-4">
+                    <h4>Plate:</h4>
+                    <select id="quad" class="btn btn-default">
+                        <option value="A_1" selected="selected">1-96 (A01-H12)</option>
+                        <option value="A_13">97-192 (A13-H24)</option>
+                        <option value="I_1">193-288 (I1-P12)</option>
+                        <option value="I_13">289-384 (I13-P24)</option>
+                    </select>
+                </div>
+
             </div>
         <div id="secondSplit" class="col-md-12"></div>
     </div>
@@ -136,6 +156,12 @@ h4 {
 var parentPlates = [];
 var startWell = "";
 var miseqData = {};
+var quadLabels = {
+    A_1 : 'first',
+    A_13 : 'second',
+    I_1 : 'third',
+    I_13 : 'fourth'
+};
 
 var grey = '#93979e';
 var green = '#03c03c';
@@ -153,12 +179,14 @@ var miseqGrid = d3.select("#secondSplit")
 
 
 $(document).ready(function() {
-    setupPlate(miseqGrid, "miWell");
-    setupPlate(freezeGrid, "fpWell");
+    setupPlate(miseqGrid, "miWell", 'A', 1);
+    setupPlate(freezeGrid, "fpWell", 'A', 1);
     addWellNames();
     if ($('#freezeName').val() == '-') {
         d3.selectAll('.fpWell').style('fill', grey);
     }
+    $('#quadDiv').hide();
+    $('#fpQuadDiv').hide();
     return;
 });
 
@@ -186,11 +214,19 @@ $(function () {
             d3.selectAll('.selected').style('fill', green);
             var key = $('#freezeName').val();
             if (key != '-') {
-                miseqData[key] = {
-                    wells   : {},
-                    process : $('#process').val(),
-                };
-                $('.miWell.selected').map(function() { return trackWells(key,this); });
+                console.log('Triggered - body up');
+                var label = quadLabels[$('#quad').val()];
+                if (miseqData[key] == null) {
+                    miseqData[key] = {
+                        wells : { },
+                        process : $('#process').val(),
+                    }
+                }
+                var plateDetails = miseqData[key];
+                plateDetails.process = $('#process').val(); //In case of change
+                plateDetails.wells[label] = { };
+
+                $('.miWell.selected').map(function() { return trackWells(key, label, this); });
                 $('.fpWell.selected').map(function() { return checkTile(this); } )
             }
         }
@@ -201,12 +237,28 @@ $('#freezeName').change(function() {
     changePlateSelection();
 });
 
+$('#largeBox').change(function() {
+    $('#quadDiv').toggle();
+});
+
 $('#process').change(function() {
     var fp = $('#freezeName').val(); 
     if (fp != '-') {
         miseqData[fp].process = $('#process').val();
     }
 });
+
+$('#fpQuad').change(function() {
+    var quad = $('#fpQuad').val();
+    changeQuad(quad, 'firstSplit', 'fpWell');
+});
+
+$('#quad').change(function() {
+    var quad = $('#quad').val();
+    changeQuad(quad, 'secondSplit', 'miWell');
+});
+
+
 
 $("#fpPlate").autocomplete({
     source: function(request, response) {
@@ -245,7 +297,12 @@ function validateWells(fp, result) {
     var resJson = JSON.parse(result);
     var wells = resJson[fp];
     test = resJson;
-    console.log(wells);
+
+    if (wells.length > 96) {
+        $('#fpQuadDiv').show();
+    } else {
+        $('#fpQuadDiv').hide();
+    }
 
     for (var index = 0; index < wells.length; index++) {
         var well = wells[index];
@@ -385,10 +442,10 @@ function tracking(miWellID, fpWellID) {
     destination.text(newWell.parents()[0].id);
 }
 
-function trackWells(key, well) {
-    var freezer = miseqData[key].wells;
+function trackWells(key, section, well) {
+    var freezer = miseqData[key].wells[section];
     freezer[$(well).parent()[0].id] = well.value;
-    miseqData[key].wells = freezer;
+    miseqData[key].wells[section] = freezer;
 }
 
 function resetMiseqText(well) {
@@ -432,6 +489,11 @@ function clearRow(button) {
     $('#freezeName option[value="' + name + '"]').remove();
     row.remove();
     changePlateSelection();
+
+    var index = parentPlates.indexOf(name);
+    if (index > -1) {
+        array.splice(index, 1);
+    } 
 }
 
 function addOption(name) {
@@ -467,26 +529,32 @@ function populateModal(){
         var process = miseqData[fpName].process;
 
         var wellParagraph = "";
-        var wellKeys = Object.keys(fpDetails);
-        var plateStructure = {};
+
+        var quads = Object.keys(fpDetails);
+
+        for (var quad = 0; quad < quads.length; quad++) {
+            var quadDetails = fpDetails[quads[quad]];
+
+            var wellKeys = Object.keys(quadDetails);
+            var plateStructure = {};
         
-        for (var well = 0; well < wellKeys.length; well++) {
-            var miseqWellName = wellKeys[well];
-            var fpWellName = fpDetails[miseqWellName];
-            var row = miseqWellName.charAt(0);
-            if (!(row in plateStructure)) {
-                plateStructure[row] = [];
-                plateStructure[row].push(fpWellName + " &rarr; " + miseqWellName);
-            } else {
-                plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
+            for (var well = 0; well < wellKeys.length; well++) {
+                var miseqWellName = wellKeys[well];
+                var fpWellName = quadDetails[miseqWellName];
+                var row = miseqWellName.charAt(0);
+                if (!(row in plateStructure)) {
+                    plateStructure[row] = [];
+                    plateStructure[row].push(fpWellName + " &rarr; " + miseqWellName);
+                } else {
+                    plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
+                }
+            }
+            var rows = Object.keys(plateStructure);
+
+            for (var row = 0; row < rows.length; row++) {
+                wellParagraph += plateStructure[rows[row]].toString() + '</br>';
             }
         }
-        var rows = Object.keys(plateStructure);
-
-        for (var row = 0; row < rows.length; row++) {
-            wellParagraph += plateStructure[rows[row]].toString() + '</br>';
-        }
-
         var panelHeader = header + fpName + '">' + fpName + '&nbsp ~ &nbsp Process: ' + process + headerClosing;
         var panelBody = bodyOpen + fpName + bodyClass + wellParagraph + bodyClosing;
         var panel = panelOpening + panelHeader + panelBody + panelClosing;
@@ -496,7 +564,8 @@ function populateModal(){
 
 function checkTile(well) {
     var wellName = well.parentNode.id;
-    if (Object.values(miseqData[$('#freezeName').val()].wells).indexOf(wellName) == -1) {
+    var fpLabel = quadLabels[$('#fpQuad').val()];
+    if (Object.values(miseqData[$('#freezeName').val()].wells[fpLabel]).indexOf(wellName) == -1) {
         d3.select(well).style('fill','white');
     }
 }
@@ -508,6 +577,7 @@ function clearPlate() {
     d3.selectAll(rects).classed('selected', false);
     var name = $('#freezeName').val();
     miseqData[name] = {};
+    console.log("triggered");
 }
 
 function submit() {
@@ -548,4 +618,16 @@ function closeModal() {
         scrollTop: 0
     }, 600);
 }
+
+function changeQuad(selectVal, splitID, gridClass) {
+    var quadDef = selectVal.split('_');
+    $('#' + splitID).html('');
+    grid = d3.select("#" + splitID)
+        .append("svg")
+        .attr("width","610px")
+        .attr("height","410px");
+    setupPlate(grid, gridClass, quadDef[0], quadDef[1]);
+    addWellNames();
+}
+
 </script>
