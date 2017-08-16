@@ -161,13 +161,9 @@ sub miseq_plate_POST {
     $data->{species} = $c->session->{selected_species};
     $data->{time} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
     foreach my $fp (keys %{$data->{data}}) {
-        my $wells;
-        foreach my $quad (keys %{$data->{data}->{$fp}->{wells}}) {
-            $wells = ($wells, $data->{data}->{$fp}->{wells}->{$quad});
-        }
-        $data->{data}->{$fp}->{wells} = $wells;
+        $data->{data}->{$fp}->{wells} = flatten_wells($fp, $data->{data});
     }
-$DB::single=1;
+
     my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
     
     return $self->status_created(
@@ -255,4 +251,24 @@ sub read_file_lines {
 
     return @data;
 }
+
+#Quads had to to be introduced in a way to preserve data in the view.
+#Messy to deal with in the back end
+sub flatten_wells {
+    my ($fp, $wells) = @_;
+
+    my $fp_data = $wells->{$fp}->{wells};
+
+    my $new_structure;
+    foreach my $quad (keys %{$fp_data}) {
+        if (ref $fp_data->{$quad} eq 'HASH') {
+            foreach my $well (sort keys %{$fp_data->{$quad}}) {
+                $new_structure->{$well} = $fp_data->{$quad}->{$well};
+            }
+        }
+    }
+
+    return $new_structure;
+}
+
 1;

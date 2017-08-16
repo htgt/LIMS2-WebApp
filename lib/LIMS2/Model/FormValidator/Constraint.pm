@@ -362,7 +362,7 @@ sub existing_miseq_status {
 }
 
 sub existing_miseq_plate {
-    return shift->in_resultset( 'MiseqProject', 'id' );
+    return shift->in_resultset( 'MiseqPlate', 'id' );
 }
 
 sub illumina_index_range {
@@ -370,7 +370,7 @@ sub illumina_index_range {
 }
 
 sub existing_miseq_well_exp {
-    return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
+    return shift->in_resultset( 'MiseqWellExperiment', 'id' );
 }
 
 sub existing_miseq_experiment {

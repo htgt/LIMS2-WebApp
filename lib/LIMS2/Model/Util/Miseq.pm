@@ -76,7 +76,7 @@ sub miseq_plate_from_json {
 
 sub miseq_well_relations {
     my ($self, $c, $wells, $miseq_name, $user, $time, $process_type) = @_;
-$DB::single=1;
+
     foreach my $well (keys %{$wells}) {
         my @parent_wells;
         foreach my $fp (keys %{$wells->{$well}}) {

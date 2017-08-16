@@ -90,10 +90,11 @@ sub update_miseq_well_experiment {
     my $well = $self->retrieve( MiseqWellExperiment => \%search );
     my $hash_well = $well->as_hash;
     my $class;
-    $class->{classification} = $validated_params->{classification} || $hash_well->{classification};
-    $class->{miseq_exp_id} = $validated_params->{miseq_exp_id} || $hash_well->{experiment};
-    $class->{frameshifted} = $validated_params->{frameshifted} || $hash_well->{frameshifted};
-    $class->{frameshifted} = $validated_params->{status} || $hash_well->{status};
+    $class->{classification} = $validated_params->{classification} ? $validated_params->{classification} : $hash_well->{classification};
+    $class->{miseq_exp_id} = $validated_params->{miseq_exp_id} ? $validated_params->{miseq_exp_id} : $hash_well->{miseq_exp_id};
+    $class->{frameshifted} = $validated_params->{frameshifted} ? $validated_params->{frameshifted} : $hash_well->{frameshifted};
+    $class->{status} = $validated_params->{status} ? $validated_params->{status} : $hash_well->{status};
+$DB::single=1;
     my $update = $well->update($class);
 
     return;

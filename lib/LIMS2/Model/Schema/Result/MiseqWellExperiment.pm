@@ -190,6 +190,7 @@ sub as_hash {
         classification      => $self->classification->as_string,
         frameshifted        => $self->frameshifted,
         well_name           => $self->well->name,
+        status              => $self->status->id,
     );
 
     return \%h;
