@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::MutationSignatures;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.467';
+    $LIMS2::Model::Util::MutationSignatures::VERSION = '0.468';
 }
 ## use critic
 
