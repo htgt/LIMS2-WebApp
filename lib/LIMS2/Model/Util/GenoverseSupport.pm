@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenoverseSupport;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenoverseSupport::VERSION = '0.468';
+    $LIMS2::Model::Util::GenoverseSupport::VERSION = '0.469';
 }
 ## use critic
 

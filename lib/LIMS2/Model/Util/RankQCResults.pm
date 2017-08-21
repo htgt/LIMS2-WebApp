@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::RankQCResults;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::RankQCResults::VERSION = '0.468';
+    $LIMS2::Model::Util::RankQCResults::VERSION = '0.469';
 }
 ## use critic
 
