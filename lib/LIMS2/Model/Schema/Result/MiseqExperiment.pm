@@ -194,9 +194,22 @@ sub as_hash {
         gene        => $self->gene,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
-        old_miseq_id => $self->old_miseq_id,
+        old_miseq_id => $self->old_miseq_id, #TODO delete after migration
     );
 
+    return \%h;
+}
+
+sub parent_plate {
+    my $self = shift;
+
+    my %h = (
+        id      => $self->miseq->id,
+        plate   => $self->miseq->plate->name,
+        date    => $self->miseq->plate->created_at->datetime,
+        name    => $self->name,
+    );
+    
     return \%h;
 }
 

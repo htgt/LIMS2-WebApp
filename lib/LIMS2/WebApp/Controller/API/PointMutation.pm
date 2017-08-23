@@ -9,6 +9,7 @@ use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
 use POSIX;
+use Try::Tiny;
 
 use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
 
@@ -183,6 +184,31 @@ sub miseq_plate_GET {
     $c->response->body( $body );
 }
 
+sub miseq_exp_parent :Path( '/api/miseq_exp_parent' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_exp_parent_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $term = lc($c->request->param('term'));
+
+    my @results;
+$DB::single=1;
+    try {
+        @results = sort { $b->{date} cmp $a->{date} } map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+            {
+                'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
+            }
+        );
+    }
+    catch {
+        $c->log->error($_);
+    };
+    return $self->status_ok($c, entity => \@results);
+}
+
 sub crispr_seq {
     my ( $c, $miseq, $req ) = @_;
 
@@ -270,5 +296,6 @@ sub flatten_wells {
 
     return $new_structure;
 }
+
 
 1;

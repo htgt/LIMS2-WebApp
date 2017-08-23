@@ -4,6 +4,7 @@ use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
+use List::MoreUtils qw(uniq);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -254,16 +255,31 @@ sub old_versions_GET {
 }
 
 
-=head1 AUTHOR
+sub miseq_gene_symbols :Path( '/api/autocomplete/miseq_gene_symbols' ) :Args(0) :ActionClass('REST') {
+}
 
-Sajith Perera
+sub miseq_gene_symbols_GET {
+    my ( $self, $c ) = @_;
 
-=head1 LICENSE
+    $c->assert_user_roles('read');
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+    my $term = lc($c->request->param('term'));
 
-=cut
+    my @results;
+$DB::single=1;
+    try {
+        @results = uniq sort map { (split(/_/, $_->gene))[0] } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+            {
+                'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
+            }
+        );
+    }
+    catch {
+        $c->log->error($_);
+    };
+
+    return $self->status_ok($c, entity => \@results);
+}
 
 __PACKAGE__->meta->make_immutable;
 

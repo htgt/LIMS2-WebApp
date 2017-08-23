@@ -264,15 +264,6 @@ function createRings() {
         .attr("d", fsArc)
         .attr("class", "frame");
 
-    /*
-    var missingData = d3.selectAll("g")
-        .append("path").datum(initDonut[1])
-        .style("fill","#8f0a0b")
-        .attr("d", arc)
-        .attr("class", "donut")
-        .attr("class", "miss");
-    */
-
     d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.6em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
 }
 
@@ -316,7 +307,9 @@ $(document).ready(function() {
     buildExps(1);
     document.title = '[% miseq %] - Point Mutation';
     resize();
-    highlightSelection();
+    var select = '[% selection %]';
+    $('#expSelect').val(select);
+    highlight_init();
 });
 
 $('#geneSelect').change(function() {
@@ -332,20 +325,20 @@ $('#geneSelect').change(function() {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
     }
-    if ($('#pageFocus').find('.quad').length != 0) {
-        highlightQuad();
-    } else {
-        highlightSelection();
-    }
+    highlight_init();
 });
 
 $('#expSelect').change(function() {
+    highlight_init();
+});
+
+function highlight_init() {
     if ($('#pageFocus').find('.quad').length != 0) {
         highlightQuad();
     } else {
         highlightSelection();
     }
-});
+}
 
 $('#quadSelect').change(function(){
     var quad = $('#quadSelect').val();
@@ -381,13 +374,6 @@ function clearSelection() {
     } else {
         highlightSelection();
     }
-    /*
-    if ($('#pageFocus').find('.quad').length != 0) {
-        highlightQuad();
-    } else {
-        highlightSelection();
-    }
-    */
 }
 
 $(window).resize(function() {

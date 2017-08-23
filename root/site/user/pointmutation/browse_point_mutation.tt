@@ -1,17 +1,44 @@
 [% META title = "Browse MiSeq Projects" %]
 
 <div class="col-md-8 col-md-offset-2">
+    <form id ="geneForm" class="well">
+        <fieldset>
+            <legend>Search by Gene Symbol</legend>
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="gene_name" placeholder="Gene Symbol" id="geneName" />
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+<div id="resultsDiv" class="col-md-8 col-md-offset-2" hidden>
+    <table id="resultsTable" class="table table-striped" style="table-layout:fixed" align="center">
+        <thead>
+            <h4 align="center">Search Results</h4>
+            <tr id="headers">
+                <th>ID</th>
+                <th>Plate Name</th>
+                <th>Experiment</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div class="col-md-8 col-md-offset-2">
     <form method="POST" action="[% c.uri_for( '/user/browse_point_mutation' ) %]" class="well">
         <fieldset>
             <legend>Search by MiSeq Name</legend>
             <div class="col-md-5">
-                <input type="text" class="form-control" name="miseq_name" placeholder="MiSeq project" id="miseq_name" />
+                <input type="text" class="form-control" name="miseq_name" placeholder="MiSeq project" id="miseqName" />
             </div>
             <input type="submit" name="action" class="btn btn-primary" value="Search" />
         </fieldset>
     </form>
 </div>
-<div class="col-md-6 col-md-offset-3">
+
+<div class="col-md-8 col-md-offset-2">
     <table class="table" style="table-layout:fixed" align="center">
         <thead>
             <h4 align="center">Recently Added</h4>
@@ -36,3 +63,78 @@
         </tbody>
     </table>
 </div>
+
+<script type="text/javascript">
+
+$("#geneForm").submit(function(e) {
+    e.preventDefault();
+});
+
+$("#geneName").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/miseq_gene_symbols/' ) %]",
+        {
+            term : $('#geneName').val(),
+        }, response);
+    },
+    minLength: 2,
+    select: function(event, ui) {
+        $.ajax({
+            url: '[% c.uri_for('/api/miseq_exp_parent/') %]',
+            type: "GET",
+            contentType: 'application/json; charset=utf-8',
+            data: {
+                term: ui.item.value, 
+            },
+            success: function(result){
+                $('#resultsDiv').show();
+                modifyResultsTable(result);
+            },
+            error: function() {
+                console.log("Failed to retrieve data");
+                $('#resultsDiv').hide();
+            }
+        });
+    },
+});
+
+function modifyResultsTable(res) {
+    var rows = '';
+    for (var exp = 0; exp < res.length; exp++) {
+        var data = res[exp];
+        console.log(data)
+        var link = '[% c.uri_for("/user/point_mutation/") %]' + encodeURI('?miseq=' + data.plate + '&experiment=' + data.name);
+        var aPlate = '<a class="brand" href="' + link + '">' + data.plate + '</a>';
+        
+        var row = '<tr><td>' + data.id + '</td><td>' + aPlate + '</td><td>' + data.name + '</td><td>' + data.date + '</td></tr>';
+        rows = rows.concat(row);
+    }
+    $('#resultsTable tbody').html(rows);
+}
+
+
+
+
+/*
+$("#geneName").change(function() {
+    var term = $('#geneName').val();
+    if (term.length > 2) {
+        $.ajax({
+            url: '[% c.uri_for('/api/autocomplete/miseq_gene_symbols/') %]',
+            type: "GET",
+            contentType: 'application/json; charset=utf-8',
+            data: {
+                term: term, 
+            },
+            success: function(result){
+                modifyResultsTable(result);
+            },
+            error: function() {
+                console.log("Failed to retrieve data");
+            }
+        });
+    }
+});
+
+*/
+</script>

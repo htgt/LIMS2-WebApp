@@ -32,6 +32,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     $c->assert_user_roles( 'edit' );
 
     my $miseq = $c->req->param('miseq');
+    my $selection = $c->req->param('experiment');
 
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
@@ -58,6 +59,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         gene_exp => $revov,
         efficiency => $efficiencies,
         large_plate => $miseq_plate->{'384'},
+        selection => $selection || 'All',
     );
 
     return;
@@ -130,7 +132,12 @@ $DB::single=1;
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
-    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15 });
+    #Handle project name searching
+    
+    #Search plates by gene
+    
+
+    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15,  order_by => {-desc => 'id'} });
     $c->stash(
         miseqs => \@miseqs,
     );
