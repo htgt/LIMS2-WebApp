@@ -11,7 +11,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 
-use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
+use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json wells_generator );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -101,21 +101,23 @@ sub point_mutation_frameshifts_GET {
     my ( $self, $c ) = @_;
     my $miseq = $c->request->param('miseq');
 
-    my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->id;
-    my $miseq_wells = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->search({ 'miseq_plate_id' => $miseq_id });#->search_related('miseq_well',{ 'miseq_plate_id' => $miseq_id });
+    my $indexes = wells_generator(1);
+    my $plate_wells = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->wells;
     my $summary;
-    while (my $well = $miseq_wells->next) {
-        my $exp = $well->search_related('miseq_project_well_exps',{ frameshifted => 't' });
+    while (my $well = $plate_wells->next) {
+        my $exp = $well->search_related('miseq_well_experiments',{ frameshifted => 't' });
         if ($exp) {
             while (my $current_exp = $exp->next) {
-                push (@{$summary->{$current_exp->experiment}}, $well->illumina_index);
+                push (@{$summary->{$current_exp->experiment}}, $indexes->{$well->name});
             }
         }
     }
-
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($summary);
 
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
 
     return;
 }
@@ -138,6 +140,8 @@ sub freezer_wells_GET {
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
+
+    return;
 }
 
 sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
@@ -182,6 +186,8 @@ sub miseq_plate_GET {
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
+
+    return;
 }
 
 sub miseq_exp_parent :Path( '/api/miseq_exp_parent' ) :Args(0) :ActionClass('REST') {

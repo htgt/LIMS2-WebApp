@@ -229,23 +229,24 @@ sub generate_summary_data {
     my $wells;
     my @well_conversion = wells_generator();
 
+    my $blank = {
+        class           => 'Not called',
+        status          => 'Plated',
+        frameshifted    => 0,
+    };
     my $exp_ref;
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
     foreach my $miseq_exp (@miseq_exp_rs) {
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         foreach my $well (@well_exps) {
             $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
-                class   => $well->{class} || 'Not called',
-                status  => $well->{status} || 'Plated',
+                class       => $well->{class} || $blank->{class},
+                status      => $well->{status} || $blank->{status},
+                frameshift  => $well->{frameshifted} || $blank->{frameshifted},
             };
         }
     }
 
-    my $blank = {
-        class   => 'Not called',
-        status  => 'Plated',
-    };
-$DB::single=1;
     for (my $index = 1; $index < 385; $index++) { 
         #Could use wells but then we'd lose the ability to drag and drop files into miseq.
         #Staying till standalone miseq work begins
@@ -299,7 +300,6 @@ $DB::single=1;
             details     => $details,
         };
     }
-$DB::single=1;
     return $wells;
 }
 

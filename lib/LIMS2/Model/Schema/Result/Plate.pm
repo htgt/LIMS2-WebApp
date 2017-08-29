@@ -455,5 +455,23 @@ sub has_global_arm_shortened_designs{
     my $self = shift;
     return any { $_->global_arm_shortened_design } $self->wells;
 }
+
+sub miseq_details {
+    my $self = shift;
+$DB::single=1;
+
+    my %h = (
+        id      => $self->miseq_plates->first->id,
+        name    => $self->name,
+        date    => $self->created_at->datetime,
+    );
+
+    return \%h;
+}
+
+sub wells {
+    return shift->wells->all();
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

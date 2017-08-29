@@ -697,21 +697,19 @@ function tooltip(node) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
             Gene: ` + overview.summary[focusExp].sort().toString() + `<br>
-            Status: ` + dataPoint.status + `<br>
+            Status: ` + dataPoint.details[focusExp].status + `<br>
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
             Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
             Classification: ` + dataPoint.details[focusExp].class;
     } else if (focusExp != 'All'){
-        response = `
-            Oligo Index: ` + oligoIndex + `<br>
-            Status: ` + dataPoint.status;
+        response = 'Oligo Index: ' + oligoIndex + '<br>';
     } else { 
         response = `
             Oligo Index: ` + oligoIndex + `<br>
             Genes: ` + dataPoint.gene.sort().toString() + `<br>
-            Status: ` + dataPoint.status;
+            Status: ` + dataPoint.details[focusExp].status;
     }
     return response;
 }

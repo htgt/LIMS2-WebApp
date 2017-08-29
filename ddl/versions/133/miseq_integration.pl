@@ -78,16 +78,15 @@ my $quads = {
 for (my $ind = 0; $ind < 4; $ind++) {
     @well_names = well_builder($quads->{$ind}, @well_names);
 }
-$DB::single=1;
 my $plate = $model->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
-my @wells = map { $_->as_hash } $model->schema->resultset('MiseqProjectWell')->search({
-    miseq_plate_id => $plate->{id},
-});
-
 my @well_data;
-foreach my $well (@wells) {
-    my $well_name = $well_names[$well->{illumina_index} - 1];
+my $limit = {
+    0 => 96,
+    1 => 384,
+};
+for (my $well = 0; $well < $limit->{$plate->{384}}; $well++) {
+    my $well_name = $well_names[$well];
     
     my $well_params = {
         plate_name      => $miseq,

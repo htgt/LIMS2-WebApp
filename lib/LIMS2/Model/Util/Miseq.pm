@@ -118,6 +118,7 @@ sub convert_index_to_well_name {
 }
 
 sub wells_generator {
+    my $name_to_index = shift;
     my @well_names;
     my $quads = {
         '0' => {
@@ -141,7 +142,13 @@ sub wells_generator {
     for (my $ind = 0; $ind < 4; $ind++) {
         @well_names = well_builder($quads->{$ind}, @well_names);
     }
-    
+
+    if ($name_to_index) {
+        my %well_indexes;
+        @well_indexes{@well_names} = (0..$#well_names);
+        return \%well_indexes;
+    }
+
     return @well_names;
 }
 

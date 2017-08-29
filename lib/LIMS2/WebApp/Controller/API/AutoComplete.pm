@@ -266,7 +266,7 @@ sub miseq_gene_symbols_GET {
     my $term = lc($c->request->param('term'));
 
     my @results;
-$DB::single=1;
+
     try {
         @results = uniq sort map { (split(/_/, $_->gene))[0] } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
@@ -277,6 +277,26 @@ $DB::single=1;
     catch {
         $c->log->error($_);
     };
+
+    return $self->status_ok($c, entity => \@results);
+}
+
+sub miseq_plates :Path( '/api/autocomplete/miseq_plates' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_plates_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $term = lc($c->request->param('term'));
+
+    my @results = sort { $a cmp $b } map { $_->name } $c->model('Golgi')->schema->resultset('Plate')->search(
+        {
+            'LOWER(name)'   => { 'LIKE' => '%' . $term . '%' },
+            type_id         => 'MISEQ',
+        }
+    );
 
     return $self->status_ok($c, entity => \@results);
 }

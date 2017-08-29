@@ -153,8 +153,8 @@ sub update_miseq_experiment {
     $class->{miseq_id} = $validated_params->{miseq_id} || $hash_well->{miseq_id};
     $class->{name} = $validated_params->{name} || $hash_well->{name};
     $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
-    $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{mutation_reads};
-    $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{total_reads};
+    $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{nhej_count};
+    $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{read_count};
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
     my $update = $exp->update($class);
 
