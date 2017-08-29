@@ -380,7 +380,6 @@ sub all_tests  : Test(99) {
 
     note ( "Testing creation of qc template plate from another plate");
     {
-
     	ok my $template_982 = model->create_qc_template_from_plate({ id => 982, template_name => 'template_982' }),
     	   'can create qc template from plate 982';
         ok my ($well) = $template_982->search_related('qc_template_wells',{ name => 'A01' }),
