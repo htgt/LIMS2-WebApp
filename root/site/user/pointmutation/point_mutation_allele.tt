@@ -183,12 +183,17 @@ input:checked + .slider:before {
     </div>
 </div>
 <form action="#" method="POST" id="formSubmit"></form>
-[% IF experiments.size == 1 %]
+
+[% IF experiments.size <= 1  %]
     <div class="row">
         <div class="col-md-4">
             <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
         </div>
     </div>
+[% END %]
+<br>
+[% IF experiments.size == 0  %]
+    <p>No data found.</p>
 [% END %]
 
 [% FOREACH experiment IN experiments %]

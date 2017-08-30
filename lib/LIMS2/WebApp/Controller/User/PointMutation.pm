@@ -94,21 +94,25 @@ $DB::single=1;
     my @exps;
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
+ $DB::single=1;
         foreach my $match (@matches) {
             my $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $match })->as_hash;
-            try {
-                my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
+            my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} });
 
-                my $rs = {
-                    id      => $match,
-                    class   => $well_exp->{class},
-                    gene    => $exp_rs->{gene},
-                    status  => $well_exp->{status} ? $well_exp->{status} : 'Plated',
-                };
-                push (@exps, $rs);
-            } catch {
-                $c->log->debug('Unable to find Miseq Well Exp for Well: ' . $well_id . ' Miseq Exp ID: ' . $exp_rs->{id});
+            my $rs = {
+                id      => $match,
+                gene    => $exp_rs->{gene},
             };
+            if ($well_exp) {
+                $well_exp = $well_exp->as_hash;
+                $rs->{status} = $well_exp->{status} ? $well_exp->{status} : 'Plated';
+                $rs->{class} = $well_exp->{class} ? $well_exp->{class} : 'Not Called';
+            } else {
+                $rs->{status} = 'Plated';
+                $rs->{class} = 'Not Called';
+            }
+
+            push (@exps, $rs);
         }
     }
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
@@ -126,7 +130,7 @@ $DB::single=1;
         experiments     => \@exps,
         well_name       => $well_name,
         indel           => '1b.Indel_size_distribution_percentage.png',
-        status          => \@status,
+        status          => @status,
         classifications => \@classifications,
     );
 
