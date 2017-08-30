@@ -78,14 +78,12 @@ $DB::single=1;
     my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
     my $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
     my $miseq_plate_id = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->id;
-    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $exp_sel })->as_hash;
-
-    check_class($self, $c, $miseq_plate_id, $well_id, $plate->{id});
-
-$DB::single=1;
     if ($updated_status) {
+        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $exp_sel })->as_hash;
         update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
     }
+
+    check_class($self, $c, $miseq_plate_id, $well_id, $plate->{id});
 
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
@@ -98,31 +96,37 @@ $DB::single=1;
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
         foreach my $match (@matches) {
             my $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $match })->as_hash;
-            my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
+            try {
+                my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
 
-            my $rs = {
-                id      => $match,
-                class   => $well_exp->{class},
-                gene    => $exp_rs->{gene},
-                status  => $well_exp->{status} || 'Plated',
+                my $rs = {
+                    id      => $match,
+                    class   => $well_exp->{class},
+                    gene    => $exp_rs->{gene},
+                    status  => $well_exp->{status} ? $well_exp->{status} : 'Plated',
+                };
+                push (@exps, $rs);
+            } catch {
+                $c->log->debug('Unable to find Miseq Well Exp for Well: ' . $well_id . ' Miseq Exp ID: ' . $exp_rs->{id});
             };
-            push (@exps, $rs);
         }
     }
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
 
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
-    my $states = encode_json({ summary => @status });
     
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
+    if ($exp_sel) {
+        $c->stash->{selection} = $exp_sel;
+    }
 
     $c->stash(
-        miseq       => $miseq,
-        oligo_index => $index,
-        experiments => \@exps,
-        well_name   => $well_name,
-        indel       => '1b.Indel_size_distribution_percentage.png',
-        status      => $states,
+        miseq           => $miseq,
+        oligo_index     => $index,
+        experiments     => \@exps,
+        well_name       => $well_name,
+        indel           => '1b.Indel_size_distribution_percentage.png',
+        status          => \@status,
         classifications => \@classifications,
     );
 

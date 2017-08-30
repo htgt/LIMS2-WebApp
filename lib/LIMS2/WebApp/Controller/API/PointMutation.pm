@@ -94,34 +94,6 @@ sub point_mutation_summary_GET {
     return;
 }
 
-sub point_mutation_frameshifts : Path( '/api/point_mutation_frameshifts' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub point_mutation_frameshifts_GET {
-    my ( $self, $c ) = @_;
-    my $miseq = $c->request->param('miseq');
-
-    my $indexes = wells_generator(1);
-    my $plate_wells = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->wells;
-    my $summary;
-    while (my $well = $plate_wells->next) {
-        my $exp = $well->search_related('miseq_well_experiments',{ frameshifted => 't' });
-        if ($exp) {
-            while (my $current_exp = $exp->next) {
-                push (@{$summary->{$current_exp->experiment}}, $indexes->{$well->name});
-            }
-        }
-    }
-    my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($summary);
-
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $body );
-
-    return;
-}
-
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
 }
 

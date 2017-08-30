@@ -301,7 +301,7 @@ var targetText = d3.selectAll("g.teNode")
 
 $(document).ready(function() {
     createRings();
-    frameshifts();
+    //frameshifts();
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
     buildExps(1);
@@ -407,7 +407,7 @@ function buildQuadrant(quad) {
     prevExp = "";
     clearHighlight();
     resize();
-    frameshifts();
+    //frameshifts();
     $("#key").draggable({ stack: ".drag", zIndex: 2500  });
     $("#key").css('boxShadow','0px 0px 1px 1px grey');
     $("#key").css('z-index', '100');
@@ -496,6 +496,7 @@ function buildExps(first) {
         for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
+
             /* 
             if (wellData.percentages[expName].miss != null) {
                 var missArc = $(node).find('.miss');
@@ -506,10 +507,13 @@ function buildExps(first) {
             */
             
             var types = ['nhej', 'wild', 'hdr', 'mix'];
+
             for (var type = 0; type < types.length; type++) {
                 buildArcs(node, types[type], expName);
             }
-
+            if (wellData.details[expName].frameshift == 1) {
+                buildArcs(node, 'frame', expName);
+            }
         }
     }
 }
@@ -580,6 +584,8 @@ function buildDonut(exp) {
         var values = wells[twoDigits(id)].percentages[exp];
         var total = +values.nhej + +values.wt + +values.hdr + +values.mix;
         var arcTau = values.mix / total;
+        var frameTau = wells[twoDigits(id)].details[exp].frameshifted ? wells[twoDigits(id)].details[exp].frameshifted : 0;
+
         if ($('#filterReads').is(':checked') && total < 1000) {
             var wtArc = $($(nhejNodes[nodeIt]).closest("td")[0]).find('path.wild');
             d3.select(wtArc[0]).transition().duration(500).attrTween("d", arcTween(0, arc));
@@ -589,6 +595,7 @@ function buildDonut(exp) {
             d3.select(hdrNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau, arc));
             arcTau = (+values.nhej + +values.hdr + +values.mix) / total;
             d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau, arc));
+            d3.select(frameNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(frameTau * tau, arc));
         }
     }
     for (var nodeIt = 0; nodeIt < frameNodes.length; nodeIt++) {
@@ -649,42 +656,6 @@ function calculateEfficiency(target) {
         setTimeout(function() { d3.select('.targeting').transition().duration(500).attrTween("d", arcTween(0, teArc)); }, 250);
         d3.select('#teText').text('N/A');
     }
-}
-
-function frameshifts() {
-    var index = '[% miseq %]';
-
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_frameshifts/') %]',
-        type: "GET",
-        contentType: 'application/json; charset=utf-8',
-        data: {
-            miseq: '[% miseq %]', 
-        },
-        success: function(result){
-            frameshiftJSON = JSON.parse(result);
-            buildFrameshifts();
-            highlightSelection();
-        },
-        error: function() {
-            console.log("Failed to retrieve data");
-        }
-    });
-    
-    return;
-}
-
-function buildFrameshifts() {
-    var nodes = d3.selectAll('td').nodes();
-
-    for (var key in frameshiftJSON) {
-        var fsIndexes = frameshiftJSON[key];
-        for (var i = 0; i < fsIndexes.length; i++) {
-            var node = d3.select($('td#' + fsIndexes[i])).node();
-            buildArcs(node, 'frame', key);
-        }
-    }
-
 }
 
 function tooltip(node) {
