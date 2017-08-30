@@ -2,6 +2,7 @@ package LIMS2::t::WebApp::Controller::API::Report;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::API::Report;
+#use LIMS2::Test;
 
 use strict;
 
@@ -85,6 +86,12 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     ok(1, "Test of LIMS2::WebApp::Controller::API::Report");
+
+    ## The test below is commented out because the code for it in LIMS2 relies on cached files obtained by using the base URL of the running LIMS2 instance.
+    ## In this test the base URL is localhost. The code for this test in LIMS2 will not be modified to fit the test at the moment unless decided otherwise.
+    ## Note: there is a JS test for cached files.
+    #my $mech = LIMS2::Test::mech();
+    #$mech->get_ok("/api/confluence/report", { 'Content-Type' => 'text/html'});
 }
 
 =head1 AUTHOR

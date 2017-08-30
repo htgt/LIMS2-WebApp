@@ -21,6 +21,7 @@ build_requires:
   LIMS2::t::js::PublicReports::Reports: 0
   LIMS2::t::js::User::Barcodes::MutationSignatures: 0
   LIMS2::t::js::User::QC::ViewTraces: 0
+  Smart::Comments: 0
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
@@ -205,4 +206,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.448
+version: 0.470

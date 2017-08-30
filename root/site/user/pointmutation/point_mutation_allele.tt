@@ -150,7 +150,7 @@ input:checked + .slider:before {
         </div>
         <div class="col-md-4">
             <label class="switch">
-                <input type="checkbox" id="styles">
+                <input type="checkbox" id="styles" checked>
                 <div class="slider round"></div>
             </label>    
         </div>
@@ -302,6 +302,8 @@ $(document).ready(function() {
     var expSel = '[% selection.gene %]';
     if (expSel) {
         document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
+        displayIndels(document.getElementById('[% selection.id %]'));
+        $('.allele').find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     } else {
         document.title = '[% oligo_index %]:All - [% miseq %]';
     }
@@ -310,9 +312,6 @@ $(document).ready(function() {
 $('.allele').click(function() {
     $(this).find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     var value = $(this).val();
-    test = $(this);
-    console.log($(this));
-    console.log("This values " + value); 
     $('#dl' + value).toggle();
 });
 
@@ -322,12 +321,12 @@ $('.download').click(function() {
 });
 
 $('#styles').change(function() {
-    console.log( "Handler for .change() called." );
     $('span').toggleClass('baseSwitch');
     $('#keyContainer').toggle();
 });
 
 function displayIndels(exp) {
+    console.log(exp);
     var expTable = document.getElementById("table" + exp.id);
     if (expTable == null) {
         getSummary(exp.id);
@@ -497,8 +496,6 @@ function highlightBases(seq, crispr) {
         }
     }
 
-    console.log(start);
-
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
         var front = "";
@@ -517,7 +514,7 @@ function highlightBases(seq, crispr) {
         var format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
         formattedSequence += format;
     }
-    console.log(crispr.crispr);
+
     return formattedSequence;
 }
 
@@ -531,7 +528,6 @@ function overview() {
 
 function downloadCSV(letter, result) {
     result = JSON.parse(result);
-    console.log(result);
     var hiddenElement = document.createElement('a');
     hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
     hiddenElement.download = 'MiSeq_[% oligo_index %]_exp' + letter + '.csv';

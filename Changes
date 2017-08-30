@@ -1,3 +1,60 @@
+0.470     2017-08-30 15:27:12 Europe/London
+	Updated Genoverse files
+
+0.469     2017-08-21 12:26:33 Europe/London
+
+0.468     2017-08-21 11:59:49 Europe/London
+    Ensembl internal upgrade
+0.467     2017-08-04 15:30:22 Europe/London
+    Pipeline II page reporting fix
+0.466     2017-07-18 13:48:22 Europe/London
+	Created new test - BrowseDesigns
+0.465     2017-07-04 15:04:55 Europe/London
+    QoL fix
+0.464     2017-07-04 10:51:12 Europe/London
+    Miseq QoL features
+0.463     2017-06-16 14:28:24 Europe/London
+
+0.462     2017-06-16 13:45:56 Europe/London
+    Fix to allow for 768 plates in miseq
+0.461     2017-06-16 12:15:05 Europe/London
+
+    Fix duplicated headers in confluence report
+0.460     2017-06-15 22:50:45 Europe/London
+
+    Add an API call to get the confluence gene report table
+0.459     2017-06-05 21:20:50 Europe/London
+
+    front page reporting changes and general bug fixes
+0.458     2017-05-03 21:00:27 Europe/London
+
+    sponsor report and strategy view
+0.457     2017-04-24 10:45:04 Europe/London
+
+0.456     2017-04-24 09:57:03 Europe/London
+    Miseq - UI changes
+0.456     2017-04-13 15:51:33 Europe/London
+
+    ancestor_piq accepted flag updated on crispr_qc validation
+    database backfill on wells that should be accepted
+
+0.455     2017-04-10 13:48:49 Europe/London
+    Frameshift bug fix
+0.454     2017-04-03 09:49:47 Europe/London
+    Miseq 384
+0.453     2017-03-28 14:25:42 Europe/London
+
+    Added strategy to projects
+    Updates to front page report
+
+0.452     2017-03-21 10:32:00 Europe/London
+    Miseq - Frameshifts
+0.451     2017-03-14 13:10:12 Europe/London
+    Miseq - Actual toolip
+0.450     2017-03-14 09:47:57 Europe/London
+    Miseq - New clearer tooltip
+0.449     2017-03-09 16:38:36 Europe/London
+    Miseq - Targeting Efficiency
 0.448     2017-02-20 22:22:18 Europe/London
 
 	increased the number of piq_expand wells

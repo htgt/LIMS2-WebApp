@@ -383,7 +383,7 @@ sub three_way_gateway_process : Test(22) {
     throws_ok {
         my $process = model->create_process( $process_data_3w_gateway->{invalid_input_well} );
     }
-    qr/3w_gateway process input well should be type INT \(got DESIGN\)/;
+    qr/3w_gateway process input well should be type POSTINT,INT \(got DESIGN\)/;
 
     throws_ok {
         my $process = model->create_process( $process_data_3w_gateway->{invalid_output_well} );

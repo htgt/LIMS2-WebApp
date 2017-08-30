@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BarcodeActions;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.448';
+    $LIMS2::Model::Util::BarcodeActions::VERSION = '0.470';
 }
 ## use critic
 
@@ -42,6 +42,27 @@ use Data::Dumper;
 # e.g. <input type="text" name="barcode_[% well.id %]">
 sub add_barcodes_to_wells{
     my ($model, $params, $state) = @_;
+
+    my @csv_barcodes;
+    my @barcode_keys;
+
+    if ($params->{piq_barcode_csv}) {
+        @csv_barcodes = @{$params->{piq_barcode_csv}};
+        @barcode_keys = grep { $_ } map { $_ =~ /^(barcode_[0-9]+)$/ } keys %{$params};
+
+        if (any {$params->{$_} ne ""} @barcode_keys) {
+            ## no barcodes specified in input box
+            die "Input already defined. Choose 1 entry mode.";
+        } elsif (scalar @barcode_keys != scalar @csv_barcodes) {
+            ## CSV content contains correct number of elements
+            die "Incorrect number of barcodes in CSV file.";
+        } else {
+            ## set up the barcodes from CSV file content
+            foreach my $indx (0..$#barcode_keys) {
+                $params->{$barcode_keys[$indx]} = $csv_barcodes[$indx];
+            }
+        }
+    }
 
     my @messages;
     my @well_ids = grep { $_ } map { $_ =~ /^barcode_([0-9]+)$/ } keys %{$params};
@@ -514,11 +535,11 @@ sub pspec_discard_well_barcode{
 
 sub discard_well_barcode{
     my ($model, $params) = @_;
-	  # input: model, {barcode, user, reason}
+      # input: model, {barcode, user, reason}
 
     my $validated_params = $model->check_params($params, pspec_discard_well_barcode);
 
-	  # set well barcode state to "discarded" (use update_well_barcode from model plugin)
+      # set well barcode state to "discarded" (use update_well_barcode from model plugin)
     my $well = $model->update_well_barcode({
         barcode   => $validated_params->{barcode},
         new_state => 'discarded',

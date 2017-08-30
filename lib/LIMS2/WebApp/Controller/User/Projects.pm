@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Projects;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.448';
+    $LIMS2::WebApp::Controller::User::Projects::VERSION = '0.470';
 }
 ## use critic
 
@@ -38,6 +38,9 @@ sub manage_projects :Path('/user/manage_projects'){
     my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
     $c->stash->{cell_line_options} = \@cell_lines;
 
+    my @strategies = map { $_->id } $c->model('Golgi')->schema->resultset('Strategy')->all;
+    $c->stash->{strategy_options} = \@strategies;
+
     my $species_id = $c->session->{selected_species};
     my $gene_id;
     if(my $gene = $c->req->param('gene')){
@@ -67,6 +70,10 @@ sub manage_projects :Path('/user/manage_projects'){
     if( my $cell_line_id = $c->req->param('cell_line_id')){
         $c->stash->{cell_line_id} = $cell_line_id;
         $search->{cell_line_id} = $cell_line_id;
+    }
+    if( my $strategy_id = $c->req->param('strategy_id')){
+        $c->stash->{strategy_id} = $strategy_id;
+        $search->{strategy_id} = $strategy_id;
     }
 
     my @project_results;

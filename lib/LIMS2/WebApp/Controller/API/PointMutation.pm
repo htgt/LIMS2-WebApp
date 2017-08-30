@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.448';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.470';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
+use Try::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -96,7 +97,34 @@ sub point_mutation_summary_GET {
     return;
 }
 
+sub point_mutation_frameshifts : Path( '/api/point_mutation_frameshifts' ) : Args(0) : ActionClass( 'REST' ) {
+}
 
+sub point_mutation_frameshifts_GET {
+    my ( $self, $c ) = @_;
+    my $miseq = $c->request->param('miseq');
+
+    my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->id;
+    my $miseq_wells = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->search({ 'miseq_plate_id' => $miseq_id });#->search_related('miseq_well',{ 'miseq_plate_id' => $miseq_id });
+    my $summary;
+    while (my $well = $miseq_wells->next) {
+        my $exp = $well->search_related('miseq_project_well_exps',{ frameshifted => 't' });
+        if ($exp) {
+            while (my $current_exp = $exp->next) {
+                push (@{$summary->{$current_exp->experiment}}, $well->illumina_index);
+            }
+        }
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($summary);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
 
 sub crispr_seq {
     my ( $c, $miseq, $req ) = @_;
@@ -120,6 +148,13 @@ sub crispr_seq {
     foreach my $exp (@lines) {
         if (@$exp[0] eq $req) {
             my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
+            if ($index == -1) {
+                try {
+                    $index = index(@$exp[4], revcom(@$exp[2])->seq);
+                } catch {
+                    $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+                };
+            }
             $res->{crispr} = @$exp[2];
             $res->{position} = $index;
         }
