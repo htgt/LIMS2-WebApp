@@ -83,7 +83,7 @@ $DB::single=1;
         update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
     }
 
-    check_class($self, $c, $miseq_plate_id, $well_id, $plate->{id});
+    update_tracking($self, $c, $miseq_plate_id, $well_id, $plate->{id});
 
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
@@ -94,7 +94,6 @@ $DB::single=1;
     my @exps;
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
- $DB::single=1;
         foreach my $match (@matches) {
             my $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $match })->as_hash;
             my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} });
@@ -105,8 +104,9 @@ $DB::single=1;
             };
             if ($well_exp) {
                 $well_exp = $well_exp->as_hash;
+$DB::single=1;
                 $rs->{status} = $well_exp->{status} ? $well_exp->{status} : 'Plated';
-                $rs->{class} = $well_exp->{class} ? $well_exp->{class} : 'Not Called';
+                $rs->{class} = $well_exp->{classification} ? $well_exp->{classification} : 'Not Called';
             } else {
                 $rs->{status} = 'Plated';
                 $rs->{class} = 'Not Called';
@@ -123,7 +123,7 @@ $DB::single=1;
     if ($exp_sel) {
         $c->stash->{selection} = $exp_sel;
     }
-
+$DB::single=1;
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
@@ -395,35 +395,43 @@ sub update_status {
 }
 
 
-sub check_class {
+sub update_tracking {
     my ($self, $c, $miseq, $well_id, $plate_id) = @_;
-
     my $params = $c->req->params;
     my $result;
 
     #Page contains a class changer for each exp attached to the well. If one is changed, it'll appear in the request e.g. classPTK2B
     foreach my $key (keys %$params) {
-        my @matches = ($key =~ /^class([A-Za-z0-9_]+)$/g);
+        my @matches = ($key =~ /^(?:(class|status))([A-Za-z0-9_]+)$/g);
         if (@matches) {
-            $result = $matches[0];
+            $result = $matches[1];
         }
     }
 
     if ($result) {
         my $class = $c->req->param('class' . $result);
+        my $status = $c->req->param('status' . $result);
         
+$DB::single=1;
         my $exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq, name => $result })->as_hash;
         my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp->{id} });
         my $exp_params = {
             well_id                 => $well_id,
             miseq_exp_id            => $exp->{id},
-            classification          => $class,
         };
-
+        my $check;
+        if ($class) {
+            $check = 'classification';
+            $exp_params->{$check} = $class;
+        }
+        if ($status) {
+            $check = 'status';
+            $exp_params->{$check} = $status;
+        }
         if ($well_exp) {
             $exp_params->{id} = $well_exp->as_hash->{id};
             delete $exp_params->{well_id};
-            if ($well_exp->as_hash->{classification} ne $class) {
+            unless ($exp_params->{$check} eq $well_exp->as_hash->{$check}) {
                 $c->model('Golgi')->update_miseq_well_experiment($exp_params);
             }
         } else {
