@@ -197,8 +197,7 @@ input:checked + .slider:before {
 [% END %]
 
 [% FOREACH experiment IN experiments %]
-    <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %] [% experiment.class %]
-</h2>
+    <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
     <div class="clearfix row">
         <div class="col-md-2">
             <label class="lb-md">Classification: </label>
