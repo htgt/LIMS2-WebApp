@@ -148,6 +148,7 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
 sub access_denied : Path( '/public_reports/access_denied' ) {
 
     my ( $self, $c ) = @_;
+    
     return;
 }
 
