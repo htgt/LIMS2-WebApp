@@ -5,6 +5,8 @@ use Crypt::CBC;
 use Config::Tiny;
 use namespace::autoclean;
 use Data::Dumper;
+use MIME::Lite;
+
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -106,6 +108,63 @@ sub logout : Global {
 
     $c->flash( info_msg => 'You have been logged out' );
     return $c->res->redirect( $c->uri_for('/login') );
+}
+
+sub reset_password : Path('/reset_password') {
+
+    my ( $self, $c ) = @_;
+
+    $c->log->debug('reset_passord');
+    my $username = $c->req->param("username");
+
+    unless ($username){return}
+
+        my $model   = $c->model('Golgi');
+
+        my $user_rs = $model->schema->resultset("User")->find({name => $username});
+
+    if ($username eq $user_rs->{_column_data}->{name}){
+
+        $user_rs = $model->schema->resultset("User")->find({name => $username})->as_hash;
+
+        my $password = $model->pwgen;
+
+        $model->txn_do(
+            sub {
+                $model->set_user_password( { name => $user_rs->{name}, password => $password } );
+                $self->email($c, $username, $password);
+            }
+        );
+
+	}else{
+
+   	 $c->stash( error_msg => 'Incorrect email' );
+
+	}
+    return;
+}
+
+sub email : Global{
+
+    my ($self, $c, $params, $username, $password) = @_;
+
+    my $validated_params = $c->email( {email =>  $username} );
+
+    my $to = $username;
+    my $from = 'htgt@sanger.ac.uk';
+    my $subject = 'LIMS2 - Password Recovery';
+    my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+
+    my $msg = MIME::Lite->new(
+                 From     => $from,
+                 To       => $to,
+                 Subject  => $subject,
+                 Data     => $message
+                 );
+
+    $msg->send;
+    print "Email Sent Successfully\n";
+    return;
 }
 
 =head1 AUTHOR

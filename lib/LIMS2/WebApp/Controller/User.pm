@@ -1,152 +1,339 @@
-package LIMS2::WebApp::Controller::User;
-use Moose;
-use LIMS2::Model::Util::ReportForSponsors;
-use Text::CSV;
-use Try::Tiny;
+package LIMS2::Model::Plugin::User;
+
+use strict;
+use warnings FATAL => 'all';
+
+use Moose::Role;
+use Hash::MoreUtils qw( slice slice_def );
+use Const::Fast;
+use Crypt::SaltedHash;
+use LIMS2::Model::Util::PgUserRole qw( create_pg_user );
 use namespace::autoclean;
-use LIMS2::Util::Errbit;
+use Digest::SHA;
+use Crypt::PBKDF2;
+use Try::Tiny;
 
-BEGIN { extends 'Catalyst::Controller'; }
+requires qw( schema check_params throw retrieve );
 
-=head1 NAME
+{
 
-LIMS2::WebApp::Controller::User - Catalyst Controller
+    const my $MIN_PW_LEN => 8;
+    const my $PW_LEN => 10;
+    const my @PW_CHARS => ( 'A' .. 'Z', 'a' .. 'z', '0' .. '9' );
 
-=head1 DESCRIPTION
-
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-sub auto : Private {
-    my ( $self, $c ) = @_;
-
-    if ( ! $c->user_exists ) {
-        if($c->req->path eq ""){
-            # Send anonymous users to the public sponsor report instead of root
-            $c->log->debug("redirecting anonymous user from / to public reports");
-            $c->go( 'Controller::PublicReports', 'sponsor_report' );
+    sub pwgen {
+        my ($class, $len) = @_;
+        if ( !$len || $len < $MIN_PW_LEN ) {
+            $len = $PW_LEN;
         }
-        else{
-            $c->stash->{error_msg} = 'You must login to access '.$c->request->uri ;
-            $c->stash->{goto_on_success} = $c->request->uri ;
-            $c->go( 'Controller::Auth', 'login' );
+        return join( '', map { $PW_CHARS[ int rand @PW_CHARS ] } 1 .. $len );
+    }
+}
+
+has _role_id_for => (
+    isa        => 'HashRef',
+    traits     => ['Hash'],
+    lazy_build => 1,
+    handles    => { role_id_for => 'get' }
+);
+
+sub _build__role_id_for {
+    my $self = shift;
+
+    return +{ map { $_->name => $_->id } $self->schema->resultset('Role')->all };
+}
+
+sub user_id_for {
+    my ( $self, $user_name ) = @_;
+
+    my %search = ( name => $user_name );
+    my $user = $self->schema->resultset('User')->find( \%search )
+        or $self->throw(
+        NotFound => {
+            entity_class  => 'User',
+            search_params => \%search
         }
-    }
+        );
 
-    if ( ! $c->session->{selected_species} ) {
-        my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
-        $c->session->{selected_species} = $prefs->default_species_id;
-    }
-
-    if ( ! $c->session->{display_type} ) {
-        $c->session->{display_type} = 'default';
-    }
-
-    if ( ! $c->session->{species} ) {
-        $c->session->{species} = $c->model('Golgi')->list_species;
-    }
-
-    return 1;
+    return $user->id;
 }
 
-=head2 end
+sub list_users {
+    my ($self) = @_;
 
-If we are runnning in production, we don't want to scare off the users
-with the Catalyst error message. But in debug mode, we want the stack
-trace in its full glory. This method runs at the end of a request and,
-if we have errors and are not in debug mode, redirects to the index
-with a simple error message.
+    my @users = $self->schema->resultset('User')
+        ->search( {}, { prefetch => { user_roles => 'role' }, order_by => { -asc => 'me.name' } } );
 
-=cut
-
-sub end :Private {
-    my ( $self, $c ) = @_;
-
-    my @errors = @{ $c->error };
-    if ( @errors > 0 && ! $c->debug ) {
-        $c->log->error( $_ ) for @errors;
-        $c->clear_errors;
-        $c->stash( errors => \@errors );
-
-        #try to log an errbit error
-        try {
-            my $errbit = LIMS2::Util::Errbit->new_with_config;
-            $errbit->submit_errors( $c, \@errors );
-        }
-        catch {
-            $c->log->error( @_ );
-        };
-
-        return $c->go( 'error' );
-    }
-
-    return $c->detach( 'Controller::Root', 'end' );
+    return \@users;
 }
 
-=head2 index
+sub list_roles {
+    my ($self) = @_;
 
-=cut
+    my @roles = $self->schema->resultset('Role')->search( {}, { order_by => { -asc => 'me.name' } } );
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    return;
+    return \@roles;
 }
 
-=head2 error
 
-=cut
 
-sub error :Local {
-    my ( $self, $c ) = @_;
-    $c->stash( template => 'user/error.tt' );
-    return;
+sub pspec_create_user {
+    return {
+        name     => { validate => 'user_name' },
+        password => { validate => 'non_empty_string' },
+        roles    => { validate => 'existing_role', optional => 1 }
+    };
 }
 
-=head2 select_species
+sub create_user {
+    my ( $self, $params ) = @_;
 
-=cut
+    my $validated_params = $self->check_params( $params, $self->pspec_create_user );
 
-sub select_species :Local {
-    my ( $self, $c ) = @_;
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+    $csh->add( $validated_params->{password} );
 
-    $c->assert_user_roles('read');
-
-    my $species_id = $c->request->param('species');
-    my $goto = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
-
-    $c->model('Golgi')->txn_do(
-        sub {
-            shift->set_user_preferences(
-                {
-                    id              => $c->user->id,
-                    default_species => $species_id
-                }
-            );
+    my $user = $self->schema->resultset('User')->create(
+        {   name     => $validated_params->{name},
+            password => $csh->generate
         }
     );
 
-    $c->session->{selected_species} = $species_id;
+    for my $role_name ( @{ $validated_params->{roles} || [] } ) {
+        $user->create_related( user_roles => { role_id => $self->role_id_for($role_name) } );
+    }
 
-    $c->flash( info_msg => "Switched to species $species_id" );
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
+        }
+    );
 
-    return $c->response->redirect( $goto );
+    return $user;
 }
 
-=head1 AUTHOR
+sub pspec_set_user_roles {
+    return {
+        name  => { validate => 'existing_user' },
+        roles => { validate => 'existing_role' }
+    };
+}
 
-Ray Miller
+sub set_user_roles {
+    my ( $self, $params ) = @_;
 
-=head1 LICENSE
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_roles );
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
 
-=cut
+    my @role_ids = map { $self->role_id_for($_) } @{ $validated_params->{roles} };
 
-__PACKAGE__->meta->make_immutable;
+    $user->user_roles_rs->delete;
+    for my $role_id (@role_ids) {
+        $user->create_related( user_roles => { role_id => $role_id } );
+    }
+
+    $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            create_pg_user( $dbh, $user->name, $validated_params->{roles} );
+        }
+    );
+
+    return $user;
+}
+
+sub pspec_set_user_password {
+    return {
+        name     => { validate => 'existing_user' },
+        password => { validate => 'non_empty_string' }
+    };
+}
+
+sub set_user_password {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_password );
+
+    my $user = $self->retrieve( User => { name => $validated_params->{name} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+    $csh->add( $validated_params->{password} );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+sub pspec_set_user_active_status {
+    return {
+        name   => { validate => 'user_name' },
+        active => { validate => 'boolean' }
+    };
+}
+
+sub set_user_active_status {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_active_status );
+
+    my $user = $self->schema->resultset('User')->find($validated_params)
+        or $self->throw(
+        NotFound => {
+            entity_class  => 'User',
+            search_params => $validated_params
+        }
+        );
+
+    $user->update( { active => $validated_params->{active} } );
+
+    return $user;
+}
+
+sub enable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 1;
+
+    return $self->set_user_active_status($params);
+}
+
+sub disable_user {
+    my ( $self, $params ) = @_;
+
+    $params->{active} = 0;
+
+    return $self->set_user_active_status($params);
+}
+
+sub pspec_retrieve_user_preferences {
+    return {
+        name            => { validate => 'user_name', optional => 1 },
+        id              => { validate => 'integer',   optional => 1 },
+        REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
+    }
+}
+
+sub retrieve_user_preferences {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_retrieve_user_preferences, ignore_unknown => 1 );
+
+    my $user = $self->retrieve( User => { slice_def $validated_params, qw( id name ) }, { prefetch => 'user_preference' } );
+
+    return $user->user_preference
+        || $user->create_related( user_preference => { default_species_id => 'Mouse' } );
+}
+
+sub pspec_set_user_preferences {
+    return {
+        name            => { validate => 'user_name', optional => 1 },
+        id              => { validate => 'integer',   optional => 1 },
+        default_species => { validate => 'existing_species', optional => 1, default => 'Mouse' },
+        REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
+    }
+}
+
+sub set_user_preferences {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_set_user_preferences );
+
+    my $prefs = $self->retrieve_user_preferences( $validated_params );
+
+    if ( $prefs->default_species_id ne $validated_params->{default_species} ) {
+        $prefs->update( { default_species_id => $validated_params->{default_species} } );
+    }
+
+    return $prefs;
+}
+
+sub pspec_change_user_password {
+    return {
+        id                   => { validate   => 'integer' },
+        new_password         => { validate   => 'password_string' },
+        new_password_confirm => { validate   => 'password_string' },
+    };
+}
+
+
+sub change_user_password {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_change_user_password );
+
+    $self->throw( Validation => 'new password and password confirm values do not match' )
+        unless $validated_params->{new_password} eq $validated_params->{new_password_confirm};
+
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+
+    $csh->add( $validated_params->{password} );
+
+    $csh->add( $validated_params->{new_password} );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+}
+
+
+sub pspec_update_user_password{
+
+    return {
+	id                   => { validate   => 'integer' },
+
+    };
+}
+
+sub update_user_password{
+    my ( $self, $params ) = @_;
+#$DB::Single=1;    
+    my $validated_params = $self->check_params( $params, $self->pspec_update_user_password );
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+
+    }
+
+
+sub pspec_create_api_key {
+    return {
+        id          => { validate => 'integer' },
+        access_key  => { validate => 'uuid' },
+        secret_key  => { validate => 'uuid' },
+    };
+}
+
+sub create_api_key {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params( $params, $self->pspec_create_api_key );
+
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+    my $pbk = Crypt::PBKDF2->new(
+        hash_class => 'HMACSHA3',
+        iterations => 1000,
+        output_len => 20,
+        salt_len => 4,
+    );
+
+    $user->update(
+        {
+            access_key => $validated_params->{access_key},
+            secret_key => $pbk->generate($validated_params->{secret_key}),
+        }
+    );
+
+    return $user;
+}
 
 1;
+
+__END__
