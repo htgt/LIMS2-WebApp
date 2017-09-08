@@ -72,7 +72,7 @@
       [%- FOR colname IN columns.pipeline_i %]
           [%- UNLESS colname == "Stage" %]
         [%- countval = 0; countval = data.item(row).item(colname) %]
-        [%- IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
+        [%- IF row == "Genes" || row == "Active Genes" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
         <td style="border-top: 1px solid">
         [%- ELSE %]
         <td>
@@ -122,7 +122,7 @@
   <tbody>
     [%- FOREACH row IN rows %]
     <tr>
-      [%- IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
+      [%- IF row == "Genes" || row == "Valid DNA" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
       <td style="border-top: 1px solid"><b>[%- row %]</b></td>
       [%- ELSE %]
       <td><b>[%- row %]</b></td>
@@ -130,7 +130,7 @@
       [%- FOR colname IN columns.pipeline_ii %]
           [%- UNLESS colname == "Stage" %]
         [%- countval = 0; countval = data.item(row).item(colname) %]
-        [%- IF row == "Genes" || row == "Vectors Constructed" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
+        [%- IF row == "Genes" || row == "Valid DNA" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
         <td style="border-top: 1px solid">
         [%- ELSE %]
         <td style="width:240px">

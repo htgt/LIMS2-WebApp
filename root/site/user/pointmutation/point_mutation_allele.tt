@@ -160,36 +160,24 @@ input:checked + .slider:before {
 
 <div class="container">
     <div class="row">
-
-<div class="col-md-9">
-
-[% SET prev = oligo_index - 1 %]
-[% IF prev <= 0 %]
-
-<a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% max_wells %]&exp=[% selection.id %]"><span><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% max_wells %]</span></a>
-
-[% ELSE %]
-
-<a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% prev %]&exp=[% selection.id %]"><span class="text-left"><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% prev %]</span></a>
-
-[% END %]
-</div>
-
-<div class="col-md-3">
-
-[% SET next = oligo_index + 1 %]
-[% IF oligo_index >= max_wells %]
-
-<a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=1&exp=[% selection.id %]"><span class="col-md-offset-6 text-right">Next Well - 1 <i class="glyphicon glyphicon-arrow-right "></i></span></a>
-
-[% ELSE %]
-
-<a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% next %]&exp=[% selection.id %]"><span class="col-md-offset-6 text-right">Next Well - [% next %] <i class="glyphicon glyphicon-arrow-right"></i></span></a>
-
-[% END %]
-</div>
-&nbsp;
-</div>
+        <div class="col-md-9">
+        [% SET prev = oligo_index - 1 %]
+	[% IF prev <= 0 %]
+	    <a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% max_wells %]&exp=[% selection.id %]"><span><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% max_wells %]</span></a>
+        [% ELSE %]
+	    <a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% prev %]&exp=[% selection.id %]"><span class="text-left"><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% prev %]</span></a>
+        [% END %]
+    </div>
+        <div class="col-md-3">
+	[% SET next = oligo_index + 1 %]
+	[% IF oligo_index >= max_wells %]
+	    <a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=1&exp=[% selection.id %]"><span class="col-md-offset-6 text-right">Next Well - 1 <i class="glyphicon glyphicon-arrow-right "></i></span></a>
+	[% ELSE %]
+	    <a href="/user/point_mutation_allele/?miseq=[% miseq %]&oligoIndex=[% next %]&exp=[% selection.id %]"><span class="col-md-offset-6 text-right">Next Well - [% next %] <i class="glyphicon glyphicon-arrow-right"></i></span></a>
+	[% END %]
+        </div>
+        &nbsp;
+    </div>
 </div>
 
 <div class="well">
