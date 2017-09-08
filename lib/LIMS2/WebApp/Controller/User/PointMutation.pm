@@ -151,9 +151,8 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         $state = 'Plated';
     };
         my $well_limit = {
-	    0 => 96,
+            0 => 96, 
             1 => 384,
-
         };
 
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
