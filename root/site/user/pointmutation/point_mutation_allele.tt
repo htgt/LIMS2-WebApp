@@ -123,7 +123,6 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-
 </style>
 
 <div class="page-header row">
