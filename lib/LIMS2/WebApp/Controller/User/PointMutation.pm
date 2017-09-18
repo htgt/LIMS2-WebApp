@@ -283,7 +283,6 @@ sub generate_summary_data {
             }
 
             my $quant = find_file($base, $index, $exp);
-
             if ($quant) {
                 my $fh;
                 open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
@@ -297,6 +296,7 @@ sub generate_summary_data {
 
                 push(@found_exps, $exp); #In case of missing data
             }
+
             $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
         }
         #Genes, Barcodes and Status are randomly generated at the moment
