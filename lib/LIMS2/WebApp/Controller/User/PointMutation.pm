@@ -167,7 +167,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
-    my @miseqs = $c->model('Golgi')->schema->resultset('MiseqProject')->search( { },
+    my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqProject')->search( { },
         { order_by => { -desc => 'creation_date' },
           rows => 10 }
     );
