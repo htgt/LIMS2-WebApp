@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.469';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.471';
 }
 ## use critic
 
