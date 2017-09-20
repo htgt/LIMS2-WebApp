@@ -152,7 +152,7 @@ sub all_tests  : Test(28) {
     $mech->get_ok( '/public_reports/sponsor_report/double_targeted' , 'Re-requested Mouse double-targeted front page after loading pipeline test data');
 
     $mech->content_like(qr/Genes">2</, 'Checked content Genes');
-    $mech->content_like(qr/Vectors Constructed">1</, 'Checked content Vectors Constructed');
+    $mech->content_like(qr/Active Genes">1</, 'Checked content Active Genes');
     $mech->content_like(qr/Vectors Neo and Bsd">1</, 'Checked content Vectors Neo and Bsd');
     $mech->content_like(qr/Vectors Neo">1</, 'Checked content Vectors Neo');
     $mech->content_like(qr/Vectors Bsd">1</, 'Checked content Vectors Bsd');
@@ -172,8 +172,8 @@ sub all_tests  : Test(28) {
     $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Genes');
 
     # Mouse double-targeted - Vectors
-    $mech->get_ok( '/public_reports/sponsor_report/double_targeted/Syboss/Vectors Constructed' , 'Pipeline drilldowns: Mouse double-targeted - Vectors Constructed');
-    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Vectors Constructed');
+    $mech->get_ok( '/public_reports/sponsor_report/double_targeted/Syboss/Active Genes' , 'Pipeline drilldowns: Mouse double-targeted - Active Genes');
+    $mech->content_like(qr/>MGI:1914632</, 'Checked content drilldown Active Genes');
 
     # Mouse double-targeted - Vectors Neo and Bsd
     $mech->get_ok( '/public_reports/sponsor_report/double_targeted/Syboss/Vectors Neo and Bsd' , 'Pipeline drilldowns: Mouse double-targeted - Vectors Neo and Bsd');
@@ -232,7 +232,7 @@ sub all_tests  : Test(28) {
     $mech->get_ok( '/public_reports/sponsor_report/single_targeted' , 'Requested Mouse single-targeted front page after loading pipeline test data');
 
     $mech->content_like(qr/Genes">1</, 'Checked content Genes');
-    $mech->content_like(qr/Vectors Constructed">1</, 'Checked content Vectors Constructed');
+    $mech->content_like(qr/Active Genes">1</, 'Checked content Active Genes');
     # $mech->content_like(qr/Valid DNA">1</, 'Checked content Valid DNA');
     $mech->content_like(qr/Genes Electroporated">1</, 'Checked content Genes Electroporated');
     $mech->content_like(qr/Targeted Genes">1</, 'Checked content Targeted Genes');
@@ -243,8 +243,8 @@ sub all_tests  : Test(28) {
     $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Genes');
 
     # Mouse single-targeted - Vectors
-    $mech->get_ok( '/public_reports/sponsor_report/single_targeted/Cre Knockin/Vectors Constructed' , 'Pipeline drilldowns: Mouse single-targeted - Vectors Constructed');
-    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Vectors Constructed');
+    $mech->get_ok( '/public_reports/sponsor_report/single_targeted/Cre Knockin/Active Genes' , 'Pipeline drilldowns: Mouse single-targeted - Active Genes');
+    $mech->content_like(qr/>MGI:1095419</, 'Checked content drilldown Active Genes');
 
     # Mouse single-targeted - Valid DNA
     # $mech->get_ok( '/public_reports/sponsor_report/single_targeted/Cre Knockin/Valid DNA' , 'Pipeline drilldowns: Mouse single-targeted - Valid DNA');
@@ -274,4 +274,5 @@ Lars G. Erlandsen
 1;
 
 __END__
+
 

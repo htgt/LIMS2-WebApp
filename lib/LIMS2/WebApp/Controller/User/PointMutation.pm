@@ -144,8 +144,8 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     
     #Search plates by gene
     
+    my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15,  order_by => {-desc => 'creation_date'} });
 
-    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15,  order_by => {-desc => 'id'} });
     $c->stash(
         miseqs => \@miseqs,
     );

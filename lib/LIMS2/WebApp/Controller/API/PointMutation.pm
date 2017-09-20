@@ -209,6 +209,13 @@ sub crispr_seq {
     foreach my $exp (@lines) {
         if (@$exp[0] eq $req) {
             my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
+            if ($index == -1) {
+                try {
+                    $index = index(@$exp[4], revcom(@$exp[2])->seq);
+                } catch {
+                    $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+                };
+            }
             $res->{crispr} = @$exp[2];
             $res->{position} = $index;
         }
