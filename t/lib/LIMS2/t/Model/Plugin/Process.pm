@@ -256,12 +256,6 @@ sub two_way_gateway_process : Test(22) {
 
     throws_ok {
         my $process
-            = model->create_process( $process_data_2w_gateway->{require_cassette_or_backbone} );
-    }
-    qr/cassette_or_backbone, is missing/;
-
-    throws_ok {
-        my $process
             = model->create_process( $process_data_2w_gateway->{either_cassette_or_backbone} );
     }
     qr/2w_gateway process can have either a cassette or backbone, not both/;
@@ -320,11 +314,6 @@ sub legacy_gateway_process : Test(22) {
 
         lives_ok { model->delete_process( { id => $process->id } ) } 'can delete process';
     }
-
-    throws_ok {
-        model->create_process( $process_data_legacy_gateway->{require_cassette_or_backbone} );
-    }
-    qr/cassette_or_backbone, is missing/;
 
     throws_ok {
         model->create_process( $process_data_legacy_gateway->{invalid_input_well} );
