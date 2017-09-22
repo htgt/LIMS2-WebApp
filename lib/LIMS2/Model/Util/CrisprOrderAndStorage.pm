@@ -320,7 +320,7 @@ sub storage_overflow {
             }
         }
 
-        my $crispr_remain = join ",", @crispr_ids[$available_locs .. scalar @crispr_ids];
+        $crispr_remain = join ",", @crispr_ids[$available_locs .. scalar @crispr_ids];
         return "Remaining unstored crispr Ids: $crispr_remain . Navigate to a new box!";
 
     } else {
