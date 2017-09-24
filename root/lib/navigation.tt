@@ -149,6 +149,13 @@
             <li>
               <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
+            <li class="divider"></li>
+            <li>
+              <a href="[% c.uri_for( '/user/crispr_browse_and_store' ) %]">Browse and Store</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/crispr_locate_in_storage' ) %]">Locate Crisprs</a>
+            </li>
           </ul>
         </li>
 
