@@ -102,7 +102,6 @@ sub all_tests  : Test(30)
 
 	ok $res->is_success, '...response is_success';
 	is $res->base->path, '/user/update_colony_picks_step_1', '...stays on the same page';
-	like $res->content, qr/id_or_name_or_barcode, is missing/, '... no data specified';
     }
 
     {   

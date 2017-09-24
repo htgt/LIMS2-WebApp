@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::ReportForSponsors;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.461';
+    $LIMS2::Model::Util::ReportForSponsors::VERSION = '0.472';
 }
 ## use critic
 
@@ -36,7 +36,7 @@ extends qw( LIMS2::ReportGenerator );
 # 'Crispr Electroporations',
 Readonly my @ST_REPORT_CATEGORIES => (
     'Genes',
-    'Vectors Constructed',
+    'Active Genes',
     # 'Valid DNA',
     'Genes Electroporated',
     'Targeted Genes',
@@ -44,7 +44,7 @@ Readonly my @ST_REPORT_CATEGORIES => (
 
 Readonly my @DT_REPORT_CATEGORIES => (
     'Genes',
-    'Vectors Constructed',
+    'Active Genes',
     'Vectors Neo and Bsd',
     'Vectors Neo',
     'Vectors Bsd',
@@ -202,7 +202,7 @@ sub _build_column_data {
     if ( $count_tgs > 0 ) {
       $count_vectors = $self->vectors( $sponsor_id, 'count' );
     }
-    $sponsor_data->{'Vectors Constructed'}{$sponsor_id} = $count_vectors;
+    $sponsor_data->{'Active Genes'}{$sponsor_id} = $count_vectors;
 
     if ( $self->targeting_type eq 'double_targeted' ) {
 
@@ -545,8 +545,8 @@ sub generate_sub_report {
                                             'info',
                                         ],
         },
-        'Vectors Constructed'       => {
-            'display_stage'         => 'Vectors Constructed',
+        'Active Genes'       => {
+            'display_stage'         => 'Active Genes',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
@@ -605,7 +605,7 @@ sub generate_sub_report {
                                             "PCR-passing design oligos",
                                             # 'final vector clones',
                                             # 'QC-verified vectors',
-                                            'vectors constructed',
+                                            'active genes',
                                             'electroporations',
                                             'colonies picked',
                                             'targeted clones',
@@ -650,8 +650,8 @@ sub generate_sub_report {
                                             'effort concluded',
                                         ],
         },
-        'Vectors Constructed'       => {
-            'display_stage'         => 'Vectors Constructed',
+        'Active Genes'       => {
+            'display_stage'         => 'Active Genes',
             'columns'               => [ 'design_gene_id', 'design_gene_symbol', 'cassette_name', 'cassette_promoter', 'cassette_resistance', 'plate_name', 'well_name' ],
             'display_columns'       => [ 'gene id', 'gene', 'cassette', 'promoter', 'resistance', 'plate', 'well' ],
         },
@@ -776,7 +776,7 @@ sub _build_sub_report_data {
              'func'      => \&genes,
              'params'    => [ $self, $sponsor_id, $query_type ],
          },
-        'Vectors Constructed'               => {
+        'Active Genes'               => {
             'func'      => \&vectors,
             'params'    => [ $self, $sponsor_id, $query_type ],
         },
@@ -1341,6 +1341,19 @@ sub genes {
             $b->{ 'crispr_wells' }             <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }            cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
+
+    my @container;
+    my @pipeline_ii_sponsors = @{$self->sponsor_genes_instance->pipeline_ii_sponsors};
+
+    if ( grep {$_ eq $sponsor_id} @pipeline_ii_sponsors ) {
+       foreach my $elem (@sorted_genes_for_display) {
+           if ($elem->{accepted_crispr_vector} == 0) {
+              push @container, $elem;
+           }
+       }
+       return \@container;
+    }
+
     return \@sorted_genes_for_display;
 }
 ## use critic

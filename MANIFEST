@@ -92,6 +92,7 @@ lib/LIMS2/Model/Schema/Result/CrisprPlateAppendsType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimer.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimerType.pm
 lib/LIMS2/Model/Schema/Result/CrisprPrimersLoci.pm
+lib/LIMS2/Model/Schema/Result/CrisprStorage.pm
 lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
@@ -231,6 +232,7 @@ lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
 lib/LIMS2/Model/Util/CrisprESQC.pm
 lib/LIMS2/Model/Util/CrisprESQCView.pm
+lib/LIMS2/Model/Util/CrisprOrderAndStorage.pm
 lib/LIMS2/Model/Util/Crisprs.pm
 lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
@@ -342,6 +344,8 @@ lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
 lib/LIMS2/WebApp/Controller/User/CreateCrisprPlate.pm
 lib/LIMS2/WebApp/Controller/User/CreateDesign.pm
 lib/LIMS2/WebApp/Controller/User/CreateDesignPlate.pm
+lib/LIMS2/WebApp/Controller/User/CrisprBrowseAndStore.pm
+lib/LIMS2/WebApp/Controller/User/CrisprLocateInStorage.pm
 lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
@@ -378,6 +382,7 @@ root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
 root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
+root/lib/mini_storage_box.tt
 root/lib/miseq_creation_help.tt
 root/lib/miseq_overview_table.tt
 root/lib/miseq_quadrant_table.tt
@@ -389,6 +394,7 @@ root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
 root/lib/sequencing_project_creation_help.tt
 root/lib/sequencing_project_multiple_primer_help.tt
+root/lib/storage_box.tt
 root/lib/template_creation_help.tt
 root/lib/well_specific_fields.tt
 root/lib/wrapper.tt
@@ -451,6 +457,8 @@ root/site/user/createdesign/redirect_wge.tt
 root/site/user/createdesign/view_design_attempt.tt
 root/site/user/createdesign/wge_design_importer.tt
 root/site/user/createdesignplate/create_design_plate.tt
+root/site/user/crisprbrowseandstore/crispr_browse_and_store.tt
+root/site/user/crisprlocateinstorage/crispr_locate_in_storage.tt
 root/site/user/crisprqc/crispr_es_qc_run.tt
 root/site/user/crisprqc/crispr_es_qc_runs.tt
 root/site/user/crisprqc/gene_crispr_es_qc.tt
@@ -2428,7 +2436,10 @@ root/static/jasmine/jasmine-html.js
 root/static/jasmine/jasmine.css
 root/static/jasmine/jasmine.js
 root/static/jasmine/jasmine_favicon.png
+root/static/jquery/css/images/controls.png
 root/static/jquery/css/jquery.bootgrid.min.css
+root/static/jquery/css/jquery.bxslider.css
+root/static/jquery/css/jquery.dataTables.min.css
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_18_b81900_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png
 root/static/jquery/css/ui-lightness/images/ui-bg_flat_10_000000_40x100.png
@@ -2448,6 +2459,8 @@ root/static/jquery/js/d3-tip.js
 root/static/jquery/js/d3.min.js
 root/static/jquery/js/jquery-ui-1.12.0.custom.min.js
 root/static/jquery/js/jquery.bootgrid.min.js
+root/static/jquery/js/jquery.bxslider.min.js
+root/static/jquery/js/jquery.dataTables.min.js
 root/static/js/angularplasmid.complete.min.js
 root/static/js/cookie.jquery.json
 root/static/js/crispr-es-qc-well-update.js
@@ -2690,6 +2703,17 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/ProcessOutputW
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Barcodes/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Design.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/DesignOligo.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/DesignOligoLocus.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/GeneDesign.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Plate.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Process.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/ProcessDesign.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/ProcessOutputWell.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/UserRole.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/BrowseDesigns/Well.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/Crispr.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/CrisprLocus.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate/CrisprOffTargetSummaries.csv
@@ -2708,6 +2732,11 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/Proce
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore/Crispr.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage/Crispr.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage/CrisprStorage.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Crisprs/Crispr.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Crisprs/CrisprOffTargetSummaries.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/Crisprs/CrisprPlateAppends.csv
@@ -3052,6 +3081,8 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateCrisprPlate.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesignPlate.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CrisprBrowseAndStore.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CrisprLocateInStorage.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Crisprs.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_DesignTargets.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_EditWells.t
@@ -3295,6 +3326,8 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesignPlate.pm
+t/lib/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore.pm
+t/lib/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Crisprs.pm
 t/lib/LIMS2/t/WebApp/Controller/User/DesignTargets.pm
 t/lib/LIMS2/t/WebApp/Controller/User/EditWells.pm

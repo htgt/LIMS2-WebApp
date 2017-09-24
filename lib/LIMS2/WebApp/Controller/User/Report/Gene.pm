@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Report::Gene;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.461';
+    $LIMS2::WebApp::Controller::User::Report::Gene::VERSION = '0.472';
 }
 ## use critic
 
@@ -206,15 +206,24 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     # Get experiments linked to gene
     my $experiments = [ map { $_->as_hash } map { $_->experiments } @projects ];
 
+    my @all_crispr_vecs;
+    if (defined $sorted_wells{crispr_vector}) {
+        foreach my $vec (@{$sorted_wells{crispr_vector}}) {
+            push @all_crispr_vecs, $vec->{crispr_id};
+        }
+    }
+    my $crispr_ids_str = join ",", @all_crispr_vecs;
+
     $c->stash(
-        'info'         => $gene_info,
-        'designs'      => \%designs_hash,
-        'wells'        => \%wells_hash,
-        'sorted_wells' => \%sorted_wells,
-        'timeline'     => \@timeline,
-        'sponsor'      => $sponsor,
-        'crispr_qc'    => $crispr_qc,
-        'experiments'  => $experiments,
+        'info'                 => $gene_info,
+        'designs'              => \%designs_hash,
+        'wells'                => \%wells_hash,
+        'sorted_wells'         => \%sorted_wells,
+        'all_crispr_vec_ids'   => $crispr_ids_str,
+        'timeline'             => \@timeline,
+        'sponsor'              => $sponsor,
+        'crispr_qc'            => $crispr_qc,
+        'experiments'          => $experiments,
     );
 
     return;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.461';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.472';
 }
 ## use critic
 
@@ -104,14 +104,14 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         update_status($self, $c, $miseq, $index, $updated_status);
     }
 
-    my $reg = "S" . $index . "_exp[A-Z]+";
+    my $reg = "S" . $index . "_exp[A-Za-z0-9_]+";
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
     my @files = find_children($base, $reg);
     my @exps;
 
     my $well_name;
     foreach my $file (@files) {
-        my @matches = ($file =~ /S\d+_exp([A-Z]+)/g);
+        my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g);
         foreach my $match (@matches) {
             my $class = find_classes($c, $miseq, $index, $match);
             my $rs = {
@@ -173,7 +173,10 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
-    my @miseqs = sort { $b->{date} cmp $a->{date} } map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqProject')->search( { }, { rows => 15 } );
+    my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqProject')->search( { },
+        { order_by => { -desc => 'creation_date' },
+          rows => 10 }
+    );
     $c->stash(
         miseqs => \@miseqs,
     );
@@ -235,13 +238,13 @@ sub generate_summary_data {
     my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
 
     for (my $i = 1; $i < 385; $i++) {
-        my $reg = "S" . $i . "_exp[A-Z0-9]+";
+        my $reg = "S" . $i . "_exp[A-Za-z0-9_]+";
         my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
         my @files = find_children($base, $reg);
         my @exps;
         foreach my $file (@files) {
             #Get all experiments on this well
-            my @matches = ($file =~ /S$i\_exp([A-Z0-9]+)/g);
+            my @matches = ($file =~ /S$i\_exp([A-Za-z0-9_]+)/g);
             foreach my $match (@matches) {
                 push (@exps,$match);
             }
@@ -401,7 +404,7 @@ sub check_class {
     my $result;
 
     foreach my $key (keys %$params) {
-        my @matches = ($key =~ /^class([A-Z]+)$/g);
+        my @matches = ($key =~ /^class([A-Za-z0-9_]+)$/g);
         if (@matches) {
             $result = $matches[0];
         }

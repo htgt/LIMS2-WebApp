@@ -96,7 +96,8 @@ crispr_validation,
 design_attempts,
 qc_template_well_crispr_primers,
 qc_template_well_genotyping_primers,
-well_het_status
+well_het_status,
+crispr_storage
  CASCADE;
 
 

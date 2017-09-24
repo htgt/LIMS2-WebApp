@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.461';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.472';
 }
 ## use critic
 
@@ -986,6 +986,7 @@ sub unique_crispr_data_to_gff {
     my $params = shift;
 
     my @crispr_data_gff;
+    my $generator = LIMS2::Model::Util::GFFGenerator->new();
 
     push @crispr_data_gff, "##gff-version 3";
     push @crispr_data_gff, '##sequence-region lims2-region '
@@ -1039,7 +1040,7 @@ sub unique_crispr_data_to_gff {
 
             foreach my $side ( qw(left right) ){
                 my $crispr = $crispr_display_info->{$side};
-                push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_id);
+                push @crispr_data_gff, $generator->_make_crispr_and_pam_cds($crispr, \%crispr_format_hash, $crispr_id);
             }
 
         }
@@ -1070,7 +1071,7 @@ sub unique_crispr_data_to_gff {
             push @crispr_data_gff, $crispr_parent_datum;
 
             $crispr->{colour} = crispr_colour('single');
-            push @crispr_data_gff, _make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$this_crispr_id);
+            push @crispr_data_gff, $generator->_make_crispr_and_pam_cds($crispr, \%crispr_format_hash, 'C_'.$this_crispr_id);
         }
 
     return \@crispr_data_gff;

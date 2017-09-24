@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.461';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.472';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
+use Try::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -147,6 +148,13 @@ sub crispr_seq {
     foreach my $exp (@lines) {
         if (@$exp[0] eq $req) {
             my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
+            if ($index == -1) {
+                try {
+                    $index = index(@$exp[4], revcom(@$exp[2])->seq);
+                } catch {
+                    $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+                };
+            }
             $res->{crispr} = @$exp[2];
             $res->{position} = $index;
         }

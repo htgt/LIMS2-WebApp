@@ -13,6 +13,7 @@
       }
       div#main {
         padding-top: 20px;
+        padding-bottom: 30px;
       }
     </style>
     <!-- jQuery UI stylesheets -->
