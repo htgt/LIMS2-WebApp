@@ -76,8 +76,20 @@ $DB::single=1;
     my $well_name = convert_index_to_well_name($index);
 
     my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
-    my $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
     my $miseq_plate_id = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->id;
+    
+    my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
+    my $regex = "S" . $index . "_exp" . $matching_criteria;
+    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
+    my @files = find_children($base, $regex); #Structure - S(Index)_exp(Experiment)
+
+
+    my $well_id;
+    try {
+        $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
+    } catch {
+        $c->log->debug("No well found.");
+    };
     if ($updated_status) {
         my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_plate_id, name => $exp_sel })->as_hash;
         update_status($self, $c, $miseq_exp->{id}, $well_id, $updated_status);
@@ -85,10 +97,6 @@ $DB::single=1;
 
     update_tracking($self, $c, $miseq_plate_id, $well_id, $plate->{id});
 
-    my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
-    my $regex = "S" . $index . "_exp" . $matching_criteria;
-    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-    my @files = find_children($base, $regex); #Structure - S(Index)_exp(Experiment)
 
     #Get all well experiment details relating to well
     my @exps;
@@ -135,6 +143,10 @@ $DB::single=1;
     );
 
     return;
+}
+
+sub update_status {
+    my ( $self, $c ) = @_;
 }
 
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
