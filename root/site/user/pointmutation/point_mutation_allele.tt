@@ -184,7 +184,7 @@ input:checked + .slider:before {
 </div>
 <form action="#" method="POST" id="formSubmit"></form>
 
-[% IF experiments.size <= 1  %]
+[% IF selection %]
     <div class="row">
         <div class="col-md-4">
             <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
@@ -197,8 +197,12 @@ input:checked + .slider:before {
 [% END %]
 
 [% FOREACH experiment IN experiments %]
-    <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
-    <div class="clearfix row">
+    [% IF experiment.gene %]
+        <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
+    [% ELSE %]
+        <h2>Experiment: [% experiment.id %]</h2>
+    [% END %]
+    <div id="clearfix[% experiment.id %]" class="clearfix row">
         <div class="col-md-2">
             <label class="lb-md">Classification: </label>
         </div>
@@ -271,7 +275,7 @@ $(document).ready(function() {
     var expSel = '[% selection %]';
     if (expSel) {
         document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
-        displayIndels(document.getElementById('[% selection.id %]'));
+        displayIndels(document.getElementById(expSel));
         $('.allele').find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     } else {
         document.title = '[% oligo_index %]:All - [% miseq %]';
@@ -312,7 +316,6 @@ function toggleTable(table) {
 
 function getImages(letter, chart, div) {
     var index = '[% oligo_index %]';
-    
     $.ajax({
         url: '[% c.uri_for('/api/point_mutation_img/') %]',
         type: "GET",
@@ -331,8 +334,9 @@ function getImages(letter, chart, div) {
             }
         },
         error: function() {
-            console.log('Failure to receive indel size distribution graph for ' + letter);
+            console.log('Failure to retrieve indel size distribution graph for ' + letter);
             $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
+            $('#clearfix' + letter).hide();
         }
     });
 }

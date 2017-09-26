@@ -42,6 +42,12 @@ sub point_mutation_image_GET {
 
     my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
 
+    unless ($graph_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "File name: " . $file_name . " can not be found.");
+        return;
+    }
+
     open my $fh, '<', $graph_dir or die "$!";
     my $raw_string = do{ local $/ = undef; <$fh>; };
     close $fh;
@@ -71,6 +77,13 @@ sub point_mutation_summary_GET {
     my $limit = $c->request->param( 'limit' );
 
     my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
+
+    unless ($sum_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "File name: " . $file_name . " can not be found.");
+        return;
+    }
+
     my $fh;
     open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
     my @lines = read_file_lines($fh);
@@ -227,7 +240,7 @@ sub crispr_seq {
 sub find_file {
     my ($miseq, $index, $exp, $file) = @_;
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
-
+$DB::single=1;
     my $charts = [];
     my $wanted = sub { _wanted($charts, $file) };
 
