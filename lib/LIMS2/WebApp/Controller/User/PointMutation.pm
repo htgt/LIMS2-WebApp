@@ -12,7 +12,7 @@ use File::Find;
 use Text::CSV;
 use Try::Tiny;
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file );
+use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -81,23 +81,23 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
-    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
 
     my @exps;
     my $well_id;
     try {
-        $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
-        my $well_details = {
-            miseq   => $miseq_plate_id,
-            well    => $well_id,
-        };
-        @exps = get_well_exp_graphs($c, $base, $regex, $well_details);
+        $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
     } catch {
         $c->log->debug("No well found.");
-        @exps = get_well_exp_graphs($c, $base, $regex);
+        $c->model('Golgi')->create_miseq_well($plate->{id}, $well_name);
     };
-    
+
     update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
+    my $well_details = {
+        miseq   => $miseq_plate_id,
+        well    => $well_id,
+    };
+    @exps = get_well_exp_graphs($c, $miseq, $regex, $well_details);
+
     
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
@@ -216,14 +216,6 @@ sub get_genes {
 }
 
 
-sub find_children {
-    my ( $base, $reg ) = @_;
-    my $fh;
-    opendir ($fh, $base);
-    my @files = grep {/$reg/} readdir $fh;
-    closedir $fh;
-    return @files;
-}
 
 sub update_tracking {
     my ($self, $c, $miseq, $plate_id, $well_id) = @_;
@@ -301,10 +293,10 @@ sub get_efficiencies {
 }
 
 sub get_well_exp_graphs {
-    my ($c, $base, $regex, $well_details) = @_;
+    my ($c, $miseq, $regex, $well_details) = @_;
 
     my @exps;
-    my @files = find_children($base, $regex); #Structure - S(Index)_exp(Experiment)
+    my @files = find_child_dir($miseq, $regex); #Structure - S(Index)_exp(Experiment)
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g); #Capture experiment name i.e. (GPR35_1)
         foreach my $match (@matches) {

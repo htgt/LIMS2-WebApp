@@ -161,13 +161,19 @@ sub update_miseq_experiment {
     return;
 }
 
+sub pspec_create_miseq_well {
+    return {
+        plate_id    => { validate => 'existing_plate_id'},
+        well_name   => { validate => 'well_name' },
+    };
+}
 
-sub upload_miseq_plate {
-    my ($self, $c, $params) = @_;
+sub create_miseq_well {
+    my ($self, $params) = @_;
 
-    my $miseq = miseq_plate_from_json($self, $c, $params);
+    my $validated_params = $self->check_params($params, pspec_create_miseq_well);
 
-    return $miseq;
+    return;
 }
 
 1;

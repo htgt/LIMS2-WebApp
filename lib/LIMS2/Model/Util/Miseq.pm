@@ -12,6 +12,7 @@ use Sub::Exporter -setup => {
               generate_summary_data
               find_folder
               find_file
+              find_child_dir
               read_file_lines
           )
     ]
@@ -34,7 +35,7 @@ sub pspec_miseq_plate_from_json {
 }
 
 sub miseq_plate_from_json {
-    my ( $self, $c, $params ) = @_;
+    my ($self, $c, $params) = @_;
 
     my $validated_params = $self->check_params($params, pspec_miseq_plate_from_json);
 
@@ -201,8 +202,7 @@ sub generate_summary_data {
         my $well_name = $well_conversion[$index - 1];
 
         my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
-        my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-        my @files = find_children($base, $regex);
+        my @files = find_child_dir($miseq, $regex);
         my @exps;
         foreach my $file (@files) {
             #Get all experiments on this well
@@ -222,7 +222,7 @@ sub generate_summary_data {
                 push (@selection, $gene);
             }
 
-            my $quant = find_file($base, $index, $exp);
+            my $quant = find_file($miseq, $index, $exp, "Quantification_of_editing_frequency.txt");
             if ($quant) {
                 my $fh;
                 open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
@@ -264,7 +264,7 @@ $DB::single=1;
 }
 
 sub find_folder {
-    my ( $path, $fh ) = @_;
+    my ($path, $fh) = @_;
 
     my $res;
     while ( my $entry = readdir $fh ) {
@@ -276,6 +276,17 @@ sub find_folder {
     }
 
     return $res;
+}
+
+sub find_child_dir {
+    my ($miseq, $reg) = @_;
+    my $fh;
+
+    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
+    opendir ($fh, $base);
+    my @files = grep {/$reg/} readdir $fh;
+    closedir $fh;
+    return @files;
 }
 
 sub read_file_lines {

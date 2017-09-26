@@ -153,7 +153,7 @@ sub miseq_plate_POST {
         $data->{data}->{$fp}->{wells} = flatten_wells($fp, $data->{data});
     }
 
-    my $miseq = $c->model('Golgi')->upload_miseq_plate($c, $data);
+    my $miseq = miseq_plate_from_json($c, $data);
     
     return $self->status_created(
         $c,
@@ -193,7 +193,6 @@ $DB::single=1;
             },
             {
                 order_by  => { -desc => 'id' }
-
             }
         );
     }
