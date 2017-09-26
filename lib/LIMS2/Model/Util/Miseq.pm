@@ -9,6 +9,10 @@ use Sub::Exporter -setup => {
               miseq_plate_from_json
               wells_generator
               convert_index_to_well_name
+              generate_summary_data
+              find_folder
+              find_file
+              read_file_lines
           )
     ]
 };
@@ -16,6 +20,7 @@ use Sub::Exporter -setup => {
 use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
 use JSON;
+use File::Find;
 
 sub pspec_miseq_plate_from_json {
     return {
@@ -166,7 +171,137 @@ sub well_builder {
     return @well_names;
 }
 
+sub generate_summary_data {
+    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
 
+    my $wells;
+    my @well_conversion = wells_generator();
+
+    my $blank = {
+        class           => 'Not Called',
+        status          => 'Plated',
+        frameshifted    => 0,
+    };
+    my $exp_ref;
+    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+    foreach my $miseq_exp (@miseq_exp_rs) {
+        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        foreach my $well (@well_exps) {
+            $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
+                class       => $well->{classification} ? $well->{classification} : $blank->{class},
+                status      => $well->{status} ? $well->{status} : $blank->{status},
+                frameshift  => $well->{frameshifted} ? $well->{frameshifted} : $blank->{frameshifted},
+            };
+        }
+    }
+
+    for (my $index = 1; $index < 385; $index++) { 
+        #Could use wells but then we'd lose the ability to drag and drop files into miseq.
+        #Staying till standalone miseq work begins
+        my $well_name = $well_conversion[$index - 1];
+
+        my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
+        my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
+        my @files = find_children($base, $regex);
+        my @exps;
+        foreach my $file (@files) {
+            #Get all experiments on this well
+            my @matches = ($file =~ /S$index\_exp([A-Za-z0-9_]+)/g);
+            foreach my $match (@matches) {
+                push (@exps, $match);
+            }
+        }
+
+        @exps = sort @exps;
+        my @selection;
+        my $percentages;
+        my @found_exps;
+        my $details;
+        foreach my $exp (@exps) {
+            foreach my $gene ($overview->{$exp}) {
+                push (@selection, $gene);
+            }
+
+            my $quant = find_file($base, $index, $exp);
+            if ($quant) {
+                my $fh;
+                open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
+                my @lines = read_file_lines($fh);
+                close $fh;
+
+                $percentages->{$exp}->{nhej} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
+                $percentages->{$exp}->{wt} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
+                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
+                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
+
+                push(@found_exps, $exp); #In case of missing data
+            }
+
+            $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
+        }
+        #Genes, Barcodes and Status are randomly generated at the moment
+        $wells->{sprintf("%02d", $index)} = {
+            gene        => \@selection,
+            experiments => \@found_exps,
+            #barcode     => [$ug->create_str(), $ug->create_str()],
+            percentages => $percentages,
+            details     => $details,
+        };
+    }
+    return $wells;
+}
+
+sub find_file {
+    my ($miseq, $index, $exp, $file) = @_;
+    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
+$DB::single=1;
+    my $charts = [];
+    my $wanted = sub { _wanted($charts, $file) };
+
+    find($wanted, $base);
+
+    return @$charts[0];
+}
+
+sub find_folder {
+    my ( $path, $fh ) = @_;
+
+    my $res;
+    while ( my $entry = readdir $fh ) {
+        next unless $path . '/' . $entry;
+        next if $entry eq '.' or $entry eq '..';
+        my @matches = ($entry =~ /CRISPResso_on\S*_(S\S*$)/g); #Max 1
+
+        $res = $matches[0];
+    }
+
+    return $res;
+}
+
+sub read_file_lines {
+    my ($fh, $plain) = @_;
+
+    my @data;
+    while (my $row = <$fh>) {
+        chomp $row;
+        if ($plain) {
+            push(@data, $row);
+        } else {
+            push(@data, join(',', split(/\t/,$row)));
+        }
+    }
+
+    return @data;
+}
+
+sub _wanted {
+    return if ! -e;
+    my ($charts, $file_name) = @_;
+
+    push( @$charts, $File::Find::name ) if $File::Find::name =~ /$file_name/;
+
+    return;
+}
 
 1;
 

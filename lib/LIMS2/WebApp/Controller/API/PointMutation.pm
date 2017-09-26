@@ -3,7 +3,6 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 use JSON;
-use File::Find;
 use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
@@ -11,7 +10,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 
-use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json wells_generator );
+use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json wells_generator find_file find_folder read_file_lines );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -80,7 +79,7 @@ sub point_mutation_summary_GET {
 
     unless ($sum_dir) {
         $c->response->status( 404 );
-        $c->response->body( "File name: " . $file_name . " can not be found.");
+        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
         return;
     }
 
@@ -188,9 +187,13 @@ sub miseq_exp_parent_GET {
     my @results;
 $DB::single=1;
     try {
-        @results = sort { $b->{date} cmp $a->{date} } map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+        @results = map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
+            },
+            {
+                order_by  => { -desc => 'id' }
+
             }
         );
     }
@@ -235,45 +238,6 @@ sub crispr_seq {
     }
 
     return $res;
-}
-
-sub find_file {
-    my ($miseq, $index, $exp, $file) = @_;
-    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
-$DB::single=1;
-    my $charts = [];
-    my $wanted = sub { _wanted($charts, $file) };
-
-    find($wanted, $base);
-
-    return @$charts[0];
-}
-
-sub _wanted {
-    return if ! -e;
-    my ($charts, $file_name) = @_;
-
-    push( @$charts, $File::Find::name ) if $File::Find::name =~ /$file_name/;
-
-    return;
-}
-
-sub read_file_lines {
-    my ($fh, $plain) = @_;
-
-    my @data;
-    my $count = 0;
-    while (my $row = <$fh>) {
-        chomp $row;
-        if ($plain) {
-            push(@data, $row);
-        } else {
-            push(@data, join(',', split(/\t/,$row)));
-        }
-        $count++;
-    }
-
-    return @data;
 }
 
 #Quads had to to be introduced in a way to preserve data in the view.

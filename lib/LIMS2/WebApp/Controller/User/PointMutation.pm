@@ -12,7 +12,7 @@ use File::Find;
 use Text::CSV;
 use Try::Tiny;
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name wells_generator );
+use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -68,7 +68,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
-$DB::single=1;
+    
     my $index = $c->req->param('oligoIndex');
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
@@ -84,9 +84,9 @@ $DB::single=1;
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
 
     my @exps;
+    my $well_id;
     try {
-        my $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
-        update_tracking($self, $c, $miseq_plate_id, $well_id, $plate->{id});
+        $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->well_id;
         my $well_details = {
             miseq   => $miseq_plate_id,
             well    => $well_id,
@@ -96,8 +96,9 @@ $DB::single=1;
         $c->log->debug("No well found.");
         @exps = get_well_exp_graphs($c, $base, $regex);
     };
-    #Get all well experiment details relating to well
-$DB::single=1;
+    
+    update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
+    
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
 
@@ -122,11 +123,13 @@ $DB::single=1;
 sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my ( $self, $c ) = @_;
 
-    #Handle project name searching
-    
-    #Search plates by gene
-    
-    my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search({ }, { rows => 15,  order_by => {-desc => 'id'} });
+    my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search(
+        { },
+        { 
+            rows => 15,
+            order_by => {-desc => 'id'}
+        }
+    );
 
     $c->stash(
         miseqs => \@miseqs,
@@ -213,87 +216,6 @@ sub get_genes {
 }
 
 
-sub generate_summary_data {
-    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
-
-    my $wells;
-    my @well_conversion = wells_generator();
-
-    my $blank = {
-        class           => 'Not Called',
-        status          => 'Plated',
-        frameshifted    => 0,
-    };
-    my $exp_ref;
-    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
-    foreach my $miseq_exp (@miseq_exp_rs) {
-        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-        foreach my $well (@well_exps) {
-            $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
-                class       => $well->{classification} ? $well->{classification} : $blank->{class},
-                status      => $well->{status} ? $well->{status} : $blank->{status},
-                frameshift  => $well->{frameshifted} ? $well->{frameshifted} : $blank->{frameshifted},
-            };
-        }
-    }
-
-    for (my $index = 1; $index < 385; $index++) { 
-        #Could use wells but then we'd lose the ability to drag and drop files into miseq.
-        #Staying till standalone miseq work begins
-        my $well_name = $well_conversion[$index - 1];
-
-        my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
-        my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
-        my @files = find_children($base, $regex);
-        my @exps;
-        foreach my $file (@files) {
-            #Get all experiments on this well
-            my @matches = ($file =~ /S$index\_exp([A-Za-z0-9_]+)/g);
-            foreach my $match (@matches) {
-                push (@exps, $match);
-            }
-        }
-
-        @exps = sort @exps;
-        my @selection;
-        my $percentages;
-        my @found_exps;
-        my $details;
-        foreach my $exp (@exps) {
-            foreach my $gene ($overview->{$exp}) {
-                push (@selection, $gene);
-            }
-
-            my $quant = find_file($base, $index, $exp);
-            if ($quant) {
-                my $fh;
-                open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
-                my @lines = read_file_lines($fh);
-                close $fh;
-
-                $percentages->{$exp}->{nhej} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
-                $percentages->{$exp}->{wt} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
-                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
-                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
-
-                push(@found_exps, $exp); #In case of missing data
-            }
-
-            $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
-        }
-        #Genes, Barcodes and Status are randomly generated at the moment
-        $wells->{sprintf("%02d", $index)} = {
-            gene        => \@selection,
-            experiments => \@found_exps,
-            #barcode     => [$ug->create_str(), $ug->create_str()],
-            percentages => $percentages,
-            details     => $details,
-        };
-    }
-    return $wells;
-}
-
-
 sub find_children {
     my ( $base, $reg ) = @_;
     my $fh;
@@ -303,59 +225,10 @@ sub find_children {
     return @files;
 }
 
-sub find_file {
-    my ( $base, $index, $exp ) = @_;
-
-    my $nhej_files = [];
-    my $wanted = sub { _wanted( $nhej_files, "Quantification_of_editing_frequency.txt" ) };
-    my $dir = $base . "S" . $index . "_exp" . $exp;
-    find($wanted, $dir);
-
-    return @$nhej_files[0];
-}
-
-sub find_folder {
-    my ( $path, $fh ) = @_;
-
-    my $res;
-    while ( my $entry = readdir $fh ) {
-        next unless $path . '/' . $entry;
-        next if $entry eq '.' or $entry eq '..';
-        my @matches = ($entry =~ /CRISPResso_on\S*_(S\S*$)/g); #Max 1
-
-        $res = $matches[0];
-    }
-
-    return $res;
-}
-
-sub _wanted {
-    return if ! -e;
-    my ( $nhej_files, $file_name ) = @_;
-
-    push(@$nhej_files, $File::Find::name) if $File::Find::name=~ /$file_name/;
-
-    return;
-}
-
-sub read_file_lines {
-    my ( $fh ) = @_;
-
-    my @data;
-    while (my $row = <$fh>) {
-        chomp $row;
-        push(@data, join(',', split(/\t/,$row)));
-    }
-
-    return @data;
-}
-
-
 sub update_tracking {
-    my ($self, $c, $miseq, $well_id, $plate_id) = @_;
+    my ($self, $c, $miseq, $plate_id, $well_id) = @_;
     my $params = $c->req->params;
     my $result;
-
     #Page contains a class changer for each exp attached to the well. If one is changed, it'll appear in the request e.g. classPTK2B
     foreach my $key (keys %$params) {
         my @matches = ($key =~ /^(?:(class|status))([A-Za-z0-9_]+)$/g);
@@ -363,16 +236,20 @@ sub update_tracking {
             $result = $matches[1];
         }
     }
-
+$DB::single=1;
     if ($result) {
         my $class = $c->req->param('class' . $result);
         my $status = $c->req->param('status' . $result);
+
+        unless ($well_id) {
+            
+        }
         
         my $exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq, name => $result })->as_hash;
         my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp->{id} });
         my $exp_params = {
-            well_id                 => $well_id,
-            miseq_exp_id            => $exp->{id},
+            well_id         => $well_id,
+            miseq_exp_id    => $exp->{id},
         };
         my $check;
         if ($class) {
