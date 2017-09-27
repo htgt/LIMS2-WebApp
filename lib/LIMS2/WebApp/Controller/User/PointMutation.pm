@@ -86,17 +86,13 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $well_id;
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
+        update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
     } catch {
         $c->log->debug("No well found.");
-        $c->model('Golgi')->create_miseq_well($plate->{id}, $well_name);
     };
 
-    update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
-    my $well_details = {
-        miseq   => $miseq_plate_id,
-        well    => $well_id,
-    };
-    @exps = get_well_exp_graphs($c, $miseq, $regex, $well_details);
+
+    @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
 
     
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
@@ -293,7 +289,7 @@ sub get_efficiencies {
 }
 
 sub get_well_exp_graphs {
-    my ($c, $miseq, $regex, $well_details) = @_;
+    my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
 
     my @exps;
     my @files = find_child_dir($miseq, $regex); #Structure - S(Index)_exp(Experiment)
@@ -306,15 +302,16 @@ sub get_well_exp_graphs {
                 id      => $match,
                 gene    => $exp_rs->{gene},
             };      
-            if ($well_details) {
-                $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $well_details->{miseq}, name => $match })->as_hash;
-                $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_details->{well}, miseq_exp_id => $exp_rs->{id} })->as_hash;
+            try {
+                $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_id, name => $match })->as_hash;
+                $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;
                 $rs->{status} = $well_exp->{status} ? $well_exp->{status} : 'Plated';
                 $rs->{class} = $well_exp->{classification} ? $well_exp->{classification} : 'Not Called';
-            } else {
+            } catch {
+                $c->log->debug("Miseq experiment / well not found. Exp: " . $match . " Well: " . $well_id);
                 $rs->{status} = 'Plated';
                 $rs->{class} = 'Not Called';
-            }
+            };
 
             push (@exps, $rs);
         }

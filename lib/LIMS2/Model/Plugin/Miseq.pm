@@ -161,44 +161,4 @@ sub update_miseq_experiment {
     return;
 }
 
-sub pspec_create_miseq_well {
-    return {
-        plate_id    => { validate => 'existing_plate_id'},
-        well_name   => { validate => 'well_name' },
-    };
-}
-
-sub create_miseq_well {
-    my ($self, $params) = @_;
-
-    my $validated_params = $self->check_params($params, pspec_create_miseq_well);
-
-    my $well_params = {
-
-    };
-
-    $self->create_well($well_params);
-
-    return;
-}
-
-=head 
-
-sub pspec_create_well {
-    return {
-        plate_name   => { validate => 'existing_plate_name' },
-        well_name    => { validate => 'well_name', rename => 'name' },
-        accepted     => { validate => 'boolean', optional => 1 },
-        process_data => { validate => 'hashref' },
-        created_by => {
-            validate    => 'existing_user',
-            post_filter => 'user_id_for',
-            rename      => 'created_by_id'
-        },
-        created_at => { validate => 'date_time', optional => 1, post_filter => 'parse_date_time' },
-    };
-}
-
-=cut
-
 1;
