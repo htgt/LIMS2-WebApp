@@ -1,6 +1,6 @@
 [%- META title = "Sponsor Report"; META tab_name = "Genes" %]
 
-<div style="width:100%">
+<div id="sponsorReport" style="width:100%">
 
 <span style="float:right">
 
@@ -10,7 +10,7 @@
   <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show single-targeted</b></a>
 [%- END %]
 
-[%- IF c.user %]
+[%- IF c.user && cache_report != 1  %]
     [%- IF cache_param == 'with_cache' %]
         <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param => 'without_cache'} ) %]">
@@ -161,8 +161,13 @@
   </tbody>
 </table>
 
-<br />
-<p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
+<br/>
+
+[%- IF c.user && cache_report == 1  %]
+    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Please <a href="[% c.http_uri_for('/login') %]">login</a> to click a number for more detailed information or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for information on accessing clones from the HTGT Group. </p>
+[%- ELSE %]
+    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
+[%- END %]
 <p>* <b>Pipeline I</b> corresponds to Eurofins sequencing.</p>
 <p>* <b>Pipeline II</b> corresponds to MiSeq sequencing.</p>
 </div>

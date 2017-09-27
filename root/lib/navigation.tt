@@ -48,7 +48,7 @@
   background-color: #3691c8;
 }
 
-@media (max-width: 767px) {
+@meda (max-width: 767px) {
     .navbar-collapse .nav > .divider-vertical {
         display: none;
      }
@@ -63,7 +63,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav navbar-nav">
 
-      [% IF c.user %]
+      [%- IF c.user && cache_report != 1 %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes<b class="caret"></b></a>
@@ -422,8 +422,8 @@
           </li>
         [% END %]
 
-        <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
+        <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]" name="user">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" name="user" value="user" id="user_dropdown">[% c.user.name %] <b class="caret"></b></a>
           <ul class="dropdown-menu">
             [% IF c.check_user_roles( 'admin' ) %]
             <li><a href="[% c.uri_for( '/admin' ) %]"><i class="glyphicon glyphicon-user"></i> User Admin</a></li>
@@ -431,9 +431,10 @@
             [% END %]
             <li><a href="[% c.uri_for('/user/change_password') %]"><i class="glyphicon glyphicon-pencil"></i> Change Password</a></li>
             <li class="divider"></li>
-            <li><a href="[% c.uri_for('/logout') %]"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
+            <li><a href="[% c.uri_for('/logout') %]" name="logout" value="logout" id="logout"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
           </ul>
         </li>
+       
       <!-- Non Logged in User -->
       [% ELSE %]
         <li class="active"><a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a></li>
