@@ -229,10 +229,6 @@ $DB::single=1;
         my $class = $c->req->param('class' . $result);
         my $status = $c->req->param('status' . $result);
 
-        unless ($well_id) {
-            
-        }
-        
         my $exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq, name => $result })->as_hash;
         my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp->{id} });
         my $exp_params = {

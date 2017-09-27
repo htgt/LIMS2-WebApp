@@ -10,7 +10,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 
-use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json wells_generator find_file find_folder read_file_lines );
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -153,7 +153,7 @@ sub miseq_plate_POST {
         $data->{data}->{$fp}->{wells} = flatten_wells($fp, $data->{data});
     }
 
-    my $miseq = miseq_plate_from_json($c, $data);
+    my $miseq = $c->model('Golgi')->miseq_plate_creation_json($data);
     
     return $self->status_created(
         $c,
@@ -185,7 +185,6 @@ sub miseq_exp_parent_GET {
     my $term = lc($c->request->param('term'));
 
     my @results;
-$DB::single=1;
     try {
         @results = map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {

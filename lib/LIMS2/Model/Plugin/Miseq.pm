@@ -10,7 +10,7 @@ use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
-use LIMS2::Model::Util::Miseq qw( miseq_plate_from_json );
+use LIMS2::Model::Util::Miseq qw( miseq_well_processes );
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -159,6 +159,44 @@ sub update_miseq_experiment {
     my $update = $exp->update($class);
 
     return;
+}
+
+sub pspec_miseq_plate_creation_json {
+    return {
+        name            => { validate => 'plate_name' },
+        data            => { validate => 'hashref' },
+        large           => { validate => 'boolean' },
+        user            => { validate => 'existing_user' },
+        time            => { validate => 'date_time' },
+        species         => { validate => 'existing_species' },
+    };
+}
+
+sub miseq_plate_creation_json {
+    my ($self, $params) = @_;
+$DB::single=1;
+    my $validated_params = $self->check_params($params, pspec_miseq_plate_creation_json);
+
+    my $lims_plate_data = {
+        name        => $validated_params->{name},
+        species     => $validated_params->{species},
+        type        => 'MISEQ',
+        created_by  => $validated_params->{user},
+        created_at  => $validated_params->{time},
+    };
+
+    my $lims_plate = $self->create_plate($lims_plate_data);
+
+    my $miseq_plate_data = {
+        plate_id    => $lims_plate->id,
+        is_384      => $validated_params->{large},
+    };
+   
+    my $miseq_plate = $self->create_miseq_plate($miseq_plate_data);
+    
+    miseq_well_processes($self, $validated_params);
+
+    return $miseq_plate;
 }
 
 1;
