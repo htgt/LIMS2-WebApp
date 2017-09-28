@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::MiseqProject;
+package LIMS2::Model::Schema::Result::MiseqPlate;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::MiseqProject
+LIMS2::Model::Schema::Result::MiseqPlate
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<miseq_projects>
+=head1 TABLE: C<miseq_plate>
 
 =cut
 
-__PACKAGE__->table("miseq_projects");
+__PACKAGE__->table("miseq_plate");
 
 =head1 ACCESSORS
 
@@ -43,19 +43,13 @@ __PACKAGE__->table("miseq_projects");
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-  sequence: 'miseq_projects_id_seq'
+  sequence: 'miseq_plate_id_seq'
 
-=head2 name
+=head2 plate_id
 
-  data_type: 'text'
+  data_type: 'integer'
+  is_foreign_key: 1
   is_nullable: 0
-
-=head2 creation_date
-
-  data_type: 'timestamp'
-  default_value: current_timestamp
-  is_nullable: 0
-  original: {default_value => \"now()"}
 
 =head2 run_id
 
@@ -63,6 +57,11 @@ __PACKAGE__->table("miseq_projects");
   is_nullable: 1
 
 =head2 is_384
+
+  data_type: 'boolean'
+  is_nullable: 0
+
+=head2 results_available
 
   data_type: 'boolean'
   default_value: false
@@ -76,20 +75,15 @@ __PACKAGE__->add_columns(
     data_type         => "integer",
     is_auto_increment => 1,
     is_nullable       => 0,
-    sequence          => "miseq_projects_id_seq",
+    sequence          => "miseq_plate_id_seq",
   },
-  "name",
-  { data_type => "text", is_nullable => 0 },
-  "creation_date",
-  {
-    data_type     => "timestamp",
-    default_value => \"current_timestamp",
-    is_nullable   => 0,
-    original      => { default_value => \"now()" },
-  },
+  "plate_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "run_id",
   { data_type => "integer", is_nullable => 1 },
   "is_384",
+  { data_type => "boolean", is_nullable => 0 },
+  "results_available",
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
 );
 
@@ -118,37 +112,38 @@ Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
 __PACKAGE__->has_many(
   "miseq_experiments",
   "LIMS2::Model::Schema::Result::MiseqExperiment",
-  { "foreign.old_miseq_id" => "self.id" },
+  { "foreign.miseq_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 miseq_projects_well
+=head2 plate
 
-Type: has_many
+Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::MiseqProjectWell>
+Related object: L<LIMS2::Model::Schema::Result::Plate>
 
 =cut
 
-__PACKAGE__->has_many(
-  "miseq_projects_well",
-  "LIMS2::Model::Schema::Result::MiseqProjectWell",
-  { "foreign.miseq_plate_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+__PACKAGE__->belongs_to(
+  "plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "plate_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-26 16:29:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NyALpH6+0Z9cjQL3E2PFzA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vsTPkyA7c4xMEOrOC6Vg/g
 
 sub as_hash {
     my $self = shift;
 
     my %h = (
-        id      => $self->id,
-        name    => $self->name,
-        date    => $self->creation_date->datetime,
-        384     => $self->is_384,
+        id          => $self->id,
+        plate_id    => $self->plate_id,
+        384         => $self->is_384,
+        name        => $self->plate->name,
+        date        => $self->plate->created_at->datetime,
     );
 
     return \%h;
