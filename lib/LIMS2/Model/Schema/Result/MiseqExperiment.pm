@@ -209,7 +209,7 @@ sub parent_plate {
         date    => $self->miseq->plate->created_at->datetime,
         name    => $self->name,
     );
-    
+
     return \%h;
 }
 

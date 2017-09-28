@@ -458,7 +458,6 @@ sub has_global_arm_shortened_designs{
 
 sub miseq_details {
     my $self = shift;
-$DB::single=1;
 
     my %h = (
         id      => $self->miseq_plates->first->id,

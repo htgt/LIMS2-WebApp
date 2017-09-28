@@ -47,7 +47,7 @@ sub pspec_create_miseq_well_experiment {
         miseq_exp_id    => { validate => 'existing_miseq_experiment' },
         classification  => { validate => 'existing_miseq_classification' },
         frameshifted    => { validate => 'boolean', optional => 1 },
-        status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'}, 
+        status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'},
     };
 }
 
@@ -174,7 +174,7 @@ sub pspec_miseq_plate_creation_json {
 
 sub miseq_plate_creation_json {
     my ($self, $params) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, pspec_miseq_plate_creation_json);
 
     my $lims_plate_data = {
@@ -191,9 +191,9 @@ $DB::single=1;
         plate_id    => $lims_plate->id,
         is_384      => $validated_params->{large},
     };
-   
+
     my $miseq_plate = $self->create_miseq_plate($miseq_plate_data);
-    
+
     miseq_well_processes($self, $validated_params);
 
     return $miseq_plate;

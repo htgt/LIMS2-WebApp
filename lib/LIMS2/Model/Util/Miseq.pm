@@ -26,7 +26,7 @@ use File::Find;
 sub miseq_well_processes {
     my ($c, $params) = @_;
     my $well_data = $params->{data};
-    
+
     my $miseq_well_hash;
     foreach my $fp (keys %{$well_data}) {
         my $process = $well_data->{$fp}->{process};
@@ -106,11 +106,11 @@ sub wells_generator {
         },
         '2' => {
             mod     => 0,
-            letters => ['I','J','K','L','M','N','O','P'], 
+            letters => ['I','J','K','L','M','N','O','P'],
         },
         '3' => {
             mod     => 12,
-            letters => ['I','J','K','L','M','N','O','P'], 
+            letters => ['I','J','K','L','M','N','O','P'],
         }
     };
 
@@ -129,7 +129,7 @@ sub wells_generator {
 
 sub well_builder {
     my ($mod, @well_names) = @_;
-    
+
     foreach my $number (1..12) {
         my $well_num = $number + $mod->{mod};
         foreach my $letter ( @{$mod->{letters}} ) {
@@ -165,7 +165,7 @@ sub generate_summary_data {
         }
     }
 
-    for (my $index = 1; $index < 385; $index++) { 
+    for (my $index = 1; $index < 385; $index++) {
         #Could use wells but then we'd lose the ability to drag and drop files into miseq.
         #Staying till standalone miseq work begins
         my $well_name = $well_conversion[$index - 1];
@@ -223,7 +223,7 @@ sub generate_summary_data {
 sub find_file {
     my ($miseq, $index, $exp, $file) = @_;
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
-$DB::single=1;
+
     my $charts = [];
     my $wanted = sub { _wanted($charts, $file) };
 

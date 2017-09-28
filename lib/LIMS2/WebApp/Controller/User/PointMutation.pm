@@ -68,7 +68,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
 sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
-    
+
     my $index = $c->req->param('oligoIndex');
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
@@ -78,7 +78,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
 
     my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
     my $miseq_plate_id = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->id;
-    
+
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
 
@@ -94,14 +94,13 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
 
     @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
 
-    
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
 
     if ($exp_sel) {
         $c->stash->{selection} = $exp_sel;
     }
-    
+
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
@@ -121,7 +120,7 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
 
     my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search(
         { },
-        { 
+        {
             rows => 15,
             order_by => {-desc => 'id'}
         }
@@ -135,7 +134,7 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
 }
 
 sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
-    my ( $self, $c ) = @_;    
+    my ( $self, $c ) = @_;
     #Only used for navigation purposes. All data retrieval and submission is dynamic thus handled by APIs
     return;
 }
@@ -224,7 +223,7 @@ sub update_tracking {
             $result = $matches[1];
         }
     }
-$DB::single=1;
+
     if ($result) {
         my $class = $c->req->param('class' . $result);
         my $status = $c->req->param('status' . $result);
@@ -297,7 +296,7 @@ sub get_well_exp_graphs {
             my $rs = {
                 id      => $match,
                 gene    => $exp_rs->{gene},
-            };      
+            };
             try {
                 $exp_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ miseq_id => $miseq_id, name => $match })->as_hash;
                 $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ well_id => $well_id, miseq_exp_id => $exp_rs->{id} })->as_hash;

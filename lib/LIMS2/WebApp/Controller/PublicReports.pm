@@ -345,7 +345,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     # depending on combination of targeting type and stage fetch details
 
     my $species = $c->session->{selected_species};
-$DB::single=1;
+
     $c->stash->{no_wrapper} = 1;
     my $cache_param = $c->request->params->{'cache_param'};
 
@@ -517,7 +517,6 @@ sub _simple_transform {
 sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;
 
-$DB::single=1;
     $c->log->info( "Generate public detail report for : $report_name" );
 
     return $self->_view_cached_lines($c, $report_name );

@@ -154,7 +154,7 @@ sub miseq_plate_POST {
     }
 
     my $miseq = $c->model('Golgi')->miseq_plate_creation_json($data);
-    
+
     return $self->status_created(
         $c,
         location => $c->uri_for( '/api/miseq_plate', { id => $miseq->id } ),
@@ -165,7 +165,7 @@ sub miseq_plate_POST {
 sub miseq_plate_GET {
     my ( $self, $c ) = @_;
 
-    my $body = $c->model('Golgi')->schema->resultset('MiseqPlate')->find ({ id => $c->request->param('id') })->as_hash;   
+    my $body = $c->model('Golgi')->schema->resultset('MiseqPlate')->find ({ id => $c->request->param('id') })->as_hash;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
