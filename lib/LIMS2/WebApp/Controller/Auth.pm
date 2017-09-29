@@ -113,7 +113,6 @@ sub logout : Global {
 sub reset_password : Path('/reset_password') {
 
     my ( $self, $c ) = @_;
-
     $c->log->debug('reset_passord');
     my $username = $c->req->param("username");
 
@@ -144,12 +143,11 @@ sub reset_password : Path('/reset_password') {
     return;
 }
 
-sub email : Global{
+sub email : Global {
 
-    my ($self, $c, $params, $username, $password) = @_;
+    my ($self, $c, $username, $password) = @_;
 
-    my $validated_params = $c->email( {email =>  $username} );
-
+    #my $validated_params = $c->email( {email =>  $username} );
     my $to = $username;
     my $from = 'htgt@sanger.ac.uk';
     my $subject = 'LIMS2 - Password Recovery';
