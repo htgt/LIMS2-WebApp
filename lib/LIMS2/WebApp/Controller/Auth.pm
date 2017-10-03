@@ -6,7 +6,6 @@ use Config::Tiny;
 use namespace::autoclean;
 use Data::Dumper;
 use MIME::Lite;
-use LIMS2::Model::FormValidator::Constraint qw( email );
 use Email::Valid;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -145,10 +144,8 @@ sub reset_password : Path('/reset_password') {
 }
 
 sub email_notification : Global {
-    my ($self, $c, $username, $password) = @_; #$param
+    my ($self, $c, $username, $password) = @_;
 
-    #my $validated_params = email( {email =>  $username} );
- 
     my $address = Email::Valid->address($username);
 
     my $validator = ($address ? 'yes' : 'no');
