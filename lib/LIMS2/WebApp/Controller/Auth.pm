@@ -170,11 +170,9 @@ sub email_notification : Global {
         $msg->send;
         $c->flash( info_msg => 'Email Sent Successfully' );
 
-    }else{
-
+    } else {
         $c->stash( error_msg => 'Not a valid email address, please contact htgt@sanger.ac.uk' );
-
-}
+    }
     return;
 }
 
