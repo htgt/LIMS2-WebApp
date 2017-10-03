@@ -145,6 +145,13 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
     return;
 }
 
+sub access_denied : Path( '/public_reports/access_denied' ) {
+
+    my ( $self, $c ) = @_;
+
+    return;
+}
+
 =head2 index
 
 =cut
@@ -159,10 +166,10 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 # If logged in always use live top level report and cached sub_reports
 # The cache_param refers to the sub_reports
 
-
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
         $top_cache_param = 'without_cache';
+        $c->stash->{'cache_report'} = 1;
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
