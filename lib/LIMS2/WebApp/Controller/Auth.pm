@@ -6,7 +6,8 @@ use Config::Tiny;
 use namespace::autoclean;
 use Data::Dumper;
 use MIME::Lite;
-
+use LIMS2::Model::FormValidator::Constraint qw( email );
+use Email::Valid;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -131,7 +132,7 @@ sub reset_password : Path('/reset_password') {
         $model->txn_do(
             sub {
                 $model->set_user_password( { name => $user_rs->{name}, password => $password } );
-                $self->email($c, $username, $password);
+                $self->email_notification($c, $username, $password);
             }
         );
 
@@ -143,25 +144,37 @@ sub reset_password : Path('/reset_password') {
     return;
 }
 
-sub email : Global {
+sub email_notification : Global {
+    my ($self, $c, $username, $password) = @_; #$param
 
-    my ($self, $c, $username, $password) = @_;
+    #my $validated_params = email( {email =>  $username} );
+    
+    my $address = Email::Valid->address($username);
+    
+    my $validator = ($address ? 'yes' : 'no');
 
-    #my $validated_params = $c->email( {email =>  $username} );
-    my $to = $username;
-    my $from = 'htgt@sanger.ac.uk';
-    my $subject = 'LIMS2 - Password Recovery';
-    my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+    if ($validator eq 'yes'){
+        
+        my $to = $username;
+        my $from = 'da12@sanger.ac.uk';
+        my $subject = 'LIMS2 - Password Recovery';
+        my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
 
-    my $msg = MIME::Lite->new(
-                 From     => $from,
-                 To       => $to,
-                 Subject  => $subject,
-                 Data     => $message
-                 );
+        my $msg = MIME::Lite->new(
+            From     => $from,
+            To       => $to,
+            Subject  => $subject,
+            Data     => $message
+            );
 
-    $msg->send;
-    print "Email Sent Successfully\n";
+        $msg->send;
+        $c->flash( info_msg => 'Email Sent Successfully' );
+
+    }else{
+
+        $c->stash( error_msg => 'Not a valid email address, please contact htgt@sanger.ac.uk' );
+
+}
     return;
 }
 
