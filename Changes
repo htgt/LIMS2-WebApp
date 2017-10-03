@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.473     2017-10-03 12:05:05 Europe/London
+
+    De-externalised public reports and added mi-seq arrows
 0.472     2017-09-24 20:27:40 Europe/London
 
     Implementing an interface for crispr storage
