@@ -148,13 +148,13 @@ sub email_notification : Global {
     my ($self, $c, $username, $password) = @_; #$param
 
     #my $validated_params = email( {email =>  $username} );
-    
+ 
     my $address = Email::Valid->address($username);
-    
+
     my $validator = ($address ? 'yes' : 'no');
 
     if ($validator eq 'yes'){
-        
+
         my $to = $username;
         my $from = 'da12@sanger.ac.uk';
         my $subject = 'LIMS2 - Password Recovery';
