@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.472';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.473';
 }
 ## use critic
 
@@ -47,7 +47,8 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     }
     my $overview = get_experiments($c, $miseq, 'genes');
     my $ov_json = encode_json ({ summary => $overview });
-    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $overview) });
+    my $wells = generate_summary_data($c, $miseq, $overview);
+    my $json = encode_json ({ summary => $wells });
     my $gene_keys = get_genes($c, $overview);
     my $revov = encode_json({ summary => $gene_keys });
     my @exps = sort keys %$overview;
@@ -96,6 +97,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
 
     my $index = $c->req->param('oligoIndex');
+
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
     my $updated_status = $c->req->param('statusOption');
@@ -108,7 +110,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/';
     my @files = find_children($base, $reg);
     my @exps;
-
     my $well_name;
     foreach my $file (@files) {
         my @matches = ($file =~ /S\d+_exp([A-Za-z0-9_]+)/g);
@@ -142,8 +143,10 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my @status = [ sort map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all ];
     my $states = encode_json({ summary => @status });
     my $state;
+    my $max;
     try {
         my $plate = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->as_hash;
+        $max = $plate->{384};
         $state = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->find({ miseq_plate_id => $plate->{id}, illumina_index => $index });
         if ($state) {
             $state = $state->as_hash->{status};
@@ -153,6 +156,10 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     } catch {
         $state = 'Plated';
     };
+        my $well_limit = {
+            0 => 96,
+            1 => 384,
+        };
 
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
     $c->stash(
@@ -165,6 +172,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         status      => $states,
         state       => $state,
         classifications => \@classifications,
+        max_wells => $well_limit->{$max},
     );
 
     return;

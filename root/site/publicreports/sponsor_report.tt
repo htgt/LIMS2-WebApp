@@ -10,7 +10,7 @@
   <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show single-targeted</b></a>
 [%- END %]
 
-[%- IF c.user %]
+[%- IF c.user && cache_report != 1  %]
     [%- IF cache_param == 'with_cache' %]
         <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
         href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param => 'without_cache'} ) %]">
@@ -79,13 +79,15 @@
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
-            [%- IF cache_param == "with_cache" %]
+
+        [%- IF c.user == '' %]
+                <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[%- countval %]</a></b></td>
+        [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
-                  { species => species, cache_param => 'without_cache', type => 'full' }
-                ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- END %]
+        [%- ELSE %]
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td> 
+        [%- END %]
+
           [%- ELSE %]
             <b>[%- countval %]</b></td>
           [%- END %]
@@ -119,7 +121,6 @@
   </thead>
   <tbody>
     [%- FOREACH row IN rows %]
-[% UNLESS row == "Active Genes" %]
     <tr>
       [%- IF row == "Genes" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
       <td style="border-top: 1px solid"><b>[%- row %]</b></td>
@@ -136,13 +137,15 @@
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
-            [%- IF cache_param == "with_cache" %]
+
+        [%- IF c.user == '' %]
+                <b><a href="[%- c.uri_for('/public_reports/access_denied') %]">[%- countval %]</a></b></td>
+        [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",
-                  { species => species, cache_param => 'without_cache', type => 'full' }
-                ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-            [%- END %]
+        [%- ELSE %]
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+        [%- END %]
+
           [%- ELSE %]
             <b>[%- countval %]</b></td>
           [%- END %]
@@ -155,12 +158,16 @@
       [%- END %]
     </tr>
     [%- END %]
-[% END %]
   </tbody>
 </table>
 
-<br />
-<p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
+<br/>
+
+[%- IF c.user && cache_report == 1  %]
+    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Please <a href="[% c.http_uri_for('/login') %]">login</a> to click a number for more detailed information or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for information on accessing clones from the HTGT Group. </p>
+[%- ELSE %]
+    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
+[%- END %]
 <p>* <b>Pipeline I</b> corresponds to Eurofins sequencing.</p>
 <p>* <b>Pipeline II</b> corresponds to MiSeq sequencing.</p>
 </div>
@@ -169,4 +176,3 @@
 <h3>No projects found for this species / targeting type.</h3>
 </div>
 [%- END %]
-
