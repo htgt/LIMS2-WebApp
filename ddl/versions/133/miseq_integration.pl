@@ -89,7 +89,6 @@ my @indexes = map { $_->index } $model->schema->resultset('MiseqProjectWell')->s
 );
 my @well_data;
 
-$DB::single=1;
 foreach my $well (@indexes) {
     my $well_name = $well_names[$well - 1];
     
@@ -129,7 +128,7 @@ my $params = {
     created_at  => $plate->{date},
     wells       => \@well_data,
 };
-$DB::single=1;
+
 my $traditional_plate;
 $model->schema->txn_do( sub {
     try {
@@ -142,7 +141,6 @@ $model->schema->txn_do( sub {
     };
 });
 
-$DB::single=1;
 my $lims_plate = $traditional_plate->as_hash;
 my $miseq_plate = {
     plate_id    => $lims_plate->{id},
@@ -152,6 +150,7 @@ my $miseq_plate = {
 if ($plate->{run_id}) {
     $miseq_plate->{run_id} = $plate->{run_id};
 }
+
 my $new_miseq;
 $model->schema->txn_do( sub {
     try {
@@ -185,7 +184,7 @@ while (my $rs = $miseq_exp_rs->next) {
         push (@exp_ids, $rs->{id});
     }
 }
-$DB::single=1;
+
 foreach my $exp_id (@exp_ids) {
     my $wells_rs = $model->schema->resultset('MiseqProjectWellExp')->search({ miseq_exp_id => $exp_id });
     while (my $well_rs = $wells_rs->next) {
