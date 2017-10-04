@@ -1,0 +1,86 @@
+<script src="[% c.uri_for( '/static/jquery/js/jquery.bxslider.min.js' ) %]"></script>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/jquery.bxslider.css' ) %]">
+
+<style type="text/css">
+
+#child_div {
+    text-align: center;
+    padding: 5px;
+    margin-right: 10px;
+    background-color: #DCDCDC;
+}
+
+#inner_container {
+    background-color: #DCDCDC;/*DCDCDC*/;
+    /*flex: 0;*/
+}
+
+#child_div:hover {
+    background-color: #808080;
+    cursor: pointer;
+}
+
+#dot_line {
+    background-color: #DCDCDC;
+    display: inline-block;
+    line-height: 0.0;
+}
+
+</style>
+
+<form method="POST" id="view_box" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" enctype="multipart/form-data" >
+<input type="hidden" name="box_name" id="box_name">
+<div><h4>Box Total: [% total %] </h4></div><button style="display:none;" name="view_box" id="view_slider_box" type="submit" value="view_box" class="btn btn-default">View</button>
+</form>
+
+<div id="slider1">
+
+  [% FOREACH box IN store_content %]
+    <div style="padding:10px;text-align:center;">
+    <div id="child_div" onmouseout="box_out()" onClick="box_click('[% box.name %]')">
+      [% FOREACH count IN [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] %]
+        <div id="inner_container">
+        [% FOR elem IN box.content.$count %]
+          [% IF box_name %]
+            [% IF elem.crispr_id %]
+              <div id="dot_line"><span style="font-size:20pt;color:red;margin:0px;padding:0px;">&#8226;<span></div>
+            [% ELSE %]
+              <div id="dot_line"><span style="font-size:20pt;color:green;margin:0px;padding:0px;">&#8226;<span></div>
+            [% END %]
+          [% ELSE %]
+            <div id="dot_line"><span style="font-size:20pt;color:black;margin:0px;padding:0px;">&#8226;<span></div>
+          [% END %]
+        [% END %]
+        </div>
+      [% END %]
+    </div>
+    <h4>[% box.name %]</h4>
+    </div>
+  [% END %]
+
+</div>
+
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  $('#slider1').bxSlider({
+    pager: false,
+    slideWidth: 200,
+    minSlides: 1,
+    maxSlides: [% max_slides %],
+    slideMargin: 10
+  });
+});
+
+function box_click(box_name) {
+  // when clicking a box in the slider
+  var loci = document.getElementsByName('box_name');
+  for(i=0; i<loci.length; i++) {
+    loci[i].value = box_name;
+  }
+  document.getElementById("view_slider_box").click();
+};
+
+</script>
+

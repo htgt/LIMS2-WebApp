@@ -15,6 +15,7 @@ use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr crispr_groups_for_crispr
 use LIMS2::Util::QcPrimers;
 use LIMS2::Model::Util::CreateDesign;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD %GENE_TYPE_REGEX);
+use LIMS2::Model::Util::CrisprOrderAndStorage;
 BEGIN { extends 'Catalyst::Controller' };
 
 with qw(
@@ -221,6 +222,9 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
     my @groups = crispr_groups_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
     my @wells = crispr_wells_for_crispr( $c->model('Golgi')->schema, { crispr_id => $crispr->id } );
 
+    my $storage_instance = LIMS2::Model::Util::CrisprOrderAndStorage->new({ model => $c->model('Golgi') });
+    my @crispr_locations = $storage_instance->locate_crispr_in_store($crispr->id);
+
     $c->stash(
         crispr_data             => $crispr->as_hash,
         ots                     => \@off_target_summaries,
@@ -230,6 +234,7 @@ sub view_crispr : PathPart('view') Chained('crispr') : Args(0) {
         linked_nonsense_crisprs => $crispr->linked_nonsense_crisprs,
         genes                   => \@genes,
         wells                   => [ map{ $_->as_hash } @wells ],
+        crispr_locations        => \@crispr_locations,
     );
 
     return;

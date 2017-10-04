@@ -294,6 +294,7 @@ sub load_static_files {
             SequencingProjectTemplate
             DnaTemplate
             Priority
+            CrisprStorage
 
             )
     );
@@ -358,6 +359,7 @@ sub load_dynamic_files {
             SequencingProjectPrimer
             SequencingProjectBackup
             Message
+            CrisprStorage
         )
     );
 

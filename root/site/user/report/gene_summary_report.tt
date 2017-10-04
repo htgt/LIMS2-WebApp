@@ -854,6 +854,7 @@ function toggle_btn(btn, show_or_hide) {
             <th>Crispr ID</th>
             <th>Design ID</th>
             <th>Vector Genbank File</th>
+            <th><a href="[% c.uri_for( '/user/crispr_locate_in_storage', all_crispr_vec_ids ) %]" target="_blank" class="btn btn-primary">Batch Storage</a></th>
           </thead>
           <tbody>
             [% FOREACH well IN sorted_wells.crispr_vector %]
@@ -866,6 +867,7 @@ function toggle_btn(btn, show_or_hide) {
               <td>[% well.crispr_id %]</td>
               <td>[% well.design_id %]</td>
               <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+              <td><a href="[% c.uri_for( '/user/crispr_locate_in_storage', well.crispr_id ) %]" target="_blank" class="btn btn-primary">Storage</a></td>
             </tr>
             [%- END %]
           </tbody>

@@ -212,6 +212,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 crispr_storages
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprStorage>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_storages",
+  "LIMS2::Model::Schema::Result::CrisprStorage",
+  { "foreign.crispr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 crispr_validations
 
 Type: has_many
@@ -383,8 +398,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uJN4fU8zwjPTSPud+ljxDg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-13 08:57:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jQHrAWidGLlTcWt1RkyAKg
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 

@@ -1,0 +1,263 @@
+[%- META title = 'Crispr Browse and Store' %]
+
+<style type="text/css">
+
+#mother {
+    width: 100%;
+}
+
+.table-striped>tbody>tr:nth-child(odd)>td {
+  background-color: #e0f2f1;/*oyster bay*/
+}
+
+.table-striped>tbody>tr:nth-child(even)>td {
+  background-color: #f9fbe7;/*twilight blue*/
+}
+
+</style>
+
+<div class="container" id="mother">
+
+  [% INCLUDE 'storage_box.tt' box_content = box_content, box_name = box_name, box_creater = box_creater %]
+
+  <div class="col-md-6" style="float:right;">
+
+    <ul class="nav nav-tabs" style="margin:10px;">
+      <li class="active"><a data-toggle="tab" href="#box_metadata_div">Box Metadata</a></li>
+      <li><a data-toggle="tab" href="#box_storage">Box Storage</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div id="box_metadata_div" class="tab-pane fade in active">
+        <div>
+          <table style="border-collapse:collapse;" id="box_metadata" class="table table-striped" cellpadding="0">
+            <thead>
+              <tr style="background-color:#64ffda;">
+                <th>Crispr Id</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Stored by</th>
+              </tr>
+            </thead>
+            <tbody>
+              [% FOR elem IN box_metadata %]
+              <tr>
+                <td><a href="[% c.uri_for( '/user/crispr' , elem.crispr_id, 'view' ) %]">[% elem.crispr_id %]</a></td>
+                <td>
+                  <button onClick="on_location_click('[% elem.tube_location %]')" type="button" data-toggle="tooltip" class="btn btn-default"><span id="[% elem.tube_location %]">[% elem.tube_location %]</span></button>
+                </td>
+                <td>[% elem.created_on %]</td>
+                <td>[% elem.stored_by_user %]</td>
+              </tr>
+              [% END %]
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="box_storage" class="tab-pane fade">
+        <form method="POST" id="store_crispr" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" enctype="multipart/form-data" >
+        <div class="well">
+          <div class="input-group">
+            <input type="hidden" name="box_name" id="box_name" value="[% box_name %]">
+            <input id="tube_location_input" name="tube_location_input" type="text" placeholder="location_1,location_2,..." class="form-control">
+            <span class="input-group-btn">
+            <button onClick="refresh_tube_locations()" id="tube_location_refresh" class="btn btn-default" type="button">
+            <span class="glyphicon glyphicon-refresh"></span>
+            </button>
+            </span>
+          </div>
+          <div class="input-group col-lg-12" style="margin-top:5px;">
+            <textarea id="crispr_input" name="crispr_input" placeholder="crispr_1,crispr_2,..." class="form-control" rows="10">[% crispr_input %]</textarea>
+          </div>
+          <div class="input-group" style="margin-top:5px;">
+            [% IF box_name %]
+            <button class="btn btn-default" style="margin-top:5px;" id="action" name="action" value="store_crispr" type="submit">Store Crispr <i class="glyphicon glyphicon-chevron-right"></i><i class="glyphicon glyphicon-chevron-right"></i></button>
+            [% ELSE %]
+            <button class="btn btn-default disabled" style="margin-top:5px;" id="action" name="action" value="store_crispr" type="submit">Store Crispr <i class="glyphicon glyphicon-chevron-right"></i><i class="glyphicon glyphicon-chevron-right"></i></button>
+            [% END %]
+          </div>
+        </div>
+        </form>
+        <form method="POST" id="reset_tube" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" enctype="multipart/form-data" >
+        <div class="well" style="">
+          <h4>Reset Locations</h4>
+          <div class="input-group">
+            <input type="hidden" name="box_name" id="box_name" value="[% box_name %]">
+            <input id="tube_reset_input" name="tube_reset_input" type="text" placeholder="location_1,location_2,..." class="form-control">
+            <span class="input-group-btn">
+            <button onClick="refresh_reset_tubes()" id="tube_reset_refresh" class="btn btn-default" type="button">
+            <span class="glyphicon glyphicon-refresh"></span>
+            </button>
+            </span>
+          </div>
+          <div class="input-group" style="margin-top:5px;">
+            [% IF box_name %]
+            <button class="btn btn-danger" style="margin-top:5px;" name="action" id="action" onClick="return confirm_response()" value="reset_tube" type="submit">Reset Location</button>
+            [% ELSE %]
+            <button class="btn btn-danger disabled" style="margin-top:5px;" name="action" id="action" onClick="return confirm_response()" value="reset_tube" type="submit">Reset Location</button>
+            [% END %]
+          </div>
+        </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="create_storage_box_model" tabindex="-1" role="dialog" aria-labelledby="model_area" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="POST" id="create_box" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="create_storage_box_title">Create Crispr Storage Box</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" name="box_name" placeholder="box name">
+          <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button name="action" id="action" type="submit" value="create_box" class="btn btn-primary">Create</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="discard_storage_box_model" tabindex="-1" role="dialog" aria-labelledby="model_area" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="POST" id="discard_box" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="create_storage_box_title">Discard Crispr Storage Box</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" name="box_name" value="[% box_name %]" placeholder="box name">
+          <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button name="action" id="action" onClick="return confirm_response()" type="submit" value="discard_box" class="btn btn-primary">Ok</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="view_storage_box_model" tabindex="-1" role="dialog" aria-labelledby="model_area" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="POST" id="view_box" action="[% c.uri_for( '/user/crispr_browse_and_store' ) %]" class="modal-dialog"  enctype="multipart/form-data" >
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="find_storage_box_title">View Crispr Storage Box</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="text" name="box_name" placeholder="box name">
+          <div class="modal-footer">
+          <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button name="action" id="action" type="submit" value="view_box" class="btn btn-primary">View</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+[% IF total %]
+<div style="margin-top:20px;margin-bottom:20px;">
+  [% INCLUDE 'mini_storage_box.tt' store_content = store_content, total = total, max_slides = max_slides %]
+</div>
+[% END %]
+
+<script src="[% c.uri_for( '/static/jquery/js/jquery.dataTables.min.js' ) %]"></script>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/jquery/css/jquery.dataTables.min.css' ) %]">
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+  // tool-tip position
+  $(".tip-top").tooltip({
+      placement : 'top'
+  });
+
+  // dataTable attributes
+  $('#box_metadata').dataTable({
+      "searching": false,
+      "pagingType": "simple_numbers",
+    });
+});
+
+function on_location_click(tube_location) {
+  // on clicking the graphical tube location: 1)create an "X" mark in the circle and 2)append the location in the input box
+  var location_str = document.getElementById('tube_reset_input').value;
+  if (location_str.split(",").includes(tube_location)) {
+    console.log("Crispr box tube location already found.");
+  } else {
+    var cross_elem = document.createElement('span');
+    cross_elem.appendChild(document.createTextNode(String.fromCharCode(10008)));
+    // 10008 is the Decimal code for the "X" sign
+    document.getElementById(tube_location).appendChild(cross_elem);
+    document.getElementById('tube_reset_input').value = document.getElementById('tube_reset_input').value + tube_location + ',';
+  }
+}
+
+function on_no_location_click(tube_location) {
+  // on clicking the graphical tube location: 1)create an "X" mark in the circle and 2)append the location in the input box
+  var location_str = document.getElementById('tube_location_input').value;
+  if (location_str.split(",").includes(tube_location)) {
+    console.log("Crispr box tube location already found.");
+  } else {
+    var cross_elem = document.createElement('span');
+    cross_elem.appendChild(document.createTextNode(String.fromCharCode(10008)));
+    // 10008 is the Decimal code for the "X" sign
+    document.getElementById(tube_location).appendChild(cross_elem);
+    document.getElementById('tube_location_input').value = document.getElementById('tube_location_input').value + tube_location + ',';
+  }
+}
+
+function refresh_tube_locations() {
+  // remove the "X" mark from the graphical tube location
+  var locations_str = document.getElementById('tube_location_input').value;
+  var locations = locations_str.split(',');
+
+  for (i=0;i<locations.length;i++) {
+    if (document.getElementById(locations[i]) != null) {
+      var kids = document.getElementById(locations[i]).children;
+      kids[0].outerHTML = "";
+    }
+  }
+  document.getElementById('tube_location_input').value = "";
+}
+
+function refresh_reset_tubes() {
+  // remove the "X" mark from the graphical tube location
+  var locations_str = document.getElementById('tube_reset_input').value;
+  var locations = locations_str.split(',');
+
+  for (i=0;i<locations.length;i++) {
+    if (document.getElementById(locations[i]) != null) {
+      var kids = document.getElementById(locations[i]).children;
+      kids[0].outerHTML = "";
+    }
+  }
+  document.getElementById('tube_reset_input').value = "";
+}
+
+function confirm_response() {
+  return confirm("Are you sure you want to proceed?");
+}
+
+</script>
+
