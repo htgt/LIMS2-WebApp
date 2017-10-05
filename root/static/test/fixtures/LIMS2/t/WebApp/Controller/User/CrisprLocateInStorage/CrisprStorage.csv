@@ -1,0 +1,5 @@
+id,tube_location,box_name,created_on,crispr_id,created_by_user,stored_by_user
+1,A01,test_box,2017-07-20 09:47:00.507178,227040,test_user@example.org,test_user@example.org
+2,A02,test_box,2017-07-20 09:47:00.507178,227040,test_user@example.org,test_user@example.org
+3,A55,test_box,2017-07-20 09:47:00.507178,,test_user@example.org,
+4,A10,test_box,2017-07-21 09:47:00.507178,187444,test_user@example.org,test_user@example.org
