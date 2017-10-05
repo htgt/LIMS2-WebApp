@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.471';
+    $LIMS2::Test::VERSION = '0.475';
 }
 ## use critic
 
@@ -300,6 +300,7 @@ sub load_static_files {
             SequencingProjectTemplate
             DnaTemplate
             Priority
+            CrisprStorage
 
             )
     );
@@ -364,6 +365,7 @@ sub load_dynamic_files {
             SequencingProjectPrimer
             SequencingProjectBackup
             Message
+            CrisprStorage
         )
     );
 

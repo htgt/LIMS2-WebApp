@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqStatus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqStatus::VERSION = '0.471';
+    $LIMS2::Model::Schema::Result::MiseqStatus::VERSION = '0.475';
 }
 ## use critic
 
@@ -82,9 +82,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_well_experiments
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-23 11:34:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pb+aDCxBkKUIk9ENczHuKg
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
+  { "foreign.status" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Cbvlfyxfm1CBNlfc7K3Ag
 
 sub as_string {
     return shift->id;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::User::VERSION = '0.471';
+    $LIMS2::Model::Schema::Result::User::VERSION = '0.475';
 }
 ## use critic
 
@@ -156,6 +156,36 @@ __PACKAGE__->has_many(
   "crispr_es_qcs_runs",
   "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
   { "foreign.created_by_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crispr_storages_created_by_user
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprStorage>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_storages_created_by_user",
+  "LIMS2::Model::Schema::Result::CrisprStorage",
+  { "foreign.created_by_user" => "self.name" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 crispr_storages_stored_by_user
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CrisprStorage>
+
+=cut
+
+__PACKAGE__->has_many(
+  "crispr_storages_stored_by_user",
+  "LIMS2::Model::Schema::Result::CrisprStorage",
+  { "foreign.stored_by_user" => "self.name" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -545,8 +575,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-10-26 12:28:35
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GKvFJV3bGZZkYNOCsgrfZg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-13 08:58:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:McoSfxhnpYWLBdF3xl5GMw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

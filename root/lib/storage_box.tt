@@ -1,0 +1,84 @@
+<style type="text/css">
+
+#parent_div {
+    float: left;
+    display: inline-block;
+}
+
+#tube_container {
+    width: 450px;
+    background-color: #DCDCDC;/*gainsboro*/
+    text-align: center;
+}
+
+#intra {
+    background-color: #DCDCDC;/*gainsboro*/
+    display: inline-block;
+}
+
+#intra:hover {
+    background-color: #808080;/*gray*/
+}
+
+.tooltip-inner {
+    white-space:pre-wrap;
+    text-align: left;
+}
+
+h3 span {
+    font-size:16px;
+}
+
+</style>
+
+<div id="parent_div">
+
+  <div style="margin-bottom:0px;">
+    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#create_storage_box_model">
+      <i class="glyphicon glyphicon-plus"></i>
+    </button>
+    [% IF box_name %]
+      <button type="button" class="btn btn-info" data-toggle="modal" data-target="#discard_storage_box_model">
+        <i class="glyphicon glyphicon-minus"></i>
+      </button>
+      <button type="button" class="btn btn-info" data-toggle="modal" data-target="#view_storage_box_model">
+        <i class="glyphicon glyphicon-eye-open"></i>
+      </button>
+      <div style="margin-top:0px;">
+      <h3>[% box_name %] - <span>[% box_creater %]</span></h3>
+      </div>
+    [% ELSE %]
+      <button type="button" class="btn btn-info disabled" data-toggle="modal" data-target="#discard_storage_box_model">
+        <i class="glyphicon glyphicon-minus"></i>
+      </button>
+      <button type="button" class="btn btn-info disabled" data-toggle="modal" data-target="#view_storage_box_model">
+        <i class="glyphicon glyphicon-eye-open"></i>
+      </button>
+      <div style="display:inline-block;margin-left:5%;">
+      <h3><br /></h3>
+      </div>
+    [% END %]
+  </div>
+
+  [% FOREACH count IN [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] %]
+    <div id="tube_container">
+    [% FOR elem IN box_content.$count %]
+      [% IF box_name %]
+        [% IF elem.crispr_id %]
+          <div id="intra"><button onClick="on_location_click('[% elem.tube_location %]')" type="button" data-toggle="tooltip" title="- Crispr Id: [% elem.crispr_id %]
+- Location: [% elem.tube_location %]
+- Created on: [% elem.created_on %]
+- Stored by: [% elem.stored_by_user %]
+" class="btn btn-danger tip-top" style="border-radius:100%;height:30px;width:30px;margin:5px;"><span id="[% elem.tube_location %]"></span></button></div>
+        [% ELSE %]
+          <div id="intra"><button onclick="on_no_location_click('[% elem.tube_location %]')" type="button" data-toggle="tooltip" title="Location: [% elem.tube_location %]" class="btn btn-success tip-top" style="border-radius:100%;height:30px;width:30px;margin:5px;"><span id="[% elem.tube_location %]"></span></button></div>
+        [% END %]
+      [% ELSE %]
+        <div id="intra"><button type="button" data-toggle="" title="" class="btn btn-default disabled" style="border-radius:100%;height:30px;width:30px;margin:5px;"></button></div>
+      [% END %]
+    [% END %]
+    </div>
+  [% END %]
+
+</div>
+

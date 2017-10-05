@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProjectWell;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProjectWell::VERSION = '0.471';
+    $LIMS2::Model::Schema::Result::MiseqProjectWell::VERSION = '0.475';
 }
 ## use critic
 
@@ -175,6 +175,10 @@ sub as_hash {
     };
 
     return \%h;
+}
+
+sub index {
+    return shift->illumina_index;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

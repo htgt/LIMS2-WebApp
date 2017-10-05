@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqProjectWellExp;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.471';
+    $LIMS2::Model::Schema::Result::MiseqProjectWellExp::VERSION = '0.475';
 }
 ## use critic
 
@@ -198,6 +198,11 @@ sub plate {
 sub experiment {
     my ( $self ) = @_;
     return $self->result_source->schema->resultset('MiseqExperiment')->find({ id => $self->miseq_exp_id })->name;
+}
+
+sub index {
+    my ( $self ) = @_;
+    return $self->result_source->schema->resultset('MiseqProjectWell')->find({ id => $self->miseq_well_id })->illumina_index;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

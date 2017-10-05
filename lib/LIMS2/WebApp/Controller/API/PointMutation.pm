@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.471';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.475';
 }
 ## use critic
 
@@ -9,12 +9,14 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 use JSON;
-use File::Find;
 use Image::PNG;
 use File::Slurp;
 use MIME::Base64;
 use Bio::Perl;
+use POSIX;
 use Try::Tiny;
+
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -45,6 +47,12 @@ sub point_mutation_image_GET {
 
     my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
 
+    unless ($graph_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "File name: " . $file_name . " can not be found.");
+        return;
+    }
+
     open my $fh, '<', $graph_dir or die "$!";
     my $raw_string = do{ local $/ = undef; <$fh>; };
     close $fh;
@@ -74,6 +82,13 @@ sub point_mutation_summary_GET {
     my $limit = $c->request->param( 'limit' );
 
     my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
+
+    unless ($sum_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
+        return;
+    }
+
     my $fh;
     open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
     my @lines = read_file_lines($fh);
@@ -97,33 +112,99 @@ sub point_mutation_summary_GET {
     return;
 }
 
-sub point_mutation_frameshifts : Path( '/api/point_mutation_frameshifts' ) : Args(0) : ActionClass( 'REST' ) {
+sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
-sub point_mutation_frameshifts_GET {
+sub freezer_wells_GET {
     my ( $self, $c ) = @_;
-    my $miseq = $c->request->param('miseq');
+    my $fp = $c->request->param('name');
 
-    my $miseq_id = $c->model('Golgi')->schema->resultset('MiseqProject')->find({ name => $miseq })->id;
-    my $miseq_wells = $c->model('Golgi')->schema->resultset('MiseqProjectWell')->search({ 'miseq_plate_id' => $miseq_id });#->search_related('miseq_well',{ 'miseq_plate_id' => $miseq_id });
-    my $summary;
-    while (my $well = $miseq_wells->next) {
-        my $exp = $well->search_related('miseq_project_well_exps',{ frameshifted => 't' });
-        if ($exp) {
-            while (my $current_exp = $exp->next) {
-                push (@{$summary->{$current_exp->experiment}}, $well->illumina_index);
-            }
-        }
-    }
+    my $fp_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $fp })->id;
+
+    my @wells = map { $_->name } $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $fp_id });
 
     my $json = JSON->new->allow_nonref;
+    my $summary->{$fp} = \@wells;
+
     my $body = $json->encode($summary);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub miseq_plate_POST {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles('edit');
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+    $c->require_ssl;
+
+    my $json = $c->request->param('json');
+    my $data = decode_json $json;
+    $data->{user} = $c->user->name;
+    $data->{species} = $c->session->{selected_species};
+    $data->{time} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
+    foreach my $fp (keys %{$data->{data}}) {
+        $data->{data}->{$fp}->{wells} = flatten_wells($fp, $data->{data});
+    }
+
+    my $miseq = $c->model('Golgi')->miseq_plate_creation_json($data);
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/miseq_plate', { id => $miseq->id } ),
+        entity   => $miseq
+    );
+}
+
+sub miseq_plate_GET {
+    my ( $self, $c ) = @_;
+
+    my $body = $c->model('Golgi')->schema->resultset('MiseqPlate')->find ({ id => $c->request->param('id') })->as_hash;
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
 
     return;
+}
+
+sub miseq_exp_parent :Path( '/api/miseq_exp_parent' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_exp_parent_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $term = lc($c->request->param('term'));
+
+    my @results;
+    try {
+        @results = map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+            {
+                'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
+            },
+            {
+                order_by  => { -desc => 'id' }
+            }
+        );
+    }
+    catch {
+        $c->log->error($_);
+    };
+    return $self->status_ok($c, entity => \@results);
 }
 
 sub crispr_seq {
@@ -163,42 +244,24 @@ sub crispr_seq {
     return $res;
 }
 
-sub find_file {
-    my ($miseq, $index, $exp, $file) = @_;
-    my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
+#Quads had to to be introduced in a way to preserve data in the view.
+#Messy to deal with in the back end
+sub flatten_wells {
+    my ($fp, $wells) = @_;
 
-    my $charts = [];
-    my $wanted = sub { _wanted($charts, $file) };
+    my $fp_data = $wells->{$fp}->{wells};
 
-    find($wanted, $base);
-
-    return @$charts[0];
-}
-
-sub _wanted {
-    return if ! -e;
-    my ($charts, $file_name) = @_;
-
-    push( @$charts, $File::Find::name ) if $File::Find::name =~ /$file_name/;
-
-    return;
-}
-
-sub read_file_lines {
-    my ($fh, $plain) = @_;
-
-    my @data;
-    my $count = 0;
-    while (my $row = <$fh>) {
-        chomp $row;
-        if ($plain) {
-            push(@data, $row);
-        } else {
-            push(@data, join(',', split(/\t/,$row)));
+    my $new_structure;
+    foreach my $quad (keys %{$fp_data}) {
+        if (ref $fp_data->{$quad} eq 'HASH') {
+            foreach my $well (sort keys %{$fp_data->{$quad}}) {
+                $new_structure->{$well} = $fp_data->{$quad}->{$well};
+            }
         }
-        $count++;
     }
 
-    return @data;
+    return $new_structure;
 }
+
+
 1;

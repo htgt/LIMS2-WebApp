@@ -301,6 +301,28 @@ Typically only off targets with 3 or less mismatches are stored</p>
   </table>
 [% END %]
 
+<h2>Crispr Storage</h2>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Box</th>
+        <th>Location</th>
+        <th>Created On</th>
+        <th>Stored By</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOR item IN crispr_locations %]
+      <tr>
+        <td><a href="[% c.uri_for( '/user/crispr_browse_and_store' , item.box_name ) %]">[% item.box_name %]</a></td>
+        <td>[% item.tube_location %]</td>
+        <td>[% item.created_on %]</td>
+        <td>[% item.stored_by_user %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
 <script type="text/javascript">
   $(document).ready(function() {
     document.title = 'Crispr: [% crispr_data.id %]';

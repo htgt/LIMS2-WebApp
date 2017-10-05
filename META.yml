@@ -90,6 +90,7 @@ requires:
   DesignCreate::Util::Primer3: 0
   Digest::MD5: 0
   Digest::SHA: 0
+  Email::Valid: 0
   EngSeqBuilder: 0
   Excel::Writer::XLSX: 0
   Exporter: 0
@@ -151,6 +152,7 @@ requires:
   Log::Log4perl::Catalyst: 0
   Log::Log4perl::Level: 0
   MIME::Base64: 0
+  MIME::Lite: 0
   Math::Round: 0
   Module::Pluggable::Object: 0
   Moose: 0
@@ -206,4 +208,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.471
+version: 0.475
