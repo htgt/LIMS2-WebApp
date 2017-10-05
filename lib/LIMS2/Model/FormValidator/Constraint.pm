@@ -100,7 +100,7 @@ sub plate_name {
 }
 ;
 sub well_name {
-    return shift->regexp_matches(qr/^[A-O](0[1-9]|1[0-9]|2[0-4])$/);
+    return shift->regexp_matches(qr/^[A-P](0[1-9]|1[0-9]|2[0-4])$/);
 }
 
 sub plate_barcode {
@@ -118,6 +118,11 @@ sub bac_plate {
 sub existing_well_barcode {
     return shift->in_resultset( 'Well', 'barcode' );
 }
+
+sub existing_well_id {
+    return shift->in_resultset( 'Well', 'id' );
+}
+
 sub existing_bac_library {
     return shift->in_resultset( 'BacLibrary', 'id' );
 }
@@ -357,19 +362,15 @@ sub existing_miseq_status {
 }
 
 sub existing_miseq_plate {
-    return shift->in_resultset( 'MiseqProject', 'id' );
+    return shift->in_resultset( 'MiseqPlate', 'id' );
 }
 
 sub illumina_index_range {
     return shift->regexp_matches(qr/^[1-9]$|^[1-9][0-9]$|^[1-2][0-9]{2}$|^3[0-7][0-9]|^38[0-4]$/);
 }
 
-sub existing_miseq_well {
-    return shift->in_resultset( 'MiseqProjectWell', 'id' );
-}
-
 sub existing_miseq_well_exp {
-    return shift->in_resultset( 'MiseqProjectWellExp', 'id' );
+    return shift->in_resultset( 'MiseqWellExperiment', 'id' );
 }
 
 sub existing_miseq_experiment {

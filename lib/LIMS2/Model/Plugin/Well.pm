@@ -122,7 +122,7 @@ sub create_well {
 
     my $process_params = $validated_params->{process_data};
     $process_params->{output_wells} = [ { id => $well->id } ];
-
+    # if null DB::single=1;
     $self->create_process($process_params);
 
     # add piq plate type lab number insert here

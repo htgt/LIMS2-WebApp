@@ -118,6 +118,9 @@ sub find_parent_well_ids {
         'create_di'              => \&create_di_or_crispr_parents,
         'create_crispr'          => \&create_di_or_crispr_parents,
         'xep_pool'               => \&xep_pool_parents,
+        'miseq_no_template'      => \&miseq_child,
+        'miseq_oligo'            => \&miseq_child,
+        'miseq_vector'           => \&miseq_child,
         'other'                  => \&other_parents,
     );
 
@@ -315,13 +318,29 @@ sub create_di_or_crispr_parents {
     return;
 }
 
+sub miseq_child {
+    my ( $model, $params ) = @_;
+
+    my @parent_data = @{ $params->{process_data}->{input_wells} };
+    my @parent_well_ids;
+    foreach my $parent_well (@parent_data) {
+        push @parent_well_ids, well_id_for(
+            $model, {
+                plate_name => $parent_well->{plate_name},
+                well_name  => $parent_well->{well_name},
+            }
+        );
+    }
+
+    return @parent_well_ids;
+}
+
 sub other_parents {
     my ( $model, $params ) = @_;
 
     my @parent_well_ids;
 
     my $well_params = {};
-
 
     if($params->{parent_well_id}){
         $well_params = { id => $params->{parent_well_id} };

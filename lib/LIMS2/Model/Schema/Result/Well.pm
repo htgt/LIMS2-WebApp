@@ -269,6 +269,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_well_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate
 
 Type: belongs_to
@@ -595,8 +610,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:50:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wwmY0jGQQOTQvpz06fYT0w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4NxejflffTpjiuyHnXH8Yw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -677,6 +692,11 @@ sub plate_name {
 sub well_name {
     my $self = shift;
     return $self->name // '';
+}
+
+sub well_id {
+    my $self = shift;
+    return $self->id // '';
 }
 
 sub plate_type{

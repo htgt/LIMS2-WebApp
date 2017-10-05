@@ -172,6 +172,9 @@ my %process_check_well = (
     'doubling'               => \&_check_wells_doubling,
     'vector_cloning'         => \&_check_wells_vector_cloning,
     'golden_gate'            => \&_check_wells_golden_gate,
+    'miseq_no_template'      => \&_check_wells_miseq_no_template,
+    'miseq_oligo'            => \&_check_wells_miseq_oligo,
+    'miseq_vector'           => \&_check_wells_miseq_vector,
 );
 
 sub check_process_wells {
@@ -328,6 +331,36 @@ sub _check_wells_legacy_gateway {
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_golden_gate {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_miseq_no_template {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_miseq_oligo {
+    my ( $model, $process ) = @_;
+
+    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _check_wells_miseq_vector {
     my ( $model, $process ) = @_;
 
     check_input_wells( $model, $process);
@@ -873,6 +906,9 @@ my %process_aux_data = (
     'doubling'               => \&_create_process_aux_data_doubling,
     'vector_cloning'         => \&_create_process_aux_data_vector_cloning,
     'golden_gate'            => \&_create_process_aux_data_golden_gate,
+    'miseq_no_template'      => \&_create_process_aux_data_miseq_no_template,
+    'miseq_oligo'            => \&_create_process_aux_data_miseq_oligo,
+    'miseq_vector'           => \&_create_process_aux_data_miseq_vector,
 );
 
 sub create_process_aux_data {
@@ -1290,6 +1326,24 @@ sub _create_process_aux_data_second_electroporation {
             $model,
             { recombinase => $validated_params->{recombinase} }, $process );
     }
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_miseq_no_template {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_miseq_oligo {
+    return;
+}
+## use critic
+
+## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
+sub _create_process_aux_data_miseq_vector {
     return;
 }
 ## use critic
