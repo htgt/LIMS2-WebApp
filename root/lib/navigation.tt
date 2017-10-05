@@ -63,7 +63,7 @@
       [% IF template.title != 'Login' %]
       <ul class="nav navbar-nav">
 
-      [% IF c.user %]
+      [%- IF c.user && cache_report != 1 %]
 
         <li class="dropdown[% IF template.tab_name == "Genes" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">Genes<b class="caret"></b></a>
@@ -441,6 +441,7 @@
             <li><a href="[% c.uri_for('/logout') %]"><i class="glyphicon glyphicon-off"></i> Logout</a></li>
           </ul>
         </li>
+       
       <!-- Non Logged in User -->
       [% ELSE %]
         <li class="active"><a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]"><i class="glyphicon glyphicon-search"></i> Clone Genotyping Search</a></li>

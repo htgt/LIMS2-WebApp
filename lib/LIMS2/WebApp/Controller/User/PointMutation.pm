@@ -44,7 +44,9 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $overview = get_experiments($c, $miseq, 'genes');
     my $ov_json = encode_json ({ summary => $overview });
+
     my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $plate_id, $miseq_plate->{id}, $overview) });
+
     my $gene_keys = get_genes($c, $overview);
     my $revov = encode_json({ summary => $gene_keys });
     my @exps = sort keys %$overview;
@@ -70,6 +72,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my ( $self, $c ) = @_;
 
     my $index = $c->req->param('oligoIndex');
+
     my $exp_sel = $c->req->param('exp');
     my $miseq = $c->req->param('miseq');
     my $updated_status = $c->req->param('statusOption');
@@ -91,7 +94,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         $c->log->debug("No well found.");
     };
 
-
     @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
 
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
@@ -109,6 +111,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         indel           => '1b.Indel_size_distribution_percentage.png',
         status          => \@status,
         classifications => \@classifications,
+        max_wells => $well_limit->{$max},
     );
 
     return;
