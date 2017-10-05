@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.474     2017-10-05 10:00:36 Europe/London
+
+    Implementing password recovery and mi-seq arrows fix
 0.473     2017-10-03 12:05:05 Europe/London
 
     De-externalised public reports and added mi-seq arrows
