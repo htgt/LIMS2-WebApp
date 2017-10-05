@@ -36,7 +36,7 @@ BEGIN
     END LOOP;
 
 -- 384 
-    FOR fp IN 4..15 LOOP
+    FOR fp IN 4..20 LOOP
         IF fp < 10 
         THEN
             _fp := 'Miseq_00' || fp || '_FP';
