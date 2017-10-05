@@ -8,9 +8,13 @@
       <input name="username" class="form-control" id="username_field" type="text" placeholder="Username" value="[% c.req.param('username') %]"/>
       <input name="password" class="form-control" id="password_field" type="password" placeholder="Password" />
       <input class="btn btn-primary" name="login" id="login_button" type="submit" value="Login" />
+
+
     </fieldset>
   </form>
 </div>
 <div class="col-md-12"><br>
+Forgot your password? <a href="[% c.http_uri_for('/reset_password') %]">Reset Password</a>
+
 Or continue as an anonymous user to view public reports: <a href="[% c.http_uri_for('/public_reports/sponsor_report') %]">Public Reports</a>
 </div>

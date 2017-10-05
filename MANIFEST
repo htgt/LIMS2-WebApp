@@ -406,6 +406,7 @@ root/site/admin/js_overview.tt
 root/site/admin/test.js
 root/site/admin/update_user.tt
 root/site/auth/login.tt
+root/site/auth/reset_password.tt
 root/site/publicreports/access_denied.tt
 root/site/publicreports/await_report.tt
 root/site/publicreports/index.tt
