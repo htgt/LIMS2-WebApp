@@ -80,7 +80,8 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $well_name = convert_index_to_well_name($index);
 
     my $plate = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->as_hash;
-    my $miseq_plate_id = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->id;
+    my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate->{id} })->as_hash;
+    my $miseq_plate_id = $miseq_plate->{id};
 
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
@@ -103,6 +104,11 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         $c->stash->{selection} = $exp_sel;
     }
 
+    my $well_limit = {
+        0 => 96,
+        1 => 384,
+    };
+
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
@@ -111,7 +117,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         indel           => '1b.Indel_size_distribution_percentage.png',
         status          => \@status,
         classifications => \@classifications,
-        max_wells => $well_limit->{$max},
+        max_wells       => $well_limit->{$miseq_plate->{384}},
     );
 
     return;
