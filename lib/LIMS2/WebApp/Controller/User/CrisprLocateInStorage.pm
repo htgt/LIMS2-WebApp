@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprLocateInStorage;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprLocateInStorage::VERSION = '0.475';
+    $LIMS2::WebApp::Controller::User::CrisprLocateInStorage::VERSION = '0.476';
 }
 ## use critic
 
