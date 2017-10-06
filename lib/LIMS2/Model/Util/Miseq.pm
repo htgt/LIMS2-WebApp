@@ -198,8 +198,8 @@ sub generate_summary_data {
                 my @lines = read_file_lines($fh);
                 close $fh;
 
-                $percentages->{$exp}->{nhej} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
-                $percentages->{$exp}->{wt} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
+                $percentages->{$exp}->{wt} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
+                $percentages->{$exp}->{nhej} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
                 $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
                 $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
 
