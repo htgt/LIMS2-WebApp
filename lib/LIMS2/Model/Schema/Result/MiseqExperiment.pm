@@ -49,7 +49,7 @@ __PACKAGE__->table("miseq_experiment");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 name
 
@@ -88,7 +88,7 @@ __PACKAGE__->add_columns(
     sequence          => "miseq_experiment_id_seq",
   },
   "old_miseq_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "text", is_nullable => 0 },
   "gene",
@@ -177,12 +177,17 @@ __PACKAGE__->belongs_to(
   "old_miseq",
   "LIMS2::Model::Schema::Result::MiseqProject",
   { id => "old_miseq_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-26 16:29:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hSDooQEWLtbTMAuRlmrU7w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-10-09 17:16:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nxykM1kotj+aVk8HIrkCaw
 
 sub as_hash {
     my $self = shift;

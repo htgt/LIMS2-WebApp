@@ -195,6 +195,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 project_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_experiments",
+  "LIMS2::Model::Schema::Result::ProjectExperiment",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_sponsors
 
 Type: has_many
@@ -271,8 +286,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-27 12:30:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mHgfI8fTlLa0aPck6XCPng
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-10-09 17:16:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qy4Lo3OD4AWDDd7/3k4K8w
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
