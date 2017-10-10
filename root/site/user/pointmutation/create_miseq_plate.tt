@@ -397,7 +397,8 @@ function highlighter(target, start) {
     var empties = $('.miWell').not('.selected').not('.selecting');
     var textEmpties = empties.siblings('text');
     textEmpties.text(function() { return $(this).parent()[0].id; });
-    return start;
+
+    return index;
 }
 
 function selectionHighlighting(inc, originID) {
