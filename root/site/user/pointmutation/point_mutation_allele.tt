@@ -194,117 +194,90 @@ input:checked + .slider:before {
                     <td>[% oligo_index %]</td>
                     <td></td>
                 </tr>
-                [% IF selection %]
-                    <tr>
-                        <td>Gene</td>
-                        <td>[% selection.gene %]</td>
-                        <td></td>
-                    </tr>
-                [% END %]
+<!--- Taken out until requested
                 <tr>
                     <td>Barcode</td>
                     <td id="barcode"></td>
                     <td></td>
                 </tr>
-                <tr>
-                    <td>Status</td>
-                    <td><form action="#" method="post" name="statusContainer" id="statusContainer">[% state %]</form></td>
-                    <td id="buttonContainer"><button id="statusButton" class="btn btn-info" onclick="changeStatus();">Change Status <i class="glyphicon glyphicon-pencil"></i></button></td>
-                </tr>
+--->
             </table>
         </div>
     </div>
 </div>
-<form action="#" method="post" id="formSubmit"></form>
+<form action="#" method="POST" id="formSubmit"></form>
+
 [% IF selection %]
     <div class="row">
         <div class="col-md-4">
             <button class="btn btn-warning" onclick="showAll();">Show All Experiments <i class="glyphicon glyphicon-filter"></i></button>
         </div>
     </div>
-    <h2>Experiment: [% selection.id %]</h2>
-    <div class="clearfix row">
+[% END %]
+<br>
+[% IF experiments.size == 0  %]
+    <p>No data found.</p>
+[% END %]
+
+[% FOREACH experiment IN experiments %]
+    [% IF experiment.gene %]
+        <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
+    [% ELSE %]
+        <h2>Experiment: [% experiment.id %]</h2>
+    [% END %]
+    <div id="clearfix[% experiment.id %]" class="clearfix row">
         <div class="col-md-2">
             <label class="lb-md">Classification: </label>
         </div>
         <div class="col-md-2">
-            <form action="#" method="post" name="class[% selection.id %]" id="class[% selection.id %]">
-                <select class="form-control" align="center" id="classSelect" name="class[% selection.id %]" onchange="this.form.submit();">
-                    [% FOR class IN classifications %]
-                        [% IF class == selection.class %]
-                            <option value="[% class %]" selected="selected">[% class %]</option>
-                        [% ELSE %]
-                            <option value="[% class %]">[% class %]</option>
-                        [% END %]
+            <form action="#" method="POST" name="class[% experiment.id %]" id="class[% experiment.id %]">
+                <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
+                [% FOR class IN classifications %]
+                    [% IF class == experiment.class %]
+                        <option value="[% class %]" selected="selected">[% class %]</option>
+                    [% ELSE %]
+                        <option value="[% class %]">[% class %]</option>
                     [% END %]
-                    
-                    <!---<option value="not called" selected="selected">not called</option>
-                    <option value="Wild type">Wild Type</option>
-                    <option value="Het">Het</option>
-                    <option value="Hom1">Hom - 1 Allele</option>
-                    <option value="Hom2">Hom - 2 Alleles</option>
-                    <option value="Mixed">Mixed</option> -->
+                [% END %]
+                </select>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <label class="lb-md">Status: </label>
+        </div>
+        <div class="col-md-2">
+            <form action="#" method="POST" name="status[% experiment.id %]" id="status[% experiment.id %]">
+                <select class="form-control" align="center" id="statusSelect" name="status[% experiment.id %]" onchange="this.form.submit();">
+                [% FOR state IN status %]
+                    [% IF state == experiment.status %]
+                        <option value="[% state %]" selected="selected">[% state %]</option>
+                    [% ELSE %]
+                        <option value="[% state %]">[% state %]</option>
+                    [% END %]
+                [% END %]
                 </select>
             </form>
         </div>
     </div>
-    <div class='genes [% selection.id %]'></div>
+    <div class='genes [% experiment.id %]'></div>
     <div class="row">
         <div class="col-md-3">
-            <button class="allele btn btn-primary" onclick="displayIndels([% selection.id %])" value='[% selection.id %]'>
-                Allele Frequency - [% selection.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
+            <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
+                Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
             </button>
         </div>
         <div class="col-md-3">
-            <button id="dl[% selection.id %]" class="download btn btn-success" value="[% selection.id %]">
+            <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
                 Download CSV <i class="glyphicon glyphicon-download-alt"></i>
             </button>
         </div>
     </div>
-    <div id='[% selection.id %]'></div>
-
-[% ELSE %]
-    [% FOREACH experiment IN experiments %]
-        <h2>Experiment: [% experiment.id %]</h2>
-        <div class="clearfix row">
-            <div class="col-md-2">
-                <label class="lb-md">Classification: </label>
-            </div>
-            <div class="col-md-2">
-                <form action="#" method="post" name="class[% experiment.id %]" id="class[% experiment.id %]">
-                    <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
-                    [% FOR class IN classifications %]
-                        [% IF class == experiment.class %]
-                            <option value="[% class %]" selected="selected">[% class %]</option>
-                        [% ELSE %]
-                            <option value="[% class %]">[% class %]</option>
-                        [% END %]
-                    [% END %]
-                    </select>
-                </form>
-            </div>
-        </div>
-        <div class='genes [% experiment.id %]'></div>
-        <div class="row">
-            <div class="col-md-2">
-                <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
-                    Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
-                </button>
-            </div>
-            <div class="col-md-2">
-                <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
-                    Download CSV <i class="glyphicon glyphicon-download-alt"></i>
-                </button>
-            </div>
-        </div>
-        <div id='[% experiment.id %]'></div>
-    [% END %]
+    <div id='[% experiment.id %]'></div>
+    <br>
 [% END %]
 
 <script type="text/javascript" charset="utf-8">
 var exps = [];
-var statesRaw = '[% status %]';
-var states = JSON.parse(statesRaw.replace(/&quot;/g,'"'));
 
 $(document).ready(function() {
     $('.download').hide();
@@ -322,10 +295,10 @@ $(document).ready(function() {
         getImages(exps[expIndex], '[% indel %]');
         //getSummary(exps[expIndex]);
     }
-    var expSel = '[% selection.gene %]';
+    var expSel = '[% selection %]';
     if (expSel) {
         document.title = '[% oligo_index %]:' + expSel + ' - [% miseq %]';
-        displayIndels(document.getElementById('[% selection.id %]'));
+        displayIndels(document.getElementById(expSel));
         $('.allele').find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     } else {
         document.title = '[% oligo_index %]:All - [% miseq %]';
@@ -366,7 +339,6 @@ function toggleTable(table) {
 
 function getImages(letter, chart, div) {
     var index = '[% oligo_index %]';
-    
     $.ajax({
         url: '[% c.uri_for('/api/point_mutation_img/') %]',
         type: "GET",
@@ -385,8 +357,9 @@ function getImages(letter, chart, div) {
             }
         },
         error: function() {
-            console.log('Failure to receive indel size distribution graph for ' + letter);
+            console.log('Failure to retrieve indel size distribution graph for ' + letter);
             $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
+            $('#clearfix' + letter).hide();
         }
     });
 }
@@ -556,36 +529,6 @@ function downloadCSV(letter, result) {
     hiddenElement.download = 'MiSeq_[% oligo_index %]_exp' + letter + '.csv';
     document.body.appendChild(hiddenElement);
     hiddenElement.click();
-}
-
-function changeStatus() {
-    var options = states.summary;
-    var current = $('#statusContainer').text();
-    var index = options.indexOf(current);
-    if (index > -1) {
-        options.splice(index, 1);
-        options.unshift(current);
-    } else {
-        console.log("Something very wrong has happened.");
-    }
- 
-    var select = document.createElement('select');
-    select.className += " btn btn-default";
-    select.name = "statusOption";
-    select.onchange = function() { this.form.submit(); };
-    
-    $('#statusContainer').html("");
-    for (var count = 0; count < options.length; count++) {
-        var option = document.createElement('option');
-        option.setAttribute("value", options[count]);
-        option.appendChild(document.createTextNode(options[count]));
-        select.appendChild(option);
-    }
-
-    var div = document.getElementById('statusContainer');
-    div.appendChild(select);
-
-    $('#statusButton').remove();
 }
 
 </script>

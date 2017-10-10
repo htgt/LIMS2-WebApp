@@ -1,6 +1,5 @@
 [%- META title = 'Point Mutation' %]
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
-
 <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <style>
 
@@ -58,6 +57,8 @@ body {
 }
 
 </style>
+[% SET y1 = [ "A", "B", "C", "D", "E", "F", "G", "H" ] %]
+[% SET y2 = [ "I", "J", "K", "L", "M", "N", "O", "P" ] %]
 
 <div class="page-header">
   <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
@@ -138,7 +139,7 @@ body {
     [% IF large_plate == 1 %]
         [% INCLUDE "miseq_quadrant_table.tt" %]
     [% ELSE %]
-        [% INCLUDE "miseq_overview_table.tt" page = 0 %]
+        [% INCLUDE "miseq_overview_table.tt" page = 0 x = 0 y = y1 %]
     [% END %]
 </div>
 
@@ -263,15 +264,6 @@ function createRings() {
         .attr("d", fsArc)
         .attr("class", "frame");
 
-    /*
-    var missingData = d3.selectAll("g")
-        .append("path").datum(initDonut[1])
-        .style("fill","#8f0a0b")
-        .attr("d", arc)
-        .attr("class", "donut")
-        .attr("class", "miss");
-    */
-
     d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.6em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
 }
 
@@ -309,13 +301,15 @@ var targetText = d3.selectAll("g.teNode")
 
 $(document).ready(function() {
     createRings();
-    frameshifts();
+    //frameshifts();
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
     buildExps(1);
     document.title = '[% miseq %] - Point Mutation';
     resize();
-    highlightSelection();
+    var select = '[% selection %]';
+    $('#expSelect').val(select);
+    highlight_init();
 });
 
 $('#geneSelect').change(function() {
@@ -331,20 +325,20 @@ $('#geneSelect').change(function() {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
     }
-    if ($('#pageFocus').find('.quad').length != 0) {
-        highlightQuad();
-    } else {
-        highlightSelection();
-    }
+    highlight_init();
 });
 
 $('#expSelect').change(function() {
+    highlight_init();
+});
+
+function highlight_init() {
     if ($('#pageFocus').find('.quad').length != 0) {
         highlightQuad();
     } else {
         highlightSelection();
     }
-});
+}
 
 $('#quadSelect').change(function(){
     var quad = $('#quadSelect').val();
@@ -380,13 +374,6 @@ function clearSelection() {
     } else {
         highlightSelection();
     }
-    /*
-    if ($('#pageFocus').find('.quad').length != 0) {
-        highlightQuad();
-    } else {
-        highlightSelection();
-    }
-    */
 }
 
 $(window).resize(function() {
@@ -399,16 +386,16 @@ function buildQuadrant(quad) {
     var construct;
     switch (quad) {
         case "firstQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 x = 0 y = y1 %]`;
             break;
         case "secondQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 x = 12 y = y1 %]`;
             break;
         case "thirdQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 x = 0 y = y2 %]`;
             break;
         case "fourthQuad":
-            construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 %]`;
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 x = 12 y = y2 %]`;
             break;
         default:
             console.log("outside of plate limits..");
@@ -420,12 +407,12 @@ function buildQuadrant(quad) {
     prevExp = "";
     clearHighlight();
     resize();
-    frameshifts();
+    //frameshifts();
     $("#key").draggable({ stack: ".drag", zIndex: 2500  });
     $("#key").css('boxShadow','0px 0px 1px 1px grey');
     $("#key").css('z-index', '100');
     $('#quadBack').show();
-
+    highlightSelection();
 }
 
 function buildOverview() {
@@ -491,24 +478,19 @@ function twoDigits(n) {
     return n > 9 ? "" + n: "0" + n;
 }
 
-function buildExps(first) {
+function buildExps() {
     var wells = json.summary;
     var nodes = d3.selectAll('td').nodes();
     var dropdown = document.getElementById('expSelect');
 
     for (var i = 0; i < nodes.length; i++) {
         var wellData = wells[twoDigits(nodes[i].id)];
-        if ((wellData.status == 'Scanned-Out' || wellData.status == 'Empty') && first != null) {
-            d3.select(nodes[i].childNodes[0]).append("circle")
-                .attr("cx", width / 2).attr("cy", height / 2)
-                .attr("r", function(){ return radius - arcWidth; })
-                .attr("class", "scan")
-                .style("opacity", 0.4)
-                .style("fill", '#ff001a');
-        }
+
         for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
+            var expDetails = wellData.details[expName];
+
             /* 
             if (wellData.percentages[expName].miss != null) {
                 var missArc = $(node).find('.miss');
@@ -517,12 +499,24 @@ function buildExps(first) {
                 Place below code here
             }
             */
-            
+            if (expDetails.status == 'Scanned-Out' || expDetails.status == 'Empty') {
+                console.log("Adding status circle");
+                d3.select(nodes[i].childNodes[0]).append("circle")
+                    .attr("cx", width / 2).attr("cy", height / 2)
+                    .attr("r", function(){ return radius - arcWidth; })
+                    .attr("class", "scan " + expName)
+                    .style("opacity", 0.4)
+                    .style("fill", '#FF001A');
+            }
+
             var types = ['nhej', 'wild', 'hdr', 'mix'];
+
             for (var type = 0; type < types.length; type++) {
                 buildArcs(node, types[type], expName);
             }
-
+            if (wellData.details[expName].frameshift == 1) {
+                buildArcs(node, 'frame', expName);
+            }
         }
     }
 }
@@ -541,6 +535,7 @@ function highlightSelection(selection) {
     if (selection != 'All') {
         setTimeout(function() { d3.selectAll('.' + selection).filter(".wild").transition().duration(500).attrTween("d", arcTween(tau, arc)); }, 250);
         setTimeout(function() { buildDonut(selection); }, 250);
+        setTimeout(function() { d3.selectAll('.' + selection).filter('.scan').transition().duration(500).attr('r',function(){ return radius - arcWidth; }); }, 250);
     }
 
     calculateEfficiency(selection);
@@ -593,6 +588,8 @@ function buildDonut(exp) {
         var values = wells[twoDigits(id)].percentages[exp];
         var total = +values.nhej + +values.wt + +values.hdr + +values.mix;
         var arcTau = values.mix / total;
+        var frameTau = wells[twoDigits(id)].details[exp].frameshifted ? wells[twoDigits(id)].details[exp].frameshifted : 0;
+
         if ($('#filterReads').is(':checked') && total < 1000) {
             var wtArc = $($(nhejNodes[nodeIt]).closest("td")[0]).find('path.wild');
             d3.select(wtArc[0]).transition().duration(500).attrTween("d", arcTween(0, arc));
@@ -602,6 +599,7 @@ function buildDonut(exp) {
             d3.select(hdrNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau, arc));
             arcTau = (+values.nhej + +values.hdr + +values.mix) / total;
             d3.select(nhejNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(arcTau * tau, arc));
+            d3.select(frameNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(frameTau * tau, arc));
         }
     }
     for (var nodeIt = 0; nodeIt < frameNodes.length; nodeIt++) {
@@ -615,10 +613,11 @@ function clearHighlight() {
         d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0, arc));
         d3.selectAll('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     } else {
-        d3.selectAll("." + prevExp).transition().duration(250).attrTween("d", arcTween(0, arc));
+        d3.selectAll("." + prevExp + ":not(.scan)").transition().duration(250).attrTween("d", arcTween(0, arc));
         d3.selectAll('.' + prevExp).filter('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
     }
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
+    d3.selectAll('.scan').transition().duration(500).attr('r',0);
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
 }
 
@@ -664,42 +663,6 @@ function calculateEfficiency(target) {
     }
 }
 
-function frameshifts() {
-    var index = '[% miseq %]';
-
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_frameshifts/') %]',
-        type: "GET",
-        contentType: 'application/json; charset=utf-8',
-        data: {
-            miseq: '[% miseq %]', 
-        },
-        success: function(result){
-            frameshiftJSON = JSON.parse(result);
-            buildFrameshifts();
-            highlightSelection();
-        },
-        error: function() {
-            console.log("Failed to retrieve data");
-        }
-    });
-    
-    return;
-}
-
-function buildFrameshifts() {
-    var nodes = d3.selectAll('td').nodes();
-
-    for (var key in frameshiftJSON) {
-        var fsIndexes = frameshiftJSON[key];
-        for (var i = 0; i < fsIndexes.length; i++) {
-            var node = d3.select($('td#' + fsIndexes[i])).node();
-            buildArcs(node, 'frame', key);
-        }
-    }
-
-}
-
 function tooltip(node) {
     var oligoIndex = twoDigits(node.parent()[0].id);
     var dataPoint = json.summary[oligoIndex];
@@ -710,21 +673,19 @@ function tooltip(node) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
             Gene: ` + overview.summary[focusExp].sort().toString() + `<br>
-            Status: ` + dataPoint.status + `<br>
+            Status: ` + dataPoint.details[focusExp].status + `<br>
             NHEJ: ` + dataPoint.percentages[focusExp].nhej + ` reads<br>
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
             Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
-            Classification: ` + dataPoint.classes[focusExp];
+            Classification: ` + dataPoint.details[focusExp].class;
     } else if (focusExp != 'All'){
-        response = `
-            Oligo Index: ` + oligoIndex + `<br>
-            Status: ` + dataPoint.status;
+        response = 'Oligo Index: ' + oligoIndex + '<br>';
     } else { 
         response = `
             Oligo Index: ` + oligoIndex + `<br>
             Genes: ` + dataPoint.gene.sort().toString() + `<br>
-            Status: ` + dataPoint.status;
+            Status: ` + dataPoint.details[focusExp].status;
     }
     return response;
 }
