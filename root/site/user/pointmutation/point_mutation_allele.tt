@@ -216,7 +216,7 @@ input:checked + .slider:before {
 [% END %]
 <br>
 [% IF experiments.size == 0  %]
-    <p>No data found.</p>
+    <p>No data found for well: [% oligo_index %].</p>
 [% END %]
 
 [% FOREACH experiment IN experiments %]
