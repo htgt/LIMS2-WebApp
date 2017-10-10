@@ -379,10 +379,10 @@ function highlighter(target, start) {
 
     var originIndex = startWell.id.split('_')[1];
     index = index.split('_')[1];
-    
     start = start || index;
+    
     d3.selectAll('rect').classed('selecting',false);
-    var invalidWellOffset = 0;
+    
     var diff = +originIndex - +start;
     originID = +start + +diff;
 
@@ -390,6 +390,7 @@ function highlighter(target, start) {
         originID = selectionHighlighting(inc, originID);
         originID++;
     }
+    
     d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected") && !$(this).hasClass("invalid"); }).style('fill','white');
     d3.selectAll('.selecting').style('fill', yellow);
 
