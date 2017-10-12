@@ -198,7 +198,22 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     my $crispr_qc = $self->crispr_qc_data( \%wells_hash );
 
     # Get experiments linked to gene
-    my $experiments = [ map { $_->as_hash } map { $_->experiments } @projects ];
+    #my $experiments = [ map { $_->as_hash } map { $_->experiments } @projects ];
+    my @experiments;
+    my $expr_proj;
+
+    foreach my $proj (@projects) {
+        foreach my $exp ($proj->experiments) {
+            my $experiment_id = $exp->id;
+            if (grep {$_ eq $experiment_id} keys %$expr_proj) {
+                push @{$expr_proj->{$experiment_id}}, $proj->id;
+                next;
+            }
+            push @{$expr_proj->{$experiment_id}}, $proj->id;
+            my $id_hash = {project_id => $expr_proj->{$experiment_id}};
+            push @experiments, {$exp->get_columns, %$id_hash};
+        }
+    }
 
     my @all_crispr_vecs;
     if (defined $sorted_wells{crispr_vector}) {
@@ -217,7 +232,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'timeline'             => \@timeline,
         'sponsor'              => $sponsor,
         'crispr_qc'            => $crispr_qc,
-        'experiments'          => $experiments,
+        'experiments'          => \@experiments,
     );
 
     return;
