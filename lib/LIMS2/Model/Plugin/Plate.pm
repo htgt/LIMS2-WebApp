@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.472';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.478';
 }
 ## use critic
 
@@ -141,6 +141,7 @@ for each process type
 
 sub create_plate {
     my ( $self, $params ) = @_;
+
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
     $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 

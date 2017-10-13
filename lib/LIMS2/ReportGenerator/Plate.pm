@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::VERSION = '0.472';
+    $LIMS2::ReportGenerator::Plate::VERSION = '0.478';
 }
 ## use critic
 
@@ -39,7 +39,6 @@ sub _report_plugins {
 ## no critic(RequireFinalReturn)
 sub report_class_for {
     my ( $class, $plate_type ) = @_;
-
     for my $plugin ( $class->_report_plugins ) {
         if ( $plugin->handles_plate_type( $plate_type ) && !$plugin->additional_report ) {
             return $plugin;

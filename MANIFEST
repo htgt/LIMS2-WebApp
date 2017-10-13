@@ -124,10 +124,12 @@ lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
 lib/LIMS2/Model/Schema/Result/MiseqExperiment.pm
+lib/LIMS2/Model/Schema/Result/MiseqPlate.pm
 lib/LIMS2/Model/Schema/Result/MiseqProject.pm
 lib/LIMS2/Model/Schema/Result/MiseqProjectWell.pm
 lib/LIMS2/Model/Schema/Result/MiseqProjectWellExp.pm
 lib/LIMS2/Model/Schema/Result/MiseqStatus.pm
+lib/LIMS2/Model/Schema/Result/MiseqWellExperiment.pm
 lib/LIMS2/Model/Schema/Result/MutationDesignType.pm
 lib/LIMS2/Model/Schema/Result/Nuclease.pm
 lib/LIMS2/Model/Schema/Result/OldProject.pm
@@ -246,6 +248,7 @@ lib/LIMS2/Model/Util/GenomeBrowser.pm
 lib/LIMS2/Model/Util/GenoverseSupport.pm
 lib/LIMS2/Model/Util/ImportSequencing.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
+lib/LIMS2/Model/Util/Miseq.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
@@ -287,6 +290,7 @@ lib/LIMS2/Report/GeneEPSummary.pm
 lib/LIMS2/Report/HetSummary.pm
 lib/LIMS2/Report/IntermediateVectorPlate.pm
 lib/LIMS2/Report/LegacyCreKnockInProjects.pm
+lib/LIMS2/Report/MISEQPlate.pm
 lib/LIMS2/Report/OligoAssembly.pm
 lib/LIMS2/Report/PICKPlate.pm
 lib/LIMS2/Report/PIQPlate.pm
@@ -389,6 +393,7 @@ root/lib/miseq_quadrant_table.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
+root/lib/plate_grid_view.tt
 root/lib/plate_upload_help.tt
 root/lib/process_specific_fields.tt
 root/lib/recombinase_upload_help.tt
@@ -406,6 +411,8 @@ root/site/admin/js_overview.tt
 root/site/admin/test.js
 root/site/admin/update_user.tt
 root/site/auth/login.tt
+root/site/auth/reset_password.tt
+root/site/publicreports/access_denied.tt
 root/site/publicreports/await_report.tt
 root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
@@ -505,6 +512,7 @@ root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/pointmutation/browse_point_mutation.tt
+root/site/user/pointmutation/create_miseq_plate.tt
 root/site/user/pointmutation/point_mutation.tt
 root/site/user/pointmutation/point_mutation_allele.tt
 root/site/user/primers/generate_primers.tt

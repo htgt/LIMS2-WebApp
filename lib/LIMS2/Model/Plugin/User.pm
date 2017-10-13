@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.472';
+    $LIMS2::Model::Plugin::User::VERSION = '0.478';
 }
 ## use critic
 
@@ -276,11 +276,32 @@ sub change_user_password {
 
     my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{new_password} );
-
+    $csh->add( $validated_params->{password} );
     $user->update( { password => $csh->generate } );
 
     return $user;
 }
+
+sub pspec_update_user_password{
+
+    return {
+	id                   => { validate   => 'integer' },
+
+    };
+}
+
+sub update_user_password{
+    my ( $self, $params ) = @_;
+    my $validated_params = $self->check_params( $params, $self->pspec_update_user_password );
+    my $user = $self->retrieve( User => { id => $validated_params->{id} } );
+
+    my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
+
+    $user->update( { password => $csh->generate } );
+
+    return $user;
+
+    }
 
 sub pspec_create_api_key {
     return {

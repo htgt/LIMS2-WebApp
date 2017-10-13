@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.472';
+    $LIMS2::Model::Constants::VERSION = '0.478';
 }
 ## use critic
 
@@ -67,6 +67,7 @@ const our %PROCESS_PLATE_TYPES => (
     'doubling'               => [qw( PIQ )],
     'vector_cloning'         => [qw( PREINT )],
     'golden_gate'            => [qw( FINAL )],
+    'miseq'                  => [qw( MISEQ )],
 );
 
 # Additional information required at upload for process types (none if not listed)
@@ -234,6 +235,18 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     'golden_gate' => {
         type   => [qw( DESIGN )],
         number => 1,
+    },
+    'miseq_no_template' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
+    },
+    'miseq_oligo' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
+    },
+    'miseq_vector' => {
+        type   => [qw( FP )],
+        number => 'MULTIPLE',
     },
 );
 

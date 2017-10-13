@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.472';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.478';
 }
 ## use critic
 
@@ -18,7 +18,7 @@ LIMS2::Model::Schema::Result::Plate
 
 use strict;
 use warnings;
-use Try::Tiny;
+
 use Moose;
 use MooseX::NonMoose;
 use MooseX::MarkAsMethods autoclean => 1;
@@ -235,6 +235,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_plates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqPlate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_plates",
+  "LIMS2::Model::Schema::Result::MiseqPlate",
+  { "foreign.plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate_comments
 
 Type: has_many
@@ -316,8 +331,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FwSGsovECFvj2EVxMP3SPw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lkWpBnDdwOmcZpmE1htdnQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -446,5 +461,22 @@ sub has_global_arm_shortened_designs{
     my $self = shift;
     return any { $_->global_arm_shortened_design } $self->wells;
 }
+
+sub miseq_details {
+    my $self = shift;
+
+    my %h = (
+        id      => $self->miseq_plates->first->id,
+        name    => $self->name,
+        date    => $self->created_at->datetime,
+    );
+
+    return \%h;
+}
+
+sub wells {
+    return shift->wells->all();
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

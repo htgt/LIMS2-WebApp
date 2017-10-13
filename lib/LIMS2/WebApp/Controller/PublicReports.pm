@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.472';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.478';
 }
 ## use critic
 
@@ -151,6 +151,13 @@ sub allele_dump : Path( '/public_reports/allele_dump' ) : Args(0) {
     return;
 }
 
+sub access_denied : Path( '/public_reports/access_denied' ) {
+
+    my ( $self, $c ) = @_;
+
+    return;
+}
+
 =head2 index
 
 =cut
@@ -165,10 +172,10 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 # If logged in always use live top level report and cached sub_reports
 # The cache_param refers to the sub_reports
 
-
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
         $top_cache_param = 'without_cache';
+        $c->stash->{'cache_report'} = 1;
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
@@ -352,6 +359,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     my $species = $c->session->{selected_species};
 
+    $c->stash->{no_wrapper} = 1;
     my $cache_param = $c->request->params->{'cache_param'};
 
     if ($c->request->params->{generate_cache}) {
@@ -529,7 +537,6 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
 
 sub view_cached_simple : Path( '/public_reports/cached_sponsor_report_simple' ) : Args(1) {
     my ( $self, $c, $report_name ) = @_;
-
     $c->log->info( "Generate public detail report for : $report_name" );
 
     return $self->_view_cached_lines($c, $report_name, 1 );
@@ -559,6 +566,7 @@ sub _view_cached_lines {
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )
         or die "unable to open cached file ($cached_file_name): $!";
+
 
     while (<$html_handle>) {
         push @lines_out, $_;

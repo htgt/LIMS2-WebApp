@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.472';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.478';
 }
 ## use critic
 
@@ -128,7 +128,7 @@ sub create_well {
 
     my $process_params = $validated_params->{process_data};
     $process_params->{output_wells} = [ { id => $well->id } ];
-
+    # if null DB::single=1;
     $self->create_process($process_params);
 
     # add piq plate type lab number insert here

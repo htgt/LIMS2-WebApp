@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.472';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.478';
 }
 ## use critic
 
@@ -10,6 +10,7 @@ use Try::Tiny;
 use LIMS2::Model::Util qw( sanitize_like_expr );
 use namespace::autoclean;
 use HTGT::QC::Util::CreateSuggestedQcPlateMap qw(search_seq_project_names get_parsed_reads);
+use List::MoreUtils qw(uniq);
 
 BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -185,7 +186,7 @@ sub plate_names_GET {
 
     my $plate_names;
     try {
-        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->request->params->{term} );
+        $plate_names = $self->_entity_column_search( $c, 'Plate', 'name', $c->request->params->{term}, $c->request->params->{type} );
     }
     catch {
         $c->log->error( $_ );
@@ -195,12 +196,19 @@ sub plate_names_GET {
 }
 
 sub _entity_column_search {
+    my ( $self, $c, $entity_class, $search_column, $search_term, $plate_type ) = @_;
 
-    my ( $self, $c, $entity_class, $search_column, $search_term ) = @_;
-
-    my %search = (
-        $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
-    );
+    my %search;
+    if ($plate_type) {
+        %search = (
+            $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' },
+            type_id => $plate_type,
+        );
+    } else {
+        %search = (
+            $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' }
+        );
+    }
     my $resultset = $c->model('Golgi')->schema->resultset($entity_class);
 
     if ( $resultset->result_source->has_column('species_id') ) {
@@ -253,16 +261,51 @@ sub old_versions_GET {
 }
 
 
-=head1 AUTHOR
+sub miseq_gene_symbols :Path( '/api/autocomplete/miseq_gene_symbols' ) :Args(0) :ActionClass('REST') {
+}
 
-Sajith Perera
+sub miseq_gene_symbols_GET {
+    my ( $self, $c ) = @_;
 
-=head1 LICENSE
+    $c->assert_user_roles('read');
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+    my $term = lc($c->request->param('term'));
 
-=cut
+    my @results;
+
+    try {
+        @results = uniq sort map { (split(/_/, $_->gene))[0] } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+            {
+                'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
+            }
+        );
+    }
+    catch {
+        $c->log->error($_);
+    };
+
+    return $self->status_ok($c, entity => \@results);
+}
+
+sub miseq_plates :Path( '/api/autocomplete/miseq_plates' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_plates_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $term = lc($c->request->param('term'));
+
+    my @results = sort { $a cmp $b } map { $_->name } $c->model('Golgi')->schema->resultset('Plate')->search(
+        {
+            'LOWER(name)'   => { 'LIKE' => '%' . $term . '%' },
+            type_id         => 'MISEQ',
+        }
+    );
+
+    return $self->status_ok($c, entity => \@results);
+}
 
 __PACKAGE__->meta->make_immutable;
 
