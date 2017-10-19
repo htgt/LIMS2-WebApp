@@ -365,7 +365,8 @@ sub find_project_experiments {
     try {
         @exp_ids = uniq @exp_ids;
         @exps = $self->schema->resultset('Experiment')->search({ id => { -in => \@exp_ids } })->all;
-    }
+    };
+
     return @exps;
 }
 
@@ -395,8 +396,8 @@ sub create_experiment{
         crispr_pair_id => ($validated_params->{crispr_pair_id} // undef),
         crispr_group_id => ($validated_params->{crispr_group_id} // undef),
     };
+
     my $experiment;
-    my $experiment_id;
     my $project_id = $validated_params->{project_id};
     delete $validated_params->{project_id};
 
@@ -424,7 +425,7 @@ sub create_experiment{
         if (scalar @rs == 0) {
             $self->schema->resultset('ProjectExperiment')->create($expr_proj_params);
         }
-    }
+    };
 
     return $experiment;
 }
