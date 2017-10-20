@@ -876,7 +876,7 @@ sub single_crispr_primer_calculate {
     my $model = shift;
     my $params = shift;
     my $crispr_oligos = shift;
-
+$DB::single=1;
     my $repeat_mask = $params->{'repeat_mask'};
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
@@ -1135,7 +1135,7 @@ sub get_single_crispr_EnsEmbl_region {
     my $model = shift;
     my $params = shift;
     my $crispr_oligos = shift;
-
+$DB::single=1;
     my $design_r = $model->schema->resultset('Design')->find($params->{'design_id'});
     my $design_info = LIMS2::Model::Util::DesignInfo->new( design => $design_r );
     my $design_oligos = $design_info->oligos;
