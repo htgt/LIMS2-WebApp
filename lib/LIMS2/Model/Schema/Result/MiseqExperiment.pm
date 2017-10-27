@@ -45,7 +45,7 @@ __PACKAGE__->table("miseq_experiment");
   is_nullable: 0
   sequence: 'miseq_experiment_id_seq'
 
-=head2 miseq_id
+=head2 old_miseq_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -71,6 +71,12 @@ __PACKAGE__->table("miseq_experiment");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 miseq_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -81,7 +87,7 @@ __PACKAGE__->add_columns(
     is_nullable       => 0,
     sequence          => "miseq_experiment_id_seq",
   },
-  "miseq_id",
+  "old_miseq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 0 },
@@ -91,6 +97,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "total_reads",
   { data_type => "integer", is_nullable => 1 },
+  "miseq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -111,15 +119,20 @@ __PACKAGE__->set_primary_key("id");
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::MiseqProject>
+Related object: L<LIMS2::Model::Schema::Result::MiseqPlate>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "miseq",
-  "LIMS2::Model::Schema::Result::MiseqProject",
+  "LIMS2::Model::Schema::Result::MiseqPlate",
   { id => "miseq_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 =head2 miseq_project_well_exps
@@ -137,9 +150,39 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_well_experiments
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-03 16:19:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Og/3VrSe4J9056eBBHUqFA
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
+  { "foreign.miseq_exp_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 old_miseq
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqProject>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "old_miseq",
+  "LIMS2::Model::Schema::Result::MiseqProject",
+  { id => "old_miseq_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-26 16:29:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hSDooQEWLtbTMAuRlmrU7w
 
 sub as_hash {
     my $self = shift;
@@ -151,6 +194,20 @@ sub as_hash {
         gene        => $self->gene,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
+        old_miseq_id => $self->old_miseq_id, #TODO delete after migration
+    );
+
+    return \%h;
+}
+
+sub parent_plate {
+    my $self = shift;
+
+    my %h = (
+        id      => $self->miseq->id,
+        plate   => $self->miseq->plate->name,
+        date    => $self->miseq->plate->created_at->datetime,
+        name    => $self->name,
     );
 
     return \%h;

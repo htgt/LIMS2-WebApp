@@ -1,0 +1,146 @@
+<!--  
+This is a generic plate view for UI visualations.
+To use it, firstly place the following into your page
+
+    <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+    [\% INCLUDE 'plate_grid_view.tt' rows = 12 columns = 8 row_pixel = 50 column_pixel = 50 letters_on = "column" %\]
+
+Remove the backslashes ^ 
+Once you've added that, you can initialise a plate by doing the following.
+    <div id="container"></div>
+
+    <script type="text/javascript">
+    
+    var grid = d3.select("#container")
+        .append("svg")
+        .attr("width","610px")
+        .attr("height","610px");
+    
+    setupPlate(grid);
+    addWellNames();
+
+    </script>
+    
+width = rows x row_pixel + 10, height = columns x column_pixel + 10.
+You can create as many plates as you like so long as you create separate containers. i.e.
+
+    <div class="col-md-12">
+        <div id="left" class="col-md-6"></div>
+        <div id="right" class="col-md-6"></div>
+    </div>
+
+    <script type="text/javascript">
+    
+    var leftGrid = d3.select("#left")
+        .append("svg")
+        .attr("width","610px")
+        .attr("height","610px");
+    
+    var rightGrid = d3.select("#right")
+        .append("svg")
+        .attr("width","610px")
+        .attr("height","610px");
+    
+    setupPlate(leftGrid, 'A', 1);
+    setupPlate(rightGrid, 'A', 1);
+    addWellNames();
+
+    </script>
+This will create two plates side by side. Add well names must be done after else you'll get duplicates
+
+-->
+<style>
+
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+</style>
+
+<script type="text/javascript">
+
+function setupPlate(grid, wellClass, letter, initVal) {
+    gridData = setupGrid(letter, initVal);    
+ 
+    var row = grid.selectAll(".row")
+        .data(gridData)
+        .enter()
+        .append("g")
+        .attr("class", "row");
+    
+    var column = row.selectAll(".square")
+        .data(function(d) { return d; })
+        .enter()
+        .append("g")
+        .attr("class","sqContainer")
+        .attr("id", function(d) { return d.well; })
+        .attr("transform", function(d, i) { 
+            return "translate(" + d.x + "," +  d.y + ")"; 
+        })
+        .append("rect")
+        .attr("class","square " + wellClass)
+        .attr("id", function(d) { return wellClass + '_' + d.index; })
+        //.attr("x", function(d) { return d.x; })
+        //.attr("y", function(d) { return d.y; })
+        .attr("width", function(d) { return d.width; })
+        .attr("height", function(d) { return d.height; })
+        .style("fill", "#ffffff")
+        .style("stroke", "#222222");
+}
+
+function addWellNames() {
+    d3.selectAll("g.sqContainer")
+        .append("text")
+        .attr("class","wellText unselectable")
+        .attr("dx","0.5em")
+        .attr("dy","1.3em")
+        .text(function() {
+            return $(this).parent()[0].id;
+        });
+}
+
+function axes(letter, colInit, rowValue, colValue) {
+    var ascii = letter.charCodeAt(0);
+    var request = '[% letters_on %]' || 'row';
+    if (request == 'row') {
+        return String.fromCharCode(+ascii + +rowValue) + twoSignificantFigures(+colValue + +colInit);
+    } 
+    return String.fromCharCode(+ascii + +colValue) + twoSignificantFigures(+rowValue + +colInit);
+} 
+
+function setupGrid(letter, initVal) {
+    var data = new Array();
+    var xPos = 1; 
+    var yPos = 1;
+    var width = '[% row_pixel %]';
+    var height = '[% column_pixel %]';
+    var numOfElemInRow = '[% columns %]';
+
+    for (var row = 0; row < [% rows %]; row++) {
+        data.push( new Array() );
+        for (var column = 0; column < [% columns %]; column++) {
+            var well = axes(letter, initVal, row, column);
+            var index = (row * numOfElemInRow) + column;
+            data[row].push({
+                well: well,
+                x: xPos,
+                y: yPos,
+                width: width,
+                height: height,
+                index: index
+            })
+            xPos = +xPos + +width;
+        }
+        xPos = 1;
+        yPos = +yPos + +height;	
+    }
+    return data;
+}
+
+function twoSignificantFigures(n) {
+    return (n < 10) ? ("0" + n) : n;
+}
+
+</script>

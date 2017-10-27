@@ -76,9 +76,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_well_experiments
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-01-23 11:34:43
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w6or2zBxjgeOSVgZPY8LeQ
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_well_experiments",
+  "LIMS2::Model::Schema::Result::MiseqWellExperiment",
+  { "foreign.classification" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:paMDFfSXdrkwOwJGMveP9A
 
 sub as_string {
     return shift->id;

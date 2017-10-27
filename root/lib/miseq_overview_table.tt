@@ -6,14 +6,14 @@
             [% WHILE count < 12 %]
                 [% count = count + 1 %]
                 <th data-column-id="[% count %]">
-                    [% count %]
+                    [% count + x %]
                 </th>
             [% END %]
         </tr>
     </thead>
     <tbody>
         [% SET base = 0 + page %]
-        [% FOREACH letter IN [ "A", "B", "C", "D", "E", "F", "G", "H", ] %]
+        [% FOREACH letter IN y %]
             <tr id="[% letter %]">
                 <th id="[% letter %]-H">[% letter %]</th>
             [% FOREACH cell IN [ "01", "09", "17", "25", "33", "41", "49", "57", "65", "73", "81", "89" ] %]
