@@ -171,7 +171,7 @@ input:checked + .slider:before {
             <label class="col-md">Experiment: </label>
         </div>
     <div class="col-md-5">
-        <select class="form-control" align="center" id="expSelect">
+        <select class="form-control" align="center">
             <option value="All" onclick="showAll()">All</option>
             [% FOREACH exp IN experiments %]
             [% IF exp.id == selection %]
