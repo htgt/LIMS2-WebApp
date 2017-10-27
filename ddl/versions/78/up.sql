@@ -1,2 +1,0 @@
-ALTER TABLE projects ADD CONSTRAINT projects_recovery_class_fkey FOREIGN KEY (recovery_class) REFERENCES project_recovery_class(id);
-ALTER TABLE projects DROP CONSTRAINT projects_recovery_comment_fkey;

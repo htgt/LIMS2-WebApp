@@ -1,5 +1,11 @@
 ## no critic (ProhibitExcessMainComplexity)
 package LIMS2::Report::RecoveryDetail;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::RecoveryDetail::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use MooseX::ClassAttribute;

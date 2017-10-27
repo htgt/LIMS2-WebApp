@@ -1,4 +1,10 @@
 package LIMS2::Report::AlleleDump;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::AlleleDump::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use Iterator::Simple qw( iter );

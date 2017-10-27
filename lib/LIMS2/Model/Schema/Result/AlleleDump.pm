@@ -1,4 +1,10 @@
 package LIMS2::Model::Schema::Result::AlleleDump;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Schema::Result::AlleleDump::VERSION = '0.479';
+}
+## use critic
+
 
 =head1 NAME
 

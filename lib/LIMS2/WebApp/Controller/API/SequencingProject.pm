@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::SequencingProject;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::SequencingProject::VERSION = '0.479';
+}
+## use critic
+
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;

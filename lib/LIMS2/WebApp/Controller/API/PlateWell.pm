@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::API::PlateWell;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::API::PlateWell::VERSION = '0.479';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;

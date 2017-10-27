@@ -1,5 +1,11 @@
 use utf8;
 package LIMS2::Model::Schema::Result::RecombineeringResultType;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Schema::Result::RecombineeringResultType::VERSION = '0.479';
+}
+## use critic
+
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE

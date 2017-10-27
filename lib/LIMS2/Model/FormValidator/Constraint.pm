@@ -1,4 +1,10 @@
 package LIMS2::Model::FormValidator::Constraint;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.479';
+}
+## use critic
+
 
 =head1 NAME
 

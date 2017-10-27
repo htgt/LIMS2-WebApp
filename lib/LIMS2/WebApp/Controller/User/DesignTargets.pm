@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::DesignTargets;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::DesignTargets::VERSION = '0.479';
+}
+## use critic
+
 use Moose;
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Util::Crisprs qw( crispr_pick );

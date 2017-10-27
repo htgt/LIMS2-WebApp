@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::CrisprOrderAndStorage;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::CrisprOrderAndStorage::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use Try::Tiny;

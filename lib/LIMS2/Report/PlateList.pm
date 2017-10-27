@@ -1,4 +1,10 @@
 package LIMS2::Report::PlateList;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::PlateList::VERSION = '0.479';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

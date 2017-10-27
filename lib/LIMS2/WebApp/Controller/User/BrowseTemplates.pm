@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::BrowseTemplates;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::BrowseTemplates::VERSION = '0.479';
+}
+## use critic
+
 use Moose;
 use LIMS2::WebApp::Pageset;
 use Try::Tiny;

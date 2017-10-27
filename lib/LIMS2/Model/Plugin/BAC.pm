@@ -1,4 +1,10 @@
 package LIMS2::Model::Plugin::BAC;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Plugin::BAC::VERSION = '0.479';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';

@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::PlateEdit;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::PlateEdit::VERSION = '0.479';
+}
+## use critic
+
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;

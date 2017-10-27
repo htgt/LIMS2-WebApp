@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::CGAP;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::CGAP::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use LIMS2::Exception;

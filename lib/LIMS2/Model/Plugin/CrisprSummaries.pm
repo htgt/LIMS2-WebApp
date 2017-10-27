@@ -1,4 +1,10 @@
 package LIMS2::Model::Plugin::CrisprSummaries;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Plugin::CrisprSummaries::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose::Role;
 use LIMS2::Model;

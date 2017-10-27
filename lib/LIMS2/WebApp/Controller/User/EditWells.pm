@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::EditWells;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::EditWells::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use Data::Dump 'pp';

@@ -1,4 +1,10 @@
 package LIMS2::Model::Schema::Result::PlateProcess;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Schema::Result::PlateProcess::VERSION = '0.479';
+}
+## use critic
+
 
 =head1 NAME
 

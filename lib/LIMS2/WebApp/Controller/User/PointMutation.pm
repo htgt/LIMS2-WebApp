@@ -1,4 +1,10 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.479';
+}
+## use critic
+
 
 use strict;
 use warnings FATAL => 'all';
@@ -86,7 +92,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
 
-    my @exps = [];
+    my @exps = ();
     my $well_id;
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;

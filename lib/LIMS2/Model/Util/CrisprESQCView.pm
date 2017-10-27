@@ -1,4 +1,10 @@
 package LIMS2::Model::Util::CrisprESQCView;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Model::Util::CrisprESQCView::VERSION = '0.479';
+}
+## use critic
+
 use strict;
 use warnings FATAL => 'all';
 

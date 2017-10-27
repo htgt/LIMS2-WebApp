@@ -1,4 +1,10 @@
 package LIMS2::Report::CrisprSEPPlate;
+## no critic(RequireUseStrict,RequireUseWarnings)
+{
+    $LIMS2::Report::CrisprSEPPlate::VERSION = '0.479';
+}
+## use critic
+
 
 use Moose;
 use namespace::autoclean;
