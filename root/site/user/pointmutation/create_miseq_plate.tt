@@ -370,7 +370,6 @@ function highlighter(target, start) {
     if (target.nodeName != 'rect') {
         target = $(target).siblings('rect')[0];
     }
-
     var index;
     try {
         index = target.id;
@@ -380,16 +379,18 @@ function highlighter(target, start) {
 
     var originIndex = startWell.id.split('_')[1];
     index = index.split('_')[1];
-    
     start = start || index;
-
+    
     d3.selectAll('rect').classed('selecting',false);
-    var invalidWellOffset = 0;
-    var originID = +start + +originIndex;
+    
+    var diff = +originIndex - +start;
+    originID = +start + +diff;
+
     for (var inc = start; inc <= index; inc++) {
         originID = selectionHighlighting(inc, originID);
         originID++;
     }
+    
     d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected") && !$(this).hasClass("invalid"); }).style('fill','white');
     d3.selectAll('.selecting').style('fill', yellow);
 
