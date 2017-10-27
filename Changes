@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.479     2017-10-27 15:29:56 Europe/London
+
+    Fixed miseq arrows and added dropdown for exp
 0.478     2017-10-13 16:15:50 Europe/London
 
     A fix for experiments table in Gene Summary view
