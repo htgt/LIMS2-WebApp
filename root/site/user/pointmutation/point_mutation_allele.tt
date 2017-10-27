@@ -336,17 +336,6 @@ $('#styles').change(function() {
     $('#keyContainer').toggle();
 });
 
-//$('#expSelect').change(function() {
-    
-   // document.location.href = $(this).val();
-
-//});
-
-
-//function highlight_init() {
-
-//}
-
 function displayIndels(exp) {
     console.log(exp);
     var expTable = document.getElementById("table" + exp.id);
