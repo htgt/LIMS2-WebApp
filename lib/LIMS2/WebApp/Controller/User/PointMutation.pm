@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.477';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.480';
 }
 ## use critic
 
@@ -92,16 +92,15 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $matching_criteria = $exp_sel || "[A-Za-z0-9_]+";
     my $regex = "S" . $index . "_exp" . $matching_criteria;
 
-    my @exps;
+    my @exps = ();
     my $well_id;
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
         update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
+        @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
     } catch {
         $c->log->debug("No well found.");
     };
-
-    @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
 
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
     my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;

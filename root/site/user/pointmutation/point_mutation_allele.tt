@@ -159,20 +159,35 @@ input:checked + .slider:before {
 
 <div class="container">
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-md-3">
         [% SET prev = oligo_index - 1 %]
 	[% IF prev <= 0 %]
-	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq => miseq, oligoIndex => max_wells, exp => selection.id}) %]"><span><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% max_wells %]</span></a>
+	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq => miseq, oligoIndex => max_wells, exp => selection}) %]"><span><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% max_wells %]</span></a>
         [% ELSE %]
-	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq => miseq, oligoIndex => prev, exp => selection.id}) %]"><span class="text-left"><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% prev %]</span></a>
+	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq => miseq, oligoIndex => prev, exp => selection}) %]"><span class="text-left"><i class="glyphicon glyphicon-arrow-left"></i> Previous Well - [% prev %]</span></a>
         [% END %]
+    </div>
+        <div class="col-md-1">
+            <label class="col-md">Experiment: </label>
+        </div>
+    <div class="col-md-5">
+        <select class="form-control" align="center">
+            <option value="All" onclick="showAll()">All</option>
+            [% FOREACH exp IN experiments %]
+            [% IF exp.id == selection %]
+                <option class="ddExp" selected="selected" onclick="javascript:location.href='[%- c.uri_for( '/user/point_mutation_allele/',{miseq => miseq, oligoIndex => oligo_index, exp => exp.id}) %]'"  value="[% exp.id %]">[% exp.id %]</option>
+            [% ELSE %]
+                <option class="ddExp" onclick="javascript:location.href='[%- c.uri_for( '/user/point_mutation_allele/',{miseq => miseq, oligoIndex => oligo_index, exp => exp.id}) %]'"  value="[% exp.id %]">[% exp.id %]</option>
+[% END %]
+[% END %]
+        </select>
     </div>
         <div class="col-md-3">
 	[% SET next = oligo_index + 1 %]
 	[% IF oligo_index >= max_wells %]
-	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq => miseq, oligoIndex => '1', exp => selection.id}) %]"><span class="col-md-offset-6 text-right">Next Well - 1 <i class="glyphicon glyphicon-arrow-right "></i></span></a>
+	    <a href="[%- c.uri_for( '/user/point_mutation_allele/',{miseq => miseq, oligoIndex => '1', exp => selection}) %]"><span class="col-md-offset-6 text-right">Next Well - 1 <i class="glyphicon glyphicon-arrow-right "></i></span></a>
 	[% ELSE %]
-	    <a href="[%- c.uri_for( '/user/point_mutation_allele',{miseq=>miseq, oligoIndex => next, exp => selection.id}) %]"><span class="col-md-offset-6 text-right">Next Well - [% next %] <i class="glyphicon glyphicon-arrow-right"></i></span></a>
+	    <a href="[%- c.uri_for( '/user/point_mutation_allele/',{miseq=>miseq, oligoIndex => next, exp => selection}) %]"><span class="col-md-offset-6 text-right">Next Well - [% next %] <i class="glyphicon glyphicon-arrow-right"></i></span></a>
 	[% END %]
         </div>
         &nbsp;
@@ -216,7 +231,7 @@ input:checked + .slider:before {
 [% END %]
 <br>
 [% IF experiments.size == 0  %]
-    <p>No data found.</p>
+    <p>No data found for well: [% oligo_index %].</p>
 [% END %]
 
 [% FOREACH experiment IN experiments %]
@@ -433,7 +448,8 @@ function getTargets(letter) {
 function createTable(exp, result) {
     result = JSON.parse(result);
     var rows = result.data.split("\n");
-    $('#' + exp).append('<table id="table' + exp + '" class="table table-striped table-bordered"></table>');
+    var tableID = "table" + exp;
+    $('#' + exp).append('<table id="' + tableID + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
     var header = table.createTHead();
     var headerRow = header.insertRow(0);
@@ -477,6 +493,9 @@ function createTable(exp, result) {
     if ($('#styles').prop("checked") == true) {
         $('.seq' + exp).find('span').toggleClass('baseSwitch');
     }
+
+    //Crispresso update added a column not required by the lab. Hiding it temporarily.
+    $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
 }
 
 function highlightBases(seq, crispr) {
