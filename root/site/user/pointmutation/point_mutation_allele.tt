@@ -448,7 +448,8 @@ function getTargets(letter) {
 function createTable(exp, result) {
     result = JSON.parse(result);
     var rows = result.data.split("\n");
-    $('#' + exp).append('<table id="table' + exp + '" class="table table-striped table-bordered"></table>');
+    var tableID = "table" + exp;
+    $('#' + exp).append('<table id="' + tableID + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
     var header = table.createTHead();
     var headerRow = header.insertRow(0);
@@ -492,6 +493,9 @@ function createTable(exp, result) {
     if ($('#styles').prop("checked") == true) {
         $('.seq' + exp).find('span').toggleClass('baseSwitch');
     }
+
+    //Crispresso update added a column not required by the lab. Hiding it temporarily.
+    $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
 }
 
 function highlightBases(seq, crispr) {
