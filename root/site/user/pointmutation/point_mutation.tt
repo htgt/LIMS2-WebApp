@@ -67,13 +67,11 @@ body {
 <div class="row">
     <div class="col-md-1">
         <label class="lb-md">Gene: </label>
-        [% IF large_plate == 1 %]
-            <div id="quadBack" hidden>
-                <button class="btn btn-primary">
-                    <i class="glyphicon glyphicon-arrow-left"></i>
-                </button>
-            </div>
-        [% END %]
+
+
+        <div class="col-md-0">
+           <label class="lb-md crisprSelect">Crispr: </label>
+    </div>
     </div>
     <div class="col-md-2">
         <select class="form-control" align="center" id="geneSelect">
@@ -82,11 +80,16 @@ body {
                 <option value="[% gene %]">[% gene %]</option>
             [% END %]
         </select>
-        [% IF large_plate == 1 %]
-            <div class="col-md-1">
-                <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
-            </div>
-        [% END %]
+
+        <div class="col-md-0">
+       <select class="form-control crisprSelect" align="center" id="crisprSelect"> 
+           [% FOREACH crispr IN uniq_crisprs %]
+               <option value="[% crispr %]">[% crispr %]</option>
+           [% END %]
+       </select>
+
+    </div>
+
     </div>
 
     [% IF large_plate == 1 %]
@@ -98,6 +101,7 @@ body {
             <label class="lb-md">Experiment: </label>
         </div>
     [% END %]
+
     <div class="col-md-2">
         <select class="form-control" align="center" id="expSelect">
             <option value="All" selected="selected">All</option>
@@ -121,7 +125,14 @@ body {
                 <option class="quadOpt" value="thirdQuad">193-288</option>
                 <option class="quadOpt" value="fourthQuad">289-384</option>
             </select>
+<div id="quadBack" hidden>
+                <button class="btn btn-primary">
+                    <i class="glyphicon glyphicon-arrow-left"></i>
+                </button>
+ <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+            </div>
         </div>
+            
     [% ELSE %]
         <div class="col-md-1">
             <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
@@ -155,6 +166,12 @@ var rawTargets = '[% efficiency %]';
 var efficiencies = jsonify(rawTargets);
 var rawQuads = '[% quadrants %]';
 var quadrants;
+var rawDesigns = '[% designs %]';
+var designs = jsonify(rawDesigns);
+var rawDesignsReverse = '[% designs_reverse %]';
+var designsReverse = jsonify(rawDesignsReverse);
+var rawPrefixs = '[% gene_crispr %]';
+var prefixs = jsonify(rawPrefixs);
 if (rawQuads) {
     quadrants = jsonify(rawQuads);
 }
@@ -310,13 +327,14 @@ $(document).ready(function() {
     var select = '[% selection %]';
     $('#expSelect').val(select);
     highlight_init();
+    //$('.crisprSelect').hide();
 });
 
 $('#geneSelect').change(function() {
     if ($('#geneSelect').val() != 'All') { 
         $("#expSelect").children('option').hide().prop('disabled', true);
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
-        var geneExps = link.summary[$('#geneSelect').val()];
+        var geneExps = prefixs.summary[$('#geneSelect').val()];
         for (var count = 0; count < geneExps.length; count++) {
             $("#expSelect").children('option[value~=' + geneExps[count] + ']').show().prop('disabled', false);
         }
@@ -325,10 +343,54 @@ $('#geneSelect').change(function() {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
     }
+
+    if ($(this).val() == 'All'){
+
+        $(".crisprSelect").hide().prop('disabled', true);
+    
+    } else {
+
+        var geneCrisprs = designsReverse.summary[$('#geneSelect').val()];
+
+        if (geneCrisprs.length > 1){
+
+        $(".crisprSelect").show().prop('disabled', false);
+
+        $("#crisprSelect").children('option').hide().prop('disabled', true);
+        
+        for (var count = 0; count < geneCrisprs.length; count++){
+        
+            $("#crisprSelect").children('option[value~=' + geneCrisprs[count] + ']').show().prop('disabled', false);
+        
+        }
+
+        $('#crisprSelect').val(geneCrisprs[0]);
+        
+    } else {
+    
+        $(".crisprSelect").hide().prop('disabled', true);
+    
+    }
+
+        
+    }
+
     highlight_init();
 });
 
-$('#expSelect').change(function() {
+$('#crisprSelect').change(function() {
+
+        $("#expSelect").children('option').hide().prop('disabled', true);
+        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+        var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
+        
+        for (var count = 0; count < crisprExps.length; count++){
+            $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
+        }
+$('#expSelect').val(crisprExps[0]);
+});
+
+$('#expSelect').on('change',function() {
     highlight_init();
 });
 
@@ -476,6 +538,28 @@ function wellArc(node) {
 
 function twoDigits(n) {
     return n > 9 ? "" + n: "0" + n;
+}
+
+function buildCrisprs(){
+
+    var crisprDropdown =  $("#crisprSelect").children('option');
+
+    for (var i =0; i < crisprDropdown.length; i++){
+    
+        var currentOption = crisprDropdown[i];
+
+        var releatedGene = designs.summary[currentOption.value];
+
+        for (var j = 0; j < releatedGene.length; j++){
+        
+            var currentGene = releatedGene[j];
+            d3.select(currentOption).classed(currentGene, true);
+        
+        }
+
+    
+    }
+
 }
 
 function buildExps() {

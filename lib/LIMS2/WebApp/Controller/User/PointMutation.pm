@@ -11,6 +11,7 @@ use Data::UUID;
 use File::Find;
 use Text::CSV;
 use Try::Tiny;
+use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
 
@@ -47,22 +48,111 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $plate_id, $miseq_plate->{id}, $overview) });
 
-    my $gene_keys = get_genes($c, $overview);
+    my ($gene_keys, $geneprefix_keys) = get_genes($c, $overview);
+
     my $revov = encode_json({ summary => $gene_keys });
+    my $prefix = encode_json({summary => $geneprefix_keys});
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
+    my @geneprefixs = sort keys %$geneprefix_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
+    my $crispr;
+    #my @crisprs;
+    my $gene_crisprs;
+    my $gene_crisprs2;
+    my $crisprgene;
+    my $crisprgene2;
+    my @genename;
+    my @genenames;
+    my @uniq_crispr;
+    my @uniq_crisprs;
+    #my @geneprefix;
 
+#   foreach my $geneprefix (@genes){
+#       my $genep;
+#       $genep = split /\s*_\s*/, $geneprefix; 
+#       push (@geneprefix, $genep)
+#   } 
+
+$DB::single=1;
+    foreach my $design (@genes){
+        my $crisprgene;
+        ($crisprgene,$crispr) = split /\s*_\s*/, $design;
+        if ( ! defined $crispr || $crispr =~ /[a-zA-Z]/ || $crispr eq ''){$crispr = '1'};
+
+        #push (@{$gene_crisprs->{$crispr}},$crisprgene);
+        my $design_exps = $gene_keys->{$design};
+        
+        foreach my $design_exp (@{$design_exps}){
+        
+            push (@{$gene_crisprs->{$crispr}->{$crisprgene}},$design_exp);
+
+        }
+       
+        push (@genename, $crisprgene);
+
+        push (@uniq_crispr, $crispr);
+
+        @genenames = uniq @genename;
+
+        @uniq_crisprs = uniq @uniq_crispr;
+
+        #push (@{$genes->{$gene[0]}}, $key);
+        
+    }
+
+    my @crisprs = sort values %$gene_crisprs;
+    #my @geneprefix = sort keys %$gene_crisprs;
+
+    foreach my $design (@genes){
+    my $crisprgene2;
+
+    ($crisprgene2,$crispr) = split /\s*_\s*/, $design;
+        if ( ! defined $crispr || $crispr =~ /[a-zA-Z]/ || $crispr eq ''){$crispr = '1'};
+
+        my @design_exps2 = $gene_keys->{$design};
+
+        foreach my $design_exp2 (@design_exps2){
+        
+            push (@{$gene_crisprs2->{$crispr}->{$crisprgene2}},$design_exp2);
+
+        }
+
+        push (@{$gene_crisprs2->{$crisprgene2}},$crispr);
+    
+    }
+
+    my $designs = encode_json({summary => $gene_crisprs});
+    my $designs_reverse = encode_json({summary => $gene_crisprs2});
+
+use Data::Dumper;
+print Dumper $gene_crisprs;
+#print Dumper @genenames;
+print Dumper $gene_keys;
+print Dumper $geneprefix_keys;
+#print Dumper @uniq_crisprs;
+#print Dumper $geneprefixs;
+#print Dumper $genes;
+#print Dumper @crisprs;
+print Dumper $gene_crisprs2;
+$DB::single=1;
     $c->stash(
         wells => $json,
         experiments => \@exps,
         miseq => $miseq,
         overview => $ov_json,
-        genes => \@genes,
+        genes => \@genenames,
         gene_exp => $revov,
         efficiency => $efficiencies,
         large_plate => $miseq_plate->{'384'},
         selection => $selection || 'All',
+        crisprs => \@crisprs,
+        gene_crisprs => $gene_crisprs,
+        designs => $designs,
+        designs_reverse => $designs_reverse,
+        gene_crispr => $prefix,
+        uniq_crisprs => \@uniq_crisprs, 
+
     );
 
     return;
@@ -207,18 +297,22 @@ sub get_genes {
     my ( $c, $ow) = @_;
 
     my $genes;
+    my $geneprefixs;
     foreach my $key (keys %$ow) {
         my @exps;
         foreach my $value (@{$ow->{$key}}) {
-            my @gene = ($value =~ qr/^([A-Za-z0-9\-]*)/);
+#$vaule = split /\s*_\s*/, $value; #trial
+            my @gene = ($value =~ qr/^([A-Za-z0-9\-\_]*)/);
             push (@{$genes->{$gene[0]}}, $key);
+
+            my @geneprefix = ($value =~ qr/^([A-Za-z0-9]*)/);
+            push (@{$geneprefixs->{$geneprefix[0]}}, $key);
         }
     }
-
-    return $genes;
+    return $genes, $geneprefixs;
+    #print Dumper $genes;
+    #print Dumper $geneprefixs;
 }
-
-
 
 sub update_tracking {
     my ($self, $c, $miseq, $plate_id, $well_id) = @_;
