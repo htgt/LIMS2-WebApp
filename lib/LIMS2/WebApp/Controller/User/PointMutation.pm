@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.479';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.480';
 }
 ## use critic
 
@@ -17,6 +17,7 @@ use Data::UUID;
 use File::Find;
 use Text::CSV;
 use Try::Tiny;
+use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
 
@@ -53,22 +54,74 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $plate_id, $miseq_plate->{id}, $overview) });
 
-    my $gene_keys = get_genes($c, $overview);
+    my ($gene_keys, $gene_prefix_keys) = get_genes($c, $overview);
+
     my $revov = encode_json({ summary => $gene_keys });
+    my $prefix = encode_json({summary => $gene_prefix_keys});
     my @exps = sort keys %$overview;
     my @genes = sort keys %$gene_keys;
+    my @gene_prefixs = sort keys %$gene_prefix_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
+    my $crispr;
+    my $gene_crisprs;
+    my $revgc;
+    my (@gene_name, @gene_names);
+    my (@uniq_crispr, @uniq_crisprs);
+
+    foreach my $design (@genes){
+        my $crispr_gene;
+        ($crispr_gene,$crispr) = split /\s*_\s*/, $design;
+        if ( ! defined $crispr || $crispr =~ /[a-zA-Z]/ || $crispr eq ''){$crispr = '1'};
+
+        my $design_exps = $gene_keys->{$design};
+
+        foreach my $design_exp (@{$design_exps}){
+            push (@{$gene_crisprs->{$crispr}->{$crispr_gene}},$design_exp);
+        }
+
+        push (@gene_name, $crispr_gene);
+        push (@uniq_crispr, $crispr);
+        @gene_names = uniq @gene_name;
+        @uniq_crisprs = uniq @uniq_crispr;
+
+    }
+
+    my @crisprs = sort values %$gene_crisprs;
+
+    foreach my $design (@genes){
+    my $revcg;
+
+    ($revcg,$crispr) = split /\s*_\s*/, $design;
+        if ( ! defined $crispr || $crispr =~ /[a-zA-Z]/ || $crispr eq ''){$crispr = '1'};
+
+        my @rev_design_exps = $gene_keys->{$design};
+
+        foreach my $rev_design_exp (@rev_design_exps){
+            push (@{$revgc->{$crispr}->{$revcg}},$rev_design_exp);
+        }
+        push (@{$revgc->{$revcg}},$crispr);
+    }
+
+    my $designs = encode_json({summary => $gene_crisprs});
+    my $designs_reverse = encode_json({summary => $revgc});
 
     $c->stash(
         wells => $json,
         experiments => \@exps,
         miseq => $miseq,
         overview => $ov_json,
-        genes => \@genes,
+        genes => \@gene_names,
         gene_exp => $revov,
         efficiency => $efficiencies,
         large_plate => $miseq_plate->{'384'},
         selection => $selection || 'All',
+        crisprs => \@crisprs,
+        gene_crisprs => $gene_crisprs,
+        designs => $designs,
+        designs_reverse => $designs_reverse,
+        gene_crispr => $prefix,
+        uniq_crisprs => \@uniq_crisprs,
+
     );
 
     return;
@@ -213,18 +266,19 @@ sub get_genes {
     my ( $c, $ow) = @_;
 
     my $genes;
+    my $gene_prefixs;
     foreach my $key (keys %$ow) {
         my @exps;
         foreach my $value (@{$ow->{$key}}) {
-            my @gene = ($value =~ qr/^([A-Za-z0-9\-]*)/);
+            my @gene = ($value =~ qr/^([A-Za-z0-9\-\_]*)/);
             push (@{$genes->{$gene[0]}}, $key);
+
+            my @gene_prefix = ($value =~ qr/^([A-Za-z0-9]*)/);
+            push (@{$gene_prefixs->{$gene_prefix[0]}}, $key);
         }
     }
-
-    return $genes;
+    return $genes, $gene_prefixs;
 }
-
-
 
 sub update_tracking {
     my ($self, $c, $miseq, $plate_id, $well_id) = @_;
