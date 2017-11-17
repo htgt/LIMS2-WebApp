@@ -125,14 +125,13 @@ body {
                 <option class="quadOpt" value="thirdQuad">193-288</option>
                 <option class="quadOpt" value="fourthQuad">289-384</option>
             </select>
-<div id="quadBack" hidden>
-                <button class="btn btn-primary">
+        <div>
+                <button class="btn btn-primary" id="quadBack" style="display: none;">
                     <i class="glyphicon glyphicon-arrow-left"></i>
                 </button>
- <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+            <button class="btn btn-danger" id="clearButton" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
             </div>
         </div>
-            
     [% ELSE %]
         <div class="col-md-1">
             <button class="btn btn-danger" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
@@ -325,13 +324,44 @@ $(document).ready(function() {
     document.title = '[% miseq %] - Point Mutation';
     resize();
     var select = '[% selection %]';
+    $('#geneSelect').val(select);
     $('#expSelect').val(select);
     highlight_init();
-    //$('.crisprSelect').hide();
+    crisprStartUp();
+    clearButtonVisibility();
 });
 
 $('#geneSelect').change(function() {
     if ($('#geneSelect').val() != 'All') { 
+        var geneCrisprs = designsReverse.summary[$('#geneSelect').val()];
+        if (geneCrisprs.length > 1){
+            $(".crisprSelect").show().prop('disabled', false);
+            $("#crisprSelect").children('option').hide().prop('disabled', true);
+            for (var count = 0; count < geneCrisprs.length; count++){
+                $("#crisprSelect").children('option[value~=' + geneCrisprs[count] + ']').show().prop('disabled', false);
+            }
+        $('#crisprSelect').val(geneCrisprs[0]);
+        } else {
+        $(".crisprSelect").hide().prop('disabled', true);
+        }
+    expDropDown();
+    } else {
+        $("#expSelect").children('option').show().prop('disabled', false);
+        $('#expSelect').val('All');
+        $(".crisprSelect").hide().prop('disabled', true);
+    }
+    clearButtonVisibility();
+    highlight_init();
+});
+
+function crisprStartUp() {
+    if ($('#geneSelect').val() == 'All') {
+        $(".crisprSelect").hide().prop('disabled', true);
+    }
+}
+
+function expDropDown() {
+    if ( $('.crisprSelect').css('display') == 'none' ){
         $("#expSelect").children('option').hide().prop('disabled', true);
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
         var geneExps = prefixs.summary[$('#geneSelect').val()];
@@ -340,57 +370,39 @@ $('#geneSelect').change(function() {
         }
         $('#expSelect').val(geneExps[0]);
     } else {
-        $("#expSelect").children('option').show().prop('disabled', false);
-        $('#expSelect').val('All');
-    }
-
-    if ($(this).val() == 'All'){
-
-        $(".crisprSelect").hide().prop('disabled', true);
-    
-    } else {
-
-        var geneCrisprs = designsReverse.summary[$('#geneSelect').val()];
-
-        if (geneCrisprs.length > 1){
-
-        $(".crisprSelect").show().prop('disabled', false);
-
-        $("#crisprSelect").children('option').hide().prop('disabled', true);
-        
-        for (var count = 0; count < geneCrisprs.length; count++){
-        
-            $("#crisprSelect").children('option[value~=' + geneCrisprs[count] + ']').show().prop('disabled', false);
-        
-        }
-
-        $('#crisprSelect').val(geneCrisprs[0]);
-        
-    } else {
-    
-        $(".crisprSelect").hide().prop('disabled', true);
-    
-    }
-
-        
-    }
-
-    highlight_init();
-});
-
-$('#crisprSelect').change(function() {
-
         $("#expSelect").children('option').hide().prop('disabled', true);
         $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
         var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
-        
         for (var count = 0; count < crisprExps.length; count++){
             $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
         }
-$('#expSelect').val(crisprExps[0]);
+    $('#expSelect').val(crisprExps[0]);
+    }
+}
+
+function clearButtonVisibility() {
+    if ($('#geneSelect').val() == 'All' && $('#expSelect').val() == 'All'){
+        $('#clearButton').hide().prop('disabled', true);
+    } else {
+        $('#clearButton').show().prop('disabled', false);
+    }
+}
+
+$('#crisprSelect').on('click', function() {
+
+    $("#expSelect").children('option').hide().prop('disabled', true);
+    $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+    var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
+        
+    for (var count = 0; count < crisprExps.length; count++){
+        $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
+    }
+    $('#expSelect').val(crisprExps[0]);
+    highlight_init();
 });
 
-$('#expSelect').on('change',function() {
+$('#expSelect').on('click', function() {
+    clearButtonVisibility();
     highlight_init();
 });
 
@@ -429,6 +441,8 @@ function clearSelection() {
     $("#expSelect").children('option').show().prop('disabled', false);
     $("#geneSelect").children('option').show().prop('disabled', false);
     $('select').each(function() { this.selectedIndex = 0 });
+    $(".crisprSelect").hide().prop('disabled', true);
+    $('#clearButton').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -538,28 +552,6 @@ function wellArc(node) {
 
 function twoDigits(n) {
     return n > 9 ? "" + n: "0" + n;
-}
-
-function buildCrisprs(){
-
-    var crisprDropdown =  $("#crisprSelect").children('option');
-
-    for (var i =0; i < crisprDropdown.length; i++){
-    
-        var currentOption = crisprDropdown[i];
-
-        var releatedGene = designs.summary[currentOption.value];
-
-        for (var j = 0; j < releatedGene.length; j++){
-        
-            var currentGene = releatedGene[j];
-            d3.select(currentOption).classed(currentGene, true);
-        
-        }
-
-    
-    }
-
 }
 
 function buildExps() {
