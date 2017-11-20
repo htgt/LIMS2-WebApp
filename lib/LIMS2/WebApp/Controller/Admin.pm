@@ -5,6 +5,8 @@ use TryCatch;
 use namespace::autoclean;
 use DateTime::Format::Strptime;
 use Data::UUID;
+use MIME::Lite;
+use Email::Valid;
 #use Try::Tiny;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
@@ -406,6 +408,38 @@ sub generate_api_key {
     );
     return $secret_key;
 }
+
+sub new_user_email : Global  {
+    my ($self, $c, $username, $password) = @_;
+
+    my $address = Email::Valid->address($username);
+
+    my $validator = ($address ? 'yes' : 'no');
+
+    if ($validator eq 'yes'){
+
+        my $to = $username;
+        my $from = 'htgt@sanger.ac.uk';
+        my $subject = 'LIMS2 Login Credentials';
+        my $message = "Hello,\n\nI have created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nYou can change your password by clicking on your username on the top right of the page.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+
+        my $msg = MIME::Lite->new(
+            From     => $from,
+            To       => $to,
+            Subject  => $subject,
+            Data     => $message
+            );
+
+        $msg->send;
+        $c->flash( info_msg => 'Email Sent Successfully' );
+
+    } else {
+        $c->stash( error_msg => 'Not a valid email address, email could not be sent' );
+    }
+    return;
+
+}
+
 =head1 AUTHOR
 
 Ray Miller
