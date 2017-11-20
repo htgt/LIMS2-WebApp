@@ -369,6 +369,7 @@ function allExpOptions() {
         $("#expSelect").children('option[value~=' + allCrisprs[count] + ']').show().prop('disabled', false);
     }
     $('#expSelect').val('All');
+    highlight_init();
 } 
 
 function expDropDown() {
@@ -381,13 +382,7 @@ function expDropDown() {
         }
         $('#expSelect').val(geneExps[0]);
     } else {
-        $("#expSelect").children('option').hide().prop('disabled', true);
-        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
-        var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
-        for (var count = 0; count < crisprExps.length; count++){
-            $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
-        }
-        $('#expSelect').val(crisprExps[0]);
+        expSelect();
     }
 }
 
@@ -399,26 +394,22 @@ function clearButtonVisibility() {
     }
 }
 
+function expSelect(){
+    $("#expSelect").children('option').hide().prop('disabled', true);
+    $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+    var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
+    for (var count = 0; count < crisprExps.length; count++){
+        $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
+    }
+    $('#expSelect').val(crisprExps[0]);
+}
+
 $('#crisprSelect').on('click', function() {
     if ($('#crisprSelect').val() != 'All') {
-        $("#expSelect").children('option').hide().prop('disabled', true);
-        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
-        var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
-        for (var count = 0; count < crisprExps.length; count++){
-            $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
-        }
-        $('#expSelect').val(crisprExps[0]);
+        expSelect(); 
         highlight_init();
     } else {
-        $("#expSelect").children('option').hide().prop('disabled', true);
-        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
-        var allCrisprs = prefixs.summary[$('#geneSelect').val()]; 
-        for (var count = 0; count < allCrisprs.length; count++){
-            $("#expSelect").children('option[value~=' + allCrisprs[count] + ']').show().prop('disabled', false);
-        }
-        //$('#expSelect').val(allCrisprs[0]);
-        $('#expSelect').val('All');
-        highlight_init();
+        allExpOptions();    
     }
 });
 
