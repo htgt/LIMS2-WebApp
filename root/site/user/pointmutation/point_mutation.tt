@@ -340,11 +340,12 @@ $('#geneSelect').change(function() {
             for (var count = 0; count < geneCrisprs.length; count++){
                 $("#crisprSelect").children('option[value~=' + geneCrisprs[count] + ']').show().prop('disabled', false);
             }
-        $('#crisprSelect').val(geneCrisprs[0]);
+            $('#crisprSelect').val('All');
+            allExpOptions();
         } else {
             $(".crisprSelect").hide().prop('disabled', true);
+            expDropDown();
         }
-    expDropDown();
     } else {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
@@ -359,6 +360,16 @@ function crisprStartUp() {
         $(".crisprSelect").hide().prop('disabled', true);
     }
 }
+
+function allExpOptions() {
+    $("#expSelect").children('option').hide().prop('disabled', true);
+    $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+    var allCrisprs = prefixs.summary[$('#geneSelect').val()]; 
+    for (var count = 0; count < allCrisprs.length; count++){
+        $("#expSelect").children('option[value~=' + allCrisprs[count] + ']').show().prop('disabled', false);
+    }
+    $('#expSelect').val('All');
+} 
 
 function expDropDown() {
     if ( $('.crisprSelect').css('display') == 'none' ){
