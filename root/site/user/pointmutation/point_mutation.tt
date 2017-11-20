@@ -67,11 +67,9 @@ body {
 <div class="row">
     <div class="col-md-1">
         <label class="lb-md">Gene: </label>
-
-
-        <div class="col-md-0">
-           <label class="lb-md crisprSelect">Crispr: </label>
-    </div>
+            <div class="col-md-0">
+                <label class="lb-md crisprSelect">Crispr: </label>
+            </div>
     </div>
     <div class="col-md-2">
         <select class="form-control" align="center" id="geneSelect">
@@ -83,6 +81,7 @@ body {
 
         <div class="col-md-0">
        <select class="form-control crisprSelect" align="center" id="crisprSelect"> 
+            <option value="All" selected="selected">All</option>
            [% FOREACH crispr IN uniq_crisprs %]
                <option value="[% crispr %]">[% crispr %]</option>
            [% END %]
@@ -125,11 +124,11 @@ body {
                 <option class="quadOpt" value="thirdQuad">193-288</option>
                 <option class="quadOpt" value="fourthQuad">289-384</option>
             </select>
-        <div>
+            <div>
                 <button class="btn btn-primary" id="quadBack" style="display: none;">
                     <i class="glyphicon glyphicon-arrow-left"></i>
                 </button>
-            <button class="btn btn-danger" id="clearButton" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+                <button class="btn btn-danger" id="clearButton" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
             </div>
         </div>
     [% ELSE %]
@@ -332,19 +331,21 @@ $(document).ready(function() {
 });
 
 $('#geneSelect').change(function() {
-    if ($('#geneSelect').val() != 'All') { 
+    if ($('#geneSelect').val() != 'All') {
         var geneCrisprs = designsReverse.summary[$('#geneSelect').val()];
         if (geneCrisprs.length > 1){
             $(".crisprSelect").show().prop('disabled', false);
             $("#crisprSelect").children('option').hide().prop('disabled', true);
+            $("#crisprSelect").children('option[value^=All]').show().prop('disabled', false);
             for (var count = 0; count < geneCrisprs.length; count++){
                 $("#crisprSelect").children('option[value~=' + geneCrisprs[count] + ']').show().prop('disabled', false);
             }
-        $('#crisprSelect').val(geneCrisprs[0]);
+            $('#crisprSelect').val('All');
+            allExpOptions();
         } else {
-        $(".crisprSelect").hide().prop('disabled', true);
+            $(".crisprSelect").hide().prop('disabled', true);
+            expDropDown();
         }
-    expDropDown();
     } else {
         $("#expSelect").children('option').show().prop('disabled', false);
         $('#expSelect').val('All');
@@ -360,6 +361,17 @@ function crisprStartUp() {
     }
 }
 
+function allExpOptions() {
+    $("#expSelect").children('option').hide().prop('disabled', true);
+    $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
+    var allCrisprs = prefixs.summary[$('#geneSelect').val()]; 
+    for (var count = 0; count < allCrisprs.length; count++){
+        $("#expSelect").children('option[value~=' + allCrisprs[count] + ']').show().prop('disabled', false);
+    }
+    $('#expSelect').val('All');
+    highlight_init();
+} 
+
 function expDropDown() {
     if ( $('.crisprSelect').css('display') == 'none' ){
         $("#expSelect").children('option').hide().prop('disabled', true);
@@ -370,13 +382,7 @@ function expDropDown() {
         }
         $('#expSelect').val(geneExps[0]);
     } else {
-        $("#expSelect").children('option').hide().prop('disabled', true);
-        $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
-        var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
-        for (var count = 0; count < crisprExps.length; count++){
-            $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
-        }
-    $('#expSelect').val(crisprExps[0]);
+        expSelect();
     }
 }
 
@@ -388,17 +394,23 @@ function clearButtonVisibility() {
     }
 }
 
-$('#crisprSelect').on('click', function() {
-
+function expSelect(){
     $("#expSelect").children('option').hide().prop('disabled', true);
     $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
     var crisprExps = designs['summary'][$('#crisprSelect').val()][$('#geneSelect').val()];
-        
     for (var count = 0; count < crisprExps.length; count++){
         $("#expSelect").children('option[value~=' + crisprExps[count] + ']').show().prop('disabled', false);
     }
     $('#expSelect').val(crisprExps[0]);
-    highlight_init();
+}
+
+$('#crisprSelect').on('click', function() {
+    if ($('#crisprSelect').val() != 'All') {
+        expSelect(); 
+        highlight_init();
+    } else {
+        allExpOptions();    
+    }
 });
 
 $('#expSelect').on('click', function() {

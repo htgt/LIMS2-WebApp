@@ -59,8 +59,8 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $crispr;
     my $gene_crisprs;
     my $revgc;
-    my (@gene_name, @gene_names);
-    my (@uniq_crispr, @uniq_crisprs);
+    my @gene_names;
+    my @uniq_crisprs;
 
     foreach my $design (@genes){
         my $crispr_gene;
@@ -73,19 +73,19 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
             push (@{$gene_crisprs->{$crispr}->{$crispr_gene}},$design_exp);
         }
 
-        push (@gene_name, $crispr_gene);
-        push (@uniq_crispr, $crispr);
-        @gene_names = uniq @gene_name;
-        @uniq_crisprs = uniq @uniq_crispr;
+        push (@gene_names, $crispr_gene);
+        push (@uniq_crisprs, $crispr);
 
     }
+    @gene_names = uniq @gene_names;
+    @uniq_crisprs = uniq @uniq_crisprs;
 
     my @crisprs = sort values %$gene_crisprs;
 
     foreach my $design (@genes){
-    my $revcg;
+        my $revcg;
 
-    ($revcg,$crispr) = split /\s*_\s*/, $design;
+        ($revcg,$crispr) = split /\s*_\s*/, $design;
         if ( ! defined $crispr || $crispr =~ /[a-zA-Z]/ || $crispr eq ''){$crispr = '1'};
 
         my @rev_design_exps = $gene_keys->{$design};
@@ -109,8 +109,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         efficiency => $efficiencies,
         large_plate => $miseq_plate->{'384'},
         selection => $selection || 'All',
-        crisprs => \@crisprs,
-        gene_crisprs => $gene_crisprs,
         designs => $designs,
         designs_reverse => $designs_reverse,
         gene_crispr => $prefix,
