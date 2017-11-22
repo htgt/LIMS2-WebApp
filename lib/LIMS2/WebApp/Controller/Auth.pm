@@ -155,7 +155,7 @@ sub email_notification : Global {
         my $to = $username;
         my $from = 'htgt@sanger.ac.uk';
         my $subject = 'LIMS2 - Password Recovery';
-        my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+        my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nWe recommend that you change the password to something you can remember.\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
 
         my $msg = MIME::Lite->new(
             From     => $from,

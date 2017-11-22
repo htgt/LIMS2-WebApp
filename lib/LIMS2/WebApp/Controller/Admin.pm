@@ -80,7 +80,6 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
         );
         return;
     }
-
     my $model = $c->model('Golgi');
 
     my $password = $model->pwgen();
@@ -93,6 +92,7 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
                     password => $password
                 }
             );
+            $self->new_user_notification($c, $username, $password);
         }
     );
 
@@ -409,7 +409,7 @@ sub generate_api_key {
     return $secret_key;
 }
 
-sub new_user_email : Global  {
+sub new_user_notification : Global  {
     my ($self, $c, $username, $password) = @_;
 
     my $address = Email::Valid->address($username);
@@ -420,8 +420,8 @@ sub new_user_email : Global  {
 
         my $to = $username;
         my $from = 'htgt@sanger.ac.uk';
-        my $subject = 'LIMS2 Login Credentials';
-        my $message = "Hello,\n\nI have created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nYou can change your password by clicking on your username on the top right of the page.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+        my $subject = 'LIMS2 - Login Credentials';
+        my $message = "Hello,\n\nI have created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nChange your password by clicking on your username on the top right of the page.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
 
         my $msg = MIME::Lite->new(
             From     => $from,
