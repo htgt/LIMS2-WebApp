@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.481';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.482';
 }
 ## use critic
 
@@ -11,6 +11,8 @@ use TryCatch;
 use namespace::autoclean;
 use DateTime::Format::Strptime;
 use Data::UUID;
+use MIME::Lite;
+use Email::Valid;
 #use Try::Tiny;
 
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
@@ -84,7 +86,6 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
         );
         return;
     }
-
     my $model = $c->model('Golgi');
 
     my $password = $model->pwgen();
@@ -97,6 +98,7 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
                     password => $password
                 }
             );
+            $self->new_user_notification($c, $username, $password);
         }
     );
 
@@ -412,6 +414,37 @@ sub generate_api_key {
     );
     return $secret_key;
 }
+
+sub new_user_notification : Global  {
+    my ($self, $c, $username, $password) = @_;
+
+    my $address = Email::Valid->address($username);
+
+    my $validator = ($address ? 'yes' : 'no');
+
+    if ($validator eq 'yes'){
+
+        my $to = $username;
+        my $from = 'htgt@sanger.ac.uk';
+        my $subject = 'LIMS2 - Login Credentials';
+        my $message = "Hello,\n\nWe've created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nYou can log in to LIMS2 here:\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nOnce you've logged in with the above credentials, you can change your password by clicking on your username on the top right of the page and selecting change password.\n\nAny questions or problems please email htgt\@sanger.ac.uk\nKind Regards,\nLIMS2 Team";
+
+        my $msg = MIME::Lite->new(
+            From     => $from,
+            To       => $to,
+            Subject  => $subject,
+            Data     => $message
+        );
+
+        $msg->send;
+        $c->flash( info_msg => 'Email Sent Successfully' );
+
+    } else {
+        $c->flash->{error_msg} = 'Not a valid email address, email could not be sent';
+    }
+    return;
+}
+
 =head1 AUTHOR
 
 Ray Miller

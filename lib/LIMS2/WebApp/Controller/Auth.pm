@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Auth;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Auth::VERSION = '0.481';
+    $LIMS2::WebApp::Controller::Auth::VERSION = '0.482';
 }
 ## use critic
 
@@ -161,14 +161,14 @@ sub email_notification : Global {
         my $to = $username;
         my $from = 'htgt@sanger.ac.uk';
         my $subject = 'LIMS2 - Password Recovery';
-        my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\n\nTo change your password login and click your username in the top right.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+        my $message = "Hello,\n\nYou recently requested to change your LIMS2 password.\nYour temporary password is: $password\n\nYou can log in to LIMS2 here:\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nOnce you've logged in with the above credentials, you can change your password by clicking on your username on the top right of the page and selecting change password.\n\nAny questions or problems please email htgt\@sanger.ac.uk\nKind Regards,\nLIMS2 Team";
 
         my $msg = MIME::Lite->new(
             From     => $from,
             To       => $to,
             Subject  => $subject,
             Data     => $message
-            );
+        );
 
         $msg->send;
         $c->flash( info_msg => 'Email Sent Successfully' );
