@@ -410,8 +410,6 @@ sub generate_api_key {
 }
 
 sub new_user_notification : Global  {
-
-$DB::single=1;
     my ($self, $c, $username, $password) = @_;
 
     my $address = Email::Valid->address($username);
@@ -423,20 +421,19 @@ $DB::single=1;
         my $to = $username;
         my $from = 'htgt@sanger.ac.uk';
         my $subject = 'LIMS2 - Login Credentials';
-        my $message = "Hello,\n\nI have created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nChange your password by clicking on your username on the top right of the page.\nAny questions or problems please email htgt\@sanger.ac.uk\n\nKind Regards,\nLIMS2 Team";
+        my $message = "Hello,\n\nWe've created a new account for you with the following details.\nUsername $username\nTemporary password: $password\n\nYou can log in to LIMS2 here:\nhttps://www.sanger.ac.uk/htgt/lims2//login\nWe recommend that you change the password to something you can remember.\nOnce you've logged in with the above credentials, you can change your password by clicking on your username on the top right of the page and selecting change password.\n\nAny questions or problems please email htgt\@sanger.ac.uk\nKind Regards,\nLIMS2 Team";
 
         my $msg = MIME::Lite->new(
             From     => $from,
             To       => $to,
             Subject  => $subject,
             Data     => $message
-            );
+        );
 
         $msg->send;
         $c->flash( info_msg => 'Email Sent Successfully' );
 
     } else {
-$DB::single=1;
         $c->flash->{error_msg} = 'Not a valid email address, email could not be sent';
     }
     return;
