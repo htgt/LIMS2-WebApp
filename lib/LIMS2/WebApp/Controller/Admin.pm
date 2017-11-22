@@ -410,6 +410,8 @@ sub generate_api_key {
 }
 
 sub new_user_notification : Global  {
+
+$DB::single=1;
     my ($self, $c, $username, $password) = @_;
 
     my $address = Email::Valid->address($username);
@@ -434,10 +436,10 @@ sub new_user_notification : Global  {
         $c->flash( info_msg => 'Email Sent Successfully' );
 
     } else {
-        $c->stash( error_msg => 'Not a valid email address, email could not be sent' );
+$DB::single=1;
+        $c->flash->{error_msg} = 'Not a valid email address, email could not be sent';
     }
     return;
-
 }
 
 =head1 AUTHOR
