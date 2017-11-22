@@ -1,0 +1,20 @@
+[% META title = "Design Progress Crispr Search"; META tab_name = "Designs" %]
+
+<form method="POST" action="[% c.uri_for( '/user/design_progress_crispr_search' ) %]" class="well">
+  <fieldset>
+    <legend>Design Progess Crispr Search</legend>
+
+    <textarea class="col-md-4 form-control" rows="8" name="crisprs" placeholder="Enter all Crisprs" value="[% crisprs %]"></textarea>
+    <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
+    <button type="submit" name="action" id="action" class="btn btn-primary" >Submit</button>
+
+  </fieldset>
+</form>
+
+<div class="well">
+<legend>Design Progess</legend>
+[% INCLUDE 'create_design/design_attempt_table.tt'
+    design_attempt_url = '/user/design_attempt'
+    view_design_url    = '/user/view_design'
+%]
+</div>

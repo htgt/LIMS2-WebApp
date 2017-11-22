@@ -502,6 +502,14 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     return;
 }
 
+sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' ){
+
+    my ($self, $c) = @_;
+
+    return;
+
+}
+
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
     my ( $self, $c ) = @_;
 
