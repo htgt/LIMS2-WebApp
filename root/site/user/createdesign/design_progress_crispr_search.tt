@@ -1,20 +1,60 @@
 [% META title = "Design Progress Crispr Search"; META tab_name = "Designs" %]
 
-<form method="POST" action="[% c.uri_for( '/user/design_progress_crispr_search' ) %]" class="well">
-  <fieldset>
-    <legend>Design Progess Crispr Search</legend>
+<form method="POST" class="well">
+    <fieldset>
+        <legend>Design Progess Crispr Search</legend>
 
-    <textarea class="col-md-4 form-control" rows="8" name="crisprs" placeholder="Enter all Crisprs" value="[% crisprs %]"></textarea>
-    <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
-    <button type="submit" name="action" id="action" class="btn btn-primary" >Submit</button>
-
-  </fieldset>
+        <textarea class="col-md-4 form-control" id="clearTextArea" rows="8" name="crisprs" placeholder="Enter all Crisprs" value="[% valid_crisprs %]">[% valid_crisprs %]</textarea>
+        <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
+        <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
+        <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+    </fieldset>
 </form>
 
-<div class="well">
-<legend>Design Progess</legend>
-[% INCLUDE 'create_design/design_attempt_table.tt'
-    design_attempt_url = '/user/design_attempt'
-    view_design_url    = '/user/view_design'
-%]
+<div class="well container" id="designProgressVisibility">
+    <legend>Design Progess</legend>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Crispr ID</th>
+                <th>Status</th>
+                <th>Gene ID(s)</th>
+                <th>Design ID(s)</th>
+                <th>WGE Crispr ID(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
 </div>
+
+
+
+
+<script type="text/javascript" charset="utf-8">
+
+$(document).ready(function() {
+
+    $('#designProgressVisibility').hide().prop('disabled', true);
+
+});
+
+function clearSelection(){
+
+    $("#clearTextArea").html("");
+
+}
+
+$('.button').hide();
+
+$('#clearTextArea').on('keyup', function() {
+    if (this.value.length) {
+        $('.button').show();
+    }else{
+        $('.button').hide();
+    }
+});
+
+</script>

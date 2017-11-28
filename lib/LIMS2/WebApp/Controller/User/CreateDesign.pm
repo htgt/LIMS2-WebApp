@@ -503,8 +503,47 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
 }
 
 sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' ){
-
     my ($self, $c) = @_;
+
+$DB::single=1;
+    $c->assert_user_roles( 'read' );
+    my $crisprs = $c->request->param('crisprs');
+
+        my @valid_crisprs;
+    if ($crisprs){
+        
+        my @crispr_set = split /\s*,\s*/, $crisprs;
+        use Data::Dumper;
+        print Dumper \@crispr_set;
+
+        foreach my $crispr (@crispr_set){
+        
+            if ($crispr =~ /\d{6}\b/){
+
+            push (@valid_crisprs, $crispr);
+            }
+
+        }        
+        print Dumper \@valid_crisprs;
+    }
+    my @crispr_set;
+    foreach my $crispr(@valid_crisprs){
+        
+        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
+            
+            if ($crispr_rs){
+        
+                push (@crispr_set, $crispr_rs->as_hash);
+
+            }
+    
+            }
+print Dumper \@crispr_set;
+    $c->stash(
+        crisprs => $c->request->param('crisprs') || undef,
+        valid_crisprs => @valid_crisprs,
+        crispr_set => @crispr_set,
+    );
 
     return;
 
