@@ -17,6 +17,7 @@ use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
 use Data::Dumper;
+use List::MoreUtils qw(uniq);
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -507,42 +508,94 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
 
 $DB::single=1;
     $c->assert_user_roles( 'read' );
-    my $crisprs = $c->request->param('crisprs');
+    my $search_terms = $c->request->param('crisprs');
 
-        my @valid_crisprs;
-    if ($crisprs){
+    if (! defined $search_terms){return}
+
+    my (@valid_terms, @invalid_terms);
+    my @crispr_set;
+print Dumper $search_terms;
+    if ($search_terms){
         
-        my @crispr_set = split /\s*,\s*/, $crisprs;
-        use Data::Dumper;
-        print Dumper \@crispr_set;
+        my @crispr_set = split /\s*,\s*/, $search_terms;
+        #print Dumper \@crispr_set;
+        @crispr_set = uniq @crispr_set;
 
         foreach my $crispr (@crispr_set){
+            #chomp($crispr);
+            $crispr =~ s/^\s+|\s+$//;
         
-            if ($crispr =~ /\d{6}\b/){
+            if ($crispr =~ /^[0-9]{6}$/){
 
-            push (@valid_crisprs, $crispr);
+                push (@valid_terms, $crispr);
+
+            } else {
+            
+                push (@invalid_terms, $crispr);
+
             }
 
-        }        
-        print Dumper \@valid_crisprs;
+        } 
+        print Dumper \@invalid_terms;
     }
-    my @crispr_set;
-    foreach my $crispr(@valid_crisprs){
+    my $crispr_info;
+    my @crispr_table;
+    my @failed_terms;
+    foreach my $crispr (@valid_terms){
         
         my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
             
-            if ($crispr_rs){
-        
-                push (@crispr_set, $crispr_rs->as_hash);
+        if ($crispr_rs){
+            my $wge_id = $crispr_rs->wge_id;
+            $crispr_info->{$crispr} = $wge_id;
+            my $crispr_ids = {
+            
+                lims    => $crispr,
+                wge     => $wge_id,
+                status  => 'Failed',
+            
+            };
+            push (@crispr_table, $crispr_ids);
 
-            }
+        } else {
+        
+            push (@failed_terms, $crispr);
+        
+        }
     
-            }
-print Dumper \@crispr_set;
+    }
+
+    my $errors = join(', ', @invalid_terms , @failed_terms);
+
+    my @crispr_id = keys %$crispr_info;
+    $DB::single=1;
+
+
+
+    if ( scalar(@crispr_id) <= 0) {
+        $c->stash( error_msg => "No crisprs found matching search terms" );
+    }
+    if( @invalid_terms || @failed_terms){
+        $c->stash( error_msg => "One or more search terms could not be found: $errors" );
+    }
+
+#print Dumper @{$crispr_info};
+print Dumper $crispr_info;
+print Dumper \@crispr_id;
+print Dumper \@crispr_table;
+#print Dumper @invalid_terms;
+#print Dumper @failed_terms;
+
     $c->stash(
         crisprs => $c->request->param('crisprs') || undef,
-        valid_crisprs => @valid_crisprs,
-        crispr_set => @crispr_set,
+        crispr_id => \@crispr_id,
+        valid_terms => \@valid_terms,
+        invalid_terms => \@invalid_terms,
+        crispr_info => $crispr_info,
+        crispr_table => \@crispr_table,
+        search_terms => $search_terms,
+        failed_terms => \@failed_terms,
+        #crispr_info => $crispr_info,
     );
 
     return;
