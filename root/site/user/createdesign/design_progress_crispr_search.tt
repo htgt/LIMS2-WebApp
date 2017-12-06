@@ -28,7 +28,7 @@
             [% IF table.status != 'Successful' %]
                 <tr style="background-color:#f2dede">
                 [% ELSE %]
-                <tr>
+                <tr style="background-color:#dff0d8">
                 [% END %]
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
@@ -49,7 +49,6 @@
 
 <form method="POST">
     <fieldset>
-
         <div id="Modal" class="modal fade" role="dialog">
             <div class="modal-dialog">
 
@@ -91,9 +90,7 @@ $(document).ready(function() {
 });
 
 function clearSelection(){
-
     $("#clearTextArea").html("");
-
 }
 
 $('.button').hide();
@@ -119,17 +116,11 @@ $(".textAreaKeys").keypress(function (e) {
 });
 
 function display(){
-
     if (!crispr_id){
-    
         $('.designProgressVisibility').hide().prop('disabled', true);
-    
     } else {
-    
         $('.designProgressVisibility').show().prop('disabled', false);
-    
     }
-
 }
 
 </script>
