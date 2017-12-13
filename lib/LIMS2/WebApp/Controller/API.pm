@@ -63,7 +63,6 @@ sub auto : Private {
                 secret      => $_conf->{api}->{transport},
                 compress    => 0,
             );
-
             my $frozen = $serial->thaw($key);
 
             unless ( $c->authenticate( { access_key => $frozen->{access}, secret_key => $frozen->{secret} }, 'rest' ) ) {
