@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::EngSeqs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::EngSeqs::VERSION = '0.483';
+    $LIMS2::WebApp::Controller::User::EngSeqs::VERSION = '0.481';
 }
 ## use critic
 

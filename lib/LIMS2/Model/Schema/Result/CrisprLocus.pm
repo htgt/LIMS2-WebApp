@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CrisprLocus;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.483';
+    $LIMS2::Model::Schema::Result::CrisprLocus::VERSION = '0.481';
 }
 ## use critic
 
@@ -176,6 +176,9 @@ sub as_hash {
     };
 }
 
+sub chr_strand {
+    return shift->chr_strand;
+}
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
