@@ -26,6 +26,7 @@ use Sub::Exporter -setup => {
         get_single_crispr_EnsEmbl_region
         oligo_for_single_crispr
         pick_miseq_internal_crispr_primers
+        pick_miseq_crispr_PCR_primers
     ) ]
 };
 
@@ -60,7 +61,6 @@ sub pick_crispr_PCR_primers {
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 100;
-
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
     PCR_TRIALS: foreach my $step ( 1..4 ) {
@@ -79,6 +79,35 @@ sub pick_crispr_PCR_primers {
         # increment the fields for searching next time round.
         $params->{'dead_field_width'} += $params->{'search_field_width'};
         $params->{'search_field_width'} += 1000;
+    }
+
+    return ($primer_data, $primer_passes, $chr_seq_start);
+}
+
+sub pick_miseq_crispr_PCR_primers {
+    my $model = shift;
+    my $params = shift;
+
+    $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 350;
+    $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 170;
+    # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
+    my ($primer_data, $primer_passes, $chr_seq_start);
+    PCR_TRIALS: foreach my $step ( 1..4 ) {
+        INFO ('PCR attempt No. ' . $step );
+        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params );
+        if ($primer_data->{'error_flag'} eq 'pass') {
+            INFO ('PCR Primer3 attempt No. ' . $step . ' succeeded');
+            if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
+                INFO ('PCR genomic check returned ' . $primer_passes->{'pair_count'} . ' unique primer pairs');
+                last PCR_TRIALS;
+            }
+            else {
+                INFO ( 'PCR genomic checked failed: found non-unique genomic alignmemts');
+            }
+        }
+        # increment the fields for searching next time round.
+        $params->{'dead_field_width'} += $params->{increment} // 40;
+        $params->{'search_field_width'} += $params->{increment} // 40;
     }
 
     return ($primer_data, $primer_passes, $chr_seq_start);
@@ -236,7 +265,7 @@ sub pcr_genomic_check {
 
     # implement genomic specificity checking using BWA
     #
-
+$DB::single=1;
     my ($bwa_query_filespec, $work_dir ) = generate_pcr_bwa_query_file( $well_id, $primer_data );
     my $num_bwa_threads = 2;
 
@@ -250,7 +279,7 @@ sub pcr_genomic_check {
     );
 
     $bwa->generate_sam_file;
-    my $oligo_hits = $bwa->oligo_hits;
+    my $oligo_hits = $bwa->oligo_hits; #miseq_oligo_hits
     $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
 
     return $primer_data;
@@ -305,7 +334,6 @@ sub filter_oligo_hits {
     foreach my $key ( sort keys %{$primer_data->{'right'}} ) {
         $primer_data->{'right'}->{$key}->{'mapped'} = $hits_to_filter->{$key};
     }
-
     $primer_data = del_bad_pairs('left', $primer_data);
     $primer_data = del_bad_pairs('right', $primer_data);
 
@@ -327,6 +355,7 @@ sub del_bad_pairs {
     my $temp1;
     my $temp2;
 
+$DB::single=1;
     foreach my $primer ( sort keys %{$primer_data->{$primer_end}} ) {
         if ( ! defined $primer_data->{$primer_end}->{$primer}->{'mapped'}->{'unique_alignment'} ) {
             $primer =~ s/right/left/;
@@ -434,7 +463,6 @@ sub parse_primer {
         rank
         location
     /;
-
 
     %oligo_data = map { $_  => $primer->$_ } @primer_attrs;
     $oligo_data{'seq'} = $primer->seq->seq;
@@ -566,6 +594,32 @@ sub get_crispr_PCR_EnsEmbl_region{
     my $model = shift;
     my $params = shift;
 
+    my ($seq, $start_target, $end_target, $dead_field_width, $search_field_width, $slice_region) = retrieve_crispr_PCR_EnsEmbl_region($model, $params);
+
+    my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
+    my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
+    my $chr_region_start = $slice_region->start;
+
+    return ( $seq, $target_sequence_string, $target_sequence_length, $chr_region_start );
+}
+
+sub get_miseq_crispr_PCR_EnsEmbl_region {
+    my $model = shift;
+    my $params = shift;
+
+    my ($seq, $start_target, $end_target, $dead_field_width, $search_field_width, $slice_region) = retrieve_crispr_PCR_EnsEmbl_region($model, $params);
+
+    my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
+    my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
+    my $chr_region_start = $slice_region->start;
+
+    return ( $seq, $target_sequence_string, $target_sequence_length, $chr_region_start );
+}
+
+sub retrieve_crispr_PCR_EnsEmbl_region {
+    my $model = shift;
+    my $params = shift;
+
     my $schema = $model->schema;
     my $crispr_primers = $params->{'crispr_primers'};
     my $species = $params->{'species'};
@@ -585,7 +639,7 @@ sub get_crispr_PCR_EnsEmbl_region{
 
     my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $seq;
-
+$DB::single=1;
     my $start_target = $crispr_primers->{'crispr_primers'}->{'left'}->{'left_0'}->{'location'}->start
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
     my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
@@ -607,24 +661,18 @@ INFO("PCR end target: $end_target");
                 slice_region => $slice_region,
                 repeat_mask => $repeat_mask,
                 revcom  => 0,
-            });
+        });
     }
     elsif ( $chr_strand eq 'minus' ) {
         $seq = get_repeat_masked_sequence( {
                 slice_region => $slice_region,
                 repeat_mask => $repeat_mask,
                 revcom  => 0,
-            });
+        });
     }
 
-    my $target_sequence_length = ($end_target - $start_target) + 2 * $dead_field_width;
-    my $target_sequence_string = $search_field_width . ',' . $target_sequence_length;
-
-    my $chr_region_start = $slice_region->start;
-
-    return ( $seq, $target_sequence_string, $target_sequence_length, $chr_region_start );
+    return ($seq, $start_target, $end_target, $dead_field_width, $search_field_width, $slice_region);
 }
-
 
 =head
 Given design and schema
@@ -1248,7 +1296,6 @@ sub map_single_crispr_EnsEmbl_region {
     my $target_sequence_length = ($end_coord - $start_coord) + 2 * $dead_field_width;
     # target sequence is <start, length> and in this case indicates the region we want to sequence
 
-#$DB::single=1;
     my $target_sequence_string =  $search_field_width . ',' . $target_sequence_length;
 
     #my $target_sequence_string = '300,22';

@@ -49,6 +49,7 @@ Create a design.
 sub design_POST {
     my ( $self, $c ) = @_;
 
+$DB::single=1;
     $c->assert_user_roles('edit');
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
@@ -59,7 +60,6 @@ sub design_POST {
         $c->req->secure(1);
     }
     $c->require_ssl;
-
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->c_create_design( $c->request->data );
