@@ -265,7 +265,6 @@ sub pcr_genomic_check {
 
     # implement genomic specificity checking using BWA
     #
-$DB::single=1;
     my ($bwa_query_filespec, $work_dir ) = generate_pcr_bwa_query_file( $well_id, $primer_data );
     my $num_bwa_threads = 2;
 
@@ -355,7 +354,6 @@ sub del_bad_pairs {
     my $temp1;
     my $temp2;
 
-$DB::single=1;
     foreach my $primer ( sort keys %{$primer_data->{$primer_end}} ) {
         if ( ! defined $primer_data->{$primer_end}->{$primer}->{'mapped'}->{'unique_alignment'} ) {
             $primer =~ s/right/left/;
@@ -639,7 +637,6 @@ sub retrieve_crispr_PCR_EnsEmbl_region {
 
     my $slice_adaptor = $model->ensembl_slice_adaptor($species);
     my $seq;
-$DB::single=1;
     my $start_target = $crispr_primers->{'crispr_primers'}->{'left'}->{'left_0'}->{'location'}->start
         + $crispr_primers->{'crispr_seq'}->{'chr_region_start'} ;
     my $end_target = $crispr_primers->{'crispr_primers'}->{'right'}->{'right_0'}->{'location'}->end
@@ -932,7 +929,7 @@ sub pick_miseq_internal_crispr_primers {
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 200;
     $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 100;
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
-    my ($primer_data, $chr_seq_start);
+    my ($primer_data);
     my $chr_strand = $model->schema->resultset('CrisprLocus')->search({ crispr_id => $params->{'crispr_id'} })->first->chr_strand eq '1' ? 'plus' : 'minus';
     TRIALS: foreach my $step ( 1..4 ) {
         INFO ('Attempt No. ' . $step );

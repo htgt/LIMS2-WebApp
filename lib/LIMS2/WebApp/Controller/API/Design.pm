@@ -49,7 +49,6 @@ Create a design.
 sub design_POST {
     my ( $self, $c ) = @_;
 
-$DB::single=1;
     $c->assert_user_roles('edit');
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
