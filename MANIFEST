@@ -24,7 +24,6 @@ docs/lab/homozygous_workflows.pdf
 docs/lab/homozygous_workflows.pptx
 docs/lims2_util_oligo_selection_overview.txt
 docs/testing/TestingTargets.ods
-exr
 lib/LIMS2/AlleleRequest.pm
 lib/LIMS2/AlleleRequest/DoubleTargeted.pm
 lib/LIMS2/AlleleRequest/SingleTargeted.pm
