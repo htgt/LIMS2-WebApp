@@ -119,10 +119,12 @@ body {
         <div class="col-md-2">
             <select class="form-control" align="center" id="quadSelect">
                 <option value="All" selected="selected">All</option>
-                <option class="quadOpt" value="firstQuad">1-96</option>
-                <option class="quadOpt" value="secondQuad">97-192</option>
-                <option class="quadOpt" value="thirdQuad">193-288</option>
-                <option class="quadOpt" value="fourthQuad">289-384</option>
+                    [% SET i = 1 %]
+                    [% SET dropdown = max_quad + 1 %]
+                    [% WHILE i <= dropdown %]
+                        <option class="quadOpt" value="Quad[% i %]">[% barcode_range.$i %]</option>
+                    [% SET i = i + 1 %]
+                    [% END %]
             </select>
             <div>
                 <button class="btn btn-primary" id="quadBack" style="display: none;">
@@ -473,17 +475,29 @@ $(window).resize(function() {
 function buildQuadrant(quad) {
     var construct;
     switch (quad) {
-        case "firstQuad":
+        case "Quad1":
             construct = `[% INCLUDE "miseq_overview_table.tt" page = 0 x = 0 y = y1 %]`;
             break;
-        case "secondQuad":
+        case "Quad2":
             construct = `[% INCLUDE "miseq_overview_table.tt" page = 96 x = 12 y = y1 %]`;
             break;
-        case "thirdQuad":
+        case "Quad3":
             construct = `[% INCLUDE "miseq_overview_table.tt" page = 192 x = 0 y = y2 %]`;
             break;
-        case "fourthQuad":
+        case "Quad4":
             construct = `[% INCLUDE "miseq_overview_table.tt" page = 288 x = 12 y = y2 %]`;
+            break;
+        case "Quad5":
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 384 x = 0 y = y1 %]`;
+            break;
+        case "Quad6":
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 480 x = 12 y = y1 %]`;
+            break;
+        case "Quad7":
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 576 x = 0 y = y2 %]`;
+            break;
+        case "Quad8":
+            construct = `[% INCLUDE "miseq_overview_table.tt" page = 672 x = 12 y = y2 %]`;
             break;
         default:
             console.log("outside of plate limits..");
@@ -641,19 +655,31 @@ function highlightQuad(selection) {
             for (var quad = range.first; quad <= range.last; quad++) { //Needed to fill in gaps i.e. 97-386
                 switch (quad) {
                     case 0:
-                        d3.select('#firstQuad').transition().style("fill", "yellow").duration(1000);
+                        d3.select('#Quad1').transition().style("fill", "yellow").duration(1000);
                         break;
                     case 1:
-                        d3.select('#secondQuad').transition().style("fill", "yellow").duration(1000);
+                        d3.select('#Quad2').transition().style("fill", "yellow").duration(1000);
                         break;
                     case 2:
-                        d3.select('#thirdQuad').transition().style("fill", "yellow").duration(1000);
+                        d3.select('#Quad3').transition().style("fill", "yellow").duration(1000);
                         break;
                     case 3:
-                        d3.select('#fourthQuad').transition().style("fill", "yellow").duration(1000);
+                        d3.select('#Quad4').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 4:
+                        d3.select('#Quad5').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 5:
+                        d3.select('#Quad6').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 6:
+                        d3.select('#Quad7').transition().style("fill", "yellow").duration(1000);
+                        break;
+                    case 7:
+                        d3.select('#Quad8').transition().style("fill", "yellow").duration(1000);
                         break;
                     default:
-                        console.log("Mistery quadrant added");
+                        console.log("Mystery quadrant added");
                 }
             }
         });

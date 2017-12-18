@@ -1,4 +1,25 @@
-<svg width="520" height="320">
+<svg width="520" height="640">
+
+[% SET i = 0 %]
+[% SET quad = 1 %]
+[% SET y = 1 %]
+
+[% WHILE i <= max_quad %]
+    [% SET x = i % 2 %]
+    [% USE Math %]
+    [% SET setup = Math.int(y) %]
+
+    <rect id="Quad[% quad %]" class="quad" x="[% xrect.$x %]" y="[% yrect.$setup %]" width="250" height="150" stroke="black" fill="white"/>
+    <text x="[% xtext.$x %]" y="[% ytext.$setup %]" alignment-baseline="middle" text-anchor="middle" class="lb-md">[% barcode_range.$quad %]</text>
+
+    [% SET quad = quad + 1 %]
+    [% SET i = i + 1 %]
+    [% SET y = y + 0.5 %]
+
+[% END %]
+
+
+<!--
     <rect id="firstQuad" class="quad" x="5" y="5" width="250" height="150" stroke="black" fill="white"/>
     <text x="130" y="80" alignment-baseline="middle" text-anchor="middle" class="lb-md">1 - 96</text>
     <rect id="secondQuad" class="quad" x="265" y="5" width="250" height="150" stroke="black" fill="white"/>
@@ -7,4 +28,15 @@
     <text x="130" y="240" alignment-baseline="middle" text-anchor="middle" class="lb-md">193 - 288</text>
     <rect id="fourthQuad" class="quad" x="265" y="165" width="250" height="150" stroke="black" fill="white"/>
     <text x="390" y="240" alignment-baseline="middle" text-anchor="middle" class="lb-md">289 - 384</text>
+    <rect id="fifthQuad" class="quad" x="5" y="325" width="250" height="150" stroke="black" fill="white"/>
+    <text x="130" y="400" alignment-baseline="middle" text-anchor="middle" class="lb-md">385 - 480</text>
+    <rect id="sixthQuad" class="quad" x="265" y="325" width="250" height="150" stroke="black" fill="white"/>
+    <text x="390" y="400" alignment-baseline="middle" text-anchor="middle" class="lb-md">481 - 576</text>
+    <rect id="seventhQuad" class="quad" x="5" y="485" width="250" height="150" stroke="black" fill="white"/>
+    <text x="130" y="560" alignment-baseline="middle" text-anchor="middle" class="lb-md">577 - 672</text>
+    <rect id="eigthQuad" class="quad" x="265" y="485" width="250" height="150" stroke="black" fill="white"/>
+    <text x="390" y="560" alignment-baseline="middle" text-anchor="middle" class="lb-md">673 - 768</text>
+-->
 </svg>
+
+<!-- x and y hash needs to be supplied from $xtext and $ytext -->

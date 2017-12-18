@@ -14,6 +14,8 @@ use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
+use Data::Dumper;
+use List::Util qw(max);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -32,6 +34,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     $c->assert_user_roles( 'edit' );
 
+$DB::single=1;
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
 
@@ -39,10 +42,11 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
 
     if ($miseq_plate->{'384'} == 1 ) {
-        my $quadrants = experiment_384_distribution($c, $miseq, $plate_id, $miseq_plate->{id});
+        my ($quadrants, $max_quad) = experiment_384_distribution($c, $miseq, $plate_id, $miseq_plate->{id});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
+        $c->stash->{max_quad} = $max_quad;
     }
-
+$DB::single=1;
     my $overview = get_experiments($c, $miseq, 'genes');
     my $ov_json = encode_json ({ summary => $overview });
 
@@ -99,6 +103,41 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
 
+    my $xtext = {
+        0 => 130,
+        1 => 390,
+    };
+
+    my $xrect = {
+        0 => 5,
+        1 => 265,
+    };
+    
+    my $ytext = {
+        1 => 80,
+        2 => 240,
+        3 => 400,
+        4 => 560,
+    };   
+    
+    my $yrect = {
+        1 => 5,
+        2 => 165,
+        3 => 325,
+        4 => 485,
+    };
+
+    my $barcode_range = {
+        1 => '1 - 96',
+        2 => '97 - 192',
+        3 => '193 - 288',
+        4 => '289 - 384',
+        5 => '385 - 480',
+        6 => '481 - 576',
+        7 => '577 - 672',
+        8 => '673 - 768',
+    };
+
     $c->stash(
         wells => $json,
         experiments => \@exps,
@@ -113,6 +152,12 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
         designs_reverse => $designs_reverse,
         gene_crispr => $prefix,
         uniq_crisprs => \@uniq_crisprs,
+        xtext => $xtext,
+        xrect => $xrect,
+        barcode_range => $barcode_range,
+        ytext => $ytext,
+        yrect => $yrect,
+
 
     );
 
@@ -170,6 +215,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         max_wells       => $well_limit->{$miseq_plate->{384}},
     );
 
+$DB::single=1;
     return;
 }
 
@@ -203,6 +249,7 @@ sub experiment_384_distribution {
 
     my $range_summary = get_experiments($c, $miseq, 'range');
     my $quadrants;
+    my @last_quads;
 
     foreach my $exp (keys %$range_summary) {
         my $value = $range_summary->{$exp};
@@ -216,10 +263,13 @@ sub experiment_384_distribution {
                 'last'  => $mods[1],
             };
             push(@{$quadrants->{$exp}}, $region);
+            push (@last_quads, $mods[1]);
         }
     }
 
-    return $quadrants;
+    my $max_quad = max(@last_quads);
+
+    return $quadrants, $max_quad;
 }
 
 sub get_experiments {
