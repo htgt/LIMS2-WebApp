@@ -37,8 +37,21 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 $DB::single=1;
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
+    my $plate_id;
 
-    my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
+    try {
+        $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
+    } catch {
+        $c->log->error(" Could not find plate id relating to Miseq $miseq: $_ ");
+    } finally {
+
+    if (! defined $plate_id){
+    
+        $c->stash( error_msg => "Unable to find plate for Miseq run: $miseq " );
+        $miseq = 'Miseq_017'; #will change this to dynamically find most recent run
+        $plate_id = '12317';
+     }
+ };
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
 
     if ($miseq_plate->{'384'} == 1 ) {
@@ -157,7 +170,6 @@ $DB::single=1;
         barcode_range => $barcode_range,
         ytext => $ytext,
         yrect => $yrect,
-
 
     );
 
