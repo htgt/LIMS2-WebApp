@@ -107,6 +107,9 @@
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/design_progress_crispr_search' ) %]">Design Progress Crispr Search</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>

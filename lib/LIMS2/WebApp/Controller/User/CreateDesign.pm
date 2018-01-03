@@ -17,6 +17,7 @@ use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
 use Data::Dumper;
+use List::MoreUtils qw(uniq);
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -500,6 +501,89 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     );
 
     return;
+}
+
+sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' ){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'read' );
+    my $search_terms = $c->request->param('crisprs');
+
+    if (! defined $search_terms){return}
+
+    my (@valid_terms, @invalid_terms);
+
+    if ($search_terms){
+
+        my @crispr_set = split /\s*,\s*/, $search_terms;
+        @crispr_set = uniq @crispr_set;
+
+        foreach my $crispr (@crispr_set){
+            $crispr =~ s/^\s+|\s+$//;
+
+            if ($crispr =~ /^[0-9]{6}$/){
+
+                push (@valid_terms, $crispr);
+
+            } else {
+
+                push (@invalid_terms, $crispr);
+
+            }
+        }
+    }
+    my $crispr_info;
+    my @crispr_table;
+    my @failed_terms;
+
+    foreach my $crispr (@valid_terms){
+
+        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
+
+        if ($crispr_rs){
+            my $wge_id = $crispr_rs->wge_id;
+            $crispr_info->{$crispr} = $wge_id;
+            my $crispr_ids = {
+
+                lims    => $crispr,
+                wge     => $wge_id,
+                status  => 'Failed',
+
+            };
+            push (@crispr_table, $crispr_ids);
+
+        } else {
+
+            push (@failed_terms, $crispr);
+
+        }
+
+    }
+
+    my $errors = join(', ', @invalid_terms , @failed_terms);
+
+    my @crispr_id = keys %$crispr_info;
+
+    if ( scalar(@crispr_id) <= 0) {
+        $c->stash( error_msg => "No crisprs found matching search terms" );
+    }
+    if( @invalid_terms || @failed_terms){
+        $c->stash( error_msg => "One or more search terms could not be found: $errors" );
+    }
+
+    $c->stash(
+        crisprs => $c->request->param('crisprs') || undef,
+        crispr_id => \@crispr_id,
+        valid_terms => \@valid_terms,
+        invalid_terms => \@invalid_terms,
+        crispr_info => $crispr_info,
+        crispr_table => \@crispr_table,
+        search_terms => $search_terms,
+        failed_terms => \@failed_terms,
+    );
+
+    return;
+
 }
 
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
