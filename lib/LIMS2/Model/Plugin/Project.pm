@@ -348,9 +348,32 @@ sub retrieve_genotyping{
     return $res;
 }
 
+sub find_project_experiments {
+    my ($self, $project_id) = @_;
+
+    my @project_experiment = $self->schema->resultset('ProjectExperiment')->search({project_id => $project_id})->all;
+    my @exp_ids;
+
+    foreach my $rec (@project_experiment) {
+        my $temp_id = $rec->experiment_id;
+        if (defined $temp_id and $temp_id =~ /\d+/) {
+            push @exp_ids, $temp_id;
+        }
+    }
+
+    my @exps;
+    try {
+        @exp_ids = uniq @exp_ids;
+        @exps = $self->schema->resultset('Experiment')->search({ id => { -in => \@exp_ids } })->all;
+    };
+
+    return @exps;
+}
+
 sub _pspec_create_experiment{
     return {
         gene_id         => { validate => 'non_empty_string' },
+        project_id      => { validate => 'existing_project_id', optional => 1 },
         design_id       => { validate => 'existing_design_id', optional => 1 },
         crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
         crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1},
@@ -373,15 +396,32 @@ sub create_experiment{
         crispr_pair_id => ($validated_params->{crispr_pair_id} // undef),
         crispr_group_id => ($validated_params->{crispr_group_id} // undef),
     };
+
     my $experiment;
+    my $project_id = $validated_params->{project_id};
+    delete $validated_params->{project_id};
+
     try{
         $experiment = $self->retrieve_experiment($search_params);
     };
 
     if($experiment){
+        my @proj_exp = $self->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $experiment->id });
+
         if($experiment->deleted){
             # Un-delete the existing experiment
             $experiment->update({ deleted => 0});
+
+            if (scalar @proj_exp == 0) {
+                try {
+                    $self->schema->resultset('ProjectExperiment')->create({ project_id => $project_id, experiment_id => $experiment->id });
+                };
+            }
+
+        } elsif (scalar @proj_exp == 0) {
+            try {
+                $self->schema->resultset('ProjectExperiment')->create({ project_id => $project_id, experiment_id => $experiment->id });
+            };
         }
         else{
             die "Experiment already exists with id ".$experiment->id."\n";
@@ -389,15 +429,27 @@ sub create_experiment{
     }
     else{
         $experiment = $self->schema->resultset('Experiment')->create($validated_params);
+        my $expr_proj_params = { project_id => $project_id, experiment_id => $experiment->id };
+
+        try {
+            $self->schema->resultset('ProjectExperiment')->create($expr_proj_params);
+        };
     }
+
     return $experiment;
 }
 
 sub delete_experiment{
     my ($self,$params) = @_;
 
-    my $experiment = $self->retrieve_experiment($params);
+    my $experiment = $self->retrieve_experiment({id => $params->{experiment_id}});
     $experiment->update({ deleted => 1});
+
+    my @rec = $self->schema->resultset('ProjectExperiment')->search($params)->all;
+    foreach my $row (@rec) {
+        $row->update({experiment_id => undef});
+    }
+
     return;
 }
 

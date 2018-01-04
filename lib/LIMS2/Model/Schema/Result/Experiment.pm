@@ -214,6 +214,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 project_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_experiments",
+  "LIMS2::Model::Schema::Result::ProjectExperiment",
+  { "foreign.experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 requester
 
 Type: belongs_to
@@ -235,8 +250,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-09 15:43:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yFbEZdXASXrZehv3A1JBUw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:APRoHhvbv2iUme8i3VLweg
 
 sub as_hash{
     my $self = shift;
