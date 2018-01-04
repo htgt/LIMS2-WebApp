@@ -1,5 +1,26 @@
 {{$NEXT}}
 
+0.485     2017-12-13 15:05:16 Europe/London
+    Removed unnecessary file
+0.484     2017-12-13 13:24:44 Europe/London
+    Miseq design framework
+0.483     2017-11-27 11:57:26 Europe/London
+    Release to bring releases branch up to date
+
+0.482     2017-11-22 15:07:16 Europe/London
+    New user automated email
+
+0.481     2017-11-20 15:31:12 Europe/London
+    Fixed crispr dropdown
+
+0.480     2017-11-17 14:38:04 Europe/London
+    Crispr dropdown added to point mutation    
+
+0.480     2017-11-09 10:56:30 Europe/London
+    Crispresso update change
+0.479     2017-10-27 15:29:56 Europe/London
+
+    Fixed miseq arrows and added dropdown for exp
 0.478     2017-10-13 16:15:50 Europe/London
 
     A fix for experiments table in Gene Summary view

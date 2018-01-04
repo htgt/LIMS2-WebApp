@@ -197,9 +197,16 @@ sub _build_target_region_start {
         else {
             return $self->oligos->{'D3'}{end};
         }
-
     }
 
+    if ( $self->type eq 'miseq') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'INF'}{end};
+        }
+        else {
+            return $self->oligos->{'INR'}{end};
+        }
+    }
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
@@ -261,7 +268,14 @@ sub _build_target_region_end {
             return $self->oligos->{'U5'}{start};
         }
     }
-
+    if ( $self->type eq 'miseq') {
+        if ( $self->chr_strand == 1 ) {
+            return $self->oligos->{'INR'}{start};
+        }
+        else {
+            return $self->oligos->{'INF'}{start};
+        }
+    }
 # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
     # target region, not a ideal solution but the least painful one I can think of
     if ( $self->type eq 'nonsense' ) {
