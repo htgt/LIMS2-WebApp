@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::User::PlateUpload;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use List::MoreUtils qw(uniq);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -21,6 +22,214 @@ sub begin :Private {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
+    return;
+}
+
+sub plate_upload_assembly_ii :Path( '/user/plate_upload_assembly_ii' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+    my $species = $c->session->{selected_species};
+    $params->{species} = $species;
+    $params->{process_type} = 'assembly_ii';
+    $params->{plate_type} = 'ASSEMBLY_II';
+    $params->{plate_name} = $params->{assembly_ii_plate_name};
+
+    ## ----------------
+    ## persistent input
+    ## ----------------
+    $c->stash(
+        gene_id_assembly_ii        => $params->{gene_id_assembly_ii},
+        cell_line_assembly_ii      => $params->{cell_line_assembly_ii},
+        strategy_assembly_ii       => $params->{strategy_assembly_ii},
+        targeting_type_assembly_ii => $params->{targeting_type_assembly_ii},
+        sponsor_assembly_ii        => $params->{sponsor_assembly_ii},
+        crispr_id_assembly_ii      => $params->{crispr_id_assembly_ii},
+        crispr_pair_assembly_ii    => $params->{crispr_pair_assembly_ii},
+        crispr_group_assembly_ii   => $params->{crispr_group_assembly_ii},
+        wge_crispr_assembly_ii     => $params->{wge_crispr_assembly_ii},
+        design_id_assembly_ii      => $params->{design_id_assembly_ii}
+    );
+
+    ## ---------------
+    ## project section
+    ## ---------------
+    ## - attributes
+    my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
+    $c->stash->{cell_line_options} = \@cell_lines;
+
+    ## persistent user input
+    if ($params->{cell_line_assembly_ii}) {
+        foreach my $cl (@cell_lines) {
+            if ($cl->{id} == $params->{cell_line_assembly_ii}) {
+                $c->stash(cell_line_id => $cl->{id}, cell_line_name => $cl->{name});
+            }
+        }
+    }
+    my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    $c->stash->{sponsors} = \@sponsors;
+
+    ## persistent user input
+    if ($params->{sponsor_assembly_ii}) {
+        $c->stash(sponsor_assembly_ii => $params->{sponsor_assembly_ii});
+    }
+
+    ## - find projects
+    my @all_projects;
+
+    ## persistent user input
+    my $lagging_projects_str = $params->{lagging_projects};
+    my @lagging_projects = split ",", $lagging_projects_str;
+    foreach my $pr (@lagging_projects) {
+        my @lagging_project = $c->model('Golgi')->find_projects_assembly_ii({project_id => $pr});
+        push @all_projects, @lagging_project;
+    }
+
+    ## find projects for a gene
+    if ($params->{find_assembly_ii_project}) {
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
+        unless (grep {$_ eq $gene_info->{gene_symbol}} @lagging_projects) {
+            my @hit_projects = $c->model('Golgi')->find_projects_assembly_ii($params);
+            push @all_projects, @hit_projects;
+        }
+    }
+
+    my @projects;
+    my @unique_project_ids;
+    foreach my $item (@all_projects) {
+        unless (grep {$_ == $item->{id}} @unique_project_ids) {
+            push @unique_project_ids, $item->{id};
+            push @projects, $item;
+        }
+    }
+
+    foreach my $proj_indx (0..$#projects) {
+        try {
+            my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $projects[$proj_indx]->{gene_id}, species => $species } ) };
+            if ( $gene_info ) {
+                $projects[$proj_indx]->{gene_id} = $gene_info->{gene_symbol};
+            }
+            $projects[$proj_indx]->{info} = "gene_id_assembly_ii:" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii:" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii:" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii:" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii:" . $projects[$proj_indx]->{sponsor_id};
+        };
+    }
+
+    my @lagging_project_ids = map {$_->{id}} @projects;
+
+    $c->stash(
+        hit_projects          => \@projects,
+        lagging_projects         => join ",", @lagging_project_ids
+    );
+
+    ## - create project
+    my $project_gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+    if ( $project_gene_info ) {
+        $params->{gene_id_assembly_ii} = $project_gene_info->{gene_id};
+    }
+
+    if ($params->{create_assembly_ii_project}) {
+        $c->model('Golgi')->create_project_assembly_ii($params);
+    }
+
+    ## ---------------
+    ## crispr section
+    ## ---------------
+    ## - import crispr id from wge
+    my @assembly_ii_crisprs;
+    if ($params->{import_assembly_ii_crispr}) {
+        @assembly_ii_crisprs = $c->model('Golgi')->import_wge_crispr_assembly_ii($params);
+        unless (@assembly_ii_crisprs) {
+            $c->stash->{error_msg} = 'Error importing Crispr Id: ' . $params->{wge_crispr_assembly_ii};
+            return;
+        }
+        $c->stash->{info_msg} = 'Successfully imported Crispr from WGE. ' . join ",", @assembly_ii_crisprs;
+    }
+
+    ## -------------------
+    ## experiments section
+    ## -------------------
+    ## - keep lagging experiments
+    my @lagging_exps;
+    my @assembly_ii_experiments;
+    my $lagging_exp_ids = $params->{lagging_exp_ids};
+    if ($lagging_exp_ids) {
+        foreach my $exp_id (split ",", $lagging_exp_ids) {
+            my @temp_exp = $c->model('Golgi')->retrieve_experiments_by_field('id', $exp_id);
+            push @lagging_exps, @temp_exp;
+        }
+        push @assembly_ii_experiments, @lagging_exps;
+    }
+
+    ## - find experiments
+    if ($params->{find_assembly_ii_experiments}) {
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+        if ($params->{create_assembly_ii_experiment}) {
+            try {
+                my $exp_params = (
+                    gene_id         =>  $gene_info->{gene_id},
+                    design_id       =>  ($params->{design_id_assembly_ii} // undef),
+                    crispr_id       =>  ($params->{crispr_id_assembly_ii} // undef),
+                    crispr_pair_id  =>  ($params->{crispr_pair_id} // undef),
+                    crispr_group_id =>  ($params->{crispr_group_id} // undef),
+                );
+
+                my $experiment = $c->model('Golgi')->create_experiment($exp_params);
+            };
+        }
+        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
+        push @assembly_ii_experiments, $c->model('Golgi')->retrieve_experiments_assembly_ii($params);
+    }
+
+    ## - unique experiments
+    my @unique_exps;
+    my @exp_ids;
+
+    foreach my $dict (@assembly_ii_experiments) {
+        if ( grep { $_ == $dict->{id} } @exp_ids) {
+            next;
+        }
+        push @unique_exps, $dict;
+        push @exp_ids, $dict->{id};
+    }
+
+    my $lagging_exps_str = join ",", @exp_ids;
+
+    foreach my $exp_indx (0..$#assembly_ii_experiments) {
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $assembly_ii_experiments[$exp_indx]->{gene_id}, species => $species } ) };
+        if ( $gene_info ) {
+            $assembly_ii_experiments[$exp_indx]->{gene_id} = $gene_info->{gene_symbol};
+        }
+    }
+
+    $c->stash(
+       find_assembly_ii_experiments => $params->{find_assembly_ii_experiments},
+       assembly_ii_experiments => \@unique_exps,
+       lagging_exp_ids => $lagging_exps_str,
+    );
+
+    ## -------------
+    ## plate section
+    ## -------------
+    ## - save plate details
+    if ($params->{save_assembly_ii}) {
+#        $c->stash(
+#            plate_name   => '$params->{assembly_ii_plate_name}',
+#            plate_type   => $params->{plate_type},
+#            process_type => $params->{process_type},
+#            species      => $params->{species}
+#        );
+        delete $c->request->params->{save_assembly_ii};
+        delete $c->request->params->{assembly_ii_plate_name};
+        my $plate = $self->process_plate_upload_form( $c );
+        return unless $plate;
+
+        $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
+        $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
+        #$c->res->redirect( $c->uri_for('/user/view_plate') );
+        #$c->res->redirect( $c->uri_for('/user/view_plate', {id => 11561}) );
+        return;
+    }
+
     return;
 }
 
@@ -44,6 +253,11 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         $c->flash->{error_msg} = 'You must specify a process type';
         return $c->res->redirect('/user/plate_upload_step1');
     }
+
+   if ($process_type eq 'assembly_ii') {
+     return $c->res->redirect('/user/plate_upload_assembly_ii');
+   }
+
     my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();
     my @lines;
     while (my $line = $cell_lines->next){
@@ -75,7 +289,7 @@ sub process_plate_upload_form :Private {
     $c->stash( $c->request->params );
     my $params = $c->request->params;
     my $well_data = $c->request->upload('datafile');
-    unless ( $well_data ) {
+    unless ( $well_data or $params->{process_type} eq 'assembly_ii' ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
         return;
     }
@@ -111,10 +325,14 @@ sub process_plate_upload_form :Private {
     $params->{created_by} = $c->user->name;
 
     my $plate;
+    my $data;
+    if ($params->{process_type} ne 'assembly_ii') {
+        $data = $well_data->fh;
+    }
     $c->model('Golgi')->txn_do(
         sub {
-            try{
-                $plate = $c->model('Golgi')->create_plate_csv_upload( $params, $well_data->fh );
+            try {
+                $plate = $c->model('Golgi')->create_plate_csv_upload( $params, $data);
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while creating plate: ' . $_;
@@ -144,3 +362,4 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+

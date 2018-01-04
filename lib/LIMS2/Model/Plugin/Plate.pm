@@ -440,6 +440,10 @@ sub create_plate_by_copy {
     return $plate;
 }
 
+#sub create_assembly_ii_plate {
+#    my ( $self, $params ) = @_;
+#}
+
 ## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
@@ -509,12 +513,19 @@ sub create_plate_csv_upload {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
 
-    my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
+    unless ($params->{process_type} eq 'assembly_ii') {
+        my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
-    for my $datum ( @{$well_data} ) {
-        merge_plate_process_data( $datum, \%plate_process_data );
+        for my $datum ( @{$well_data} ) {
+            merge_plate_process_data( $datum, \%plate_process_data );
+        }
+        $plate_data{wells} = $well_data;
+use Data::Dumper;
+print Dumper %plate_data;
+        return $self->create_plate( \%plate_data );
     }
-    $plate_data{wells} = $well_data;
+use Data::Dumper;
+print Dumper %plate_data;
     return $self->create_plate( \%plate_data );
 }
 ## use critic
@@ -690,3 +701,4 @@ sub random_plate_name{
 1;
 
 __END__
+

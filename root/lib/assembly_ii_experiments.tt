@@ -1,0 +1,250 @@
+<style type="text/css">
+
+#squares_div {
+  margin-left: 60px;
+  margin-top: 20px;
+  float: left;
+}
+
+#experiments_div {
+  margin-right: 30px;
+  margin-top: 50px;
+  float: right;
+}
+
+#experiments_inner_div {
+  overflow: scroll;
+  height: 350px;
+  width: 550px;
+}
+
+.experiment_well {
+  background-color: #add8e6;
+/*  width: 60px;*/
+  height: 20px;
+}
+
+.square {
+  width: 150px;
+  height: 60px;
+  border: 1px solid #4682b4;/*steelblue*/
+  background-color: #add8e6;/*lightblue*/
+  opacity: 0.5;
+}
+
+.square:hover {
+  transform: scale(1.5);
+  z-index: 1;
+  position: relative;
+  transition-duration: 0.1s;
+  opacity: 0.8;
+  /*transform: skewY(10deg);*/
+}
+
+#gui_panel {
+  padding-top: 20px;
+}
+
+#assembly_ii_plate_name {
+  margin-bottom: 8px;
+}
+
+</style>
+
+<form>
+<div id="gui_panel">
+<div class="panel panel-default">
+  <div style="height:50px;" class="panel-heading">
+    <h1 class="panel-title">
+      Assembly II Plate - Graphical Interface
+      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
+    </h1>
+  </div>
+
+  <div class="panel-body">
+    <div id="squares_div">
+    <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
+
+    <table>
+    <tr>
+      <td>
+        <div id="square_1" class="square" style="border-top-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_1" name="well_1" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_9" class="square" style="border-top-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_9" name="well_9" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_2" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_2" name="well_2" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_10" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_3" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_3" name="well_3" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_11" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_4" class="square" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_4" name="well_4" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_12" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_5" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_5" name="well_5" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_13" class="square" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_6" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_6" name="well_6" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_14" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_7" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_7" name="well_7" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_15" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_8" class="square" style="border-bottom-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_8" name="well_8" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_16" class="square" style="border-bottom-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
+      </td>
+    </tr>
+    </table>
+
+    </div>
+
+    <div id="experiments_div">
+
+    <p style="color:grey;font-size:12px">
+      <br />Drag target icon to a plate well.<br />
+    </p>
+
+    <div id="experiments_inner_div">
+
+      <table class="table table-bordered">
+        <thead style="background-color:#f0e68c;">
+        <tr>
+          <th>
+          </th>
+          <th>
+            Gene
+          </th>
+          <th>
+            Design ID
+          </th>
+          <th>
+            Crispr ID
+          </th>
+          <th>
+            Crispr Pair ID
+          </th>
+          <th>
+            Crispr Group ID
+          </th>
+        </tr>
+        </thead>
+      [% FOR exp IN assembly_ii_experiments %]
+        <tr style="background-color:#f5f5dc;">
+          <td>
+            <button class="btn btn-default" id=[% exp.gene_id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move"></span></button>
+          </td>
+          <td>
+            [% exp.gene_id %]
+          </td>
+          <td>
+            [% exp.design_id %]
+          </td>
+          <td>
+            [% exp.crispr_id %]
+          </td>
+          <td>
+            [% exp.crispr_pair_id %]
+          </td>
+          <td>
+            [% exp.crispr_group_id %]
+          </td>
+        </tr>
+      [% END %]
+      </table>
+
+    </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</form>
+
+<script type="text/javascript">
+
+function view_toggle (target_id) {
+  var object = document.getElementById(target_id);
+  if (object.style.display == 'none') {
+    object.style.display = 'block';
+  } else if (object.style.display == 'block') {
+    object.style.display = 'none';
+  }
+}
+
+function dragstart_handler(ev) {
+  ev.dataTransfer.setData("text/plain", ev.target.id);
+  //ev.dropEffect = "move";
+  //console.log(ev.dataTransfer.getData("text/plain"));
+}
+
+function dragover_handler(ev) {
+  ev.preventDefault();
+  //ev.dataTransfer.dropEffect = "move";
+}
+
+function drop_handler(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text/plain");
+  // remove any existing experiments DIV
+  var children = ev.target.children;
+  for (i=0; i<children.length; i++) {
+    if (children[i].className == 'experiment_well') {
+      if (children[i].value == '') {
+        children[i].value = data;
+        children[i].style.width = '60px';
+        children[i].style.height = '20px';
+        children[i].style.display = 'block';
+        children[i].style.color = 'red';
+      }
+    }
+  }
+}
+
+function refresh_square(square_id) {
+  var square = document.getElementById(square_id);
+  var children = square.children;
+  for (i=0; i<children.length; i++) {
+    if (children[i].className == 'experiment_well') {
+      children[i].style.display = 'none';
+      children[i].value = '';
+    }
+  }
+}
+
+</script>
