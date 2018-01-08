@@ -406,22 +406,9 @@ sub create_experiment{
     };
 
     if($experiment){
-        my @proj_exp = $self->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $experiment->id });
-
         if($experiment->deleted){
             # Un-delete the existing experiment
             $experiment->update({ deleted => 0});
-
-            if (scalar @proj_exp == 0) {
-                try {
-                    $self->schema->resultset('ProjectExperiment')->create({ project_id => $project_id, experiment_id => $experiment->id });
-                };
-            }
-
-        } elsif (scalar @proj_exp == 0) {
-            try {
-                $self->schema->resultset('ProjectExperiment')->create({ project_id => $project_id, experiment_id => $experiment->id });
-            };
         }
         else{
             die "Experiment already exists with id ".$experiment->id."\n";
@@ -429,6 +416,12 @@ sub create_experiment{
     }
     else{
         $experiment = $self->schema->resultset('Experiment')->create($validated_params);
+    }
+
+    my $proj_exp = $self->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $experiment->id });
+    my $proj_exp_count = $proj_exp->count;
+
+    if ($proj_exp_count == 0) {
         my $expr_proj_params = { project_id => $project_id, experiment_id => $experiment->id };
 
         try {
@@ -507,3 +500,4 @@ sub create_requester {
 1;
 
 __END__
+
