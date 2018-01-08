@@ -91,7 +91,7 @@ sub pick_miseq_crispr_PCR_primers {
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 350;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 170;
-    my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' };
+    my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' };
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
