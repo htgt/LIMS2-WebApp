@@ -59,6 +59,7 @@ sub design_POST {
         $c->req->secure(1);
     }
     $c->require_ssl;
+$DB::single=1;
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->c_create_design( $c->request->data );

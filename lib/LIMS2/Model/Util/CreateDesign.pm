@@ -1,26 +1,41 @@
 package LIMS2::Model::Util::CreateDesign;
 
+use strict;
 use warnings FATAL => 'all';
 
 use Moose;
 
+use namespace::autoclean;
+use Path::Class;
 use Sub::Exporter -setup => {
-    exports => [ 'convert_gibson_to_fusion' ]
+    exports => [
+        qw(
+              convert_gibson_to_fusion
+              create_miseq_design
+          )
+    ],
 };
-
 
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Exception;
 use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
-use Path::Class;
 use Const::Fast;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
-use namespace::autoclean;
 use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
+use Bio::Perl qw( revcom );
+use LIMS2::Model::Util::OligoSelection qw(
+        pick_crispr_primers
+        pick_single_crispr_primers
+        pick_miseq_internal_crispr_primers
+        pick_miseq_crispr_PCR_primers
+        oligo_for_single_crispr
+        pick_crispr_PCR_primers
+);
 
+use POSIX qw(strftime);
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch117/sciops/team87/lims2_designs';
 
@@ -604,6 +619,191 @@ around 'throw_validation_error' => sub {
         message => $errors,
     );
 };
+
+
+sub create_miseq_design {
+    my ($c, $design, @crisprs) = @_;
+$DB::single=1;
+    my @results;
+    foreach my $crispr_id (@crisprs) {
+        my $params = {
+            crispr_id => $crispr_id,
+            species => 'Human',
+            repeat_mask => [''],
+            offset => 20,
+            increment => 15,
+            well_id => 'Miseq_Crispr_' . $crispr_id,
+        };
+
+        $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = "170";
+        $ENV{'LIMS2_SEQ_DEAD_FIELD'} = "50";
+
+        #my ($crispr_results2, $crispr_primers2, $chr_strand2, $chr_seq_start2) = pick_miseq_internal_crispr_primers(
+        #del
+        my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
+
+        $ENV{'LIMS2_PCR_SEARCH_FIELD'} = "350";
+        $ENV{'LIMS2_PCR_DEAD_FIELD'} = "170";
+        $params->{increment} = 50;
+
+        my $crispr_seq = {
+            chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
+            left_crispr         => { chr_name   => $internal_crispr->{left_crispr}->{chr_name} },
+        };
+        my $en_strand = {
+            1   => 'plus',
+            -1  => 'minus',
+        };
+        $DB::single=1;
+        if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
+            print "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
+            exit;
+        }
+        $params->{crispr_primers} = { 
+            crispr_primers  => $internal_crispr_primers,
+            crispr_seq      => $crispr_seq,
+            strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
+        };
+
+        #my  ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_internal_crispr_primers($lims2_model, $params);
+        my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
+
+        $DB::single=1;
+        if ($pcr_crispr_primers->{error_flag} eq 'fail') {
+            print "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
+            exit;
+        } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
+            print "PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
+            exit;
+        }
+
+        my $slice_adaptor = $c->model('Golgi')->ensembl_slice_adaptor('Human');
+        my $slice_region = $slice_adaptor->fetch_by_region(
+            'chromosome',
+            $internal_crispr->{'left_crispr'}->{'chr_name'},
+            $internal_crispr->{'left_crispr'}->{'chr_start'} - 1000,
+            $internal_crispr->{'left_crispr'}->{'chr_end'} + 1000,
+            1,
+        );
+        my $crispr_loc = index ($slice_region->seq, $internal_crispr->{left_crispr}->{seq});
+        my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc);
+        my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq);
+$DB::single=1;
+        my $result = {
+            crispr  => $internal_crispr->{left_crispr}->{id},
+            genomic => $pcr_crispr_primers->{pair_count},
+            inf => $inf,
+            inr => $inr,
+            exf => $exf,
+            exr => $exr,
+        };
+        push @results, $result;
+        package_parameter($c, $design, $result);
+    }
+    return @results;
+};
+
+sub find_appropriate_primers {
+    my ($crispr_primers, $target, $max, $region, $crispr) = @_;
+
+    #print Dumper $crispr_primers;
+    my @primers = keys %{$crispr_primers->{left}};
+    my $closest->{record} = 5000;
+    my @test;
+    foreach my $prime (@primers) {
+        my $int = (split /_/, $prime)[1];
+        my $left_location_details = $crispr_primers->{left}->{'left_' . $int}->{location};
+        my $right_location_details = $crispr_primers->{right}->{'right_' . $int}->{location};
+        my $range = $right_location_details->{_start} - $left_location_details->{_end};
+        my $start_coord = index ($region, $crispr_primers->{left}->{'left_' . $int}->{seq});
+        my $end_coord = index ($region, revcom($crispr_primers->{right}->{'right_' . $int}->{seq})->seq);
+        my $primer_diff = abs (($end_coord - 1022) - (1000 - $start_coord));
+
+        my $primer_range = {
+            name    => '_' . $int,
+            start   => $left_location_details->{_end},
+            end     => $right_location_details->{_start},
+            lseq    => $crispr_primers->{left}->{'left_' . $int}->{seq},
+            rseq    => $crispr_primers->{right}->{'right_' . $int}->{seq},
+            range   => $range,
+            diff    => $primer_diff,
+        };
+
+        push @test, $primer_range;
+        if ($range < $max) {
+            my $amplicon_score = ($target - $range) + $primer_diff;
+            if ($amplicon_score < $closest->{record}) {
+                $closest = {
+                    record  => $amplicon_score,
+                    primer  => $int,
+                };
+            }
+        }
+    }
+use Data::Dumper;
+    #print Dumper @test;
+    print Dumper $closest;
+    return $crispr_primers->{left}->{'left_' . $closest->{primer}}, $crispr_primers->{right}->{'right_' . $closest->{primer}};
+}
+
+sub package_parameter {
+    my ($c, $design_params, $result_data) = @_;
+
+    my $crispr_details = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} })->as_hash;
+    my $date = strftime "%d-%m-%Y", localtime;
+    my $version = $c->model('Golgi')->software_version . '_' . $date;
+    use YAML::XS qw( LoadFile );
+$DB::single=1;
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' });
+    my $miseq_internal_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' });
+
+    my $design_parameters = {
+        design_method       => $design_params->{design_type},
+        'command-name'      => $design_params->{design_type} . '-design-location',
+        assembly            => $crispr_details->{locus}->{assembly},
+        created_by          => ,
+
+        three_prime_exon    => 'null',
+        five_prime_exon     => 'null',
+        oligo_three_prime_align => '0',
+        exon_check_flank_length =>  '0',
+        primer_lowercase_masking    => $miseq_pcr_conf->{primer_lowercase_masking},
+        num_genomic_hits            => $result_data->{genomic},
+
+        region_length_3F    => '20',
+        region_length_3R    => '20',
+        region_length_5F    => '20',
+        region_length_5R    => '20',
+
+        region_offset_3F    => 80,
+        region_offset_3R    => 80,
+        region_offset_5F    => 300,
+        region_offset_5R    => 300,
+
+        primer_min_size     => $miseq_pcr_conf->{primer_min_size},
+        primer_opt_size     => $miseq_pcr_conf->{primer_opt_size},
+        primer_max_size     => $miseq_pcr_conf->{primer_max_size},
+
+        primer_min_gc       => $miseq_pcr_conf->{primer_min_gc},
+        primer_opt_gc_content   => $miseq_pcr_conf->{primer_opt_gc_percent},
+        primer_max_gc       => $miseq_pcr_conf->{primer_max_gc},
+           
+        primer_min_tm       => $miseq_pcr_conf->{primer_min_tm},
+        primer_opt_tm       => $miseq_pcr_conf->{primer_opt_tm},
+        primer_max_tm       => $miseq_pcr_conf->{primer_max_tm},
+
+        repeat_mask_class   => [],
+            
+        'ensembl-version'   => 'X',
+        software_version    => $version,
+    };
+    my $design = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->c_create_design( $c->request->data );
+        }
+    );
+
+}
 
 __PACKAGE__->meta->make_immutable;
 

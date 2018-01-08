@@ -1,5 +1,5 @@
 [% META title = "Design Progress Crispr Search"; META tab_name = "Designs" %]
-
+<h1>Miseq Design Creation</h1>
 <form method="POST" class="well">
     <fieldset>
         <legend>Design Progess Crispr Search</legend>

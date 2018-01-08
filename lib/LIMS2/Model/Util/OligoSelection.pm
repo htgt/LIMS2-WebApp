@@ -61,11 +61,12 @@ sub pick_crispr_PCR_primers {
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 100;
+    my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' };
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
     PCR_TRIALS: foreach my $step ( 1..4 ) {
         INFO ('PCR attempt No. ' . $step );
-        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params );
+        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params, $pcr_config_file);
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('PCR Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -90,11 +91,13 @@ sub pick_miseq_crispr_PCR_primers {
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 350;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 170;
+    my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' };
+
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
     PCR_TRIALS: foreach my $step ( 1..4 ) {
         INFO ('PCR attempt No. ' . $step );
-        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params );
+        ($primer_data, $primer_passes, $chr_seq_start) = crispr_PCR_calculate($model, $params, $pcr_config_file);
         if ($primer_data->{'error_flag'} eq 'pass') {
             INFO ('PCR Primer3 attempt No. ' . $step . ' succeeded');
             if ($primer_passes->{'genomic_error_flag'} eq 'pass' ) {
@@ -116,6 +119,7 @@ sub pick_miseq_crispr_PCR_primers {
 sub crispr_PCR_calculate {
     my $model = shift;
     my $params = shift;
+    my $config_path = shift;
 
     my $schema = $model->schema;
     my $well_id = $params->{'well_id'};
@@ -132,7 +136,7 @@ sub crispr_PCR_calculate {
                 search_field_width => $params->{'search_field_width'},
             } );
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
-        configfile => $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' },
+        configfile => $config_path,
         primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
             + $params->{'search_field_width'} ),
     );
