@@ -34,8 +34,11 @@ use LIMS2::Model::Util::OligoSelection qw(
         oligo_for_single_crispr
         pick_crispr_PCR_primers
 );
-
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr ); 
+use List::MoreUtils qw( uniq );
 use POSIX qw(strftime);
+use JSON qw( encode_json );
+
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch117/sciops/team87/lims2_designs';
 
@@ -624,6 +627,16 @@ around 'throw_validation_error' => sub {
 sub create_miseq_design {
     my ($c, $design, @crisprs) = @_;
 $DB::single=1;
+    my $search_range = {
+        search    => {
+            internal    => 170,
+            external    => 350,
+        },
+        dead    => {
+            internal    => 50,
+            external    => 170,
+        },
+    };
     my @results;
     foreach my $crispr_id (@crisprs) {
         my $params = {
@@ -635,15 +648,13 @@ $DB::single=1;
             well_id => 'Miseq_Crispr_' . $crispr_id,
         };
 
-        $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = "170";
-        $ENV{'LIMS2_SEQ_DEAD_FIELD'} = "50";
+        $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
+        $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
 
-        #my ($crispr_results2, $crispr_primers2, $chr_strand2, $chr_seq_start2) = pick_miseq_internal_crispr_primers(
-        #del
         my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
 
-        $ENV{'LIMS2_PCR_SEARCH_FIELD'} = "350";
-        $ENV{'LIMS2_PCR_DEAD_FIELD'} = "170";
+        $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
+        $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
         $params->{increment} = 50;
 
         my $crispr_seq = {
@@ -665,7 +676,6 @@ $DB::single=1;
             strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
         };
 
-        #my  ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_internal_crispr_primers($lims2_model, $params);
         my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
 
         $DB::single=1;
@@ -692,13 +702,15 @@ $DB::single=1;
         my $result = {
             crispr  => $internal_crispr->{left_crispr}->{id},
             genomic => $pcr_crispr_primers->{pair_count},
-            inf => $inf,
-            inr => $inr,
-            exf => $exf,
-            exr => $exr,
+            oligos  => {
+                inf => $inf,
+                inr => $inr,
+                exf => $exf,
+                exr => $exr,
+            },
         };
         push @results, $result;
-        package_parameter($c, $design, $result);
+        package_parameter($c, $design, $result, $search_range->{dead});
     }
     return @results;
 };
@@ -747,9 +759,10 @@ use Data::Dumper;
 }
 
 sub package_parameter {
-    my ($c, $design_params, $result_data) = @_;
+    my ($c, $design_params, $result_data, $offset) = @_;
 
-    my $crispr_details = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} })->as_hash;
+    my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} });
+    my $crispr_details = $crispr_rs->as_hash;
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
     use YAML::XS qw( LoadFile );
@@ -757,11 +770,12 @@ $DB::single=1;
     my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' });
     my $miseq_internal_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' });
 
+    my $design_spec;
     my $design_parameters = {
         design_method       => $design_params->{design_type},
         'command-name'      => $design_params->{design_type} . '-design-location',
         assembly            => $crispr_details->{locus}->{assembly},
-        created_by          => ,
+        created_by          => $c->{session}->{user},
 
         three_prime_exon    => 'null',
         five_prime_exon     => 'null',
@@ -775,10 +789,10 @@ $DB::single=1;
         region_length_5F    => '20',
         region_length_5R    => '20',
 
-        region_offset_3F    => 80,
-        region_offset_3R    => 80,
-        region_offset_5F    => 300,
-        region_offset_5R    => 300,
+        region_offset_3F    => $offset->{internal},
+        region_offset_3R    => $offset->{internal},
+        region_offset_5F    => $offset->{external},
+        region_offset_5R    => $offset->{external},
 
         primer_min_size     => $miseq_pcr_conf->{primer_min_size},
         primer_opt_size     => $miseq_pcr_conf->{primer_opt_size},
@@ -794,15 +808,82 @@ $DB::single=1;
 
         repeat_mask_class   => [],
             
-        'ensembl-version'   => 'X',
         software_version    => $version,
     };
+
+    $design_spec->{design_parameters} = $design_parameters;
+    $design_spec->{created_by} = $c->user->name;
+    $design_spec->{species} = $c->session->{selected_species};
+    $design_spec->{type} = $design_params->{design_type};
+
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+
+
+    my @gene_ids;
+    my @hgnc_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_rs, $c->model('Golgi') ) };
+
+    foreach my $hgnc_id (@hgnc_ids) {
+        my $gene_spec = {
+            gene_id => $hgnc_id,
+            gene_type_id => 'HGNC',
+        };
+        push @gene_ids, $gene_spec;
+    }
+
+    $design_spec->{gene_ids} = @gene_ids;
+    my $oligos = format_oligos($result_data->{oligos});
+
+    my $design_json = encode_json ({
+        design_parameters   => $design_parameters,
+        created_by          => $c->user->name,
+        species             => $c->session->{selected_species},
+        type                => $design_params->{design_type},
+        gene_ids            => @gene_ids,
+        oligos              => $oligos,
+    });
+    
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
-            shift->c_create_design( $c->request->data );
+            shift->c_create_design( $design_json );
         }
     );
 
+}
+
+sub format_oligos {
+    my $primers = shift;
+
+    my @oligos;
+    my $rev_oligo = {
+        1   => {
+            inf => 1,
+            inr => -1,
+            exf => 1,
+            exr => -1,
+        },
+        -1  => {
+            inf => -1,
+            inr => 1,
+            exf => -1,
+            exr => 1,
+        },
+    };
+$DB::single=1;
+    foreach my $primer (keys %$primers) {
+        my $primer_data = $primers->{$primer};
+        my $seq = $primer_data->{seq};
+        if ($rev_oligo->{ $primer_data->{location}->{_strand} }->{$primer} == -1) {
+            $seq = revcom($seq)->seq;
+        }
+        my $oligo = {
+            loci    => [ $primer_data->{loci} ],
+            seq     => uc $seq,
+            type    => uc $primer,
+        };
+        push(@oligos, $oligo);
+    }
+
+    return \@oligos;
 }
 
 __PACKAGE__->meta->make_immutable;
