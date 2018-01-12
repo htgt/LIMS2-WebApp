@@ -1,4 +1,4 @@
-package LIMS2::Model::Plugin::AssemblyIIPlate;
+package LIMS2::Model::Plugin::EPPipelineIIPlate;
 
 use strict;
 use warnings FATAL => 'all';

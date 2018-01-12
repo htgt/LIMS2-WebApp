@@ -1,4 +1,4 @@
-package LIMS2::Report::AssemblyIIPlate;
+package LIMS2::Report::EPPipelineIIPlate;
 
 use Moose;
 use namespace::autoclean;
@@ -44,7 +44,7 @@ sub _build_wells_data {
 }
 
 override plate_types => sub {
-    return [ 'ASSEMBLY_II' ];
+    return [ 'EP_PIPELINE_II' ];
 };
 
 override _build_name => sub {

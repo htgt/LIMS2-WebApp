@@ -440,10 +440,6 @@ sub create_plate_by_copy {
     return $plate;
 }
 
-#sub create_assembly_ii_plate {
-#    my ( $self, $params ) = @_;
-#}
-
 ## no critic(ControlStructures::ProhibitCascadingIfElse)
 sub create_plate_csv_upload {
     my ( $self, $params, $well_data_fh ) = @_;
@@ -513,7 +509,7 @@ sub create_plate_csv_upload {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
 
-    unless ($params->{process_type} eq 'assembly_ii') {
+    unless ($params->{process_type} eq 'ep_pipeline_ii') {
         my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
         for my $datum ( @{$well_data} ) {

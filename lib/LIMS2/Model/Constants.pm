@@ -54,7 +54,7 @@ const our %PROCESS_PLATE_TYPES => (
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
-    'assembly_ii'            => [qw( ASSEMBLY_II )],
+    'ep_pipeline_ii'         => [qw( EP_Pipeline_II )],
     'crispr_sep'             => [qw( CRISPR_SEP)],
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
     'cgap_qc'                => [qw( CGAP_QC )],
@@ -78,7 +78,7 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
-    'assembly_ii'            => [qw( cell_line )],
+    'ep_pipeline_ii'         => [qw( cell_line )],
     'crispr_vector'          => [qw( backbone )],
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
@@ -204,7 +204,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
         number => 1,
     },
-    'assembly_ii' => {
+    'ep_pipeline_ii' => {
         type   => [qw( CRISPR )],
         number => 1,
     },

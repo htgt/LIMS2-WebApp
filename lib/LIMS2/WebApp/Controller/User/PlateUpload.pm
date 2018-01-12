@@ -25,7 +25,7 @@ sub begin :Private {
     return;
 }
 
-sub plate_upload_assembly_ii :Path( '/user/plate_upload_assembly_ii' ) :Args(0) {
+sub plate_upload_assembly_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     my $params = $c->request->params;
@@ -298,8 +298,8 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         return $c->res->redirect('/user/plate_upload_step1');
     }
 
-   if ($process_type eq 'assembly_ii') {
-     return $c->res->redirect('/user/plate_upload_assembly_ii');
+   if ($process_type eq 'ep_pipeline_ii') {
+     return $c->res->redirect('/user/plate_upload_ep_pipeline_ii');
    }
 
     my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();
@@ -333,7 +333,7 @@ sub process_plate_upload_form :Private {
     $c->stash( $c->request->params );
     my $params = $c->request->params;
     my $well_data = $c->request->upload('datafile');
-    unless ( $well_data or $params->{process_type} eq 'assembly_ii' ) {
+    unless ( $well_data or $params->{process_type} eq 'ep_pipeline_ii' ) {
         $c->stash->{error_msg} = 'No csv file with well data specified';
         return;
     }
@@ -370,7 +370,7 @@ sub process_plate_upload_form :Private {
 
     my $plate;
     my $data;
-    if ($params->{process_type} ne 'assembly_ii') {
+    if ($params->{process_type} ne 'ep_pipeline_ii') {
         $data = $well_data->fh;
     }
     $c->model('Golgi')->txn_do(

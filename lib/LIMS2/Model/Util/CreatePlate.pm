@@ -121,7 +121,7 @@ sub find_parent_well_ids {
         'miseq_no_template'      => \&miseq_child,
         'miseq_oligo'            => \&miseq_child,
         'miseq_vector'           => \&miseq_child,
-        'assembly_ii'            => \&assembly_ii_no_parents,
+        'ep_pipeline_ii'         => \&ep_pipeline_ii_no_parents,
         'other'                  => \&other_parents,
     );
 
@@ -319,7 +319,7 @@ sub create_di_or_crispr_parents {
     return;
 }
 
-sub assembly_ii_no_parents {
+sub ep_pipeline_ii_no_parents {
     my ( $model, $params ) = @_;
 
     return;
