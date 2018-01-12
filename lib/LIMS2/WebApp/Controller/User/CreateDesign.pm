@@ -12,7 +12,8 @@ use WebAppCommon::Util::FarmJobRunner;
 
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
-use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion, create_miseq_design );
+use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
+use LIMS2::Model::Util::CreateMiseqDesign qw( create_miseq_design );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
@@ -572,9 +573,9 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
     }
 
     my $design_requirements = {
-        design_type => 'miseq_nhej',
+        design_type => 'miseq-nhej',
     };
-    my @results = &LIMS2::Model::Util::CreateDesign::create_miseq_design($c, $design_requirements, @crispr_id);
+    my @results = &LIMS2::Model::Util::CreateMiseqDesign::create_miseq_design($c, $design_requirements, @crispr_id);
     $c->stash(
         crisprs => $c->request->param('crisprs') || undef,
         crispr_id => \@crispr_id,
