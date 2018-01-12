@@ -175,6 +175,7 @@ my %process_check_well = (
     'miseq_no_template'      => \&_check_wells_miseq_no_template,
     'miseq_oligo'            => \&_check_wells_miseq_oligo,
     'miseq_vector'           => \&_check_wells_miseq_vector,
+    'assembly_ii'            => \&_check_wells_assembly_ii,
 );
 
 sub check_process_wells {
@@ -398,6 +399,14 @@ sub _check_wells_cre_bac_recom {
     return;
 }
 ## use critic
+
+sub _check_wells_assembly_ii {
+    my ( $model, $process ) = @_;
+
+#    check_input_wells( $model, $process);
+    check_output_wells( $model, $process);
+    return;
+}
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_rearray {
@@ -909,6 +918,7 @@ my %process_aux_data = (
     'miseq_no_template'      => \&_create_process_aux_data_miseq_no_template,
     'miseq_oligo'            => \&_create_process_aux_data_miseq_oligo,
     'miseq_vector'           => \&_create_process_aux_data_miseq_vector,
+    'assembly_ii'            => \&_create_process_aux_data_assembly_ii,
 );
 
 sub create_process_aux_data {
@@ -966,6 +976,27 @@ sub _create_process_aux_data_create_di {
     return;
 }
 ## use critic
+
+sub pspec__create_process_aux_data_assembly_ii {
+    return {
+        design_id => { validate => 'existing_design_id' },
+        crispr_id => { validate => 'existing_crispr_id', optional => 1 }
+    };
+}
+
+sub _create_process_aux_data_assembly_ii {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params
+        = $model->check_params( $params, pspec__create_process_aux_data_assembly_ii() );
+
+    $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
+    if ($validated_params->{crispr_id}) {
+        $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
+    }
+
+    return;
+}
 
 sub pspec__create_process_aux_data_create_crispr {
     return {
@@ -1600,3 +1631,4 @@ sub _crispr_tracker_rna_id_for {
 1;
 
 __END__
+

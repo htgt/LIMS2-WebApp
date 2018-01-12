@@ -41,7 +41,7 @@
 
 <h1>Upload Plate <small> Step 2</small></h1>
 <p style="color:grey;font-size:12px">
-  <br />Use the checkbox in each section to create a Project, import a Crispr from WGE or launch a new design.<br />You are also able to create a new experiment by providing the necessary attributes.<br />
+  <br />Use the checkbox provided in the sections to import a Crispr from WGE or to create an Experiment.<br />An Experiment is created using a Crispr, Design and Gene.<br />
 </p>
 
 <form>
@@ -311,4 +311,5 @@ function populate_project_section(project_id) {
 }
 
 </script>
+
 

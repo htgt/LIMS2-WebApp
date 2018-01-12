@@ -68,15 +68,15 @@
     <table>
     <tr>
       <td>
-        <div id="square_1" class="square" style="border-top-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_1" name="well_1" style="display:none;"></input></div>
+        <div id="square_1" class="square" style="border-top-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_01" name="well_01" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_9" class="square" style="border-top-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_9" name="well_9" style="display:none;"></input></div>
+        <div id="square_9" class="square" style="border-top-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_09" name="well_09" style="display:none;"></input></div>
       </td>
     </tr>
     <tr>
       <td>
-        <div id="square_2" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_2" name="well_2" style="display:none;"></input></div>
+        <div id="square_2" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_02" name="well_02" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_10" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
@@ -84,7 +84,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_3" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_3" name="well_3" style="display:none;"></input></div>
+        <div id="square_3" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_03" name="well_03" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_11" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
@@ -92,7 +92,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_4" class="square" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_4" name="well_4" style="display:none;"></input></div>
+        <div id="square_4" class="square" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_04" name="well_04" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_12" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
@@ -100,7 +100,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_5" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_5" name="well_5" style="display:none;"></input></div>
+        <div id="square_5" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_05" name="well_05" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_13" class="square" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
@@ -108,7 +108,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_6" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_6" name="well_6" style="display:none;"></input></div>
+        <div id="square_6" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_06" name="well_06" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_14" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
@@ -116,7 +116,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_7" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_7" name="well_7" style="display:none;"></input></div>
+        <div id="square_7" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_07" name="well_07" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_15" class="square" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
@@ -124,7 +124,7 @@
     </tr>
     <tr>
       <td>
-        <div id="square_8" class="square" style="border-bottom-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_8" name="well_8" style="display:none;"></input></div>
+        <div id="square_8" class="square" style="border-bottom-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_08" name="well_08" style="display:none;"></input></div>
       </td>
       <td>
         <div id="square_16" class="square" style="border-bottom-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
@@ -167,7 +167,7 @@
       [% FOR exp IN assembly_ii_experiments %]
         <tr style="background-color:#f5f5dc;">
           <td>
-            <button class="btn btn-default" id=[% exp.gene_id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move"></span></button>
+            <button class="btn btn-default" id=[% exp.id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move"></span></button>
           </td>
           <td>
             [% exp.gene_id %]
@@ -248,3 +248,4 @@ function refresh_square(square_id) {
 }
 
 </script>
+

@@ -520,12 +520,8 @@ sub create_plate_csv_upload {
             merge_plate_process_data( $datum, \%plate_process_data );
         }
         $plate_data{wells} = $well_data;
-use Data::Dumper;
-print Dumper %plate_data;
         return $self->create_plate( \%plate_data );
     }
-use Data::Dumper;
-print Dumper %plate_data;
     return $self->create_plate( \%plate_data );
 }
 ## use critic

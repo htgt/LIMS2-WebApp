@@ -117,8 +117,8 @@ sub plate_upload_assembly_ii :Path( '/user/plate_upload_assembly_ii' ) :Args(0) 
     my @lagging_project_ids = map {$_->{id}} @projects;
 
     $c->stash(
-        hit_projects          => \@projects,
-        lagging_projects         => join ",", @lagging_project_ids
+        hit_projects      => \@projects,
+        lagging_projects  => join ",", @lagging_project_ids
     );
 
     ## - create project
@@ -218,19 +218,63 @@ sub plate_upload_assembly_ii :Path( '/user/plate_upload_assembly_ii' ) :Args(0) 
 #            process_type => $params->{process_type},
 #            species      => $params->{species}
 #        );
+        my $plate_name = $c->request->params->{assembly_ii_plate_name};
         delete $c->request->params->{save_assembly_ii};
         delete $c->request->params->{assembly_ii_plate_name};
-        my $plate = $self->process_plate_upload_form( $c );
-        return unless $plate;
+        #my $plate = $self->process_plate_upload_form( $c );
+
+        my @assembly_ii_wells = build_assembly_ii_well_data($plate_name, $c);
+        my $assembly_ii_plate_data = {
+            name       => $plate_name,
+            species    => $species,
+            type       => 'ASSEMBLY_II',
+            created_by => $c->user->name,
+            wells      => \@assembly_ii_wells
+        };
+
+        my $plate;
+
+#        try{
+            $plate = $c->model('Golgi')->create_plate( $assembly_ii_plate_data );
+            #$c->stash->{info_msg} = 'Successful assembly ii plate creation';
+#        } catch {
+#            $c->stash->{error_msg} = 'Error creating plate: ' . $_;
+#            return;
+#        };
 
         $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
         $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
-        #$c->res->redirect( $c->uri_for('/user/view_plate') );
         #$c->res->redirect( $c->uri_for('/user/view_plate', {id => 11561}) );
         return;
     }
 
     return;
+}
+
+sub build_assembly_ii_well_data {
+    my ( $plate, $c ) = @_;
+
+    my @wells;
+    foreach my $well qw( well_01 well_02 well_03 well_04 well_05 well_06 well_07 well_08 well_09 well_10 well_11 well_12 well_13 well_14 well_15 well_16 ) {
+        my $temp_exp_id = $c->request->params->{$well};
+
+        if ($temp_exp_id) {
+            my @exp_res = $c->model('Golgi')->retrieve_experiments_by_field('id', $temp_exp_id );
+            my $exp = $exp_res[0];
+
+            my @name_split = split "well_", $well;
+            my $temp_data = {
+                well_name    => 'A' . $name_split[1],
+                design_id    => $exp->{design_id},
+                crispr_id    => $exp->{crispr_id},
+                process_type => 'assembly_ii'
+            };
+            push @wells, $temp_data;
+        }
+    }
+
+    return @wells;
+
 }
 
 sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
