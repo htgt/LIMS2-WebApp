@@ -105,7 +105,7 @@ sub manage_projects_tests : Test(22) {
 
 }
 
-sub view_edit_project_tests : Test(34){
+sub view_edit_project_tests : Test(32){
     $mech->get_ok('/user/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
@@ -206,9 +206,10 @@ sub view_edit_project_tests : Test(34){
     $mech->get_ok("/user/view_experiment?id=$exp_id");
     $mech->content_lacks("has been deleted");
 
-    $mech->get_ok('/user/view_project?project_id=12');
-    @delete_forms = _delete_experiment_forms($mech);
-    is (scalar @delete_forms, 2, '2 experiments listed');
+## commenting out since this test is no longer valid
+#    $mech->get_ok('/user/view_project?project_id=12');
+#    @delete_forms = _delete_experiment_forms($mech);
+#    is (scalar @delete_forms, 2, '2 experiments listed');
 
 }
 
