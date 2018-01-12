@@ -211,20 +211,6 @@
         </div>
 
         <div class="col-md-12 control-group">
-          <label class="control-label col-md-2">Crispr Pair</label>
-          <div class="col-md-3">
-            <input type="text" class="form-control" name="crispr_pair_assembly_ii" placeholder="Crispr Pair ID" value=[% crispr_pair_assembly_ii %]>
-          </div>
-        </div>
-
-        <div class="col-md-12 control-group">
-          <label class="control-label col-md-2">Crispr Group</label>
-          <div class="col-md-3">
-            <input type="text" class="form-control" name="crispr_group_assembly_ii" placeholder="Crispr Group ID" value=[% crispr_group_assembly_ii %]>
-          </div>
-        </div>
-
-        <div class="col-md-12 control-group">
           <label class="control-label col-md-2">WGE Crispr</label>
           <div class="col-md-3">
             <input type="text" class="form-control" name="wge_crispr_assembly_ii" placeholder="WGE Crispr" value=[% wge_crispr_assembly_ii %]>
@@ -255,10 +241,6 @@
           </div>
         </div>
 
-        <div class="col-md-12 control-group">
-          <p style="color:grey;font-size:12px"><input class="form-check-input" type="checkbox" name="launch_assembly_ii_design" id="launch_assembly_ii_design" value="launch_assembly_ii_design"> Launch Design in background</p>
-        </div>
-
       </div>
     </div>
   </div>
@@ -271,7 +253,7 @@
 
 </form>
 
-[% INCLUDE 'assembly_ii_experiments.tt' assembly_ii_experiments = assembly_ii_experiments %]
+[% INCLUDE 'ep_pipeline_ii_experiments.tt' assembly_ii_experiments = assembly_ii_experiments %]
 
 
 

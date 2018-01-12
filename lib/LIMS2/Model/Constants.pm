@@ -78,7 +78,6 @@ const our %PROCESS_SPECIFIC_FIELDS => (
     'first_electroporation'  => [qw( cell_line recombinase )],
     'second_electroporation' => [qw( recombinase )],
     'crispr_ep'              => [qw( cell_line nuclease )],
-    'ep_pipeline_ii'         => [qw( cell_line )],
     'crispr_vector'          => [qw( backbone )],
     'oligo_assembly'         => [qw( crispr_tracker_rna )],
     'doubling'               => [qw( oxygen_condition doublings )],
@@ -118,6 +117,7 @@ const our %PROCESS_TEMPLATE => (
 const our %PROCESS_INPUT_WELL_CHECK => (
     'create_di' => { number => 0 },
     'create_crispr' => { number => 0 },
+    'ep_pipeline_ii' => { number => 0 },
     'int_recom' => {
         type   => [qw( DESIGN PREINT )],
         number => 1,
@@ -202,10 +202,6 @@ const our %PROCESS_INPUT_WELL_CHECK => (
     },
     'crispr_ep' => {
         type   => [qw( ASSEMBLY OLIGO_ASSEMBLY )],
-        number => 1,
-    },
-    'ep_pipeline_ii' => {
-        type   => [qw( CRISPR )],
         number => 1,
     },
     'crispr_sep' => {
@@ -317,4 +313,5 @@ const our $MAX_CRISPR_GROUP_SIZE => 4;
 1;
 
 __END__
+
 

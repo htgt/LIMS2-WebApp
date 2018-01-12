@@ -50,7 +50,7 @@ override plate_types => sub {
 override _build_name => sub {
     my $self = shift;
 
-    return 'Assembly II Plate ' . $self->plate_name;
+    return 'EP Pipeline II Plate ' . $self->plate_name;
 };
 
 #override _build_name => sub {
