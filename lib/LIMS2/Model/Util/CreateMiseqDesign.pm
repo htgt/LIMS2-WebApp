@@ -19,6 +19,7 @@ use List::MoreUtils qw( uniq );
 use POSIX qw(strftime);
 use JSON;
 use Bio::Perl qw( revcom );
+use YAML::XS qw( LoadFile );
 
 use LIMS2::Model::Util::OligoSelection qw(
         pick_crispr_primers
@@ -32,7 +33,7 @@ use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub create_miseq_design {
     my ($c, $design, @crisprs) = @_;
-$DB::single=1;
+    
     my $search_range = {
         search    => {
             internal    => 170,
@@ -43,55 +44,10 @@ $DB::single=1;
             external    => 170,
         },
     };
+    
     my @results;
     foreach my $crispr_id (@crisprs) {
-        my $params = {
-            crispr_id => $crispr_id,
-            species => 'Human',
-            repeat_mask => [''],
-            offset => 20,
-            increment => 15,
-            well_id => 'Miseq_Crispr_' . $crispr_id,
-        };
-
-        $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
-        $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
-
-        my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
-
-        $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
-        $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
-        $params->{increment} = 50;
-
-        my $crispr_seq = {
-            chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
-            left_crispr         => { chr_name   => $internal_crispr->{left_crispr}->{chr_name} },
-        };
-        my $en_strand = {
-            1   => 'plus',
-            -1  => 'minus',
-        };
-$DB::single=1;
-        if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
-            print "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
-            exit;
-        }
-        $params->{crispr_primers} = { 
-            crispr_primers  => $internal_crispr_primers,
-            crispr_seq      => $crispr_seq,
-            strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
-        };
-
-        my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
-
-        $DB::single=1;
-        if ($pcr_crispr_primers->{error_flag} eq 'fail') {
-            print "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
-            exit;
-        } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
-            print "PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
-            exit;
-        }
+        my ($internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range);
 
         my $slice_adaptor = $c->model('Golgi')->ensembl_slice_adaptor('Human');
         my $slice_region = $slice_adaptor->fetch_by_region(
@@ -116,10 +72,84 @@ $DB::single=1;
             },
         };
         push @results, $result;
-        package_parameter($c, $design, $result, $search_range->{dead});
+        package_parameters($c, $design, $result, $search_range->{dead});
+        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} });
+        my $crispr_details = $crispr_rs->as_hash;
+
+        my $design_json = {
+            design_parameters   => $json_params,
+            created_by          => $c->user->name,
+            species             => $c->session->{selected_species},
+            type                => $design_params->{design_type},
+            gene_ids            => \@gene_ids,
+            oligos              => $oligos,
+        };
+        
+        my $design = $c->model( 'Golgi' )->txn_do(
+            sub {
+                shift->c_create_design( $design_json );
+            }
+        );
+
+
+
     }
     return @results;
 };
+
+sub generate_primers {
+    my ($c, $crispr_id, $search_range) = @_;
+
+    my $params = {
+        crispr_id => $crispr_id,
+        species => 'Human',
+        repeat_mask => [''],
+        offset => 20,
+        increment => 15,
+        well_id => 'Miseq_Crispr_' . $crispr_id,
+    };
+
+    $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
+    $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
+
+    my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
+
+    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
+    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
+    $params->{increment} = 50;
+
+    my $crispr_seq = {
+        chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
+        left_crispr         => { chr_name   => $internal_crispr->{left_crispr}->{chr_name} },
+    };
+    my $en_strand = {
+        1   => 'plus',
+        -1  => 'minus',
+    };
+$DB::single=1;
+    if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
+        print "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
+        exit;
+    }
+    $params->{crispr_primers} = { 
+        crispr_primers  => $internal_crispr_primers,
+        crispr_seq      => $crispr_seq,
+        strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
+    };
+
+    my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
+
+    $DB::single=1;
+    if ($pcr_crispr_primers->{error_flag} eq 'fail') {
+        print "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
+        exit;
+    } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
+        print "PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
+        exit;
+    }
+
+    return $internal_crispr_primers, $pcr_crispr_primers;
+}
 
 sub find_appropriate_primers {
     my ($crispr_primers, $target, $max, $region, $crispr) = @_;
@@ -158,25 +188,19 @@ sub find_appropriate_primers {
             }
         }
     }
-use Data::Dumper;
-    #print Dumper @test;
-    print Dumper $closest;
+
     return $crispr_primers->{left}->{'left_' . $closest->{primer}}, $crispr_primers->{right}->{'right_' . $closest->{primer}};
 }
 
-sub package_parameter {
+sub package_parameters {
     my ($c, $design_params, $result_data, $offset) = @_;
 
-    my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} });
-    my $crispr_details = $crispr_rs->as_hash;
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
-    use YAML::XS qw( LoadFile );
-$DB::single=1;
+    
     my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' });
     my $miseq_internal_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' });
 
-    my $design_spec;
     my $design_parameters = {
         design_method       => $design_params->{design_type},
         'command-name'      => $design_params->{design_type} . '-design-location',
@@ -217,66 +241,9 @@ $DB::single=1;
         software_version    => $version,
     };
 
-    $design_spec->{design_parameters} = $design_parameters;
-    $design_spec->{created_by} = $c->user->name;
-    $design_spec->{species} = $c->session->{selected_species};
-    $design_spec->{type} = $design_params->{design_type};
-
-    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
-
-
-    my @gene_ids;
-    my @hgnc_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_rs, $c->model('Golgi') ) };
-
-    foreach my $hgnc_id (@hgnc_ids) {
-        my $gene_spec = {
-            gene_id => $hgnc_id,
-            gene_type_id => 'HGNC',
-        };
-        push @gene_ids, $gene_spec;
-    }
-
-    $design_spec->{gene_ids} = @gene_ids;
-
-    my $hit_data;
-    my ($fasta, $dir) = generate_bwa_query_file($crispr_details->{wge_crispr_id}, $result_data->{oligos});
-    my $bwa = DesignCreate::Util::BWA->new(
-            query_file        => $fasta,
-            work_dir          => $dir,
-            species           => 'Human',
-            three_prime_check => 0,
-            num_bwa_threads   => 2,
-    );
-
-    $bwa->generate_sam_file;
-    my $oligo_hits = $bwa->oligo_hits;
-    my $strand = 1;
-    if ($oligo_hits->{exf}->{start} > $oligo_hits->{exr}->{start}) {
-        $strand = -1;
-    }
-    foreach my $oligo (keys %$oligo_hits) {
-        $hit_data = loci_builder($oligo_hits, $oligo, $result_data->{oligos}, $strand);
-    }
-
-    my $oligos = format_oligos($hit_data);
-
     my $json_params = encode_json $design_parameters;
-    my $design_json = {
-        design_parameters   => $json_params,
-        created_by          => $c->user->name,
-        species             => $c->session->{selected_species},
-        type                => $design_params->{design_type},
-        gene_ids            => \@gene_ids,
-        oligos              => $oligos,
-    };
-    
-$DB::single=1;
-    my $design = $c->model( 'Golgi' )->txn_do(
-        sub {
-            shift->c_create_design( $design_json );
-        }
-    );
 
+    return $json_params;
 }
 
 sub format_oligos {
@@ -353,7 +320,55 @@ sub generate_bwa_query_file {
         my $fasta_seq = Bio::Seq->new( -seq => $data->{$oligo}->{'seq'}, -id => $oligo );
         $seq_out->write_seq( $fasta_seq );
     }
+
     return ($fasta_file_name, $dir_out);
+}
+
+sub bwa_oligo_loci { 
+    my ($crispr_details, $result_data) = @_;
+
+    my $hit_data;
+    my ($fasta, $dir) = generate_bwa_query_file($crispr_details->{wge_crispr_id}, $result_data->{oligos});
+    my $bwa = DesignCreate::Util::BWA->new(
+            query_file        => $fasta,
+            work_dir          => $dir,
+            species           => 'Human',
+            three_prime_check => 0,
+            num_bwa_threads   => 2,
+    );
+
+    $bwa->generate_sam_file;
+    my $oligo_hits = $bwa->oligo_hits;
+    my $strand = 1;
+    if ($oligo_hits->{exf}->{start} > $oligo_hits->{exr}->{start}) {
+        $strand = -1;
+    }
+    foreach my $oligo (keys %$oligo_hits) {
+        $hit_data = loci_builder($oligo_hits, $oligo, $result_data->{oligos}, $strand);
+    }
+
+    my $oligos = format_oligos($hit_data);
+
+    return $design;
+}
+
+sub genes_for_crisprs {
+    my ($c, $crispr_rs) = @_;
+
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+
+    my @gene_ids;
+    my @hgnc_ids = uniq @{ gene_ids_for_crispr( $gene_finder, $crispr_rs, $c->model('Golgi') ) };
+
+    foreach my $hgnc_id (@hgnc_ids) {
+        my $gene_spec = {
+            gene_id => $hgnc_id,
+            gene_type_id => 'HGNC',
+        };
+        push @gene_ids, $gene_spec;
+    }
+
+    return \@gene_ids;
 }
 
 __PACKAGE__->meta->make_immutable;
