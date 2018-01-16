@@ -32,7 +32,7 @@ use LIMS2::Model::Util::OligoSelection qw(
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr ); 
 
 sub create_miseq_design {
-    my ($c, $design, @crisprs) = @_;
+    my ($c, $design_params, $crispr_id) = @_;
     
     my $search_range = {
         search    => {
@@ -45,56 +45,61 @@ sub create_miseq_design {
         },
     };
     
-    my @results;
-    foreach my $crispr_id (@crisprs) {
-        my ($internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range);
-
-        my $slice_adaptor = $c->model('Golgi')->ensembl_slice_adaptor('Human');
-        my $slice_region = $slice_adaptor->fetch_by_region(
-            'chromosome',
-            $internal_crispr->{'left_crispr'}->{'chr_name'},
-            $internal_crispr->{'left_crispr'}->{'chr_start'} - 1000,
-            $internal_crispr->{'left_crispr'}->{'chr_end'} + 1000,
-            1,
-        );
-        my $crispr_loc = index ($slice_region->seq, $internal_crispr->{left_crispr}->{seq});
-        my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc);
-        my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq);
+    my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range);
+    if ($crispr_data->{error}) {
+        print $crispr_data->{error};
 $DB::single=1;
-        my $result = {
-            crispr  => $internal_crispr->{left_crispr}->{id},
-            genomic => $pcr_crispr_primers->{pair_count},
-            oligos  => {
-                inf => $inf,
-                inr => $inr,
-                exf => $exf,
-                exr => $exr,
-            },
-        };
-        push @results, $result;
-        package_parameters($c, $design, $result, $search_range->{dead});
-        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $result_data->{crispr} });
-        my $crispr_details = $crispr_rs->as_hash;
-
-        my $design_json = {
-            design_parameters   => $json_params,
-            created_by          => $c->user->name,
-            species             => $c->session->{selected_species},
-            type                => $design_params->{design_type},
-            gene_ids            => \@gene_ids,
-            oligos              => $oligos,
-        };
-        
-        my $design = $c->model( 'Golgi' )->txn_do(
-            sub {
-                shift->c_create_design( $design_json );
-            }
-        );
-
-
-
+        return;
     }
-    return @results;
+    my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_data->{left_crispr}->{id} });
+    my $crispr_details = $crispr_rs->as_hash;
+
+    my $slice_adaptor = $c->model('Golgi')->ensembl_slice_adaptor('Human');
+    my $slice_region = $slice_adaptor->fetch_by_region(
+        'chromosome',
+        $crispr_data->{'left_crispr'}->{'chr_name'},
+        $crispr_data->{'left_crispr'}->{'chr_start'} - 1000,
+        $crispr_data->{'left_crispr'}->{'chr_end'} + 1000,
+        1,
+    );
+    my $crispr_loc = index ($slice_region->seq, $crispr_data->{left_crispr}->{seq});
+    my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc);
+    my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq);
+    my $result = {
+        crispr  => $crispr_data->{left_crispr}->{id},
+        genomic => $pcr_crispr_primers->{pair_count},
+        oligos  => {
+            inf => $inf,
+            inr => $inr,
+            exf => $exf,
+            exr => $exr,
+        },
+    };
+    my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details);
+    my @gene_ids = genes_for_crisprs($c, $crispr_rs);
+    my $hit_data = bwa_oligo_loci($crispr_details, $result);
+    my @oligos = format_oligos($hit_data);
+    my $design_info = {
+        design_parameters   => $json_params,
+        created_by          => $c->user->name,
+        species             => $c->session->{selected_species},
+        type                => $design_params->{design_type},
+        gene_ids            => @gene_ids,
+        oligos              => @oligos,
+    };
+    
+    my $design = $c->model( 'Golgi' )->txn_do(
+        sub {
+            shift->c_create_design( $design_info );
+        }
+    );
+
+    my $design_crispr = {
+        design => $design,
+        crispr => $crispr_id,
+    };
+
+    return $design_crispr;
 };
 
 sub generate_primers {
@@ -126,10 +131,9 @@ sub generate_primers {
         1   => 'plus',
         -1  => 'minus',
     };
-$DB::single=1;
     if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
-        print "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
-        exit;
+        $params->{error} = "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
+        return $params;
     }
     $params->{crispr_primers} = { 
         crispr_primers  => $internal_crispr_primers,
@@ -139,16 +143,15 @@ $DB::single=1;
 
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
 
-    $DB::single=1;
     if ($pcr_crispr_primers->{error_flag} eq 'fail') {
-        print "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
-        exit;
+        $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
+        return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
-        print "PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
-        exit;
+        $params->{error} ="PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
+        return $params;
     }
 
-    return $internal_crispr_primers, $pcr_crispr_primers;
+    return $internal_crispr, $internal_crispr_primers, $pcr_crispr_primers;
 }
 
 sub find_appropriate_primers {
@@ -193,7 +196,7 @@ sub find_appropriate_primers {
 }
 
 sub package_parameters {
-    my ($c, $design_params, $result_data, $offset) = @_;
+    my ($c, $design_params, $result_data, $offset, $crispr_details) = @_;
 
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
@@ -281,26 +284,6 @@ sub format_oligos {
     return \@oligos;
 }
 
-sub loci_builder {
-    my ($oligo_hits, $oligo, $data, $strand) = @_;
-
-    my $oligo_bwa = $oligo_hits->{$oligo};
-    my $oligo_len = length($data->{$oligo}->{seq});
-    my $oligo_end = $oligo_bwa->{start} + $oligo_len;
-    my $chr = $oligo_bwa->{chr};
-    $chr =~ s/chr//;
-    my $loci = {
-        assembly    => 'GRCh38',
-        chr_start   => $oligo_bwa->{start},
-        chr_name    => $chr,
-        chr_end     => $oligo_end,
-        chr_strand  => $strand,
-    };
-    $data->{$oligo}->{loci} = $loci;
-
-    return $data;
-}
-
 sub generate_bwa_query_file {
     my ($crispr, $data) = @_;
 
@@ -339,17 +322,37 @@ sub bwa_oligo_loci {
 
     $bwa->generate_sam_file;
     my $oligo_hits = $bwa->oligo_hits;
+
     my $strand = 1;
     if ($oligo_hits->{exf}->{start} > $oligo_hits->{exr}->{start}) {
         $strand = -1;
     }
+
+    $hit_data = loci_builder($oligo_hits, $result_data->{oligos}, $strand); #check
+
+    return $hit_data;
+}
+
+sub loci_builder {
+    my ($oligo_hits, $data, $strand) = @_;
+
     foreach my $oligo (keys %$oligo_hits) {
-        $hit_data = loci_builder($oligo_hits, $oligo, $result_data->{oligos}, $strand);
+        my $oligo_bwa = $oligo_hits->{$oligo};
+        my $oligo_len = length($data->{$oligo}->{seq});
+        my $oligo_end = $oligo_bwa->{start} + $oligo_len;
+        my $chr = $oligo_bwa->{chr};
+        $chr =~ s/chr//;
+        my $loci = {
+            assembly    => 'GRCh38',
+            chr_start   => $oligo_bwa->{start},
+            chr_name    => $chr,
+            chr_end     => $oligo_end,
+            chr_strand  => $strand,
+        };
+        $data->{$oligo}->{loci} = $loci;
     }
 
-    my $oligos = format_oligos($hit_data);
-
-    return $design;
+    return $data;
 }
 
 sub genes_for_crisprs {

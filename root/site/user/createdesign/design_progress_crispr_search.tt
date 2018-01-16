@@ -33,13 +33,12 @@
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
                     </td>
-                    <td> [% table.wge %] </td>
-                    <td></td>
-                    <td></td>
-                    <td>[% table.status %]
-                        [% IF table.status != 'Successful' %]
-                            <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#Modal">Redo</button> 
-                        [% END %]    
+                    <td>[% table.wge %]</td>
+                    <td>[% table.gene %]</td>
+                    <td><a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank">[% table.design %]</a></td>
+                    <td>[% table.status %]</td>
+                    <td>
+                        <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#Modal">Redo</button> 
                     </td>
                 </tr>
             [% END %]

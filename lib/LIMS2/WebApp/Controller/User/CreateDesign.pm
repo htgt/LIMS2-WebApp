@@ -536,7 +536,9 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
     my $crispr_info;
     my @crispr_table;
     my @failed_terms;
-
+    my $design_requirements = {
+        design_type => 'miseq-nhej',
+    };
     foreach my $crispr (@valid_terms){
 
         my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
@@ -544,6 +546,9 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
         if ($crispr_rs){
             my $wge_id = $crispr_rs->wge_id;
             $crispr_info->{$crispr} = $wge_id;
+
+            my $results = &LIMS2::Model::Util::CreateMiseqDesign::create_miseq_design($c, $design_requirements, $crispr);
+$DB::single=1;
             my $crispr_ids = {
 
                 lims    => $crispr,
@@ -572,10 +577,8 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
         $c->stash( error_msg => "One or more search terms could not be found: $errors" );
     }
 
-    my $design_requirements = {
-        design_type => 'miseq-nhej',
-    };
-    my @results = &LIMS2::Model::Util::CreateMiseqDesign::create_miseq_design($c, $design_requirements, @crispr_id);
+
+$DB::single=1;
     $c->stash(
         crisprs => $c->request->param('crisprs') || undef,
         crispr_id => \@crispr_id,
