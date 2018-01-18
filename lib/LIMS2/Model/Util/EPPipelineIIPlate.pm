@@ -14,6 +14,7 @@ use Sub::Exporter -setup => {
               import_wge_crispr_ep_pipeline_ii
               find_projects_ep_pipeline_ii
               create_project_ep_pipeline_ii
+              proj_exp_check_ep_ii
           )
     ]
 };
@@ -65,7 +66,7 @@ sub retrieve_experiments_by_field {
 }
 
 sub import_wge_crispr_ep_pipeline_ii {
-    my ( $model, $params ) = @_;
+    my ( $model, $golgi, $params ) = @_;
 
     my $wge_id = $params->{wge_crispr_assembly_ii};
 
@@ -73,7 +74,7 @@ sub import_wge_crispr_ep_pipeline_ii {
     my $assembly = $model->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } )->assembly_id;
 
     if ($wge_id) {
-        my @crisprs = import_wge_crisprs( [$wge_id], $species, $assembly );
+        my @crisprs = $golgi->import_wge_crisprs( [$wge_id], $species, $assembly );
         return @crisprs;
     }
 
@@ -115,7 +116,7 @@ sub find_projects_ep_pipeline_ii {
 }
 
 sub create_project_ep_pipeline_ii {
-    my ( $model, $params ) = @_;
+    my ( $model, $golgi, $params ) = @_;
 
     # Store params common to search and create
     my $search = { species_id => $params->{species} };
@@ -144,24 +145,42 @@ sub create_project_ep_pipeline_ii {
         $model->txn_do(
             sub {
                 try{
-                    $project = create_project($search);
-                    print "New project created";
+                    $project = $golgi->create_project($search);
+                    return "A new project was created.";
                 }
                 catch{
                     $model->txn_rollback;
-                    print "Project creation failed with error:";
+                    return "Project creation failed with error: $_";
                 };
             }
         );
     } else {
-        print "Project already exists (see list below)";
+        return "Project already exists.";
+    }
+
+}
+
+sub proj_exp_check_ep_ii {
+    my ( $model, $exp_id, $gene_id, $cell_line_id ) = @_;
+
+    my $project_id;
+    my @project_rec = $model->resultset('Project')->search({ gene_id => $gene_id, cell_line_id => $cell_line_id })->all;
+    foreach (@project_rec) {
+        $project_id = $_->id;
+    }
+
+    if ($project_id) {
+        my @proj_exp_count = $model->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $exp_id })->all;
+        if (scalar @proj_exp_count) {
+            return 1;
+        }
     }
 
     return;
-
 }
 
 1;
 
 __END__
+
 

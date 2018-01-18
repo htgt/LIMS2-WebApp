@@ -49,6 +49,7 @@
   margin-bottom: 8px;
 }
 
+
 </style>
 
 <form>
@@ -64,6 +65,8 @@
   <div class="panel-body">
     <div id="squares_div">
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
+    <input class="form-control" id="plate_cell_line_assembly_ii" name="plate_cell_line_assembly_ii" style="display:none;" value="[% cell_line_id %]"></input>
+
 
     <table>
     <tr>
@@ -157,17 +160,21 @@
             Crispr ID
           </th>
           <th>
-            Crispr Pair ID
+            Crispr Pair
           </th>
           <th>
-            Crispr Group ID
+            Crispr Group
+          </th>
+          <th>
+            Project Check
           </th>
         </tr>
         </thead>
       [% FOR exp IN assembly_ii_experiments %]
+        [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
         <tr style="background-color:#f5f5dc;">
           <td>
-            <button class="btn btn-default" id=[% exp.id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move"></span></button>
+            <button class="btn btn-success" id=[% exp.id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></button>
           </td>
           <td>
             [% exp.gene_id %]
@@ -179,12 +186,40 @@
             [% exp.crispr_id %]
           </td>
           <td>
-            [% exp.crispr_pair_id %]
+            [% exp.crispr_pair %]
           </td>
           <td>
-            [% exp.crispr_group_id %]
+            [% exp.crispr_group %]
+          </td>
+          <td style="font-size:20px;">
+            &#10004;
           </td>
         </tr>
+        [% ELSE %]
+        <tr style="background-color:#f5f5dc;">
+          <td>
+            <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></button>
+          </td>
+          <td>
+            [% exp.gene_id %]
+          </td>
+          <td>
+            [% exp.design_id %]
+          </td>
+          <td>
+            [% exp.crispr_id %]
+          </td>
+          <td>
+            [% exp.crispr_pair %]
+          </td>
+          <td>
+            [% exp.crispr_group %]
+          </td>
+          <td style="font-size:20px;">
+            &#10008;
+          </td>
+        </tr>
+        [% END %]
       [% END %]
       </table>
 
@@ -248,4 +283,5 @@ function refresh_square(square_id) {
 }
 
 </script>
+
 

@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
-use LIMS2::Model::Util::EPPipelineIIPlate qw(retrieve_experiments_ep_pipeline_ii retrieve_experiments_by_field import_wge_crispr_ep_pipeline_ii find_projects_ep_pipeline_ii create_project_ep_pipeline_ii);
+use LIMS2::Model::Util::EPPipelineIIPlate qw(retrieve_experiments_ep_pipeline_ii retrieve_experiments_by_field import_wge_crispr_ep_pipeline_ii find_projects_ep_pipeline_ii create_project_ep_pipeline_ii proj_exp_check_ep_ii);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -31,10 +31,13 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     my $params = $c->request->params;
     my $species = $c->session->{selected_species};
+    my @info_msg;
+
     $params->{species} = $species;
     $params->{process_type} = 'ep_pipeline_ii';
     $params->{plate_type} = 'EP_PIPELINE_II';
     $params->{plate_name} = $params->{assembly_ii_plate_name};
+    my $cell_line_id;
 
     ## ----------------
     ## persistent input
@@ -61,6 +64,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     if ($params->{cell_line_assembly_ii}) {
         foreach my $cl (@cell_lines) {
             if ($cl->{id} == $params->{cell_line_assembly_ii}) {
+                $cell_line_id = $cl->{id};
                 $c->stash(cell_line_id => $cl->{id}, cell_line_name => $cl->{name});
             }
         }
@@ -127,7 +131,10 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     }
 
     if ($params->{create_assembly_ii_project}) {
-        create_project_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+        my $msg = create_project_ep_pipeline_ii($c->model('Golgi')->schema, $c->model('Golgi'), $params);
+        if ($msg) {
+            push @info_msg, $msg;
+        }
     }
 
     ## ---------------
@@ -136,12 +143,14 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## - import crispr id from wge
     my @assembly_ii_crisprs;
     if ($params->{import_assembly_ii_crispr}) {
-        @assembly_ii_crisprs = import_wge_crispr_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+        @assembly_ii_crisprs = import_wge_crispr_ep_pipeline_ii($c->model('Golgi')->schema, $c->model('Golgi'), $params);
         unless (@assembly_ii_crisprs) {
-            $c->stash->{error_msg} = 'Error importing Crispr Id: ' . $params->{wge_crispr_assembly_ii};
+            push @info_msg, 'Error importing Crispr ID: ' . $params->{wge_crispr_assembly_ii};
+            #$c->stash->{error_msg} = 'Error importing Crispr Id: ' . $params->{wge_crispr_assembly_ii};
             return;
         }
-        $c->stash->{info_msg} = 'Successfully imported Crispr from WGE. ' . join ",", @assembly_ii_crisprs;
+        push @info_msg, 'Crispr ID was imported from WGE. ' . join ",", @assembly_ii_crisprs;
+        #$c->stash->{info_msg} = 'Successfully imported Crispr from WGE. ' . join ",", @assembly_ii_crisprs;
     }
 
     ## -------------------
@@ -159,21 +168,33 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         push @assembly_ii_experiments, @lagging_exps;
     }
 
-    ## - find experiments
-    if ($params->{find_assembly_ii_experiments}) {
+    ## - create experiment
+    if ($params->{create_assembly_ii_experiment}) {
         my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-        if ($params->{create_assembly_ii_experiment}) {
-            try {
-                my $exp_params = (
-                    gene_id         =>  $gene_info->{gene_id},
-                    design_id       =>  ($params->{design_id_assembly_ii} // undef),
-                    crispr_id       =>  ($params->{crispr_id_assembly_ii} // undef)
-                );
-
-                my $experiment = $c->model('Golgi')->create_experiment($exp_params);
+        ##TODO assert parameters
+        try {
+            my $exp_params = {
+                gene_id         =>  $gene_info->{gene_id},
+                design_id       =>  $params->{design_id_assembly_ii},
+                crispr_id       =>  $params->{crispr_id_assembly_ii}
             };
+
+            my $experiment = $c->model('Golgi')->create_experiment($exp_params);
+            push @info_msg, 'A new experiment was created.';
+        } catch {
+            push @info_msg, 'Error creating new experiment.' . $_;
+        };
+    }
+#    $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
+#    push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+
+
+    ## - find experiments by gene, crispr, design
+    if ($params->{find_assembly_ii_experiments}) {
+        if ($params->{gene_id_assembly_ii}) {
+            my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+            $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
         }
-        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
         push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
     }
 
@@ -191,17 +212,28 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     my $lagging_exps_str = join ",", @exp_ids;
 
-    foreach my $exp_indx (0..$#assembly_ii_experiments) {
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $assembly_ii_experiments[$exp_indx]->{gene_id}, species => $species } ) };
+    foreach my $indx (0..$#unique_exps) {
+        my $bool = 0;
+        my $exp = $unique_exps[$indx];
+        if ($cell_line_id) {
+            $exp = $unique_exps[$indx];
+            $bool = proj_exp_check_ep_ii($c->model('Golgi')->schema, $exp->{id}, $exp->{gene_id}, $cell_line_id);
+        }
+        $exp->{project_check} = $bool;
+        $unique_exps[$indx] = $exp;
+    }
+
+    foreach my $exp_indx (0..$#unique_exps) {
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $unique_exps[$exp_indx]->{gene_id}, species => $species } ) };
         if ( $gene_info ) {
-            $assembly_ii_experiments[$exp_indx]->{gene_id} = $gene_info->{gene_symbol};
+            $unique_exps[$exp_indx]->{gene_id} = $gene_info->{gene_symbol};
         }
     }
 
     $c->stash(
-       find_assembly_ii_experiments => $params->{find_assembly_ii_experiments},
-       assembly_ii_experiments => \@unique_exps,
-       lagging_exp_ids => $lagging_exps_str,
+        find_assembly_ii_experiments => $params->{find_assembly_ii_experiments},
+        assembly_ii_experiments => \@unique_exps,
+        lagging_exp_ids => $lagging_exps_str,
     );
 
     ## -------------
@@ -216,39 +248,48 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 #            species      => $params->{species}
 #        );
         my $plate_name = $c->request->params->{assembly_ii_plate_name};
-        delete $c->request->params->{save_assembly_ii};
-        delete $c->request->params->{assembly_ii_plate_name};
-        #my $plate = $self->process_plate_upload_form( $c );
+        my $cell_line = $params->{plate_cell_line_assembly_ii};
+        my $sponsor = $params->{sponsor_assembly_ii};
+        my $strategy = $params->{strategy_assembly_ii};
+        my $targeting = $params->{targeting_type_assembly_ii};
+#        delete $c->request->params->{save_assembly_ii};
+#        delete $c->request->params->{assembly_ii_plate_name};
+#        my $plate = $self->process_plate_upload_form( $c );
 
-        my @assembly_ii_wells = build_ep_pipeline_ii_well_data($plate_name, $c);
+        ##TODO create/assign project
+
+        my @assembly_ii_wells = build_ep_pipeline_ii_well_data($c, $cell_line);
         my $assembly_ii_plate_data = {
             name       => $plate_name,
             species    => $species,
             type       => 'EP_PIPELINE_II',
             created_by => $c->user->name,
+            sponsor_id => $sponsor,
             wells      => \@assembly_ii_wells
         };
 
         my $plate;
 
-#        try{
+        try{
             $plate = $c->model('Golgi')->create_plate( $assembly_ii_plate_data );
-            #$c->stash->{info_msg} = 'Successful assembly ii plate creation';
-#        } catch {
-#            $c->stash->{error_msg} = 'Error creating plate: ' . $_;
-#            return;
-#        };
+            $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
+            $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
+        } catch {
+            push @info_msg, 'Error creating plate: ' . $_;
+        };
 
-        $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
-        $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
-        return;
+    }
+
+    if (@info_msg) {
+        my $msg = join "\n", @info_msg;
+        $c->stash->{info_msg} = $msg;
     }
 
     return;
 }
 
 sub build_ep_pipeline_ii_well_data {
-    my ( $plate, $c ) = @_;
+    my ($c, $cell_line_id) = @_;
 
     my @wells;
     foreach my $well qw( well_01 well_02 well_03 well_04 well_05 well_06 well_07 well_08 well_09 well_10 well_11 well_12 well_13 well_14 well_15 well_16 ) {
@@ -263,7 +304,8 @@ sub build_ep_pipeline_ii_well_data {
                 well_name    => 'A' . $name_split[1],
                 design_id    => $exp->{design_id},
                 crispr_id    => $exp->{crispr_id},
-                process_type => 'assembly_ii'
+                cell_line    => $cell_line_id,
+                process_type => 'ep_pipeline_ii'
             };
             push @wells, $temp_data;
         }
@@ -402,5 +444,6 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
 
 

@@ -980,20 +980,21 @@ sub _create_process_aux_data_create_di {
 sub pspec__create_process_aux_data_ep_pipeline_ii {
     return {
         design_id => { validate => 'existing_design_id' },
-        crispr_id => { validate => 'existing_crispr_id', optional => 1 }
+        crispr_id => { validate => 'existing_crispr_id', optional => 1 },
+        cell_line => { optional => 1 }
+        #cell_line => { validate => 'existing_cell_line' }
     };
 }
 
 sub _create_process_aux_data_ep_pipeline_ii {
     my ( $model, $params, $process ) = @_;
 
-    my $validated_params
-        = $model->check_params( $params, pspec__create_process_aux_data_ep_pipeline_ii() );
+    my $validated_params = $model->check_params( $params, pspec__create_process_aux_data_ep_pipeline_ii() );
 
     $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
-    if ($validated_params->{crispr_id}) {
-        $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
-    }
+    $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
+    $process->create_related( process_cell_line => { cell_line_id => $params->{cell_line} } );
+#    $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
 
     return;
 }
@@ -1631,4 +1632,5 @@ sub _crispr_tracker_rna_id_for {
 1;
 
 __END__
+
 
