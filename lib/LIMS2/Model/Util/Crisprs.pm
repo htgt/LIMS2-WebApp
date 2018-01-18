@@ -471,8 +471,12 @@ sub gene_ids_for_crispr {
     }
     # method on both crispr and crispr pair that looks at linked designs
     elsif ( my @designs = $crispr->related_designs ) {
-        my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
-        push @gene_ids, uniq @design_gene_ids;
+        try {
+            my @design_gene_ids = map{ $_->genes->first->gene_id } @designs;
+            push @gene_ids, uniq @design_gene_ids;
+        } catch {
+            $model->log->debug('No design ID found for crispr - ' . $crispr->id);
+        };
     }
     # not a group a no linked design? check if there is an experiment
     elsif ( $model && (my @groups = $crispr->crispr_groups->all) ) {
