@@ -1,0 +1,67 @@
+<div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                <i class="glyphicon glyphicon-question-sign"></i> Design Parameter Help
+            </a>
+        </div>
+
+        <div id="collapseOne" class="panel-body collapse">
+            <div class="panel-body">
+                <h4>Miseq Design Map</h4>
+                <div class="well">
+                    <p>
+                        | PCR | --  -300  -- | MiSeq | -  -80  - | Cut site | -  +80  - | MiSeq | --  +300  -- | PCR |
+                    </p>
+                </div>
+                <pre>
+                                                Cut site
+Internal                       -170      -50       0        50      170
+                                 | Search | Offset | Offset | Search |
+
+External  -520                 -170                0                170                  520
+            | ----- Search ----- | ---- Offset --- | --- Offset ---- | ----- Search ----- |
+
+                                 | Miseq  |                 | Miseq  |
+            | PCR Primer Region  |                                   | PCR Primer Region  |
+                </pre>
+                <p>
+                    If you want to design an amplicon of around 200-300 bases, half each limit and set the offset to the minimal and the search width to the maximum. 
+                    E.g Offset - 100, Search - 200.
+                </p>
+                <p>Search Width</p>
+                <div class="well">
+                    <p>
+                        Search width is the range of bases you wish the primers to lie in. The width is calculated from the final base of the offset onwards.
+                        Internal default - 170, External default - 350.
+
+                    </p>
+                </div>
+                
+                <p>Offset Width</p>
+                <div class="well">
+                    <p>
+                        Helpful.
+                    </p>
+                </div>
+
+                <p>Increment<p>
+                <div class="well">
+                    <p>
+                        When Primer3 fails to find a primer or the primer isn't unique in the genome, the system will extend it's search region by the increment value.
+                        The system will do this up to a maximum of four times.
+                        Example: Search - 170, Increment - 15, Max increment - 60. Max search width - 230
+                    </p>
+                </div>
+
+                <p>Genomic Score Threshold</p>
+                <div class="well">
+                    <p>
+                        PCR Primers are checked for genomic uniqueness. This has previously been done by querying BWA and checking the genomic score. 
+                        30 genomic score has been used to call an unique score in the past however we may wish to lower this score when using different temperatures etc to find a design.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

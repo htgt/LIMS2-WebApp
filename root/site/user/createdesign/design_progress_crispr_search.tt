@@ -25,7 +25,7 @@
         </thead>
         <tbody>
             [% FOR table IN crispr_table %]
-            [% IF table.status != 'Successful' %]
+            [% IF table.status != 'Success' %]
                 <tr style="background-color:#f2dede">
                 [% ELSE %]
                 <tr style="background-color:#dff0d8">
@@ -47,37 +47,85 @@
 </div>
 
 <form method="POST">
-    <fieldset>
-        <div id="Modal" class="modal fade" role="dialog">
-            <div class="modal-dialog">
+    <div id="Modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-lg">
 
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h4 class="modal-title">Design Changes</h4>
-                    </div>
-                    <div class="modal-body">
-                        <div>
-                            <label>Dead search width:</label> 
-                            <input name="Dead Search Width" class="form-control" name="dead_search_width" id="dead_search_width" type="number" placeholder="Default 150" value="150"/>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Design Parameters</h4>
+                </div>
+
+                <div class="modal-body col-md-12">
+                    <fieldset class="col-md-12">
+                        <legend>Primer Restraints</legend>
+                        <fieldset class="col-md-6">
+                            <legend>Miseq</legend>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Search width:</label>
+                                <div class="col-md-6">
+                                    <input name="Search Width" class="form-control" id="search_width" name="search_width" type="number" placeholder="Default 170" value="170"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Offset width:</label>
+                                <div class="col-md-6">
+                                    <input name="Dead Search Width" class="form-control" name="dead_search_width" id="dead_search_width" type="number" placeholder="Default 50" value="50"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Increment:</label>
+                                <div class="col-md-6">
+                                    <input name="increment" class="form-control" id="increment" name="increment" type="number" placeholder="Default 15" value="15"/>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="col-md-6">
+                            <legend>PCR</legend>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Search width:</label>
+                                <div class="col-md-6">
+                                    <input name="Search Width" class="form-control" id="search_width" name="search_width" type="number" placeholder="Default 350" value="350"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Offset width:</label>
+                                <div class="col-md-6">
+                                    <input name="Dead Search Width" class="form-control" name="dead_search_width" id="dead_search_width" type="number" placeholder="Default 170" value="170"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12 row">
+                                <label class="col-md-6">Increment:</label>
+                                <div class="col-md-6">
+                                    <input name="increment" class="form-control" id="increment" type="number" placeholder="Default 50" value="50"/>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </fieldset>
+                    <fieldset class="col-md-12 row">
+                        <legend>Design Restraints</legend>
+                        <div class="col-md-12">
+                            <label class="col-md-5">Genomic Score Threshold</label>
+                            <div class="col-md-4">
+                                <input name="genomic" class="form-control" id="genomic" type="number" placeholder="Default 30" value="30"/>
+                            </div>
                         </div>
-                        <div>
-                            <label>Search width:</label> 
-                            <input name="Search Width" class="form-control" id="search_width" name="search_width" type="number" placeholder="Default 300" value="300"/>
+                        <div class="col-md-12">
+                            <label class="col-md-5">Melting Temperatures - TB Added</label>
                         </div>
-                        <div>
-                            <label>Increment:</label>
-                            <input name="increment" class="form-control" id="increment" name="increment" type="number" placeholder="Default 50" value="50"/>
-                        </div>
+                    </fieldset>
+                    <div class="col-md-12 row">
+                        [% INCLUDE 'miseq_design_parameters_help.tt' %]
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary" value="Save Changes">Submit</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" value="Save Changes">Submit</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
-    </fieldset>
+
+    </div>
 </form>
 
 <script type="text/javascript" charset="utf-8">

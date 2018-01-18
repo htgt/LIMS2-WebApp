@@ -46,12 +46,14 @@ sub create_miseq_design {
     };
     
     my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range);
+
+    my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
+    my @gene_ids = genes_for_crisprs($c, $crispr_rs);
     if ($crispr_data->{error}) {
         print $crispr_data->{error};
 $DB::single=1;
-        return;
+        return $crispr_data;
     }
-    my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_data->{left_crispr}->{id} });
     my $crispr_details = $crispr_rs->as_hash;
 
     my $slice_adaptor = $c->model('Golgi')->ensembl_slice_adaptor('Human');
@@ -76,7 +78,6 @@ $DB::single=1;
         },
     };
     my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details);
-    my @gene_ids = genes_for_crisprs($c, $crispr_rs);
     my $hit_data = bwa_oligo_loci($crispr_details, $result);
     my @oligos = format_oligos($hit_data);
     my $design_info = {
@@ -98,7 +99,7 @@ $DB::single=1;
         design => $design,
         crispr => $crispr_id,
     };
-
+$DB::single=1;
     return $design_crispr;
 };
 

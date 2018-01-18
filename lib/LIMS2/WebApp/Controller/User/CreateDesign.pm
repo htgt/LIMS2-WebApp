@@ -549,13 +549,22 @@ sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' 
 
             my $results = &LIMS2::Model::Util::CreateMiseqDesign::create_miseq_design($c, $design_requirements, $crispr);
 $DB::single=1;
-            my $crispr_ids = {
-
-                lims    => $crispr,
-                wge     => $wge_id,
-                status  => 'Failed',
-
-            };
+            my $crispr_ids;
+            if ($results->{error}) {
+                $crispr_ids = {
+                    lims    => $crispr,
+                    wge     => $wge_id,
+                    status  => $results->{error},
+                };
+            } else {
+                $crispr_ids = {
+                    lims    => $crispr,
+                    wge     => $wge_id,
+                    status  => 'Success',
+                    gene    => $results->{design}->gene_ids,
+                    design  => $results->{design}->id,
+                };
+            }
             push (@crispr_table, $crispr_ids);
 
         } else {
