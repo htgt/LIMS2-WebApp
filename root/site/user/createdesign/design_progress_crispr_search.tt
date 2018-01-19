@@ -110,8 +110,29 @@
                                 <input name="genomic" class="form-control" id="genomic" type="number" placeholder="Default 30" value="30"/>
                             </div>
                         </div>
-                        <div class="col-md-12">
-                            <label class="col-md-5">Melting Temperatures - TB Added</label>
+                        <div class="form-group col-md-12">
+                            <label class="col-md-6">Primer Melting Temperatures</label>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Minimum</span>
+                                    <input class="form-control" id="min_mt" type="text">
+                                    <span class="input-group-addon">C</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Optimum</span>
+                                    <input class="form-control" id="opt_mt" type="text">
+                                    <span class="input-group-addon">C</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Maximum</span>
+                                    <input class="form-control" id="max_mt" type="text">
+                                    <span class="input-group-addon">C</span>
+                                </div>
+                            </div>
                         </div>
                     </fieldset>
                     <div class="col-md-12 row">
