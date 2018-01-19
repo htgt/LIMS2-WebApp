@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.483';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.487';
 }
 ## use critic
 
@@ -65,7 +65,6 @@ sub design_POST {
         $c->req->secure(1);
     }
     $c->require_ssl;
-
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->c_create_design( $c->request->data );

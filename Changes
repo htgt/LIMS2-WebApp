@@ -1,3 +1,14 @@
+0.487     2018-01-19 11:34:51 Europe/London
+
+    Handle crash on incomplete experiments
+
+0.486     2018-01-09 15:44:39 Europe/London
+
+    Populate project and experiment data
+0.485     2017-12-13 15:05:16 Europe/London
+    Removed unnecessary file
+0.484     2017-12-13 13:24:44 Europe/London
+    Miseq design framework
 0.483     2017-11-27 11:57:26 Europe/London
     Release to bring releases branch up to date
 

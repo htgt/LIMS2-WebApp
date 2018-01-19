@@ -160,6 +160,7 @@ lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
 lib/LIMS2/Model/Schema/Result/ProjectAllele.pm
+lib/LIMS2/Model/Schema/Result/ProjectExperiment.pm
 lib/LIMS2/Model/Schema/Result/ProjectRecoveryClass.pm
 lib/LIMS2/Model/Schema/Result/ProjectSponsor.pm
 lib/LIMS2/Model/Schema/Result/QcAlignment.pm
