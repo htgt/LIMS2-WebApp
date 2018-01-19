@@ -102,35 +102,59 @@
                             </div>
                         </fieldset>
                     </fieldset>
-                    <fieldset class="col-md-12 row">
+                    <fieldset class="col-md-12">
                         <legend>Design Restraints</legend>
-                        <div class="col-md-12">
+                        <div class="form-group col-md-12">
                             <label class="col-md-5">Genomic Score Threshold</label>
                             <div class="col-md-4">
                                 <input name="genomic" class="form-control" id="genomic" type="number" placeholder="Default 30" value="30"/>
                             </div>
                         </div>
                         <div class="form-group col-md-12">
-                            <label class="col-md-6">Primer Melting Temperatures</label>
+                            <label class="col-md-5">Primer Melting Temperatures</label>
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <span class="input-group-addon">Minimum</span>
-                                    <input class="form-control" id="min_mt" type="text">
+                                    <input class="form-control" id="min_mt" type="text" value="[% min_mt %]">
                                     <span class="input-group-addon">C</span>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Optimum</span>
-                                    <input class="form-control" id="opt_mt" type="text">
+                                    <input class="form-control" id="opt_mt" type="text" value="[% opt_mt %]">
                                     <span class="input-group-addon">C</span>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Maximum</span>
-                                    <input class="form-control" id="max_mt" type="text">
+                                    <input class="form-control" id="max_mt" type="text" value="[% max_mt %]">
                                     <span class="input-group-addon">C</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <label class="col-md-5">Primer GC Content</label>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Minimum</span>
+                                    <input class="form-control" id="min_gc" type="text" value="[% min_gc %]">
+                                    <span class="input-group-addon">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-md-offset-5 row">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Optimum</span>
+                                    <input class="form-control" id="opt_gc" type="text" value="[% opt_gc %]">
+                                    <span class="input-group-addon">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-md-offset-5 row">
+                                <div class="input-group">
+                                    <span class="input-group-addon">Maximum</span>
+                                    <input class="form-control" id="max_gc" type="text" value="[% max_gc %]">
+                                    <span class="input-group-addon">%</span>
                                 </div>
                             </div>
                         </div>

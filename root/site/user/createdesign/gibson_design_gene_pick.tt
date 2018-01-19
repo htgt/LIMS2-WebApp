@@ -40,3 +40,7 @@ If you know the exon you want to target click <a href="[% c.uri_for('/user/creat
     <input type="submit" name="conversion" class="btn btn-primary" value="Convert" />
   </fieldset>
 </form>
+
+<div class="well">
+    <a href="[% c.uri_for('/user/create_miseq_design') %]">Miseq designs</a>.
+</div>

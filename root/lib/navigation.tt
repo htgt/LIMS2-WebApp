@@ -101,13 +101,13 @@
               <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Design</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/create_miseq_design' ) %]">Create Miseq Design</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/design_attempts' ) %]">Design Attempts</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/design_progress_crispr_search' ) %]">Design Progress Crispr Search</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>

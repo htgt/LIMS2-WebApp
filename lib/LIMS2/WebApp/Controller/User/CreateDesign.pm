@@ -504,7 +504,7 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     return;
 }
 
-sub design_progress_crispr_search : Path( '/user/design_progress_crispr_search' ){
+sub create_miseq_design : Path( '/user/create_miseq_design' ){
     my ($self, $c) = @_;
 
     $c->assert_user_roles( 'read' );
@@ -600,7 +600,6 @@ $DB::single=1;
     );
 
     return;
-
 }
 
 sub view_design_attempt : PathPart('view') Chained('design_attempt') : Args(0) {
