@@ -410,26 +410,43 @@ sub create_experiment{
             # Un-delete the existing experiment
             $experiment->update({ deleted => 0});
         }
-        else{
-            die "Experiment already exists with id ".$experiment->id."\n";
-        }
     }
     else{
         $experiment = $self->schema->resultset('Experiment')->create($validated_params);
     }
 
-    my $proj_exp = $self->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $experiment->id });
-    my $proj_exp_count = $proj_exp->count;
-
-    if ($proj_exp_count == 0) {
-        my $expr_proj_params = { project_id => $project_id, experiment_id => $experiment->id };
-
+    if ($project_id) {
         try {
-            $self->schema->resultset('ProjectExperiment')->create($expr_proj_params);
+            $self->add_experiment($project_id, $experiment->id);
         };
     }
 
     return $experiment;
+}
+
+sub add_experiment {
+    my ($self, $project_id, $experiment_id) = @_;
+
+    return 0 if (!$project_id or !$experiment_id);
+
+    my $experiment = $self->schema->resultset('Experiment')->find({ id => $experiment_id }, { columns => [ qw/id gene_id/ ] });
+    my $project = $self->schema->resultset('Project')->find({ id => $project_id }, { columns => [ qw/id gene_id/ ] });
+
+    try {
+        if ($experiment->get_column('gene_id') ne $project->get_column('gene_id')) { die $!; }
+
+        my $proj_exp = $self->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $experiment_id });
+
+        if ($proj_exp->count == 0) {
+            my $expr_proj_params = { project_id => $project_id, experiment_id => $experiment_id };
+
+            $self->schema->resultset('ProjectExperiment')->create($expr_proj_params);
+            return 1;
+        }
+    };
+
+    return 0;
+
 }
 
 sub delete_experiment{
@@ -500,4 +517,5 @@ sub create_requester {
 1;
 
 __END__
+
 

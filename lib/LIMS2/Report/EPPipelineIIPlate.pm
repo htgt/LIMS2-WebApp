@@ -179,7 +179,15 @@ sub get_well_info {
     my $db_user = $self->model->schema->resultset( 'User' )->find({ id => $db_user_id->get_column('created_by_id') }, { columns => [ qw/name/ ] });
 
     ## get crispr location in storage
-    my @db_crispr_storage = $self->model->schema->resultset( 'CrisprStorage' )->search({ crispr_id => $info->{crispr_id} })->all;
+    my @db_crispr_storage = $self->model->schema->resultset( 'CrisprStorage' )->search({ crispr_id => $info->{crispr_id} }, { distinct => 1 })->all;
+    my @crispr_boxes;
+    my $crispr_locs = 'NA';
+
+    for my $rec (@db_crispr_storage) {
+        push @crispr_boxes, $rec->get_column('box_name');
+    }
+
+    if (scalar @crispr_boxes) { $crispr_locs = join ",", @crispr_boxes; }
 
     ## get well experiment
     my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id/ ] });
@@ -200,7 +208,7 @@ sub get_well_info {
     $info->{project_id} = $db_proj->get_column('id');
     $info->{cell_line} = $db_cell_line->get_column('name');
     $info->{gene_id} = $self->get_gene_name($info->{gene_id});
-    $info->{crispr_loc} = 'NA';
+    $info->{crispr_loc} = $crispr_locs;
     $info->{created_by} = $db_user->get_column('name');
 
     return $info;

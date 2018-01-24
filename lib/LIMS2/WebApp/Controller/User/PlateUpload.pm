@@ -32,11 +32,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     my $params = $c->request->params;
     my $species = $c->session->{selected_species};
     my @info_msg;
-
-    $params->{species} = $species;
-    $params->{process_type} = 'ep_pipeline_ii';
-    $params->{plate_type} = 'EP_PIPELINE_II';
-    $params->{plate_name} = $params->{assembly_ii_plate_name};
     my $cell_line_id;
 
     ## ----------------
@@ -53,6 +48,12 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         design_id_assembly_ii      => $params->{design_id_assembly_ii}
     );
 
+    $params->{species} = $species;
+    $params->{process_type} = 'ep_pipeline_ii';
+    $params->{plate_type} = 'EP_PIPELINE_II';
+    $params->{plate_name} = $params->{assembly_ii_plate_name};
+##    $params->{plate_cell_line_assembly_ii} = $params->{cell_line_assembly_ii};
+
     ## ---------------
     ## project section
     ## ---------------
@@ -60,7 +61,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     my @cell_lines = map { { id => $_->id, name => $_->name} } $c->model('Golgi')->schema->resultset('CellLine')->all;
     $c->stash->{cell_line_options} = \@cell_lines;
 
-    ## persistent user input
+    ## - persistent cell line input
     if ($params->{cell_line_assembly_ii}) {
         foreach my $cl (@cell_lines) {
             if ($cl->{id} == $params->{cell_line_assembly_ii}) {
@@ -72,7 +73,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
     $c->stash->{sponsors} = \@sponsors;
 
-    ## persistent user input
+    ## - persistent sponsor input
     if ($params->{sponsor_assembly_ii}) {
         $c->stash(sponsor_assembly_ii => $params->{sponsor_assembly_ii});
     }
@@ -80,7 +81,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## - find projects
     my @all_projects;
 
-    ## persistent user input
+    ## - persistent user input
     my $lagging_projects_str = $params->{lagging_projects};
     my @lagging_projects = split ",", $lagging_projects_str;
     foreach my $pr (@lagging_projects) {
@@ -88,14 +89,16 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         push @all_projects, @lagging_project;
     }
 
-    ## find projects for a gene
+    ## - find projects for a gene
     if ($params->{find_assembly_ii_project}) {
         my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
-        unless (grep {$_ eq $gene_info->{gene_symbol}} @lagging_projects) {
-            my @hit_projects = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
-            push @all_projects, @hit_projects;
+        if ($gene_info) {
+            $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
         }
+#        unless (grep {$_ eq $gene_info->{gene_symbol}} @lagging_projects) {
+        my @hit_projects = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+        push @all_projects, @hit_projects;
+#        }
     }
 
     my @projects;
@@ -107,10 +110,11 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         }
     }
 
+    ## - preparing projects data for display
     foreach my $proj_indx (0..$#projects) {
         try {
             my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $projects[$proj_indx]->{gene_id}, species => $species } ) };
-            if ( $gene_info ) {
+            if ($gene_info) {
                 $projects[$proj_indx]->{gene_id} = $gene_info->{gene_symbol};
             }
             $projects[$proj_indx]->{info} = "gene_id_assembly_ii:" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii:" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii:" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii:" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii:" . $projects[$proj_indx]->{sponsor_id};
@@ -126,12 +130,12 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     ## - create project
     my $project_gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-    if ( $project_gene_info ) {
+    if ($project_gene_info) {
         $params->{gene_id_assembly_ii} = $project_gene_info->{gene_id};
     }
 
     if ($params->{create_assembly_ii_project}) {
-        my $msg = create_project_ep_pipeline_ii($c->model('Golgi')->schema, $c->model('Golgi'), $params);
+        my $msg = create_project_ep_pipeline_ii($c->model('Golgi'), $params);
         if ($msg) {
             push @info_msg, $msg;
         }
@@ -143,14 +147,11 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## - import crispr id from wge
     my @assembly_ii_crisprs;
     if ($params->{import_assembly_ii_crispr}) {
-        @assembly_ii_crisprs = import_wge_crispr_ep_pipeline_ii($c->model('Golgi')->schema, $c->model('Golgi'), $params);
+        @assembly_ii_crisprs = import_wge_crispr_ep_pipeline_ii($c->model('Golgi'), $params);
         unless (@assembly_ii_crisprs) {
             push @info_msg, 'Error importing Crispr ID: ' . $params->{wge_crispr_assembly_ii};
-            #$c->stash->{error_msg} = 'Error importing Crispr Id: ' . $params->{wge_crispr_assembly_ii};
-            return;
         }
         push @info_msg, 'Crispr ID was imported from WGE. ' . join ",", @assembly_ii_crisprs;
-        #$c->stash->{info_msg} = 'Successfully imported Crispr from WGE. ' . join ",", @assembly_ii_crisprs;
     }
 
     ## -------------------
@@ -185,14 +186,58 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
             push @info_msg, 'Error creating new experiment.' . $_;
         };
     }
-#    $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
-#    push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
 
+    ## - add experiment to project
+    if($params->{add_exp_to_proj}){
+        my $project;
+        my @exp_info = split ",", $params->{add_exp_to_proj};
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+
+        if ($gene_info) {
+            my $data = { gene_id_assembly_ii => $gene_info->{gene_id}, cell_line_assembly_ii => $params->{cell_line_assembly_ii} };
+            my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $data);
+            $project = $projs[0];
+        }
+
+        my $attr;
+        $attr->{gene_id} = $gene_info->{gene_id};
+
+        if ($exp_info[1]) {
+            $attr->{design_id} = $exp_info[2];
+        }
+
+        if ($exp_info[2]) {
+            $attr->{crispr_id} = $exp_info[3];
+        }
+
+        if ($exp_info[3]) {
+            $attr->{crispr_pair_id} = $exp_info[4];
+        }
+
+        if ($exp_info[4]) {
+            $attr->{crispr_group_id} = $exp_info[5];
+        }
+
+        if ($project->{id}) {
+            $attr->{project_id} = $project->{id};
+        }
+
+        my $add_exp_check = 0;
+        try {
+            $add_exp_check = $c->model('Golgi')->add_experiment($project->{id}, $exp_info[0]);
+        };
+
+        if ($add_exp_check) {
+            push @info_msg, 'Experiment has been added for this project ' . $project->{id};
+        } else {
+            push @info_msg, 'Could not add experiment.';
+        }
+    }
 
     ## - find experiments by gene, crispr, design
     if ($params->{find_assembly_ii_experiments}) {
-        if ($params->{gene_id_assembly_ii}) {
-            my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+        if ($gene_info) {
             $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
         }
         push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
@@ -212,6 +257,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     my $lagging_exps_str = join ",", @exp_ids;
 
+    ## - project existance check for experiments
     foreach my $indx (0..$#unique_exps) {
         my $bool = 0;
         my $exp = $unique_exps[$indx];
@@ -241,22 +287,11 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## -------------
     ## - save plate details
     if ($params->{save_assembly_ii}) {
-#        $c->stash(
-#            plate_name   => '$params->{assembly_ii_plate_name}',
-#            plate_type   => $params->{plate_type},
-#            process_type => $params->{process_type},
-#            species      => $params->{species}
-#        );
         my $plate_name = $c->request->params->{assembly_ii_plate_name};
-        my $cell_line = $params->{plate_cell_line_assembly_ii};
+        my $cell_line = $params->{cell_line_assembly_ii};
         my $sponsor = $params->{sponsor_assembly_ii};
         my $strategy = $params->{strategy_assembly_ii};
         my $targeting = $params->{targeting_type_assembly_ii};
-#        delete $c->request->params->{save_assembly_ii};
-#        delete $c->request->params->{assembly_ii_plate_name};
-#        my $plate = $self->process_plate_upload_form( $c );
-
-        ##TODO create/assign project
 
         my @assembly_ii_wells = build_ep_pipeline_ii_well_data($c, $cell_line);
         my $assembly_ii_plate_data = {
@@ -264,7 +299,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
             species    => $species,
             type       => 'EP_PIPELINE_II',
             created_by => $c->user->name,
-            sponsor_id => $sponsor,
             wells      => \@assembly_ii_wells
         };
 

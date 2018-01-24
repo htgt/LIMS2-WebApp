@@ -19,8 +19,8 @@ use Sub::Exporter -setup => {
     ]
 };
 
-use LIMS2::Model::Plugin::Project qw(create_project);
-use LIMS2::Model::Plugin::Crispr qw(import_wge_crisprs);
+#use LIMS2::Model::Plugin::Project qw(create_project);
+#use LIMS2::Model::Plugin::Crispr qw(import_wge_crisprs);
 
 sub retrieve_experiments_ep_pipeline_ii {
     my ( $model, $params ) = @_;
@@ -66,15 +66,15 @@ sub retrieve_experiments_by_field {
 }
 
 sub import_wge_crispr_ep_pipeline_ii {
-    my ( $model, $golgi, $params ) = @_;
+    my ( $model, $params ) = @_;
 
     my $wge_id = $params->{wge_crispr_assembly_ii};
 
     my $species = $params->{species};
-    my $assembly = $model->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } )->assembly_id;
+    my $assembly = $model->schema->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } )->assembly_id;
 
     if ($wge_id) {
-        my @crisprs = $golgi->import_wge_crisprs( [$wge_id], $species, $assembly );
+        my @crisprs = $model->import_wge_crisprs( [$wge_id], $species, $assembly );
         return @crisprs;
     }
 
@@ -116,7 +116,7 @@ sub find_projects_ep_pipeline_ii {
 }
 
 sub create_project_ep_pipeline_ii {
-    my ( $model, $golgi, $params ) = @_;
+    my ( $model, $params ) = @_;
 
     # Store params common to search and create
     my $search = { species_id => $params->{species} };
@@ -132,9 +132,12 @@ sub create_project_ep_pipeline_ii {
     if( $params->{strategy_assembly_ii} ) {
         $search->{strategy_id} = $params->{strategy_assembly_ii};
     }
+#    if( $params->{sponsor_assembly_ii} ) {
+#        $search->{sponsor_id} = $params->{sponsor_assembly_ii};
+#    }
 
     my @project_results;
-    my @projects_rs = $model->resultset('Project')->search( $search, { order_by => 'id' })->all;
+    my @projects_rs = $model->schema->resultset('Project')->search( $search, { order_by => 'id' })->all;
 
     if(scalar @projects_rs == 0){
         # Create a new project
@@ -142,14 +145,14 @@ sub create_project_ep_pipeline_ii {
             $search->{sponsors_priority} = { $sponsor => undef };
         }
         my $project;
-        $model->txn_do(
+        $model->schema->txn_do(
             sub {
                 try{
-                    $project = $golgi->create_project($search);
+                    $project = $model->create_project($search);
                     return "A new project was created.";
                 }
                 catch{
-                    $model->txn_rollback;
+                    $model->schema->txn_rollback;
                     return "Project creation failed with error: $_";
                 };
             }

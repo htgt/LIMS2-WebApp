@@ -15,7 +15,7 @@
 #experiments_inner_div {
   overflow: scroll;
   height: 350px;
-  width: 550px;
+  width: 650px;
 }
 
 .experiment_well {
@@ -49,20 +49,37 @@
   margin-bottom: 8px;
 }
 
+#target_t {
+  table-layout:fixed;
+}
+
+#target_t:tr {
+  width:20px;
+}
+
+#target_t:th {
+  width:20px;
+}
+
+.glyphicon-info-sign:hover {
+  cursor: pointer;
+}
 
 </style>
 
-<form>
 <div id="gui_panel">
 <div class="panel panel-default">
   <div style="height:50px;" class="panel-heading">
     <h1 class="panel-title">
       EP Pipeline II Plate - Graphical Interface
-      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
+      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii" onclick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
     </h1>
   </div>
 
   <div class="panel-body">
+    <p style="color:grey;font-size:12px">
+      An EP II well needs a crispr, design, gene, cell line and project. All wells of this plate share the same cell line.</br>
+    </p>
     <div id="squares_div">
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
     <input class="form-control" id="plate_cell_line_assembly_ii" name="plate_cell_line_assembly_ii" style="display:none;" value="[% cell_line_id %]"></input>
@@ -143,21 +160,18 @@
       <br />Drag target icon to a plate well.<br />
     </p>
 
-    <div id="experiments_inner_div">
-
-      <table class="table table-bordered">
-        <thead style="background-color:#f0e68c;">
-        <tr>
+      <table id="target_t" class="table table-bordered" style="margin-bottom:0px;width:630px;">
+        <thead class="active">
           <th>
           </th>
           <th>
             Gene
           </th>
           <th>
-            Design ID
+            Design ID *
           </th>
           <th>
-            Crispr ID
+            Crispr ID *
           </th>
           <th>
             Crispr Pair
@@ -166,61 +180,94 @@
             Crispr Group
           </th>
           <th>
-            Project Check
+              <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if an experiment is linked to a project.</br>- If yes, checks if this project has the cell line displayed above.</br>"></span> 
+            Project Check *
           </th>
-        </tr>
+          <th>
+            Add to current Project
+          </th>
+          <th>
+            Exper iment ID
+          </th>
         </thead>
+      </table>
+
+      <div id="experiments_inner_div">
+
+      <table id="target_t" class="table table-bordered table-fixed" style="width:630px;">
+        <tbody>
       [% FOR exp IN assembly_ii_experiments %]
         [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
-        <tr style="background-color:#f5f5dc;">
+        <tr style="background-color:#;">
           <td>
             <button class="btn btn-success" id=[% exp.id %] type="button" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></button>
           </td>
           <td>
-            [% exp.gene_id %]
+            [% exp.gene_id or '-' %]
           </td>
-          <td>
-            [% exp.design_id %]
+          <td style="font-size:12px;">
+            [% exp.design_id or '-' %]
           </td>
-          <td>
-            [% exp.crispr_id %]
+          <td style="font-size:12px;">
+            [% exp.crispr_id or '-' %]
           </td>
-          <td>
-            [% exp.crispr_pair %]
+          <td style="font-size:12px;">
+            [% exp.crispr_pair or '-' %]
           </td>
-          <td>
-            [% exp.crispr_group %]
+          <td style="font-size:12px;">
+            [% exp.crispr_group or '-' %]
           </td>
           <td style="font-size:20px;">
+            [% IF exp.project_check %]
             &#10004;
+            [% ELSE %]
+            &#10008;
+            [% END %]
+          </td>
+          <td style="font-size:20px;">
+            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
+          </td>
+          <td>
+            [% exp.id or '-' %]
           </td>
         </tr>
         [% ELSE %]
-        <tr style="background-color:#f5f5dc;">
+        <tr style="background-color:#;">
           <td>
-            <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></button>
+            <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-ban-circle" style="font-size:20px;"></span></button>
           </td>
           <td>
-            [% exp.gene_id %]
+            [% exp.gene_id or '-' %]
           </td>
-          <td>
-            [% exp.design_id %]
+          <td style="font-size:12px;">
+            [% exp.design_id or '-' %]
           </td>
-          <td>
-            [% exp.crispr_id %]
+          <td style="font-size:12px;">
+            [% exp.crispr_id or '-' %]
           </td>
-          <td>
-            [% exp.crispr_pair %]
+          <td style="font-size:12px;">
+            [% exp.crispr_pair or '-' %]
           </td>
-          <td>
-            [% exp.crispr_group %]
+          <td style="font-size:12px;">
+            [% exp.crispr_group or '-' %]
           </td>
           <td style="font-size:20px;">
+            [% IF exp.project_check %]
+            &#10004;
+            [% ELSE %]
             &#10008;
+            [% END %]
+          </td>
+          <td>
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onclick="return save_add_exp_check()"><b>ADD</b></button>
+          </td>
+          <td>
+            [% exp.id or '-' %]
           </td>
         </tr>
         [% END %]
       [% END %]
+        </tbody>
       </table>
 
     </div>
@@ -229,7 +276,6 @@
   </div>
 </div>
 </div>
-</form>
 
 <script type="text/javascript">
 
@@ -281,6 +327,36 @@ function refresh_square(square_id) {
     }
   }
 }
+
+function save_plate_check() {
+  var plate_name = document.getElementById('assembly_ii_plate_name').value.trim();
+  var cell_line = document.getElementById('plate_cell_line_assembly_ii').value.trim();
+  if (!plate_name) {
+    alert('Plate name is missing.');
+    return false;
+  }
+  if (!cell_line) {
+    alert('Cell line is missing.');
+    return false;
+  }
+  return true;
+}
+
+function save_add_exp_check() {
+  var gene = document.getElementById('gene_id_assembly_ii').value.trim();
+  var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
+//  var targeting = document.getElementById('targeting_type_assembly_ii').value.trim();
+  if (!cell_line) {
+    alert('Cell line is missing.');
+    return false;
+  }
+  if (!gene) {
+    alert('Gene is missing.');
+    return false;
+  }
+  return true;
+}
+
 
 </script>
 

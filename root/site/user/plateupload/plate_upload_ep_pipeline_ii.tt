@@ -41,7 +41,7 @@
 
 <h1>Upload Plate <small> Step 2</small></h1>
 <p style="color:grey;font-size:12px">
-  <br />Use the checkbox provided in the sections to import a Crispr from WGE or to create an Experiment.<br />Parameters in <span style="color:#cc0000;"><b>red</b></span> are required for EP II plate creation.<br />
+  <br />Use the checkbox provided in the sections to import a Crispr from WGE or to create an Experiment.<br />
 </p>
 
 <form>
@@ -170,10 +170,7 @@
           <td>
           <div id="gene_btns" style="margin-right:50px;width:500px;height:300px;">
             [% FOREACH project IN hit_projects %]
-              <button class="project_info_btn" id="[% project.id %]" value="[% project.info %]" type="button" onClick="populate_project_section([% project.id %])" data-toggle="tooltip" title="- Strategy: [% project.strategy_id %]
-- Targeting Type: [% project.targeting_type %]
-- Sponsor: [% project.sponsor_id %]
-">[% project.gene_id %]</button>
+              <button class="project_info_btn" id="[% project.id %]" value="[% project.info %]" type="button" onClick="populate_project_section([% project.id %])" data-html="true" data-toggle="tooltip" title="- Strategy: [% project.strategy_id %]</br>- Targeting Type: [% project.targeting_type %]</br>- Sponsor: [% project.sponsor_id %]</br>">[% project.gene_id %]</button>
             [% END %]
             <input type="hidden" id="lagging_projects" name="lagging_projects" value="[% lagging_projects %]"></input>
           </div>
@@ -204,7 +201,7 @@
       <div class="panel-body">
 
         <div class="col-md-12 control-group">
-          <label class="control-label col-md-2" style="color:#cc0000;">Crispr Identifier</label>
+          <label class="control-label col-md-2">Crispr Identifier</label>
           <div class="col-md-3">
             <input type="text" class="form-control" name="crispr_id_assembly_ii" placeholder="Crispr ID" value=[% crispr_id_assembly_ii %]>
           </div>
@@ -235,7 +232,7 @@
       <div class="panel-body">
 
         <div class="col-md-12 control-group">
-          <label class="control-label col-md-2" style="color:#cc0000;">Design Identifier</label>
+          <label class="control-label col-md-2">Design Identifier</label>
           <div class="col-md-3">
             <input type="text" class="form-control" name="design_id_assembly_ii" placeholder="Design ID" value=[% design_id_assembly_ii %]>
           </div>
@@ -252,15 +249,25 @@
 <button id="find_assembly_ii_experiments" name="find_assembly_ii_experiments" value="find_assembly_ii_experiments" class="btn btn-primary">Find experiments</button>
 <span style="color:grey;font-size:12px;">(Uses Gene, Crispr and Design input boxes.)</span>
 
-</form>
+
 
 [% INCLUDE 'ep_pipeline_ii_experiments.tt' assembly_ii_experiments = assembly_ii_experiments cell_line_options = cell_line_options %]
 
-
+</form>
 
 <script type="text/javascript">
 
-window.onload = function(){document.getElementById("projectheader").click();};
+window.onload = function(){
+  document.getElementById("projectheader").click();
+
+  $("#table_tooltip").tooltip({
+      placement : 'top'
+  });
+
+  $(".project_info_btn").tooltip({
+      placement : 'top'
+  });
+};
 
 $("#gene_id_assembly_ii").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
@@ -295,7 +302,6 @@ function populate_project_section(project_id) {
 
 function update_cell_line() {
   var ref_cell_line_id = document.getElementById('cell_line_assembly_ii').value;
-  console.log(ref_cell_line_id);
   document.getElementById('plate_cell_line_assembly_ii').value = ref_cell_line_id;
 }
 
