@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.487     2018-01-19 11:34:51 Europe/London
+
+    Handle crash on incomplete experiments
+
 0.486     2018-01-09 15:44:39 Europe/London
 
     Populate project and experiment data
