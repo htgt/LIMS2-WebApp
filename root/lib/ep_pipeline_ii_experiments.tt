@@ -82,7 +82,6 @@
     </p>
     <div id="squares_div">
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
-    <input class="form-control" id="plate_cell_line_assembly_ii" name="plate_cell_line_assembly_ii" style="display:none;" value="[% cell_line_id %]"></input>
 
 
     <table>
@@ -180,7 +179,7 @@
             Crispr Group
           </th>
           <th>
-              <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if an experiment is linked to a project.</br>- If yes, checks if this project has the cell line displayed above.</br>"></span> 
+              <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if an experiment is linked to any project.</br>- If yes, checks if this project has the cell line displayed above.</br>"></span> 
             Project Check *
           </th>
           <th>
@@ -225,7 +224,11 @@
             [% END %]
           </td>
           <td style="font-size:20px;">
+            [% IF exp.project_check %]
             <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
+            [% ELSE %]
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onclick="return save_add_exp_check()"><b>ADD</b></button>
+            [% END %]
           </td>
           <td>
             [% exp.id or '-' %]
@@ -259,7 +262,11 @@
             [% END %]
           </td>
           <td>
+            [% IF exp.project_check %]
+            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
+            [% ELSE %]
             <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onclick="return save_add_exp_check()"><b>ADD</b></button>
+            [% END %]
           </td>
           <td>
             [% exp.id or '-' %]
@@ -330,7 +337,7 @@ function refresh_square(square_id) {
 
 function save_plate_check() {
   var plate_name = document.getElementById('assembly_ii_plate_name').value.trim();
-  var cell_line = document.getElementById('plate_cell_line_assembly_ii').value.trim();
+  var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
   if (!plate_name) {
     alert('Plate name is missing.');
     return false;

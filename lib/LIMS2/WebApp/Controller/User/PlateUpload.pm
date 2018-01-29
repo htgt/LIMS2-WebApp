@@ -89,16 +89,29 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         push @all_projects, @lagging_project;
     }
 
+    ## - create project
+    my $project_gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+    if ($project_gene_info) {
+        $params->{gene_id_assembly_ii} = $project_gene_info->{gene_id};
+    }
+
+    if ($params->{create_assembly_ii_project}) {
+        $params->{find_assembly_ii_project} = 'find_assembly_ii_project';
+        my $msg = create_project_ep_pipeline_ii($c->model('Golgi'), $params);
+        if ($msg) {
+            push @info_msg, $msg;
+        }
+    }
+
     ## - find projects for a gene
     if ($params->{find_assembly_ii_project}) {
         my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
         if ($gene_info) {
             $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
         }
-#        unless (grep {$_ eq $gene_info->{gene_symbol}} @lagging_projects) {
+
         my @hit_projects = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
         push @all_projects, @hit_projects;
-#        }
     }
 
     my @projects;
@@ -127,19 +140,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         hit_projects      => \@projects,
         lagging_projects  => join ",", @lagging_project_ids
     );
-
-    ## - create project
-    my $project_gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-    if ($project_gene_info) {
-        $params->{gene_id_assembly_ii} = $project_gene_info->{gene_id};
-    }
-
-    if ($params->{create_assembly_ii_project}) {
-        my $msg = create_project_ep_pipeline_ii($c->model('Golgi'), $params);
-        if ($msg) {
-            push @info_msg, $msg;
-        }
-    }
 
     ## ---------------
     ## crispr section

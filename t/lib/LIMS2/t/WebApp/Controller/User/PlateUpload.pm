@@ -1,3 +1,4 @@
+
 package LIMS2::t::WebApp::Controller::User::PlateUpload;
 use base qw(Test::Class);
 use Test::Most;
@@ -87,7 +88,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(112)
+sub all_tests  : Test(119)
 {
     my $mech = mech();
 
@@ -491,6 +492,32 @@ sub all_tests  : Test(112)
 	lives_ok {
 	    model->delete_plate( { name => 'XEP_TEST1' } )
 	} 'delete plate';
+    }
+
+    {
+    ## EP Pipeline II plate
+    $mech->get_ok( '/user/plate_upload_ep_pipeline_ii' );
+    $mech->text_contains('EP Pipeline II Plate - Graphical Interface', '...EP II plate interface');
+
+    ok my $res = $mech->submit_form(
+        form_id => 'ep_pipeline_ii_plate',
+        fields  => {
+        assembly_ii_plate_name => 'ep_pipeline_ii_test_plate',
+        cell_line_assembly_ii  => '10'
+        },
+        button  => 'save_assembly_ii'
+    ), 'submit form with user input data for EP II plate';
+
+    ok $res->is_success, '...response is_success';
+    is $res->base->path, '/user/view_plate', '... moves to plate view page';
+    like $res->content, qr/Created new plate ep_pipeline_ii_test_plate/ , '...page has create new plate message';
+
+    note( "Delete ep_pipeline_ii_test_plate" );
+
+    lives_ok {
+        model->delete_plate( { name => 'ep_pipeline_ii_test_plate' } )
+    } 'delete plate';
+
     }
 
 }

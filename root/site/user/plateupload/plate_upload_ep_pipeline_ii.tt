@@ -44,7 +44,7 @@
   <br />Use the checkbox provided in the sections to import a Crispr from WGE or to create an Experiment.<br />
 </p>
 
-<form>
+<form id="ep_pipeline_ii_plate">
 
 <div id="accordion" class="panel-group">
 
@@ -77,7 +77,7 @@
         <div class="col-md-12 control-group">
           <label class="control-label col-md-4" style="color:#cc0000;">Cell Line</label>
           <div class="col-md-6">
-            <select class="form-control" id="cell_line_assembly_ii" name="cell_line_assembly_ii" onchange="update_cell_line()">
+            <select class="form-control" id="cell_line_assembly_ii" name="cell_line_assembly_ii">
               [% IF cell_line_assembly_ii %]
               <option value="[% cell_line_id %]">[% cell_line_name %]</option>
               <option value=""></option>
@@ -300,10 +300,10 @@ function populate_project_section(project_id) {
 
 }
 
-function update_cell_line() {
-  var ref_cell_line_id = document.getElementById('cell_line_assembly_ii').value;
-  document.getElementById('plate_cell_line_assembly_ii').value = ref_cell_line_id;
-}
+//function update_cell_line() {
+//  var ref_cell_line_id = document.getElementById('cell_line_assembly_ii').value;
+//  document.getElementById('plate_cell_line_assembly_ii').value = ref_cell_line_id;
+//}
 
 </script>
 
