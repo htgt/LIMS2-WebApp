@@ -427,7 +427,9 @@ sub create_experiment{
 sub add_experiment {
     my ($self, $project_id, $experiment_id) = @_;
 
-    return 0 if (!$project_id or !$experiment_id);
+    if ((!$project_id) or (!$experiment_id)) {
+        return 0;
+    }
 
     my $experiment = $self->schema->resultset('Experiment')->find({ id => $experiment_id }, { columns => [ qw/id gene_id/ ] });
     my $project = $self->schema->resultset('Project')->find({ id => $project_id }, { columns => [ qw/id gene_id/ ] });

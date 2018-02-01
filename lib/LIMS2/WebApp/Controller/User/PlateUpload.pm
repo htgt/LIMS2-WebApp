@@ -3,7 +3,13 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
-use LIMS2::Model::Util::EPPipelineIIPlate qw(retrieve_experiments_ep_pipeline_ii retrieve_experiments_by_field import_wge_crispr_ep_pipeline_ii find_projects_ep_pipeline_ii create_project_ep_pipeline_ii proj_exp_check_ep_ii);
+use LIMS2::Model::Util::EPPipelineIIPlate qw( retrieve_experiments_ep_pipeline_ii
+                                              retrieve_experiments_by_field 
+                                              import_wge_crispr_ep_pipeline_ii 
+                                              find_projects_ep_pipeline_ii 
+                                              create_project_ep_pipeline_ii 
+                                              proj_exp_check_ep_ii
+                                              );
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -52,7 +58,13 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     $params->{process_type} = 'ep_pipeline_ii';
     $params->{plate_type} = 'EP_PIPELINE_II';
     $params->{plate_name} = $params->{assembly_ii_plate_name};
-##    $params->{plate_cell_line_assembly_ii} = $params->{cell_line_assembly_ii};
+
+    my $gene_info;
+    $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
+
+    if ($gene_info) {
+        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
+    }
 
     ## ---------------
     ## project section
@@ -62,78 +74,42 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     $c->stash->{cell_line_options} = \@cell_lines;
 
     ## - persistent cell line input
-    if ($params->{cell_line_assembly_ii}) {
+    try {
         foreach my $cl (@cell_lines) {
-            if ($cl->{id} == $params->{cell_line_assembly_ii}) {
+            if ($cl->{id} eq $params->{cell_line_assembly_ii}) {
                 $cell_line_id = $cl->{id};
                 $c->stash(cell_line_id => $cl->{id}, cell_line_name => $cl->{name});
             }
         }
-    }
+    };
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
     $c->stash->{sponsors} = \@sponsors;
-
-    ## - persistent sponsor input
-    if ($params->{sponsor_assembly_ii}) {
-        $c->stash(sponsor_assembly_ii => $params->{sponsor_assembly_ii});
-    }
 
     ## - find projects
     my @all_projects;
 
     ## - persistent user input
-    my $lagging_projects_str = $params->{lagging_projects};
-    my @lagging_projects = split ",", $lagging_projects_str;
-    foreach my $pr (@lagging_projects) {
-        my @lagging_project = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, {project_id => $pr});
-        push @all_projects, @lagging_project;
-    }
+    my @lagging_projects = split ",", $params->{lagging_projects};
+    @all_projects = map { find_projects_ep_pipeline_ii($c->model('Golgi')->schema, {project_id => $_}) } @lagging_projects;
 
     ## - create project
-    my $project_gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-    if ($project_gene_info) {
-        $params->{gene_id_assembly_ii} = $project_gene_info->{gene_id};
-    }
-
     if ($params->{create_assembly_ii_project}) {
         $params->{find_assembly_ii_project} = 'find_assembly_ii_project';
         my $msg = create_project_ep_pipeline_ii($c->model('Golgi'), $params);
-        if ($msg) {
-            push @info_msg, $msg;
-        }
+        push @info_msg, $msg;
     }
 
     ## - find projects for a gene
     if ($params->{find_assembly_ii_project}) {
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-        if ($gene_info) {
-            $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
-        }
-
         my @hit_projects = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
         push @all_projects, @hit_projects;
     }
 
-    my @projects;
-    my @unique_project_ids;
-    foreach my $item (@all_projects) {
-        unless (grep {$_ == $item->{id}} @unique_project_ids) {
-            push @unique_project_ids, $item->{id};
-            push @projects, $item;
-        }
-    }
+    my %seen_projs;
+    my @projects = grep { ! $seen_projs{$_->{id}}++ } @all_projects;
 
     ## - preparing projects data for display
-    foreach my $proj_indx (0..$#projects) {
-        try {
-            my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $projects[$proj_indx]->{gene_id}, species => $species } ) };
-            if ($gene_info) {
-                $projects[$proj_indx]->{gene_id} = $gene_info->{gene_symbol};
-            }
-            $projects[$proj_indx]->{info} = "gene_id_assembly_ii:" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii:" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii:" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii:" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii:" . $projects[$proj_indx]->{sponsor_id};
-        };
-    }
-
+    @projects = ep_ii_compile_project_info($c, \@projects);
     my @lagging_project_ids = map {$_->{id}} @projects;
 
     $c->stash(
@@ -162,17 +138,12 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     my @assembly_ii_experiments;
     my $lagging_exp_ids = $params->{lagging_exp_ids};
     if ($lagging_exp_ids) {
-        foreach my $exp_id (split ",", $lagging_exp_ids) {
-            my @temp_exp = retrieve_experiments_by_field($c->model('Golgi')->schema, 'id', $exp_id);
-            push @lagging_exps, @temp_exp;
-        }
+        @lagging_exps = map { retrieve_experiments_by_field($c->model('Golgi')->schema, 'id', $_) } (split ",", $lagging_exp_ids);
         push @assembly_ii_experiments, @lagging_exps;
     }
 
     ## - create experiment
     if ($params->{create_assembly_ii_experiment}) {
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-        ##TODO assert parameters
         try {
             my $exp_params = {
                 gene_id         =>  $gene_info->{gene_id},
@@ -189,57 +160,11 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     ## - add experiment to project
     if($params->{add_exp_to_proj}){
-        my $project;
-        my @exp_info = split ",", $params->{add_exp_to_proj};
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-
-        if ($gene_info) {
-            my $data = { gene_id_assembly_ii => $gene_info->{gene_id}, cell_line_assembly_ii => $params->{cell_line_assembly_ii} };
-            my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $data);
-            $project = $projs[0];
-        }
-
-        my $attr;
-        $attr->{gene_id} = $gene_info->{gene_id};
-
-        if ($exp_info[1]) {
-            $attr->{design_id} = $exp_info[2];
-        }
-
-        if ($exp_info[2]) {
-            $attr->{crispr_id} = $exp_info[3];
-        }
-
-        if ($exp_info[3]) {
-            $attr->{crispr_pair_id} = $exp_info[4];
-        }
-
-        if ($exp_info[4]) {
-            $attr->{crispr_group_id} = $exp_info[5];
-        }
-
-        if ($project->{id}) {
-            $attr->{project_id} = $project->{id};
-        }
-
-        my $add_exp_check = 0;
-        try {
-            $add_exp_check = $c->model('Golgi')->add_experiment($project->{id}, $exp_info[0]);
-        };
-
-        if ($add_exp_check) {
-            push @info_msg, 'Experiment has been added for this project ' . $project->{id};
-        } else {
-            push @info_msg, 'Could not add experiment.';
-        }
+        push @info_msg, ep_ii_add_exp_to_project($c, $params);
     }
 
     ## - find experiments by gene, crispr, design
     if ($params->{find_assembly_ii_experiments}) {
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $species } ) };
-        if ($gene_info) {
-            $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
-        }
         push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
     }
 
@@ -247,34 +172,25 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     my @unique_exps;
     my @exp_ids;
 
+    ## - project existance check for experiments
     foreach my $dict (@assembly_ii_experiments) {
         if ( grep { $_ == $dict->{id} } @exp_ids) {
             next;
         }
-        push @unique_exps, $dict;
         push @exp_ids, $dict->{id};
+        my $bool = 0;
+        if ($cell_line_id) {
+            $bool = proj_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $dict->{gene_id}, $cell_line_id);
+        }
+        $dict->{project_check} = $bool;
+        my $info = try{ $c->model('Golgi')->find_gene( { search_term => $dict->{gene_id}, species => $species } ) };
+        if ( $info ) {
+            $dict->{gene_id} = $info->{gene_symbol};
+        }
+        push @unique_exps, $dict;
     }
 
     my $lagging_exps_str = join ",", @exp_ids;
-
-    ## - project existance check for experiments
-    foreach my $indx (0..$#unique_exps) {
-        my $bool = 0;
-        my $exp = $unique_exps[$indx];
-        if ($cell_line_id) {
-            $exp = $unique_exps[$indx];
-            $bool = proj_exp_check_ep_ii($c->model('Golgi')->schema, $exp->{id}, $exp->{gene_id}, $cell_line_id);
-        }
-        $exp->{project_check} = $bool;
-        $unique_exps[$indx] = $exp;
-    }
-
-    foreach my $exp_indx (0..$#unique_exps) {
-        my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $unique_exps[$exp_indx]->{gene_id}, species => $species } ) };
-        if ( $gene_info ) {
-            $unique_exps[$exp_indx]->{gene_id} = $gene_info->{gene_symbol};
-        }
-    }
 
     $c->stash(
         find_assembly_ii_experiments => $params->{find_assembly_ii_experiments},
@@ -311,7 +227,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         } catch {
             push @info_msg, 'Error creating plate: ' . $_;
         };
-
     }
 
     if (@info_msg) {
@@ -320,6 +235,50 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     }
 
     return;
+}
+
+
+sub ep_ii_compile_project_info {
+    my ($c, $projects_ref) = @_;
+
+    my @projects = @{$projects_ref};
+    foreach my $proj_indx (0..$#projects) {
+        try {
+            my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $projects[$proj_indx]->{gene_id}, species => $c->session->{selected_species} } ) };
+            if ($gene_info) {
+                $projects[$proj_indx]->{gene_id} = $gene_info->{gene_symbol};
+            }
+            $projects[$proj_indx]->{info} = "gene_id_assembly_ii:" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii:" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii:" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii:" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii:" . $projects[$proj_indx]->{sponsor_id};
+        };
+    }
+
+    return @projects;
+}
+
+sub ep_ii_add_exp_to_project {
+    my ($c, $params) = @_;
+
+    my $project;
+    my @exp_info = split ",", $params->{add_exp_to_proj};
+
+    my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $c->session->{selected_species} } ) };
+    if ($gene_info) {
+        my $data = { gene_id_assembly_ii => $gene_info->{gene_id}, cell_line_assembly_ii => $params->{cell_line_assembly_ii} };
+        my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $data);
+        $project = $projs[0];
+    }
+
+    my $add_exp_check = 0;
+    try {
+        $add_exp_check = $c->model('Golgi')->add_experiment($project->{id}, $exp_info[0]);
+    };
+
+    if ($add_exp_check) {
+        return 'Experiment has been added for this project ' . $project->{id};
+    } else {
+        return 'Could not add experiment.';
+    }
+
 }
 
 sub build_ep_pipeline_ii_well_data {
@@ -478,6 +437,5 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
-
 
 

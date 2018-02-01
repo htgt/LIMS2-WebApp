@@ -136,7 +136,6 @@ sub create_project_ep_pipeline_ii {
 #        $search->{sponsor_id} = $params->{sponsor_assembly_ii};
 #    }
 
-    my @project_results;
     my @projects_rs = $model->schema->resultset('Project')->search( $search, { order_by => 'id' })->all;
 
     if(scalar @projects_rs == 0){
@@ -157,9 +156,8 @@ sub create_project_ep_pipeline_ii {
                 };
             }
         );
-    } else {
-        return "Project already exists.";
     }
+    return "Project already exists.";
 
 }
 
