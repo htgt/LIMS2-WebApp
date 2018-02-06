@@ -42,5 +42,5 @@ If you know the exon you want to target click <a href="[% c.uri_for('/user/creat
 </form>
 
 <div class="well">
-    <a href="[% c.uri_for('/user/create_miseq_design') %]">Miseq designs</a>.
+    <a href="[% c.uri_for('/user/create_miseq_design') %]">Miseq designs.</a>
 </div>

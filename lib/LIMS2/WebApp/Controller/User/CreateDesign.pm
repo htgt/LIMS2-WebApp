@@ -13,12 +13,13 @@ use WebAppCommon::Util::FarmJobRunner;
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
-use LIMS2::Model::Util::CreateMiseqDesign qw( create_miseq_design );
+use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
 use Data::Dumper;
 use List::MoreUtils qw(uniq);
+use YAML::XS qw( LoadFile );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -547,8 +548,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
             my $wge_id = $crispr_rs->wge_id;
             $crispr_info->{$crispr} = $wge_id;
 
-            my $results = &LIMS2::Model::Util::CreateMiseqDesign::create_miseq_design($c, $design_requirements, $crispr);
-$DB::single=1;
+            my $results = generate_miseq_design($c, $design_requirements, $crispr);
             my $crispr_ids;
             if ($results->{error}) {
                 $crispr_ids = {
@@ -557,11 +557,12 @@ $DB::single=1;
                     status  => $results->{error},
                 };
             } else {
+                my @hgnc = grep (/^HGNC*/i, $results->{design}->gene_ids );
                 $crispr_ids = {
                     lims    => $crispr,
                     wge     => $wge_id,
                     status  => 'Success',
-                    gene    => $results->{design}->gene_ids,
+                    gene    => join (', ', @hgnc),
                     design  => $results->{design}->id,
                 };
             }
@@ -587,16 +588,34 @@ $DB::single=1;
     }
 
 
-$DB::single=1;
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' });
+
+    my $melting_temp = {
+        min     => $miseq_pcr_conf->{primer_min_tm},
+        max     => $miseq_pcr_conf->{primer_max_tm},
+        opt     => $miseq_pcr_conf->{primer_opt_tm},
+    };
+
+    my $gc_content = {
+        min     => $miseq_pcr_conf->{primer_min_gc},
+        max     => $miseq_pcr_conf->{primer_max_gc},
+        opt     => $miseq_pcr_conf->{primer_opt_gc_percent},
+    };
+
+    my $genomic_threshold = $miseq_pcr_conf->{genomic_threshold};
+
     $c->stash(
-        crisprs => $c->request->param('crisprs') || undef,
-        crispr_id => \@crispr_id,
-        valid_terms => \@valid_terms,
-        invalid_terms => \@invalid_terms,
-        crispr_info => $crispr_info,
-        crispr_table => \@crispr_table,
-        search_terms => $search_terms,
-        failed_terms => \@failed_terms,
+        crisprs             => $c->request->param('crisprs') || undef,
+        crispr_id           => \@crispr_id,
+        valid_terms         => \@valid_terms,
+        invalid_terms       => \@invalid_terms,
+        crispr_info         => $crispr_info,
+        crispr_table        => \@crispr_table,
+        search_terms        => $search_terms,
+        failed_terms        => \@failed_terms,
+        gc_content          => $gc_content,
+        melting_temp        => $melting_temp,
+        genomic_threshold   => $genomic_threshold,
     );
 
     return;

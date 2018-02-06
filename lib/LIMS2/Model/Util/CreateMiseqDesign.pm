@@ -3,18 +3,13 @@ package LIMS2::Model::Util::CreateMiseqDesign;
 use strict;
 use warnings FATAL => 'all';
 
-use Moose;
-
-use namespace::autoclean;
-use Path::Class;
 use Sub::Exporter -setup => {
-    exports => [
-        qw(
-              create_miseq_design
-          )
-    ],
+    exports => [ 'generate_miseq_design' ]
 };
 
+use Path::Class;
+use Log::Log4perl qw( :easy );
+use LIMS2::Exception;
 use List::MoreUtils qw( uniq );
 use POSIX qw(strftime);
 use JSON;
@@ -31,17 +26,18 @@ use LIMS2::Model::Util::OligoSelection qw(
 );
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr ); 
 
-sub create_miseq_design {
+sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
     
-    my $search_range = {
+$DB::single=1;
+    my $search_range = { #update with params
         search    => {
-            internal    => 170,
-            external    => 350,
+            internal    => $design_params->{miseq}->{search_width} || 170,
+            external    => $design_params->{pcr}->{search_width} || 350,
         },
         dead    => {
-            internal    => 50,
-            external    => 170,
+            internal    => $design_params->{miseq}->{offset_width} ||  50,
+            external    => $design_params->{pcr}->{offset_width} || 170,
         },
     };
     
@@ -51,7 +47,6 @@ sub create_miseq_design {
     my @gene_ids = genes_for_crisprs($c, $crispr_rs);
     if ($crispr_data->{error}) {
         print $crispr_data->{error};
-$DB::single=1;
         return $crispr_data;
     }
     my $crispr_details = $crispr_rs->as_hash;
@@ -99,7 +94,6 @@ $DB::single=1;
         design => $design,
         crispr => $crispr_id,
     };
-$DB::single=1;
     return $design_crispr;
 };
 
@@ -143,9 +137,8 @@ sub generate_primers {
     };
 
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
-
-    if ($pcr_crispr_primers->{error_flag} eq 'fail') {
-        $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr_primers->{error_flag} . "; Crispr " . $crispr_id . "\n";
+    if ($pcr_crispr->{error_flag} eq 'fail') {
+        $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr->{error_flag} . "; Crispr " . $crispr_id . "\n";
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
         $params->{error} ="PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
@@ -170,7 +163,6 @@ sub find_appropriate_primers {
         my $start_coord = index ($region, $crispr_primers->{left}->{'left_' . $int}->{seq});
         my $end_coord = index ($region, revcom($crispr_primers->{right}->{'right_' . $int}->{seq})->seq);
         my $primer_diff = abs (($end_coord - 1022) - (1000 - $start_coord));
-
         my $primer_range = {
             name    => '_' . $int,
             start   => $left_location_details->{_end},
@@ -202,8 +194,7 @@ sub package_parameters {
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
     
-    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' });
-    my $miseq_internal_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG' });
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' });
 
     my $design_parameters = {
         design_method       => $design_params->{design_type},
@@ -374,8 +365,6 @@ sub genes_for_crisprs {
 
     return \@gene_ids;
 }
-
-__PACKAGE__->meta->make_immutable;
 
 1;
 

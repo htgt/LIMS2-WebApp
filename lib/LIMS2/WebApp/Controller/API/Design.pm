@@ -2,6 +2,9 @@ package LIMS2::WebApp::Controller::API::Design;
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
+use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design );
+use JSON;
+use Try::Tiny;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -59,7 +62,7 @@ sub design_POST {
         $c->req->secure(1);
     }
     $c->require_ssl;
-$DB::single=1;
+
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->c_create_design( $c->request->data );
@@ -279,6 +282,82 @@ sub design_attempt_status_GET {
         }
     }
     return $self->status_ok( $c, entity => { status => $status, designs => $design_links } );
+}
+
+
+sub redo_miseq_design :Path( '/api/redo_miseq_design' ) :Args(0) :ActionClass('REST') {
+}
+
+
+sub redo_miseq_design_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+
+    if ($protocol eq 'HTTPS') {
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+    $c->require_ssl;
+
+    my $jsonified_reqs = $c->request->param('requirements');
+    my $reqs = from_json $jsonified_reqs;
+    my $crispr = $reqs->{crispr};
+
+$DB::single=1;
+    my $response->{lims} = $crispr;
+    try {
+        my $results = generate_miseq_design($c, $reqs, $crispr);
+        my $design = $results->{design};
+
+        if ($results->{error}) {
+            $response->{status} = $results->{error};
+            return $self->status_ok(
+                $c,
+                entity => "Bad Request: $response->{status}",
+            );
+        } else {
+            $response = {
+                status  => 'Success',
+                gene    => $results->{design}->gene_ids,
+                design  => $results->{design}->id,
+            };
+        }
+    } catch {
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not create design",
+        );
+    };
+
+$DB::single=1;
+    my $json = JSON->new->allow_nonref;
+    my $jsonified_response = $json->encode($response);
+use Data::Dumper;
+    print Dumper $jsonified_response;
+    #return $self->status_created(
+    #    $c,
+    #    location => $c->uri_for( '/api/redo_miseq_design', { id => $response->{design} } ),
+    #    entity   => $jsonified_response,
+    #);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $jsonified_response );
+}
+
+sub redo_miseq_design_GET {
+    my ( $self, $c ) = @_;
+$DB::single=1;
+    my $body = $c->model('Golgi')->schema->resultset('Design')->find ({ id => $c->request->param('id') })->as_hash;
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
 }
 
 =head1 LICENSE

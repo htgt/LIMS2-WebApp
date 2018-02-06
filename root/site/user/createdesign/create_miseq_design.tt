@@ -1,6 +1,40 @@
 [% META title = "Design Progress Crispr Search"; META tab_name = "Designs" %]
+
+<style>
+#waiting {
+    left: -20px;
+    color: 	#6A5ACD;
+}
+
+.glyphicon-refresh-animate {
+    -animation: spin 1.2s infinite linear;
+    -webkit-animation: spin2 1.2s infinite linear;
+}
+</style>
+
 <h1>Miseq Design Creation</h1>
-<form method="POST" class="well">
+
+<fieldset class="col-md-12 well">
+    <div class="row col-md-12" align="center">
+        <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
+        <div class="col-md-3">
+            <select id="design_type" class="form-control" align="center">
+                <option value="miseq-nhej">miseq-nhej</option>
+                <option value="miseq-hdr">miseq-hdr</option>
+            </select>
+        </div>
+    </div>
+    <div class="row col-md-12" align="center">
+        <h4 class="col-md-2 col-md-offset-3">Presets</h4>
+        <div class="col-md-3">
+            <select class="form-control" align="center">
+                <option value="Default">Default</option>
+            </select>
+        </div>
+    </div>
+</fieldset>
+<br>
+<form method="POST" class="col-md-12 well">
     <fieldset>
         <legend>Design Progess Crispr Search</legend>
 
@@ -26,19 +60,19 @@
         <tbody>
             [% FOR table IN crispr_table %]
             [% IF table.status != 'Success' %]
-                <tr style="background-color:#f2dede">
+                <tr id="[% table.lims %]" style="background-color:#f2dede">
                 [% ELSE %]
-                <tr style="background-color:#dff0d8">
+                <tr id="[% table.lims %]" style="background-color:#dff0d8">
                 [% END %]
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
                     </td>
                     <td>[% table.wge %]</td>
-                    <td>[% table.gene %]</td>
-                    <td><a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank">[% table.design %]</a></td>
-                    <td>[% table.status %]</td>
+                    <td class="tableGene">[% table.gene %]</td>
+                    <td class="tableDesign"><a href="[% c.uri_for( '/user/design' , table.lims , 'view' ) %]" target="_blank">[% table.design %]</a></td>
+                    <td class="tableStatus">[% table.status %]</td>
                     <td>
-                        <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#Modal">Redo</button> 
+                        <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#redoModal" onclick="transferCrispr([% table.lims %]);">Redo</button> 
                     </td>
                 </tr>
             [% END %]
@@ -46,8 +80,7 @@
     </table>
 </div>
 
-<form method="POST">
-    <div id="Modal" class="modal fade" role="dialog">
+    <div id="redoModal" class="modal fade" role="dialog">
         <div class="modal-dialog modal-lg">
 
             <div class="modal-content">
@@ -64,19 +97,20 @@
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Search width:</label>
                                 <div class="col-md-6">
-                                    <input name="Search Width" class="form-control" id="search_width" name="search_width" type="number" placeholder="Default 170" value="170"/>
+                                    <input name="Search Width" class="form-control" id="miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 170" value="170"/>
                                 </div>
                             </div>
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Offset width:</label>
                                 <div class="col-md-6">
-                                    <input name="Dead Search Width" class="form-control" name="dead_search_width" id="dead_search_width" type="number" placeholder="Default 50" value="50"/>
+                                    <input name="Dead Search Width" class="form-control" name="miseq_dead_search_width" id="miseq_dead_search_width" type="number" placeholder="Default 50" value="50"/>
                                 </div>
                             </div>
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Increment:</label>
                                 <div class="col-md-6">
-                                    <input name="increment" class="form-control" id="increment" name="increment" type="number" placeholder="Default 15" value="15"/>
+                                    <input name="increment" class="form-control" id="miseq_increment" name="miseq_increment" type="number" placeholder="Default 15" value="15"/>
+
                                 </div>
                             </div>
                         </fieldset>
@@ -85,19 +119,19 @@
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Search width:</label>
                                 <div class="col-md-6">
-                                    <input name="Search Width" class="form-control" id="search_width" name="search_width" type="number" placeholder="Default 350" value="350"/>
+                                    <input name="Search Width" class="form-control" id="pcr_search_width" name="pcr_search_width" type="number" placeholder="Default 350" value="350"/>
                                 </div>
                             </div>
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Offset width:</label>
                                 <div class="col-md-6">
-                                    <input name="Dead Search Width" class="form-control" name="dead_search_width" id="dead_search_width" type="number" placeholder="Default 170" value="170"/>
+                                    <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="pcr_dead_search_width" type="number" placeholder="Default 170" value="170"/>
                                 </div>
                             </div>
                             <div class="col-md-12 row">
                                 <label class="col-md-6">Increment:</label>
                                 <div class="col-md-6">
-                                    <input name="increment" class="form-control" id="increment" type="number" placeholder="Default 50" value="50"/>
+                                    <input name="pcr_increment" class="form-control" id="pcr_increment" type="number" placeholder="Default 50" value="50"/>
                                 </div>
                             </div>
                         </fieldset>
@@ -115,21 +149,21 @@
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <span class="input-group-addon">Minimum</span>
-                                    <input class="form-control" id="min_mt" type="text" value="[% min_mt %]">
+                                    <input class="form-control" id="min_mt" type="text" value="[% melting_temp.min %]">
                                     <span class="input-group-addon">C</span>
                                 </div>
                             </div>
                             <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Optimum</span>
-                                    <input class="form-control" id="opt_mt" type="text" value="[% opt_mt %]">
+                                    <input class="form-control" id="opt_mt" type="text" value="[% melting_temp.opt %]">
                                     <span class="input-group-addon">C</span>
                                 </div>
                             </div>
                             <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Maximum</span>
-                                    <input class="form-control" id="max_mt" type="text" value="[% max_mt %]">
+                                    <input class="form-control" id="max_mt" type="text" value="[% melting_temp.max %]">
                                     <span class="input-group-addon">C</span>
                                 </div>
                             </div>
@@ -139,21 +173,21 @@
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <span class="input-group-addon">Minimum</span>
-                                    <input class="form-control" id="min_gc" type="text" value="[% min_gc %]">
+                                    <input class="form-control" id="min_gc" type="text" value="[% gc_content.min %]">
                                     <span class="input-group-addon">%</span>
                                 </div>
                             </div>
                             <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Optimum</span>
-                                    <input class="form-control" id="opt_gc" type="text" value="[% opt_gc %]">
+                                    <input class="form-control" id="opt_gc" type="text" value="[% gc_content.opt %]">
                                     <span class="input-group-addon">%</span>
                                 </div>
                             </div>
                             <div class="col-md-4 col-md-offset-5 row">
                                 <div class="input-group">
                                     <span class="input-group-addon">Maximum</span>
-                                    <input class="form-control" id="max_gc" type="text" value="[% max_gc %]">
+                                    <input class="form-control" id="max_gc" type="text" value="[% gc_content.max %]">
                                     <span class="input-group-addon">%</span>
                                 </div>
                             </div>
@@ -162,16 +196,18 @@
                     <div class="col-md-12 row">
                         [% INCLUDE 'miseq_design_parameters_help.tt' %]
                     </div>
+                    <div class="col-md-12" id="response">
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" value="Save Changes">Submit</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
+                    <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
 
     </div>
-</form>
 
 <script type="text/javascript" charset="utf-8">
 
@@ -179,6 +215,7 @@ var crispr_id = '[%- crispr_id.join(', ') %]';
 
 $(document).ready(function() {
     display();
+    $('#waiting').hide();
 });
 
 function clearSelection(){
@@ -190,7 +227,7 @@ $('.button').hide();
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {
         $('.button').show();
-    }else{
+    } else {
         $('.button').hide();
     }
 });
@@ -207,8 +244,105 @@ $(".textAreaKeys").keypress(function (e) {
     }
 });
 
+$('#redo_submit').click(function() {
+    var params = gatherParameters();
+    var jsonified_params = JSON.stringify(params);
+    $('#waiting').show()
+
+    $.ajax({
+        url: '[% c.uri_for('/api/redo_miseq_design/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            requirements: jsonified_params
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            $('#response').addClass('alert-success');
+            var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
+            var message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
+            console.log(message);
+
+            $('#response').html(message);
+            $('#waiting').hide();
+            updateTable(params.crispr, result);
+            //toggleModal();
+        },
+        error: function(err) {
+            test = err;
+            console.log(err);
+            $('#response').addClass('alert-danger');
+            $('#response').text('Failed to create MiSeq design: ' + err.responseText);
+            $('#waiting').hide();
+            //toggleModal();
+        }
+    });
+
+});
+
+function updateTable(crispr, row) {
+    $('#' + crispr).children('.tableGene').text(row.gene);
+    $('#' + crispr).children('.tableStatus').text(row.status);
+    var designLink = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + row.design);
+    var designAtag = '<a href="' + designLink + '" target="_blank">' + row.design + '</a>';
+    var split = "";
+    if (!$('#' + crispr).children('.tableDesign').is(!':empty')) {
+        split = ", ";
+    }
+    $('#' + crispr).children('.tableDesign').append(split + designAtag);
+}
+
+function gatherParameters() {
+    var miseq = {
+        search_width : $('#miseq_search_width').val(),
+        offset_width : $('#miseq_dead_search_width').val(),
+        increment    : $('#miseq_increment').val()
+    };
+
+    var pcr = {
+        search_width : $('#pcr_search_width').val(),
+        offset_width : $('#pcr_dead_search_width').val(),
+        increment    : $('#pcr_increment').val()
+    };
+
+    var melt = {
+        min : $('#min_mt').val(),
+        opt : $('#opt_mt').val(),
+        max : $('#max_mt').val()
+    };
+
+    var gc = {
+        min : $('#min_gc').val(),
+        opt : $('#opt_gc').val(),
+        max : $('#max_gc').val()
+    };
+
+    var params = {
+        genomic_threshold   : $('#genomic').val(),
+        design_type         : $('#design_type').val(),
+        crispr              : $('#redoModal').attr("name"),        
+        miseq               : miseq,
+        pcr                 : pcr,
+        melt                : melt,
+        gc                  : gc
+    };
+
+    console.log(params);
+
+    return params;
+}
+
+function toggleModal() {
+    $('#redoModal').modal('toggle');
+}
+
+function transferCrispr(crispr) {
+    document.getElementById('redoModal').setAttribute("name", crispr);
+}
+
 function display(){
-    if (!crispr_id){
+    if (!crispr_id) {
         $('.designProgressVisibility').hide().prop('disabled', true);
     } else {
         $('.designProgressVisibility').show().prop('disabled', false);
