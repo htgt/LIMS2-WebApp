@@ -10,6 +10,14 @@
     -animation: spin 1.2s infinite linear;
     -webkit-animation: spin2 1.2s infinite linear;
 }
+
+tr.fail td{ 
+    background-color: #F2DEDE;
+}
+tr.success td{ 
+    background-color: #DFF0D8;
+}
+
 </style>
 
 <h1>Miseq Design Creation</h1>
@@ -60,9 +68,9 @@
         <tbody>
             [% FOR table IN crispr_table %]
             [% IF table.status != 'Success' %]
-                <tr id="[% table.lims %]" style="background-color:#f2dede">
+                <tr id="[% table.lims %]" class="fail">
                 [% ELSE %]
-                <tr id="[% table.lims %]" style="background-color:#dff0d8">
+                <tr id="[% table.lims %]" class="success">
                 [% END %]
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
@@ -285,12 +293,13 @@ $('#redo_submit').click(function() {
 });
 
 function updateTable(crispr, row) {
+    $('#' + crispr).removeClass('failure').addClass('success');
     $('#' + crispr).children('.tableGene').text(row.gene);
     $('#' + crispr).children('.tableStatus').text(row.status);
     var designLink = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + row.design);
     var designAtag = '<a href="' + designLink + '" target="_blank">' + row.design + '</a>';
     var split = "";
-    if (!$('#' + crispr).children('.tableDesign').is(!':empty')) {
+    if ($('#' + crispr).children('.tableDesign').text()) {
         split = ", ";
     }
     $('#' + crispr).children('.tableDesign').append(split + designAtag);

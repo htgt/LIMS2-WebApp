@@ -285,8 +285,6 @@ sub pcr_genomic_check {
     );
 
     $bwa->generate_sam_file;
-use Data::Dumper;
-print Dumper 'PCR GC ';
     my $oligo_hits = $bwa->oligo_hits;
     $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
 
@@ -315,8 +313,6 @@ sub genomic_check {
             three_prime_check => 0,
             num_bwa_threads   => $num_bwa_threads,
     );
-use Data::Dumper;
-print Dumper "Genomic Check";
     $bwa->generate_sam_file;
     my $oligo_hits = $bwa->oligo_hits;
     $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
@@ -329,7 +325,6 @@ print Dumper "Genomic Check";
 sub filter_oligo_hits {
     my $hits_to_filter = shift;
     my $primer_data = shift;
-$DB::single=1;
     # select only the primers with highest rank
     # that are not hitting other areas of the genome
 
@@ -932,11 +927,11 @@ sub pick_single_crispr_primers {
 sub pick_miseq_internal_crispr_primers {
     my $model = shift;
     my $params = shift;
-
+$DB::single=1;
     my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
     $params->{'crispr_oligos'} = $crispr_oligos;
-    $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 200;
-    $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 100;
+    $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 170;
+    $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 50;
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data);
     my $chr_strand = $model->schema->resultset('CrisprLocus')->search({ crispr_id => $params->{'crispr_id'} })->first->chr_strand eq '1' ? 'plus' : 'minus';

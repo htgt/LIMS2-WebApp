@@ -111,19 +111,24 @@ sub generate_primers {
         species             => 'Human',
         repeat_mask         => [''],
         offset              => 20,
-        well_id             => 'Miseq_Crispr_' . $crispr_id,
+        well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
         genomic_threshold   => $genomic_threshold,
     };
+ 
+    $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
+    $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
+    $params->{increment} = $search_range->{internal};
 
-    $params = setup_primer_generation_environment( $params, $search_range, 'internal' );
-    
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
-    if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
+    if ($internal_crispr_primers->{error_flag} eq 'fail') {
         $params->{error} = "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
         return $params;
     }
 
-    $params = setup_primer_generation_environment( $params, $search_range, 'external' );
+
+    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{externa};
+    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
+    $params->{increment} = $search_range->{external};
 
     my $crispr_seq = {
         chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
@@ -151,16 +156,6 @@ sub generate_primers {
     }
 
     return $internal_crispr, $internal_crispr_primers, $pcr_crispr_primers;
-}
-
-sub setup_primer_generation_environment {
-    my ($params, $search_range, $location) = @_;
-
-    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{$location};
-    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{$location};
-    $params->{increment} = $search_range->{$location};
-
-    return $params;
 }
 
 sub find_appropriate_primers {
