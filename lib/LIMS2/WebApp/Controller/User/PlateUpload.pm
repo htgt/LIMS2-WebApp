@@ -248,7 +248,7 @@ sub ep_ii_compile_project_info {
             if ($gene_info) {
                 $projects[$proj_indx]->{gene_id} = $gene_info->{gene_symbol};
             }
-            $projects[$proj_indx]->{info} = "gene_id_assembly_ii:" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii:" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii:" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii:" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii:" . $projects[$proj_indx]->{sponsor_id};
+            $projects[$proj_indx]->{info} = "gene_id_assembly_ii-" . $projects[$proj_indx]->{gene_id} . ",cell_line_assembly_ii-" . $projects[$proj_indx]->{cell_line_id} . ",strategy_assembly_ii-" . $projects[$proj_indx]->{strategy_id} . ",targeting_type_assembly_ii-" . $projects[$proj_indx]->{targeting_type} . ",sponsor_assembly_ii-" . $projects[$proj_indx]->{sponsor_id};
         };
     }
 
@@ -285,7 +285,7 @@ sub build_ep_pipeline_ii_well_data {
     my ($c, $cell_line_id) = @_;
 
     my @wells;
-    foreach my $well qw( well_01 well_02 well_03 well_04 well_05 well_06 well_07 well_08 well_09 well_10 well_11 well_12 well_13 well_14 well_15 well_16 ) {
+    foreach my $well (qw( well_01 well_02 well_03 well_04 well_05 well_06 well_07 well_08 well_09 well_10 well_11 well_12 well_13 well_14 well_15 well_16 )) {
         my $temp_exp_id = $c->request->params->{$well};
 
         if ($temp_exp_id) {

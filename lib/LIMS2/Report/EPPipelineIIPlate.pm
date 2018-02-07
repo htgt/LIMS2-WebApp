@@ -5,17 +5,6 @@ use namespace::autoclean;
 use TryCatch;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
-#with qw( LIMS2::ReportGenerator::ColonyCounts );
-
-#has bypass_oligo_assembly => (
-#    is         => 'ro',
-#    required => 0,
-#);
-
-#has orginal_design => (
-#    is        =>  'ro',
-#    require   => 0,
-#);
 
 has wells_data => (
     is         => 'ro',
@@ -59,10 +48,6 @@ override _build_name => sub {
 
     return 'EP Pipeline II Plate ' . $self->plate_name;
 };
-
-#override _build_name => sub {
-#    my $self = shift;
-#};
 
 override _build_columns => sub {
     my $self = shift;
@@ -155,7 +140,10 @@ sub get_gene_name {
     my $db_rec = $self->model->schema->resultset( 'Plate' )->find({ id =>  $self->plate->id }, { columns => [ qw/species_id/ ] });
     my $plate_species = $db_rec->get_column('species_id');
 
-    my $gene_info = $self->model->find_gene( { search_term => $gene_id, species => $plate_species } ) ;
+    my $gene_info;
+    try {
+        $gene_info = $self->model->find_gene( { search_term => $gene_id, species => $plate_species } ) ;
+    };
 
     if ( $gene_info ) {
         return $gene_info->{gene_symbol};
@@ -171,8 +159,6 @@ sub get_well_info {
     $info->{design_id} = $self->get_well_design($well_id);
     $info->{crispr_id} = $self->get_well_crispr($well_id);
     $info->{gene_id} = $self->get_well_gene($info->{design_id}, $info->{crispr_id});
-
-    ##TODO -
 
     ## get created by
     my $db_user_id = $self->model->schema->resultset( 'Well' )->find({ id => $well_id }, { columns => [ qw/created_by_id/ ] });
@@ -219,5 +205,4 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
 

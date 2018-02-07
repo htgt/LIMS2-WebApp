@@ -7,9 +7,7 @@
 }
 
 #experiments_div {
-/*  overflow: scroll;*/
   margin-right: 30px;
-/*  margin-top: 40px;*/
   float: right;
 }
 
@@ -21,7 +19,6 @@
 
 .experiment_well {
   background-color: #add8e6;
-/*  width: 60px;*/
   height: 20px;
 }
 
@@ -32,16 +29,6 @@
   background-color: #add8e6;/*lightblue*/
   opacity: 0.5;
 }
-
-/*.square:hover {
-  transform: scale(1.5);
-  z-index: 1;
-  position: relative;
-  display: inline-block;
-  transition-duration: 0.1s;
-  opacity: 0.8;
-  //transform: skewY(10deg);
-}*/
 
 #gui_panel {
   padding-top: 20px;
@@ -203,7 +190,7 @@
           <td>
             <div class="btn btn-success" id=[% exp.id %] type="" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></div>
           </td>
-          <td>
+          <td style="font-size:10px;">
             [% exp.gene_id or '-' %]
           </td>
           <td style="font-size:12px;">
@@ -213,10 +200,10 @@
             [% exp.crispr_id or '-' %]
           </td>
           <td style="font-size:12px;">
-            [% exp.crispr_pair or '-' %]
+            [% exp.crispr_pair_id or '-' %]
           </td>
           <td style="font-size:12px;">
-            [% exp.crispr_group or '-' %]
+            [% exp.crispr_group_id or '-' %]
           </td>
           <td style="font-size:20px;">
             [% IF exp.project_check %]
@@ -241,7 +228,7 @@
           <td>
             <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-ban-circle" style="font-size:20px;"></span></button>
           </td>
-          <td>
+          <td style="font-size:10px;">
             [% exp.gene_id or '-' %]
           </td>
           <td style="font-size:12px;">
@@ -251,10 +238,10 @@
             [% exp.crispr_id or '-' %]
           </td>
           <td style="font-size:12px;">
-            [% exp.crispr_pair or '-' %]
+            [% exp.crispr_pair_id or '-' %]
           </td>
           <td style="font-size:12px;">
-            [% exp.crispr_group or '-' %]
+            [% exp.crispr_group_id or '-' %]
           </td>
           <td style="font-size:20px;">
             [% IF exp.project_check %]
@@ -299,8 +286,6 @@ function view_toggle (target_id) {
 
 function dragstart_handler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
-  //ev.dropEffect = "move";
-  //console.log(ev.dataTransfer.getData("text/plain"));
 }
 
 function dragover_handler(ev) {
@@ -371,7 +356,7 @@ function save_plate_check() {
 function save_add_exp_check() {
   var gene = document.getElementById('gene_id_assembly_ii').value.trim();
   var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
-//  var targeting = document.getElementById('targeting_type_assembly_ii').value.trim();
+
   if (!cell_line) {
     alert('Cell line is missing.');
     return false;
@@ -385,5 +370,4 @@ function save_add_exp_check() {
 
 
 </script>
-
 

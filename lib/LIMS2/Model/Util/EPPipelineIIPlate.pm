@@ -19,9 +19,6 @@ use Sub::Exporter -setup => {
     ]
 };
 
-#use LIMS2::Model::Plugin::Project qw(create_project);
-#use LIMS2::Model::Plugin::Crispr qw(import_wge_crisprs);
-
 sub retrieve_experiments_ep_pipeline_ii {
     my ( $model, $params ) = @_;
 
@@ -132,9 +129,6 @@ sub create_project_ep_pipeline_ii {
     if( $params->{strategy_assembly_ii} ) {
         $search->{strategy_id} = $params->{strategy_assembly_ii};
     }
-#    if( $params->{sponsor_assembly_ii} ) {
-#        $search->{sponsor_id} = $params->{sponsor_assembly_ii};
-#    }
 
     my @projects_rs = $model->schema->resultset('Project')->search( $search, { order_by => 'id' })->all;
 
@@ -183,5 +177,4 @@ sub proj_exp_check_ep_ii {
 1;
 
 __END__
-
 
