@@ -312,7 +312,7 @@ $DB::single=1;
     try {
         my $results = generate_miseq_design($c, $reqs, $crispr);
         my $design = $results->{design};
-
+$DB::single=1;
         if ($results->{error}) {
             $response->{status} = $results->{error};
             return $self->status_ok(

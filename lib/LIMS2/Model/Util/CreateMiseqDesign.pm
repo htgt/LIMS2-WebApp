@@ -36,14 +36,14 @@ $DB::single=1;
             external    => $design_params->{pcr}->{search_width} || 350,
         },
         dead        => {
-            internal    => $design_params->{miseq}->{offset_width} ||  50,
+            internal    => $design_params->{miseq}->{offset_width} || 50,
             external    => $design_params->{pcr}->{offset_width} || 170,
         },
-        miseq_inc   => $design_params->{miseq}->{increment} || 15,
-        pcr_inc     => $design_params->{pcr}->{increment} || 50,
+        internal    => $design_params->{miseq}->{increment} || 15,
+        external    => $design_params->{pcr}->{increment} || 50,
     };
     
-    my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params);
+    my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params->{genomic_threshold});
 
     my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
     my @gene_ids = genes_for_crisprs($c, $crispr_rs);
@@ -62,8 +62,12 @@ $DB::single=1;
         1,
     );
     my $crispr_loc = index ($slice_region->seq, $crispr_data->{left_crispr}->{seq});
-    my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc);
-    my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq);
+    my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc, 'Miseq');
+    my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq, 'PCR');
+    if ($inf->{error} || $exf->{error}) {
+        my $error = $exf->{error} || $inf->{error};
+        return { error => $error };
+    }
     my $result = {
         crispr  => $crispr_data->{left_crispr}->{id},
         genomic => $pcr_crispr_primers->{pair_count},
@@ -75,7 +79,7 @@ $DB::single=1;
         },
     };
     my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details);
-    my $hit_data = bwa_oligo_loci($crispr_details, $result);
+    my $hit_data = bwa_oligo_loci($crispr_details, $result, $design_params->{genomic_threshold});
     my @oligos = format_oligos($hit_data);
     my $design_info = {
         design_parameters   => $json_params,
@@ -100,19 +104,18 @@ $DB::single=1;
 };
 
 sub generate_primers {
-    my ($c, $crispr_id, $search_range) = @_;
+    my ($c, $crispr_id, $search_range, $genomic_threshold) = @_;
 
     my $params = {
-        crispr_id => $crispr_id,
-        species => 'Human',
-        repeat_mask => [''],
-        offset => 20,
-        well_id => 'Miseq_Crispr_' . $crispr_id,
+        crispr_id           => $crispr_id,
+        species             => 'Human',
+        repeat_mask         => [''],
+        offset              => 20,
+        well_id             => 'Miseq_Crispr_' . $crispr_id,
+        genomic_threshold   => $genomic_threshold,
     };
 
-    $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
-    $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
-    $params->{increment} = $search_range->{miseq_inc};
+    $params = setup_primer_generation_environment( $params, $search_range, 'internal' );
     
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
     if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
@@ -120,9 +123,7 @@ sub generate_primers {
         return $params;
     }
 
-    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
-    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
-    $params->{increment} = $search_range->{pcr_inc};
+    $params = setup_primer_generation_environment( $params, $search_range, 'external' );
 
     my $crispr_seq = {
         chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
@@ -139,6 +140,7 @@ sub generate_primers {
         strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
     };
 
+
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
         $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr->{error_flag} . "; Crispr " . $crispr_id . "\n";
@@ -151,10 +153,19 @@ sub generate_primers {
     return $internal_crispr, $internal_crispr_primers, $pcr_crispr_primers;
 }
 
-sub find_appropriate_primers {
-    my ($crispr_primers, $target, $max, $region, $crispr) = @_;
+sub setup_primer_generation_environment {
+    my ($params, $search_range, $location) = @_;
 
-    #print Dumper $crispr_primers;
+    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{$location};
+    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{$location};
+    $params->{increment} = $search_range->{$location};
+
+    return $params;
+}
+
+sub find_appropriate_primers {
+    my ($crispr_primers, $target, $max, $region, $crispr, $set) = @_;
+
     my @primers = keys %{$crispr_primers->{left}};
     my $closest->{record} = 5000;
     my @test;
@@ -185,6 +196,8 @@ sub find_appropriate_primers {
                     primer  => $int,
                 };
             }
+        } else {
+            return { error => "The sequence between the $set primers ($range) is greater than the maximum: $max"};  
         }
     }
 
@@ -303,7 +316,7 @@ sub generate_bwa_query_file {
 }
 
 sub bwa_oligo_loci { 
-    my ($crispr_details, $result_data) = @_;
+    my ($crispr_details, $result_data, $genomic_threshold) = @_;
 
     my $hit_data;
     my ($fasta, $dir) = generate_bwa_query_file($crispr_details->{wge_crispr_id}, $result_data->{oligos});
@@ -316,6 +329,8 @@ sub bwa_oligo_loci {
     );
 
     $bwa->generate_sam_file;
+    $ENV{'BWA_GENOMIC_THRESHOLD'} = $genomic_threshold;
+
     my $oligo_hits = $bwa->oligo_hits;
 
     my $strand = 1;
