@@ -1,4 +1,4 @@
-[% META title = "Design Progress Crispr Search"; META tab_name = "Designs" %]
+[% META title = "Create Miseq Designs"; META tab_name = "Designs" %]
 
 <style>
 #waiting {
@@ -259,15 +259,19 @@ $('#redo_submit').click(function() {
         success: function(result) {
             console.log("Response received");
             console.log(result);
-            $('#response').addClass('alert-success');
-            var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
-            var message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
+            var message;
+            if (result.status == 'Success') {
+                $('#response').removeClass('alert-danger').addClass('alert-success');
+                var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
+                message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
+                updateTable(params.crispr, result);
+            } else {
+                $('#response').removeClass('alert-success').addClass('alert-danger');
+                message = 'Error: ' + result.status;
+            }
             console.log(message);
-
             $('#response').html(message);
             $('#waiting').hide();
-            updateTable(params.crispr, result);
-            //toggleModal();
         },
         error: function(err) {
             test = err;
@@ -275,7 +279,6 @@ $('#redo_submit').click(function() {
             $('#response').addClass('alert-danger');
             $('#response').text('Failed to create MiSeq design: ' + err.responseText);
             $('#waiting').hide();
-            //toggleModal();
         }
     });
 

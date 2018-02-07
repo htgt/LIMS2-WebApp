@@ -320,9 +320,10 @@ $DB::single=1;
                 entity => "Bad Request: $response->{status}",
             );
         } else {
+            my @hgncs = grep (/^HGNC*/, $results->{design}->gene_ids);
             $response = {
                 status  => 'Success',
-                gene    => $results->{design}->gene_ids,
+                gene    => join(', ', @hgncs),
                 design  => $results->{design}->id,
             };
         }

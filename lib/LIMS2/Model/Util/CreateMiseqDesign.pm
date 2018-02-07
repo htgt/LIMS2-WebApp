@@ -30,18 +30,20 @@ sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
     
 $DB::single=1;
-    my $search_range = { #update with params
-        search    => {
+    my $search_range = {
+        search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
             external    => $design_params->{pcr}->{search_width} || 350,
         },
-        dead    => {
+        dead        => {
             internal    => $design_params->{miseq}->{offset_width} ||  50,
             external    => $design_params->{pcr}->{offset_width} || 170,
         },
+        miseq_inc   => $design_params->{miseq}->{increment} || 15,
+        pcr_inc     => $design_params->{pcr}->{increment} || 50,
     };
     
-    my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range);
+    my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params);
 
     my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
     my @gene_ids = genes_for_crisprs($c, $crispr_rs);
@@ -105,18 +107,22 @@ sub generate_primers {
         species => 'Human',
         repeat_mask => [''],
         offset => 20,
-        increment => 15,
         well_id => 'Miseq_Crispr_' . $crispr_id,
     };
 
     $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
     $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
-
+    $params->{increment} = $search_range->{miseq_inc};
+    
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
+    if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
+        $params->{error} = "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
+        return $params;
+    }
 
     $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
     $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
-    $params->{increment} = 50;
+    $params->{increment} = $search_range->{pcr_inc};
 
     my $crispr_seq = {
         chr_region_start    => $internal_crispr->{left_crispr}->{chr_start},
@@ -126,10 +132,7 @@ sub generate_primers {
         1   => 'plus',
         -1  => 'minus',
     };
-    if ($internal_crispr_primers->{error_flag} eq 'fail' ) {
-        $params->{error} = "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
-        return $params;
-    }
+
     $params->{crispr_primers} = { 
         crispr_primers  => $internal_crispr_primers,
         crispr_seq      => $crispr_seq,
