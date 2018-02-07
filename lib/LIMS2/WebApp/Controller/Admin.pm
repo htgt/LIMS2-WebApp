@@ -35,6 +35,10 @@ redirect to the login page.
 sub auto : Private {
     my ( $self, $c ) = @_;
 
+    my $first_login = $c->model('Golgi')->schema->resultset('User')->find({ name => $c->user->name })->first_login;
+
+    $c->stash( first_login => $first_login );
+
     if ( !$c->check_user_roles('admin') ) {
         $c->flash( error_msg => 'Please login as an admin user to proceed' );
         return $c->response->redirect( $c->uri_for( '/login', { goto_on_success => $c->request->uri } ) );

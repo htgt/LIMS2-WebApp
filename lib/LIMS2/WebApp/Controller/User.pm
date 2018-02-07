@@ -49,6 +49,12 @@ sub auto : Private {
         $c->session->{species} = $c->model('Golgi')->list_species;
     }
 
+    my $first_login = $c->model('Golgi')->schema->resultset('User')->find({ name => $c->user->name })->first_login;
+
+    $c->stash(
+        first_login => $first_login,
+    );
+
     return 1;
 }
 

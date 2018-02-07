@@ -25,7 +25,6 @@ Catalyst Controller.
 =head2 login
 
 =cut
-
 sub login : Global {
     my ( $self, $c ) = @_;
 
@@ -87,10 +86,19 @@ sub login : Global {
         	    domain => '.sanger.ac.uk',
             };
         }
+
+        my $first_login = $c->model('Golgi')->schema->resultset('User')->find({ name => $c->user->name })->first_login;
+
+        if ($first_login == 1){
+#$DB::single=1;
+            $c->stash->{info_msg} = 'You must change password to access '.$c->http_uri_for('/');
+            $c->stash->{goto_on_success} = $c->http_uri_for('/');
+            $c->go( 'Controller::User::UserPreferences', 'change_password' );
+        }
+
         $c->log->debug("redirecting to $goto");
         return $c->res->redirect($goto);
-    }
-    else {
+    } else {
         $c->stash( error_msg => 'Incorrect username or password' );
     }
 
