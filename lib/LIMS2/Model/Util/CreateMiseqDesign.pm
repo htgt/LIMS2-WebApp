@@ -29,7 +29,6 @@ use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
     
-$DB::single=1;
     my $search_range = {
         search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
@@ -103,6 +102,7 @@ $DB::single=1;
     return $design_crispr;
 };
 
+
 sub generate_primers {
     my ($c, $crispr_id, $search_range, $genomic_threshold) = @_;
 
@@ -115,8 +115,7 @@ sub generate_primers {
         genomic_threshold   => $genomic_threshold,
     };
  
-    $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
-    $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
+    _setup_primer_environment($search_range);
     $params->{increment} = $search_range->{internal};
 
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
@@ -125,9 +124,6 @@ sub generate_primers {
         return $params;
     }
 
-
-    $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{externa};
-    $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
     $params->{increment} = $search_range->{external};
 
     my $crispr_seq = {
@@ -156,6 +152,17 @@ sub generate_primers {
     }
 
     return $internal_crispr, $internal_crispr_primers, $pcr_crispr_primers;
+}
+
+sub _setup_primer_environment {
+    my $search_range = shift;
+
+    local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
+    local $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
+    local $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
+    local $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
+
+    return;
 }
 
 sub find_appropriate_primers {
@@ -234,13 +241,13 @@ sub package_parameters {
         primer_opt_size     => $miseq_pcr_conf->{primer_opt_size},
         primer_max_size     => $miseq_pcr_conf->{primer_max_size},
 
-        primer_min_gc       => $miseq_pcr_conf->{primer_min_gc},
-        primer_opt_gc_content   => $miseq_pcr_conf->{primer_opt_gc_percent},
-        primer_max_gc       => $miseq_pcr_conf->{primer_max_gc},
+        primer_min_gc       => $design_params->{gc}->{min} || $miseq_pcr_conf->{primer_min_gc},
+        primer_opt_gc_content   => $design_params->{gc}->{opt} ||  $miseq_pcr_conf->{primer_opt_gc_percent},
+        primer_max_gc       => $design_params->{gc}->{max} || $miseq_pcr_conf->{primer_max_gc},
            
-        primer_min_tm       => $miseq_pcr_conf->{primer_min_tm},
-        primer_opt_tm       => $miseq_pcr_conf->{primer_opt_tm},
-        primer_max_tm       => $miseq_pcr_conf->{primer_max_tm},
+        primer_min_tm       => $design_params->{melt}->{min} || $miseq_pcr_conf->{primer_min_tm},
+        primer_opt_tm       => $design_params->{melt}->{opt} || $miseq_pcr_conf->{primer_opt_tm},
+        primer_max_tm       => $design_params->{melt}->{max} || $miseq_pcr_conf->{primer_max_tm},
 
         repeat_mask_class   => [],
             
