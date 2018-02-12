@@ -218,14 +218,13 @@ sub view_project :Path('/user/view_project'){
         $c->assert_user_roles('edit');
         my $params = $c->req->params;
         delete $params->{add_experiment};
-        delete $params->{project_id};
         if ($params->{requester} eq "") {
             delete $params->{requester};
         }
         $params->{gene_id} = $project->gene_id;
         try{
             my $experiment = $c->model('Golgi')->create_experiment($params);
-            $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id;
+            $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id .' for this project.';
         }
         catch{
             $c->stash->{error_msg} = 'Could not create experiment: '. $_;
@@ -235,7 +234,7 @@ sub view_project :Path('/user/view_project'){
     if(my $experiment_id = $c->req->param('delete_experiment')){
         $c->assert_user_roles('edit');
         try{
-            $c->model('Golgi')->delete_experiment({ id => $experiment_id });
+            $c->model('Golgi')->delete_experiment({ experiment_id => $experiment_id, project_id => $proj_id });
             $c->stash->{success_msg} = 'Deleted experiment with ID '.$experiment_id;
         }
         catch{
@@ -259,10 +258,13 @@ sub view_project :Path('/user/view_project'){
     if($gene_info->{gene_symbol}){
         $c->stash->{gene_symbol} = $gene_info->{gene_symbol};
     }
+
+    my @project_experiments = $c->model('Golgi')->find_project_experiments($proj_id);
+
     $c->stash->{project_sponsors} = { map { $_ => 1 } $project->sponsor_ids };
     $c->stash->{sponsors_priority} = { map { $_->sponsor_id => $_->priority } $project->project_sponsors };
     $c->stash->{all_sponsors} = \@sponsors;
-    $c->stash->{experiments} = [ sort { $a->id <=> $b->id } $project->experiments ];
+    $c->stash->{experiments} = [ sort { $a->id <=> $b->id } @project_experiments ];
     $c->stash->{design_suggest} = \@design_suggest;
     $c->stash->{group_suggest} = \@group_suggest;
     $c->stash->{recovery_classes} = \@recovery_class_names;
