@@ -3,6 +3,9 @@
 <style>
 #waiting {
     left: -20px;
+}
+
+.glyphicon-refresh {
     color: 	#6A5ACD;
 }
 
@@ -52,6 +55,7 @@ tr.success td{
         <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
         <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
         <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
+        <span id="crisprWaiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
     </fieldset>
 </form>
 
@@ -79,7 +83,7 @@ tr.success td{
                     </td>
                     <td>[% table.wge %]</td>
                     <td class="tableGene">[% table.gene %]</td>
-                    <td class="tableDesign"><a href="[% c.uri_for( '/user/design' , table.lims , 'view' ) %]" target="_blank">[% table.design %]</a></td>
+                    <td class="tableDesign"><a href="[% c.uri_for( '/user/view_design/', { design_id => table.design } ) %]" target="_blank">[% table.design %]</a></td>
                     <td class="tableStatus">[% table.status %]</td>
                     <td>
                         <button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#redoModal" onclick="transferCrispr([% table.lims %]);">Redo</button> 

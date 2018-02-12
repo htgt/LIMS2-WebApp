@@ -405,7 +405,7 @@ sub crisprs_for_design {
     my $design_info = LIMS2::Model::Util::DesignInfo->new(
         design => $design,
     );
-
+$DB::single=1;
     my $chr_id = $model->_chr_id_for( $design_info->default_assembly, $design_info->chr_name );
     my @crisprs = $model->schema->resultset('Crispr')->search(
         {

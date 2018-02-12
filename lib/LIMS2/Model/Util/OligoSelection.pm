@@ -61,7 +61,7 @@ sub pick_crispr_PCR_primers {
 
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 500;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 100;
-    $ENV{BWA_GENOMIC_THRESHOLD} = 30;
+    local $ENV{BWA_GENOMIC_THRESHOLD} = 30;
     my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_CRISPR_PRIMER_CONFIG' };
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
@@ -93,7 +93,7 @@ sub pick_miseq_crispr_PCR_primers {
     $params->{'search_field_width'} = $ENV{'LIMS2_PCR_SEARCH_FIELD'} // 350;
     $params->{'dead_field_width'} = $ENV{'LIMS2_PCR_DEAD_FIELD'} // 170;
     my $pcr_config_file = $ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' };
-    $ENV{BWA_GENOMIC_THRESHOLD} = $params->{genomic_threshold} || 30;
+    local $ENV{BWA_GENOMIC_THRESHOLD} = $params->{genomic_threshold} || 30;
 
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data, $primer_passes, $chr_seq_start);
@@ -114,7 +114,6 @@ sub pick_miseq_crispr_PCR_primers {
         $params->{'dead_field_width'} += $params->{increment} // 40;
         $params->{'search_field_width'} += $params->{increment} // 40;
     }
-    $ENV{BWA_GENOMIC_THRESHOLD} = 30;
 
     return ($primer_data, $primer_passes, $chr_seq_start);
 }
@@ -544,7 +543,6 @@ sub get_EnsEmbl_sequence {
     my $slice_5R;
     my $slice_3F;
     my %seqs;
-
     if ( $chr_strand eq 'plus' ) {
         $slice_5R = $design_info->slice_adaptor->fetch_by_region(
             'chromosome',
@@ -636,7 +634,6 @@ sub retrieve_crispr_PCR_EnsEmbl_region {
 
     INFO ('pcr primer dead_field_width: ' . $dead_field_width );
     INFO ('pcr primer search_field_width: ' . $search_field_width);
-
     my $chr_strand = $crispr_primers->{'strand'}; # That is the gene strand
 
     my $slice_adaptor = $model->ensembl_slice_adaptor($species);
@@ -927,7 +924,7 @@ sub pick_single_crispr_primers {
 sub pick_miseq_internal_crispr_primers {
     my $model = shift;
     my $params = shift;
-$DB::single=1;
+
     my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
     $params->{'crispr_oligos'} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 170;

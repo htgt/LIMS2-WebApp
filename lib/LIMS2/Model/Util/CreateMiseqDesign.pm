@@ -24,11 +24,11 @@ use LIMS2::Model::Util::OligoSelection qw(
         oligo_for_single_crispr
         pick_crispr_PCR_primers
 );
-use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr ); 
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
-    
+
     my $search_range = {
         search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
@@ -41,7 +41,7 @@ sub generate_miseq_design {
         internal    => $design_params->{miseq}->{increment} || 15,
         external    => $design_params->{pcr}->{increment} || 50,
     };
-    
+
     my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params->{genomic_threshold});
 
     my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
@@ -61,6 +61,7 @@ sub generate_miseq_design {
         1,
     );
     my $crispr_loc = index ($slice_region->seq, $crispr_data->{left_crispr}->{seq});
+
     my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc, 'Miseq');
     my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq, 'PCR');
     if ($inf->{error} || $exf->{error}) {
@@ -77,9 +78,9 @@ sub generate_miseq_design {
             exr => $exr,
         },
     };
-    my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details);
     my $hit_data = bwa_oligo_loci($crispr_details, $result, $design_params->{genomic_threshold});
     my @oligos = format_oligos($hit_data);
+    my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details, $hit_data);
     my $design_info = {
         design_parameters   => $json_params,
         created_by          => $c->user->name,
@@ -88,7 +89,7 @@ sub generate_miseq_design {
         gene_ids            => @gene_ids,
         oligos              => @oligos,
     };
-    
+
     my $design = $c->model( 'Golgi' )->txn_do(
         sub {
             shift->c_create_design( $design_info );
@@ -114,8 +115,12 @@ sub generate_primers {
         well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
         genomic_threshold   => $genomic_threshold,
     };
- 
-    _setup_primer_environment($search_range);
+
+    local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
+    local $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
+    local $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
+    local $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
+
     $params->{increment} = $search_range->{internal};
 
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
@@ -135,7 +140,7 @@ sub generate_primers {
         -1  => 'minus',
     };
 
-    $params->{crispr_primers} = { 
+    $params->{crispr_primers} = {
         crispr_primers  => $internal_crispr_primers,
         crispr_seq      => $crispr_seq,
         strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
@@ -154,20 +159,8 @@ sub generate_primers {
     return $internal_crispr, $internal_crispr_primers, $pcr_crispr_primers;
 }
 
-sub _setup_primer_environment {
-    my $search_range = shift;
-
-    local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
-    local $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
-    local $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};
-    local $ENV{'LIMS2_PCR_DEAD_FIELD'} = $search_range->{dead}->{external};
-
-    return;
-}
-
 sub find_appropriate_primers {
-    my ($crispr_primers, $target, $max, $region, $crispr, $set) = @_;
-
+    my ($crispr_primers, $target, $max, $region, $crispr, $primer_set) = @_;
     my @primers = keys %{$crispr_primers->{left}};
     my $closest->{record} = 5000;
     my @test;
@@ -198,20 +191,23 @@ sub find_appropriate_primers {
                     primer  => $int,
                 };
             }
-        } else {
-            return { error => "The sequence between the $set primers ($range) is greater than the maximum: $max"};  
-        }
+        } 
+    }
+    unless ($closest->{primer}) {
+        return { error => "No $primer_set primers found beneath the maximum range: $max" };
     }
 
     return $crispr_primers->{left}->{'left_' . $closest->{primer}}, $crispr_primers->{right}->{'right_' . $closest->{primer}};
 }
 
-sub package_parameters {
-    my ($c, $design_params, $result_data, $offset, $crispr_details) = @_;
 
+
+
+sub package_parameters {
+    my ($c, $design_params, $result_data, $offset, $crispr_details, $primer_loci) = @_;
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
-    
+
     my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' });
 
     my $design_parameters = {
@@ -219,6 +215,9 @@ sub package_parameters {
         'command-name'      => $design_params->{design_type} . '-design-location',
         assembly            => $crispr_details->{locus}->{assembly},
         created_by          => $c->user->name,
+
+        target_start        => $primer_loci->{inf}->{loci}->{chr_end},
+        target_end          => $primer_loci->{inr}->{loci}->{chr_start},
 
         three_prime_exon    => 'null',
         five_prime_exon     => 'null',
@@ -244,13 +243,13 @@ sub package_parameters {
         primer_min_gc       => $design_params->{gc}->{min} || $miseq_pcr_conf->{primer_min_gc},
         primer_opt_gc_content   => $design_params->{gc}->{opt} ||  $miseq_pcr_conf->{primer_opt_gc_percent},
         primer_max_gc       => $design_params->{gc}->{max} || $miseq_pcr_conf->{primer_max_gc},
-           
+
         primer_min_tm       => $design_params->{melt}->{min} || $miseq_pcr_conf->{primer_min_tm},
         primer_opt_tm       => $design_params->{melt}->{opt} || $miseq_pcr_conf->{primer_opt_tm},
         primer_max_tm       => $design_params->{melt}->{max} || $miseq_pcr_conf->{primer_max_tm},
 
         repeat_mask_class   => [],
-            
+
         software_version    => $version,
     };
 
@@ -271,8 +270,8 @@ sub format_oligos {
             exr => -1,
         },
         -1  => {
-            inf => -1,
-            inr => 1,
+            inf => 1,
+            inr => -1,
             exf => -1,
             exr => 1,
         }
@@ -317,7 +316,7 @@ sub generate_bwa_query_file {
     return ($fasta_file_name, $dir_out);
 }
 
-sub bwa_oligo_loci { 
+sub bwa_oligo_loci {
     my ($crispr_details, $result_data, $genomic_threshold) = @_;
 
     my $hit_data;
@@ -331,7 +330,7 @@ sub bwa_oligo_loci {
     );
 
     $bwa->generate_sam_file;
-    $ENV{'BWA_GENOMIC_THRESHOLD'} = $genomic_threshold;
+    local $ENV{'BWA_GENOMIC_THRESHOLD'} = $genomic_threshold;
 
     my $oligo_hits = $bwa->oligo_hits;
 
@@ -342,6 +341,7 @@ sub bwa_oligo_loci {
 
     $hit_data = loci_builder($oligo_hits, $result_data->{oligos}, $strand); #check
 
+    $hit_data = primer_orientation_check($hit_data, $strand);
     return $hit_data;
 }
 
@@ -365,6 +365,35 @@ sub loci_builder {
     }
 
     return $data;
+}
+
+sub primer_orientation_check {
+    my ($hit_data, $strand) = @_;
+
+    #Results can come back in the wrong orientation from Oligo Selection.
+    #Check and correct
+    my $corrections = {
+        1   => {
+            'exr' => 'exf',
+            'inr' => 'inf',
+        },
+        -1  => {
+            'exf' => 'exr',
+            'inf' => 'inr',
+        },
+    }; 
+
+    foreach my $right_side_primer (keys %{$corrections->{$strand}}) {
+        my $left_data = $hit_data->{$corrections->{$strand}->{$right_side_primer}};
+        my $right_data = $hit_data->{$right_side_primer};
+
+        if ($left_data->{loci}->{chr_start} > $right_data->{loci}->{chr_start}) {
+            $hit_data->{$corrections->{$strand}->{$right_side_primer}} = $right_data;
+            $hit_data->{$right_side_primer} = $left_data;
+        }
+    }
+
+    return $hit_data;
 }
 
 sub genes_for_crisprs {

@@ -307,12 +307,11 @@ sub redo_miseq_design_POST {
     my $reqs = from_json $jsonified_reqs;
     my $crispr = $reqs->{crispr};
 
-$DB::single=1;
     my $response->{lims} = $crispr;
     try {
         my $results = generate_miseq_design($c, $reqs, $crispr);
         my $design = $results->{design};
-$DB::single=1;
+
         if ($results->{error}) {
             $response->{status} = $results->{error};
             return $self->status_ok(
@@ -320,7 +319,7 @@ $DB::single=1;
                 entity => "Bad Request: $response->{status}",
             );
         } else {
-            my @hgncs = grep (/^HGNC*/, $results->{design}->gene_ids);
+            my @hgncs = grep { $_ =~ /^HGNC*/ } $results->{design}->gene_ids;
             $response = {
                 status  => 'Success',
                 gene    => join(', ', @hgncs),
@@ -334,19 +333,14 @@ $DB::single=1;
         );
     };
 
-$DB::single=1;
     my $json = JSON->new->allow_nonref;
     my $jsonified_response = $json->encode($response);
-use Data::Dumper;
-    print Dumper $jsonified_response;
-    #return $self->status_created(
-    #    $c,
-    #    location => $c->uri_for( '/api/redo_miseq_design', { id => $response->{design} } ),
-    #    entity   => $jsonified_response,
-    #);
+
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $jsonified_response );
+
+    return;
 }
 
 sub redo_miseq_design_GET {
