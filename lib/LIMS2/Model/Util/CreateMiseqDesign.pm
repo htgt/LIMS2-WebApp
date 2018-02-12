@@ -63,7 +63,7 @@ sub generate_miseq_design {
     my $crispr_loc = index ($slice_region->seq, $crispr_data->{left_crispr}->{seq});
 
     my ($inf, $inr) = find_appropriate_primers($internal_crispr_primers, 260, 297, $slice_region->seq, $crispr_loc, 'Miseq');
-    my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq, 'PCR');
+    my ($exf, $exr) = find_appropriate_primers($pcr_crispr_primers, 750, 3000, $slice_region->seq, $crispr_loc, 'PCR');
     if ($inf->{error} || $exf->{error}) {
         my $error = $exf->{error} || $inf->{error};
         return { error => $error };
@@ -163,7 +163,6 @@ sub find_appropriate_primers {
     my ($crispr_primers, $target, $max, $region, $crispr, $primer_set) = @_;
     my @primers = keys %{$crispr_primers->{left}};
     my $closest->{record} = 5000;
-    my @test;
     foreach my $prime (@primers) {
         my $int = (split /_/, $prime)[1];
         my $left_location_details = $crispr_primers->{left}->{'left_' . $int}->{location};
@@ -182,7 +181,6 @@ sub find_appropriate_primers {
             diff    => $primer_diff,
         };
 
-        push @test, $primer_range;
         if ($range < $max) {
             my $amplicon_score = ($target - $range) + $primer_diff;
             if ($amplicon_score < $closest->{record}) {
@@ -191,7 +189,7 @@ sub find_appropriate_primers {
                     primer  => $int,
                 };
             }
-        } 
+        }
     }
     unless ($closest->{primer}) {
         return { error => "No $primer_set primers found beneath the maximum range: $max" };
@@ -381,7 +379,7 @@ sub primer_orientation_check {
             'exf' => 'exr',
             'inf' => 'inr',
         },
-    }; 
+    };
 
     foreach my $right_side_primer (keys %{$corrections->{$strand}}) {
         my $left_data = $hit_data->{$corrections->{$strand}->{$right_side_primer}};

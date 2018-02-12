@@ -198,7 +198,7 @@ sub _build_target_region_start {
             return $self->oligos->{'D3'}{end};
         }
     }
-$DB::single=1;
+
     if ( $self->type eq 'miseq-nhej' || $self->type eq 'miseq-hdr' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'INF'}{end};

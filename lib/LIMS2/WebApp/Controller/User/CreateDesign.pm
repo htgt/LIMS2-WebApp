@@ -557,7 +557,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
                     status  => $results->{error},
                 };
             } else {
-                my @hgnc = grep (/^HGNC*/i, $results->{design}->gene_ids );
+                my @hgnc = grep { /^HGNC*/ } $results->{design}->gene_ids;
                 $crispr_ids = {
                     lims    => $crispr,
                     wge     => $wge_id,

@@ -1,8 +1,13 @@
 [% META title = "Create Miseq Designs"; META tab_name = "Designs" %]
 
 <style>
+
 #waiting {
     left: -20px;
+}
+
+#crisprWaiting { 
+    left: 20px;
 }
 
 .glyphicon-refresh {
@@ -17,6 +22,7 @@
 tr.fail td{ 
     background-color: #F2DEDE;
 }
+
 tr.success td{ 
     background-color: #DFF0D8;
 }
@@ -228,26 +234,27 @@ tr.success td{
 var crispr_id = '[%- crispr_id.join(', ') %]';
 
 $(document).ready(function() {
+    $('.button').hide().prop('disabled', true);
+    $('#crisprWaiting').hide().prop('disabled', true);
     display();
-    $('#waiting').hide();
+    $('#waiting').hide().prop('disabled', true);
 });
 
 function clearSelection(){
     $("#clearTextArea").html("");
 }
 
-$('.button').hide();
 
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {
-        $('.button').show();
+        $('.button').show().prop('disabled', false);
     } else {
-        $('.button').hide();
+        $('.button').hide().prop('disabled', true);
     }
 });
 
 $('#clearTextArea').on('mousedown', function() {
-        $('.button').show();
+    $('.button').show().prop('disabled', false);
 });
 
 $(".textAreaKeys").keypress(function (e) {
@@ -258,10 +265,14 @@ $(".textAreaKeys").keypress(function (e) {
     }
 });
 
+$('#action').click(function() {
+    $('#crisprWaiting').show().prop('disabled', false);
+});
+
 $('#redo_submit').click(function() {
     var params = gatherParameters();
     var jsonified_params = JSON.stringify(params);
-    $('#waiting').show()
+    $('#waiting').show().prop('disabled', false);
 
     $.ajax({
         url: '[% c.uri_for('/api/redo_miseq_design/') %]',
@@ -285,14 +296,14 @@ $('#redo_submit').click(function() {
             }
             console.log(message);
             $('#response').html(message);
-            $('#waiting').hide();
+            $('#waiting').hide().prop('disabled', true);
         },
         error: function(err) {
             test = err;
             console.log(err);
             $('#response').addClass('alert-danger');
             $('#response').text('Failed to create MiSeq design: ' + err.responseText);
-            $('#waiting').hide();
+            $('#waiting').hide().prop('disabled', true);
         }
     });
 

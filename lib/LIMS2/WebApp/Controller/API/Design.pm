@@ -345,7 +345,7 @@ sub redo_miseq_design_POST {
 
 sub redo_miseq_design_GET {
     my ( $self, $c ) = @_;
-$DB::single=1;
+
     my $body = $c->model('Golgi')->schema->resultset('Design')->find ({ id => $c->request->param('id') })->as_hash;
 
     $c->response->status( 200 );
