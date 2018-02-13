@@ -101,7 +101,8 @@ crispr_storage,
 miseq_plate,
 miseq_well_experiment,
 miseq_experiment,
-miseq_project_well_exp
+miseq_project_well_exp,
+project_experiment
  CASCADE;
 
 

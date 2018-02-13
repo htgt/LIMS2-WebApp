@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.485';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.488';
 }
 ## use critic
 
@@ -201,6 +201,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 project_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_experiments",
+  "LIMS2::Model::Schema::Result::ProjectExperiment",
+  { "foreign.project_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_sponsors
 
 Type: has_many
@@ -277,8 +292,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-27 12:30:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mHgfI8fTlLa0aPck6XCPng
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kjaupYHfcjExbBkHPgLbIA
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',

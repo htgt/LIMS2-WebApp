@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::DesignInfo;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::DesignInfo::VERSION = '0.485';
+    $LIMS2::Model::Util::DesignInfo::VERSION = '0.488';
 }
 ## use critic
 
@@ -205,12 +205,12 @@ sub _build_target_region_start {
         }
     }
 
-    if ( $self->type eq 'miseq') {
+    if ( $self->type eq 'miseq-nhej' || $self->type eq 'miseq-hdr' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'INF'}{end};
         }
         else {
-            return $self->oligos->{'INR'}{end};
+            return $self->oligos->{'INR'}{start};
         }
     }
     # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the
@@ -274,12 +274,12 @@ sub _build_target_region_end {
             return $self->oligos->{'U5'}{start};
         }
     }
-    if ( $self->type eq 'miseq') {
+    if ( $self->type eq 'miseq-nhej' || $self->type eq 'miseq-hdr' ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'INR'}{start};
         }
         else {
-            return $self->oligos->{'INF'}{start};
+            return $self->oligos->{'INF'}{end};
         }
     }
 # For nonsense designs ( have only 1 oligo ) we set the whole oligo as the

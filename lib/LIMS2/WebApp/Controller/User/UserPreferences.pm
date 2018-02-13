@@ -1,13 +1,15 @@
 package LIMS2::WebApp::Controller::User::UserPreferences;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.485';
+    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.488';
 }
 ## use critic
 
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use MIME::Lite;
+use Email::Valid;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -57,6 +59,7 @@ sub change_password :Path( '/user/change_password' ) :Args(0) {
 
                 $c->flash->{success_msg} = 'Password successfully changed for: ' . $user->name ;
                 $c->res->redirect( $c->uri_for('/') );
+                $self->email_notification($c, $user->name);
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while changing password : ' . $_;
@@ -65,6 +68,36 @@ sub change_password :Path( '/user/change_password' ) :Args(0) {
         }
     );
 
+    return;
+}
+
+sub email_notification : Global {
+    my ($self, $c, $username) = @_;
+
+    my $address = Email::Valid->address($username);
+
+    my $validator = ($address ? 'yes' : 'no');
+
+    if ($validator eq 'yes'){
+
+        my $to = $username;
+        my $from = 'htgt@sanger.ac.uk';
+        my $subject = 'LIMS2 Password Update';
+        my $message = "Hello,\n\nYou've successfully changed your password.\n\nPassword information for the following account has been updated:\n$username\n\nIf you didn't request this password change, please contact htgt\@sanger.ac.uk immediately.\n\nKind Regards,\nLIMS2 Team";
+
+        my $msg = MIME::Lite->new(
+            From     => $from,
+            To       => $to,
+            Subject  => $subject,
+            Data     => $message
+            );
+
+        $msg->send;
+        $c->flash( info_msg => 'Email Sent Successfully' );
+
+    } else {
+        $c->stash( error_msg => 'Not a valid email address, please contact htgt@sanger.ac.uk' );
+    }
     return;
 }
 

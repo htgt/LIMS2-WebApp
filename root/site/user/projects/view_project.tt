@@ -143,7 +143,7 @@
 [% END %]
 
 <div class="well">
-<h3>Experiments targeting [% project.gene_id %]</h3>
+<h3>Experiments targeting [% project.gene_id %] for this project</h3>
 [% IF experiments.size %]
 <table class="table experiments">
   <tr>

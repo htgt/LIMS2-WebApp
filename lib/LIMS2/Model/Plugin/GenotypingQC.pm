@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::GenotypingQC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.485';
+    $LIMS2::Model::Plugin::GenotypingQC::VERSION = '0.488';
 }
 ## use critic
 
