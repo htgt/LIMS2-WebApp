@@ -206,7 +206,7 @@ sub package_parameters {
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
 
-    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' });
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_MISEQ_PCR_CONFIG' });
 
     my $design_parameters = {
         design_method       => $design_params->{design_type},
