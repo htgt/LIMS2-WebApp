@@ -588,7 +588,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
     }
 
 
-    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_PCR_MISEQ_CRISPR_PRIMER_CONFIG' });
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_MISEQ_PCR_CONFIG' });
 
     my $melting_temp = {
         min     => $miseq_pcr_conf->{primer_min_tm},
