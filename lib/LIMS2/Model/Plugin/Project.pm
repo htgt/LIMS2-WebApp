@@ -447,7 +447,7 @@ sub add_experiment {
         }
     };
 
-    return 0;
+    return;
 
 }
 

@@ -403,7 +403,6 @@ sub _check_wells_cre_bac_recom {
 sub _check_wells_ep_pipeline_ii {
     my ( $model, $process ) = @_;
 
-#    check_input_wells( $model, $process);
     check_output_wells( $model, $process);
     return;
 }
@@ -994,7 +993,6 @@ sub _create_process_aux_data_ep_pipeline_ii {
     $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
     $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
     $process->create_related( process_cell_line => { cell_line_id => $params->{cell_line} } );
-#    $process->create_related( process_cell_line => { cell_line_id => _cell_line_id_for( $model, $validated_params->{cell_line} ) } );
 
     return;
 }

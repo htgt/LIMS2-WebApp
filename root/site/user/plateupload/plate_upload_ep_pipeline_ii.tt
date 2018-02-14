@@ -37,6 +37,10 @@
   overflow-y: scroll;
 }
 
+.glyphicon-question-sign:hover {
+  cursor: pointer;
+}
+
 </style>
 
 <h1>Upload Plate <small> Step 2</small></h1>
@@ -70,14 +74,14 @@
         <div class="col-md-12 control-group">
           <label class="control-label col-md-4" style="color:#cc0000;">Gene Identifier</label>
           <div class="col-md-6">
-            <input type="text" autocomplete="on" class="form-control" name="gene_id_assembly_ii" id="gene_id_assembly_ii" value=[% gene_id_assembly_ii %]>
+            <input type="text" autocomplete="on" class="form-control" onChange="reset_wells()" name="gene_id_assembly_ii" id="gene_id_assembly_ii" value=[% gene_id_assembly_ii %]>
           </div>
         </div>
   
         <div class="col-md-12 control-group">
           <label class="control-label col-md-4" style="color:#cc0000;">Cell Line</label>
           <div class="col-md-6">
-            <select class="form-control" id="cell_line_assembly_ii" name="cell_line_assembly_ii">
+            <select onChange="reset_wells()" class="form-control" id="cell_line_assembly_ii" name="cell_line_assembly_ii">
               [% IF cell_line_assembly_ii %]
               <option value="[% cell_line_id %]">[% cell_line_name %]</option>
               <option value=""></option>
@@ -95,16 +99,19 @@
         </div>
 
         <div class="col-md-12 control-group">
-          <label class="control-label col-md-4">Strategy</label>
+          <label class="control-label col-md-4" style="color:#cc0000;">Strategy</label>
           <div class="col-md-6">
-            <select class="form-control" id="strategy_assembly_ii" name="strategy_assembly_ii">
+            <select onChange="reset_wells()" class="form-control" id="strategy_assembly_ii" name="strategy_assembly_ii">
               [% IF strategy_assembly_ii == 'Pipeline I' %]
               <option value="Pipeline I">Pipeline I</option>
               <option value="Pipeline II">Pipeline II</option>
+              <option value=""></option>
               [% ELSIF strategy_assembly_ii == 'Pipeline II' %]
               <option value="Pipeline II">Pipeline II</option>
               <option value="Pipeline I">Pipeline I</option>
+              <option value=""></option>
               [% ELSE %]
+              <option value=""></option>
               <option value="Pipeline II">Pipeline II</option>
               <option value="Pipeline I">Pipeline I</option>
               [% END %]
@@ -113,15 +120,15 @@
         </div>
 
         <div class="col-md-12 control-group">
-          <label class="col-md-4 control-label">Targeting Type</label>
+          <label class="col-md-4 control-label" style="color:#cc0000;">Targeting Type</label>
           <div class="col-md-6">
-            <div class="radio">
-              <label><input type="radio" id="single_targeted" name="targeting_type_assembly_ii" value="single_targeted" [% IF targeting_type_assembly_ii == 'single_targeted' %] checked[% END %]>
+            <div class="checkbox">
+              <label><input type="checkbox" onChange="reset_wells()" id="single_targeted" name="targeting_type_assembly_ii" value="single_targeted" [% IF targeting_type_assembly_ii == 'single_targeted' %] checked[% END %]>
                 Single Targeted
             </label>
             </div>
-            <div class="radio">
-              <label><input type="radio" id="double_targeted" name="targeting_type_assembly_ii" value="double_targeted" [% IF targeting_type_assembly_ii == 'double_targeted' %] checked[% END %]>
+            <div class="checkbox">
+              <label><input type="checkbox" onChange="reset_wells()" id="double_targeted" name="targeting_type_assembly_ii" value="double_targeted" [% IF targeting_type_assembly_ii == 'double_targeted' %] checked[% END %]>
                 Double Targeted
               </label>
             </div>
@@ -151,7 +158,7 @@
         </td>
 
         <td>
-          <button id="find_assembly_ii_project" name="find_assembly_ii_project" value="find_assembly_ii_project" class="btn btn-default"><span style="color:#cc0000;" class="glyphicon glyphicon-arrow-right"></span></button>
+          <button id="find_assembly_ii_project" name="find_assembly_ii_project" onClick="return find_project_check()" value="find_assembly_ii_project" class="btn btn-default"><span style="color:#cc0000;" class="glyphicon glyphicon-arrow-right"></span></button>
         </td>
 
         <td style="border: 1px solid silver;background-color:whitesmoke;">
@@ -161,7 +168,7 @@
           <label class="control-label col-md-3">Project Hits</label>
           [% IF hit_projects %]
           <div class="col-md-12 control-group">
-          <p style="color:grey;font-size:12px">Hover over a gene for more details, and click to populate the fields to the left.</p>
+          <p style="color:grey;font-size:12px">Hover over a gene for more details, and click to populate the fields on the left.</p>
           </div>
           [% END %]
           </td>
@@ -182,7 +189,7 @@
 
         <tr>
           <td>
-            <button id="create_assembly_ii_project" name="create_assembly_ii_project" value="create_assembly_ii_project" class="btn btn-default">Create Project</button>
+            <button id="create_assembly_ii_project" name="create_assembly_ii_project" onClick="return create_project_check()" value="create_assembly_ii_project" class="btn btn-default">Create Project</button>
           </td>
         </tr>
         </table>
@@ -246,8 +253,7 @@
 
 <p style="color:grey;font-size:12px"><input class="form-check-input" type="checkbox" name="create_assembly_ii_experiment" id="create_assembly_ii_experiment" value="create_assembly_ii_experiment"> <b>Create experiment if it doesn't already exist</b></p>
 <input type="hidden" id="lagging_exp_ids" name="lagging_exp_ids" value="[% lagging_exp_ids %]"></input>
-<button id="find_assembly_ii_experiments" name="find_assembly_ii_experiments" value="find_assembly_ii_experiments" class="btn btn-primary">Find experiments</button>
-<span style="color:grey;font-size:12px;">(Uses Gene, Crispr and Design input boxes.)</span>
+<button id="find_assembly_ii_experiments" name="find_assembly_ii_experiments" value="find_assembly_ii_experiments" class="btn btn-primary">Find experiments</button> <span id="find_exp_tooltip" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-html="true" title="Uses Gene, Crispr and Design input boxes.</br>"></span> 
 
 
 
@@ -266,6 +272,10 @@ window.onload = function(){
 
   $(".project_info_btn").tooltip({
       placement : 'top'
+  });
+
+  $("#find_exp_tooltip").tooltip({
+      placement : 'right'
   });
 };
 
@@ -298,6 +308,50 @@ function populate_project_section(project_id) {
     }
   }
 
+}
+
+function create_project_check() {
+  var gene = document.getElementById('gene_id_assembly_ii').value.trim();
+  var single_targeted = document.getElementById('single_targeted').checked;
+  var double_targeted = document.getElementById('double_targeted').checked;
+  var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
+  var strategy = document.getElementById('strategy_assembly_ii').value.trim();
+
+  if (!gene) {
+    alert('Gene name is missing.');
+    return false;
+  }
+  if ((!single_targeted) && (!double_targeted)) {
+    alert('Targeting Type is missing.');
+    return false;
+  }
+  if (!cell_line) {
+    alert('Cell line is missing.');
+    return false;
+  }
+  if (!strategy) {
+    alert('Strategy is missing.');
+    return false;
+  }
+  return true;
+}
+
+function find_project_check() {
+  var gene = document.getElementById('gene_id_assembly_ii').value.trim();
+  if (!gene) {
+    alert('Gene name is missing.');
+    return false;
+  }
+  return true;
+}
+
+
+function reset_wells() {
+  var square_ids = ['well_01', 'well_02', 'well_03', 'well_04', 'well_05', 'well_06', 'well_07', 'well_08', 'well_09', 'well_10', 'well_11', 'well_12', 'well_13', 'well_14', 'well_15', 'well_16'];
+  for (i = 0; i < square_ids.length; i++) {
+    document.getElementById(square_ids[i]).value = '';
+    document.getElementById(square_ids[i]).style.display = 'none';
+  }
 }
 
 </script>

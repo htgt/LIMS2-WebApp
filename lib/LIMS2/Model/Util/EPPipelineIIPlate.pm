@@ -15,6 +15,7 @@ use Sub::Exporter -setup => {
               find_projects_ep_pipeline_ii
               create_project_ep_pipeline_ii
               proj_exp_check_ep_ii
+              add_exp_check_ep_ii
           )
     ]
 };
@@ -85,6 +86,8 @@ sub find_projects_ep_pipeline_ii {
     if ($params->{gene_id_assembly_ii}) {
 
         if ($params->{cell_line_assembly_ii}) { $search->{cell_line_id} = $params->{cell_line_assembly_ii}; }
+        if ($params->{targeting_type_assembly_ii}) { $search->{targeting_type} = $params->{targeting_type_assembly_ii}; }
+        if ($params->{strategy_assembly_ii}) { $search->{strategy_id} = $params->{strategy_assembly_ii}; }
         $search->{gene_id} = $params->{gene_id_assembly_ii};
 
     } elsif ($params->{project_id}) {
@@ -150,28 +153,40 @@ sub create_project_ep_pipeline_ii {
                 };
             }
         );
+    } else {
+        return "Project already exists.";
     }
-    return "Project already exists.";
+
+    return;
 
 }
 
 sub proj_exp_check_ep_ii {
-    my ( $model, $exp_id, $gene_id, $cell_line_id ) = @_;
+    my ( $model, $exp_id, $cell_line_id ) = @_;
 
-    my $project_id;
-    my @project_rec = $model->resultset('Project')->search({ gene_id => $gene_id, cell_line_id => $cell_line_id })->all;
-    foreach (@project_rec) {
-        $project_id = $_->id;
-    }
-
-    if ($project_id) {
-        my @proj_exp_count = $model->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => $exp_id })->all;
-        if (scalar @proj_exp_count) {
+    my @proj_exp = $model->resultset('ProjectExperiment')->search({ experiment_id => $exp_id })->all;
+    return if (!$cell_line_id);
+    foreach my $rec (@proj_exp) {
+        my $proj_rec = $model->resultset( 'Project' )->find({ id => $rec->project_id}, { columns => [ qw/cell_line_id/ ] });
+        if ($proj_rec and ($proj_rec->get_column('cell_line_id') == $cell_line_id)) {
             return 1;
         }
     }
 
     return;
+}
+
+sub add_exp_check_ep_ii {
+    my ( $model, $exp_id, $proj_id, $gene_id ) = @_;
+
+    my $exp_rec = $model->resultset( 'Experiment' )->find({ id => $exp_id}, { columns => [ qw/gene_id/ ] });
+    if ($exp_rec->get_column('gene_id') ne $gene_id) { return; }
+
+    ## exp_id and proj_id are not in project_experiment table
+    my @proj_exp_count = $model->resultset('ProjectExperiment')->search({ project_id => $proj_id, experiment_id => $exp_id })->all;
+    if (scalar @proj_exp_count) { return; }
+
+    return 1;
 }
 
 1;

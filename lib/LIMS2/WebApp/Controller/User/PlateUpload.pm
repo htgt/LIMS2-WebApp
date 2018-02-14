@@ -9,6 +9,7 @@ use LIMS2::Model::Util::EPPipelineIIPlate qw( retrieve_experiments_ep_pipeline_i
                                               find_projects_ep_pipeline_ii 
                                               create_project_ep_pipeline_ii 
                                               proj_exp_check_ep_ii
+                                              add_exp_check_ep_ii
                                               );
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -127,6 +128,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         unless (@assembly_ii_crisprs) {
             push @info_msg, 'Error importing Crispr ID: ' . $params->{wge_crispr_assembly_ii};
         }
+        $params->{crispr_id_assembly_ii} = $assembly_ii_crisprs[0];
         push @info_msg, 'Crispr ID was imported from WGE. ' . join ",", @assembly_ii_crisprs;
     }
 
@@ -152,9 +154,12 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
             };
 
             my $experiment = $c->model('Golgi')->create_experiment($exp_params);
-            push @info_msg, 'A new experiment was created.';
+
+            if ($experiment->id) {
+                push @info_msg, 'Experiment ID ' . $experiment->id;
+            }
         } catch {
-            push @info_msg, 'Error creating new experiment.' . $_;
+            push @info_msg, 'Error creating new experiment.';
         };
     }
 
@@ -178,11 +183,26 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
             next;
         }
         push @exp_ids, $dict->{id};
-        my $bool = 0;
-        if ($cell_line_id) {
-            $bool = proj_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $dict->{gene_id}, $cell_line_id);
+
+        my $proj_id;
+
+        try {
+            my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+            if (scalar @projs == 1) {
+                my $proj = $projs[0];
+                $proj_id = $proj->{id};
+            }
+        };
+
+        ## use exp id and cell_line
+        $dict->{project_check} = proj_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $cell_line_id);
+
+        ##
+        $dict->{add_check} = undef;
+        if ($proj_id and $gene_info->{gene_id}) {
+            $dict->{add_check} = add_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $proj_id, $gene_info->{gene_id});
         }
-        $dict->{project_check} = $bool;
+
         my $info = try{ $c->model('Golgi')->find_gene( { search_term => $dict->{gene_id}, species => $species } ) };
         if ( $info ) {
             $dict->{gene_id} = $info->{gene_symbol};
@@ -205,9 +225,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     if ($params->{save_assembly_ii}) {
         my $plate_name = $c->request->params->{assembly_ii_plate_name};
         my $cell_line = $params->{cell_line_assembly_ii};
-        my $sponsor = $params->{sponsor_assembly_ii};
-        my $strategy = $params->{strategy_assembly_ii};
-        my $targeting = $params->{targeting_type_assembly_ii};
 
         my @assembly_ii_wells = build_ep_pipeline_ii_well_data($c, $cell_line);
         my $assembly_ii_plate_data = {
@@ -263,8 +280,9 @@ sub ep_ii_add_exp_to_project {
 
     my $gene_info = try{ $c->model('Golgi')->find_gene( { search_term => $params->{gene_id_assembly_ii}, species => $c->session->{selected_species} } ) };
     if ($gene_info) {
-        my $data = { gene_id_assembly_ii => $gene_info->{gene_id}, cell_line_assembly_ii => $params->{cell_line_assembly_ii} };
-        my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $data);
+        $params->{gene_id_assembly_ii} = $gene_info->{gene_id};
+        ## frontend parameter check for project (gene, cell_line, strategy, targeting type)
+        my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
         $project = $projs[0];
     }
 
@@ -290,7 +308,12 @@ sub build_ep_pipeline_ii_well_data {
 
         if ($temp_exp_id) {
             my @exp_res = retrieve_experiments_by_field($c->model('Golgi')->schema, 'id', $temp_exp_id );
-            my $exp = $exp_res[0];
+            my $exp;
+            if (scalar @exp_res == 1) {
+                $exp = $exp_res[0];
+            }
+
+            next if (! $exp);
 
             my @name_split = split "well_", $well;
             my $temp_data = {

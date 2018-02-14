@@ -61,7 +61,7 @@
   <div style="height:50px;" class="panel-heading">
     <h1 class="panel-title">
       EP Pipeline II Plate - Graphical Interface
-      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii" onclick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
+      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii" onClick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
     </h1>
   </div>
 
@@ -145,7 +145,7 @@
     <div id="experiments_div">
 
     <p style="color:grey;font-size:12px">
-      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign"></span> Dragged experiments in wells will be lost when page is refreshed.<br />
+      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br />
     </p>
 
       <table id="target_t" class="table table-bordered" style="margin-bottom:0px;width:630px;">
@@ -167,9 +167,9 @@
           <th>
             Crispr Group
           </th>
-          <th>
-              <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if an experiment is linked to any project.</br>- If yes, checks if this project has the cell line displayed above.</br>"></span> 
+          <th> 
             Project Check *
+            <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if the experiment has a project and if this project has the same cell line displayed above.</br>"></span>
           </th>
           <th>
             Add to current Project
@@ -213,10 +213,10 @@
             [% END %]
           </td>
           <td style="font-size:20px;">
-            [% IF exp.project_check %]
-            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
+            [% IF exp.add_check %]
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" onClick="return create_project_check()" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()"><b>ADD</b></button>
             [% ELSE %]
-            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onclick="return save_add_exp_check()"><b>ADD</b></button>
+            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
             [% END %]
           </td>
           <td>
@@ -251,10 +251,10 @@
             [% END %]
           </td>
           <td>
-            [% IF exp.project_check %]
-            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
+            [% IF exp.add_check %]
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()"><b>ADD</b></button>
             [% ELSE %]
-            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onclick="return save_add_exp_check()"><b>ADD</b></button>
+            <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
             [% END %]
           </td>
           <td>
@@ -356,6 +356,9 @@ function save_plate_check() {
 function save_add_exp_check() {
   var gene = document.getElementById('gene_id_assembly_ii').value.trim();
   var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
+  var strategy = document.getElementById('strategy_assembly_ii').value.trim();
+  var single_targeted = document.getElementById('single_targeted').checked;
+  var double_targeted = document.getElementById('double_targeted').checked;
 
   if (!cell_line) {
     alert('Cell line is missing.');
@@ -363,6 +366,14 @@ function save_add_exp_check() {
   }
   if (!gene) {
     alert('Gene is missing.');
+    return false;
+  }
+  if (!strategy) {
+    alert('strategy is missing.');
+    return false;
+  }
+  if ((!single_targeted) && (!double_targeted)) {
+    alert('Targeting type is missing.');
     return false;
   }
   return true;
