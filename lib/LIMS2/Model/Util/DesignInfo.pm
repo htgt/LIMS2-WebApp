@@ -199,7 +199,9 @@ sub _build_target_region_start {
         }
     }
 
-    if ( $self->type eq 'miseq-nhej' || $self->type eq 'miseq-hdr' ) {
+    if ( $self->type =~ m/
+            ^miseq #starts with "miseq"
+            /xms ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'INF'}{end};
         }
@@ -268,7 +270,9 @@ sub _build_target_region_end {
             return $self->oligos->{'U5'}{start};
         }
     }
-    if ( $self->type eq 'miseq-nhej' || $self->type eq 'miseq-hdr' ) {
+    if ( $self->type =~ m/
+            ^miseq #starts with "miseq"
+            /xms ) {
         if ( $self->chr_strand == 1 ) {
             return $self->oligos->{'INR'}{start};
         }
