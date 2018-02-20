@@ -90,7 +90,6 @@ sub login : Global {
         my $first_login = $c->model('Golgi')->schema->resultset('User')->find({ name => $c->user->name })->first_login;
 
         if ($first_login == 1){
-#$DB::single=1;
             $c->stash->{info_msg} = 'You must change password to access '.$c->http_uri_for('/');
             $c->stash->{goto_on_success} = $c->http_uri_for('/');
             $c->go( 'Controller::User::UserPreferences', 'change_password' );
