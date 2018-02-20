@@ -323,7 +323,9 @@ sub load_dynamic_files {
             CrisprLocus
             CrisprPair
             CrisprGroup
+            DesignType
             Design
+            DesignOligoType
             DesignOligo
             DesignOligoLocus
             GeneDesign
