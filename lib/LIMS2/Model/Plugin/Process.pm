@@ -122,7 +122,7 @@ sub delete_process {
                                   process_cell_line process_crispr process_nuclease
                                   process_global_arm_shortening_design
                                   process_crispr_tracker_rna
-                                  process_parameters
+                                  process_parameters process_guided_type
                                 );
 
     for my $rs ( @related_resultsets ) {

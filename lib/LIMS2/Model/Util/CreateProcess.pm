@@ -980,8 +980,9 @@ sub pspec__create_process_aux_data_ep_pipeline_ii {
     return {
         design_id => { validate => 'existing_design_id' },
         crispr_id => { validate => 'existing_crispr_id', optional => 1 },
-        cell_line => { optional => 1 }
-        #cell_line => { validate => 'existing_cell_line' }
+        cell_line => { validate => 'existing_cell_line_id' },
+        nuclease     => { validate => 'existing_nuclease_name' },
+        guided_type     => { validate => 'existing_guided_type_name' }
     };
 }
 
@@ -993,6 +994,8 @@ sub _create_process_aux_data_ep_pipeline_ii {
     $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
     $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
     $process->create_related( process_cell_line => { cell_line_id => $params->{cell_line} } );
+    $process->create_related( process_nuclease => { nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} ) } );
+    $process->create_related( process_guided_type => { guided_type_id => _guided_type_id_for( $model, $validated_params->{guided_type} ) } );
 
     return;
 }
@@ -1618,6 +1621,13 @@ sub _nuclease_id_for{
 
     my $nuclease = $model->retrieve( Nuclease => { name => $nuclease_name });
     return $nuclease->id;
+}
+
+sub _guided_type_id_for{
+    my ($model, $guided_type_name ) = @_;
+
+    my $guided_type = $model->retrieve( GuidedType => { name => $guided_type_name });
+    return $guided_type->id;
 }
 
 sub _crispr_tracker_rna_id_for {

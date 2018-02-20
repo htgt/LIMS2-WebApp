@@ -1,74 +1,15 @@
-<style type="text/css">
-
-#squares_div {
-  margin-left: 60px;
-  margin-top: 20px;
-  float: left;
-}
-
-#experiments_div {
-  margin-right: 30px;
-  float: right;
-}
-
-#experiments_inner_div {
-  overflow: scroll;
-  height: 400px;
-  width: 650px;
-}
-
-.experiment_well {
-  background-color: #add8e6;
-  height: 20px;
-}
-
-.square {
-  width: 150px;
-  height: 60px;
-  border: 1px solid #4682b4;/*steelblue*/
-  background-color: #add8e6;/*lightblue*/
-  opacity: 0.5;
-}
-
-#gui_panel {
-  padding-top: 20px;
-}
-
-#assembly_ii_plate_name {
-  margin-bottom: 8px;
-}
-
-#target_t {
-  table-layout:fixed;
-}
-
-#target_t:tr {
-  width:20px;
-}
-
-#target_t:th {
-  width:20px;
-}
-
-.glyphicon-info-sign:hover {
-  cursor: pointer;
-}
-
-</style>
 
 <div id="gui_panel">
 <div class="panel panel-default">
-  <div style="height:50px;" class="panel-heading">
-    <h1 class="panel-title">
-      EP Pipeline II Plate - Graphical Interface
-      <button class="btn btn-success" style="float:right;" type="submit" id="save_assembly_ii" name="save_assembly_ii" value="save_assembly_ii" onClick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk"></span> SAVE</button>
+  <div style="height:60px;" class="panel-heading">
+    <h1 class="panel-title" style="float:left;">
+      EP Pipeline II Plate - Graphical Interface <span id="ep_ii_plate_tooltip" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-html="true" title="An EP II well requires a: crispr id, design id, gene id, cell line, project.<br />All wells of this plate share the same cell line.</br>"></span>
     </h1>
+      <button class="btn btn-default" style="float:right;height:45px;width:45px;padding:1px;" type="submit" id="save_assembly_ii" data-toggle="tooltip" data-html="true" title="Save Plate</br>" name="save_assembly_ii" value="save_assembly_ii" onClick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk" style="font-size:25px;"></span></button>
+      <button id="find_assembly_ii_experiments" data-toggle="tooltip" data-html="true" title="Find Experiments</br>" style="float:right;margin-right:10px;padding:1px;" name="find_assembly_ii_experiments" value="find_assembly_ii_experiments" class="btn btn-default"><img src="[% c.uri_for( '/static/images/flask.png' ) %]" width="40" height="40"></button>
   </div>
 
   <div class="panel-body">
-    <p style="color:grey;font-size:12px">
-      An EP II well needs a crispr, design, gene, cell line and project. All wells of this plate share the same cell line.</br>
-    </p>
     <div id="squares_div">
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
 
@@ -76,66 +17,66 @@
     <table>
     <tr>
       <td>
-        <div id="square_1" class="square" style="border-top-left-radius:5px;" onmouseover="scaleup('square_1')" onmouseout="scaledown('square_1')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_01" name="well_01" style="display:none;"></input></div>
+        <div id="square_1" class="square" style="border-top-left-radius:5px;padding:10px;" onmouseover="scaleup('square_1')" onmouseout="scaledown('square_1')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_01" name="well_01" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_9" class="square" style="border-top-right-radius:5px;" onmouseover="scaleup('square_9')" onmouseout="scaledown('square_9')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_09" name="well_09" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_2" class="square" style="" onmouseover="scaleup('square_2')" onmouseout="scaledown('square_2')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_02" name="well_02" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_10" class="square" style="" onmouseover="scaleup('square_10')" onmouseout="scaledown('square_10')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
+        <div id="square_9" class="square" style="border-top-right-radius:5px;padding:10px;" onmouseover="scaleup('square_9')" onmouseout="scaledown('square_9')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_09" name="well_09" style="display:none;"></input></div>
       </td>
     </tr>
     <tr>
       <td>
-        <div id="square_3" class="square" style="" onmouseover="scaleup('square_3')" onmouseout="scaledown('square_3')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_03" name="well_03" style="display:none;"></input></div>
+        <div id="square_2" class="square" style="padding:10px;" onmouseover="scaleup('square_2')" onmouseout="scaledown('square_2')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_02" name="well_02" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_11" class="square" style="" onmouseover="scaleup('square_11')" onmouseout="scaledown('square_11')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_4" class="square" onmouseover="scaleup('square_4')" onmouseout="scaledown('square_4')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_04" name="well_04" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_12" class="square" style="" onmouseover="scaleup('square_12')" onmouseout="scaledown('square_12')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
+        <div id="square_10" class="square" style="padding:10px;" onmouseover="scaleup('square_10')" onmouseout="scaledown('square_10')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
       </td>
     </tr>
     <tr>
       <td>
-        <div id="square_5" class="square" style="" onmouseover="scaleup('square_5')" onmouseout="scaledown('square_5')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_05" name="well_05" style="display:none;"></input></div>
+        <div id="square_3" class="square" style="padding:10px;" onmouseover="scaleup('square_3')" onmouseout="scaledown('square_3')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_03" name="well_03" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_13" class="square" onmouseover="scaleup('square_13')" onmouseout="scaledown('square_13')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_6" class="square" onmouseover="scaleup('square_6')" onmouseout="scaledown('square_6')" style="" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_06" name="well_06" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_14" class="square" style="" onmouseover="scaleup('square_14')" onmouseout="scaledown('square_14')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
+        <div id="square_11" class="square" style="padding:10px;" onmouseover="scaleup('square_11')" onmouseout="scaledown('square_11')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
       </td>
     </tr>
     <tr>
       <td>
-        <div id="square_7" class="square" style="" onmouseover="scaleup('square_7')" onmouseout="scaledown('square_7')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_07" name="well_07" style="display:none;"></input></div>
+        <div id="square_4" class="square" style="padding:10px;" onmouseover="scaleup('square_4')" onmouseout="scaledown('square_4')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_04" name="well_04" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_15" class="square" style="" onmouseover="scaleup('square_15')" onmouseout="scaledown('square_15')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
+        <div id="square_12" class="square" style="padding:10px;" onmouseover="scaleup('square_12')" onmouseout="scaledown('square_12')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
       </td>
     </tr>
     <tr>
       <td>
-        <div id="square_8" class="square" onmouseover="scaleup('square_8')" onmouseout="scaledown('square_8')" style="border-bottom-left-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_08" name="well_08" style="display:none;"></input></div>
+        <div id="square_5" class="square" style="padding:10px;" onmouseover="scaleup('square_5')" onmouseout="scaledown('square_5')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_05" name="well_05" style="display:none;"></input></div>
       </td>
       <td>
-        <div id="square_16" class="square" onmouseover="scaleup('square_16')" onmouseout="scaledown('square_16')" style="border-bottom-right-radius:5px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
+        <div id="square_13" class="square" style="padding:10px;" onmouseover="scaleup('square_13')" onmouseout="scaledown('square_13')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_6" class="square" onmouseover="scaleup('square_6')" onmouseout="scaledown('square_6')" style="padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_06" name="well_06" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_14" class="square" style="padding:10px;" onmouseover="scaleup('square_14')" onmouseout="scaledown('square_14')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_7" class="square" style="padding:10px;" onmouseover="scaleup('square_7')" onmouseout="scaledown('square_7')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_07" name="well_07" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_15" class="square" style="padding:10px;" onmouseover="scaleup('square_15')" onmouseout="scaledown('square_15')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_8" class="square" onmouseover="scaleup('square_8')" onmouseout="scaledown('square_8')" style="border-bottom-left-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_08" name="well_08" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_16" class="square" onmouseover="scaleup('square_16')" onmouseout="scaledown('square_16')" style="border-bottom-right-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
       </td>
     </tr>
     </table>
@@ -145,11 +86,13 @@
     <div id="experiments_div">
 
     <p style="color:grey;font-size:12px">
-      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br />
+      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /><b>*</b> Required paramters.<br />
     </p>
 
-      <table id="target_t" class="table table-bordered" style="margin-bottom:0px;width:630px;">
-        <thead class="active">
+      <div id="experiments_inner_div">
+
+      <table id="target_t" class="table table-bordered" style="margin-bottom:0px;width:1200px;">
+        <thead class="active" style="">
           <th>
           </th>
           <th>
@@ -167,6 +110,12 @@
           <th>
             Crispr Group
           </th>
+          <th style="width:200px;">
+            Protein
+          </th>
+          <th style="width:200px;">
+            Guided type
+          </th>
           <th> 
             Project Check *
             <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if the experiment has a project and if this project has the same cell line displayed above.</br>"></span>
@@ -175,14 +124,10 @@
             Add to current Project
           </th>
           <th>
-            Exper iment ID
+            Experiment ID
           </th>
         </thead>
-      </table>
 
-      <div id="experiments_inner_div">
-
-      <table id="target_t" class="table table-bordered table-fixed" style="width:630px;">
         <tbody>
       [% FOR exp IN assembly_ii_experiments %]
         [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
@@ -205,6 +150,30 @@
           <td style="font-size:12px;">
             [% exp.crispr_group_id or '-' %]
           </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_protein_type_assembly_ii" name="[% exp.id %]_protein_type_assembly_ii">
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_guided_type_assembly_ii" name="[% exp.id %]_guided_type_assembly_ii">
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
           <td style="font-size:20px;">
             [% IF exp.project_check %]
             &#10004;
@@ -214,7 +183,7 @@
           </td>
           <td style="font-size:20px;">
             [% IF exp.add_check %]
-            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" onClick="return create_project_check()" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()"><b>ADD</b></button>
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()"><b>ADD</b></button>
             [% ELSE %]
             <button class="btn btn-basic disabled" id="" type="button"><b>ADD</b></button>
             [% END %]
@@ -242,6 +211,30 @@
           </td>
           <td style="font-size:12px;">
             [% exp.crispr_group_id or '-' %]
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
           </td>
           <td style="font-size:20px;">
             [% IF exp.project_check %]
@@ -273,112 +266,4 @@
 </div>
 </div>
 
-<script type="text/javascript">
-
-function view_toggle (target_id) {
-  var object = document.getElementById(target_id);
-  if (object.style.display == 'none') {
-    object.style.display = 'block';
-  } else if (object.style.display == 'block') {
-    object.style.display = 'none';
-  }
-}
-
-function dragstart_handler(ev) {
-  ev.dataTransfer.setData("text/plain", ev.target.id);
-}
-
-function dragover_handler(ev) {
-  ev.preventDefault();
-  //ev.dataTransfer.dropEffect = "move";
-}
-
-function drop_handler(ev) {
-  ev.preventDefault();
-  var data = ev.dataTransfer.getData("text/plain");
-  // remove any existing experiments DIV
-  var children = ev.target.children;
-
-  for (i=0; i<children.length; i++) {
-    if (children[i].className == 'experiment_well') {
-      if (children[i].value == '') {
-        children[i].value = data;
-        children[i].style.width = '60px';
-        children[i].style.height = '20px';
-        children[i].style.display = 'block';
-        children[i].style.color = 'red';
-      }
-    }
-  }
-}
-
-function scaleup(square_id) {
-  document.getElementById(square_id).style.transform = "scale(1.5)";
-  document.getElementById(square_id).style.zIndex = "1";
-  document.getElementById(square_id).style.position = "relative";
-  document.getElementById(square_id).style.transitionDuration = "0.1s";
-  document.getElementById(square_id).style.opacity = "0.8";
-}
-
-function scaledown(square_id) {
-  document.getElementById(square_id).style.transform = "";
-  document.getElementById(square_id).style.zIndex = "0";
-  document.getElementById(square_id).style.position = "";
-  document.getElementById(square_id).style.transitionDuration = "";
-  document.getElementById(square_id).style.opacity = "0.5";
-}
-
-function refresh_square(square_id) {
-  var square = document.getElementById(square_id);
-  var children = square.children;
-  for (i=0; i<children.length; i++) {
-    if (children[i].className == 'experiment_well') {
-      children[i].style.display = 'none';
-      children[i].value = '';
-    }
-  }
-}
-
-function save_plate_check() {
-  var plate_name = document.getElementById('assembly_ii_plate_name').value.trim();
-  var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
-  if (!plate_name) {
-    alert('Plate name is missing.');
-    return false;
-  }
-  if (!cell_line) {
-    alert('Cell line is missing.');
-    return false;
-  }
-  return true;
-}
-
-function save_add_exp_check() {
-  var gene = document.getElementById('gene_id_assembly_ii').value.trim();
-  var cell_line = document.getElementById('cell_line_assembly_ii').value.trim();
-  var strategy = document.getElementById('strategy_assembly_ii').value.trim();
-  var single_targeted = document.getElementById('single_targeted').checked;
-  var double_targeted = document.getElementById('double_targeted').checked;
-
-  if (!cell_line) {
-    alert('Cell line is missing.');
-    return false;
-  }
-  if (!gene) {
-    alert('Gene is missing.');
-    return false;
-  }
-  if (!strategy) {
-    alert('strategy is missing.');
-    return false;
-  }
-  if ((!single_targeted) && (!double_targeted)) {
-    alert('Targeting type is missing.');
-    return false;
-  }
-  return true;
-}
-
-
-</script>
 

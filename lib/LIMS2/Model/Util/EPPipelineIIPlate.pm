@@ -16,6 +16,7 @@ use Sub::Exporter -setup => {
               create_project_ep_pipeline_ii
               proj_exp_check_ep_ii
               add_exp_check_ep_ii
+              create_exp_ep_pipeline_ii
           )
     ]
 };
@@ -61,6 +62,38 @@ sub retrieve_experiments_by_field {
 
     return @experiments;
 
+}
+
+sub create_exp_ep_pipeline_ii {
+    my ( $model, $params, $gene_id ) = @_;
+
+    my $msg;
+    $model->schema->txn_do(
+        sub {
+            try {
+                my $exp_params = {
+                    gene_id         =>  $gene_id,
+                    design_id       =>  $params->{design_id_assembly_ii},
+                    crispr_id       =>  $params->{crispr_id_assembly_ii}
+                };
+                my $experiment = $model->create_experiment($exp_params);
+
+                if ($experiment->id) {
+                    $msg = 'See experiment ID ' . $experiment->id . ' for these attributes.';
+                }
+            }
+            catch {
+                $model->schema->txn_rollback;
+                my $err = $_;
+                if ($_ =~ 'design_crispr_combo') {
+                    $err = 'Duplicate crispr/design combo.';
+                }
+                $msg = 'Error creating new experiment: ' . $err;
+            };
+        }
+    );
+
+    return $msg;
 }
 
 sub import_wge_crispr_ep_pipeline_ii {
@@ -118,47 +151,47 @@ sub find_projects_ep_pipeline_ii {
 sub create_project_ep_pipeline_ii {
     my ( $model, $params ) = @_;
 
+    my $msg;
     # Store params common to search and create
     my $search = { species_id => $params->{species} };
-    if( $params->{gene_id_assembly_ii} ) {
+    if ( $params->{gene_id_assembly_ii} ) {
         $search->{gene_id} = $params->{gene_id_assembly_ii};
     }
-    if( $params->{targeting_type_assembly_ii} ) {
+    if ( $params->{targeting_type_assembly_ii} ) {
         $search->{targeting_type} = $params->{targeting_type_assembly_ii};
     }
-    if( $params->{'cell_line_assembly_ii'} ) {
-        $search->{cell_line_id} = $params->{'cell_line_assembly_ii'};
+    if ( $params->{cell_line_assembly_ii} ) {
+        $search->{cell_line_id} = $params->{cell_line_assembly_ii};
     }
-    if( $params->{strategy_assembly_ii} ) {
+    if ( $params->{strategy_assembly_ii} ) {
         $search->{strategy_id} = $params->{strategy_assembly_ii};
     }
 
-    my @projects_rs = $model->schema->resultset('Project')->search( $search, { order_by => 'id' })->all;
+    my @projects_rs = $model->schema->resultset('Project')->search( $search, { order_by => 'id' } )->all;
 
-    if(scalar @projects_rs == 0){
+    if (scalar @projects_rs == 0) {
         # Create a new project
-        if(my $sponsor = $params->{sponsor_assembly_ii}){
+        if(my $sponsor = $params->{sponsor_assembly_ii}) {
             $search->{sponsors_priority} = { $sponsor => undef };
         }
         my $project;
         $model->schema->txn_do(
             sub {
-                try{
+                try {
                     $project = $model->create_project($search);
-                    return "A new project was created.";
+                    $msg = "A new project was created.";
                 }
-                catch{
+                catch {
                     $model->schema->txn_rollback;
-                    return "Project creation failed with error: $_";
+                    $msg = "Project creation failed with error: $_";
                 };
             }
         );
     } else {
-        return "Project already exists.";
+        $msg = "Project already exists.";
     }
 
-    return;
-
+    return $msg;
 }
 
 sub proj_exp_check_ep_ii {

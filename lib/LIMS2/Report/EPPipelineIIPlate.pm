@@ -30,6 +30,8 @@ sub _build_wells_data {
             crispr_loc    => $well_info->{crispr_loc},
             gene_id       => $well_info->{gene_id},
             cell_line     => $well_info->{cell_line},
+            protein_type  => $well_info->{protein_type},
+            guided_type   => $well_info->{guided_type},
             project_id    => $well_info->{project_id},
             created_by    => $well_info->{created_by}
         };
@@ -53,7 +55,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Project ID', 'Created By'
+        'Cell Number', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
     ];
 };
 
@@ -75,6 +77,8 @@ override iterator => sub {
             $well_data->{crispr_loc},
             $well_data->{gene_id},
             $well_data->{cell_line},
+            $well_data->{protein_type},
+            $well_data->{guided_type},
             $well_data->{project_id},
             $well_data->{created_by}
         );
@@ -124,6 +128,28 @@ sub get_well_cell_line {
     my $cell_line_id = $res->get_column('cell_line_id');
 
     return $cell_line_id;
+}
+
+sub get_well_protein_type {
+    my ($self, $well_id) = @_;
+
+    my $well_process = $self->get_well_process($well_id);
+
+    my $res = $self->model->schema->resultset( 'ProcessNuclease' )->find({ process_id =>  $well_process }, { columns => [ qw/nuclease_id/ ] });
+    my $nuclease_id = $res->get_column('nuclease_id');
+
+    return $nuclease_id;
+}
+
+sub get_well_guided_type {
+    my ($self, $well_id) = @_;
+
+    my $well_process = $self->get_well_process($well_id);
+
+    my $res = $self->model->schema->resultset( 'ProcessGuidedType' )->find({ process_id =>  $well_process }, { columns => [ qw/guided_type_id/ ] });
+    my $guided_type_id = $res->get_column('guided_type_id');
+
+    return $guided_type_id;
 }
 
 sub get_well_gene {
@@ -190,9 +216,19 @@ sub get_well_info {
     ## get cell line name
     my $db_cell_line = $self->model->schema->resultset( 'CellLine' )->find({ id => $cell_line_id }, { columns => [ qw/name/ ] });
 
+    ## get protein type
+    my $protein_type_id = $self->get_well_protein_type($well_id);
+    my $db_protein_type = $self->model->schema->resultset( 'Nuclease' )->find({ id => $protein_type_id }, { columns => [ qw/name/ ] });
+
+    ## get guided type
+    my $guided_type_id = $self->get_well_guided_type($well_id);
+    my $db_guided_type = $self->model->schema->resultset( 'GuidedType' )->find({ id => $guided_type_id }, { columns => [ qw/name/ ] });
+
     ## prepare report data
     $info->{project_id} = $db_proj->get_column('id');
     $info->{cell_line} = $db_cell_line->get_column('name');
+    $info->{protein_type} = $db_protein_type->get_column('name');
+    $info->{guided_type} = $db_guided_type->get_column('name');
     $info->{gene_id} = $self->get_gene_name($info->{gene_id});
     $info->{crispr_loc} = $crispr_locs;
     $info->{created_by} = $db_user->get_column('name');

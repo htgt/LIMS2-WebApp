@@ -10,6 +10,7 @@ use LIMS2::Model::Util::EPPipelineIIPlate qw( retrieve_experiments_ep_pipeline_i
                                               create_project_ep_pipeline_ii 
                                               proj_exp_check_ep_ii
                                               add_exp_check_ep_ii
+                                              create_exp_ep_pipeline_ii
                                               );
 
 BEGIN {extends 'Catalyst::Controller'; }
@@ -77,7 +78,7 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## - persistent cell line input
     try {
         foreach my $cl (@cell_lines) {
-            if ($cl->{id} eq $params->{cell_line_assembly_ii}) {
+            if ($params->{cell_line_assembly_ii} and ($cl->{id} eq $params->{cell_line_assembly_ii})) {
                 $cell_line_id = $cl->{id};
                 $c->stash(cell_line_id => $cl->{id}, cell_line_name => $cl->{name});
             }
@@ -85,6 +86,12 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     };
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
     $c->stash->{sponsors} = \@sponsors;
+
+    my @protein_types = map { $_->name } $c->model('Golgi')->schema->resultset('Nuclease')->all;
+    $c->stash->{protein_type_options} = \@protein_types;
+
+    my @guided_types = map { $_->name } $c->model('Golgi')->schema->resultset('GuidedType')->all;
+    $c->stash->{guided_type_options} = \@guided_types;
 
     ## - find projects
     my @all_projects;
@@ -123,13 +130,13 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## ---------------
     ## - import crispr id from wge
     my @assembly_ii_crisprs;
-    if ($params->{import_assembly_ii_crispr}) {
+    if ($params->{import_assembly_ii_crispr} and $params->{wge_crispr_assembly_ii}) {
         @assembly_ii_crisprs = import_wge_crispr_ep_pipeline_ii($c->model('Golgi'), $params);
         unless (@assembly_ii_crisprs) {
             push @info_msg, 'Error importing Crispr ID: ' . $params->{wge_crispr_assembly_ii};
         }
-        $params->{crispr_id_assembly_ii} = $assembly_ii_crisprs[0];
-        push @info_msg, 'Crispr ID was imported from WGE. ' . join ",", @assembly_ii_crisprs;
+        $params->{crispr_id_assembly_ii} = $assembly_ii_crisprs[0]->{lims2_id};
+        push @info_msg, 'Crispr ID ' . $params->{crispr_id_assembly_ii} . ' was imported from WGE.';
     }
 
     ## -------------------
@@ -146,21 +153,9 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
     ## - create experiment
     if ($params->{create_assembly_ii_experiment}) {
-        try {
-            my $exp_params = {
-                gene_id         =>  $gene_info->{gene_id},
-                design_id       =>  $params->{design_id_assembly_ii},
-                crispr_id       =>  $params->{crispr_id_assembly_ii}
-            };
-
-            my $experiment = $c->model('Golgi')->create_experiment($exp_params);
-
-            if ($experiment->id) {
-                push @info_msg, 'Experiment ID ' . $experiment->id;
-            }
-        } catch {
-            push @info_msg, 'Error creating new experiment.';
-        };
+        $params->{find_assembly_ii_experiments} = 'find_assembly_ii_experiments';
+        push @info_msg, create_exp_ep_pipeline_ii($c->model('Golgi'), $params, $gene_info->{gene_id});
+        print @info_msg;
     }
 
     ## - add experiment to project
@@ -173,42 +168,10 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
         push @assembly_ii_experiments, retrieve_experiments_ep_pipeline_ii($c->model('Golgi')->schema, $params);
     }
 
-    ## - unique experiments
-    my @unique_exps;
-    my @exp_ids;
-
-    ## - project existance check for experiments
-    foreach my $dict (@assembly_ii_experiments) {
-        if ( grep { $_ == $dict->{id} } @exp_ids) {
-            next;
-        }
-        push @exp_ids, $dict->{id};
-
-        my $proj_id;
-
-        try {
-            my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
-            if (scalar @projs == 1) {
-                my $proj = $projs[0];
-                $proj_id = $proj->{id};
-            }
-        };
-
-        ## use exp id and cell_line
-        $dict->{project_check} = proj_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $cell_line_id);
-
-        ##
-        $dict->{add_check} = undef;
-        if ($proj_id and $gene_info->{gene_id}) {
-            $dict->{add_check} = add_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $proj_id, $gene_info->{gene_id});
-        }
-
-        my $info = try{ $c->model('Golgi')->find_gene( { search_term => $dict->{gene_id}, species => $species } ) };
-        if ( $info ) {
-            $dict->{gene_id} = $info->{gene_symbol};
-        }
-        push @unique_exps, $dict;
-    }
+    ## - experiments
+    my $exp_obj = ep_ii_prepare_exps($c, \@assembly_ii_experiments, $params, $cell_line_id, $gene_info, $species);
+    my @unique_exps = @{$exp_obj->{unique_exps}};
+    my @exp_ids = @{$exp_obj->{exp_ids}};
 
     my $lagging_exps_str = join ",", @exp_ids;
 
@@ -237,13 +200,19 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
 
         my $plate;
 
-        try{
-            $plate = $c->model('Golgi')->create_plate( $assembly_ii_plate_data );
-            $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
-            $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
-        } catch {
-            push @info_msg, 'Error creating plate: ' . $_;
-        };
+        $c->model('Golgi')->schema->txn_do(
+            sub {
+                try {
+                    $plate = $c->model('Golgi')->create_plate( $assembly_ii_plate_data );
+                    $c->flash->{success_msg} = 'Created new plate ' . $plate->name;
+                    $c->res->redirect( $c->uri_for('/user/view_plate', { 'id' => $plate->id }) );
+                }
+                catch {
+                    $c->model('Golgi')->schema->txn_rollback;
+                    push @info_msg, 'Error creating plate: ' . $_;
+                };
+            }
+        );
     }
 
     if (@info_msg) {
@@ -254,6 +223,42 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     return;
 }
 
+
+sub ep_ii_prepare_exps {
+    my ($c, $assembly_ii_experiments, $params, $cell_line_id, $gene_info, $species) = @_;
+
+    my @unique_exps;
+    my @exp_ids;
+
+    foreach my $dict (@{$assembly_ii_experiments}) {
+        if ( grep { $_ == $dict->{id} } @exp_ids) {
+            next;
+        }
+        push @exp_ids, $dict->{id};
+        my $proj_id;
+        try {
+            my @projs = find_projects_ep_pipeline_ii($c->model('Golgi')->schema, $params);
+            if (scalar @projs == 1) {
+                my $proj = $projs[0];
+                $proj_id = $proj->{id};
+            }
+        };
+        ## use exp id and cell_line
+        $dict->{project_check} = proj_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $cell_line_id);
+        ##
+        $dict->{add_check} = undef;
+        if ($proj_id and $gene_info->{gene_id}) {
+            $dict->{add_check} = add_exp_check_ep_ii($c->model('Golgi')->schema, $dict->{id}, $proj_id, $gene_info->{gene_id});
+        }
+        my $info = try{ $c->model('Golgi')->find_gene( { search_term => $dict->{gene_id}, species => $species } ) };
+        if ( $info ) {
+            $dict->{gene_id} = $info->{gene_symbol};
+        }
+        push @unique_exps, $dict;
+    }
+
+    return {unique_exps => \@unique_exps, exp_ids => \@exp_ids};
+}
 
 sub ep_ii_compile_project_info {
     my ($c, $projects_ref) = @_;
@@ -287,24 +292,50 @@ sub ep_ii_add_exp_to_project {
     }
 
     my $add_exp_check = 0;
-    try {
-        $add_exp_check = $c->model('Golgi')->add_experiment($project->{id}, $exp_info[0]);
-    };
+    my $msg;
 
-    if ($add_exp_check) {
-        return 'Experiment has been added for this project ' . $project->{id};
-    } else {
-        return 'Could not add experiment.';
-    }
+    $c->model('Golgi')->schema->txn_do(
+        sub {
+            try {
+                $add_exp_check = $c->model('Golgi')->add_experiment($project->{id}, $exp_info[0]);
+                die if (! $add_exp_check);
+                $msg = 'Experiment has been added for this project ' . $project->{id};
+            }
+            catch {
+                $c->model('Golgi')->schema->txn_rollback;
+                $msg = 'Could not add experiment: ' . $_;
+            };
+        }
+    );
 
+    return $msg;
 }
 
 sub build_ep_pipeline_ii_well_data {
     my ($c, $cell_line_id) = @_;
 
     my @wells;
+    my $params = $c->request->params;
     foreach my $well (qw( well_01 well_02 well_03 well_04 well_05 well_06 well_07 well_08 well_09 well_10 well_11 well_12 well_13 well_14 well_15 well_16 )) {
-        my $temp_exp_id = $c->request->params->{$well};
+        my $temp_exp_id = $params->{$well};
+        my $well_protein_type;
+        my $well_guided_type;
+
+        ## well protein type
+        my $exp_protein_type_str = $temp_exp_id . '_protein_type_assembly_ii';
+        foreach my $key (keys %{$params}) {
+            if ( $key eq $exp_protein_type_str and $params->{$key} ) {
+                $well_protein_type = $params->{$key};
+            }
+        }
+
+        ## well guided type
+        my $exp_guided_type_str = $temp_exp_id . '_guided_type_assembly_ii';
+        foreach my $key (keys %{$params}) {
+            if ( $key eq $exp_guided_type_str and $params->{$key} ) {
+                $well_guided_type = $params->{$key};
+            }
+        }
 
         if ($temp_exp_id) {
             my @exp_res = retrieve_experiments_by_field($c->model('Golgi')->schema, 'id', $temp_exp_id );
@@ -320,6 +351,8 @@ sub build_ep_pipeline_ii_well_data {
                 well_name    => 'A' . $name_split[1],
                 design_id    => $exp->{design_id},
                 crispr_id    => $exp->{crispr_id},
+                nuclease     => $well_protein_type,
+                guided_type  => $well_guided_type,
                 cell_line    => $cell_line_id,
                 process_type => 'ep_pipeline_ii'
             };
