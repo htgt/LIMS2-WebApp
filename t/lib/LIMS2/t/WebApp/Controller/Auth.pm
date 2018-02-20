@@ -84,7 +84,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(15)
+sub all_tests  : Test(32)
 {
 
     my $mech = unauthenticated_mech();
@@ -121,13 +121,57 @@ sub all_tests  : Test(15)
 	    form_name => 'login_form',
 	    fields    => { username => 'test_user@example.org', password => 'ahdooS1e' },
 	    button    => 'login'
-	), 'Login with correct username and password';
+	), 'First time login with correct password';
+
+	ok $res->is_success, '...response is_success';
+	like $res->content, qr/change password to access/, '...change password message is present';
+    is $res->base->path, '/login', '...redirected to change password page';
+
+    ok my $res_password = $mech->submit_form(
+	    form_name => 'change_password_form',
+	    fields    => { new_password => 'erbNf12k', new_password_confirm => 'erbNf1k' },
+	    button    => 'change_password_submit'
+	), 'Password and confirm password mismatch';
+
+	ok $res_password->is_success, '...response is_success';
+    is $res_password->base->path, '/user/change_password', '...stays on change password page';
+	like $res_password->content, qr/confirm values do not match/, '...Password and comfirm password do not match error displayed';
+    }
+
+    {
+    $mech->get_ok('/login');
+    ok my $res = $mech->submit_form(
+	    form_name => 'login_form',
+	    fields    => { username => 'test_user@example.org', password => 'ahdooS1e' },
+	    button    => 'login'
+	), 'First time Logging in with correct username and password';
+
+    ok $res->is_success, '...response is success';
+	is $res->base->path, '/login', '...redirected to change password page';
+    
+    ok my $res_password = $mech->submit_form(
+	    form_name => 'change_password_form',
+	    fields    => { new_password => 'erbNf12k', new_password_confirm => 'erbNf12k' },
+	    button    => 'change_password_submit'
+	), 'Changing password';
+
+	ok $res_password->is_success, '...response is_success';
+	like $res_password->content, qr/Password successfully changed/, '...password sucessfully changed message is present';
+    is $res_password->base->path, '/', '...redirected to "/"';
+    }
+
+    {
+	$mech->get_ok( '/login' );
+	ok my $res = $mech->submit_form(
+	    form_name => 'login_form',
+	    fields    => { username => 'test_user@example.org', password => 'erbNf12k' },
+	    button    => 'login'
+	), 'Login with new password';
 
 	ok $res->is_success, '...response is_success';
 	like $res->content, qr/Login successful/, '...login successful message is present';
-	is $res->base->path, '/', '...redirected to "/"';
+    is $res->base->path, '/', '...redirected to "/"';
     }
-
 }
 
 =head1 AUTHOR
