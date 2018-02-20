@@ -5,3 +5,5 @@ id,name,created_by,created_at,design_type_id,phase,validated_by_annotation,targe
 88512,EUCTV8697,1084,2008-04-09 00:00:00,deletion,1,yes,ENSMUST00000025519,Mouse,,t,,
 88505,EUCTV8688,1084,2008-04-09 00:00:00,deletion,0,yes,ENSMUST00000033157,Mouse,,t,,
 10000,,1084,2008-04-09 00:00:00,nonsense,0,not done,ENST00000371620,Human,,t,,
+1016404,AMOT,1082,2017-12-13 00:00:00,miseq,,not done,,Human,,t,,
+1016430,CHD7_1,1082,2017-12-13 00:00:00,miseq-nhej,,not done,,Human,,t,,

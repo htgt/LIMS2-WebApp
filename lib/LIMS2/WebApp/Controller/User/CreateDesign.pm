@@ -13,10 +13,13 @@ use WebAppCommon::Util::FarmJobRunner;
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
+use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
 use Data::Dumper;
+use List::MoreUtils qw(uniq);
+use YAML::XS qw( LoadFile );
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -497,6 +500,122 @@ sub design_attempt : PathPart('user/design_attempt') Chained('/') CaptureArgs(1)
     $c->stash(
         da      => $design_attempt,
         species => $species_id,
+    );
+
+    return;
+}
+
+sub create_miseq_design : Path( '/user/create_miseq_design' ){
+    my ($self, $c) = @_;
+
+    $c->assert_user_roles( 'read' );
+    my $search_terms = $c->request->param('crisprs');
+
+    if (! defined $search_terms){return}
+
+    my (@valid_terms, @invalid_terms);
+
+    if ($search_terms){
+
+        my @crispr_set = split /\s*,\s*/, $search_terms;
+        @crispr_set = uniq @crispr_set;
+
+        foreach my $crispr (@crispr_set){
+            $crispr =~ s/^\s+|\s+$//;
+
+            if ($crispr =~ /^[0-9]{6}$/){
+
+                push (@valid_terms, $crispr);
+
+            } else {
+
+                push (@invalid_terms, $crispr);
+
+            }
+        }
+    }
+    my $crispr_info;
+    my @crispr_table;
+    my @failed_terms;
+    my $design_requirements = {
+        design_type => 'miseq-nhej',
+    };
+    foreach my $crispr (@valid_terms){
+
+        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
+
+        if ($crispr_rs){
+            my $wge_id = $crispr_rs->wge_id;
+            $crispr_info->{$crispr} = $wge_id;
+
+            my $results = generate_miseq_design($c, $design_requirements, $crispr);
+            my $crispr_ids;
+            if ($results->{error}) {
+                $crispr_ids = {
+                    lims    => $crispr,
+                    wge     => $wge_id,
+                    status  => $results->{error},
+                };
+            } else {
+                my @hgnc = grep { /^HGNC*/ } $results->{design}->gene_ids;
+                $crispr_ids = {
+                    lims    => $crispr,
+                    wge     => $wge_id,
+                    status  => 'Success',
+                    gene    => join (', ', @hgnc),
+                    design  => $results->{design}->id,
+                };
+            }
+            push (@crispr_table, $crispr_ids);
+
+        } else {
+
+            push (@failed_terms, $crispr);
+
+        }
+
+    }
+
+    my $errors = join(', ', @invalid_terms , @failed_terms);
+
+    my @crispr_id = keys %$crispr_info;
+
+    if ( scalar(@crispr_id) <= 0) {
+        $c->stash( error_msg => "No crisprs found matching search terms" );
+    }
+    if( @invalid_terms || @failed_terms){
+        $c->stash( error_msg => "One or more search terms could not be found: $errors" );
+    }
+
+
+    my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_MISEQ_PCR_CONFIG' });
+
+    my $melting_temp = {
+        min     => $miseq_pcr_conf->{primer_min_tm},
+        max     => $miseq_pcr_conf->{primer_max_tm},
+        opt     => $miseq_pcr_conf->{primer_opt_tm},
+    };
+
+    my $gc_content = {
+        min     => $miseq_pcr_conf->{primer_min_gc},
+        max     => $miseq_pcr_conf->{primer_max_gc},
+        opt     => $miseq_pcr_conf->{primer_opt_gc_percent},
+    };
+
+    my $genomic_threshold = $miseq_pcr_conf->{genomic_threshold};
+
+    $c->stash(
+        crisprs             => $c->request->param('crisprs') || undef,
+        crispr_id           => \@crispr_id,
+        valid_terms         => \@valid_terms,
+        invalid_terms       => \@invalid_terms,
+        crispr_info         => $crispr_info,
+        crispr_table        => \@crispr_table,
+        search_terms        => $search_terms,
+        failed_terms        => \@failed_terms,
+        gc_content          => $gc_content,
+        melting_temp        => $melting_temp,
+        genomic_threshold   => $genomic_threshold,
     );
 
     return;

@@ -1,25 +1,43 @@
 package LIMS2::Model::Util::CreateDesign;
 
+use strict;
 use warnings FATAL => 'all';
 
 use Moose;
 
+use namespace::autoclean;
+use Path::Class;
 use Sub::Exporter -setup => {
-    exports => [ 'convert_gibson_to_fusion' ]
+    exports => [
+        qw(
+              convert_gibson_to_fusion
+              create_miseq_design
+          )
+    ],
 };
-
 
 use LIMS2::Model::Util::DesignTargets qw( prebuild_oligos target_overlaps_exon );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Exception;
 use LIMS2::Exception::Validation;
 use WebAppCommon::Util::EnsEMBL;
-use Path::Class;
 use Const::Fast;
 use TryCatch;
 use Hash::MoreUtils qw( slice_def );
-use namespace::autoclean;
 use WebAppCommon::Design::FusionConversion qw( modify_fusion_oligos );
+use Bio::Perl qw( revcom );
+use LIMS2::Model::Util::OligoSelection qw(
+        pick_crispr_primers
+        pick_single_crispr_primers
+        pick_miseq_internal_crispr_primers
+        pick_miseq_crispr_PCR_primers
+        oligo_for_single_crispr
+        pick_crispr_PCR_primers
+);
+use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
+use List::MoreUtils qw( uniq );
+use POSIX qw(strftime);
+use JSON qw( encode_json );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
                                     '/lustre/scratch117/sciops/team87/lims2_designs';
