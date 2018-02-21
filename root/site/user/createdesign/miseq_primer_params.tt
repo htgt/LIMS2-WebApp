@@ -1,0 +1,102 @@
+<fieldset class="col-md-12">
+    <legend>Primer Restraints</legend>
+    <fieldset class="col-md-6">
+        <legend>Miseq</legend>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Search width:</label>
+            <div class="col-md-6">
+                <input name="Search Width" class="form-control" id="miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 170" value="170"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Offset width:</label>
+            <div class="col-md-6">
+                <input name="Dead Search Width" class="form-control" name="miseq_dead_search_width" id="miseq_dead_search_width" type="number" placeholder="Default 50" value="50"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Increment:</label>
+            <div class="col-md-6">
+                <input name="increment" class="form-control" id="miseq_increment" name="miseq_increment" type="number" placeholder="Default 15" value="15"/>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-6">
+        <legend>PCR</legend>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Search width:</label>
+            <div class="col-md-6">
+                <input name="Search Width" class="form-control" id="pcr_search_width" name="pcr_search_width" type="number" placeholder="Default 350" value="350"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Offset width:</label>
+            <div class="col-md-6">
+                <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="pcr_dead_search_width" type="number" placeholder="Default 170" value="170"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6">Increment:</label>
+            <div class="col-md-6">
+                <input name="pcr_increment" class="form-control" id="pcr_increment" type="number" placeholder="Default 50" value="50"/>
+            </div>
+        </div>
+    </fieldset>
+</fieldset>
+<fieldset class="col-md-12">
+    <legend>Design Restraints</legend>
+    <div class="form-group col-md-12">
+        <label class="col-md-5">Genomic Score Threshold</label>
+        <div class="col-md-4">
+            <input name="genomic" class="form-control" id="genomic" type="number" placeholder="Default 30" value="30"/>
+        </div>
+    </div>
+    <div class="form-group col-md-12">
+        <label class="col-md-5">Primer Melting Temperatures</label>
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-addon">Minimum</span>
+                <input class="form-control" id="min_mt" type="text" value="[% melting_temp.min %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-md-offset-5 row">
+            <div class="input-group">
+                <span class="input-group-addon">Optimum</span>
+                <input class="form-control" id="opt_mt" type="text" value="[% melting_temp.opt %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-md-offset-5 row">
+            <div class="input-group">
+                <span class="input-group-addon">Maximum</span>
+                <input class="form-control" id="max_mt" type="text" value="[% melting_temp.max %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group col-md-12">
+        <label class="col-md-5">Primer GC Content</label>
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-addon">Minimum</span>
+                <input class="form-control" id="min_gc" type="text" value="[% gc_content.min %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-md-offset-5 row">
+            <div class="input-group">
+                <span class="input-group-addon">Optimum</span>
+                <input class="form-control" id="opt_gc" type="text" value="[% gc_content.opt %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-md-offset-5 row">
+            <div class="input-group">
+                <span class="input-group-addon">Maximum</span>
+                <input class="form-control" id="max_gc" type="text" value="[% gc_content.max %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+    </div>
+</fieldset>
