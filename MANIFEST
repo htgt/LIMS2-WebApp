@@ -230,6 +230,7 @@ lib/LIMS2/Model/Util/CGAP.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreKiESDistribution.pm
 lib/LIMS2/Model/Util/CreateDesign.pm
+lib/LIMS2/Model/Util/CreateMiseqDesign.pm
 lib/LIMS2/Model/Util/CreatePlate.pm
 lib/LIMS2/Model/Util/CreateProcess.pm
 lib/LIMS2/Model/Util/CreateQC.pm
@@ -389,6 +390,7 @@ root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
 root/lib/mini_storage_box.tt
 root/lib/miseq_creation_help.tt
+root/lib/miseq_design_parameters_help.tt
 root/lib/miseq_overview_table.tt
 root/lib/miseq_quadrant_table.tt
 root/lib/navigation.tt
@@ -454,6 +456,7 @@ root/site/user/browsetemplates/view.tt
 root/site/user/createcrisprplate/create_crispr_plate.tt
 root/site/user/createdesign/create_custom_target_gibson_design.tt
 root/site/user/createdesign/create_gibson_design.tt
+root/site/user/createdesign/create_miseq_design.tt
 root/site/user/createdesign/create_point_mutation_design.tt
 root/site/user/createdesign/design_attempts.tt
 root/site/user/createdesign/design_params_ucsc.tt
@@ -2615,6 +2618,8 @@ root/static/test/fixtures/LIMS2/t/Model/Util/Crisprs/Well.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/DesignOligoLocus.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/DesignOligoType.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/DesignType.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/GenotypingPrimer.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/User.csv

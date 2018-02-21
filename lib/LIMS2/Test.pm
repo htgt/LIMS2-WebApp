@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.487';
+    $LIMS2::Test::VERSION = '0.488';
 }
 ## use critic
 
@@ -329,7 +329,9 @@ sub load_dynamic_files {
             CrisprLocus
             CrisprPair
             CrisprGroup
+            DesignType
             Design
+            DesignOligoType
             DesignOligo
             DesignOligoLocus
             GeneDesign

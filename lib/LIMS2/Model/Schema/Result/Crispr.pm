@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Crispr;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.487';
+    $LIMS2::Model::Schema::Result::Crispr::VERSION = '0.488';
 }
 ## use critic
 
@@ -794,6 +794,12 @@ sub current_primer{
     # FIXME: what if more than 1?
     my ($current_primer) = grep { ! $_->is_rejected } @primers;
     return $current_primer;
+}
+
+sub wge_id{
+
+    return shift->wge_crispr_id;
+
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
