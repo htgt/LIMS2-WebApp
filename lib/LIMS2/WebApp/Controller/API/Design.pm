@@ -288,7 +288,6 @@ sub design_attempt_status_GET {
 sub redo_miseq_design :Path( '/api/redo_miseq_design' ) :Args(0) :ActionClass('REST') {
 }
 
-
 sub redo_miseq_design_POST {
     my ( $self, $c ) = @_;
 
@@ -353,6 +352,25 @@ sub redo_miseq_design_GET {
     $c->response->body( $body );
 
     return;
+}
+
+sub miseq_primer_preset :Path( '/api/miseq_primer_preset' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_primer_preset_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+
+    if ($protocol eq 'HTTPS') {
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+    $c->require_ssl;
+
 }
 
 =head1 LICENSE

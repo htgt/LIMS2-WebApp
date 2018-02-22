@@ -6,7 +6,7 @@ CREATE TABLE miseq_design_presets (
     opt_gc INTEGER,
     min_mt INTEGER,
     max_mt INTEGER,
-    opt_mt INTEGER,
+    opt_mt INTEGER
 );
 
 CREATE TABLE miseq_primer_parameters (
@@ -14,5 +14,5 @@ CREATE TABLE miseq_primer_parameters (
     internal boolean NOT NULL,
     min_length INTEGER,
     max_length INTEGER,
-    opt_length INTEGER,
+    opt_length INTEGER
 );

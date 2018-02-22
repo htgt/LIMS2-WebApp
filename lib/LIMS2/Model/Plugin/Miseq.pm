@@ -199,4 +199,20 @@ sub miseq_plate_creation_json {
     return $miseq_plate;
 }
 
+sub pspec_create_primer_preset {
+    return {
+        well_id         => { validate => 'existing_well_id' },
+        miseq_exp_id    => { validate => 'existing_miseq_experiment' },
+        classification  => { validate => 'existing_miseq_classification' },
+        frameshifted    => { validate => 'boolean', optional => 1 },
+        status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'},
+    };
+}
+
+sub create_primer_preset {
+    my ($self, $params) = @_;
+
+    return $preset;
+}
+
 1;
