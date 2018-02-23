@@ -84,7 +84,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(32)
+sub all_tests  : Test(36)
 {
 
     my $mech = unauthenticated_mech();
@@ -121,9 +121,22 @@ sub all_tests  : Test(32)
 	    form_name => 'login_form',
 	    fields    => { username => 'test_user@example.org', password => 'ahdooS1e' },
 	    button    => 'login'
-	), 'First time login with correct password';
+	), 'Login with correct password';
 
 	ok $res->is_success, '...response is_success';
+	like $res->content, qr/Login successful/, '...login successful message is present';
+    is $res->base->path, '/', '...redirected to "/"';
+    }
+
+    {
+	$mech->get_ok( '/login' );
+	ok my $res = $mech->submit_form(
+	    form_name => 'login_form',
+	    fields    => { username => 'new_user@example.org', password => 'aqbdK3v5d' },
+	    button    => 'login'
+	), 'First time login with correct password';
+
+    ok $res->is_success, '...response is_success';
 	like $res->content, qr/change password to access/, '...change password message is present';
     is $res->base->path, '/login', '...redirected to change password page';
 
@@ -142,7 +155,7 @@ sub all_tests  : Test(32)
     $mech->get_ok('/login');
     ok my $res = $mech->submit_form(
 	    form_name => 'login_form',
-	    fields    => { username => 'test_user@example.org', password => 'ahdooS1e' },
+	    fields    => { username => 'new_user@example.org', password => 'aqbdK3v5d' },
 	    button    => 'login'
 	), 'First time Logging in with correct username and password';
 
@@ -164,7 +177,7 @@ sub all_tests  : Test(32)
 	$mech->get_ok( '/login' );
 	ok my $res = $mech->submit_form(
 	    form_name => 'login_form',
-	    fields    => { username => 'test_user@example.org', password => 'erbNf12k' },
+	    fields    => { username => 'new_user@example.org', password => 'erbNf12k' },
 	    button    => 'login'
 	), 'Login with new password';
 
