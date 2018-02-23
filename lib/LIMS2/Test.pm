@@ -362,6 +362,7 @@ sub load_dynamic_files {
             SequencingProjectBackup
             Message
             CrisprStorage
+            ProjectExperiment
         )
     );
 

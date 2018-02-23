@@ -254,6 +254,7 @@ sub pspec_change_user_password {
         id                   => { validate   => 'integer' },
         new_password         => { validate   => 'password_string' },
         new_password_confirm => { validate   => 'password_string' },
+        first_login          => { validate   => 'boolean'}
     };
 }
 
@@ -271,7 +272,7 @@ sub change_user_password {
     my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{new_password} );
     $csh->add( $validated_params->{password} );
-    $user->update( { password => $csh->generate } );
+    $user->update( { password => $csh->generate, first_login => 0 } );
 
     return $user;
 }

@@ -812,7 +812,7 @@ SELECT pg_catalog.setval('crisprs_id_seq', 113, true);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --
 
-INSERT INTO users VALUES (1, 'test_user@example.org', '{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn', true);
+INSERT INTO users VALUES (1, 'test_user@example.org', '{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn', true, '', '', false);
 INSERT INTO users VALUES (2, 'admin_user@example.org', '{SSHA}sYQhKb2yT+Ay72AlFWc1glrQifY2GLMN', true);
 INSERT INTO users VALUES (1005, 'rm7@sanger.ac.uk', '{SSHA}4reKqmIkQa3FvrL6eNfBJM3AS0rx38VS', true);
 INSERT INTO users VALUES (720, 'cron', '{SSHA}oWhKvLMp14E25St0fCrPNlbwjgvWwm39', false);
@@ -837,8 +837,8 @@ INSERT INTO users VALUES (1003, 'rl6@sanger.ac.uk', '{SSHA}39S8HxAYdFfCCv9HfcKvY
 INSERT INTO users VALUES (1020, 'sb19@sanger.ac.uk', '{SSHA}S3JLnbVLvuFfqW/cMuH36hctnRiAe863', false);
 INSERT INTO users VALUES (1058, 'vvi@sanger.ac.uk', '{SSHA}t2DGhX4Nkc7rV2aPWYCsR0wUn/WyGf3i', false);
 INSERT INTO users VALUES (1079, 'as28@sanger.ac.uk', '{SSHA}941OxYh6i8iSuE3+hIVJIdyg+NwrF397', true);
-
-
+INSERT INTO users VALUES (1080, 'new_user@example.org', '{SSHA}0G3fkwmU4LGVYzovXKvtWsQhX8pgSfYS', true, '', '', true);
+INSERT INTO user_role VALUES (1080, 504);
 --
 -- Data for Name: designs; Type: TABLE DATA; Schema: public; Owner: lims2_test_admin
 --

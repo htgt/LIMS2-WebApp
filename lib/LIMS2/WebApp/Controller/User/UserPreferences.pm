@@ -41,13 +41,17 @@ sub change_password :Path( '/user/change_password' ) :Args(0) {
         return;
     }
 
+    my $first_login = $c->model('Golgi')->schema->resultset('User')->find({ name => $c->user->name })->first_login;
+
     $c->model('Golgi')->txn_do(
         sub {
             try{
+
                 my $user = $c->model('Golgi')->change_user_password(
                     {   id                   => $c->user->id,
                         new_password         => $params->{new_password},
-                        new_password_confirm => $params->{new_password_confirm}
+                        new_password_confirm => $params->{new_password_confirm},
+                        first_login          => $first_login
                     }
                 );
 
@@ -61,6 +65,7 @@ sub change_password :Path( '/user/change_password' ) :Args(0) {
             };
         }
     );
+
 
     return;
 }
