@@ -1,5 +1,7 @@
 window.onload = function(){
   document.getElementById("projectheader").click();
+  document.getElementById("crisprheader").click();
+  document.getElementById("designheader").click();
 
   $("#table_tooltip").tooltip({
       placement : 'top'
@@ -22,6 +24,10 @@ window.onload = function(){
   });
 
   $("#find_assembly_ii_project").tooltip({
+      placement : 'top'
+  });
+
+  $("#expand_table").tooltip({
       placement : 'top'
   });
 
@@ -121,6 +127,11 @@ function reset_wells() {
     document.getElementById(square_ids[i]).value = '';
     document.getElementById(square_ids[i]).style.display = 'none';
   }
+
+  var square_labels = ['well_01_label', 'well_02_label', 'well_03_label', 'well_04_label', 'well_05_label', 'well_06_label', 'well_07_label', 'well_08_label', 'well_09_label', 'well_10_label', 'well_11_label', 'well_12_label', 'well_13_label', 'well_14_label', 'well_15_label', 'well_16_label'];
+  for (i = 0; i < square_labels.length; i++) {
+    document.getElementById(square_labels[i]).innerHTML = '';
+  }
 }
 
 function view_toggle (target_id) {
@@ -203,6 +214,19 @@ function save_plate_check() {
     alert('Cell line is missing.');
     return false;
   }
+  var flag = false;
+  var square_ids = ['well_01', 'well_02', 'well_03', 'well_04', 'well_05', 'well_06', 'well_07', 'well_08', 'well_09', 'well_10', 'well_11', 'well_12', 'well_13', 'well_14', 'well_15', 'well_16'];
+  for (i = 0; i < square_ids.length; i++) {
+    var temp_value = document.getElementById(square_ids[i]).value;
+    if (temp_value != '') {
+      flag = true;
+    }
+  }
+  if (!flag) {
+    alert('Well data is missing.');
+    return false;
+  }
+
   return true;
 }
 

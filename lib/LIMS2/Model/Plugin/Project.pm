@@ -207,7 +207,7 @@ sub create_project {
 
     my $project = $self->schema->resultset('Project')->create($validated_params);
 
-    foreach my $sponsor(keys %{ $sponsors_priority || {} }){
+    foreach my $sponsor(keys %{ $sponsors_priority || {} }) {
         $self->update_or_create_project_sponsor({
             project_id => $project->id,
             sponsor_id => $sponsor,
@@ -401,17 +401,19 @@ sub create_experiment{
     my $project_id = $validated_params->{project_id};
     delete $validated_params->{project_id};
 
+    my $exists_flag;
+
     try{
         $experiment = $self->retrieve_experiment($search_params);
     };
 
     if($experiment){
+        $exists_flag = 1;
         if($experiment->deleted){
             # Un-delete the existing experiment
             $experiment->update({ deleted => 0});
         }
-    }
-    else{
+    } else{
         $experiment = $self->schema->resultset('Experiment')->create($validated_params);
     }
 
@@ -421,7 +423,7 @@ sub create_experiment{
         };
     }
 
-    return $experiment;
+    return {experiment => $experiment, exists_flag => $exists_flag};
 }
 
 sub add_experiment {

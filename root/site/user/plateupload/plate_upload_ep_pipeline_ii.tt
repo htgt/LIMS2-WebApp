@@ -154,7 +154,7 @@
   </div>
 
   <div class="panel panel-default">
-    <div data-toggle="collapse" href="#collapseCrispr" class="panel-heading">
+    <div id="crisprheader" data-toggle="collapse" href="#collapseCrispr" class="panel-heading">
       <h4 class="panel-title">
       Crispr
       </h4>
@@ -185,7 +185,7 @@
   </div>
 
   <div class="panel panel-default">
-    <div data-toggle="collapse" href="#collapseDesign" class="panel-heading">
+    <div id="designheader" data-toggle="collapse" href="#collapseDesign" class="panel-heading">
       <h4 class="panel-title">
       Design
       </h4>
@@ -215,10 +215,12 @@
 </form>
 
 <script type="text/javascript">
+
 $("#gene_id_assembly_ii").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
 });
+
 </script>
 
 <script type="text/javascript" src="[% c.uri_for('/static/js/ep_pipeline_ii_plate.js') %]"></script>

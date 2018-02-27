@@ -76,10 +76,23 @@ sub create_exp_ep_pipeline_ii {
                     design_id       =>  $params->{design_id_assembly_ii},
                     crispr_id       =>  $params->{crispr_id_assembly_ii}
                 };
-                my $experiment = $model->create_experiment($exp_params);
 
+                my $crispr = $model->schema->resultset('Crispr')->find({ id => $params->{crispr_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
+                my $design = $model->schema->resultset('Design')->find({ id => $params->{design_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
+                if ($crispr->get_column('species_id') ne $design->get_column('species_id')) {
+                    $msg = 'Create experiment error - Crispr ID species:  ' . $crispr->get_column('species_id') . ' and Design ID species: ' . $design->get_column('species_id');
+                    return;
+                }
+
+                my $experiment_obj = $model->create_experiment($exp_params);
+
+                my $experiment = $experiment_obj->{experiment};
                 if ($experiment->id) {
-                    $msg = 'See experiment ID ' . $experiment->id . ' for these attributes.';
+                    if ($experiment_obj->{exists_flag}) {
+                        $msg = 'Experiment already exists: ' . $experiment->id;
+                    } else {
+                        $msg = 'Created experiment: ' . $experiment->id;
+                    }
                 }
             }
             catch {

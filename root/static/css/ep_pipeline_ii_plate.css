@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .control-group {
   margin: 5px;
 }
@@ -52,7 +54,7 @@
 
 #experiments_inner_div {
   overflow: scroll;
-  height: 500px;
+  height: 480px;
   width: 700px;
 }
 
@@ -74,19 +76,14 @@
 }
 
 #assembly_ii_plate_name {
-  margin-bottom: 8px;
+  margin-bottom: 15px;
 }
 
 #target_t {
-  table-layout:fixed;
-}
-
-#target_t:tr {
-  width:20px;
-}
-
-#target_t:th {
-  width:20px;
+  table-layout: fixed;
+  margin-bottom: 0px;
+  width: 1200px;
+  text-align: center;
 }
 
 .glyphicon-info-sign:hover {

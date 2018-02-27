@@ -155,7 +155,6 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     if ($params->{create_assembly_ii_experiment}) {
         $params->{find_assembly_ii_experiments} = 'find_assembly_ii_experiments';
         push @info_msg, create_exp_ep_pipeline_ii($c->model('Golgi'), $params, $gene_info->{gene_id});
-        print @info_msg;
     }
 
     ## - add experiment to project

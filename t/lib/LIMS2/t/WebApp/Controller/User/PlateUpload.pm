@@ -1,10 +1,9 @@
-
 package LIMS2::t::WebApp::Controller::User::PlateUpload;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::PlateUpload;
 
-use LIMS2::Test;
+use LIMS2::Test;# model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 
 use strict;
@@ -88,7 +87,7 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(119)
+sub all_tests  : Test(120)
 {
     my $mech = mech();
 
@@ -496,6 +495,7 @@ sub all_tests  : Test(119)
 
     {
     ## EP Pipeline II plate
+    $mech->get_ok('/user/select_species?species=Human');
     $mech->get_ok( '/user/plate_upload_ep_pipeline_ii' );
     $mech->text_contains('EP Pipeline II Plate - Graphical Interface', '...EP II plate interface');
 
@@ -503,7 +503,10 @@ sub all_tests  : Test(119)
         form_id => 'ep_pipeline_ii_plate',
         fields  => {
         assembly_ii_plate_name => 'ep_pipeline_ii_test_plate',
-        cell_line_assembly_ii  => '10'
+        cell_line_assembly_ii  => '10',
+        well_01 => '1673',
+        '1673_protein_type_assembly_ii' => 'eSpCas9_1.1 protein Sanger',
+        '1673_guided_type_assembly_ii' => 'crRNA/tracrRNA IDT'
         },
         button  => 'save_assembly_ii'
     ), 'submit form with user input data for EP II plate';
@@ -512,6 +515,9 @@ sub all_tests  : Test(119)
     is $res->base->path, '/user/view_plate', '... moves to plate view page';
     like $res->content, qr/Created new plate ep_pipeline_ii_test_plate/ , '...page has create new plate message';
 
+}
+
+{
     note( "Delete ep_pipeline_ii_test_plate" );
 
     lives_ok {
@@ -521,6 +527,7 @@ sub all_tests  : Test(119)
     }
 
 }
+
 
 =head1 AUTHOR
 
