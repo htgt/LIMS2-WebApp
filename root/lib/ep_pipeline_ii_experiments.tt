@@ -95,7 +95,7 @@
 <div class="modal fade expand_exp" tabindex="-1" role="dialog" aria-labelledby="expand_exp" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <table id="" class="table table-bordered table-fixed" style="">
+      <table class="table table-bordered table-fixed" style="text-align:center;">
         <thead>
           <th style="width:60px;height:30px;">
             Gene
@@ -106,15 +106,23 @@
           <th style="width:60px;height:30px;">
             Crispr ID *
           </th>
+          [% IF assembly_ii_experiments.list.size > 0 %]
           <th style="width:150px;height:40px;">
             Protein
           </th>
           <th style="width:150px;height:40px;">
             Guided type
           </th>
+          [% ELSE %]
+          <th style="width:60px;height:30px;">
+            Protein
+          </th>
+          <th style="width:60px;height:30px;">
+            Guided type
+          </th>
+          [% END %]
           <th style="width:60px;height:30px;">
             Project Check *
-            <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if the experiment has a project and if this project has the same cell line displayed above.</br>"></span>
           </th>
           <th style="width:60px;height:30px;">
             Exper ID
@@ -244,7 +252,7 @@
 
       <div id="experiments_inner_div">
 
-      <table id="target_t" class="table table-bordered table-fixed" style="">
+      <table id="target_t" class="table table-bordered table-fixed">
         <thead>
           <th style="width:60px;height:30px;">
           </th>
@@ -257,12 +265,21 @@
           <th style="width:60px;height:30px;">
             Crispr ID *
           </th>
+          [% IF assembly_ii_experiments.list.size > 0 %]
           <th style="width:150px;height:40px;">
             Protein
           </th>
           <th style="width:150px;height:40px;">
             Guided type
           </th>
+          [% ELSE %]
+          <th style="width:60px;height:30px;">
+            Protein
+          </th>
+          <th style="width:60px;height:30px;">
+            Guided type
+          </th>
+          [% END %]
           <th style="width:60px;height:30px;">
             Project Check *
             <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if the experiment has a project and if this project has the same cell line displayed above.</br>"></span>
