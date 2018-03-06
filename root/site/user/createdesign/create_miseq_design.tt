@@ -110,7 +110,7 @@ tr.success td{
             <div class="modal-body col-md-12">
                 [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' accordion = 'redoAcc' panel_name = 'redoPanel' %]
+                    [% INCLUDE 'miseq_design_parameters_help.tt' preset = 'redo' panel_name = 'redoPanel' %]
                 </div>
                 <div class="col-md-12" id="response">
                 </div>
@@ -134,7 +134,7 @@ tr.success td{
             <div class="modal-body col-md-12">
                 [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' accordion = 'customAcc' panel_name = 'customPanel' %]
+                    [% INCLUDE 'miseq_design_parameters_help.tt' type = 'preset' panel_name = 'customPanel' %]
                 </div>
             </div>
             <div class="modal-footer">
@@ -188,7 +188,7 @@ $('#action').click(function() {
 });
 
 $('#redo_submit').click(function() {
-    var params = gatherParameters();
+    var params = gatherParameters('redo');
     var jsonified_params = JSON.stringify(params);
     $('#waiting').show().prop('disabled', false);
 
@@ -227,6 +227,47 @@ $('#redo_submit').click(function() {
 
 });
 
+$('#create_preset').click(function() {
+    var params = gatherParameters('preset');
+    var jsonified_params = JSON.stringify(params);
+    $('#waiting').show().prop('disabled', false);
+
+    $.ajax({
+        url: '[% c.uri_for('/api/redo_miseq_design/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            requirements: jsonified_params
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            var message;
+            if (result.status == 'Success') {
+                $('#response').removeClass('alert-danger').addClass('alert-success');
+                var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
+                message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
+                updateTable(params.crispr, result);
+            } else {
+                $('#response').removeClass('alert-success').addClass('alert-danger');
+                message = 'Error: ' + result.status;
+            }
+            console.log(message);
+            $('#response').html(message);
+            $('#waiting').hide().prop('disabled', true);
+        },
+        error: function(err) {
+            test = err;
+            console.log(err);
+            $('#response').addClass('alert-danger');
+            $('#response').text('Failed to create MiSeq design: ' + err.responseText);
+            $('#waiting').hide().prop('disabled', true);
+        }
+    });
+
+});
+
+
 function updateTable(crispr, row) {
     $('#' + crispr).removeClass('failure').addClass('success');
     $('#' + crispr).children('.tableGene').text(row.gene);
@@ -240,35 +281,35 @@ function updateTable(crispr, row) {
     $('#' + crispr).children('.tableDesign').append(split + designAtag);
 }
 
-function gatherParameters() {
+function gatherParameters(modalType) {
     var miseq = {
-        search_width : $('#miseq_search_width').val(),
-        offset_width : $('#miseq_dead_search_width').val(),
-        increment    : $('#miseq_increment').val()
+        search_width : $('#' + modalType + '_miseq_search_width').val(),
+        offset_width : $('#' + modalType + '_miseq_dead_search_width').val(),
+        increment    : $('#' + modalType + '_miseq_increment').val()
     };
 
     var pcr = {
-        search_width : $('#pcr_search_width').val(),
-        offset_width : $('#pcr_dead_search_width').val(),
-        increment    : $('#pcr_increment').val()
+        search_width : $('#' + modalType + '_pcr_search_width').val(),
+        offset_width : $('#' + modalType + '_pcr_dead_search_width').val(),
+        increment    : $('#' + modalType + '_pcr_increment').val()
     };
 
     var melt = {
-        min : $('#min_mt').val(),
-        opt : $('#opt_mt').val(),
-        max : $('#max_mt').val()
+        min : $('#' + modalType + '_min_mt').val(),
+        opt : $('#' + modalType + '_opt_mt').val(),
+        max : $('#' + modalType + '_max_mt').val()
     };
 
     var gc = {
-        min : $('#min_gc').val(),
-        opt : $('#opt_gc').val(),
-        max : $('#max_gc').val()
+        min : $('#' + modalType + '_min_gc').val(),
+        opt : $('#' + modalType + '_opt_gc').val(),
+        max : $('#' + modalType + '_max_gc').val()
     };
 
     var params = {
-        genomic_threshold   : $('#genomic').val(),
-        design_type         : $('#design_type').val(),
-        crispr              : $('#redoModal').attr("name"),        
+        genomic_threshold   : $('#' + modalType + '_genomic').val(),
+        design_type         : $('#' + modalType + '_design_type').val(),
+        crispr              : $('#' + modalType + '_redoModal').attr("name"),        
         miseq               : miseq,
         pcr                 : pcr,
         melt                : melt,
