@@ -1,0 +1,441 @@
+
+<div id="gui_panel">
+<div class="panel panel-default">
+  <div style="height:60px;" class="panel-heading">
+    <h1 class="panel-title" style="float:left;">
+      EP Pipeline II Plate - Graphical Interface <span id="ep_ii_plate_tooltip" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-html="true" title="An EP II well requires a: crispr id, design id, gene id, cell line, project.<br />All wells of this plate share the same cell line.</br>"></span>
+    </h1>
+      <button class="btn btn-default" style="float:right;height:45px;width:45px;padding:1px;" type="submit" id="save_assembly_ii" data-toggle="tooltip" data-html="true" title="Save Plate</br>" name="save_assembly_ii" value="save_assembly_ii" onClick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk" style="font-size:25px;"></span></button>
+
+      <button type="button" id="expand_table" style="float:right;height:45px;width:45px;padding:1px;margin-right:10px;" class="btn btn-default" data-toggle="modal" data-html="true" title="Expand Table</br>" data-target=".expand_exp"><span style="font-size:20px;" class="glyphicon glyphicon-resize-full"></span></button>
+
+      <button id="find_assembly_ii_experiments" data-toggle="tooltip" data-html="true" title="Find Experiments</br>" style="float:right;margin-right:10px;padding:1px;" name="find_assembly_ii_experiments" value="find_assembly_ii_experiments" class="btn btn-default"><img src="[% c.uri_for( '/static/images/flask.png' ) %]" width="40" height="40"></button>
+  </div>
+
+  <div class="panel-body">
+    <div id="squares_div">
+    <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
+
+
+    <table>
+    <tr>
+      <td>
+        <div id="square_1" class="square" style="border-top-left-radius:5px;padding:10px;" onmouseover="scaleup('square_1')" onmouseout="scaledown('square_1')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_01_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_01" name="well_01" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_9" class="square" style="border-top-right-radius:5px;padding:10px;" onmouseover="scaleup('square_9')" onmouseout="scaledown('square_9')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_09_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_09" name="well_09" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_2" class="square" style="padding:10px;" onmouseover="scaleup('square_2')" onmouseout="scaledown('square_2')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_02_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_02" name="well_02" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_10" class="square" style="padding:10px;" onmouseover="scaleup('square_10')" onmouseout="scaledown('square_10')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_10_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_3" class="square" style="padding:10px;" onmouseover="scaleup('square_3')" onmouseout="scaledown('square_3')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_03_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_03" name="well_03" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_11" class="square" style="padding:10px;" onmouseover="scaleup('square_11')" onmouseout="scaledown('square_11')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_11_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_4" class="square" style="padding:10px;" onmouseover="scaleup('square_4')" onmouseout="scaledown('square_4')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_04_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_04" name="well_04" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_12" class="square" style="padding:10px;" onmouseover="scaleup('square_12')" onmouseout="scaledown('square_12')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_12_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_5" class="square" style="padding:10px;" onmouseover="scaleup('square_5')" onmouseout="scaledown('square_5')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_05_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_05" name="well_05" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_13" class="square" style="padding:10px;" onmouseover="scaleup('square_13')" onmouseout="scaledown('square_13')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_13_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_6" class="square" onmouseover="scaleup('square_6')" onmouseout="scaledown('square_6')" style="padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_06_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_06" name="well_06" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_14" class="square" style="padding:10px;" onmouseover="scaleup('square_14')" onmouseout="scaledown('square_14')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_14_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_7" class="square" style="padding:10px;" onmouseover="scaleup('square_7')" onmouseout="scaledown('square_7')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_07_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_07" name="well_07" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_15" class="square" style="padding:10px;" onmouseover="scaleup('square_15')" onmouseout="scaledown('square_15')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_15_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div id="square_8" class="square" onmouseover="scaleup('square_8')" onmouseout="scaledown('square_8')" style="border-bottom-left-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_08_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_08" name="well_08" style="display:none;"></input></div>
+      </td>
+      <td>
+        <div id="square_16" class="square" onmouseover="scaleup('square_16')" onmouseout="scaledown('square_16')" style="border-bottom-right-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_16_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
+      </td>
+    </tr>
+    </table>
+
+    </div>
+
+    <div id="experiments_div">
+
+    <p style="color:grey;font-size:12px">
+      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /><b>*</b> Required paramters.<br />
+    </p>
+
+<div class="modal fade expand_exp" tabindex="-1" role="dialog" aria-labelledby="expand_exp" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <table class="table table-bordered table-fixed" style="text-align:center;">
+        <thead>
+          <th style="width:60px;height:30px;">
+            Gene
+          </th>
+          <th style="width:60px;height:30px;">
+            Design ID *
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr ID *
+          </th>
+          [% IF assembly_ii_experiments.list.size > 0 %]
+          <th style="width:150px;height:40px;">
+            Protein
+          </th>
+          <th style="width:150px;height:40px;">
+            Guided type
+          </th>
+          [% ELSE %]
+          <th style="width:60px;height:30px;">
+            Protein
+          </th>
+          <th style="width:60px;height:30px;">
+            Guided type
+          </th>
+          [% END %]
+          <th style="width:60px;height:30px;">
+            Project Check *
+          </th>
+          <th style="width:60px;height:30px;">
+            Exper ID
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr Pair
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr Group
+          </th>
+        </thead>
+
+        <tbody>
+      [% FOR exp IN assembly_ii_experiments %]
+        [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
+        <tr style="background-color:#;">
+          <td style="font-size:10px;">
+            [% exp.gene_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.design_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_id or '-' %]
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_protein_type_assembly_ii" name="[% exp.id %]_protein_type_assembly_ii">
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_guided_type_assembly_ii" name="[% exp.id %]_guided_type_assembly_ii">
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:20px;">
+            [% IF exp.project_check %]
+            &#10004;
+            [% ELSE %]
+            &#10008;
+            [% END %]
+          </td>
+          <td>
+            [% exp.id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_pair_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_group_id or '-' %]
+          </td>
+        </tr>
+        [% ELSE %]
+        <tr style="background-color:#;">
+          <td style="font-size:10px;">
+            [% exp.gene_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.design_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_id or '-' %]
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:20px;">
+            [% IF exp.project_check %]
+            &#10004;
+            [% ELSE %]
+            &#10008;
+            [% END %]
+          </td>
+          <td>
+            [% exp.id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_pair_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_group_id or '-' %]
+          </td>
+        </tr>
+        [% END %]
+      [% END %]
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+      <div id="experiments_inner_div">
+
+      <table id="target_t" class="table table-bordered table-fixed">
+        <thead>
+          <th style="width:60px;height:30px;">
+          </th>
+          <th style="width:60px;height:30px;">
+            Gene
+          </th>
+          <th style="width:60px;height:30px;">
+            Design ID *
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr ID *
+          </th>
+          [% IF assembly_ii_experiments.list.size > 0 %]
+          <th style="width:150px;height:40px;">
+            Protein
+          </th>
+          <th style="width:150px;height:40px;">
+            Guided type
+          </th>
+          [% ELSE %]
+          <th style="width:60px;height:30px;">
+            Protein
+          </th>
+          <th style="width:60px;height:30px;">
+            Guided type
+          </th>
+          [% END %]
+          <th style="width:60px;height:30px;">
+            Project Check *
+            <span id="table_tooltip" class="glyphicon glyphicon-info-sign" data-toggle="tooltip" data-html="true" title="- Checks if the experiment has a project and if this project has the same cell line displayed above.</br>"></span>
+          </th>
+          <th style="width:60px;height:30px;">
+            Add to current Project
+          </th>
+          <th style="width:60px;height:30px;">
+            Exper ID
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr Pair
+          </th>
+          <th style="width:60px;height:30px;">
+            Crispr Group
+          </th>
+        </thead>
+
+        <tbody>
+      [% FOR exp IN assembly_ii_experiments %]
+        [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
+        <tr style="background-color:#;">
+          <td>
+            <div class="btn btn-success" id=[% exp.id %] type="" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></div>
+          </td>
+          <td style="font-size:10px;">
+            [% exp.gene_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.design_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_id or '-' %]
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_protein_type_assembly_ii" name="[% exp.id %]_protein_type_assembly_ii">
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="[% exp.id %]_guided_type_assembly_ii" name="[% exp.id %]_guided_type_assembly_ii">
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:20px;">
+            [% IF exp.project_check %]
+            &#10004;
+            [% ELSE %]
+            &#10008;
+            [% END %]
+          </td>
+          <td style="font-size:20px;">
+            [% IF exp.add_check %]
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" style="font-size:10px;" onClick="return save_add_exp_check()"><b>ADD</b></button>
+            [% ELSE %]
+            <button class="btn btn-basic disabled" id="" type="button" style="font-size:10px;"><b>ADD</b></button>
+            [% END %]
+          </td>
+          <td>
+            [% exp.id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_pair_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_group_id or '-' %]
+          </td>
+        </tr>
+        [% ELSE %]
+        <tr style="background-color:#;">
+          <td>
+            <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-ban-circle" style="font-size:20px;"></span></button>
+          </td>
+          <td style="font-size:10px;">
+            [% exp.gene_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.design_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_id or '-' %]
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
+              [% FOREACH protein_type IN protein_type_options %]
+              [% IF protein_type != 'eSpCas9_1.1 protein Sanger' %]
+              <option value="[% protein_type %]">[% protein_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:10px;width:200px;">
+            <select class="form-control" id="" name="" disabled>
+
+              <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
+              [% FOREACH guided_type IN guided_type_options %]
+              [% IF guided_type != 'crRNA/tracrRNA IDT' %]
+              <option value="[% guided_type %]">[% guided_type %]</option>
+              [% END %]
+              [% END %]
+
+            </select>
+          </td>
+          <td style="font-size:20px;">
+            [% IF exp.project_check %]
+            &#10004;
+            [% ELSE %]
+            &#10008;
+            [% END %]
+          </td>
+          <td>
+            [% IF exp.add_check %]
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" style="font-size:10px;" onClick="return save_add_exp_check()"><b>ADD</b></button>
+            [% ELSE %]
+            <button class="btn btn-basic disabled" id="" type="button" style="font-size:10px;"><b>ADD</b></button>
+            [% END %]
+          </td>
+          <td>
+            [% exp.id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_pair_id or '-' %]
+          </td>
+          <td style="font-size:10px;">
+            [% exp.crispr_group_id or '-' %]
+          </td>
+        </tr>
+        [% END %]
+      [% END %]
+        </tbody>
+      </table>
+
+    </div>
+    </div>
+
+
+
+  </div>
+</div>
+</div>
+
+

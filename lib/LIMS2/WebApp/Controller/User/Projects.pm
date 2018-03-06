@@ -223,11 +223,20 @@ sub view_project :Path('/user/view_project'){
         }
         $params->{gene_id} = $project->gene_id;
         try{
-            my $experiment = $c->model('Golgi')->create_experiment($params);
-            $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id .' for this project.';
+            my $experiment_obj = $c->model('Golgi')->create_experiment($params);
+            my $experiment = $experiment_obj->{experiment};
+            if ($experiment_obj->{exists_flag}) {
+                $c->stash->{success_msg} = 'Experiment already exists with ID '.$experiment->id;
+            } else {
+                $c->stash->{success_msg} = 'Experiment created with ID '.$experiment->id .' for this project.';
+            }
         }
         catch{
-            $c->stash->{error_msg} = 'Could not create experiment: '. $_;
+            if ($_ =~ 'design_crispr_combo') {
+                $c->stash->{error_msg} = 'Could not create experiment: Duplicate crispr/design combo.';
+            } else {
+                $c->stash->{error_msg} = 'Could not create experiment: ' . $_;
+            }
         };
     }
 
