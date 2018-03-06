@@ -121,6 +121,7 @@ lib/LIMS2/Model/Schema/Result/GenotypingPrimerType.pm
 lib/LIMS2/Model/Schema/Result/GenotypingPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
+lib/LIMS2/Model/Schema/Result/GuidedType.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
 lib/LIMS2/Model/Schema/Result/MiseqExperiment.pm
@@ -152,6 +153,7 @@ lib/LIMS2/Model/Schema/Result/ProcessCrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/ProcessDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessElectroporation.pm
 lib/LIMS2/Model/Schema/Result/ProcessGlobalArmShorteningDesign.pm
+lib/LIMS2/Model/Schema/Result/ProcessGuidedType.pm
 lib/LIMS2/Model/Schema/Result/ProcessInputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessNuclease.pm
 lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
@@ -242,6 +244,7 @@ lib/LIMS2/Model/Util/DataUpload.pm
 lib/LIMS2/Model/Util/DesignInfo.pm
 lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
+lib/LIMS2/Model/Util/EPPipelineIIPlate.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
@@ -283,6 +286,7 @@ lib/LIMS2/Report/DNAPlate.pm
 lib/LIMS2/Report/DesignPlate.pm
 lib/LIMS2/Report/DesignPlateOrderSheet.pm
 lib/LIMS2/Report/DesignVectors.pm
+lib/LIMS2/Report/EPPipelineIIPlate.pm
 lib/LIMS2/Report/EPPlate.pm
 lib/LIMS2/Report/EPPrint.pm
 lib/LIMS2/Report/FPPlate.pm
@@ -388,6 +392,7 @@ root/lib/crispr_qc_alignment.tt
 root/lib/crispr_qc_view.tt
 root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
+root/lib/ep_pipeline_ii_experiments.tt
 root/lib/mini_storage_box.tt
 root/lib/miseq_creation_help.tt
 root/lib/miseq_design_parameters_help.tt
@@ -513,6 +518,7 @@ root/site/user/graph/index.tt
 root/site/user/index.tt
 root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt
+root/site/user/plateupload/plate_upload_ep_pipeline_ii.tt
 root/site/user/plateupload/plate_upload_step1.tt
 root/site/user/plateupload/plate_upload_step2.tt
 root/site/user/pointmutation/browse_point_mutation.tt
@@ -587,6 +593,7 @@ root/static/bootstrap/js/bootstrap-select.min.js
 root/static/bootstrap/js/bootstrap.js
 root/static/bootstrap/js/bootstrap.min.js
 root/static/css/angularplasmid.css
+root/static/css/ep_pipeline_ii_plate.css
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
 root/static/css/lims2_extjs.css
@@ -2438,6 +2445,7 @@ root/static/images/btn_88x31_built_shadow.png
 root/static/images/btn_88x31_powered.png
 root/static/images/btn_88x31_powered_shadow.png
 root/static/images/catalyst_logo.png
+root/static/images/flask.png
 root/static/images/plasmid_map_help.png
 root/static/images/plasmid_map_help.pptx
 root/static/images/spinner-circle-small.gif
@@ -2478,6 +2486,7 @@ root/static/js/cookie.jquery.json
 root/static/js/crispr-es-qc-well-update.js
 root/static/js/crispr-qc.js
 root/static/js/crisprs.js
+root/static/js/ep_pipeline_ii_plate.js
 root/static/js/excanvas.min.js
 root/static/js/jquery-1.12.3.min.js
 root/static/js/jquery.cookie.js
@@ -2623,6 +2632,12 @@ root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/DesignType.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/GeneDesign.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/GenotypingPrimer.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/DesignInfo/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Crispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Design.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Plate.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Process.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Well.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/BacClone.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/BacCloneLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/Crispr.csv
@@ -2861,6 +2876,7 @@ root/static/test/fixtures/reference_data/DnaTemplate.csv
 root/static/test/fixtures/reference_data/GeneType.csv
 root/static/test/fixtures/reference_data/GenotypingPrimerType.csv
 root/static/test/fixtures/reference_data/GenotypingResultType.csv
+root/static/test/fixtures/reference_data/GuidedType.csv
 root/static/test/fixtures/reference_data/MutationDesignType.csv
 root/static/test/fixtures/reference_data/Nuclease.csv
 root/static/test/fixtures/reference_data/PlateType.csv
@@ -3027,6 +3043,7 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_DataUpload.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignInfo.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignTargets.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DrawPlateGraph.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIPlate.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EngSeqParams.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GenomeBrowser.t
@@ -3267,6 +3284,7 @@ t/lib/LIMS2/t/Model/Util/DataUpload.pm
 t/lib/LIMS2/t/Model/Util/DesignInfo.pm
 t/lib/LIMS2/t/Model/Util/DesignTargets.pm
 t/lib/LIMS2/t/Model/Util/DrawPlateGraph.pm
+t/lib/LIMS2/t/Model/Util/EPPipelineIIPlate.pm
 t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
 t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm

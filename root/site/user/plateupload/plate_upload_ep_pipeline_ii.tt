@@ -1,0 +1,228 @@
+
+<div style="margin-bottom:20px;">
+  <h1>Upload Plate <small> Step 2</small></h1>
+</div>
+
+<form id="ep_pipeline_ii_plate">
+
+<div id="accordion" class="panel-group">
+
+  <div class="panel panel-default">
+
+    <div id="projectheader" data-toggle="collapse" href="#collapseProject" class="panel-heading">
+      <h4 class="panel-title">
+      Project
+      </h4>
+    </div>
+
+    <div id="collapseProject" class="panel-collapse collapse">
+      <div class="panel-body">
+        <table>
+        <tr>
+        <td style="border: 1px dashed silver;">
+        <div>
+
+        <div class="col-md-12 control-group">
+          <p style="color:grey;font-size:12px">Click the arrow to find projects using a gene identifier.</p>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-4" style="color:#cc0000;">Gene Identifier</label>
+          <div class="col-md-6">
+            <input type="text" autocomplete="on" class="form-control" onChange="reset_wells()" name="gene_id_assembly_ii" id="gene_id_assembly_ii" value=[% gene_id_assembly_ii %]>
+          </div>
+        </div>
+  
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-4" style="color:#cc0000;">Cell Line</label>
+          <div class="col-md-6">
+            <select onChange="reset_wells()" class="form-control" id="cell_line_assembly_ii" name="cell_line_assembly_ii">
+              [% IF cell_line_assembly_ii %]
+              <option value="[% cell_line_id %]">[% cell_line_name %]</option>
+              <option value=""></option>
+              [% FOREACH cell_line IN cell_line_options %]
+              <option value="[% cell_line.id %]">[% cell_line.name %]</option>
+              [% END %]
+              [% ELSE %]
+              <option value=""></option>
+              [% FOREACH cell_line IN cell_line_options %]
+              <option value="[% cell_line.id %]">[% cell_line.name %]</option>
+              [% END %]
+              [% END %]
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-4" style="color:#cc0000;">Strategy</label>
+          <div class="col-md-6">
+            <select onChange="reset_wells()" class="form-control" id="strategy_assembly_ii" name="strategy_assembly_ii">
+              [% IF strategy_assembly_ii == 'Pipeline I' %]
+              <option value="Pipeline I">Pipeline I</option>
+              <option value="Pipeline II">Pipeline II</option>
+              <option value=""></option>
+              [% ELSIF strategy_assembly_ii == 'Pipeline II' %]
+              <option value="Pipeline II">Pipeline II</option>
+              <option value="Pipeline I">Pipeline I</option>
+              <option value=""></option>
+              [% ELSE %]
+              <option value=""></option>
+              <option value="Pipeline II">Pipeline II</option>
+              <option value="Pipeline I">Pipeline I</option>
+              [% END %]
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="col-md-4 control-label" style="color:#cc0000;">Targeting Type</label>
+          <div class="col-md-6">
+            <div class="checkbox">
+              <label><input type="checkbox" onChange="reset_wells()" id="single_targeted" name="targeting_type_assembly_ii" value="single_targeted" [% IF targeting_type_assembly_ii == 'single_targeted' %] checked[% END %]>
+                Single Targeted
+            </label>
+            </div>
+            <div class="checkbox">
+              <label><input type="checkbox" onChange="reset_wells()" id="double_targeted" name="targeting_type_assembly_ii" value="double_targeted" [% IF targeting_type_assembly_ii == 'double_targeted' %] checked[% END %]>
+                Double Targeted
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-4">Sponsor</label>
+          <div class="col-md-7">
+            <select class="form-control" id="sponsor_assembly_ii" name="sponsor_assembly_ii">
+              [% IF sponsor_assembly_ii %]
+              <option value="[% sponsor_assembly_ii %]">[% sponsor_assembly_ii %]</option>
+              <option value=""></option>
+              [% FOREACH sp IN sponsors %]
+                <option id="sponsor_assembly_ii" name="sponsor_assembly_ii" value="[% sp %]">[% sp %]</option>
+              [% END %]
+              [% ELSE %]
+              <option value=""></option>
+              [% FOREACH sp IN sponsors %]
+                <option id="sponsor_assembly_ii" name="sponsor_assembly_ii" value="[% sp %]">[% sp %]</option>
+              [% END %]
+              [% END %]
+            </select>
+          </div>
+        </div>
+        </div>
+        </td>
+
+        <td>
+          <button id="find_assembly_ii_project" name="find_assembly_ii_project" onClick="return find_project_check()" data-toggle="tooltip" data-html="true" title="Find Project</br>" value="find_assembly_ii_project" class="btn btn-default"><span style="color:#cc0000;" class="glyphicon glyphicon-arrow-right"></span></button>
+        </td>
+
+        <td style="border: 1px solid silver;background-color:whitesmoke;">
+          <table>
+          <tr>
+          <td>
+          <label class="control-label col-md-3">Project Hits</label>
+          [% IF hit_projects %]
+          <div class="col-md-12 control-group">
+          <p style="color:grey;font-size:12px">Hover over a gene for more details, and click to populate the fields on the left.</p>
+          </div>
+          [% END %]
+          </td>
+          </tr>
+          <tr>
+          <td>
+          <div id="gene_btns" style="margin-right:50px;width:500px;height:300px;">
+            [% FOREACH project IN hit_projects %]
+              <button class="project_info_btn" id="[% project.id %]" value="[% project.info %]" type="button" onClick="populate_project_section([% project.id %])" data-html="true" data-toggle="tooltip" title="- Strategy: [% project.strategy_id %]</br>- Targeting Type: [% project.targeting_type %]</br>- Sponsor: [% project.sponsor_id %]</br>">[% project.gene_id %]</button>
+            [% END %]
+            <input type="hidden" id="lagging_projects" name="lagging_projects" value="[% lagging_projects %]"></input>
+          </div>
+          </td>
+          </tr>
+          </table>
+        </td>
+        </tr>
+
+        <tr>
+          <td>
+            <button id="create_assembly_ii_project" name="create_assembly_ii_project" onClick="return create_project_check()" value="create_assembly_ii_project" class="btn btn-default">Create Project</button>
+          </td>
+        </tr>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div id="crisprheader" data-toggle="collapse" href="#collapseCrispr" class="panel-heading">
+      <h4 class="panel-title">
+      Crispr
+      </h4>
+    </div>
+    <div id="collapseCrispr" class="panel-collapse collapse">
+      <div class="panel-body">
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-2">Crispr Identifier</label>
+          <div class="col-md-3">
+            <input type="text" class="form-control" id="crispr_id_assembly_ii" name="crispr_id_assembly_ii" placeholder="Crispr ID" value=[% crispr_id_assembly_ii %]>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-2">WGE Crispr</label>
+          <div class="col-md-3">
+            <input type="text" class="form-control" id="wge_crispr_assembly_ii" name="wge_crispr_assembly_ii" placeholder="WGE Crispr" value=[% wge_crispr_assembly_ii %]>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <p style="color:grey;font-size:12px"><input class="form-check-input" type="checkbox" name="import_assembly_ii_crispr" id="import_assembly_ii_crispr" value="import_assembly_ii_crispr"> <b>Import Crispr from WGE</b></p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div id="designheader" data-toggle="collapse" href="#collapseDesign" class="panel-heading">
+      <h4 class="panel-title">
+      Design
+      </h4>
+    </div>
+    <div id="collapseDesign" class="panel-collapse collapse">
+      <div class="panel-body">
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-2">Design Identifier</label>
+          <div class="col-md-3">
+            <input type="text" class="form-control" id="design_id_assembly_ii" name="design_id_assembly_ii" placeholder="Design ID" value=[% design_id_assembly_ii %]>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<input type="hidden" id="lagging_exp_ids" name="lagging_exp_ids" value="[% lagging_exp_ids %]"></input>
+<button id="create_assembly_ii_experiment" name="create_assembly_ii_experiment" type="submit" onClick="return create_exp_check()" value="create_assembly_ii_experiment" class="btn btn-default">Create experiment</button>
+
+
+[% INCLUDE 'ep_pipeline_ii_experiments.tt' assembly_ii_experiments = assembly_ii_experiments cell_line_options = cell_line_options %]
+
+</form>
+
+<script type="text/javascript">
+
+$("#gene_id_assembly_ii").autocomplete({
+  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+  minLength: 2,
+});
+
+</script>
+
+<script type="text/javascript" src="[% c.uri_for('/static/js/ep_pipeline_ii_plate.js') %]"></script>
+<link rel="stylesheet" href="[% c.uri_for('/static/css/ep_pipeline_ii_plate.css') %]">
+

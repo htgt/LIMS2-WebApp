@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.489';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.490';
 }
 ## use critic
 
@@ -181,6 +181,7 @@ my %process_check_well = (
     'miseq_no_template'      => \&_check_wells_miseq_no_template,
     'miseq_oligo'            => \&_check_wells_miseq_oligo,
     'miseq_vector'           => \&_check_wells_miseq_vector,
+    'ep_pipeline_ii'         => \&_check_wells_ep_pipeline_ii,
 );
 
 sub check_process_wells {
@@ -404,6 +405,13 @@ sub _check_wells_cre_bac_recom {
     return;
 }
 ## use critic
+
+sub _check_wells_ep_pipeline_ii {
+    my ( $model, $process ) = @_;
+
+    check_output_wells( $model, $process);
+    return;
+}
 
 ## no critic(Subroutines::ProhibitUnusedPrivateSubroutine)
 sub _check_wells_rearray {
@@ -915,6 +923,7 @@ my %process_aux_data = (
     'miseq_no_template'      => \&_create_process_aux_data_miseq_no_template,
     'miseq_oligo'            => \&_create_process_aux_data_miseq_oligo,
     'miseq_vector'           => \&_create_process_aux_data_miseq_vector,
+    'ep_pipeline_ii'         => \&_create_process_aux_data_ep_pipeline_ii,
 );
 
 sub create_process_aux_data {
@@ -972,6 +981,30 @@ sub _create_process_aux_data_create_di {
     return;
 }
 ## use critic
+
+sub pspec__create_process_aux_data_ep_pipeline_ii {
+    return {
+        design_id => { validate => 'existing_design_id' },
+        crispr_id => { validate => 'existing_crispr_id', optional => 1 },
+        cell_line => { validate => 'existing_cell_line_id' },
+        nuclease     => { validate => 'existing_nuclease_name' },
+        guided_type     => { validate => 'existing_guided_type_name' }
+    };
+}
+
+sub _create_process_aux_data_ep_pipeline_ii {
+    my ( $model, $params, $process ) = @_;
+
+    my $validated_params = $model->check_params( $params, pspec__create_process_aux_data_ep_pipeline_ii() );
+
+    $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
+    $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
+    $process->create_related( process_cell_line => { cell_line_id => $params->{cell_line} } );
+    $process->create_related( process_nuclease => { nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} ) } );
+    $process->create_related( process_guided_type => { guided_type_id => _guided_type_id_for( $model, $validated_params->{guided_type} ) } );
+
+    return;
+}
 
 sub pspec__create_process_aux_data_create_crispr {
     return {
@@ -1596,6 +1629,13 @@ sub _nuclease_id_for{
     return $nuclease->id;
 }
 
+sub _guided_type_id_for{
+    my ($model, $guided_type_name ) = @_;
+
+    my $guided_type = $model->retrieve( GuidedType => { name => $guided_type_name });
+    return $guided_type->id;
+}
+
 sub _crispr_tracker_rna_id_for {
     my ($model, $tracker_rna_name ) = @_;
 
@@ -1606,3 +1646,5 @@ sub _crispr_tracker_rna_id_for {
 1;
 
 __END__
+
+

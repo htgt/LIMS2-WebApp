@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.489';
+    $LIMS2::Model::Constants::VERSION = '0.490';
 }
 ## use critic
 
@@ -60,6 +60,7 @@ const our %PROCESS_PLATE_TYPES => (
     'paired_crispr_assembly' => [qw( ASSEMBLY )],
     'group_crispr_assembly'  => [qw( ASSEMBLY )],
     'crispr_ep'              => [qw( CRISPR_EP )],
+    'ep_pipeline_ii'         => [qw( EP_PIPELINE_II )],
     'crispr_sep'             => [qw( CRISPR_SEP)],
     'oligo_assembly'         => [qw( OLIGO_ASSEMBLY )],
     'cgap_qc'                => [qw( CGAP_QC )],
@@ -122,6 +123,7 @@ const our %PROCESS_TEMPLATE => (
 const our %PROCESS_INPUT_WELL_CHECK => (
     'create_di' => { number => 0 },
     'create_crispr' => { number => 0 },
+    'ep_pipeline_ii' => { number => 0 },
     'int_recom' => {
         type   => [qw( DESIGN PREINT )],
         number => 1,
@@ -317,3 +319,5 @@ const our $MAX_CRISPR_GROUP_SIZE => 4;
 1;
 
 __END__
+
+

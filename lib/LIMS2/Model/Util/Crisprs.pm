@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Crisprs;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Crisprs::VERSION = '0.489';
+    $LIMS2::Model::Util::Crisprs::VERSION = '0.490';
 }
 ## use critic
 
@@ -196,7 +196,7 @@ sub create_crispr_group_design_links {
                 crispr_group_id => $crispr_group->id,
                 gene_id         => $gene_id,
             }
-        );
+        )->{experiment};
         INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr group ' . p(%$datum);
@@ -233,7 +233,7 @@ sub create_crispr_pair_design_links {
                 crispr_pair_id => $crispr_pair->id,
                 gene_id        => $gene_id,
             }
-        );
+        )->{experiment};
         INFO('Experiment record created: ' . $experiment->id );
 
         push @create_log, 'Linked design & crispr pair ' . p(%$datum);
@@ -275,7 +275,7 @@ sub create_crispr_design_links {
                 crispr_id => $crispr->id,
                 gene_id   => $gene_id,
             }
-        );
+        )->{experiment};
 
         INFO('Experiment record created: ' . $experiment->id );
         push @create_log, 'Linked design & crispr ' . p(%$datum);
