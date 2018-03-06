@@ -371,7 +371,17 @@ sub miseq_primer_preset_POST {
     }
     $c->require_ssl;
 
+    my $jsonified_criteria = $c->request->param('criteria');
+$DB::single=1;
+    create_primer_preset($jsonified_criteria);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $jsonified_criteria );
+
+    return;
 }
+
 
 =head1 LICENSE
 

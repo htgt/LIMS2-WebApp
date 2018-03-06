@@ -113,7 +113,7 @@ sub generate_primers {
         repeat_mask         => [''],
         offset              => 20,
         well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
-        genomic_threshold   => $genomic_threshold,
+        genomic_threshold   => $genomic_threshold || 30,
     };
 
     local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
@@ -152,7 +152,8 @@ sub generate_primers {
         $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr->{error_flag} . "; Crispr " . $crispr_id . "\n";
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
-        $params->{error} ="PCR genomic check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . "; Crispr " . $crispr_id . "\n";
+        $params->{error} ="PCR genomic uniqueness check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . 
+            "; Crispr " . $crispr_id . "; Genomic Threshold" . $params->{genomic_threshold} . "\n";
         return $params;
     }
 

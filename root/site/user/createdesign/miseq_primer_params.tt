@@ -5,7 +5,7 @@
         <div class="col-md-12 row">
             <label class="col-md-6">Search width:</label>
             <div class="col-md-6">
-                <input name="Search Width" class="form-control" id="miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 170" value="170"/>
+                <input name="Search Width" class="form-control" id="miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 148" value="148"/>
             </div>
         </div>
         <div class="col-md-12 row">
@@ -32,7 +32,7 @@
         <div class="col-md-12 row">
             <label class="col-md-6">Offset width:</label>
             <div class="col-md-6">
-                <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="pcr_dead_search_width" type="number" placeholder="Default 170" value="170"/>
+                <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="pcr_dead_search_width" type="number" placeholder="Default 148" value="148"/>
             </div>
         </div>
         <div class="col-md-12 row">

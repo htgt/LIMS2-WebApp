@@ -511,82 +511,78 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
     $c->assert_user_roles( 'read' );
     my $search_terms = $c->request->param('crisprs');
 
-    if (! defined $search_terms){return}
-
-    my (@valid_terms, @invalid_terms);
-
-    if ($search_terms){
-
-        my @crispr_set = split /\s*,\s*/, $search_terms;
+    if ($search_terms) {
+        my (@crispr_set) = $search_terms =~ /(\d+)/g; #Get all crisprs separated by many ways - comma, new line etc
         @crispr_set = uniq @crispr_set;
 
+        my $crispr_info;
+        my @crispr_table;
+        my @failed_terms;
+        my $design_requirements = {
+            design_type => $c->req->param('design_type'),
+        };
         foreach my $crispr (@crispr_set){
-            $crispr =~ s/^\s+|\s+$//;
-
-            if ($crispr =~ /^[0-9]{6}$/){
-
-                push (@valid_terms, $crispr);
-
-            } else {
-
-                push (@invalid_terms, $crispr);
-
-            }
-        }
-    }
-    my $crispr_info;
-    my @crispr_table;
-    my @failed_terms;
-    my $design_requirements = {
-        design_type => 'miseq-nhej',
-    };
-    foreach my $crispr (@valid_terms){
-
-        my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr });
-
-        if ($crispr_rs){
-            my $wge_id = $crispr_rs->wge_id;
-            $crispr_info->{$crispr} = $wge_id;
-
-            my $results = generate_miseq_design($c, $design_requirements, $crispr);
-            my $crispr_ids;
-            if ($results->{error}) {
-                $crispr_ids = {
-                    lims    => $crispr,
-                    wge     => $wge_id,
-                    status  => $results->{error},
-                };
-            } else {
-                my @hgnc = grep { /^HGNC*/ } $results->{design}->gene_ids;
-                $crispr_ids = {
-                    lims    => $crispr,
-                    wge     => $wge_id,
-                    status  => 'Success',
-                    gene    => join (', ', @hgnc),
-                    design  => $results->{design}->id,
+$DB::single=1;
+            my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr, wge_id => $crispr });
+            unless ($crispr_rs) {
+                try {
+                    my $species = $c->session->{selected_species};
+                    my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find({ species_id => $species })->assembly_id;
+                    my @crispr_arr = [$crispr];
+                    my @import_result = $c->model('Golgi')->import_wge_crisprs(\@crispr_arr, $species, $assembly);
+                    $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $import_result[0]->{lims2_id} });
+                } catch {
+                    $c->log->debug("Failed to import crispr: " . $crispr);
+                    push(@failed_terms, $crispr);
                 };
             }
-            push (@crispr_table, $crispr_ids);
+            if ($crispr_rs) {
+                my $lims2_id = $crispr_rs->id;
+                my $wge_id = $crispr_rs->wge_id;
+                $crispr_info->{$lims2_id} = $wge_id;
 
-        } else {
-
-            push (@failed_terms, $crispr);
-
+                my $results = generate_miseq_design($c, $design_requirements, $lims2_id);
+                my $crispr_ids;
+                if ($results->{error}) {
+                    $crispr_ids = {
+                        lims    => $lims2_id,
+                        wge     => $wge_id,
+                        status  => $results->{error},
+                    };
+                } else {
+                    my @hgnc = grep { /^HGNC*/ } $results->{design}->gene_ids;
+                    $crispr_ids = {
+                        lims    => $lims2_id,
+                        wge     => $wge_id,
+                        status  => 'Success',
+                        gene    => join (', ', @hgnc),
+                        design  => $results->{design}->id,
+                    };
+                }
+                push (@crispr_table, $crispr_ids);
+            } else {
+                push (@failed_terms, $crispr);
+            }
         }
 
+        my $errors = join(', ', @failed_terms);
+
+        my @crispr_id = keys %$crispr_info;
+
+        if ( scalar(@crispr_id) <= 0 ) {
+            $c->stash( error_msg => "No crisprs found matching search terms" );
+        }
+        if( @failed_terms ){
+            $c->stash( error_msg => "One or more search terms could not be found: $errors" );
+        }
+        $c->stash(
+            valid_terms         => \@crispr_set,
+            crispr_id           => \@crispr_id,
+            failed_terms        => \@failed_terms,
+            crispr_table        => \@crispr_table,
+            crispr_info         => $crispr_info,
+        );
     }
-
-    my $errors = join(', ', @invalid_terms , @failed_terms);
-
-    my @crispr_id = keys %$crispr_info;
-
-    if ( scalar(@crispr_id) <= 0) {
-        $c->stash( error_msg => "No crisprs found matching search terms" );
-    }
-    if( @invalid_terms || @failed_terms){
-        $c->stash( error_msg => "One or more search terms could not be found: $errors" );
-    }
-
 
     my $miseq_pcr_conf = LoadFile($ENV{ 'LIMS2_PRIMER3_MISEQ_PCR_CONFIG' });
 
@@ -606,13 +602,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
 
     $c->stash(
         crisprs             => $c->request->param('crisprs') || undef,
-        crispr_id           => \@crispr_id,
-        valid_terms         => \@valid_terms,
-        invalid_terms       => \@invalid_terms,
-        crispr_info         => $crispr_info,
-        crispr_table        => \@crispr_table,
         search_terms        => $search_terms,
-        failed_terms        => \@failed_terms,
         gc_content          => $gc_content,
         melting_temp        => $melting_temp,
         genomic_threshold   => $genomic_threshold,

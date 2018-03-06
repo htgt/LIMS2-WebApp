@@ -31,29 +31,30 @@ tr.success td{
 
 <h1>Miseq Design Creation</h1>
 
-<fieldset class="col-md-12 well">
-    <div class="row col-md-12" align="center">
-        <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
-        <div class="col-md-3">
-            <select id="design_type" class="form-control" align="center">
-                <option value="miseq-nhej">miseq-nhej</option>
-                <option value="miseq-hdr">miseq-hdr</option>
-            </select>
-        </div>
-    </div>
-    <div class="row col-md-12" align="center">
-        <h4 class="col-md-2 col-md-offset-3">Presets</h4>
-        <div class="col-md-3">
-            <select class="form-control" align="center">
-                <option value="Default">Default</option>
-            </select>
-        </div>
-    </div>
-</fieldset>
-<br>
 <form method="POST" class="col-md-12 well">
-    <fieldset>
-        <legend>Design Progess Crispr Search</legend>
+    <fieldset class="col-md-12 well">
+        <div class="row col-md-12" align="center">
+            <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
+            <div class="col-md-3">
+                <select id="design_type" name="design_type" class="form-control" align="center">
+                    <option value="miseq-nhej">miseq-nhej</option>
+                    <option value="miseq-hdr">miseq-hdr</option>
+                </select>
+            </div>
+        </div>
+        <div class="row col-md-12" align="center">
+            <h4 class="col-md-2 col-md-offset-3">Presets</h4>
+            <div class="col-md-3">
+                <select class="form-control" align="center">
+                    <option value="Default">Default</option>
+                </select>
+            </div>
+            <button class="btn btn-warning col-md-2" type="button" data-toggle="modal" data-target="#customPresetModal">Create Preset  <i class="glyphicon glyphicon-pencil"></i></button>
+        </div>
+    </fieldset>
+    <br>
+    <fieldset class="col-md-12 well">
+        <legend class="col-md-12 row">Design Progess Crispr Search</legend>
 
         <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crispr_id.join(', ') %]">[%- crispr_id.join(', ') %]</textarea>
         <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
@@ -98,32 +99,30 @@ tr.success td{
     </table>
 </div>
 
-    <div id="redoModal" class="modal fade" role="dialog">
-        <div class="modal-dialog modal-lg">
+<div id="redoModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Design Parameters</h4>
+            </div>
 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Design Parameters</h4>
+            <div class="modal-body col-md-12">
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
+                <div class="col-md-12 row">
+                    [% INCLUDE 'miseq_design_parameters_help.tt' accordion = 'redoAcc' panel_name = 'redoPanel' %]
                 </div>
-
-                <div class="modal-body col-md-12">
-                    [% INCLUDE 'createdesign/miseq_primer_params' %]
-                    <div class="col-md-12 row">
-                        [% INCLUDE 'miseq_design_parameters_help.tt' %]
-                    </div>
-                    <div class="col-md-12" id="response">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                    <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <div class="col-md-12" id="response">
                 </div>
             </div>
+            <div class="modal-footer">
+                <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
+                <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
         </div>
-
     </div>
+</div>
     
 <div id="customPresetModal" class="modal fade" role="dialog">
     <div class="modal-dialog modal-lg">
@@ -133,14 +132,13 @@ tr.success td{
                 <h4 class="modal-title">Custom Design Parameters</h4>
             </div>
             <div class="modal-body col-md-12">
-                [% INCLUDE 'createdesign/miseq_primer_params' %]
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' %]
+                    [% INCLUDE 'miseq_design_parameters_help.tt' accordion = 'customAcc' panel_name = 'customPanel' %]
                 </div>
             </div>
             <div class="modal-footer">
-                <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                <button type="submit" class="btn btn-primary" id="create_preset">Create</button>
+                <button type="submit" class="btn btn-primary" id="create_preset">Create <i class="glyphicon glyphicon-pencil"></i></button>
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
         </div>

@@ -212,6 +212,8 @@ sub pspec_create_primer_preset {
 sub create_primer_preset {
     my ($self, $params) = @_;
 
+    my $preset;
+
     return $preset;
 }
 
