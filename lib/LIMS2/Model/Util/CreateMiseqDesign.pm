@@ -125,7 +125,8 @@ sub generate_primers {
 
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
     if ($internal_crispr_primers->{error_flag} eq 'fail') {
-        $params->{error} = "Primer generation failed: Internal primers - " . $internal_crispr_primers->{error_flag} . "; Crispr:" . $crispr_id . "\n";
+        $params->{error} = "Primer generation failed: No adequate Miseq primers found; Search width: "
+            . $ENV{'LIMS2_SEQ_SEARCH_FIELD'} . ", Offset width: " . $ENV{'LIMS2_SEQ_DEAD_FIELD'} ."\n";
         return $params;
     }
 
@@ -149,11 +150,12 @@ sub generate_primers {
 
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
-        $params->{error} = "Primer generation failed: PCR results - " . $pcr_crispr->{error_flag} . "; Crispr " . $crispr_id . "\n";
+        $params->{error} = "Primer generation failed: No adequate PCR primers found; Search width: "
+            . $ENV{'LIMS2_PCR_SEARCH_FIELD'} . ", Offset width: " .$ENV{'LIMS2_PCR_DEAD_FIELD'} ."\n";
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
         $params->{error} ="PCR genomic uniqueness check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . 
-            "; Crispr " . $crispr_id . "; Genomic Threshold" . $params->{genomic_threshold} . "\n";
+            "; Genomic Threshold: " . $params->{genomic_threshold} . "\n";
         return $params;
     }
 
@@ -193,7 +195,7 @@ sub find_appropriate_primers {
         }
     }
     unless ($closest->{primer}) {
-        return { error => "No $primer_set primers found beneath the maximum range: $max" };
+        return { error => "No $primer_set primers found beneath the maximum length: $max" };
     }
 
     return $crispr_primers->{left}->{'left_' . $closest->{primer}}, $crispr_primers->{right}->{'right_' . $closest->{primer}};
