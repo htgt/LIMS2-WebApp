@@ -108,15 +108,15 @@ tr.success td{
             </div>
 
             <div class="modal-body col-md-12">
-                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'redo'%]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' preset = 'redo' panel_name = 'redoPanel' %]
+                    [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'redoPanel' %]
                 </div>
                 <div class="col-md-12" id="response">
                 </div>
             </div>
             <div class="modal-footer">
-                <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
+                <span id="redoWaiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
                 <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
@@ -132,12 +132,19 @@ tr.success td{
                 <h4 class="modal-title">Custom Design Parameters</h4>
             </div>
             <div class="modal-body col-md-12">
-                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' %]
+                <fieldset class="col-md-9 row form-group">
+                    <h4 class="col-md-3 col-form-label">Preset Name: </h4>
+                    <div class="col-md-5">
+                        <input id="presetName" class="form-control" placeholder="Enter Preset Name">
+                    </div>
+                </fieldset>
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'preset' %]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' type = 'preset' panel_name = 'customPanel' %]
+                    [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'customPanel' %]
                 </div>
             </div>
             <div class="modal-footer">
+                <span id="customWaiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
                 <button type="submit" class="btn btn-primary" id="create_preset">Create <i class="glyphicon glyphicon-pencil"></i></button>
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
@@ -190,7 +197,7 @@ $('#action').click(function() {
 $('#redo_submit').click(function() {
     var params = gatherParameters('redo');
     var jsonified_params = JSON.stringify(params);
-    $('#waiting').show().prop('disabled', false);
+    $('#redoWaiting').show().prop('disabled', false);
 
     $.ajax({
         url: '[% c.uri_for('/api/redo_miseq_design/') %]',
@@ -214,14 +221,14 @@ $('#redo_submit').click(function() {
             }
             console.log(message);
             $('#response').html(message);
-            $('#waiting').hide().prop('disabled', true);
+            $('#redoWaiting').hide().prop('disabled', true);
         },
         error: function(err) {
             test = err;
             console.log(err);
             $('#response').addClass('alert-danger');
             $('#response').text('Failed to create MiSeq design: ' + err.responseText);
-            $('#waiting').hide().prop('disabled', true);
+            $('#redoWaiting').hide().prop('disabled', true);
         }
     });
 
@@ -230,14 +237,14 @@ $('#redo_submit').click(function() {
 $('#create_preset').click(function() {
     var params = gatherParameters('preset');
     var jsonified_params = JSON.stringify(params);
-    $('#waiting').show().prop('disabled', false);
+    $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
-        url: '[% c.uri_for('/api/redo_miseq_design/') %]',
+        url: '[% c.uri_for('/api/miseq_primer_preset/') %]',
         type: 'POST',
         dataType: 'JSON',
         data: {
-            requirements: jsonified_params
+            criteria: jsonified_params
         },
         success: function(result) {
             console.log("Response received");
@@ -254,14 +261,14 @@ $('#create_preset').click(function() {
             }
             console.log(message);
             $('#response').html(message);
-            $('#waiting').hide().prop('disabled', true);
+            $('#customWaiting').hide().prop('disabled', true);
         },
         error: function(err) {
             test = err;
             console.log(err);
             $('#response').addClass('alert-danger');
             $('#response').text('Failed to create MiSeq design: ' + err.responseText);
-            $('#waiting').hide().prop('disabled', true);
+            $('#customWaiting').hide().prop('disabled', true);
         }
     });
 
