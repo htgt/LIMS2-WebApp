@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Redmine;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Redmine::VERSION = '0.491';
+    $LIMS2::WebApp::Controller::API::Redmine::VERSION = '0.492';
 }
 ## use critic
 

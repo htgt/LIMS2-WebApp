@@ -89,7 +89,7 @@
     <div id="experiments_div">
 
     <p style="color:grey;font-size:12px">
-      <br />Drag target icon to a plate well.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /><b>*</b> Required paramters.<br />
+      <br />Drag target icon to a plate well. <b>*</b> Required paramters.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /> <span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> You can only choose 1 Protein and Guided Type per Experiment.<br />
     </p>
 
 <div class="modal fade expand_exp" tabindex="-1" role="dialog" aria-labelledby="expand_exp" aria-hidden="true">
@@ -149,7 +149,7 @@
             [% exp.crispr_id or '-' %]
           </td>
           <td style="font-size:10px;width:200px;">
-            <select class="form-control" id="[% exp.id %]_protein_type_assembly_ii" name="[% exp.id %]_protein_type_assembly_ii">
+            <select class="form-control" id="" name="">
 
               <option value="eSpCas9_1.1 protein Sanger">eSpCas9_1.1 protein Sanger</option>
               [% FOREACH protein_type IN protein_type_options %]
@@ -161,7 +161,7 @@
             </select>
           </td>
           <td style="font-size:10px;width:200px;">
-            <select class="form-control" id="[% exp.id %]_guided_type_assembly_ii" name="[% exp.id %]_guided_type_assembly_ii">
+            <select class="form-control" id="" name="">
 
               <option value="crRNA/tracrRNA IDT">crRNA/tracrRNA IDT</option>
               [% FOREACH guided_type IN guided_type_options %]
