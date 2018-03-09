@@ -147,7 +147,7 @@
 [% IF experiments.size %]
 <table class="table experiments">
   <tr>
-    <th>Experiment ID</th>
+    <th>Experiment</th>
     <th>Design ID</th>
   [% IF c.user.is_sanger %]
     <th>Tracker Issues (Sanger users only)</th>
@@ -159,7 +159,7 @@
   <tr>
     <td>
       <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id }) %]" name="view_experiment">
-        [% exp.id %]
+        [% exp.trivial_name or exp.id %]
       </a>
     </td>
     <td>
