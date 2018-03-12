@@ -98,7 +98,7 @@
       <table class="table table-bordered table-fixed" style="text-align:center;">
         <thead>
           <th style="width:60px;height:30px;">
-            Gene
+            Trivial Name
           </th>
           <th style="width:60px;height:30px;">
             Design ID *
@@ -140,7 +140,7 @@
         [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
         <tr style="background-color:#;">
           <td style="font-size:10px;">
-            [% exp.gene_id or '-' %]
+            [% exp.trivial_name or exp.gene_id or '-' %]
           </td>
           <td style="font-size:10px;">
             [% exp.design_id or '-' %]
@@ -256,8 +256,8 @@
         <thead>
           <th style="width:60px;height:30px;">
           </th>
-          <th style="width:60px;height:30px;">
-            Gene
+          <th style="width:80px;height:30px;">
+            Experiment
           </th>
           <th style="width:60px;height:30px;">
             Design ID *
@@ -303,10 +303,10 @@
         [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
         <tr style="background-color:#;">
           <td>
-            <div class="btn btn-success" id=[% exp.id %] type="" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></div>
+            <div class="btn btn-success" id=[% exp.id %] tag=[% exp.trivial_name %] type="" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></div>
           </td>
           <td style="font-size:10px;">
-            [% exp.gene_id or '-' %]
+            [% exp.trivial_name or exp.gene_id or '-' %]
           </td>
           <td style="font-size:10px;">
             [% exp.design_id or '-' %]
