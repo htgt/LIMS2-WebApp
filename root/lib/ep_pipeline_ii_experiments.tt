@@ -17,79 +17,14 @@
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
 
 
-    <table>
-    <tr>
-      <td>
-        <div id="square_1" class="square" style="border-top-left-radius:5px;padding:10px;" onmouseover="scaleup('square_1')" onmouseout="scaledown('square_1')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">1<span style="padding-right:5px;float:right;" onClick="refresh_square('square_1')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_01_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_01" name="well_01" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_9" class="square" style="border-top-right-radius:5px;padding:10px;" onmouseover="scaleup('square_9')" onmouseout="scaledown('square_9')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">9<span style="padding-right:5px;float:right;" onClick="refresh_square('square_9')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_09_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_09" name="well_09" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_2" class="square" style="padding:10px;" onmouseover="scaleup('square_2')" onmouseout="scaledown('square_2')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">2<span style="padding-right:5px;float:right;" onClick="refresh_square('square_2')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_02_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_02" name="well_02" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_10" class="square" style="padding:10px;" onmouseover="scaleup('square_10')" onmouseout="scaledown('square_10')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">10<span style="padding-right:5px;float:right;" onClick="refresh_square('square_10')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_10_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_10" name="well_10" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_3" class="square" style="padding:10px;" onmouseover="scaleup('square_3')" onmouseout="scaledown('square_3')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">3<span style="padding-right:5px;float:right;" onClick="refresh_square('square_3')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_03_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_03" name="well_03" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_11" class="square" style="padding:10px;" onmouseover="scaleup('square_11')" onmouseout="scaledown('square_11')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">11<span style="padding-right:5px;float:right;" onClick="refresh_square('square_11')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_11_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_11" name="well_11" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_4" class="square" style="padding:10px;" onmouseover="scaleup('square_4')" onmouseout="scaledown('square_4')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">4<span style="padding-right:5px;float:right;" onClick="refresh_square('square_4')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_04_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_04" name="well_04" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_12" class="square" style="padding:10px;" onmouseover="scaleup('square_12')" onmouseout="scaledown('square_12')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">12<span style="padding-right:5px;float:right;" onClick="refresh_square('square_12')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_12_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_12" name="well_12" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_5" class="square" style="padding:10px;" onmouseover="scaleup('square_5')" onmouseout="scaledown('square_5')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">5<span style="padding-right:5px;float:right;" onClick="refresh_square('square_5')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_05_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_05" name="well_05" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_13" class="square" style="padding:10px;" onmouseover="scaleup('square_13')" onmouseout="scaledown('square_13')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">13<span style="padding-right:5px;float:right;" onClick="refresh_square('square_13')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_13_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_13" name="well_13" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_6" class="square" onmouseover="scaleup('square_6')" onmouseout="scaledown('square_6')" style="padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">6<span style="padding-right:5px;float:right;" onClick="refresh_square('square_6')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_06_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_06" name="well_06" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_14" class="square" style="padding:10px;" onmouseover="scaleup('square_14')" onmouseout="scaledown('square_14')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">14<span style="padding-right:5px;float:right;" onClick="refresh_square('square_14')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_14_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_14" name="well_14" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_7" class="square" style="padding:10px;" onmouseover="scaleup('square_7')" onmouseout="scaledown('square_7')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">7<span style="padding-right:5px;float:right;" onClick="refresh_square('square_7')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_07_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_07" name="well_07" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_15" class="square" style="padding:10px;" onmouseover="scaleup('square_15')" onmouseout="scaledown('square_15')" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">15<span style="padding-right:5px;float:right;" onClick="refresh_square('square_15')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_15_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_15" name="well_15" style="display:none;"></input></div>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <div id="square_8" class="square" onmouseover="scaleup('square_8')" onmouseout="scaledown('square_8')" style="border-bottom-left-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">8<span style="padding-right:5px;float:right;" onClick="refresh_square('square_8')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_08_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_08" name="well_08" style="display:none;"></input></div>
-      </td>
-      <td>
-        <div id="square_16" class="square" onmouseover="scaleup('square_16')" onmouseout="scaledown('square_16')" style="border-bottom-right-radius:5px;padding:10px;" ondrop="drop_handler(event);" ondragover="dragover_handler(event);">16<span style="padding-right:5px;float:right;" onClick="refresh_square('square_16')" class="glyphicon glyphicon-refresh"></span><span class="label label-danger" id="well_16_label" style="font-size:20px;margin-left:20px;"></span><input class="experiment_well" id="well_16" name="well_16" style="display:none;"></input></div>
-      </td>
-    </tr>
-    </table>
+    <table id="plate-table"></table>
 
     </div>
 
     <div id="experiments_div">
 
     <p style="color:grey;font-size:12px">
-      <br />Drag target icon to a plate well. <b>*</b> Required paramters.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /> <span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> You can only choose 1 Protein and Guided Type per Experiment.<br />
+      <br />Drag target icon to a plate well. <b>*</b> Required parameters.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /> <span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> You can only choose 1 Protein and Guided Type per Experiment.<br />
     </p>
 
 <div class="modal fade expand_exp" tabindex="-1" role="dialog" aria-labelledby="expand_exp" aria-hidden="true">
