@@ -24,6 +24,7 @@ sub _build_wells_data {
         push @well_ids, $well->id;
         my $temp = {
             cell_number   => $well_name[1],
+            trivial_name  => $well_info->{trivial_name},
             experiment_id => $well_info->{experiment_id},
             design_id     => $well_info->{design_id},
             crispr_id     => $well_info->{crispr_id},
@@ -55,7 +56,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
     ];
 };
 
@@ -71,6 +72,7 @@ override iterator => sub {
 
         my @data = (
             $well_data->{cell_number},
+            $well_data->{trivial_name},
             $well_data->{experiment_id},
             $well_data->{design_id},
             $well_data->{crispr_id},
@@ -202,8 +204,9 @@ sub get_well_info {
     if (scalar @crispr_boxes) { $crispr_locs = join ",", @crispr_boxes; }
 
     ## get well experiment
-    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id/ ] });
+    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id gene_id/ ] });
     $info->{experiment_id} = $db_exp->get_column('id');
+    $info->{trivial_name} = $db_exp->trivial_name;
 
     ## get project experiment
     my @db_proj_exp = $self->model->schema->resultset( 'ProjectExperiment' )->search({ experiment_id => $db_exp->get_column('id') })->all;
