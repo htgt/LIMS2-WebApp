@@ -27,6 +27,10 @@ tr.success td{
     background-color: #DFF0D8;
 }
 
+#owner {
+    left: 30px;
+}
+
 </style>
 
 <h1>Miseq Design Creation</h1>
@@ -51,7 +55,9 @@ tr.success td{
                     [% END %]
                 </select>
             </div>
-            <button class="btn btn-warning col-md-2" type="button" data-toggle="modal" data-target="#customPresetModal">View Preset  <i class="glyphicon glyphicon-list-alt"></i></button>
+            <button class="btn btn-warning col-md-2" id="showPreset" type="button" data-toggle="modal" data-target="#customPresetModal">
+                View Preset  <i class="glyphicon glyphicon-list-alt"></i>
+            </button>
         </div>
     </fieldset>
     <br>
@@ -133,7 +139,7 @@ tr.success td{
                 <h4 class="modal-title">Custom Design Parameters</h4>
             </div>
             <div class="modal-body col-md-12">
-                <fieldset class="col-md-12 row form-group">
+                <fieldset id="presetDDfield" class="col-md-12 row form-group">
                     <h4 class="col-md-2 col-md-offset-2">Presets: </h4>
                     <div class="col-md-4">
                         <select id="presetModalDD" class="form-control" align="center">
@@ -142,27 +148,34 @@ tr.success td{
                             [% END %]
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <button id="newPreset" class="btn btn-primary">New <i class="glyphicon glyphicon-pencil"></i></button>
-                    </div>
+                    <button id="editPreset" class="btn btn-warning">
+                        Edit <i class="glyphicon glyphicon-pencil"></i>
+                    </button>
+                    <button id="newPreset" class="btn btn-primary">
+                        New <i class="glyphicon glyphicon-pencil"></i>
+                    </button>
+
                 </fieldset>
                 <fieldset id="newPresetName" class="col-md-9 row form-group" hidden>
-                    <h4 class="col-md-3 col-form-label">Preset Name: </h4>
+                    <h4 class="col-md-3 col-md-offset-2">Preset Name: </h4>
                     <div id="presetNameContainer" class="col-md-5">
-                        <h4 id="presetNameSpace" class="col-form-label"></h4>
                         <input id="presetNameArea" class="form-control" placeholder="Enter Preset Name">
                     </div>
                     <p id="nameError" class="col-md-4"></p>
                 </fieldset>
                 [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'preset' %]
                 <div class="col-md-12 row">
+                    <label id="owner" class="col-md-6 col-form-label"></label>
+                </div>
+                <div class="col-md-12 row">
                     [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'customPanel' %]
                 </div>
             </div>
             <div class="modal-footer">
                 <span id="customWaiting" class="waiting glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                <button type="submit" class="btn btn-primary" id="create_preset">Create <i class="glyphicon glyphicon-pencil"></i></button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" id="createPreset">Create <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="submit" class="btn btn-primary" id="updatePreset">Update <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close <i class="glyphicon glyphicon-remove"></i></button>
             </div>
         </div>
     </div>
@@ -179,6 +192,9 @@ $(document).ready(function() {
     $('#crisprWaiting').hide().prop('disabled', true);
     display();
     $('.waiting').hide().prop('disabled', true);
+    $('#customPresetModal').find('input').attr('readonly',true);
+    $('#createPreset').hide().prop('disabled', true);
+    $('#updatePreset').hide().prop('disabled', true);
 });
 
 function clearSelection(){
@@ -249,7 +265,7 @@ $('#redo_submit').click(function() {
 
 });
 
-$('#create_preset').click(function() {
+$('#createPreset').click(function() {
     var params = gatherParameters('preset');
     params.name = $('#presetName').val();
     var jsonified_params = JSON.stringify(params);
@@ -289,8 +305,52 @@ $('#create_preset').click(function() {
 
 });
 
-$('#presetName').on('input', function() {
-    var nameObj = $('#presetName');
+$('#presetNameArea').on('input', function() {
+    highlightCheck();
+});
+
+$('#presetModalDD').change(function() {
+    getPreset();
+});
+
+$('#showPreset').click(function() {
+    $('#createPreset').hide().prop('disabled', true);
+    $('#updatePreset').hide().prop('disabled', false);
+    $('#newPresetName').hide();
+    $('#customPresetModal').find('input').attr('readonly',true);
+    
+    $('#presetDDfield').show();
+    getPreset();
+});
+
+$('#editPreset').click(function() {
+    var selectedPreset = $('#presetModalDD').val(); 
+    $('#presetNameArea').val(selectedPreset);
+    editMode('edit');
+    getPreset();
+});
+
+$('#newPreset').click(function() {
+    $('#presetNameArea').text('');
+    editMode('new');
+});
+
+function editMode(mode) {
+    if (mode == 'edit') {
+        $('#updatePreset').show().prop('disabled', false);
+        $('#createPreset').hide().prop('disabled', true);
+    } else {
+        $('#createPreset').show().prop('disabled', false);
+        $('#updatePreset').hide().prop('disabled', true);
+    }
+    $('#presetDDfield').hide();
+    $('#newPresetName').show();
+    $('#customPresetModal').find('input').attr('readonly',false);
+    highlightCheck();
+}
+
+function highlightCheck() {
+    var nameObj = $('#presetNameArea');
     var value = nameObj.val();
     var validation = value.match(/^\w+$/); //Alphanumeric + _
     if (validation == null || value == 'Default') {
@@ -305,7 +365,7 @@ $('#presetName').on('input', function() {
         nameObj.css("background-color",""); //Clear
         $('#nameError').text("");
     }
-});
+}
 
 function updateTable(crispr, row) {
     $('#' + crispr).removeClass('failure').addClass('success');
@@ -376,7 +436,6 @@ function display() {
     }
 }
 
-
 function getPreset() {
     var presetName = $('#presetModalDD').val();
     console.log(presetName);
@@ -423,7 +482,17 @@ function updateParameters(data) {
     $('#preset_opt_gc').val(gc.opt);
     $('#preset_max_gc').val(gc.max);
 
+    if ($('#presetModalDD').val() != 'Default') {
+        $('#owner').text('Created by ' + data.user);
+    } else {
+        $('#owner').text('');
+    }
+
     return;
+}
+
+function newPreset() {
+
 }
 
 </script>

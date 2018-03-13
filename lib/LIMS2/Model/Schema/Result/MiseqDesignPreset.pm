@@ -50,6 +50,12 @@ __PACKAGE__->table("miseq_design_presets");
   data_type: 'text'
   is_nullable: 0
 
+=head2 created_by
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =head2 genomic_threshold
 
   data_type: 'integer'
@@ -97,6 +103,8 @@ __PACKAGE__->add_columns(
   },
   "name",
   { data_type => "text", is_nullable => 0 },
+  "created_by",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "genomic_threshold",
   { data_type => "integer", is_nullable => 1 },
   "min_gc",
@@ -127,6 +135,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 created_by
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "created_by",
+  "LIMS2::Model::Schema::Result::User",
+  { id => "created_by" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+);
+
 =head2 miseq_primer_presets
 
 Type: has_many
@@ -143,8 +166,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-03-12 12:56:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:77jHW7vD2sVwu2FFjG6yNA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-03-13 16:11:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H0i2hIS18ddhCBxoLzyjpA
 
 sub as_hash {
     my $self = shift;
@@ -152,6 +175,7 @@ sub as_hash {
     my %h = (
         id => $self->id,
         name => $self->name,
+        user => $self->created_by->name,
         genomic_threshold => $self->genomic_threshold,
         gc => {
             min => $self->min_gc,
