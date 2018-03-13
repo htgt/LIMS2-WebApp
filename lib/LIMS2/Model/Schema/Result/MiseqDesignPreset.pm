@@ -50,6 +50,11 @@ __PACKAGE__->table("miseq_design_presets");
   data_type: 'text'
   is_nullable: 0
 
+=head2 genomic_threshold
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =head2 min_gc
 
   data_type: 'integer'
@@ -92,6 +97,8 @@ __PACKAGE__->add_columns(
   },
   "name",
   { data_type => "text", is_nullable => 0 },
+  "genomic_threshold",
+  { data_type => "integer", is_nullable => 1 },
   "min_gc",
   { data_type => "integer", is_nullable => 1 },
   "max_gc",
@@ -118,9 +125,59 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-02-21 13:01:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uv1gbCxZX4jjLQeF1V69KA
+=head2 miseq_primer_presets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqPrimerPreset>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_primer_presets",
+  "LIMS2::Model::Schema::Result::MiseqPrimerPreset",
+  { "foreign.preset_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-03-12 12:56:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:77jHW7vD2sVwu2FFjG6yNA
+
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        id => $self->id,
+        name => $self->name,
+        genomic_threshold => $self->genomic_threshold,
+        gc => {
+            min => $self->min_gc,
+            opt => $self->opt_gc,
+            max => $self->max_gc,
+        },
+        mt => {
+            min => $self->min_mt,
+            opt => $self->opt_mt,
+            max => $self->max_mt,
+        },
+    );
+
+    my $intext_to_name = {
+        1   => 'miseq',
+        0   => 'pcr',
+    };
+
+    my @primers = $self->miseq_primer_presets;
+    foreach my $primer (@primers) {
+        $h{'primers'}{$intext_to_name->{$primer->internal}} = $primer->as_hash;
+    }
+
+    return \%h;
+}
+
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

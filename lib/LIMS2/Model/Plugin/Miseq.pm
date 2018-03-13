@@ -201,20 +201,89 @@ sub miseq_plate_creation_json {
 
 sub pspec_create_primer_preset {
     return {
-        well_id         => { validate => 'existing_well_id' },
-        miseq_exp_id    => { validate => 'existing_miseq_experiment' },
-        classification  => { validate => 'existing_miseq_classification' },
-        frameshifted    => { validate => 'boolean', optional => 1 },
-        status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'},
+        name                => { validate => 'alphanumeric_string' },
+        genomic_threshold   => { validate => 'numeric' },
+        gc                  => { validate => 'config_min_max' },
+        melt                => { validate => 'config_min_max' },
+        pcr                 => { validate => 'primer_params' },
+        miseq               => { validate => 'primer_params' },
     };
 }
 
 sub create_primer_preset {
     my ($self, $params) = @_;
+    
+    my $validated_params = $self->check_params($params, pspec_create_primer_preset);
+    my $current_preset = $self->schema->resultset('MiseqDesignPreset')->find({ name => $validated_params->{name} });
 
-    my $preset;
+    if ($current_preset) {
+        $self->throw( Validation => 'Preset ' . $validated_params->{name} . ' already exists' );
+    }   
 
-    return $preset;
+    my $design_preset_params = {
+        name        => $validated_params->{name},
+        min_gc      => $validated_params->{gc}->{min},
+        max_gc      => $validated_params->{gc}->{max},
+        opt_gc      => $validated_params->{gc}->{opt},
+        min_mt      => $validated_params->{melt}->{min},
+        max_mt      => $validated_params->{melt}->{max},
+        opt_mt      => $validated_params->{melt}->{opt},
+    };
+
+    my $internal_preset_params = {
+        internal    => 1,
+        min_length  => $validated_params->{miseq}->{min},
+        max_length  => $validated_params->{miseq}->{max},
+        opt_length  => $validated_params->{miseq}->{opt},
+    };
+
+    my $external_preset_params = {
+        internal    => 0,
+        min_length  => $validated_params->{pcr}->{min},
+        max_length  => $validated_params->{pcr}->{max},
+        opt_length  => $validated_params->{pcr}->{opt},
+    };
+
+
+    
+    my $design_preset;
+    
+    $self->txn_do(
+        sub {
+            try {
+                $design_preset = $self->schema->resultset('MiseqDesignPreset')->create({   
+                    slice_def(
+                        $design_preset_params,
+                        qw( name min_gc max_gc opt_gc min_mt max_mt opt_mt )
+                    )
+                });
+
+                $internal_preset_params->{preset_id} = $design_preset->id;
+                $external_preset_params->{preset_id} = $design_preset->id;
+                
+                my $internal_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
+                    slice_def(
+                        $internal_preset_params,
+                        qw( preset_id internal min_length max_length opt_length )
+                    )
+                });
+
+                my $external_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
+                    slice_def(
+                        $external_preset_params,
+                        qw( preset_id internal min_length max_length opt_length )
+                    )
+                });
+            }
+            catch {
+                $self->throw( Validation => 'Error encounter while creating design preset: ' . $_ );
+                $self->model('Golgi')->txn_rollback;
+                return;
+            };
+        }
+    );
+
+    return $design_preset;
 }
 
 1;

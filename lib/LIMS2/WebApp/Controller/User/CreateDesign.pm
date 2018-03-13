@@ -522,7 +522,6 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
             design_type => $c->req->param('design_type'),
         };
         foreach my $crispr (@crispr_set){
-$DB::single=1;
             my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr, wge_id => $crispr });
             unless ($crispr_rs) {
                 try {
@@ -575,6 +574,7 @@ $DB::single=1;
         if( @failed_terms ){
             $c->stash( error_msg => "One or more search terms could not be found: $errors" );
         }
+
         $c->stash(
             valid_terms         => \@crispr_set,
             crispr_id           => \@crispr_id,
@@ -599,13 +599,15 @@ $DB::single=1;
     };
 
     my $genomic_threshold = $miseq_pcr_conf->{genomic_threshold};
-
+$DB::single=1;
+    my @presets = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
     $c->stash(
         crisprs             => $c->request->param('crisprs') || undef,
         search_terms        => $search_terms,
         gc_content          => $gc_content,
         melting_temp        => $melting_temp,
         genomic_threshold   => $genomic_threshold,
+        presets             => \@presets,
     );
 
     return;

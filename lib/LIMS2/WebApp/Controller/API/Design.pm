@@ -360,6 +360,7 @@ sub miseq_primer_preset :Path( '/api/miseq_primer_preset' ) :Args(0) :ActionClas
 sub miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
+$DB::single=1;
     $c->assert_user_roles('edit');
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
@@ -372,8 +373,8 @@ sub miseq_primer_preset_POST {
     $c->require_ssl;
 
     my $jsonified_criteria = $c->request->param('criteria');
-$DB::single=1;
-    create_primer_preset($jsonified_criteria);
+    my $hashed_criteria = from_json $jsonified_criteria;
+    $c->model('Golgi')->create_primer_preset($hashed_criteria);
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
@@ -382,6 +383,15 @@ $DB::single=1;
     return;
 }
 
+sub miseq_primer_preset_GET {
+    my ( $self, $c ) = @_;
+
+    my $name = $c->request->param('name');
+
+    my $preset = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $name })->as_hash;
+
+    return $self->status_ok( $c, entity => $preset );
+}
 
 =head1 LICENSE
 

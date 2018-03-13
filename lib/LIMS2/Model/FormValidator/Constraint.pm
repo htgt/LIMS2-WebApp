@@ -396,6 +396,46 @@ sub existing_requester {
     return shift->in_resultset( 'Requester', 'id' );
 }
 
+sub config_min_max {
+    my $self = shift;
+    return sub {
+        my $conf = shift;
+        my $result = 1;
+        my $params = {
+            max => 1,
+            min => 1,
+            opt => 1,
+        };
+        foreach my $requirement (keys %{$conf}) {
+            my $bool = $params->{$requirement} || 0;
+            if ($bool == 0) {
+                $result = 0;
+            }
+        }
+        return $result;
+    }
+}
+
+sub primer_params {
+    my $self = shift;
+    return sub {
+        my $conf = shift;
+        my $result = 1;
+        my $params = {
+            increment       => 1,
+            offset_width    => 1,
+            search_width    => 1,
+        };
+        foreach my $requirement (keys %{$conf}) {
+            my $bool = $params->{$requirement} || 0;
+            if ($bool == 0) {
+                $result = 0;
+            }
+        }
+        return $result;
+    }
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
