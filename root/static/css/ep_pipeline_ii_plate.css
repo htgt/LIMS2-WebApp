@@ -1,0 +1,92 @@
+@charset "UTF-8";
+
+.control-group {
+  margin: 5px;
+}
+
+.sidebar:hover {
+  cursor: pointer;
+}
+
+.panel-heading:hover {
+  cursor: pointer;
+}
+
+.panel-default > .panel-heading {
+  background-color: #f8f8ff;/*ghostwhite*/
+}
+
+.glyphicon-refresh:hover {
+  cursor: pointer;
+}
+
+#create_assembly_ii_project {
+  margin-top: 5px;
+}
+
+#find_assembly_ii_project {
+  margin: 5px;
+}
+
+.project_info_btn {
+  height: 50px;
+  margin: 8px;
+}
+
+#gene_btns {
+  overflow-y: scroll;
+}
+
+.glyphicon-question-sign:hover {
+  cursor: pointer;
+}
+
+#squares_div {
+  margin-left: 20px;
+  margin-top: 20px;
+  float: left;
+}
+
+#experiments_div {
+  margin-right: 30px;
+  float: right;
+}
+
+#experiments_inner_div {
+  overflow: scroll;
+  height: 480px;
+  width: 700px;
+}
+
+.experiment_well {
+  background-color: #add8e6;
+  height: 20px;
+}
+
+.square {
+  width: 150px;
+  height: 60px;
+  border: 1px solid #4682b4;/*steelblue*/
+  background-color: #add8e6;/*lightblue*/
+  opacity: 0.5;
+}
+
+#gui_panel {
+  padding-top: 20px;
+}
+
+#assembly_ii_plate_name {
+  margin-bottom: 15px;
+}
+
+#target_t {
+  table-layout: fixed;
+  margin-bottom: 0px;
+  width: 1200px;
+  text-align: center;
+}
+
+.glyphicon-info-sign:hover {
+  cursor: pointer;
+}
+

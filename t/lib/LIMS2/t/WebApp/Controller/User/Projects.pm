@@ -156,6 +156,7 @@ sub view_edit_project_tests : Test(32){
     $mech->set_fields(
         crispr_id => 69848,
         design_id => 1002582,
+        project_id => 12,
     );
     $mech->click_button( name => 'add_experiment');
     $mech->content_contains('Experiment created');
@@ -167,7 +168,7 @@ sub view_edit_project_tests : Test(32){
         design_id => 1002582,
     );
     $mech->click_button( name => 'add_experiment');
-    $mech->content_contains('Experiment already exists');
+    $mech->content_contains('Experiment already exists with ID');
 
     # Cannot directly create duplicate experiment due to DB constraint
     throws_ok( sub{ model->schema->resultset('Experiment')->create({

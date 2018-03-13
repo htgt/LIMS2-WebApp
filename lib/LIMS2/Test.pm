@@ -295,7 +295,8 @@ sub load_static_files {
             DnaTemplate
             Priority
             CrisprStorage
-
+            ProcessGuidedType
+            GuidedType
             )
     );
 
@@ -323,7 +324,9 @@ sub load_dynamic_files {
             CrisprLocus
             CrisprPair
             CrisprGroup
+            DesignType
             Design
+            DesignOligoType
             DesignOligo
             DesignOligoLocus
             GeneDesign
@@ -360,6 +363,8 @@ sub load_dynamic_files {
             SequencingProjectBackup
             Message
             CrisprStorage
+            ProcessGuidedType
+            GuidedType
         )
     );
 

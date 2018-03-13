@@ -55,6 +55,7 @@ sub process_types : Tests(5) {
         group_crispr_assembly
         vector_cloning
         crispr_sep
+        ep_pipeline_ii
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };

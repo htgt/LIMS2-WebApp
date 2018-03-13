@@ -16,7 +16,7 @@ LIMS2/t/Model/Util/DesignInfo.pm - test class for LIMS2::Model::Util::DesignInfo
 
 =cut
 
-sub all_tests : Test(150) {
+sub all_tests : Test(158) {
 
     note('Test Valid Conditional -ve Stranded Design');
 
@@ -336,6 +336,28 @@ sub all_tests : Test(150) {
         is $di->target_transcript->stable_id, 'ENST00000371620', 'correct target transcript';
         ok my $floxed_exons = $di->floxed_exons, 'can call floxed exons';
     }
+
+    note( 'Test target region calculation for a miseq design' );
+    {
+        ok my $design = model->c_retrieve_design( { id => 1016404 } ),
+            'can grab design 1016404';
+        ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ),
+            'can grab new design info object';
+
+        is $di->target_region_start, 112791780, 'correct target region start';
+        is $di->target_region_end, 112791981, 'correct target region end';
+    }
+
+    note( 'Test target region calculation for a miseq-nhej design' );
+    {
+        ok my $design = model->c_retrieve_design( { id => 1016430 } ),
+            'can grab design 1016430';
+        ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ),
+            'can grab new design info object';
+
+        is $di->target_region_start, 60742732, 'correct target region start';
+        is $di->target_region_end, 60742936, 'correct target region end';
+     }
 
 }
 

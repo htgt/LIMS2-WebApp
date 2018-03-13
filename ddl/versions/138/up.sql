@@ -1,18 +1,8 @@
-CREATE TABLE miseq_design_presets (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    min_gc INTEGER,
-    max_gc INTEGER,
-    opt_gc INTEGER,
-    min_mt INTEGER,
-    max_mt INTEGER,
-    opt_mt INTEGER
+CREATE TABLE guided_types (
+  id INT PRIMARY KEY,
+  name TEXT NOT NULL
 );
-
-CREATE TABLE miseq_primer_parameters (
-    id SERIAL PRIMARY KEY,
-    internal boolean NOT NULL,
-    min_length INTEGER,
-    max_length INTEGER,
-    opt_length INTEGER
+CREATE TABLE process_guided_type (
+  process_id INT PRIMARY KEY REFERENCES processes(id),
+  guided_type_id INT NOT NULL REFERENCES guided_types(id)
 );
