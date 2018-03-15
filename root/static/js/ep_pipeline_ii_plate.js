@@ -1,48 +1,4 @@
-function populate_plate_table() {
-    var table = $('#plate-table');
-    for (var r = 1; r < 9; r++){
-        var row  = $('<tr></tr>');
-        for (var c = 0; c < 2; c++){
-            var id = '' + (c  * 8 + r);
-            var square_id = 'square_' + id;
-            var well_padding = "00";
-            var well_id = 'well_' + well_padding.substring(0, well_padding.length - id.length) + id;
-            var refresh = $('<span></span>')
-                .addClass('glyphicon')
-                .addClass('glyphicon-refresh')
-                .bind('click', { id: square_id }, function(ev) { refresh_square(ev.data.id); } );
-            var label = $('<span></span>')
-                .addClass('label')
-                .addClass('label-danger')
-                .addClass('experiment-name')
-                .attr('id', well_id + '_label');
-            var input = $('<input></input>')
-                .addClass('experiment_well')
-                .attr('id', well_id)
-                .attr('name', well_id)
-                .css({'display': 'none'});
-            var square = $('<div></div>') 
-                .attr('id', square_id)
-                .addClass('square')
-                .bind('mouseover', { id: square_id }, function(ev) { scaleup(ev.data.id); } )
-                .bind('mouseleave', { id: square_id }, function(ev) { scaledown(ev.data.id); } )
-                .bind('dragenter dragover', function(ev) { ev.preventDefault(); } )
-                .bind('drop dragdrop', function(ev) { drop_handler(ev.originalEvent); })
-                .append(id)
-                .append(refresh)
-                .append(label)
-                .append(input);
-            var cell = $('<td></td>')
-                .append(square);
-            row.append(cell);
-        }
-        table.append(row);
-    }
-}
-
-
 window.onload = function(){
-  populate_plate_table();
   document.getElementById("projectheader").click();
   document.getElementById("crisprheader").click();
   document.getElementById("designheader").click();
@@ -191,6 +147,10 @@ function dragstart_handler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
 }
 
+function dragover_handler(ev){
+  ev.preventDefault();
+}
+
 function drop_handler(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("text/plain");
@@ -201,7 +161,7 @@ function drop_handler(ev) {
   var children = ev.target.children;
 
   for (i=0; i<children.length; i++) {
-    if (children[i].classList.contains('experiment_well')) {
+    if (children[i].classList == 'experiment_well') {
       if (children[i].value == '') {
         children[i].value = data;
 //        children[i].style.width = '60px';
@@ -210,7 +170,7 @@ function drop_handler(ev) {
 //        children[i].style.color = 'red';
       }
     }
-    if (children[i].classList.contains('experiment-name')) {
+    if (children[i].classList == 'label label-danger experiment-name') {
         children[i].innerHTML = trivial;
       }
   }
@@ -233,7 +193,6 @@ function scaledown(square_id) {
 }
 
 function refresh_square(square_id) {
-  console.log('££ refresh_square ' + square_id);
   var square = document.getElementById(square_id);
   var children = square.children;
   for (i=0; i<children.length; i++) {

@@ -17,7 +17,31 @@
     <input class="form-control" id="assembly_ii_plate_name" name="assembly_ii_plate_name" placeholder="Enter Plate Name"></input>
 
 
-    <table id="plate-table"></table>
+    <table>
+    [% FOREACH row IN [ 1 .. 8 ] %]
+        <tr>
+        [% FOREACH col IN [ 0 .. 1 ];
+            USE String;
+            id = col * 8 + row;
+            padded_id = String.new(id);
+            IF id < 10;
+                padded_id = padded_id.prepend('0');
+            END %]
+            <td><div id="square_[% id %]" class="square" 
+                onmouseover="scaleup('square_[% id %]')" onmouseout="scaledown('square_[% id %]')" 
+                ondrop="drop_handler(event)" ondragover="dragover_handler(event)">
+                [% id %]
+                <span class="glyphicon glyphicon-refresh" onClick="refresh_square('square_[% id %]')"></span>
+                <span class="label label-danger experiment-name" id="well_[% padded_id %]_label"></span>
+                <input class="experiment_well" id="well_[% padded_id %]" name="well_[% padded_id %]" style="display:none;"></input>
+                </div>
+            </td>
+        [%  END %]
+        </tr>
+    [% END %]
+    </table>
+
+
 
     </div>
 
@@ -32,8 +56,8 @@
     <div class="modal-content">
       <table class="table table-bordered table-fixed" style="text-align:center;">
         <thead>
-          <th style="width:60px;height:30px;">
-            Trivial Name
+          <th style="width:90px;height:30px;">
+            Experiment
           </th>
           <th style="width:60px;height:30px;">
             Design ID *
@@ -191,7 +215,7 @@
         <thead>
           <th style="width:60px;height:30px;">
           </th>
-          <th style="width:80px;height:30px;">
+          <th style="width:90px;height:30px;">
             Experiment
           </th>
           <th style="width:60px;height:30px;">
@@ -303,7 +327,7 @@
             <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-ban-circle" style="font-size:20px;"></span></button>
           </td>
           <td style="font-size:10px;">
-            [% exp.gene_id or '-' %]
+            [% exp.trivial_name or exp.gene_id or '-' %]
           </td>
           <td style="font-size:10px;">
             [% exp.design_id or '-' %]
