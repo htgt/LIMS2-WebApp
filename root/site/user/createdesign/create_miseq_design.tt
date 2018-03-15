@@ -40,7 +40,7 @@ tr.success td{
         <div class="row col-md-12" align="center">
             <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
             <div class="col-md-3">
-                <select id="design_type" name="design_type" class="form-control" align="center">
+                <select id="designType" name="design_type" class="form-control" align="center">
                     <option value="miseq-nhej">miseq-nhej</option>
                     <option value="miseq-hdr">miseq-hdr</option>
                 </select>
@@ -49,7 +49,7 @@ tr.success td{
         <div class="row col-md-12" align="center">
             <h4 class="col-md-2 col-md-offset-3">Presets</h4>
             <div class="col-md-3">
-                <select class="form-control" align="center">
+                <select id="presetSelection" name="preset_selection" class="presetDD form-control" align="center">
                     [% FOREACH preset IN presets %]
                         <option value="[% preset %]">[% preset %]</option>
                     [% END %]
@@ -85,10 +85,10 @@ tr.success td{
         </thead>
         <tbody>
             [% FOR table IN crispr_table %]
-            [% IF table.status != 'Success' %]
-                <tr id="[% table.lims %]" class="fail">
+                [% IF table.status != 'Success' %]
+                    <tr id="[% table.lims %]" class="fail">
                 [% ELSE %]
-                <tr id="[% table.lims %]" class="success">
+                    <tr id="[% table.lims %]" class="success">
                 [% END %]
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
@@ -119,7 +119,7 @@ tr.success td{
                 <div class="col-md-12 row">
                     [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'redoPanel' %]
                 </div>
-                <div class="col-md-12" id="response">
+                <div id="redoResponse" class="col-md-12">
                 </div>
             </div>
             <div class="modal-footer">
@@ -142,7 +142,7 @@ tr.success td{
                 <fieldset id="presetDDfield" class="col-md-12 row form-group">
                     <h4 class="col-md-2 col-md-offset-2">Presets: </h4>
                     <div class="col-md-4">
-                        <select id="presetModalDD" class="form-control" align="center">
+                        <select id="presetModalDD" class="presetDD form-control" align="center">
                             [% FOREACH preset IN presets %]
                                 <option value="[% preset %]">[% preset %]</option>
                             [% END %]
@@ -154,8 +154,9 @@ tr.success td{
                     <button id="newPreset" class="btn btn-primary">
                         New <i class="glyphicon glyphicon-pencil"></i>
                     </button>
-
                 </fieldset>
+                <div id="presetResponse" class="col-md-12">
+                </div>
                 <fieldset id="newPresetName" class="col-md-9 row form-group" hidden>
                     <h4 class="col-md-3 col-md-offset-2">Preset Name: </h4>
                     <div id="presetNameContainer" class="col-md-5">
@@ -243,22 +244,22 @@ $('#redo_submit').click(function() {
             console.log(result);
             var message;
             if (result.status == 'Success') {
-                $('#response').removeClass('alert-danger').addClass('alert-success');
+                $('#redoResponse').removeClass('alert-danger').addClass('alert-success');
                 var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
                 message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
                 updateTable(params.crispr, result);
             } else {
-                $('#response').removeClass('alert-success').addClass('alert-danger');
+                $('#redoResponse').removeClass('alert-success').addClass('alert-danger');
                 message = 'Error: ' + result.status;
             }
             console.log(message);
-            $('#response').html(message);
+            $('#redoResponse').html(message);
             $('#redoWaiting').hide().prop('disabled', true);
         },
         error: function(err) {
             console.log(err);
-            $('#response').addClass('alert-danger');
-            $('#response').text('Failed to create MiSeq design: ' + err.responseText);
+            $('#redoResponse').addClass('alert-danger');
+            $('#redoResponse').text('Failed to create MiSeq design: ' + err.responseText);
             $('#redoWaiting').hide().prop('disabled', true);
         }
     });
@@ -267,7 +268,7 @@ $('#redo_submit').click(function() {
 
 $('#createPreset').click(function() {
     var params = gatherParameters('preset');
-    params.name = $('#presetName').val();
+    params.name = $('#presetNameArea').val();
     var jsonified_params = JSON.stringify(params);
     $('#presetWaiting').show().prop('disabled', false);
 
@@ -281,28 +282,24 @@ $('#createPreset').click(function() {
         success: function(result) {
             console.log("Response received");
             console.log(result);
-            var message;
-            if (result.status == 'Success') {
-                $('#response').removeClass('alert-danger').addClass('alert-success');
-                var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
-                message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
-                updateTable(params.crispr, result);
-            } else {
-                $('#response').removeClass('alert-success').addClass('alert-danger');
-                message = 'Error: ' + result.status;
-            }
-            console.log(message);
-            $('#response').html(message);
+            readonly();
+            $('.presetDD').append($('<option>', {
+                value: result.name,
+                text: result.name
+            }));
+            $('#presetModalDD').val(result.name);
+            updateParameters(result);
+            $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
+            $('#presetResponse').text('Created design preset: ' + result.name);
             $('#customWaiting').hide().prop('disabled', true);
         },
         error: function(err) {
             console.log(err);
-            $('#response').addClass('alert-danger');
-            $('#response').text('Failed to create MiSeq design: ' + err.responseText);
+            $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
+            $('#presetResponse').text('Failed to create MiSeq preset: ' + err.responseText);
             $('#customWaiting').hide().prop('disabled', true);
         }
     });
-
 });
 
 $('#presetNameArea').on('input', function() {
@@ -310,16 +307,14 @@ $('#presetNameArea').on('input', function() {
 });
 
 $('#presetModalDD').change(function() {
+    $('#presetSelection').val($('#presetModalDD').val())
+    blockDefault();
     getPreset();
 });
 
 $('#showPreset').click(function() {
-    $('#createPreset').hide().prop('disabled', true);
-    $('#updatePreset').hide().prop('disabled', false);
-    $('#newPresetName').hide();
-    $('#customPresetModal').find('input').attr('readonly',true);
-    
-    $('#presetDDfield').show();
+    readonly();
+    blockDefault();
     getPreset();
 });
 
@@ -335,6 +330,18 @@ $('#newPreset').click(function() {
     editMode('new');
 });
 
+function readonly() {
+    $('#createPreset').hide().prop('disabled', true);
+    $('#updatePreset').hide().prop('disabled', false);
+    $('#newPresetName').hide();
+    $('#customPresetModal').find('input').attr('readonly',true);
+
+    $('#presetModalDD').val($('#presetSelection').val());
+    $('#presetDDfield').show();
+
+    return;
+}
+
 function editMode(mode) {
     if (mode == 'edit') {
         $('#updatePreset').show().prop('disabled', false);
@@ -347,24 +354,29 @@ function editMode(mode) {
     $('#newPresetName').show();
     $('#customPresetModal').find('input').attr('readonly',false);
     highlightCheck();
+
+    return;
 }
 
 function highlightCheck() {
     var nameObj = $('#presetNameArea');
     var value = nameObj.val();
-    var validation = value.match(/^\w+$/); //Alphanumeric + _
-    if (validation == null || value == 'Default') {
-        nameObj.css("background-color","#ED8B97"); //Red
-        $('#nameError').text("Only alphanumeric characters, spaces and underscores.");
-    }
-    else if (value.length > 2) {
-        nameObj.css("background-color","#67E593"); //Green
-        $('#nameError').text("");
-    }
-    else {
+    var validation = value.match(/^\w+$/); //Alphanumeric
+
+    if (value.length < 3) {
         nameObj.css("background-color",""); //Clear
         $('#nameError').text("");
     }
+    else if (validation == null || value == 'Default') {
+        nameObj.css("background-color","#ED8B97"); //Red
+        $('#nameError').text("Only alphanumeric characters, spaces and underscores.");
+    }
+    else {
+        nameObj.css("background-color","#67E593"); //Green
+        $('#nameError').text("");
+    }
+
+    return;
 }
 
 function updateTable(crispr, row) {
@@ -378,6 +390,8 @@ function updateTable(crispr, row) {
         split = ", ";
     }
     $('#' + crispr).children('.tableDesign').append(split + designAtag);
+
+    return;
 }
 
 function gatherParameters(modalType) {
@@ -407,7 +421,7 @@ function gatherParameters(modalType) {
 
     var params = {
         genomic_threshold   : $('#' + modalType + '_genomic').val(),
-        design_type         : $('#' + modalType + '_design_type').val(),
+        design_type         : $('#' + modalType + '_designType').val(),
         crispr              : $('#' + modalType + '_redoModal').attr("name"), 
         miseq               : miseq,
         pcr                 : pcr,
@@ -460,6 +474,8 @@ function getPreset() {
 }
 
 function updateParameters(data) {
+    console.log("update");
+    console.log(data);
     $('#preset_genomic').val(data.genomic_threshold);
     
     var miseq = data.primers.miseq.widths;
@@ -491,8 +507,14 @@ function updateParameters(data) {
     return;
 }
 
-function newPreset() {
+function blockDefault() {
+    if ($('#presetModalDD').val() == 'Default') {
+        $('#editPreset').prop('disabled', true);
+    } else {
+        $('#editPreset').prop('disabled', false);
+    }
 
+    return;
 }
 
 </script>

@@ -202,6 +202,7 @@ sub miseq_plate_creation_json {
 sub pspec_create_primer_preset {
     return {
         name                => { validate => 'alphanumeric_string' },
+        created_by          => { validate => 'existing_user_id' },
         genomic_threshold   => { validate => 'numeric' },
         gc                  => { validate => 'config_min_max' },
         melt                => { validate => 'config_min_max' },
@@ -212,7 +213,7 @@ sub pspec_create_primer_preset {
 
 sub create_primer_preset {
     my ($self, $params) = @_;
-    
+$DB::single=1;    
     my $validated_params = $self->check_params($params, pspec_create_primer_preset);
     my $current_preset = $self->schema->resultset('MiseqDesignPreset')->find({ name => $validated_params->{name} });
 
@@ -222,6 +223,8 @@ sub create_primer_preset {
 
     my $design_preset_params = {
         name        => $validated_params->{name},
+        created_by  => $validated_params->{created_by},
+        genomic_threshold => $validated_params->{genomic_threshold},
         min_gc      => $validated_params->{gc}->{min},
         max_gc      => $validated_params->{gc}->{max},
         opt_gc      => $validated_params->{gc}->{opt},
@@ -231,30 +234,27 @@ sub create_primer_preset {
     };
 
     my $internal_preset_params = {
-        internal    => 1,
-        min_length  => $validated_params->{miseq}->{min},
-        max_length  => $validated_params->{miseq}->{max},
-        opt_length  => $validated_params->{miseq}->{opt},
+        internal        => 1,
+        search_width    => $validated_params->{miseq}->{search_width},
+        offset_width    => $validated_params->{miseq}->{offset_width},
+        increment_value => $validated_params->{miseq}->{increment},
     };
 
     my $external_preset_params = {
-        internal    => 0,
-        min_length  => $validated_params->{pcr}->{min},
-        max_length  => $validated_params->{pcr}->{max},
-        opt_length  => $validated_params->{pcr}->{opt},
+        internal        => 0,
+        search_width    => $validated_params->{pcr}->{search_width},
+        offset_width    => $validated_params->{pcr}->{offset_width},
+        increment_value => $validated_params->{pcr}->{increment},
     };
 
-
-    
     my $design_preset;
-    
     $self->txn_do(
         sub {
             try {
                 $design_preset = $self->schema->resultset('MiseqDesignPreset')->create({   
                     slice_def(
                         $design_preset_params,
-                        qw( name min_gc max_gc opt_gc min_mt max_mt opt_mt )
+                        qw( name created_by genomic_threshold min_gc max_gc opt_gc min_mt max_mt opt_mt )
                     )
                 });
 
@@ -264,14 +264,14 @@ sub create_primer_preset {
                 my $internal_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
                     slice_def(
                         $internal_preset_params,
-                        qw( preset_id internal min_length max_length opt_length )
+                        qw( preset_id internal search_width offset_width increment_value )
                     )
                 });
 
                 my $external_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
                     slice_def(
                         $external_preset_params,
-                        qw( preset_id internal min_length max_length opt_length )
+                        qw( preset_id internal search_width offset_width increment_value )
                     )
                 });
             }

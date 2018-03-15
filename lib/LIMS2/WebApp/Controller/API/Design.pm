@@ -374,11 +374,14 @@ $DB::single=1;
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
-    $c->model('Golgi')->create_primer_preset($hashed_criteria);
+    $hashed_criteria->{created_by} = $c->user->id;
+    my $preset = $c->model('Golgi')->create_primer_preset($hashed_criteria);
 
+    my $json = JSON->new->allow_nonref;
+    my $json_preset = $json->encode($preset->as_hash);
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
-    $c->response->body( $jsonified_criteria );
+    $c->response->body( $json_preset );
 
     return;
 }
