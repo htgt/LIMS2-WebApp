@@ -27,6 +27,7 @@ CREATE UNIQUE INDEX trivial_offset_combo ON trivial_offset (gene_id, COALESCE(cr
 -- It also can be manipulated to support preexisting trivial names using the
 -- trivial_backfill and trivial_offset tables.
 CREATE VIEW trivial AS
+    -- combine the experiments table with backfill and offset tables
     WITH exp AS (
         SELECT experiments.gene_id,
             Coalesce(experiments.crispr_id, crispr_pair_id, crispr_group_id) AS crispr,
@@ -52,21 +53,32 @@ CREATE VIEW trivial AS
             AND design_offset.crispr_id = experiments.crispr_id
             AND experiments.design_id IS NOT NULL
     ),
+    -- rank crisprs, incorporating the offset
     trivial_crispr AS (
         SELECT gene_id, crispr,
             row_number() OVER (PARTITION BY gene_id 
-                ORDER BY crispr_index NULLS LAST, min(experiment_id)
+                -- first, anything that has been deliberately set (in the backfill table)
+                -- (everything else is null, put it afterwards)
+                ORDER BY crispr_index NULLS LAST,
+                -- next, sort each unique gene+crispr combo by when it was first added to an experiment
+                min(experiment_id)
             ) + crispr_offset AS trivial_crispr
         FROM exp
         GROUP BY gene_id, crispr, crispr_offset, crispr_index
     ),
+    -- rank designs, incorporating the offset
     trivial_design AS (
         SELECT gene_id, crispr, design_id,
             row_number() OVER (PARTITION BY gene_id, crispr 
-                ORDER BY design_index NULLS LAST, min(experiment_id)
+                -- first, anything that has been deliberately set (in the backfill table)
+                -- (everything else is null, put it afterwards)
+                ORDER BY design_index NULLS LAST, 
+                -- next, sort each each gene+crispr+design combo by when it was first added to an experiment
+                min(experiment_id)
             ) + design_offset AS trivial_design
         FROM exp
         GROUP BY gene_id, crispr, design_id, design_offset, design_index)
+    -- use the earlier subqueries, and add the experiment rank
     SELECT species_id, experiment_id, exp.gene_id, exp.crispr, trivial_crispr, 
         exp.design_id, trivial_design,
         dense_rank() OVER (PARTITION BY exp.gene_id, exp.crispr, exp.design_id ORDER BY experiment_id)
