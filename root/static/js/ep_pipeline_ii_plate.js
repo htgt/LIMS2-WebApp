@@ -147,7 +147,7 @@ function dragstart_handler(ev) {
   ev.dataTransfer.setData("text/plain", ev.target.id);
 }
 
-function dragover_handler(ev){
+function dragover_handler(ev) {
   ev.preventDefault();
 }
 
@@ -161,7 +161,7 @@ function drop_handler(ev) {
   var children = ev.target.children;
 
   for (i=0; i<children.length; i++) {
-    if (children[i].classList == 'experiment_well') {
+    if (children[i].className == 'experiment_well') {
       if (children[i].value == '') {
         children[i].value = data;
 //        children[i].style.width = '60px';
@@ -170,7 +170,7 @@ function drop_handler(ev) {
 //        children[i].style.color = 'red';
       }
     }
-    if (children[i].classList == 'label label-danger experiment-name') {
+    if (children[i].className == 'label label-danger experiment-name') {
         children[i].innerHTML = trivial;
       }
   }
@@ -196,10 +196,10 @@ function refresh_square(square_id) {
   var square = document.getElementById(square_id);
   var children = square.children;
   for (i=0; i<children.length; i++) {
-    if (children[i].classList.contains('experiment_well')) {
+    if (children[i].className == 'experiment_well') {
       children[i].value = '';
     }
-    if (children[i].classList.contains('experiment-name')) {
+    if (children[i].className == 'label label-danger experiment-name') {
         children[i].innerHTML = '';
     }
   }
