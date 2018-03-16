@@ -214,7 +214,6 @@ sub get_well_info {
 
     ## validate project using cell line
     my $cell_line_id = $self->get_well_cell_line($well_id);
-    my $db_proj = $self->model->schema->resultset( 'Project' )->find({ gene_id =>  $info->{gene_id}, cell_line_id => $cell_line_id }, { columns => [ qw/id/ ] });
 
     ## get cell line name
     my $db_cell_line = $self->model->schema->resultset( 'CellLine' )->find({ id => $cell_line_id }, { columns => [ qw/name/ ] });
@@ -228,7 +227,7 @@ sub get_well_info {
     my $db_guided_type = $self->model->schema->resultset( 'GuidedType' )->find({ id => $guided_type_id }, { columns => [ qw/name/ ] });
 
     ## prepare report data
-    $info->{project_id} = $db_proj->get_column('id');
+    $info->{project_id} = join ",", @projs;
     $info->{cell_line} = $db_cell_line->get_column('name');
     $info->{protein_type} = $db_protein_type->get_column('name');
     $info->{guided_type} = $db_guided_type->get_column('name');
