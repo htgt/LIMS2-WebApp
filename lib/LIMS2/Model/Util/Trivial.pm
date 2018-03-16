@@ -16,7 +16,7 @@ sub _numeric_to_alpha {
         unshift @alpha, ( $numeric - 1 ) % 26;
         $numeric = int( ( $numeric - 1 ) / 26 );
     }
-    join q//, map chr( ord('A') + $_ ), @alpha;
+    return join q//, map { chr( ord('A') + $_ ) } @alpha;
 }
 
 =head2 trivial_name
@@ -30,20 +30,22 @@ has_one foreign relation to the "trivial" view.
 sub trivial_name {
     my $self    = shift;
     my $trivial = $self->trivial;
-    my $gene    = $self->gene_id;
+    if ( not defined $trivial ) {
+        return q//;
+    }
+    my $gene = $self->gene_id;
     try {
         $gene = c_find_gene(
-             {
-                species     => $trivial->species_id,
+            {   species     => $trivial->species_id,
                 search_term => $self->gene_id,
             }
         )->{gene_symbol};
     };
     my @components = ( "${gene}_", $trivial->trivial_crispr );
-    if(defined $trivial->trivial_design){
-        push @components, _numeric_to_alpha($trivial->trivial_design);
+    if ( defined $trivial->trivial_design ) {
+        push @components, _numeric_to_alpha( $trivial->trivial_design );
     }
-    if(defined $trivial->trivial_experiment){
+    if ( defined $trivial->trivial_experiment ) {
         push @components, $trivial->trivial_experiment;
     }
     return join q//, @components;
