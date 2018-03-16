@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ 'generate_miseq_design' ]
+    exports => [ 'generate_miseq_design', 'design_preset_params' ]
 };
 
 use Path::Class;
@@ -42,6 +42,8 @@ sub generate_miseq_design {
         external    => $design_params->{pcr}->{increment} || 50,
     };
 
+use Data::Dumper;
+print Dumper $search_range;
     my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params->{genomic_threshold});
 
     my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
@@ -414,6 +416,31 @@ sub genes_for_crisprs {
     }
 
     return \@gene_ids;
+}
+
+sub design_preset_params {
+    my ($c, $name) = @_;
+
+    my $preset = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $name })->as_hash;
+    my $miseq = $preset->{primers}->{miseq}->{widths};
+    my $pcr = $preset->{primers}->{pcr}->{widths};
+
+    my $primer_params = {
+        miseq => {
+            search_width => $miseq->{search},
+            offset_width => $miseq->{offset},
+            increment    => $miseq->{increment},
+        },
+        pcr => {
+            search_width => $pcr->{search},
+            offset_width => $pcr->{offset},
+            increment    => $pcr->{increment},
+        },
+        gc => $preset->{gc},
+        mt => $preset->{mt},
+    };
+
+    return $primer_params;
 }
 
 1;

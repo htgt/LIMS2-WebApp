@@ -13,7 +13,7 @@ use WebAppCommon::Util::FarmJobRunner;
 use LIMS2::REST::Client;
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
 use LIMS2::Model::Util::CreateDesign qw( &convert_gibson_to_fusion );
-use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design );
+use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design design_preset_params );
 use DesignCreate::Types qw( PositiveInt Strand Chromosome Species );
 use WebAppCommon::Design::DesignParameters qw( c_get_design_region_coords );
 use LIMS2::Model::Util::GenomeBrowser qw(design_params_to_gff);
@@ -518,9 +518,8 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
         my $crispr_info;
         my @crispr_table;
         my @failed_terms;
-        my $design_requirements = {
-            design_type => $c->req->param('design_type'),
-        };
+        my $design_requirements = design_preset_params($c, $c->req->param('preset_selection'));
+        $design_requirements->{design_type} = $c->req->param('design_type');
         foreach my $crispr (@crispr_set){
             my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr, wge_id => $crispr });
             unless ($crispr_rs) {

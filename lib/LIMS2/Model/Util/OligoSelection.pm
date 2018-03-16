@@ -137,6 +137,7 @@ sub crispr_PCR_calculate {
                 dead_field_width => $params->{'dead_field_width'},
                 search_field_width => $params->{'search_field_width'},
             } );
+$DB::single=1;
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $config_path,
         primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
