@@ -28,7 +28,7 @@ use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
-
+$DB::single=1;
     my $search_range = {
         search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
@@ -40,6 +40,8 @@ sub generate_miseq_design {
         },
         internal    => $design_params->{miseq}->{increment} || 15,
         external    => $design_params->{pcr}->{increment} || 50,
+        melting     => $design_params->{mt},
+        gc_content  => $design_params->{gc},
     };
 
 use Data::Dumper;
@@ -116,6 +118,8 @@ sub generate_primers {
         offset              => 20,
         well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
         genomic_threshold   => $genomic_threshold || 30,
+        gc                  => $search_range->{gc_content},
+        mt                  => $search_range->{melting},
     };
 
     local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
@@ -149,7 +153,7 @@ sub generate_primers {
         strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
     };
 
-
+$DB::single=1;
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
         $params->{error} = "Primer generation failed: No adequate PCR primers found; Search width: "
