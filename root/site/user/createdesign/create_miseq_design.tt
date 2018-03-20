@@ -117,7 +117,7 @@ tr.success td{
             <div class="modal-body col-md-12">
                 [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'redo'%]
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'redoPanel' %]
+                    [% INCLUDE 'user/createdesign/miseq_design_parameters_help.tt' panel_name = 'redoPanel' %]
                 </div>
                 <div id="redoResponse" class="col-md-12">
                 </div>
@@ -169,7 +169,7 @@ tr.success td{
                     <label id="owner" class="col-md-6 col-form-label"></label>
                 </div>
                 <div class="col-md-12 row">
-                    [% INCLUDE 'miseq_design_parameters_help.tt' panel_name = 'customPanel' %]
+                    [% INCLUDE 'user/createdesign/miseq_design_parameters_help.tt' panel_name = 'customPanel' %]
                 </div>
             </div>
             <div class="modal-footer">
