@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Experiments;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.492';
+    $LIMS2::WebApp::Controller::User::Experiments::VERSION = '0.493';
 }
 ## use critic
 
@@ -43,6 +43,7 @@ sub view_experiment :Path('/user/view_experiment'){
 
     $c->stash(
         experiment_id => $exp_id,
+        trivial_name => $exp->trivial_name,
         experiment => $exp_hash,
         gene_symbol => $gene_info->{'gene_symbol'},
         genotyping => $genotyping_query,
