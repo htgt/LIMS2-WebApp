@@ -9,13 +9,24 @@ use WebAppCommon::Util::FindGene qw( c_find_gene );
 
 requires qw( trivial gene_id species_id );
 
-sub _numeric_to_alpha {
+=head2 numeric_to_alpha
+
+convert a number to a base-26 (alphabetical) representation
+e.g. A, B, ... Z, AA, AB...
+
+=cut
+
+sub numeric_to_alpha {
     my $numeric = shift;
     my @alpha;
     while ( $numeric > 0 ) {
+        # take the least significant (base-26) digit, and add it to the array *in front*
+        # of all the previous least significant digits
         unshift @alpha, ( $numeric - 1 ) % 26;
         $numeric = int( ( $numeric - 1 ) / 26 );
     }
+
+    # convert each base-26 digit into its alphabetical representation
     return join q//, map { chr( ord('A') + $_ ) } @alpha;
 }
 
@@ -43,7 +54,7 @@ sub trivial_name {
     };
     my @components = ( "${gene}_", $trivial->trivial_crispr );
     if ( defined $trivial->trivial_design ) {
-        push @components, _numeric_to_alpha( $trivial->trivial_design );
+        push @components, numeric_to_alpha( $trivial->trivial_design );
     }
     if ( defined $trivial->trivial_experiment ) {
         push @components, $trivial->trivial_experiment;
