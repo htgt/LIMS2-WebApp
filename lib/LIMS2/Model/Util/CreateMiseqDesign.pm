@@ -119,7 +119,7 @@ sub generate_primers {
         well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
         genomic_threshold   => $genomic_threshold || 30,
         gc                  => $search_range->{gc_content},
-        mt                  => $search_range->{melting},
+        tm                  => $search_range->{melting},
     };
 
     local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};

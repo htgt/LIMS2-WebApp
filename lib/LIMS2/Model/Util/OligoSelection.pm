@@ -46,7 +46,7 @@ use LIMS2::Model::Util::DesignInfo;
 
 use Bio::SeqIO;
 use Path::Class;
-
+use YAML qw(LoadFile);
 
 =head pick_PCR_primers_for_crisprs
     given location of crispr primers as an input,
@@ -138,7 +138,7 @@ sub crispr_PCR_calculate {
                 search_field_width => $params->{'search_field_width'},
             } );
 $DB::single=1;
-    if ($params->{gc} && $params->{mt}) {
+    if ($params->{gc} && $params->{tm}) {
         my $configuration = primer3_config($params, $config_path, $target_sequence_length);
     }
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
@@ -175,28 +175,15 @@ $DB::single=1;
 sub primer3_config {
     my ($params, $config_path, $target_sequence_length) = @_;
 $DB::single=1;
+    my $yaml_conf = LoadFile($config_path);
 
     my $p3_config = {
-        primer_max_size => '',
-        primer_min_size => '',
-        primer_opt_size => '',
-        primer_max_gc => '',
-        primer_min_gc => '',
-        primer_opt_gc_percent => '',
-        primer_max_tm => '',
-        primer_min_tm => '',
-        primer_opt_tm => '',
-
-        primer_num_return => '',
-        primer_product_size_range => '',
-        primer_min_three_prime_distance => '',
-
-        primer_lowercase_masking => '',
-        primer_gc_clamp => '',
-
-        primer_explain_flag => '',
-        primer3_task => '',
-        primer_thermodynamic_parameters_path => '',
+        primer_max_gc => $params->{gc}->{max},
+        primer_min_gc => $params->{gc}->{min},
+        primer_opt_gc_percent => $params->{gc}->{opt},
+        primer_max_tm => $params->{tm}->{max},
+        primer_min_tm => $params->{tm}->{min},
+        primer_opt_tm => $params->{tm}->{opt},
     };
 
     return;
