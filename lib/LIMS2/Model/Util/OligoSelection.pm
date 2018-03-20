@@ -138,6 +138,9 @@ sub crispr_PCR_calculate {
                 search_field_width => $params->{'search_field_width'},
             } );
 $DB::single=1;
+    if ($params->{gc} && $params->{mt}) {
+        my $configuration = primer3_config($params, $config_path, $target_sequence_length);
+    }
     my $p3 = DesignCreate::Util::Primer3->new_with_config(
         configfile => $config_path,
         primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
@@ -167,6 +170,36 @@ $DB::single=1;
         $primer_data->{'error_flag'} = 'fail';
     }
     return $primer_data, $primer_passes, $chr_seq_start;
+}
+
+sub primer3_config {
+    my ($params, $config_path, $target_sequence_length) = @_;
+$DB::single=1;
+
+    my $p3_config = {
+        primer_max_size => '',
+        primer_min_size => '',
+        primer_opt_size => '',
+        primer_max_gc => '',
+        primer_min_gc => '',
+        primer_opt_gc_percent => '',
+        primer_max_tm => '',
+        primer_min_tm => '',
+        primer_opt_tm => '',
+
+        primer_num_return => '',
+        primer_product_size_range => '',
+        primer_min_three_prime_distance => '',
+
+        primer_lowercase_masking => '',
+        primer_gc_clamp => '',
+
+        primer_explain_flag => '',
+        primer3_task => '',
+        primer_thermodynamic_parameters_path => '',
+    };
+
+    return;
 }
 
 =head pick_genotyping_primers
