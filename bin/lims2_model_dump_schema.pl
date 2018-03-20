@@ -130,7 +130,7 @@ my $overwrite    = 0;
 my @components   = qw( InflateColumn::DateTime );
 
 my $excluded_tables = qr/^trivial_.*/;
-        
+
 GetOptions(
     'host=s'         => \$pg_host,
     'port=s'         => \$pg_port,
