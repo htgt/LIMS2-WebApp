@@ -1,22 +1,28 @@
+<style>
+.monoLabel {
+    font-family: monospace;
+}
+</style>
+
 <fieldset class="col-md-12">
-    <legend>Primer Restraints</legend>
+    <legend>Primer3 Restraints</legend>
     <fieldset class="col-md-6">
         <legend>Miseq</legend>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Search width:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="Search Width" class="form-control" id="[% modal_function %]_miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 148" value="148"/>
             </div>
         </div>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Offset width:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="Dead Search Width" class="form-control" name="miseq_dead_search_width" id="[% modal_function %]_miseq_dead_search_width" type="number" placeholder="Default 50" value="50"/>
             </div>
         </div>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Increment:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="increment" class="form-control" id="[% modal_function %]_miseq_increment" name="miseq_increment" type="number" placeholder="Default 15" value="15"/>
             </div>
         </div>
@@ -25,19 +31,19 @@
         <legend>PCR</legend>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Search width:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="Search Width" class="form-control" id="[% modal_function %]_pcr_search_width" name="pcr_search_width" type="number" placeholder="Default 350" value="350"/>
             </div>
         </div>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Offset width:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="[% modal_function %]_pcr_dead_search_width" type="number" placeholder="Default 148" value="148"/>
             </div>
         </div>
         <div class="col-md-12 row">
             <label class="col-md-6 col-form-label">Increment:</label>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <input name="pcr_increment" class="form-control" id="[% modal_function %]_pcr_increment" type="number" placeholder="Default 50" value="50"/>
             </div>
         </div>
@@ -47,7 +53,7 @@
     <legend>Design Restraints</legend>
     <div class="form-group col-md-12">
         <label class="col-md-5 col-form-label">Genomic Score Threshold</label>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <input name="genomic" class="form-control" id="[% modal_function %]_genomic" type="number" placeholder="Default 30" value="30"/>
         </div>
     </div>
@@ -55,21 +61,23 @@
         <label class="col-md-5 col-form-label">Primer Melting Temperatures</label>
         <div class="col-md-4">
             <div class="input-group">
-                <span class="input-group-addon">Minimum</span>
-                <input class="form-control" id="[% modal_function %]_min_mt" type="text" value="[% melting_temp.min %]">
+                <span class="input-group-addon monoLabel">Minimum</span>
+                <div class="col-md-12">
+                    <input class="form-control" id="[% modal_function %]_min_mt" type="text" value="[% melting_temp.min %]">
+                </div>
                 <span class="input-group-addon">C</span>
             </div>
         </div>
         <div class="col-md-4 col-md-offset-5 row">
             <div class="input-group">
-                <span class="input-group-addon">Optimum</span>
+                <span class="input-group-addon monoLabel">Optimum</span>
                 <input class="form-control" id="[% modal_function %]_opt_mt" type="text" value="[% melting_temp.opt %]">
                 <span class="input-group-addon">C</span>
             </div>
         </div>
         <div class="col-md-4 col-md-offset-5 row">
             <div class="input-group">
-                <span class="input-group-addon">Maximum</span>
+                <span class="input-group-addon monoLabel">Maximum</span>
                 <input class="form-control" id="[% modal_function %]_max_mt" type="text" value="[% melting_temp.max %]">
                 <span class="input-group-addon">C</span>
             </div>
@@ -79,21 +87,21 @@
         <label class="col-md-5 col-form-label">Primer GC Content</label>
         <div class="col-md-4">
             <div class="input-group">
-                <span class="input-group-addon">Minimum</span>
+                <span class="input-group-addon monoLabel">Minimum</span>
                 <input class="form-control" id="[% modal_function %]_min_gc" type="text" value="[% gc_content.min %]">
                 <span class="input-group-addon">%</span>
             </div>
         </div>
         <div class="col-md-4 col-md-offset-5 row">
             <div class="input-group">
-                <span class="input-group-addon">Optimum</span>
+                <span class="input-group-addon monoLabel">Optimum</span>
                 <input class="form-control" id="[% modal_function %]_opt_gc" type="text" value="[% gc_content.opt %]">
                 <span class="input-group-addon">%</span>
             </div>
         </div>
         <div class="col-md-4 col-md-offset-5 row">
             <div class="input-group">
-                <span class="input-group-addon">Maximum</span>
+                <span class="input-group-addon monoLabel">Maximum</span>
                 <input class="form-control" id="[% modal_function %]_max_gc" type="text" value="[% gc_content.max %]">
                 <span class="input-group-addon">%</span>
             </div>

@@ -60,6 +60,7 @@ External  -520                 -170                0                170         
                         PCR Primers are checked for genomic uniqueness. Genomic uniqueness check is run through BWA. 30 genomic score has been the benchmark used in pipeline I design creation. Lowering this score will increase the likelihood of creating a design. However mismatching may occur.
                     </p>
                 </div>
+                <a href="http://primer3.ut.ee/primer3web_help.htm" target="_blank">Primer3 Help</a>
             </div>
         </div>
     </div>
