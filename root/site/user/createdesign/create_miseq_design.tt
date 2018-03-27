@@ -330,6 +330,34 @@ $('#newPreset').click(function() {
     editMode('new');
 });
 
+$('.meltEntry').on('input', function() {
+    var region = /^[1-9][0-9]$/; //Only 10-99
+    var message = "Melting temperatures are limited to 10-99 degrees";
+    errorNotification(this, region, message);
+});
+
+$('.gcEntry').on('input', function() {
+    var region = /^[1-9]?[0-9]$|^100$/; //Only 0-100
+    var message = "GC percentages must be an integer within 0-100";
+    errorNotification(this, region, message);
+});
+
+function errorNotification(entry, pattern, err) {
+    var entity = $(entry);
+    var textEntry = entity.val();
+    if (textEntry.match(pattern)) {
+        entity.css("background-color","#67E593"); //Green
+        $('#designError').text("");
+    } else if (textEntry) {
+        entity.css("background-color","#ED8B97"); //Red
+        $('#designError').text(err);
+    } else {
+        $('#designError').text("");
+        entity.css("background-color",""); //Clear
+    }
+}
+
+
 function readonly() {
     $('#createPreset').hide().prop('disabled', true);
     $('#updatePreset').hide().prop('disabled', false);
