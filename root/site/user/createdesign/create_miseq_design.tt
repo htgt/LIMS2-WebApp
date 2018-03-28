@@ -227,7 +227,7 @@ $('#action').click(function() {
     $('#crisprWaiting').show().prop('disabled', false);
 });
 
-$('#redo_submit').click(function() {
+$('#redoSubmit').click(function() {
     var params = gatherParameters('redo');
     var jsonified_params = JSON.stringify(params);
     $('#redoWaiting').show().prop('disabled', false);
@@ -342,6 +342,8 @@ $('.gcEntry').on('input', function() {
     errorNotification(this, region, message);
 });
 
+
+
 function errorNotification(entry, pattern, err) {
     var entity = $(entry);
     var textEntry = entity.val();
@@ -424,33 +426,33 @@ function updateTable(crispr, row) {
 
 function gatherParameters(modalType) {
     var miseq = {
-        search_width : $('#' + modalType + '_miseq_search_width').val(),
-        offset_width : $('#' + modalType + '_miseq_dead_search_width').val(),
-        increment    : $('#' + modalType + '_miseq_increment').val()
+        search_width : $('#' + modalType + 'MiseqSearchWidth').val(),
+        offset_width : $('#' + modalType + 'MiseqDeadSearchWidth').val(),
+        increment    : $('#' + modalType + 'MiseqIncrement').val()
     };
 
     var pcr = {
-        search_width : $('#' + modalType + '_pcr_search_width').val(),
-        offset_width : $('#' + modalType + '_pcr_dead_search_width').val(),
-        increment    : $('#' + modalType + '_pcr_increment').val()
+        search_width : $('#' + modalType + 'PcrSearchWidth').val(),
+        offset_width : $('#' + modalType + 'PcrDeadSearchWidth').val(),
+        increment    : $('#' + modalType + 'PcrIncrement').val()
     };
 
     var melt = {
-        min : $('#' + modalType + '_min_mt').val(),
-        opt : $('#' + modalType + '_opt_mt').val(),
-        max : $('#' + modalType + '_max_mt').val()
+        min : $('#' + modalType + 'MinMt').val(),
+        opt : $('#' + modalType + 'OptMt').val(),
+        max : $('#' + modalType + 'MaxMt').val()
     };
 
     var gc = {
-        min : $('#' + modalType + '_min_gc').val(),
-        opt : $('#' + modalType + '_opt_gc').val(),
-        max : $('#' + modalType + '_max_gc').val()
+        min : $('#' + modalType + 'MinGc').val(),
+        opt : $('#' + modalType + 'OptGc').val(),
+        max : $('#' + modalType + 'MaxGc').val()
     };
 
     var params = {
-        genomic_threshold   : $('#' + modalType + '_genomic').val(),
-        design_type         : $('#' + modalType + '_designType').val(),
-        crispr              : $('#' + modalType + '_redoModal').attr("name"), 
+        genomic_threshold   : $('#' + modalType + 'Genomic').val(),
+        design_type         : $('#' + modalType + 'DesignType').val(),
+        crispr              : $('#' + modalType + 'Modal').attr("name"), 
         miseq               : miseq,
         pcr                 : pcr,
         melt                : melt,
@@ -504,27 +506,27 @@ function getPreset() {
 function updateParameters(data) {
     console.log("update");
     console.log(data);
-    $('#preset_genomic').val(data.genomic_threshold);
+    $('#presetGenomic').val(data.genomic_threshold);
     
     var miseq = data.primers.miseq.widths;
-    $('#preset_miseq_search_width').val(miseq.search);
-    $('#preset_miseq_dead_search_width').val(miseq.offset);
-    $('#preset_miseq_increment').val(miseq.increment);
+    $('#presetMiseqSearchWidth').val(miseq.search);
+    $('#presetMiseqDeadSearchWidth').val(miseq.offset);
+    $('#presetMiseqIncrement').val(miseq.increment);
 
     var pcr = data.primers.pcr.widths;
-    $('#preset_pcr_search_width').val(pcr.search);
-    $('#preset_pcr_dead_search_width').val(pcr.offset);
-    $('#preset_pcr_increment').val(pcr.increment);
+    $('#presetPcrSearchWidth').val(pcr.search);
+    $('#presetPcrDeadSearchWidth').val(pcr.offset);
+    $('#presetPcrIncrement').val(pcr.increment);
 
     var mt = data.mt;
-    $('#preset_min_mt').val(mt.min);
-    $('#preset_opt_mt').val(mt.opt);
-    $('#preset_max_mt').val(mt.max);
+    $('#presetMinMt').val(mt.min);
+    $('#presetOptMt').val(mt.opt);
+    $('#presetMaxMt').val(mt.max);
 
     var gc = data.gc;
-    $('#preset_min_gc').val(gc.min);
-    $('#preset_opt_gc').val(gc.opt);
-    $('#preset_max_gc').val(gc.max);
+    $('#presetMinGc').val(gc.min);
+    $('#presetOptGc').val(gc.opt);
+    $('#presetMaxGc').val(gc.max);
 
     if ($('#presetModalDD').val() != 'Default') {
         $('#owner').text('Created by ' + data.user);
