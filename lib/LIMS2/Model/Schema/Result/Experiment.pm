@@ -253,6 +253,14 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:APRoHhvbv2iUme8i3VLweg
 
+__PACKAGE__->has_one(
+  'trivial',
+  'LIMS2::Model::Schema::Result::Trivial',
+  { 'foreign.experiment_id' => 'self.id' },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+with qw( LIMS2::Model::Util::Trivial );
+
 sub as_hash{
     my $self = shift;
 

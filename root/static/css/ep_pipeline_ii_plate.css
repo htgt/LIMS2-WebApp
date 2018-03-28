@@ -16,8 +16,38 @@
   background-color: #f8f8ff;/*ghostwhite*/
 }
 
+.glyphicon-refresh {
+  padding-right: 5px;
+  float: right;
+}
+
 .glyphicon-refresh:hover {
   cursor: pointer;
+}
+
+.square {
+    padding: 10px;
+}
+
+#square_1 {
+    border-top-left-radius: 5px;
+}
+
+#square_9 {
+    border-top-right-radius: 5px;
+}
+
+#square_8 {
+    border-bottom-left-radius: 5px;
+}
+
+#square_16 {
+    border-bottom-right-radius: 5px;
+}
+
+.experiment-name {
+  font-size: 15px;
+  margin-left: 15px;
 }
 
 #create_assembly_ii_project {

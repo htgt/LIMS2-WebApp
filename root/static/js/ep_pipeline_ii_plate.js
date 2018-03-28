@@ -149,12 +149,14 @@ function dragstart_handler(ev) {
 
 function dragover_handler(ev) {
   ev.preventDefault();
-  //ev.dataTransfer.dropEffect = "move";
 }
 
 function drop_handler(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("text/plain");
+  //show the trivial name, or fall back on the experiment ID
+  var target = document.getElementById(data);
+  var trivial = (target ? target.getAttribute('tag') : null) || data;
   // remove any existing experiments DIV
   var children = ev.target.children;
 
@@ -168,8 +170,8 @@ function drop_handler(ev) {
 //        children[i].style.color = 'red';
       }
     }
-    if (children[i].className == 'label label-danger') {
-        children[i].innerHTML = data;
+    if (children[i].className == 'label label-danger experiment-name') {
+        children[i].innerHTML = trivial;
       }
   }
 }
@@ -197,7 +199,7 @@ function refresh_square(square_id) {
     if (children[i].className == 'experiment_well') {
       children[i].value = '';
     }
-    if (children[i].className == 'label label-danger') {
+    if (children[i].className == 'label label-danger experiment-name') {
         children[i].innerHTML = '';
     }
   }

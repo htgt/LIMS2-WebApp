@@ -37,6 +37,7 @@ sub view_experiment :Path('/user/view_experiment'){
 
     $c->stash(
         experiment_id => $exp_id,
+        trivial_name => $exp->trivial_name,
         experiment => $exp_hash,
         gene_symbol => $gene_info->{'gene_symbol'},
         genotyping => $genotyping_query,
