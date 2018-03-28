@@ -41,9 +41,16 @@ body {
     background-color: #e88d1e;
     color: black;
 }
-
-.base- {
+/* 
     background-color: #cc1019;
+*/
+.base- {
+    background-color: #CC79A7;
+    color: white;
+}
+
+.insertion {
+    background-color: #E69F00;
     color: white;
 }
 
@@ -337,7 +344,6 @@ $('#styles').change(function() {
 });
 
 function displayIndels(exp) {
-    console.log(exp);
     var expTable = document.getElementById("table" + exp.id);
     if (expTable == null) {
         getSummary(exp.id);
@@ -448,6 +454,7 @@ function getTargets(letter) {
 function createTable(exp, result) {
     result = JSON.parse(result);
     var rows = result.data.split("\n");
+    
     var tableID = "table" + exp;
     $('#' + exp).append('<table id="' + tableID + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
@@ -472,9 +479,8 @@ function createTable(exp, result) {
         for (var cellCount = 0; cellCount < rowData.length; cellCount++) {
             var bodyCell = bodyRow.insertCell(-1);
             if (cellCount == 0) {
-                var highlight = highlightBases(rowData[cellCount], result.crispr); 
+                var highlight = highlightBases(rowData[cellCount], result.crispr, rowData[cellCount + 1]); 
                 bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
-
             } else {
                 if ($.isNumeric(rowData[cellCount])) {
                     rowData[cellCount] = Math.round(rowData[cellCount] * 100) / 100;
@@ -498,7 +504,7 @@ function createTable(exp, result) {
     $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
 }
 
-function highlightBases(seq, crispr) {
+function highlightBases(seq, crispr, reference) {
     var formattedSequence = "";
     var start = seq.indexOf(crispr.crispr);
     var accuracy = 0;
@@ -513,6 +519,7 @@ function highlightBases(seq, crispr) {
 
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
+
         var front = "";
         var back = "";
         if (base == start) {
@@ -526,7 +533,13 @@ function highlightBases(seq, crispr) {
         if (base == start + crispr.crispr.length - 1) {
             back = "</span>";
         }
-        var format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
+        var format;
+        if (reference[base] == '-'){
+            format = front + '<span class="base' + letter + ' baseSwitch insertion">' + letter + '</span>' + back;
+        }
+        else {
+            format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
+        }
         formattedSequence += format;
     }
 
