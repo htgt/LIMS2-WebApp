@@ -41,9 +41,7 @@ body {
     background-color: #e88d1e;
     color: black;
 }
-/* 
-    background-color: #cc1019;
-*/
+
 .base- {
     background-color: #CC79A7;
     color: white;
