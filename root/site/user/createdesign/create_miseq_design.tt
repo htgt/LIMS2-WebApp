@@ -342,7 +342,23 @@ $('.gcEntry').on('input', function() {
     errorNotification(this, region, message);
 });
 
+$('.genoThreshold').on('input', function() {
+    var region = /^[1-2]?[0-9]$|^30$/; //Only 0-30
+    var message = "Genomic threshold must be an integer within 0-30";
+    errorNotification(this, region, message);
+});
 
+$('.regionWidths').on('input', function() {
+    var region = /^[2-9][0-9]$|^[1-9][0-9]{2}$|^1000$/; //Only 20-1000
+    var message = "Search ranges must be an integer within 20-1000";
+    errorNotification(this, region, message);
+});
+
+$('.increment').on('input', function() {
+    var region = /^[1-9]?[0-9]$|^100$/; //Only 0-50
+    var message = "Increments must be an integer within 0-100";
+    errorNotification(this, region, message);
+});
 
 function errorNotification(entry, pattern, err) {
     var entity = $(entry);
@@ -358,7 +374,6 @@ function errorNotification(entry, pattern, err) {
         entity.css("background-color",""); //Clear
     }
 }
-
 
 function readonly() {
     $('#createPreset').hide().prop('disabled', true);
