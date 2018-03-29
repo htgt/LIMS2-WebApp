@@ -362,17 +362,27 @@ $('.increment').on('input', function() {
 
 function errorNotification(entry, pattern, err) {
     var entity = $(entry);
+    
+    var modal = modalDecipher(entity);
+    var responseID = '#' + modal + 'DesignResponse';
+    
     var textEntry = entity.val();
     if (textEntry.match(pattern)) {
         entity.css("background-color","#67E593"); //Green
-        $('#designError').text("");
+        $(responseID).text("");
     } else if (textEntry) {
         entity.css("background-color","#ED8B97"); //Red
-        $('#designError').text(err);
+        $(responseID).text(err);
     } else {
-        $('#designError').text("");
+        $(responseID).text("");
         entity.css("background-color",""); //Clear
     }
+}
+
+function modalDecipher(entity) {
+    var id = entity.context.id;
+    var splitOnCap = id.split(/(?=[A-Z])/);
+    return splitOnCap[0];
 }
 
 function readonly() {

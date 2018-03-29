@@ -107,5 +107,5 @@
             </div>
         </div>
     </div>
-    <label id="designResponse">TEST</label>
+    <label id="[% modal_function %]DesignResponse"></label>
 </fieldset>
