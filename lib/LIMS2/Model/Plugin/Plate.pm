@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.488';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.494';
 }
 ## use critic
 
@@ -515,12 +515,15 @@ sub create_plate_csv_upload {
         $expected_csv_headers = [ 'well_name', 'parent_plate', 'parent_well' ];
     }
 
-    my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
+    unless ($params->{process_type} eq 'ep_pipeline_ii') {
+        my $well_data = parse_csv_file( $well_data_fh, $expected_csv_headers );
 
-    for my $datum ( @{$well_data} ) {
-        merge_plate_process_data( $datum, \%plate_process_data );
+        for my $datum ( @{$well_data} ) {
+            merge_plate_process_data( $datum, \%plate_process_data );
+        }
+        $plate_data{wells} = $well_data;
+        return $self->create_plate( \%plate_data );
     }
-    $plate_data{wells} = $well_data;
     return $self->create_plate( \%plate_data );
 }
 ## use critic
@@ -696,3 +699,4 @@ sub random_plate_name{
 1;
 
 __END__
+

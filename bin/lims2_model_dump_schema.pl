@@ -129,6 +129,8 @@ my $lib_dir      = dir( $FindBin::Bin )->parent->subdir( 'lib' );
 my $overwrite    = 0;
 my @components   = qw( InflateColumn::DateTime );
 
+my $excluded_tables = qr/^trivial_.*/;
+
 GetOptions(
     'host=s'         => \$pg_host,
     'port=s'         => \$pg_port,
@@ -174,7 +176,8 @@ my %make_schema_opts = (
     moniker_map        => \%MONIKER_MAP,
     rel_name_map       => \%REL_NAME_MAP,
     exclude            => qr/fixture_md5/,
-    skip_load_external => 1
+    skip_load_external => 1,
+    exclude            => $excluded_tables,
 );
 
 if ( $overwrite ) {

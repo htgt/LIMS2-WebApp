@@ -1,3 +1,22 @@
+0.494     2018-04-04 10:18:41 Europe/London
+    Insertions added to Miseq Allele view
+0.493     2018-03-20 15:32:05 Europe/London
+
+    Trivial names for experiments
+
+0.492     2018-03-07 18:02:40 Europe/London
+
+    Adding info for user in ep ii
+0.491     2018-03-07 15:10:59 Europe/London
+
+    A patch to use uri_for
+0.490     2018-03-06 16:35:01 Europe/London
+
+    EP II plate for pipeline II
+0.489     2018-02-21 14:31:48 Europe/London
+
+    Select appropriate oligos for miseq designs
+
 0.488     2018-02-13 13:48:11 Europe/London
     Miseq Design Creation
 0.487     2018-01-19 11:34:51 Europe/London

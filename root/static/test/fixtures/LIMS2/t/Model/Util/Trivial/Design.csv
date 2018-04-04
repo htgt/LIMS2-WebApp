@@ -1,0 +1,17 @@
+id,created_at,created_by,species_id,design_type_id,validated_by_annotation
+1016394,2017-12-13 16:06:47.213934,483,Human,miseq,not done
+1016395,2017-12-13 16:06:47.491748,483,Human,miseq,not done
+1016411,2017-12-13 16:06:53.485427,483,Human,miseq,not done
+1016412,2017-12-13 16:06:53.669686,483,Human,miseq,not done
+1016483,2017-12-13 16:07:06.698035,483,Human,miseq,not done
+1016484,2017-12-13 16:07:06.878706,483,Human,miseq,not done
+1016485,2017-12-13 16:07:07.059856,483,Human,miseq,not done
+1016486,2017-12-13 16:07:07.24331,483,Human,miseq,not done
+1016557,2017-12-13 16:07:20.160421,483,Human,miseq,not done
+1016558,2017-12-13 16:07:20.345435,483,Human,miseq,not done
+1016559,2017-12-13 16:07:20.530799,483,Human,miseq,not done
+1016560,2017-12-13 16:07:20.713579,483,Human,miseq,not done
+1016561,2017-12-13 16:07:20.895563,483,Human,miseq,not done
+1016416,2017-12-13 16:06:54.404531,483,Human,miseq,not done
+1016417,2017-12-13 16:06:54.585835,483,Human,miseq,not done
+10001171,2015-10-01 13:44:53,483,Human,gibson-deletion,not done
