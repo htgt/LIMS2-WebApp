@@ -55,7 +55,7 @@ tr.success td{
                     [% END %]
                 </select>
             </div>
-            <button class="btn btn-warning col-md-2" id="showPreset" type="button" data-toggle="modal" data-target="#customPresetModal">
+            <button class="btn btn-warning col-md-2" id="showPreset" type="button" data-toggle="modal" data-target="#presetModal">
                 View Preset  <i class="glyphicon glyphicon-list-alt"></i>
             </button>
         </div>
@@ -124,14 +124,14 @@ tr.success td{
             </div>
             <div class="modal-footer">
                 <span id="redoWaiting" class="waiting glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
+                <button type="submit" class="submission btn btn-primary" id="redoSubmit">Submit</button>
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
     
-<div id="customPresetModal" class="modal fade" role="dialog">
+<div id="presetModal" class="modal fade" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -174,8 +174,8 @@ tr.success td{
             </div>
             <div class="modal-footer">
                 <span id="customWaiting" class="waiting glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                <button type="submit" class="btn btn-primary" id="createPreset">Create <i class="glyphicon glyphicon-pencil"></i></button>
-                <button type="submit" class="btn btn-primary" id="updatePreset">Update <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="submit" class="submission btn btn-primary" id="createPreset">Create <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="submit" class="submission btn btn-primary" id="updatePreset">Update <i class="glyphicon glyphicon-pencil"></i></button>
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Close <i class="glyphicon glyphicon-remove"></i></button>
             </div>
         </div>
@@ -193,7 +193,7 @@ $(document).ready(function() {
     $('#crisprWaiting').hide().prop('disabled', true);
     display();
     $('.waiting').hide().prop('disabled', true);
-    $('#customPresetModal').find('input').attr('readonly',true);
+    $('#presetModal').find('input').attr('readonly',true);
     $('#createPreset').hide().prop('disabled', true);
     $('#updatePreset').hide().prop('disabled', true);
 });
@@ -201,7 +201,6 @@ $(document).ready(function() {
 function clearSelection(){
     $("#clearTextArea").html("");
 }
-
 
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {
@@ -302,9 +301,7 @@ $('#createPreset').click(function() {
     });
 });
 
-$('#presetNameArea').on('input', function() {
-    highlightCheck();
-});
+
 
 $('#presetModalDD').change(function() {
     $('#presetSelection').val($('#presetModalDD').val())
@@ -330,33 +327,39 @@ $('#newPreset').click(function() {
     editMode('new');
 });
 
+$('#presetNameArea').on('input', function() {
+    var region = /^\w+$/; //Alpha-numeric
+    var message = "Name must be unique and alpha-numeric.";
+    errorNotification(this, region, message);
+});
+
 $('.meltEntry').on('input', function() {
     var region = /^[1-9][0-9]$/; //Only 10-99
-    var message = "Melting temperatures are limited to 10-99 degrees";
+    var message = "Melting temperatures are limited to 10-99 degrees.";
     errorNotification(this, region, message);
 });
 
 $('.gcEntry').on('input', function() {
     var region = /^[1-9]?[0-9]$|^100$/; //Only 0-100
-    var message = "GC percentages must be an integer within 0-100";
+    var message = "GC percentages must be an integer within 0-100.";
     errorNotification(this, region, message);
 });
 
 $('.genoThreshold').on('input', function() {
     var region = /^[1-2]?[0-9]$|^30$/; //Only 0-30
-    var message = "Genomic threshold must be an integer within 0-30";
+    var message = "Genomic threshold must be an integer within 0-30.";
     errorNotification(this, region, message);
 });
 
 $('.regionWidths').on('input', function() {
     var region = /^[2-9][0-9]$|^[1-9][0-9]{2}$|^1000$/; //Only 20-1000
-    var message = "Search ranges must be an integer within 20-1000";
+    var message = "Search ranges must be an integer within 20-1000.";
     errorNotification(this, region, message);
 });
 
 $('.increment').on('input', function() {
     var region = /^[1-9]?[0-9]$|^100$/; //Only 0-50
-    var message = "Increments must be an integer within 0-100";
+    var message = "Increments must be an integer within 0-100.";
     errorNotification(this, region, message);
 });
 
@@ -377,6 +380,7 @@ function errorNotification(entry, pattern, err) {
         $(responseID).text("");
         entity.css("background-color",""); //Clear
     }
+    validationPreventSubmission(modal);
 }
 
 function modalDecipher(entity) {
@@ -385,14 +389,34 @@ function modalDecipher(entity) {
     return splitOnCap[0];
 }
 
+function validationPreventSubmission(modal) {
+    var check = 0;
+    $('#' + modal + 'Modal input').each(function() {
+        if ($(this).css('background-color') == "rgb(237, 139, 151)") { //Red
+            check = 1;
+        }
+    });
+
+    if (check == 1) {
+        $('.submission').prop('disabled', true);
+    } else {
+        $('.submission').each(function() {
+            if ($(this).is(':visible')) {
+                $(this).prop('disabled', false);
+            }
+        });
+    }
+}
+
 function readonly() {
     $('#createPreset').hide().prop('disabled', true);
     $('#updatePreset').hide().prop('disabled', false);
     $('#newPresetName').hide();
-    $('#customPresetModal').find('input').attr('readonly',true);
+    $('#presetModal').find('input').attr('readonly',true);
 
     $('#presetModalDD').val($('#presetSelection').val());
     $('#presetDDfield').show();
+    $('#presetModal input').css("background-color","");
 
     return;
 }
@@ -407,32 +431,12 @@ function editMode(mode) {
     }
     $('#presetDDfield').hide();
     $('#newPresetName').show();
-    $('#customPresetModal').find('input').attr('readonly',false);
+    $('#presetModal').find('input').attr('readonly',false);
     highlightCheck();
 
     return;
 }
 
-function highlightCheck() {
-    var nameObj = $('#presetNameArea');
-    var value = nameObj.val();
-    var validation = value.match(/^\w+$/); //Alphanumeric
-
-    if (value.length < 3) {
-        nameObj.css("background-color",""); //Clear
-        $('#nameError').text("");
-    }
-    else if (validation == null || value == 'Default') {
-        nameObj.css("background-color","#ED8B97"); //Red
-        $('#nameError').text("Only alphanumeric characters, spaces and underscores.");
-    }
-    else {
-        nameObj.css("background-color","#67E593"); //Green
-        $('#nameError').text("");
-    }
-
-    return;
-}
 
 function updateTable(crispr, row) {
     $('#' + crispr).removeClass('failure').addClass('success');
@@ -484,7 +488,6 @@ function gatherParameters(modalType) {
         gc                  : gc
     };
 
-    console.log(params);
 
     return params;
 }
