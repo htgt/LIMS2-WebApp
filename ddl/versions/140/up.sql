@@ -1,6 +1,6 @@
 CREATE TABLE miseq_design_presets (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     created_by INTEGER REFERENCES users(id) NOT NULL,
     genomic_threshold INTEGER NOT NULL,
     min_gc INTEGER NOT NULL,
