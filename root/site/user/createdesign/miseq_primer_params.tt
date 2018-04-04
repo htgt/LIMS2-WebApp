@@ -107,5 +107,7 @@
             </div>
         </div>
     </div>
+</fieldset>
+<fieldset id="[% modal_function %]ResponseContainer" class="responseContainer alert alert-danger">
     <label id="[% modal_function %]DesignResponse"></label>
 </fieldset>

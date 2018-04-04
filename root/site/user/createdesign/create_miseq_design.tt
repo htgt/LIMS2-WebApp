@@ -63,7 +63,7 @@ tr.success td{
     <br>
     <fieldset class="col-md-12 well">
         <legend class="col-md-12 row">Design Progess Crispr Search</legend>
-        <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crispr_id.join(', ') %]">[%- crispr_id.join(', ') %]</textarea>
+        <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crisprID.join(', ') %]">[%- crisprID.join(', ') %]</textarea>
         <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
         <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
         <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
@@ -186,7 +186,8 @@ tr.success td{
 
 <script type="text/javascript" charset="utf-8">
 
-var crispr_id = '[%- crispr_id.join(', ') %]';
+var crisprID = '[%- crispr_id.join(', ') %]';
+var presetNames = [];
 
 $(document).ready(function() {
     $('.button').hide().prop('disabled', true);
@@ -196,6 +197,22 @@ $(document).ready(function() {
     $('#presetModal').find('input').attr('readonly',true);
     $('#createPreset').hide().prop('disabled', true);
     $('#updatePreset').hide().prop('disabled', true);
+    $('.responseContainer').hide();
+    
+    $.ajax({
+        url: '[% c.uri_for('/api/miseq_preset_names/') %]',
+        type: 'GET',
+        dataType: 'JSON',
+        success: function(result) {
+            console.log("Response received");
+            presetNames = result.map(function(val) {
+                return val.toUpperCase();
+            });
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
 });
 
 function clearSelection(){
@@ -301,8 +318,6 @@ $('#createPreset').click(function() {
     });
 });
 
-
-
 $('#presetModalDD').change(function() {
     $('#presetSelection').val($('#presetModalDD').val())
     blockDefault();
@@ -328,9 +343,16 @@ $('#newPreset').click(function() {
 });
 
 $('#presetNameArea').on('input', function() {
-    var region = /^\w+$/; //Alpha-numeric
-    var message = "Name must be unique and alpha-numeric.";
-    errorNotification(this, region, message);
+    var val = $(this).val();
+    if (presetNames.includes(val.toUpperCase())) {
+        $(this).css("background-color","#ED8B97"); //Red
+        $('#presetResponseContainer').show();
+        $('#presetDesignResponse').text("Name is already taken.");
+    } else {
+        var region = /^\w+$/; //Alpha-numeric
+        var message = "Name must be unique and alpha-numeric.";
+        errorNotification(this, region, message);
+    }
 });
 
 $('.meltEntry').on('input', function() {
@@ -368,15 +390,19 @@ function errorNotification(entry, pattern, err) {
     
     var modal = modalDecipher(entity);
     var responseID = '#' + modal + 'DesignResponse';
+    var responseContainer = '#' + modal + 'ResponseContainer'
     
     var textEntry = entity.val();
     if (textEntry.match(pattern)) {
         entity.css("background-color","#67E593"); //Green
+        $(responseContainer).hide();
         $(responseID).text("");
     } else if (textEntry) {
         entity.css("background-color","#ED8B97"); //Red
+        $(responseContainer).show();
         $(responseID).text(err);
     } else {
+        $(responseContainer).hide();
         $(responseID).text("");
         entity.css("background-color",""); //Clear
     }
@@ -417,6 +443,7 @@ function readonly() {
     $('#presetModalDD').val($('#presetSelection').val());
     $('#presetDDfield').show();
     $('#presetModal input').css("background-color","");
+    $('#presetResponseContainer').hide();
 
     return;
 }
@@ -432,7 +459,6 @@ function editMode(mode) {
     $('#presetDDfield').hide();
     $('#newPresetName').show();
     $('#presetModal').find('input').attr('readonly',false);
-    highlightCheck();
 
     return;
 }
@@ -501,7 +527,7 @@ function transferCrispr(crispr) {
 }
 
 function display() {
-    if (!crispr_id) {
+    if (!crisprID) {
         $('.designProgressVisibility').hide().prop('disabled', true);
     } else {
         $('.designProgressVisibility').show().prop('disabled', false);
