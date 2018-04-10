@@ -481,15 +481,15 @@ function updateTable(crispr, row) {
 
 function gatherParameters(modalType) {
     var miseq = {
-        search_width : $('#' + modalType + 'MiseqSearchWidth').val(),
-        offset_width : $('#' + modalType + 'MiseqDeadSearchWidth').val(),
-        increment    : $('#' + modalType + 'MiseqIncrement').val()
+        search      : $('#' + modalType + 'MiseqSearchWidth').val(),
+        offset      : $('#' + modalType + 'MiseqDeadSearchWidth').val(),
+        increment   : $('#' + modalType + 'MiseqIncrement').val()
     };
 
     var pcr = {
-        search_width : $('#' + modalType + 'PcrSearchWidth').val(),
-        offset_width : $('#' + modalType + 'PcrDeadSearchWidth').val(),
-        increment    : $('#' + modalType + 'PcrIncrement').val()
+        search      : $('#' + modalType + 'PcrSearchWidth').val(),
+        offset      : $('#' + modalType + 'PcrDeadSearchWidth').val(),
+        increment   : $('#' + modalType + 'PcrIncrement').val()
     };
 
     var melt = {
@@ -504,16 +504,24 @@ function gatherParameters(modalType) {
         max : $('#' + modalType + 'MaxGc').val()
     };
 
+    var primers = {
+        miseq   : {
+            widths  : miseq
+        },
+        pcr     : {
+            widths  : pcr
+        }
+    };
+
+    //Matching the as_hash structure
     var params = {
         genomic_threshold   : $('#' + modalType + 'Genomic').val(),
         design_type         : $('#' + modalType + 'DesignType').val(),
         crispr              : $('#' + modalType + 'Modal').attr("name"), 
-        miseq               : miseq,
-        pcr                 : pcr,
-        melt                : melt,
+        primers             : primers,
+        mt                  : melt,
         gc                  : gc
     };
-
 
     return params;
 }

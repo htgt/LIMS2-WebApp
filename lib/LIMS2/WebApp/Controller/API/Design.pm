@@ -360,7 +360,6 @@ sub miseq_primer_preset :Path( '/api/miseq_primer_preset' ) :Args(0) :ActionClas
 sub miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
-$DB::single=1;
     $c->assert_user_roles('edit');
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
@@ -374,14 +373,15 @@ $DB::single=1;
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
+    $hashed_criteria = default_nulls($c, $hashed_criteria);
     $hashed_criteria->{created_by} = $c->user->id;
-    my $preset = $c->model('Golgi')->create_primer_preset($hashed_criteria);
+    #my $preset = $c->model('Golgi')->create_primer_preset($hashed_criteria);
 
-    my $json = JSON->new->allow_nonref;
-    my $json_preset = $json->encode($preset->as_hash);
+    #my $json = JSON->new->allow_nonref;
+    # my $json_preset = $json->encode($preset->as_hash);
     $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $json_preset );
+    # $c->response->content_type( 'text/plain' );
+    #  $c->response->body( $json_preset );
 
     return;
 }
@@ -396,6 +396,34 @@ sub miseq_primer_preset_GET {
     return $self->status_ok( $c, entity => $preset );
 }
 
+sub default_nulls {
+    my ($c, $criteria) = @_;
+$DB::single=1;
+    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => 'Default' })->as_hash;
+
+    $criteria = null_check($criteria, $default, keys %$criteria);
+
+    return $criteria;
+}
+
+use Data::Dumper;
+
+sub null_check {
+    my ($data, $default, @keys) = @_;
+    foreach my $key (@keys) {
+        print Dumper \@keys;
+        if (ref $data->{$key} eq ref {}) {
+            print Dumper "Drilling - " . $key;
+            print Dumper $data->{$key};
+            $data->{$key} = null_check($data->{$key}, $default->{$key}, keys %{$data->{$key}});
+        } else {
+            unless ($data->{$key}) {
+                $data->{$key} = $default->{$key};
+            }
+            print Dumper "Key: " . $key . " Val: " . $data->{$key};
+        }
+    }
+}
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify
