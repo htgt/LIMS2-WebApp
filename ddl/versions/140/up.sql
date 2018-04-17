@@ -1,9 +1,7 @@
 DROP VIEW IF EXISTS trivial;
 DROP TABLE IF EXISTS trivial_backfill;
 DROP TABLE IF EXISTS trivial_offset;
--- Offsets the indexes where they already exist starting from >1
--- Also can be used to "start" the indexing from 0 where there's a single pair or group
--- which logically ought to go first but has been excluded
+-- Offsets the indexes where they already exist
 CREATE TABLE trivial_offset(
     gene_id      TEXT PRIMARY KEY NOT NULL,
     crispr_offset INT NOT NULL
@@ -19,6 +17,9 @@ CREATE VIEW trivial AS
         FROM experiments
         LEFT JOIN trivial_offset
             ON trivial_offset.gene_id = experiments.gene_id
+        -- ignore experiments with assigned trivial names for calculate the index on calculated trivials.
+        -- if another experiment with the same CRISPR is added, it will get a new index based on that.
+        WHERE assigned_trivial IS NULL
     ),
     -- rank crisprs, incorporating the offset
     trivial_crispr AS (
