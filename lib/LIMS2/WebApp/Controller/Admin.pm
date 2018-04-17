@@ -73,15 +73,18 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
     my @user_roles = $c->request->param('user_roles');
 
     my $users = $c->model('Golgi')->list_users();
-    my $list = (users => [ map { $_->as_hash } @{$users}]);
+    my %list = (users => [ map { $_->as_hash } @{$users}]);
 
-    foreach my $user (@{$list}){
-        if ($user->{name} eq $username){
-            $c->stash(
-                user_name => $username,
-                error_msg => "User $username already exists"
-            );
-            return;
+    LOOP: foreach my $users (%list){
+        if ($users eq 'users'){next LOOP}
+        foreach my $user (@{$users}){
+            if ($user->{name} eq $username){
+                $c->stash(
+                    user_name => $username,
+                    error_msg => "User $username already exists"
+                );
+                return;
+            }
         }
     }
 
