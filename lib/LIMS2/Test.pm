@@ -297,6 +297,7 @@ sub load_static_files {
             CrisprStorage
             ProcessGuidedType
             GuidedType
+            TrivialOffset
             )
     );
 
@@ -365,6 +366,7 @@ sub load_dynamic_files {
             CrisprStorage
             ProcessGuidedType
             GuidedType
+            TrivialOffset
         )
     );
 
