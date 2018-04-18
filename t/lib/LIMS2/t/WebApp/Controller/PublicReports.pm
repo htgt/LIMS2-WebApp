@@ -101,14 +101,14 @@ sub all_tests  : Tests {
     $mech->content_contains($plate_name);
     $mech->content_contains($well_name);
     $mech->content_contains('KOLF_2_C1');
-    $mech->content_contains('CGGTCTCCATCCTACAAACACGG');
+    $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
     $mech->content_contains('HGNC:30801');
 
 
     $mech->get_ok('/public_reports/well_genotyping_info/HUFP0043_1_A/A01');
     $mech->content_contains($barcode);
     $mech->content_contains('KOLF_2_C1');
-    $mech->content_contains('CGGTCTCCATCCTACAAACACGG');
+    $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
     $mech->content_contains('HGNC:30801');
 
 
