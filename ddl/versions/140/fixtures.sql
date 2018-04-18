@@ -1,3 +1,5 @@
+INSERT INTO schema_versions(version) VALUES (140);
+
 --ABCA1
 UPDATE experiments SET assigned_trivial='ABCA1_1' WHERE crispr_id=228018 AND design_id=1016394 AND gene_id='HGNC:29';
 UPDATE experiments SET assigned_trivial='ABCA1_2' WHERE crispr_id=228091 AND design_id=1016395 AND gene_id='HGNC:29';
