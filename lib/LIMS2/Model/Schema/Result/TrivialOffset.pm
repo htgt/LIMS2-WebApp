@@ -1,8 +1,8 @@
 use utf8;
-package LIMS2::Model::Schema::Result::MutationDesignType;
+package LIMS2::Model::Schema::Result::TrivialOffset;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MutationDesignType::VERSION = '0.496';
+    $LIMS2::Model::Schema::Result::TrivialOffset::VERSION = '0.496';
 }
 ## use critic
 
@@ -12,7 +12,7 @@ package LIMS2::Model::Schema::Result::MutationDesignType;
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::MutationDesignType
+LIMS2::Model::Schema::Result::TrivialOffset
 
 =cut
 
@@ -36,50 +36,48 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<mutation_design_types>
+=head1 TABLE: C<trivial_offset>
 
 =cut
 
-__PACKAGE__->table("mutation_design_types");
+__PACKAGE__->table("trivial_offset");
 
 =head1 ACCESSORS
 
-=head2 mutation_id
+=head2 gene_id
 
   data_type: 'text'
   is_nullable: 0
 
-=head2 design_type
+=head2 crispr_offset
 
-  data_type: 'text'
+  data_type: 'integer'
   is_nullable: 0
 
 =cut
 
 __PACKAGE__->add_columns(
-  "mutation_id",
+  "gene_id",
   { data_type => "text", is_nullable => 0 },
-  "design_type",
-  { data_type => "text", is_nullable => 0 },
+  "crispr_offset",
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</mutation_id>
-
-=item * L</design_type>
+=item * L</gene_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("mutation_id", "design_type");
+__PACKAGE__->set_primary_key("gene_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kIQ44pF0SsqrVzeUuBlhvw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-04-17 15:25:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OeBv1O77Pb/+hOWH0QYINQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

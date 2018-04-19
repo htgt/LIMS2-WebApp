@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.493';
+    $LIMS2::Test::VERSION = '0.496';
 }
 ## use critic
 
@@ -303,6 +303,7 @@ sub load_static_files {
             CrisprStorage
             ProcessGuidedType
             GuidedType
+            TrivialOffset
             )
     );
 
@@ -371,6 +372,7 @@ sub load_dynamic_files {
             CrisprStorage
             ProcessGuidedType
             GuidedType
+            TrivialOffset
         )
     );
 

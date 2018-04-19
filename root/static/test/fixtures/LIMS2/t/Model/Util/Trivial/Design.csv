@@ -14,4 +14,7 @@ id,created_at,created_by,species_id,design_type_id,validated_by_annotation
 1016561,2017-12-13 16:07:20.895563,483,Human,miseq,not done
 1016416,2017-12-13 16:06:54.404531,483,Human,miseq,not done
 1016417,2017-12-13 16:06:54.585835,483,Human,miseq,not done
+1016423,2017-12-13 16:05:55.667091,483,Human,miseq,not done
+1016424,2017-12-13 16:05:55.850917,483,Human,miseq,not done
+1016425,2017-12-13 16:05:56.034743,483,Human,miseq,not done
 10001171,2015-10-01 13:44:53,483,Human,gibson-deletion,not done
