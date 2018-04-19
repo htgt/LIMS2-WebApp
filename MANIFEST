@@ -199,6 +199,7 @@ lib/LIMS2/Model/Schema/Result/Strategy.pm
 lib/LIMS2/Model/Schema/Result/Summary.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfile.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfileAllele.pm
+lib/LIMS2/Model/Schema/Result/Trivial.pm
 lib/LIMS2/Model/Schema/Result/User.pm
 lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
@@ -267,6 +268,7 @@ lib/LIMS2/Model/Util/RedmineAPI.pm
 lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/SequencingProject.pm
+lib/LIMS2/Model/Util/Trivial.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
 lib/LIMS2/Report/AlleleDump.pm
@@ -2674,6 +2676,12 @@ root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligo.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/DesignOligoLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/OligoSelection/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/Crispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/CrisprGroup.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/CrisprGroupCrispr.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/Design.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/Experiment.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/User.csv
 root/static/test/fixtures/LIMS2/t/Report/GeneEPSummary/Summary.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/GeneDesign.csv
@@ -3054,6 +3062,7 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_QCTemplates.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_RankQCResults.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_RefdataUpload.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_ReportForSponsors.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_Trivial.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_WellName.t
 t/LIMS2/Report/10_LIMS2_Report_CrisprPlate.t
 t/LIMS2/Report/10_LIMS2_Report_CrisprPlateOrderSheet.t
@@ -3296,6 +3305,8 @@ t/lib/LIMS2/t/Model/Util/QCTemplates.pm
 t/lib/LIMS2/t/Model/Util/RankQCResults.pm
 t/lib/LIMS2/t/Model/Util/RefdataUpload.pm
 t/lib/LIMS2/t/Model/Util/ReportForSponsors.pm
+t/lib/LIMS2/t/Model/Util/Trivial.pm
+t/lib/LIMS2/t/Model/Util/Trivial/ExperimentManager.pm
 t/lib/LIMS2/t/Model/Util/WellName.pm
 t/lib/LIMS2/t/Report.pm
 t/lib/LIMS2/t/Report/CrisprPlate.pm

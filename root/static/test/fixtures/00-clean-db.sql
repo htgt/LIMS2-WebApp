@@ -104,7 +104,9 @@ miseq_experiment,
 miseq_project_well_exp,
 project_experiment,
 process_guided_type,
-guided_types
+guided_types,
+trivial_backfill,
+trivial_offset
  CASCADE;
 
 
