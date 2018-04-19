@@ -672,7 +672,7 @@ sub _stash_well_genotyping_info {
                 $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
                 my $seq = $crispr_data_hash->{fwd_seq};
                 my $grna = substr $seq, 0, 20;
-                my $pam = substr $seq, 20 ,3; 
+                my $pam = substr $seq, 20 ,3;
                 $crispr_data_hash->{'grna'} = $grna;
                 $crispr_data_hash->{'pam'} = $pam;
                 push @crispr_data, $crispr_data_hash;
