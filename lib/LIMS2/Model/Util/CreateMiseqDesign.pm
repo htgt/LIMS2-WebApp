@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ 'generate_miseq_design', 'design_preset_params' ]
+    exports => [ 'generate_miseq_design', 'design_preset_params', 'default_nulls' ]
 };
 
 use Path::Class;
@@ -28,7 +28,7 @@ use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub generate_miseq_design {
     my ($c, $design_params, $crispr_id) = @_;
-$DB::single=1;
+
     my $search_range = {
         search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
@@ -44,8 +44,6 @@ $DB::single=1;
         gc_content  => $design_params->{gc},
     };
 
-use Data::Dumper;
-print Dumper $search_range;
     my ($crispr_data, $internal_crispr_primers, $pcr_crispr_primers) = generate_primers($c, $crispr_id, $search_range, $design_params->{genomic_threshold});
 
     my $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $crispr_id });
@@ -445,6 +443,33 @@ sub design_preset_params {
     };
 
     return $primer_params;
+}
+
+sub default_nulls {
+    my ($c, $criteria, $reference) = @_;
+
+    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $reference })->as_hash;
+
+    $criteria = null_check($criteria, $default, keys %$criteria);
+use Data::Dumper;
+print Dumper $criteria;
+    return $criteria;
+}
+
+sub null_check {
+    my ($data, $default, @keys) = @_;
+    
+    foreach my $key (@keys) {
+        if (ref $data->{$key} eq ref {}) {
+            $data->{$key} = null_check($data->{$key}, $default->{$key}, keys %{$data->{$key}});
+        } else {
+            unless ($data->{$key}) {
+                $data->{$key} = $default->{$key};
+            }
+        }
+    }
+
+    return $data;
 }
 
 1;

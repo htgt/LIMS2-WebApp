@@ -205,9 +205,8 @@ sub pspec_create_primer_preset {
         created_by          => { validate => 'existing_user_id' },
         genomic_threshold   => { validate => 'numeric' },
         gc                  => { validate => 'config_min_max' },
-        melt                => { validate => 'config_min_max' },
-        pcr                 => { validate => 'primer_params' },
-        miseq               => { validate => 'primer_params' },
+        mt                  => { validate => 'config_min_max' },
+        primers             => { validate => 'primer_set' },
     };
 }
 
@@ -228,23 +227,23 @@ $DB::single=1;
         min_gc      => $validated_params->{gc}->{min},
         max_gc      => $validated_params->{gc}->{max},
         opt_gc      => $validated_params->{gc}->{opt},
-        min_mt      => $validated_params->{melt}->{min},
-        max_mt      => $validated_params->{melt}->{max},
-        opt_mt      => $validated_params->{melt}->{opt},
+        min_mt      => $validated_params->{mt}->{min},
+        max_mt      => $validated_params->{mt}->{max},
+        opt_mt      => $validated_params->{mt}->{opt},
     };
 
     my $internal_preset_params = {
         internal        => 1,
-        search_width    => $validated_params->{miseq}->{search_width},
-        offset_width    => $validated_params->{miseq}->{offset_width},
-        increment_value => $validated_params->{miseq}->{increment},
+        search_width    => $validated_params->{primers}->{miseq}->{widths}->{search},
+        offset_width    => $validated_params->{primers}->{miseq}->{widths}->{offset},
+        increment_value => $validated_params->{primers}->{miseq}->{widths}->{increment},
     };
 
     my $external_preset_params = {
         internal        => 0,
-        search_width    => $validated_params->{pcr}->{search_width},
-        offset_width    => $validated_params->{pcr}->{offset_width},
-        increment_value => $validated_params->{pcr}->{increment},
+        search_width    => $validated_params->{primers}->{pcr}->{widths}->{search},
+        offset_width    => $validated_params->{primers}->{pcr}->{widths}->{offset},
+        increment_value => $validated_params->{primers}->{pcr}->{widths}->{increment},
     };
 
     my $design_preset;
@@ -284,6 +283,15 @@ $DB::single=1;
     );
 
     return $design_preset;
+}
+
+sub edit_miseq_design {
+    my ($self, $params) = @_;
+    
+    my $validated_params = $self->check_params($params, pspec_create_primer_preset);
+    my $current_preset = $self->schema->resultset('MiseqDesignPreset')->find({ name => $validated_params->{name} });
+
+    return;
 }
 
 1;
