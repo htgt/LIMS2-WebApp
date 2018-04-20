@@ -89,7 +89,7 @@
     </tr>
     <tr>
       <th>Sequence</th>
-      <td><div class="alignment">[% crispr.seq %]</div></td>
+      <td><div class="alignment">[% crispr.grna %] [% crispr.pam %]</div></td>
     </tr>
     <tr>
       <th>Locus</th>
