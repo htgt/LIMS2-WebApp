@@ -40,6 +40,9 @@ has_one foreign relation to the "trivial" view.
 
 sub trivial_name {
     my $self    = shift;
+    if ( $self->assigned_trivial ) {
+        return $self->assigned_trivial;
+    }
     my $trivial = $self->trivial;
     if ( not defined $trivial ) {
         return q//;

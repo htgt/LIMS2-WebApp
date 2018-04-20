@@ -48,6 +48,30 @@ sub new_experiment : Test(9) {
     $manager->test;
 }
 
+sub assigned_name : Test(13) {
+    my $manager = LIMS2::t::Model::Util::Trivial::ExperimentManager->new( model,
+        'HGNC:1884' );
+    $manager->expect(
+        2069 => 'CFTR',
+        2070 => 'CFTR_2',
+    );
+    $manager->test;
+    # a new experiment, using the same CRISPR as the later (by experiment creation time) of the assigned ones
+    # it should ignore that and start indexing after the allocated offset
+    $manager->add( 'CFTR_3A1', { crispr_id => 228048, design_id => 1016423 } );
+    # a new experiment, using the same CRISPR as the earlier (by experiment creation time) of the assigned ones
+    # goes after that other one
+    $manager->add( 'CFTR_4A1', { crispr_id => 228050, design_id => 1016424 } );
+    # create a new experiment with a new CRISPR, continue incrementing the CRISPR index
+    $manager->add( 'CFTR_5A1', { crispr_id => 228049, design_id => 1016423 } );
+    # try incrementing designs and experiments too
+    $manager->add( 'CFTR_3B1', { crispr_id => 228048, design_id => 1016425 } );
+    $manager->add( 'CFTR_5B1', { crispr_id => 228049, design_id => 1016424 } );
+    $manager->add( 'CFTR_5C1', { crispr_id => 228049, design_id => 1016425 } );
+    $manager->add( 'CFTR_5B2', { crispr_id => 228049, design_id => 1016424, crispr_group_id => 10001 } );
+    $manager->test;
+}
+
 sub num2alpha : Test(9) {
     ok my $converter = \&LIMS2::Model::Util::Trivial::numeric_to_alpha;
     is( $converter->(1),   'A' );
