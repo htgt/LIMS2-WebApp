@@ -379,11 +379,12 @@ sub parent_plates_by_process_type{
 	    	my $type = $process->type_id;
 	    	$parents->{$type} ||= {};
 	    	foreach my $input ($process->input_wells){
-          try{
-  	    		my $plate = $input->plate;
+	    		my $plate = $input->plate;
+	    		if (not defined $plate) {
+	    			next;
+	    		}
   	    		$parents->{$type}->{$plate->name} = $plate;
-          };
-	      }
+            }
 	    }
 	}
 
@@ -419,6 +420,9 @@ sub child_plates_by_process_type{
 	    	$children->{$type} ||= {};
 	    	foreach my $output ($process->output_wells){
 	    		my $plate = $output->plate;
+	    		if (not defined $plate) {
+	    			next;
+	    		}
 	    		$children->{$type}->{$plate->name} = $plate;
 	        }
 	    }
