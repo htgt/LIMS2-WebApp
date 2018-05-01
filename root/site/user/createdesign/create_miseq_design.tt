@@ -229,6 +229,26 @@ tr.success td{
 
     </div>
 
+    <hr/>
+
+    <div id="batch" class="col-md-12 well">
+        <h3>Batch upload</h3>
+        <p>
+            Upload a set of manually-verified Miseq designs.
+            You can download an <a href="#">example file</a>.
+        </p>
+        <form method="POST" id="miseq_design_batch" enctype="multipart/form-data"
+            action="[% c.uri_for('/user/batchdesign/miseq_create' ) %]">
+            <div class="btn btn-file">
+                <input class="file" name="datafile" type="file" />
+            </div>
+            <button name="batch_upload" id="batch_upload" type="submit"
+                value="batch_upload" class="btn btn-primary">
+                <i class="glyphicon glyphicon-upload"></i> Batch upload
+            </button>
+        </form>
+    </div>
+
 <script type="text/javascript" charset="utf-8">
 
 var crispr_id = '[%- crispr_id.join(', ') %]';
