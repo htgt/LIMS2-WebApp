@@ -238,7 +238,7 @@ tr.success td{
             You can download an <a href="#">example file</a>.
         </p>
         <form method="POST" id="miseq_design_batch" enctype="multipart/form-data"
-            action="[% c.uri_for('/user/batchdesign/miseq_create' ) %]">
+            action="[% c.uri_for('/user/batchdesign/miseq_submit' ) %]">
             <div class="btn btn-file">
                 <input class="file" name="datafile" type="file" />
             </div>

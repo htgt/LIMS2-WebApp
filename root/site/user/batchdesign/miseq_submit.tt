@@ -1,0 +1,91 @@
+[% META title = "Batch Miseq Designs"; META tab_name = "Designs" %]
+<style>
+    .glyphicon-refresh { color:  #6A5ACD; }
+    .glyphicon-refresh-animate {
+        -animation: spin 1.2s infinite linear;
+        -webkit-animation: spin2 1.2s infinite linear;
+    }
+    .glyphicon-ok { color: green; }
+    .glyphicon-remove { color: red }
+    td, th {
+        padding: 4px;
+        vertical-align: top;
+    }
+    .status { font-weight: bold; }
+    .status-ok { color: green; }
+    .status-fail { color: red; }
+    .primer { display: block; }
+    .sequence { font-family: monospace; }
+</style>
+
+<h1>Batch import MiSEQ Designs</h1>
+<table border="1">
+    <thead>
+        <tr>
+            <th>WGE ID</th>
+            <th>Gene</th>
+            <th>CRISPR Sequence</th>
+            <th>Primers</th>
+            <th>Design</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOREACH design IN designs %]
+        <tr>
+            <td>[% design.wge_id %]</td>
+            <td>[% design.symbol %]</td>
+            <td class="sequence">[% design.crispr_seq %]</td>
+            <td>
+                <span class="sequence primer exf">[% design.exf %]</span>
+                <span class="sequence primer exr">[% design.exr %]</span>
+                <span class="sequence primer inf">[% design.inf %]</span>
+                <span class="sequence primer inr">[% design.inr %]</span>
+            </td>
+            <td id="design_[% loop.index %]">
+                <span class="glyphicon glyphicon-time"></span>
+                <span class="status"></span>
+            </td>
+        </tr>
+        [% END %]
+    </tbody>
+</table>
+
+<script type="text/javascript">
+function create_design(index, data){
+    var design = $('#design_' + index);
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/user/batchdesign/miseq_create') %]',
+        data: data,
+        beforeSend: function(xhr, settings){
+            design.find('.glyphicon').removeClass('glyphicon-time')
+                .addClass('glyphicon-refresh glyphicon-refresh-animate');
+    }}).always(function(data){
+        design.find('.glyphicon')
+            .removeClass('glyphicon-refresh glyphicon-refresh-animate')
+    }).fail(function(xhr, status){
+        design.find('.glyphicon').addClass('glyphicon-remove');
+        design.find('.status').addClass('status-fail').html(xhr.responseText);
+    }).done(function(data){
+        if(data.error){
+            design.find('.glyphicon').addClass('glyphicon-remove');
+            design.find('.status').addClass('status-fail').html(data.error);
+        }
+        else{
+            design.find('.glyphicon').addClass('glyphicon-ok');
+            design.find('.status').addClass('status-ok').html(data.id);
+        }
+    });
+}
+[% FOREACH design IN designs %]
+create_design([% loop.index %], {
+        wge_id: [% design.wge_id %],
+        symbol: "[% design.symbol %]",
+        crispr_seq: "[% design.crispr_seq %]",
+        exf: "[% design.exf %]",
+        exr: "[% design.exr %]",
+        inf: "[% design.inf %]",
+        inr: "[% design.inr %]",
+    });
+[% END %]
+</script>

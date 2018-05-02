@@ -1,6 +1,0 @@
-[% META title = "Batch Miseq Designs"; META tab_name = "Designs" %]
-<h1>Batch import MiSEQ Designs</h1>
-<p>Imported designs:<ul>
-[% FOREACH design IN designs %]
-    <li>[% design.id %]</li>
-[% END %]</ul></p>
