@@ -6,19 +6,21 @@ use Carp;
 use Data::UUID;
 use DesignCreate::Util::BWA;
 use JSON;
+use List::MoreUtils qw/uniq/;
 use Path::Class;
 use Readonly;
-use Try::Tiny;
 BEGIN { extends 'Catalyst::Controller' }
 
-Readonly::Array my @NUMERIC_COLUMNS    => qw/WGE_ID/;
-Readonly::Array my @GENE_COLUMNS       => qw/CRISPR_ID/;
-Readonly::Array my @NUCLEOTIDE_COLUMNS => (
+Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 300;
+Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 1000;
+Readonly::Array my @NUMERIC_COLUMNS        => qw/WGE_ID/;
+Readonly::Array my @GENE_COLUMNS           => qw/CRISPR_ID/;
+Readonly::Array my @NUCLEOTIDE_COLUMNS     => (
     'CRISPR Sequence',
     'PCR forward',
     'PCR reverse',
     'MiSEQ forward',
-    'MiSEQ reverse'
+    'MiSEQ reverse',
 );
 Readonly::Array my @REQUIRED_COLUMNS => @NUMERIC_COLUMNS,
   @GENE_COLUMNS,
@@ -41,11 +43,12 @@ sub _validate_columns {
 
 sub _validate_values {
     my ( $row, $rule, $columns, $line ) = @_;
-    foreach my $column (@{$columns}) {
+    foreach my $column ( @{$columns} ) {
         my $value = $row->{$column};
         if ( not $value =~ $rule ) {
             my $line_text = defined $line ? "on line $line " : q//;
-            return "'$value' is not a valid value for $column $line_text($rule)";
+            return
+              "'$value' is not a valid value for $column $line_text($rule)";
         }
     }
     return;
@@ -53,11 +56,41 @@ sub _validate_values {
 
 sub _validate_sequences {
     my $primers = shift;
-    foreach my $oligo (keys %{$primers}){
+    foreach my $oligo ( keys %{$primers} ) {
         my $seq = $primers->{$oligo}->{seq};
-        if ( not $seq =~ m/^[ACTG]+$/ ){
+        if ( not $seq =~ m/^[ACTG]+$/xms ) {
             return "'$seq' is not a valid $oligo primer";
         }
+    }
+    return;
+}
+
+sub _genomic_distance {
+    my ( $forward, $reverse ) = @_;
+    my $strand = $forward->{loci}->{chr_strand};
+    if ( $strand > 0 ) {
+        return $reverse->{chr_start} - $forward->{chr_end};
+    }
+    return $forward->{chr_start} - $reverse->{chr_end};
+}
+
+sub _validate_primers {
+    my $primers = shift;
+    my $chromosomes = uniq map { $_->{loci}->{chr_name} } values %{$primers};
+    if ( $chromosomes != 1 ) {
+        return 'Oligos have inconsistent chromosomes';
+    }
+    my $strands = uniq map { $_->{loci}->{chr_strand} } values %{$primers};
+    if ( $strands != 1 ) {
+        return 'Oligos have inconsistent strands';
+    }
+    my $distance = _genomic_distance( @{$primers}{qw/inf inr/} );
+    if ( $distance > $MAX_INTERNAL_DISTANCE or $distance < 0 ) {
+        return "Internal oligos are ${distance}bp apart";
+    }
+    $distance = _genomic_distance( @{$primers}{qw/exf exr/} );
+    if ( $distance > $MAX_EXTERNAL_DISTANCE or $distance < 0 ) {
+        return "Internal oligos are ${distance}bp apart";
     }
     return;
 }
@@ -68,8 +101,8 @@ sub _get_genes {
         species     => $data->{species},
         search_term => $data->{symbol},
     };
-    my $gene = $model->find_gene($search); 
-    $data->{gene} = $gene;
+    my $gene = $model->find_gene($search);
+    $data->{gene}     = $gene;
     $data->{gene_ids} = [
         {
             gene_id      => $gene->{gene_id},
@@ -81,21 +114,21 @@ sub _get_genes {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = split /_/, $row->{CRISPR_ID};
+    my ($symbol) = split /_/xms, $row->{CRISPR_ID};
     return {
         wge_id     => $row->{WGE_ID},
         symbol     => $symbol,
         crispr_seq => $row->{'CRISPR Sequence'},
-        exf => $row->{'PCR forward'},
-        exr => $row->{'PCR reverse'},
-        inf => $row->{'MiSEQ forward'},
-        inr => $row->{'MiSEQ reverse'},
+        exf        => $row->{'PCR forward'},
+        exr        => $row->{'PCR reverse'},
+        inf        => $row->{'MiSEQ forward'},
+        inr        => $row->{'MiSEQ reverse'},
     };
 }
 
 sub _read_file {
-    my ($c, $fh) = @_; 
-    my $csv  = Text::CSV->new;
+    my ( $c, $fh ) = @_;
+    my $csv     = Text::CSV->new;
     my $headers = $csv->getline($fh);
     $csv->column_names( @{$headers} );
     if ( my $error = _validate_columns($headers) ) {
@@ -103,12 +136,17 @@ sub _read_file {
         return;
     }
     my $rownum = 2;
-    my @data = ();
+    my @data   = ();
     while ( my $row = $csv->getline_hr($fh) ) {
-        if ( my $error =
-            _validate_values( $row, qr/^\d+$/, \@NUMERIC_COLUMNS, $rownum )
-            // _validate_values( $row, qr/^\w+/, \@GENE_COLUMNS, $rownum )
-            // _validate_values( $row, qr/^[ACTG]+$/, \@NUCLEOTIDE_COLUMNS, $rownum ) )
+        if (
+            my $error =
+            _validate_values( $row, qr/^\d+$ /xms, \@NUMERIC_COLUMNS, $rownum )
+            // _validate_values( $row, qr/^\w+/xms, \@GENE_COLUMNS, $rownum )
+            // _validate_values(
+                $row, qr/^[ACTG]+$ /xms,
+                \@NUCLEOTIDE_COLUMNS, $rownum
+            )
+          )
         {
             $c->stash->{error_msg} = $error;
             return;
@@ -123,9 +161,9 @@ sub _read_file {
 sub _extract_data {
     my ( $c, $datafile ) = @_;
 
-    open my $fh, '<:encoding(utf8)', $datafile->tempname or die;
-    my $data = _read_file($c, $fh);
-    close $fh;
+    open my $fh, '<:encoding(utf8)', $datafile->tempname or croak;
+    my $data = _read_file( $c, $fh );
+    close $fh or croak;
     return $data;
 }
 
@@ -140,10 +178,9 @@ sub generate_bwa_query_file {
     mkdir $dir_out->stringify
       or croak 'Could not create directory ' . $dir_out->stringify . ": $!";
 
-    my $fasta_file_name =
-      $dir_out->file( $data->{wge_id} . '_oligos.fasta' );
-    my $fh = $fasta_file_name->openw();
-    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
+    my $fasta_file_name = $dir_out->file( $data->{wge_id} . '_oligos.fasta' );
+    my $fh              = $fasta_file_name->openw();
+    my $seq_out         = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
 
     foreach my $oligo ( sort keys %{ $data->{primers} } ) {
         my $fasta_seq = Bio::Seq->new(
@@ -162,7 +199,7 @@ sub loci_builder {
     my $oligo_len = length( $data->{primers}->{$oligo}->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len;
     my $chr       = $oligo_bwa->{chr};
-    $chr =~ s/chr//;
+    $chr =~ s/chr//xms;
     my $loci = {
         assembly   => $data->{assembly},
         chr_start  => $oligo_bwa->{start},
@@ -177,19 +214,23 @@ sub loci_builder {
 
 sub _build_data {
     my ( $data, $model ) = @_;
-    my $crispr_hash = $model->schema->resultset('Crispr')
+    my $crispr_hash =
+      $model->schema->resultset('Crispr')
       ->find( { wge_crispr_id => $data->{wge_id} } );
 
-    $data->{assembly} = $model->schema->resultset('SpeciesDefaultAssembly')
-        ->find( { species_id => $data->{species} } )->assembly_id;
+    $data->{assembly} =
+      $model->schema->resultset('SpeciesDefaultAssembly')
+      ->find( { species_id => $data->{species} } )->assembly_id;
+
     # if the CRISPRs haven't been imported from WGE yet, do that
-    unless ($crispr_hash) {
+    if ( not $crispr_hash ) {
         my @wge_crispr_arr = [ $data->{wge_id} ];
-        my @crispr_arr = $model->import_wge_crisprs( \@wge_crispr_arr, 
+        my @crispr_arr =
+          $model->import_wge_crisprs( \@wge_crispr_arr,
             $data->{species}, $data->{assembly} );
         $crispr_hash = $crispr_arr[0]->{db_crispr};
     }
-    $crispr_hash                 = $crispr_hash->as_hash;
+    $crispr_hash         = $crispr_hash->as_hash;
     $data->{lims_crispr} = $crispr_hash->{id};
     $data->{loci}        = {
         assembly   => $data->{assembly},
@@ -198,7 +239,7 @@ sub _build_data {
         chr_name   => $crispr_hash->{locus}->{chr_name},
         chr_strand => $crispr_hash->{locus}->{chr_strand},
     };
-    my ( $fasta, $dir ) = generate_bwa_query_file( $data );
+    my ( $fasta, $dir ) = generate_bwa_query_file($data);
     my $bwa = DesignCreate::Util::BWA->new(
         query_file        => $fasta,
         work_dir          => $dir,
@@ -213,14 +254,14 @@ sub _build_data {
     if ( $oligo_hits->{exf}->{start} > $oligo_hits->{exr}->{start} ) {
         $strand = -1;
     }
-    foreach my $oligo ( keys %$oligo_hits ) {
+    foreach my $oligo ( keys %{$oligo_hits} ) {
         loci_builder( $data, $oligo_hits, $oligo, $strand );
     }
     return;
 }
 
 sub _create_oligos {
-    my $data = shift;
+    my $data    = shift;
     my $primers = $data->{primers};
     my @oligos;
     my $rev_oligo = {
@@ -251,7 +292,7 @@ sub _create_oligos {
             seq  => uc $seq,
             type => uc $primer,
         };
-        push( @oligos, $oligo );
+        push @oligos, $oligo;
     }
 
     $data->{oligos} = \@oligos;
@@ -260,7 +301,7 @@ sub _create_oligos {
 
 sub _create_parameters {
     my ( $data, $model ) = @_;
-    my $json = JSON->new->allow_nonref;
+    my $json       = JSON->new->allow_nonref;
     my $parameters = {
         design_method  => 'miseq',
         'command-name' => 'miseq-design-location',
@@ -278,7 +319,7 @@ sub _create_parameters {
         oligo_three_prime_align  => '0',
         exon_check_flank_length  => '0',
         primer_lowercase_masking => 'null',
-        num_genomic_hits         => "1",
+        num_genomic_hits         => '1',
 
         region_length_3F => '20',
         region_length_3R => '20',
@@ -328,64 +369,64 @@ sub _create_design {
     my ( $data, $model ) = @_;
     my $design = $model->txn_do(
         sub {
-            shift->c_create_design( $data );
+            shift->c_create_design($data);
         }
     );
     return $design->{_column_data};
 }
 
-sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0)
-{
-    my ( $self, $c ) = @_;
-    try {
-        my $data = {
-            wge_id => $c->request->param('wge_id'),
-            symbol => $c->request->param('symbol'),
-            crispr_seq => $c->request->param('crispr_seq'),
-            primers => {
-                exf => { seq => $c->request->param('exf') },
-                exr => { seq => $c->request->param('exr') },
-                inf => { seq => $c->request->param('inf') },
-                inr => { seq => $c->request->param('inr') },
-            },
-            type => 'miseq',
-            species => $c->session->{selected_species},
-            created_by => $c->user->name
-        };
-        if ( my $error =
-            _validate_values( $data, qr/^\d+$/, [qw/wge_id/] )
-            // _validate_values( $data, qr/^\w+/, [qw/symbol/] )
-            // _validate_sequences( $data->{primers} ))
-        {
-            croak $error;
-        }
-        my $model = $c->model('Golgi');
-        _get_genes($data, $model);
-        _build_data($data, $model);
-        _create_parameters($data, $model);
-        _create_oligos($data, $model);
-        _clean_data($data);
-        my $design = _create_design($data, $model);
-        $c->stash->{json_data} = $design;
+sub _run {
+    my ( $data, $model ) = @_;
+    if ( my $error =
+        _validate_values( $data, qr/^\d+$ /xms, [qw/wge_id/] )
+        // _validate_values( $data, qr/^\w+/xms, [qw/symbol/] )
+        // _validate_sequences( $data->{primers} ) )
+    {
+        return { error => $error };
     }
-    catch {
-        $c->stash->{json_data} = { error => $_ };
+    _get_genes( $data, $model );
+    _build_data( $data, $model );
+    if ( my $error = _validate_primers( $data->{primers} ) ) {
+        return { error => $error };
+    }
+    _create_parameters( $data, $model );
+    _create_oligos( $data, $model );
+    _clean_data($data);
+    return _create_design( $data, $model );
+}
+
+sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
+    my ( $self, $c ) = @_;
+    my $data = {
+        wge_id     => $c->request->param('wge_id'),
+        symbol     => $c->request->param('symbol'),
+        crispr_seq => $c->request->param('crispr_seq'),
+        primers    => {
+            exf => { seq => $c->request->param('exf') },
+            exr => { seq => $c->request->param('exr') },
+            inf => { seq => $c->request->param('inf') },
+            inr => { seq => $c->request->param('inr') },
+        },
+        type       => 'miseq',
+        species    => $c->session->{selected_species},
+        created_by => $c->user->name
     };
+    $c->stash->{json_data} = _run( $data, $c->model('Golgi') );
     $c->forward('View::JSON');
     return;
 }
 
-sub miseq_submit : Path('/user/batchdesign/miseq_submit' ) : Args(0)
-{
+sub miseq_submit : Path('/user/batchdesign/miseq_submit' ) : Args(0) {
     my ( $self, $c ) = @_;
     my $datafile = $c->request->upload('datafile');
 
-    if (not defined $datafile){
-        $c->stash->{error_msg} = 'You must upload a CSV containing design information';
+    if ( not defined $datafile ) {
+        $c->stash->{error_msg} =
+          'You must upload a CSV containing design information';
         return;
     }
     my $designs = _extract_data( $c, $datafile );
-    $c->stash->{designs}     = $designs;
+    $c->stash->{designs} = $designs;
     return;
 }
 
