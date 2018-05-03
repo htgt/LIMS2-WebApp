@@ -14,36 +14,56 @@
     .status { font-weight: bold; }
     .status-ok { color: green; }
     .status-fail { color: red; }
-    .primer { display: block; }
-    .sequence { font-family: monospace; }
+    .sequence, .location, .oligo {
+        display: block;
+        font-family: monospace;
+    }
 </style>
 
 <h1>Batch import MiSEQ Designs</h1>
-<table border="1">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>WGE ID</th>
             <th>Gene</th>
-            <th>CRISPR Sequence</th>
-            <th>Primers</th>
+            <th>CRISPR</th>
+            <th>Oligos</th>
+            <th>Sequence</th>
+            <th>Locations</th>
             <th>Design</th>
         </tr>
     </thead>
     <tbody>
         [% FOREACH design IN designs %]
-        <tr>
+        <tr id="row_[% loop.index %]">
             <td>[% design.wge_id %]</td>
             <td>[% design.symbol %]</td>
-            <td class="sequence">[% design.crispr_seq %]</td>
+            <td class="crispr-id"></td>
             <td>
+                <span class="oligo crispr">CRISPR</span>
+                <span class="oligo exf">EXF</span>
+                <span class="oligo exr">EXR</span>
+                <span class="oligo inf">INF</span>
+                <span class="oligo inr">INR</span>
+            </td>
+            <td>
+                <span class="sequence crispr">[% design.crispr_seq %]</span>
                 <span class="sequence primer exf">[% design.exf %]</span>
                 <span class="sequence primer exr">[% design.exr %]</span>
                 <span class="sequence primer inf">[% design.inf %]</span>
                 <span class="sequence primer inr">[% design.inr %]</span>
             </td>
-            <td id="design_[% loop.index %]">
+            <td>
+                <span class="location crispr"></span>
+                <span class="location exf"></span>
+                <span class="location exr"></span>
+                <span class="location inf"></span>
+                <span class="location inr"></span>
+            </td>
+            <td class="design"></td>
+            <td class="status">
                 <span class="glyphicon glyphicon-time"></span>
-                <span class="status"></span>
+                <span class="status-fail"></span>
             </td>
         </tr>
         [% END %]
@@ -52,28 +72,34 @@
 
 <script type="text/javascript">
 function create_design(index, data){
-    var design = $('#design_' + index);
+    var row = $('#row_' + index);
     $.ajax({
         dataType: 'json',
         url: '[% c.uri_for('/user/batchdesign/miseq_create') %]',
         data: data,
         beforeSend: function(xhr, settings){
-            design.find('.glyphicon').removeClass('glyphicon-time')
+            row.find('.status > .glyphicon').removeClass('glyphicon-time')
                 .addClass('glyphicon-refresh glyphicon-refresh-animate');
     }}).always(function(data){
-        design.find('.glyphicon')
+        row.find('.status > .glyphicon')
             .removeClass('glyphicon-refresh glyphicon-refresh-animate')
     }).fail(function(xhr, status){
-        design.find('.glyphicon').addClass('glyphicon-remove');
-        design.find('.status').addClass('status-fail').html(xhr.responseText);
+        row.find('.status > .glyphicon').addClass('glyphicon-remove');
+        row.find('.status > .status-fail').html(xhr.responseText);
     }).done(function(data){
+        row.find('.crispr-id').html(data.crispr);
+        row.find('.location.crispr').html(data.locations.crispr);
+        row.find('.location.exf').html(data.locations.exf);
+        row.find('.location.exr').html(data.locations.exr);
+        row.find('.location.inf').html(data.locations.inf);
+        row.find('.location.inr').html(data.locations.inr);
         if(data.error){
-            design.find('.glyphicon').addClass('glyphicon-remove');
-            design.find('.status').addClass('status-fail').html(data.error);
+            row.find('.status > .glyphicon').addClass('glyphicon-remove');
+            row.find('.status > .status-fail').html(data.error);
         }
         else{
-            design.find('.glyphicon').addClass('glyphicon-ok');
-            design.find('.status').addClass('status-ok').html(data.id);
+            row.find('.status > .glyphicon').addClass('glyphicon-ok');
+            row.find('.design').html(data.design.id);
         }
     });
 }

@@ -13,18 +13,19 @@ BEGIN { extends 'Catalyst::Controller' }
 
 Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 300;
 Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 1000;
-Readonly::Array my @NUMERIC_COLUMNS        => qw/WGE_ID/;
-Readonly::Array my @GENE_COLUMNS           => qw/CRISPR_ID/;
-Readonly::Array my @NUCLEOTIDE_COLUMNS     => (
-    'CRISPR Sequence',
-    'PCR forward',
-    'PCR reverse',
-    'MiSEQ forward',
-    'MiSEQ reverse',
+Readonly::Hash my %RULES => (
+    NUMERIC => qr/^\d+$/xms,
+    GENE => qr/^\w+/xms,
+    SEQUENCE => qr/^[ACTG]+$/xms,
 );
-Readonly::Array my @REQUIRED_COLUMNS => @NUMERIC_COLUMNS,
-  @GENE_COLUMNS,
-  @NUCLEOTIDE_COLUMNS;
+Readonly::Hash my %COLUMNS => (
+    NUMERIC  => [qw/WGE_ID/],
+    GENE     => [qw/CRISPR_ID/],
+    SEQUENCE => [ 'CRISPR Sequence', 'PCR forward', 'PCR reverse',
+        'MiSEQ forward', 'MiSEQ reverse', ],
+);
+Readonly::Array my @REQUIRED_COLUMNS => 
+    @{$COLUMNS{NUMERIC}}, @{$COLUMNS{GENE}}, @{$COLUMNS{SEQUENCE}};
 
 sub _validate_columns {
     my $header_ref = shift;
@@ -48,7 +49,7 @@ sub _validate_values {
         if ( not $value =~ $rule ) {
             my $line_text = defined $line ? "on line $line " : q//;
             return
-              "'$value' is not a valid value for $column $line_text($rule)";
+              "'$value' is not a valid value for $column $line_text";
         }
     }
     return;
@@ -58,7 +59,7 @@ sub _validate_sequences {
     my $primers = shift;
     foreach my $oligo ( keys %{$primers} ) {
         my $seq = $primers->{$oligo}->{seq};
-        if ( not $seq =~ m/^[ACTG]+$/xms ) {
+        if ( not $seq =~ $RULES{SEQUENCE} ) {
             return "'$seq' is not a valid $oligo primer";
         }
     }
@@ -69,26 +70,27 @@ sub _genomic_distance {
     my ( $forward, $reverse ) = @_;
     my $strand = $forward->{loci}->{chr_strand};
     if ( $strand > 0 ) {
-        return $reverse->{chr_start} - $forward->{chr_end};
+        return $reverse->{loci}->{chr_start} - $forward->{loci}->{chr_end};
     }
-    return $forward->{chr_start} - $reverse->{chr_end};
+    return $forward->{loci}->{chr_start} - $reverse->{loci}->{chr_end};
 }
 
 sub _validate_primers {
-    my $primers = shift;
-    my $chromosomes = uniq map { $_->{loci}->{chr_name} } values %{$primers};
+    my $primers_ref = shift;
+    my %primers = %{ $primers_ref };
+    my $chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
     if ( $chromosomes != 1 ) {
         return 'Oligos have inconsistent chromosomes';
     }
-    my $strands = uniq map { $_->{loci}->{chr_strand} } values %{$primers};
+    my $strands = uniq map { $_->{loci}->{chr_strand} } values %primers;
     if ( $strands != 1 ) {
         return 'Oligos have inconsistent strands';
     }
-    my $distance = _genomic_distance( @{$primers}{qw/inf inr/} );
+    my $distance = _genomic_distance(@primers{qw/inf inr/} );
     if ( $distance > $MAX_INTERNAL_DISTANCE or $distance < 0 ) {
         return "Internal oligos are ${distance}bp apart";
     }
-    $distance = _genomic_distance( @{$primers}{qw/exf exr/} );
+    $distance = _genomic_distance(@primers{qw/exf exr/} );
     if ( $distance > $MAX_EXTERNAL_DISTANCE or $distance < 0 ) {
         return "Internal oligos are ${distance}bp apart";
     }
@@ -140,12 +142,9 @@ sub _read_file {
     while ( my $row = $csv->getline_hr($fh) ) {
         if (
             my $error =
-            _validate_values( $row, qr/^\d+$ /xms, \@NUMERIC_COLUMNS, $rownum )
-            // _validate_values( $row, qr/^\w+/xms, \@GENE_COLUMNS, $rownum )
-            // _validate_values(
-                $row, qr/^[ACTG]+$ /xms,
-                \@NUCLEOTIDE_COLUMNS, $rownum
-            )
+            _validate_values( $row, $RULES{NUMERIC}, $COLUMNS{NUMERIC}, $rownum )
+            // _validate_values( $row, $RULES{GENE}, $COLUMNS{GENE}, $rownum )
+            // _validate_values( $row, $RULES{SEQUENCE}, $COLUMNS{SEQUENCE}, $rownum )
           )
         {
             $c->stash->{error_msg} = $error;
@@ -192,10 +191,27 @@ sub generate_bwa_query_file {
     return ( $fasta_file_name, $dir_out );
 }
 
+sub _choose_closest_primer_hit {
+    my ($target, $hits) = @_;
+    my $best = $hits;
+    if(not exists $hits->{hit_locations}){
+        return $best;
+    }
+    my $best_distance = abs $target->{chr_start} - $best->{start};
+    foreach(@{$hits->{hit_locations}}){
+        my $distance = abs $target->{chr_start} - $_->{start};
+        if($distance < $best_distance){
+            $best = $_;
+            $best_distance = $distance;
+        }
+    }
+    return $best;
+}
+
 sub loci_builder {
     my ( $data, $oligo_hits, $oligo, $strand ) = @_;
 
-    my $oligo_bwa = $oligo_hits->{$oligo};
+    my $oligo_bwa = _choose_closest_primer_hit($data->{loci}, $oligo_hits->{$oligo});
     my $oligo_len = length( $data->{primers}->{$oligo}->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len;
     my $chr       = $oligo_bwa->{chr};
@@ -351,25 +367,13 @@ sub _create_parameters {
     return;
 }
 
-sub _clean_data {
-    my $data = shift;
-    delete $data->{primers};
-    delete $data->{gene};
-    delete $data->{lims_crispr};
-    delete $data->{crispr_seq};
-    delete $data->{loci};
-    delete $data->{wge_id};
-    delete $data->{crispr_id};
-    delete $data->{assembly};
-    delete $data->{symbol};
-    return;
-}
-
 sub _create_design {
     my ( $data, $model ) = @_;
+    my %insert_data = map { $_ => $data->{$_} }
+        qw/design_parameters name type species oligos gene_ids created_by/;
     my $design = $model->txn_do(
         sub {
-            shift->c_create_design($data);
+            shift->c_create_design(\%insert_data);
         }
     );
     return $design->{_column_data};
@@ -378,21 +382,40 @@ sub _create_design {
 sub _run {
     my ( $data, $model ) = @_;
     if ( my $error =
-        _validate_values( $data, qr/^\d+$ /xms, [qw/wge_id/] )
-        // _validate_values( $data, qr/^\w+/xms, [qw/symbol/] )
+        _validate_values( $data, $RULES{NUMERIC}, [qw/wge_id/] )
+        // _validate_values( $data, $RULES{GENE}, [qw/symbol/] )
         // _validate_sequences( $data->{primers} ) )
     {
         return { error => $error };
     }
     _get_genes( $data, $model );
     _build_data( $data, $model );
-    if ( my $error = _validate_primers( $data->{primers} ) ) {
-        return { error => $error };
-    }
     _create_parameters( $data, $model );
     _create_oligos( $data, $model );
-    _clean_data($data);
-    return _create_design( $data, $model );
+    my $response = {
+        crispr => $data->{lims_crispr},
+        locations => {
+            crispr => format_location($data->{loci}),
+            exf => format_location($data->{primers}->{exf}->{loci}),
+            exr => format_location($data->{primers}->{exr}->{loci}),
+            inf => format_location($data->{primers}->{inf}->{loci}),
+            inr => format_location($data->{primers}->{inr}->{loci}),
+        },
+    };
+    if ( my $error = _validate_primers( $data->{primers} ) ) {
+        $response->{error} = $error;
+    }
+    else {
+        $response->{design} = _create_design( $data, $model );
+    }
+    return $response;
+}
+
+sub format_location {
+    my $loci = shift;
+    my ($chr, $start, $end) = ( $loci->{chr_name}, $loci->{chr_start}, 
+        $loci->{chr_end} );
+    return "$chr:$start-$end";
 }
 
 sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
@@ -411,7 +434,8 @@ sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
         species    => $c->session->{selected_species},
         created_by => $c->user->name
     };
-    $c->stash->{json_data} = _run( $data, $c->model('Golgi') );
+    my $model = $c->model('Golgi');
+    $c->stash->{json_data} = _run( $data, $model );
     $c->forward('View::JSON');
     return;
 }
