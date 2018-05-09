@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.494';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.495';
 }
 ## use critic
 
@@ -291,9 +291,9 @@ sub _view_cached_csv {
     my $cache_server;
 
     for ($server_path) {
-        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -552,9 +552,10 @@ sub _view_cached_lines {
     my $cache_server;
 
     for ($server_path) {
-        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        $c->log->debug($server_path);
+        if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /https?:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -675,8 +676,12 @@ sub _stash_well_genotyping_info {
             my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
             if ( $process_crispr ) {
                 my $crispr_data_hash = $process_crispr->crispr->as_hash;
-
                 $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
+                my $seq = $crispr_data_hash->{fwd_seq};
+                my $grna = substr $seq, 0, 20;
+                my $pam = substr $seq, 20 ,3;
+                $crispr_data_hash->{'grna'} = $grna;
+                $crispr_data_hash->{'pam'} = $pam;
                 push @crispr_data, $crispr_data_hash;
             }
         }

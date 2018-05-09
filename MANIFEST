@@ -200,6 +200,7 @@ lib/LIMS2/Model/Schema/Result/Summary.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfile.pm
 lib/LIMS2/Model/Schema/Result/TargetingProfileAllele.pm
 lib/LIMS2/Model/Schema/Result/Trivial.pm
+lib/LIMS2/Model/Schema/Result/TrivialOffset.pm
 lib/LIMS2/Model/Schema/Result/User.pm
 lib/LIMS2/Model/Schema/Result/UserPreference.pm
 lib/LIMS2/Model/Schema/Result/UserRole.pm
@@ -2681,6 +2682,7 @@ root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/CrisprGroup.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/CrisprGroupCrispr.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/Design.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/Experiment.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/TrivialOffset.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/Trivial/User.csv
 root/static/test/fixtures/LIMS2/t/Report/GeneEPSummary/Summary.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Design.csv

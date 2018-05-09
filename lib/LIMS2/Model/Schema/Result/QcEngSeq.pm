@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::QcEngSeq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::QcEngSeq::VERSION = '0.494';
+    $LIMS2::Model::Schema::Result::QcEngSeq::VERSION = '0.495';
 }
 ## use critic
 

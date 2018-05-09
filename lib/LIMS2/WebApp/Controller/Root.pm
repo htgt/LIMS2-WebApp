@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Root;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Root::VERSION = '0.494';
+    $LIMS2::WebApp::Controller::Root::VERSION = '0.495';
 }
 ## use critic
 
@@ -32,8 +32,25 @@ The root page (/)
 
 =cut
 
+sub begin :Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if ($protocol eq 'HTTP') {
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
+
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
+
     my $feed = $c->model('Golgi')->schema->resultset('Message')->search({
         lims => 1,
         expiry_date => { '>=', \'now()' }

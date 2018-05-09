@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPPlate::VERSION = '0.494';
+    $LIMS2::Report::CrisprEPPlate::VERSION = '0.495';
 }
 ## use critic
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.494';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.495';
 }
 ## use critic
 
@@ -98,6 +98,11 @@ __PACKAGE__->table("experiments");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 assigned_trivial
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -124,6 +129,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "requester",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "assigned_trivial",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -256,8 +263,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:APRoHhvbv2iUme8i3VLweg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-04-13 16:36:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TNpeqj/Yy9aR/nYp6SNCUQ
 
 __PACKAGE__->has_one(
   'trivial',
