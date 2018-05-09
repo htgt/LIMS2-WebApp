@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Genoverse;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.497';
+    $LIMS2::WebApp::Controller::User::Genoverse::VERSION = '0.498';
 }
 ## use critic
 

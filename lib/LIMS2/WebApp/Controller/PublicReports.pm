@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.497';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.498';
 }
 ## use critic
 
@@ -35,6 +35,22 @@ LIMS2::WebApp::Controller::PublicReports - Catalyst Controller
 Catalyst Controller for reports that a un-authenticated user can access.
 
 =cut
+
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
 
 =head2 index
 

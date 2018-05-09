@@ -1,7 +1,7 @@
 package LIMS2::Report::AssemblyPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AssemblyPlate::VERSION = '0.497';
+    $LIMS2::Report::AssemblyPlate::VERSION = '0.498';
 }
 ## use critic
 
