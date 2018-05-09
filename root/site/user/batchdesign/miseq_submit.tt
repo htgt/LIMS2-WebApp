@@ -71,13 +71,15 @@
 </table>
 
 <script type="text/javascript">
-function create_design(index, data){
-    var row = $('#row_' + index);
+
+function create_design(data){
+    var row = $('#row_' + data.index);
     $.ajax({
         dataType: 'json',
         url: '[% c.uri_for('/user/batchdesign/miseq_create') %]',
         data: data,
         beforeSend: function(xhr, settings){
+            workers++;
             row.find('.status > .glyphicon').removeClass('glyphicon-time')
                 .addClass('glyphicon-refresh glyphicon-refresh-animate');
     }}).always(function(data){
@@ -101,10 +103,13 @@ function create_design(index, data){
             row.find('.status > .glyphicon').addClass('glyphicon-ok');
             row.find('.design').html(data.design.id);
         }
+        workers--;
+        submit_design();
     });
 }
-[% FOREACH design IN designs %]
-create_design([% loop.index %], {
+
+var queue = [ [% FOREACH design IN designs %] {
+        index: [% loop.index %],
         wge_id: [% design.wge_id %],
         symbol: "[% design.symbol %]",
         crispr_seq: "[% design.crispr_seq %]",
@@ -112,6 +117,23 @@ create_design([% loop.index %], {
         exr: "[% design.exr %]",
         inf: "[% design.inf %]",
         inr: "[% design.inr %]",
-    });
-[% END %]
+    }, [% END %]
+];
+/* JS array supports stack & queue functions, but using it as a queue is slow.
+ * but we never add any items to it, so just create a queue, reverse it,
+ * and then treat as a stack
+ */
+queue.reverse();
+
+var workers = 0;
+var MAX_WORKERS = 5;
+
+function submit_design() {
+    while ( workers < MAX_WORKERS && queue.length > 0 ){
+        var next = queue.pop();
+        create_design(next);
+    }
+}
+
+submit_design();
 </script>
