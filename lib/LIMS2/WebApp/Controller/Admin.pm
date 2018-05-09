@@ -88,6 +88,16 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
     my $username   = $c->request->param('user_name');
     my @user_roles = $c->request->param('user_roles');
 
+    my $query = $c->model('Golgi')->schema->resultset('User')->find({name => "$username"});
+
+    if ($query) {
+        $c->stash(
+            user_name => $username,
+            error_msg => "User $username already exists"
+        );
+        return;
+    }
+
     unless ( $username and @user_roles ) {
         $c->stash(
             user_name    => $username,

@@ -1,3 +1,5 @@
+INSERT INTO schema_versions(version) VALUES (139);
+
 INSERT INTO trivial_offset (gene_id, index_offset) VALUES 
     --these have experiments on both a crispr pair as well as on crisprs.
     --the ones with crisprs, have, in these cases, been already assigned trivial
@@ -66,6 +68,7 @@ INSERT INTO trivial_backfill(gene_id, crispr_id, index) VALUES
     ('HGNC:11634', 227994, 1), --TCF4
     ('HGNC:11634', 204047, 2),
     ('HGNC:11998', 186034, 1); --TP53
+
 INSERT INTO trivial_backfill(gene_id, crispr_id, design_id, index) VALUES
     ('HGNC:9896', 227964, 1016539, 1), --RBM10
     ('HGNC:9896', 227964, 1016538, 2);
