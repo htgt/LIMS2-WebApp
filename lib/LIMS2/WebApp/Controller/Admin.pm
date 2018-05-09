@@ -25,6 +25,22 @@ Catalyst Controller.
 
 =cut
 
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
+
 =head2 auto
 
 Check that the user is has been granted admin privileges; if not,
