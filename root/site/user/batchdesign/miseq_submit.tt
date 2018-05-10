@@ -89,12 +89,16 @@ function create_design(data){
         row.find('.status > .glyphicon').addClass('glyphicon-remove');
         row.find('.status > .status-fail').html(xhr.responseText);
     }).done(function(data){
-        row.find('.crispr-id').html(data.crispr);
-        row.find('.location.crispr').html(data.locations.crispr);
-        row.find('.location.exf').html(data.locations.exf);
-        row.find('.location.exr').html(data.locations.exr);
-        row.find('.location.inf').html(data.locations.inf);
-        row.find('.location.inr').html(data.locations.inr);
+        if(data.crispr){
+            row.find('.crispr-id').html(data.crispr);
+        }
+        if(data.locations){
+            row.find('.location.crispr').html(data.locations.crispr);
+            row.find('.location.exf').html(data.locations.exf);
+            row.find('.location.exr').html(data.locations.exr);
+            row.find('.location.inf').html(data.locations.inf);
+            row.find('.location.inr').html(data.locations.inr);
+        }
         if(data.error){
             row.find('.status > .glyphicon').addClass('glyphicon-remove');
             row.find('.status > .status-fail').html(data.error);

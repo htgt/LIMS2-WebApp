@@ -9,10 +9,11 @@ use JSON;
 use List::MoreUtils qw/uniq/;
 use Path::Class;
 use Readonly;
+use Try::Tiny;
 BEGIN { extends 'Catalyst::Controller' }
 
-Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 300;
-Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 1000;
+Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 1000;
+Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 3000;
 Readonly::Hash my %RULES => (
     NUMERIC => qr/^\d+$/xms,
     GENE => qr/^\w+/xms,
@@ -116,7 +117,7 @@ sub _get_genes {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = split /_/xms, $row->{CRISPR_ID};
+    my ($symbol) = $row->{CRISPR_ID} =~ m/^\w+/xms;
     return {
         wge_id     => $row->{WGE_ID},
         symbol     => $symbol,
@@ -193,14 +194,17 @@ sub generate_bwa_query_file {
 
 sub _choose_closest_primer_hit {
     my ($target, $hits) = @_;
-    my $best = $hits;
-    if(not exists $hits->{hit_locations}){
-        return $best;
+    my @candidates = ($hits);
+    if ( exists $hits->{hit_locations} ) {
+        push @candidates, @{ $hits->{hit_locations} };
     }
+    my $target_chr = 'chr' . $target->{chr_name};
+    @candidates = grep { $_->{chr} eq $target_chr } @candidates;
+    my $best = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
-    foreach(@{$hits->{hit_locations}}){
+    foreach (@candidates){
         my $distance = abs $target->{chr_start} - $_->{start};
-        if($distance < $best_distance){
+        if ($distance < $best_distance){
             $best = $_;
             $best_distance = $distance;
         }
@@ -211,7 +215,11 @@ sub _choose_closest_primer_hit {
 sub loci_builder {
     my ( $data, $oligo_hits, $oligo, $strand ) = @_;
 
-    my $oligo_bwa = _choose_closest_primer_hit($data->{loci}, $oligo_hits->{$oligo});
+    my $oligo_bwa = _choose_closest_primer_hit
+        ($data->{loci}, $oligo_hits->{$oligo});
+    if ( not defined $oligo_bwa ) {
+        die "Could not find $oligo primer for CRISPR " . $data->{wge_id};
+    }
     my $oligo_len = length( $data->{primers}->{$oligo}->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len;
     my $chr       = $oligo_bwa->{chr};
@@ -228,7 +236,7 @@ sub loci_builder {
     return $data;
 }
 
-sub _build_data {
+sub _import_crispr {
     my ( $data, $model ) = @_;
     my $crispr_hash =
       $model->schema->resultset('Crispr')
@@ -255,6 +263,11 @@ sub _build_data {
         chr_name   => $crispr_hash->{locus}->{chr_name},
         chr_strand => $crispr_hash->{locus}->{chr_strand},
     };
+    return $data;
+}
+
+sub _find_primers {
+    my $data = shift;
     my ( $fasta, $dir ) = generate_bwa_query_file($data);
     my $bwa = DesignCreate::Util::BWA->new(
         query_file        => $fasta,
@@ -262,6 +275,7 @@ sub _build_data {
         species           => $data->{species},
         three_prime_check => 0,
         num_bwa_threads   => 2,
+        num_mismatches    => 0,
     );
 
     $bwa->generate_sam_file;
@@ -370,7 +384,7 @@ sub _create_parameters {
 sub _create_design {
     my ( $data, $model ) = @_;
     my %insert_data = map { $_ => $data->{$_} }
-        qw/design_parameters name type species oligos gene_ids created_by/;
+        qw/design_parameters type species oligos gene_ids created_by/;
     my $design = $model->txn_do(
         sub {
             shift->c_create_design(\%insert_data);
@@ -388,26 +402,31 @@ sub _run {
     {
         return { error => $error };
     }
-    _get_genes( $data, $model );
-    _build_data( $data, $model );
-    _create_parameters( $data, $model );
-    _create_oligos( $data, $model );
-    my $response = {
-        crispr => $data->{lims_crispr},
-        locations => {
-            crispr => format_location($data->{loci}),
-            exf => format_location($data->{primers}->{exf}->{loci}),
-            exr => format_location($data->{primers}->{exr}->{loci}),
-            inf => format_location($data->{primers}->{inf}->{loci}),
-            inr => format_location($data->{primers}->{inr}->{loci}),
-        },
+    my $response = {};
+    try {
+        _get_genes( $data, $model );
+        _import_crispr( $data, $model );
+        $response->{crispr} = $data->{lims_crispr};
+        _find_primers( $data );
+        _create_parameters( $data, $model );
+        _create_oligos( $data, $model );
+        $response->{locations} = {
+                crispr => format_location($data->{loci}),
+                exf => format_location($data->{primers}->{exf}->{loci}),
+                exr => format_location($data->{primers}->{exr}->{loci}),
+                inf => format_location($data->{primers}->{inf}->{loci}),
+                inr => format_location($data->{primers}->{inr}->{loci}),
+        };
+        if ( my $error = _validate_primers( $data->{primers} ) ) {
+            $response->{error} = $error;
+        }
+        else {
+            $response->{design} = _create_design( $data, $model );
+        }
+    }
+    catch {
+        $response->{error} = $_;
     };
-    if ( my $error = _validate_primers( $data->{primers} ) ) {
-        $response->{error} = $error;
-    }
-    else {
-        $response->{design} = _create_design( $data, $model );
-    }
     return $response;
 }
 
