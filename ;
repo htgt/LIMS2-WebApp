@@ -418,10 +418,10 @@ sub _build_design {
             $data->{oligos} = _create_oligos($primers);
             my $design = $model->txn_do(
                 sub {
-                    $model->c_create_design($data);
+                    model->c_create_design($data);
                 }
             );
-            $response->{design} = $design->{_column_data}; 
+            $response->{design} = _create_design( $data, $model );
         }
     }
     catch {
@@ -453,7 +453,7 @@ sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
         user    => $c->user->name
     };
     my $model = $c->model('Golgi');
-    $c->stash->{json_data} = _build_design( $request, $model );
+    $c->stash->{json_data} = _run( $request, $model );
     $c->forward('View::JSON');
     return;
 }
