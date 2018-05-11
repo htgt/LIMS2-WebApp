@@ -43,7 +43,7 @@ sub _validate_columns {
         }
     }
     if (@missing) {
-        return 'Missing required columnns: ' . join ', ', @missing;
+        return 'Missing required columns: ' . join ', ', @missing;
     }
     return;
 }
@@ -52,9 +52,9 @@ sub _validate_values {
     my ( $row, $rule, $columns, $line ) = @_;
     foreach my $column ( @{$columns} ) {
         my $value = $row->{$column};
-        if ( not $value =~ $rule ) {
-            my $line_text = defined $line ? "on line $line " : q//;
-            return "'$value' is not a valid value for $column $line_text";
+        if ( not $value =~ $RULES{$rule} ) {
+            my $line_text = defined $line ? " on line $line" : q//;
+            return "'$value' is not a valid value for $column$line_text";
         }
     }
     return;
@@ -97,7 +97,7 @@ sub _validate_primers {
     }
     $distance = _genomic_distance( @primers{qw/exf exr/} );
     if ( $distance > $MAX_EXTERNAL_DISTANCE or $distance < 0 ) {
-        return "Internal oligos are ${distance}bp apart";
+        return "External oligos are ${distance}bp apart";
     }
     return;
 }
@@ -130,12 +130,9 @@ sub _read_file {
     while ( my $row = $csv->getline_hr($fh) ) {
         if (
             my $error =
-            _validate_values( $row, $RULES{NUMERIC}, $COLUMNS{NUMERIC},
-                $rownum )
-            // _validate_values( $row, $RULES{GENE}, $COLUMNS{GENE}, $rownum )
-            // _validate_values(
-                $row, $RULES{SEQUENCE}, $COLUMNS{SEQUENCE}, $rownum
-            )
+            _validate_values( $row, 'NUMERIC', $COLUMNS{NUMERIC}, $rownum )
+            // _validate_values( $row, 'GENE', $COLUMNS{GENE}, $rownum )
+            // _validate_values( $row, 'SEQUENCE', $COLUMNS{SEQUENCE}, $rownum )
           )
         {
             $c->stash->{error_msg} = $error;
@@ -190,7 +187,8 @@ sub _choose_closest_primer_hit {
     }
     my $target_chr = 'chr' . $target->{chr_name};
     @candidates = grep { $_->{chr} eq $target_chr } @candidates;
-    my $best          = shift @candidates;
+    return if not @candidates;
+    my $best = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
     foreach (@candidates) {
         my $distance = abs $target->{chr_start} - $_->{start};
@@ -364,8 +362,8 @@ sub _create_parameters {
 sub _build_design {
     my ( $request, $model ) = @_;
     if ( my $error =
-        _validate_values( $request, $RULES{NUMERIC}, [qw/wge_id/] )
-        // _validate_values( $request, $RULES{GENE}, [qw/symbol/] )
+        _validate_values( $request, 'NUMERIC', [qw/wge_id/] )
+        // _validate_values( $request, 'GENE', [qw/symbol/] )
         // _validate_sequences( $request->{primers} ) )
     {
         return { error => $error };
