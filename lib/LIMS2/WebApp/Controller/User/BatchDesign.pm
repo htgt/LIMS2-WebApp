@@ -3,11 +3,9 @@ use Moose;
 use namespace::autoclean;
 use Bio::Perl qw/revcom/;
 use Carp;
-use Data::UUID;
-use DesignCreate::Util::BWA;
 use JSON;
+use LIMS2::Model::Util::PrimerFinder qw/locate_primers/;
 use List::MoreUtils qw/uniq/;
-use Path::Class;
 use Readonly;
 use Try::Tiny;
 BEGIN { extends 'Catalyst::Controller' }
@@ -128,10 +126,9 @@ sub _read_file {
     my $rownum = 2;
     my @data   = ();
     while ( my $row = $csv->getline_hr($fh) ) {
-        if (
-            my $error =
+        if ( my $error =
             _validate_values( $row, 'NUMERIC', $COLUMNS{NUMERIC}, $rownum )
-            // _validate_values( $row, 'GENE', $COLUMNS{GENE}, $rownum )
+            // _validate_values( $row, 'GENE',     $COLUMNS{GENE},     $rownum )
             // _validate_values( $row, 'SEQUENCE', $COLUMNS{SEQUENCE}, $rownum )
           )
         {
@@ -154,70 +151,6 @@ sub _extract_data {
     return $data;
 }
 
-sub generate_bwa_query_file {
-    my $primers = shift;
-
-    my $root_dir = $ENV{'LIMS2_BWA_OLIGO_DIR'} // '/var/tmp/bwa';
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $unique_string );
-    mkdir $dir_out->stringify
-      or croak 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file('oligos.fasta');
-    my $fh              = $fasta_file_name->openw();
-    my $seq_out         = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{$primers} ) {
-        my $fasta_seq = Bio::Seq->new(
-            -seq => $primers->{$oligo}->{seq},
-            -id  => $oligo
-        );
-        $seq_out->write_seq($fasta_seq);
-    }
-    return ( $fasta_file_name, $dir_out );
-}
-
-sub _choose_closest_primer_hit {
-    my ( $target, $hits ) = @_;
-    my @candidates = ($hits);
-    if ( exists $hits->{hit_locations} ) {
-        push @candidates, @{ $hits->{hit_locations} };
-    }
-    my $target_chr = 'chr' . $target->{chr_name};
-    @candidates = grep { $_->{chr} eq $target_chr } @candidates;
-    return if not @candidates;
-    my $best = shift @candidates;
-    my $best_distance = abs $target->{chr_start} - $best->{start};
-    foreach (@candidates) {
-        my $distance = abs $target->{chr_start} - $_->{start};
-        if ( $distance < $best_distance ) {
-            $best          = $_;
-            $best_distance = $distance;
-        }
-    }
-    return $best;
-}
-
-sub loci_builder {
-    my ( $target_loci, $primer, $oligo_hits ) = @_;
-
-    my $oligo_bwa = _choose_closest_primer_hit( $target_loci, $oligo_hits );
-    if ( not defined $oligo_bwa ) {
-        return;
-    }
-    my $oligo_len = length( $primer->{seq} );
-    my $oligo_end = $oligo_bwa->{start} + $oligo_len;
-    my $chr       = $oligo_bwa->{chr};
-    $chr =~ s/chr//xms;
-    return {
-        chr_start => $oligo_bwa->{start},
-        chr_name  => $chr,
-        chr_end   => $oligo_end,
-    };
-}
-
 sub _import_crispr {
     my ( $model, $wge_id, $species, $assembly ) = @_;
     my $crispr_hash =
@@ -235,40 +168,6 @@ sub _import_crispr {
         id     => $crispr_hash->{id},
         locus  => $crispr_hash->{locus}
     };
-}
-
-sub _find_primers {
-    my ( $species, $assembly, $target_crispr, $primers ) = @_;
-    my $data = shift;
-    my ( $fasta, $dir ) = generate_bwa_query_file($primers);
-    my $bwa = DesignCreate::Util::BWA->new(
-        query_file        => $fasta,
-        work_dir          => $dir,
-        species           => $species,
-        three_prime_check => 0,
-        num_bwa_threads   => 2,
-        num_mismatches    => 0,
-    );
-
-    $bwa->generate_sam_file;
-    my $oligo_hits = $bwa->oligo_hits;
-    my $strand     = 1;
-    if ( $oligo_hits->{exf}->{start} > $oligo_hits->{exr}->{start} ) {
-        $strand = -1;
-    }
-    my $loci = {};
-    foreach my $oligo ( keys %{$oligo_hits} ) {
-        my $locus = loci_builder( $target_crispr->{locus},
-            $primers->{$oligo}, $oligo_hits->{$oligo} );
-        die "Could not find $oligo primer for CRISPR "
-          . $target_crispr->{wge_id}
-          if not defined $locus;
-        $locus->{assembly}      = $assembly;
-        $locus->{chr_strand}    = $strand;
-        $loci->{$oligo}->{loci} = $locus;
-        $loci->{$oligo}->{seq}  = $primers->{$oligo}->{seq};
-    }
-    return $loci;
 }
 
 sub _create_oligos {
@@ -359,6 +258,23 @@ sub _create_parameters {
     return $json->encode($parameters);
 }
 
+sub _choose_strand {
+    my ( $forward, $reverse ) = @_;
+    return ( $forward->{loci}->{chr_start} > $reverse->{loci}->{chr_start} )
+      ? -1
+      : 1;
+}
+
+sub _set_locus_props {
+    my ( $loci, %props ) = @_;
+    foreach my $oligo ( keys %{$loci} ) {
+        while ( my ( $k, $v ) = each %props ) {
+            $loci->{$oligo}->{loci}->{$k} = $v;
+        }
+    }
+    return $loci;
+}
+
 sub _build_design {
     my ( $request, $model ) = @_;
     if ( my $error =
@@ -394,14 +310,20 @@ sub _build_design {
           _import_crispr( $model, $request->{wge_id}, $request->{species},
             $assembly );
         $response->{crispr} = $crispr->{id};
-        my $primers =
-          _find_primers( $request->{species}, $assembly, $crispr,
-            $request->{primers} );
+        my $primers = $request->{primers};
+        locate_primers( $request->{species}, $crispr, $primers );
+        my $strand = _choose_strand( @{$primers}{qw/exf exr/} );
+        _set_locus_props(
+            $primers,
+            assembly   => $assembly,
+            chr_strand => $strand
+        );
         $data->{design_parameters} = _create_parameters(
             $gene->{gene_id}, $request->{species},
             $assembly,        $request->{user},
             $crispr->{locus}, $model->software_version
         );
+
         if ( my $error = _validate_primers($primers) ) {
             $response->{error} = $error;
         }
@@ -419,7 +341,7 @@ sub _build_design {
                     $model->c_create_design($data);
                 }
             );
-            $response->{design} = $design->{_column_data}; 
+            $response->{design} = $design->{_column_data};
         }
     }
     catch {
@@ -438,6 +360,7 @@ sub format_location {
 sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
     my ( $self, $c ) = @_;
     my $request = {
+        context    => $c,
         wge_id     => $c->request->param('wge_id'),
         symbol     => $c->request->param('symbol'),
         crispr_seq => $c->request->param('crispr_seq'),
