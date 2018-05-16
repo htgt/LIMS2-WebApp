@@ -34,11 +34,11 @@ ul.ui-autocomplete
 }
 
 .first_gene_report_col{
-  background:#FCF3CF;
+  background:#FCF3CF !important;
 }
 
 .second_gene_report_col{
-  background:#D6EAF8;
+  background:#D6EAF8 !important;
 }
 
 .selector_size_display{

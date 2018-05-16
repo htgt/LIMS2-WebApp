@@ -1,3 +1,9 @@
+<style>
+.virtual_plate {
+    background-color: #f2dede;
+}
+</style>
+
 <div class="page-header">
   <h1>[% title %]
   <a class="btn btn-info" href="[% c.uri_for( '/user/report/download', report_id ) %]">
@@ -49,7 +55,16 @@
     [%- FOR datum IN data %]
     <tr title="[% datum.0 %]">
       [%- FOR val IN datum %]
-      <td[% IF plate_is_virtual %] style="background-color:#f2dede" [% END %]>[% plate_id %][% linkify( val ) | none %]</td>
+      [% classes = [] %]
+      [% IF columns.item(loop.index) == 'Seq' %]
+      [% classes.push('seq') %] 
+      [% END %]
+      [% IF plate_is_virtual %]
+      [% classes.push('virtual_plate') %]
+      [% END %]
+      <td[% IF classes.size > 0 %] class="[% classes.join(' ') %]"[% END %]>
+        [% plate_id %][% linkify( val ) | none %]
+      </td>
       [%- END %]
     </tr>
     [%- END %]
