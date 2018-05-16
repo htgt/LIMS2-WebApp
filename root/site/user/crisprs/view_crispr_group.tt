@@ -40,7 +40,7 @@
             [% END %]
           </td>
           [% locus = crispr.crispr.locus %]
-          <td>[% crispr.crispr.seq %]</td>
+          <td class="seq">[% crispr.crispr.seq %]</td>
           <td>[% "$locus.chr_name: $locus.chr_start - $locus.chr_end" %]</td>
           <td>[% locus.chr_strand %]</td>
         </tr>
@@ -91,7 +91,7 @@
       [%- FOR datum IN crispr_primers %]
       <tr>
         <td> [% datum.primer_name %] </td>
-        <td> [% datum.primer_seq %] </td>
+        <td class="seq"> [% datum.primer_seq %] </td>
         <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>

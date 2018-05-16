@@ -48,8 +48,12 @@ ul.ui-autocomplete
   position: fixed;
 }
 
-.trace_sequence{
-    font-family: "Lucida console", Courier, Lucida, monospace;
+.seq, .trace_sequence, .locus {
+    font-family: "Consolas",Monaco,"Lucida Console","Liberation Mono","DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",monospace;
+}
+
+.locus {
+    white-space: nowrap;
 }
 
 .glyphicon.spinning {
