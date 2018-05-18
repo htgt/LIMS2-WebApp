@@ -25,6 +25,22 @@ Catalyst Controller.
 
 =cut
 
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
+
 =head2 auto
 
 Check that the user is has been granted admin privileges; if not,
@@ -71,6 +87,16 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 
     my $username   = $c->request->param('user_name');
     my @user_roles = $c->request->param('user_roles');
+
+    my $query = $c->model('Golgi')->schema->resultset('User')->find({name => "$username"});
+
+    if ($query) {
+        $c->stash(
+            user_name => $username,
+            error_msg => "User $username already exists"
+        );
+        return;
+    }
 
     unless ( $username and @user_roles ) {
         $c->stash(

@@ -164,7 +164,7 @@
 <br/>
 
 [%- IF c.user && cache_report == 1  %]
-    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Please <a href="[% c.http_uri_for('/login') %]">login</a> to click a number for more detailed information or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for information on accessing clones from the HTGT Group. </p>
+    <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Please <a href="[% c.uri_for('/login') %]">login</a> to click a number for more detailed information or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for information on accessing clones from the HTGT Group. </p>
 [%- ELSE %]
     <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>
 [%- END %]

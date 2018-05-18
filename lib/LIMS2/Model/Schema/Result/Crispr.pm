@@ -445,7 +445,7 @@ sub as_hash {
         nonsense_crispr_original_crispr_id => $self->nonsense_crispr_original_crispr_id,
         # pairs          => $self->pair_ids,
         # groups         => $self->group_ids,
-        experiments    => $self->experiment_ids,
+        experiments    => $self->experiment_lookup,
     );
 
     if ( !$options->{no_off_targets} ) {
@@ -654,7 +654,7 @@ sub group_ids {
     return \@group_ids;
 }
 
-sub experiment_ids {
+sub experiment_lookup {
     my $self = shift;
 
     my $schema = $self->result_source->schema;
@@ -676,12 +676,12 @@ sub experiment_ids {
         }
     );
 
-    my @experiment_ids;
+    my %results;
     foreach my $experiment ( @experiments ) {
-        push @experiment_ids, $experiment->id;
+        $results{$experiment->id} = $experiment->trivial_name;
     }
 
-    return \@experiment_ids;
+    return \%results;
 }
 
 

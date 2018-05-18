@@ -56,6 +56,7 @@ sub retrieve_experiments_by_field {
 
         for my $rec (@exp_records) {
             my %data = $rec->get_columns;
+            $data{trivial_name} = $rec->trivial_name;
             push @experiments, \%data;
         }
     };

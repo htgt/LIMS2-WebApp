@@ -28,6 +28,7 @@ The root page (/)
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
+
     my $feed = $c->model('Golgi')->schema->resultset('Message')->search({
         lims => 1,
         expiry_date => { '>=', \'now()' }

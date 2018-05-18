@@ -41,7 +41,7 @@ sub login : Global {
 
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
-    my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->http_uri_for('/');
+    my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
     my $htgtsession = $c->stash->{htgtsession} || $c->req->param('htgtsession') || "";
 
     $c->log->debug("HTGT session: $htgtsession");
@@ -58,7 +58,7 @@ sub login : Global {
 
     	# Only set the flash message if we are staying in lims2 webapp
         # FIXME: assuming we redirect to a http page, not another https page
-    	my $app_root = quotemeta( $c->http_uri_for('/') );
+    	my $app_root = quotemeta( $c->uri_for('/') );
     	$c->log->debug("App root uri: $app_root");
         if($goto=~/$app_root/){
             $c->flash( success_msg => 'Login successful' );

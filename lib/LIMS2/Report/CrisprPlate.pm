@@ -20,7 +20,7 @@ override _build_name => sub {
 
 override _build_columns => sub {
     return [
-        "Well Name", "Experiment ID",
+        "Well Name", "Experiment", "Experiment ID",
         "Design ID", "Design Type", "Gene ID", "Gene Symbol", "Gene Sponsors",
         "Crispr ID","WGE Crispr ID","Seq","Type","Chromosome", "Start", "End", "Strand", "Assembly",
         "Created By","Created At",
@@ -53,7 +53,8 @@ override iterator => sub {
 
         return [
             $well->name,
-            $crispr_data ? join('/', @{ $crispr_data->{experiments} }) : '-',
+            $crispr_data ? join('/', values %{ $crispr_data->{experiments} }) : '-',
+            $crispr_data ? join('/', keys %{ $crispr_data->{experiments} }) : '-',
             $self->crispr_design_and_gene_cols( $process_crispr->crispr ),
             $crispr_data ? $crispr_data->{id}        : '-',
             $crispr_data ? $crispr_data->{wge_crispr_id} : '-',

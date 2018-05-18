@@ -174,7 +174,7 @@ my %make_schema_opts = (
     moniker_map        => \%MONIKER_MAP,
     rel_name_map       => \%REL_NAME_MAP,
     exclude            => qr/fixture_md5/,
-    skip_load_external => 1
+    skip_load_external => 1,
 );
 
 if ( $overwrite ) {

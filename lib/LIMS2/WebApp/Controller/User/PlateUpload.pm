@@ -27,15 +27,10 @@ Catalyst Controller.
 
 =cut
 
-sub begin :Private {
+sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    return;
-}
-
-sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Args(0) {
-    my ( $self, $c ) = @_;
 
     my $params = $c->request->params;
     my $species = $c->session->{selected_species};
@@ -366,6 +361,8 @@ sub build_ep_pipeline_ii_well_data {
 sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'edit' );
+
     my @process_types = map { $_->id } @{ $c->model('Golgi')->list_process_types };
 
     $c->stash(
@@ -377,6 +374,8 @@ sub plate_upload_step1 :Path( '/user/plate_upload_step1' ) :Args(0) {
 
 sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
     my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
 
     my $process_type = $c->request->params->{process_type};
     unless ( $process_type ) {
