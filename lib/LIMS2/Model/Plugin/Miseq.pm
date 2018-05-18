@@ -212,13 +212,13 @@ sub pspec_create_primer_preset {
 
 sub create_primer_preset {
     my ($self, $params) = @_;
-$DB::single=1;    
+
     my $validated_params = $self->check_params($params, pspec_create_primer_preset);
     my $current_preset = $self->schema->resultset('MiseqDesignPreset')->find({ name => $validated_params->{name} });
 
     if ($current_preset) {
         $self->throw( Validation => 'Preset ' . $validated_params->{name} . ' already exists' );
-    }   
+    }
 
     my $design_preset_params = {
         name        => $validated_params->{name},
@@ -250,7 +250,7 @@ $DB::single=1;
     $self->txn_do(
         sub {
             try {
-                $design_preset = $self->schema->resultset('MiseqDesignPreset')->create({   
+                $design_preset = $self->schema->resultset('MiseqDesignPreset')->create({
                     slice_def(
                         $design_preset_params,
                         qw( name created_by genomic_threshold min_gc max_gc opt_gc min_mt max_mt opt_mt )
@@ -259,15 +259,15 @@ $DB::single=1;
 
                 $internal_preset_params->{preset_id} = $design_preset->id;
                 $external_preset_params->{preset_id} = $design_preset->id;
-                
-                my $internal_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
+
+                my $internal_preset = $self->schema->resultset('MiseqPrimerPreset')->create({
                     slice_def(
                         $internal_preset_params,
                         qw( preset_id internal search_width offset_width increment_value )
                     )
                 });
 
-                my $external_preset = $self->schema->resultset('MiseqPrimerPreset')->create({   
+                my $external_preset = $self->schema->resultset('MiseqPrimerPreset')->create({
                     slice_def(
                         $external_preset_params,
                         qw( preset_id internal search_width offset_width increment_value )
@@ -285,13 +285,66 @@ $DB::single=1;
     return $design_preset;
 }
 
-sub edit_miseq_design {
-    my ($self, $params) = @_;
-    
-    my $validated_params = $self->check_params($params, pspec_create_primer_preset);
-    my $current_preset = $self->schema->resultset('MiseqDesignPreset')->find({ name => $validated_params->{name} });
+sub pspec_edit_primer_preset {
+    return {
+        name                => { validate => 'alphanumeric_string' },
+        created_by          => { validate => 'existing_user_id' },
+        genomic_threshold   => { validate => 'numeric' },
+        gc                  => { validate => 'config_min_max' },
+        mt                  => { validate => 'config_min_max' },
+        primers             => { validate => 'primer_set' },
+    };
+}
 
-    return;
+sub edit_primer_preset {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_edit_primer_preset);
+    my %preset_search;
+    $preset_search{'me.name'} = $validated_params->{name};
+    my $design_preset = $self->retrieve(MiseqDesignPreset => \%preset_search);
+    my $preset_hash = $design_preset->as_hash;
+
+    my $internal_preset = find_primer_params($self, $preset_hash->{primers}->{miseq}->{id});
+    my $external_preset = find_primer_params($self, $preset_hash->{primers}->{pcr}->{id});
+
+    my $preset;
+    $preset->{name} = $validated_params->{name} || $preset_hash->{name};
+    $preset->{genomic_threshold} = $validated_params->{genomic_threshold} || $preset_hash->{genomic_threshold};
+
+    $preset->{min_gc} = $validated_params->{gc}->{min} || $preset_hash->{gc}->{min};
+    $preset->{opt_gc} = $validated_params->{gc}->{opt} || $preset_hash->{gc}->{opt};
+    $preset->{max_gc} = $validated_params->{gc}->{max} || $preset_hash->{gc}->{max};
+
+    $preset->{min_mt} = $validated_params->{mt}->{min} || $preset_hash->{mt}->{min};
+    $preset->{opt_mt} = $validated_params->{mt}->{opt} || $preset_hash->{mt}->{opt};
+    $preset->{max_mt} = $validated_params->{mt}->{max} || $preset_hash->{mt}->{max};
+    my $preset_update = $design_preset->update($preset);
+
+    my $internal;
+    $internal->{search_width} = $validated_params->{primers}->{miseq}->{widths}->{search} || $preset_hash->{primers}->{miseq}->{widths}->{search};
+    $internal->{increment_value} = $validated_params->{primers}->{miseq}->{widths}->{increment} || $preset_hash->{primers}->{widths}->{miseq}->{increment};
+    $internal->{offset_width} = $validated_params->{primers}->{miseq}->{widths}->{offset} || $preset_hash->{primers}->{miseq}->{widths}->{offset};
+    my $internal_update = $internal_preset->update($internal);
+
+    my $external;
+    $external->{search_width} = $validated_params->{primers}->{pcr}->{widths}->{search} || $preset_hash->{primers}->{pcr}->{widths}->{search};
+    $external->{increment_value} = $validated_params->{primers}->{pcr}->{widths}->{increment} || $preset_hash->{primers}->{pcr}->{widths}->{increment};
+    $external->{offset_width} = $validated_params->{primers}->{pcr}->{widths}->{offset} || $preset_hash->{primers}->{pcr}->{widths}->{offset};
+    my $external_update = $external_preset->update($external);
+
+    return $preset_update;
+}
+
+sub find_primer_params {
+    my ($self, $id) = @_;
+
+    my %search = (
+        'me.id'         => $id,
+    );
+    my $primer_preset = $self->retrieve(MiseqPrimerPreset => \%search);
+
+    return $primer_preset;
 }
 
 1;

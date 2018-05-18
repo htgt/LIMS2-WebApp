@@ -598,7 +598,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
     };
 
     my $genomic_threshold = $miseq_pcr_conf->{genomic_threshold};
-$DB::single=1;
+
     my @presets = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
     $c->stash(
         crisprs             => $c->request->param('crisprs') || undef,

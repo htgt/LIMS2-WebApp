@@ -344,7 +344,7 @@ $('#updatePreset').click(function() {
         error: function(err) {
             console.log(err);
             $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
-            $('#presetResponse').text('Failed to edit MiSeq preset: ' + err.responseText);
+            $('#presetResponse').text('Failed to edit MiSeq preset - ' + $('#presetNameArea').val() + ' : ' + err.responseText);
             $('#customWaiting').hide().prop('disabled', true);
         }
     });

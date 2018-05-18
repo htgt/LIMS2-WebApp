@@ -137,7 +137,7 @@ sub crispr_PCR_calculate {
                 dead_field_width => $params->{'dead_field_width'},
                 search_field_width => $params->{'search_field_width'},
             } );
-$DB::single=1;
+
     if ($params->{gc} && $params->{tm}) {
         my $configuration = primer3_config($params, $config_path, $target_sequence_length);
     }
@@ -174,7 +174,7 @@ $DB::single=1;
 
 sub primer3_config {
     my ($params, $config_path, $target_sequence_length) = @_;
-$DB::single=1;
+
     my $yaml_conf = LoadFile($config_path);
 
     my $p3_config = {

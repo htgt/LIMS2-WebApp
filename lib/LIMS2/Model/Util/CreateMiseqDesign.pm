@@ -151,14 +151,13 @@ sub generate_primers {
         strand          => $en_strand->{$internal_crispr->{left_crispr}->{chr_strand}},
     };
 
-$DB::single=1;
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
         $params->{error} = "Primer generation failed: No adequate PCR primers found; Search width: "
             . $ENV{'LIMS2_PCR_SEARCH_FIELD'} . ", Offset width: " .$ENV{'LIMS2_PCR_DEAD_FIELD'} ."\n";
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
-        $params->{error} ="PCR genomic uniqueness check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} . 
+        $params->{error} ="PCR genomic uniqueness check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} .
             "; Genomic Threshold: " . $params->{genomic_threshold} . "\n";
         return $params;
     }
@@ -458,7 +457,7 @@ print Dumper $criteria;
 
 sub null_check {
     my ($data, $default, @keys) = @_;
-    
+
     foreach my $key (@keys) {
         if (ref $data->{$key} eq ref {}) {
             $data->{$key} = null_check($data->{$key}, $default->{$key}, keys %{$data->{$key}});

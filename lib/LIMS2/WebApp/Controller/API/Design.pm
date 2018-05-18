@@ -53,6 +53,8 @@ sub design_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
+
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
     if($protocol eq 'HTTPS'){
@@ -160,6 +162,7 @@ sub design_oligo_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_oligo = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -389,14 +392,12 @@ sub edit_miseq_primer_preset :Path( '/api/edit_miseq_primer_preset' ) :Args(0) :
 sub edit_miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles('edit'); 
+    $c->assert_user_roles('edit');
     $c->require_ssl;
-
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
-    $hashed_criteria = default_nulls($c, $hashed_criteria);
+    $hashed_criteria = default_nulls($c, $hashed_criteria, $hashed_criteria->{name});
     $hashed_criteria->{created_by} = $c->user->id;
     my $preset = $c->model('Golgi')->edit_primer_preset($hashed_criteria);
 
