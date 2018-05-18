@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.500     2018-05-18 11:27:54 Europe/London
+
+    Allow batch import of miseq designs
+    Fix plate relations bug
+
 0.499     2018-05-10 15:10:28 Europe/London
     HTTPS - Create Plate fix
 0.498     2018-05-09 14:01:26 Europe/London
