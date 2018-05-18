@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Root;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Root::VERSION = '0.496';
+    $LIMS2::WebApp::Controller::Root::VERSION = '0.500';
 }
 ## use critic
 
@@ -34,6 +34,7 @@ The root page (/)
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
+
     my $feed = $c->model('Golgi')->schema->resultset('Message')->search({
         lims => 1,
         expiry_date => { '>=', \'now()' }

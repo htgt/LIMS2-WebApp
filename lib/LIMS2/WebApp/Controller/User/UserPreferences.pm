@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::UserPreferences;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.496';
+    $LIMS2::WebApp::Controller::User::UserPreferences::VERSION = '0.500';
 }
 ## use critic
 

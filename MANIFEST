@@ -260,6 +260,8 @@ lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/PrimerChecks.pm
+lib/LIMS2/Model/Util/PrimerFinder.pm
+lib/LIMS2/Model/Util/PrimerFinder.pm.bak
 lib/LIMS2/Model/Util/PrimerGenerator.pm
 lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm
@@ -351,6 +353,8 @@ lib/LIMS2/WebApp/Controller/PublicReports.pm
 lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/Barcodes.pm
+lib/LIMS2/WebApp/Controller/User/BatchDesign.pm
+lib/LIMS2/WebApp/Controller/User/BatchDesign.pm~
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
@@ -451,6 +455,7 @@ root/site/user/barcodes/search_cgap_friendly_name.tt
 root/site/user/barcodes/view_checked_out_barcodes.tt
 root/site/user/barcodes/well_barcode_history.tt
 root/site/user/barcodes/well_checkout.tt
+root/site/user/batchdesign/miseq_submit.tt
 root/site/user/browsedesigns/design_ucsc_blat.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
@@ -3059,6 +3064,7 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GenomeBrowser.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_ImportSequencing.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_PgUserRole.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_PrimerFinder.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_QCResults.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_QCTemplates.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_RankQCResults.t
@@ -3117,6 +3123,7 @@ t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_PlateWell.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_QC.t
 t/LIMS2/WebApp/Controller/API/10_LIMS2_WebApp_Controller_API_Report.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Barcodes.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BatchDesign.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseDesigns.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
@@ -3137,7 +3144,6 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Projects.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_QC.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_RecombinaseUpload.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Report.t
-t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_SummaryReports.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_UserPreferences.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_WellData.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_WellData_Legacy.t
@@ -3302,6 +3308,7 @@ t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm
 t/lib/LIMS2/t/Model/Util/ImportSequencing.pm
 t/lib/LIMS2/t/Model/Util/OligoSelection.pm
 t/lib/LIMS2/t/Model/Util/PgUserRole.pm
+t/lib/LIMS2/t/Model/Util/PrimerFinder.pm
 t/lib/LIMS2/t/Model/Util/QCResults.pm
 t/lib/LIMS2/t/Model/Util/QCTemplates.pm
 t/lib/LIMS2/t/Model/Util/RankQCResults.pm
@@ -3365,6 +3372,8 @@ t/lib/LIMS2/t/WebApp/Controller/PublicReports.pm
 t/lib/LIMS2/t/WebApp/Controller/Root.pm
 t/lib/LIMS2/t/WebApp/Controller/User.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Barcodes.pm
+t/lib/LIMS2/t/WebApp/Controller/User/BatchDesign.pm
+t/lib/LIMS2/t/WebApp/Controller/User/BatchDesign.pm~
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
@@ -3386,7 +3395,6 @@ t/lib/LIMS2/t/WebApp/Controller/User/QC.pm
 t/lib/LIMS2/t/WebApp/Controller/User/RecombinaseUpload.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Report.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Report/Gene.pm
-t/lib/LIMS2/t/WebApp/Controller/User/SummaryReports.pm
 t/lib/LIMS2/t/WebApp/Controller/User/UserPreferences.pm
 t/lib/LIMS2/t/WebApp/Controller/User/WellData.pm
 t/lib/LIMS2/t/WebApp/Controller/User/WellDataLegacy.pm
