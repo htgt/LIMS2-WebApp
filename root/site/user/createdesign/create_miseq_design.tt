@@ -283,9 +283,7 @@ $('#redoSubmit').click(function() {
 });
 
 $('#createPreset').click(function() {
-    var params = gatherParameters('preset');
-    params.name = $('#presetNameArea').val();
-    var jsonified_params = JSON.stringify(params);
+    var jsonified_params = prepareParameters('preset');
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -313,6 +311,40 @@ $('#createPreset').click(function() {
             console.log(err);
             $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
             $('#presetResponse').text('Failed to create MiSeq preset: ' + err.responseText);
+            $('#customWaiting').hide().prop('disabled', true);
+        }
+    });
+});
+
+$('#updatePreset').click(function() {
+    var jsonified_params = prepareParameters('preset');
+    $('#presetWaiting').show().prop('disabled', false);
+
+    $.ajax({
+        url: '[% c.uri_for('/api/edit_miseq_primer_preset/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            criteria: jsonified_params
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            readonly();
+            $('.presetDD').append($('<option>', {
+                value: result.name,
+                text: result.name
+            }));
+            $('#presetModalDD').val(result.name);
+            updateParameters(result);
+            $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
+            $('#presetResponse').text('Edited design preset: ' + result.name);
+            $('#customWaiting').hide().prop('disabled', true);
+        },
+        error: function(err) {
+            console.log(err);
+            $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
+            $('#presetResponse').text('Failed to edit MiSeq preset: ' + err.responseText);
             $('#customWaiting').hide().prop('disabled', true);
         }
     });
@@ -384,6 +416,14 @@ $('.increment').on('input', function() {
     var message = "Increments must be an integer within 0-100.";
     errorNotification(this, region, message);
 });
+
+function prepareParameters(set) {
+    var params = gatherParameters(set);
+    params.name = $('#' + set + 'NameArea').val();
+    var jsonified_params = JSON.stringify(params);
+
+    return jsonified_params;
+}
 
 function errorNotification(entry, pattern, err) {
     var entity = $(entry);

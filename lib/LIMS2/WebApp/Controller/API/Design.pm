@@ -187,6 +187,7 @@ sub design_oligo_locus_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_oligo_locus = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -228,6 +229,7 @@ sub design_attempt_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -251,6 +253,7 @@ sub design_attempt_PUT {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -292,14 +295,6 @@ sub redo_miseq_design_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if ($protocol eq 'HTTPS') {
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
     $c->require_ssl;
 
     my $jsonified_reqs = $c->request->param('requirements');
@@ -361,14 +356,6 @@ sub miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if ($protocol eq 'HTTPS') {
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
     $c->require_ssl;
 
     my $jsonified_criteria = $c->request->param('criteria');
@@ -402,16 +389,10 @@ sub edit_miseq_primer_preset :Path( '/api/edit_miseq_primer_preset' ) :Args(0) :
 sub edit_miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
-    $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if ($protocol eq 'HTTPS') {
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
+    $c->assert_user_roles('edit'); 
     $c->require_ssl;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
@@ -426,6 +407,25 @@ sub edit_miseq_primer_preset_POST {
     $c->response->body( $json_preset );
 
     return;
+}
+
+sub miseq_preset_names :Path( '/api/miseq_preset_names' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_preset_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my @results;
+    try {
+        @results = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
+    }
+    catch {
+        $c->log->error($_);
+    };
+
+    return $self->status_ok($c, entity => \@results);
 }
 
 =head1 LICENSE
