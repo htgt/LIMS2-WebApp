@@ -607,6 +607,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
         melting_temp        => $melting_temp,
         genomic_threshold   => $genomic_threshold,
         presets             => \@presets,
+        selected_preset     => $c->req->param('preset_selection') || 'Default',
     );
 
     return;

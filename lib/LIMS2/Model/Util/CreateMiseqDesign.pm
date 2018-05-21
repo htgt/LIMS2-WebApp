@@ -114,7 +114,7 @@ sub generate_primers {
         species             => 'Human',
         repeat_mask         => [''],
         offset              => 20,
-        well_id             => 'Miseq_Crispr_' . $crispr_id . '_',
+        well_id             => 'Miseq_Crispr_' . $crispr_id,
         genomic_threshold   => $genomic_threshold || 30,
         gc                  => $search_range->{gc_content},
         tm                  => $search_range->{melting},
@@ -439,6 +439,7 @@ sub design_preset_params {
         },
         gc => $preset->{gc},
         mt => $preset->{mt},
+        genomic_threshold => $preset->{genomic_threshold},
     };
 
     return $primer_params;
@@ -450,8 +451,7 @@ sub default_nulls {
     my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $reference })->as_hash;
 
     $criteria = null_check($criteria, $default, keys %$criteria);
-use Data::Dumper;
-print Dumper $criteria;
+
     return $criteria;
 }
 

@@ -137,15 +137,21 @@ sub crispr_PCR_calculate {
                 dead_field_width => $params->{'dead_field_width'},
                 search_field_width => $params->{'search_field_width'},
             } );
-
+    my $p3;
     if ($params->{gc} && $params->{tm}) {
-        my $configuration = primer3_config($params, $config_path, $target_sequence_length);
-    }
-    my $p3 = DesignCreate::Util::Primer3->new_with_config(
-        configfile => $config_path,
-        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+        my %configuration = primer3_config($params, $config_path, $target_sequence_length);
+        $p3 = DesignCreate::Util::Primer3->new_with_config(
+            %configuration,
+            primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
             + $params->{'search_field_width'} ),
-    );
+        );
+    } else {
+        $p3 = DesignCreate::Util::Primer3->new_with_config(
+            configfile => $config_path,
+            primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+            + $params->{'search_field_width'} ),
+        );
+    }
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
     my $logfile = $dir_out->file( $well_id . '_pcr_oligos.log');
 
@@ -175,18 +181,16 @@ sub crispr_PCR_calculate {
 sub primer3_config {
     my ($params, $config_path, $target_sequence_length) = @_;
 
-    my $yaml_conf = LoadFile($config_path);
+    my %yaml_conf = %{LoadFile($config_path)};
 
-    my $p3_config = {
-        primer_max_gc => $params->{gc}->{max},
-        primer_min_gc => $params->{gc}->{min},
-        primer_opt_gc_percent => $params->{gc}->{opt},
-        primer_max_tm => $params->{tm}->{max},
-        primer_min_tm => $params->{tm}->{min},
-        primer_opt_tm => $params->{tm}->{opt},
-    };
+    $yaml_conf{primer_max_gc} = $params->{gc}->{max};
+    $yaml_conf{primer_min_gc} = $params->{gc}->{min};
+    $yaml_conf{primer_opt_gc_percent} = $params->{gc}->{opt};
+    $yaml_conf{primer_max_tm} = $params->{tm}->{max};
+    $yaml_conf{primer_min_tm} = $params->{tm}->{min};
+    $yaml_conf{primer_opt_tm} = $params->{tm}->{opt};
 
-    return;
+    return %yaml_conf;
 }
 
 =head pick_genotyping_primers

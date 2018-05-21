@@ -51,7 +51,11 @@ tr.success td{
             <div class="col-md-3">
                 <select id="presetSelection" name="preset_selection" class="presetDD form-control" align="center">
                     [% FOREACH preset IN presets %]
-                        <option value="[% preset %]">[% preset %]</option>
+                        [% IF preset == selected_preset %]
+                            <option value="[% preset %]" selected>[% preset %]</option>
+                        [% ELSE %]
+                            <option value="[% preset %]">[% preset %]</option>
+                        [% END %]
                     [% END %]
                 </select>
             </div>
@@ -306,6 +310,7 @@ $('#createPreset').click(function() {
             $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
             $('#presetResponse').text('Created design preset: ' + result.name);
             $('#customWaiting').hide().prop('disabled', true);
+            blockDefault();
         },
         error: function(err) {
             console.log(err);
@@ -340,6 +345,7 @@ $('#updatePreset').click(function() {
             $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
             $('#presetResponse').text('Edited design preset: ' + result.name);
             $('#customWaiting').hide().prop('disabled', true);
+            blockDefault();
         },
         error: function(err) {
             console.log(err);
