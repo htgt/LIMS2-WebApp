@@ -235,7 +235,7 @@ tr.success td{
         <h3>Batch upload</h3>
         <p>
             Upload a set of manually-verified Miseq designs.
-            You can download an <a href="#">example file</a>.
+            You can download an <a href="[% c.uri_for('/user/batchdesign/miseq_example') %]">example file</a>.
         </p>
         <form method="POST" id="miseq_design_batch" enctype="multipart/form-data"
             action="[% c.uri_for('/user/batchdesign/miseq_submit' ) %]">

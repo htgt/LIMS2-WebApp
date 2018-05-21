@@ -261,7 +261,6 @@ lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
 lib/LIMS2/Model/Util/PrimerChecks.pm
 lib/LIMS2/Model/Util/PrimerFinder.pm
-lib/LIMS2/Model/Util/PrimerFinder.pm.bak
 lib/LIMS2/Model/Util/PrimerGenerator.pm
 lib/LIMS2/Model/Util/QCPlasmidView.pm
 lib/LIMS2/Model/Util/QCResults.pm
@@ -354,7 +353,6 @@ lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/Barcodes.pm
 lib/LIMS2/WebApp/Controller/User/BatchDesign.pm
-lib/LIMS2/WebApp/Controller/User/BatchDesign.pm~
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
 lib/LIMS2/WebApp/Controller/User/BrowseTemplates.pm
@@ -3373,7 +3371,6 @@ t/lib/LIMS2/t/WebApp/Controller/Root.pm
 t/lib/LIMS2/t/WebApp/Controller/User.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Barcodes.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BatchDesign.pm
-t/lib/LIMS2/t/WebApp/Controller/User/BatchDesign.pm~
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseDesigns.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowsePlates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm

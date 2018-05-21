@@ -1,3 +1,9 @@
+0.501     2018-05-21 12:53:09 Europe/London
+
+    Provide example file for miseq batch import
+    Show trivial name in the EP Pipeline II report
+    Show gene sequences in fixed width font
+
 0.500     2018-05-18 11:27:54 Europe/London
 
     Allow batch import of miseq designs

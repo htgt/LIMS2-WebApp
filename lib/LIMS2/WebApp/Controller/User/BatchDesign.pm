@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BatchDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.500';
+    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.501';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use JSON;
 use LIMS2::Model::Util::PrimerFinder qw/locate_primers/;
 use List::MoreUtils qw/uniq/;
 use Readonly;
+use Text::CSV;
 use Try::Tiny;
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -213,20 +214,15 @@ sub _create_oligos {
 }
 
 sub _create_parameters {
-    my ( $gene_id, $species, $assembly, $created_by, $target_crispr, $version )
-      = @_;
+    my %args = @_;
     my $json       = JSON->new->allow_nonref;
     my $parameters = {
         design_method  => 'miseq',
         'command-name' => 'miseq-design-location',
-        species        => $species,
-        assembly       => $assembly,
-        created_by     => $created_by,
-        chr_name       => $target_crispr->{chr_name},
-        chr_strand     => $target_crispr->{chr_strand},
-        target_start   => $target_crispr->{chr_start},
-        target_end     => $target_crispr->{chr_end},
-        target_genes   => [$gene_id],
+        species        => 'Human',
+        assembly       => 'GRCh38',
+        created_by     => 'system',
+        target_genes   => [],
 
         three_prime_exon         => 'null',
         five_prime_exon          => 'null',
@@ -259,7 +255,7 @@ sub _create_parameters {
         repeat_mask_class => [],
 
         'ensembl-version' => 'X',
-        software_version  => $version,
+        %args,
     };
     return $json->encode($parameters);
 }
@@ -325,9 +321,15 @@ sub _build_design {
             chr_strand => $strand
         );
         $data->{design_parameters} = _create_parameters(
-            $gene->{gene_id}, $request->{species},
-            $assembly,        $request->{user},
-            $crispr->{locus}, $model->software_version
+            target_genes     => [ $gene->{gene_id} ],
+            species          => $request->{species},
+            assembly         => $assembly,
+            created_by       => $request->{user},
+            software_version => $model->software_version,
+            chr_name         => $crispr->{locus}->{chr_name},
+            chr_strand       => $crispr->{locus}->{chr_strand},
+            target_start     => $crispr->{locus}->{chr_start},
+            target_end       => $crispr->{locus}->{chr_end},
         );
 
         if ( my $error = _validate_primers($primers) ) {
@@ -361,6 +363,22 @@ sub format_location {
     my ( $chr, $start, $end ) =
       ( $loci->{chr_name}, $loci->{chr_start}, $loci->{chr_end} );
     return "$chr:$start-$end";
+}
+
+sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
+    my ( $self, $c ) = @_;
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename=example.csv' );
+    my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
+    my $output;
+    open my $fh, '>', \$output or croak 'Could not create example file';
+    $csv->print( $fh, \@REQUIRED_COLUMNS );
+    $csv->print( $fh, [qw/1174490822 ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
+    $csv->print( $fh, [qw/904034556 AHDC1_3 TGCCCCACACCGGTCGGAGA AGGCTCGTAGAGGGGATG GTGCAGCTCTCCTGACTAC GATGTCAATCAGCTGCACCA TTGCCAAGGGGGACGAC/] );
+    close $fh or croak 'Could not close example file';
+    $c->response->body( $output );
+    return;
 }
 
 sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
