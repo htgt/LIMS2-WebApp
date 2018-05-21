@@ -126,9 +126,9 @@
                     <a href="[% c.uri_for( '/user/crispr' , crispr.crispr_id , 'view' ) %]" target="_blank">[% crispr.crispr_id %]</a>
                     <a href="[% c.uri_for( '/user/crispr', crispr.crispr_id , 'blat' ) %]" target="_blank" class="btn btn-default btn-xs btn-block">blat</a>
                   </td>
-                  <td class="crispr">[% crispr.seq %]</td>
+                  <td class="crispr seq">[% crispr.seq %]</td>
                   <td class="crispr">[% crispr.direction %]</td>
-                  <td class="crispr">[% crispr.locus %]</td>
+                  <td class="crispr locus">[% crispr.locus %]</td>
                   <td class="crispr">[% crispr.outlier %]</td>
                   <td class="crispr">
                     <table>
