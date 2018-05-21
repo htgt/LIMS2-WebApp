@@ -367,8 +367,8 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
     open my $fh, '>', \$output or croak 'Could not create example file';
-    $csv->print( $fh, \@REQUIRED_COLUMNS ); 
-    $csv->print( $fh, [qw/1174490822 ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] ); 
+    $csv->print( $fh, \@REQUIRED_COLUMNS );
+    $csv->print( $fh, [qw/1174490822 ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
     $csv->print( $fh, [qw/904034556 AHDC1_3 TGCCCCACACCGGTCGGAGA AGGCTCGTAGAGGGGATG GTGCAGCTCTCCTGACTAC GATGTCAATCAGCTGCACCA TTGCCAAGGGGGACGAC/] );
     close $fh or croak 'Could not close example file';
     $c->response->body( $output );
