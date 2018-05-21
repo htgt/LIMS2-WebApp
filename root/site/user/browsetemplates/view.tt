@@ -114,7 +114,7 @@ in bold </p>
 
       [% IF crispr %]
         <td>[% well.crispr_id %]</td>
-        <td>[% well.crispr_seq %]</td>
+        <td class="seq">[% well.crispr_seq %]</td>
       [% END %]
 
       [% IF well.cassette_new %]

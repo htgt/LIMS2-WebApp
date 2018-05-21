@@ -253,7 +253,7 @@ $( document ).ready(function() {
           <br/>
           (WGE: [% crispr.wge_id %])
           [% END %]
-          <div class="btn crispr-info btn-xs btn-info btn-block" data-toggle="popover" data-placement="right" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
+          <div class="btn crispr-info btn-xs btn-info btn-block" data-toggle="popover" data-placement="right" data-html="true" data-content="[% INCLUDE crispr_info seq = crispr.seq, locus = crispr.locus %]" data-animation="false" title="Crispr Info">Info</div>
         </td>
         <td class="crispr">
           <table>
@@ -292,6 +292,6 @@ $( document ).ready(function() {
 [% END %]
 
 [% BLOCK crispr_info %]
-  <p><strong>Sequence:</strong> [% seq %] </p>
-  <p><strong>Locus:</strong> [% locus %] </p>
+  <p><strong>Sequence:</strong> <span class='seq'>[% seq %]</span> </p>
+  <p><strong>Locus:</strong> <span class='locus'>[% locus %]</span> </p>
 [% END %]

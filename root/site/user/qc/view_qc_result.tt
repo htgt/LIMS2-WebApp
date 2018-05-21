@@ -54,7 +54,7 @@
       <tr>
         <td>Genotyping</td>
         <td>[% primer.genotyping_primer_type_id %]</td>
-        <td>[% primer.seq %]</td>
+        <td class="seq">[% primer.seq %]</td>
         <td>[% IF primer.is_validated %]<span class="label label-success">Validated</span>
             [% ELSE %]<span class="label label-default">Not Validated</span>
             [% END %]
@@ -65,7 +65,7 @@
       <tr>
         <td>Crispr</td>
         <td>[% primer.primer_name.primer_name %]</td>
-        <td>[% primer.primer_seq %]</td>
+        <td class="seq">[% primer.primer_seq %]</td>
         <td>[% IF primer.is_validated %]<span class="label label-success">Validated</span>
             [% ELSE %]<span class="label label-default">Not Validated</span>
             [% END %]
