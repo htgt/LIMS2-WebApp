@@ -49,7 +49,7 @@ __PACKAGE__->table("miseq_primer_presets");
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 internal
 
@@ -59,17 +59,17 @@ __PACKAGE__->table("miseq_primer_presets");
 =head2 search_width
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 offset_width
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 increment_value
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
@@ -82,15 +82,15 @@ __PACKAGE__->add_columns(
     sequence          => "miseq_primer_presets_id_seq",
   },
   "preset_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "internal",
   { data_type => "boolean", is_nullable => 0 },
   "search_width",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "offset_width",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "increment_value",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -119,17 +119,12 @@ __PACKAGE__->belongs_to(
   "preset",
   "LIMS2::Model::Schema::Result::MiseqDesignPreset",
   { id => "preset_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-03-12 12:56:34
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lTgG6aL8EoSQ8gxQquzR8Q
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-21 16:46:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BXY0CREHMW6k0abIopcvHA
 
 sub as_hash {
     my $self = shift;

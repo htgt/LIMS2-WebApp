@@ -1,4 +1,4 @@
-[% META title = "Create Miseq Designs"; META tab_name = "Designs" %]
+[% META title = "Miseq Design Creation"; META tab_name = "Designs" %]
 
 <style>
 
@@ -35,7 +35,7 @@ tr.success td{
 
 <h1>Miseq Design Creation</h1>
 
-<form method="POST" class="col-md-12 well">
+<form method="POST" class="col-md-12 well" id="crisprSearch">
     <fieldset class="col-md-12 well">
         <div class="row col-md-12" align="center">
             <h4 class="col-md-2 col-md-offset-3">Design Type</h4>

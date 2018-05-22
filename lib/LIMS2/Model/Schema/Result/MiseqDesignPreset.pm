@@ -59,37 +59,37 @@ __PACKAGE__->table("miseq_design_presets");
 =head2 genomic_threshold
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 min_gc
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 max_gc
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 opt_gc
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 min_mt
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 max_mt
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =head2 opt_mt
 
   data_type: 'integer'
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
@@ -106,19 +106,19 @@ __PACKAGE__->add_columns(
   "created_by",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "genomic_threshold",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "min_gc",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "max_gc",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "opt_gc",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "min_mt",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "max_mt",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
   "opt_mt",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -132,6 +132,20 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<miseq_design_presets_name_key>
+
+=over 4
+
+=item * L</name>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("miseq_design_presets_name_key", ["name"]);
 
 =head1 RELATIONS
 
@@ -166,8 +180,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-03-13 16:11:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H0i2hIS18ddhCBxoLzyjpA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-21 16:46:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JYYL1HZd6guNjVIuqNu8hQ
 
 sub as_hash {
     my $self = shift;
