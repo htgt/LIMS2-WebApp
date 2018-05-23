@@ -950,13 +950,13 @@ sub pick_miseq_internal_crispr_primers {
     my $model = shift;
     my $params = shift;
 
-    my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
+    my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'}, 'GRCh38' );
     $params->{'crispr_oligos'} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 170;
     $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 50;
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data);
-    my $chr_strand = $model->schema->resultset('CrisprLocus')->search({ crispr_id => $params->{'crispr_id'} })->first->chr_strand eq '1' ? 'plus' : 'minus';
+    my $chr_strand = $params->{crispr_oligos}->{left_crispr}->{chr_id} eq '1' ? 'plus' : 'minus';
     TRIALS: foreach my $step ( 1..4 ) {
         INFO ('Attempt No. ' . $step );
 
@@ -1116,7 +1116,6 @@ sub oligo_for_single_crispr {
     my $schema = shift;
     my $crispr_id = shift;
     my $assembly_id = shift;
-
     my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
     my $crispr = $crispr_rs->first;
 

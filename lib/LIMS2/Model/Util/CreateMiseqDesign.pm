@@ -15,6 +15,7 @@ use POSIX qw(strftime);
 use JSON;
 use Bio::Perl qw( revcom );
 use YAML::XS qw( LoadFile );
+use Try::Tiny;
 
 use LIMS2::Model::Util::OligoSelection qw(
         pick_crispr_primers
@@ -27,7 +28,7 @@ use LIMS2::Model::Util::OligoSelection qw(
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 
 sub generate_miseq_design {
-    my ($c, $design_params, $crispr_id) = @_;
+    my ($c, $design_params, $crispr_id, $requirements) = @_;
 
     my $search_range = {
         search      => {
@@ -82,11 +83,12 @@ sub generate_miseq_design {
     };
     my $hit_data = bwa_oligo_loci($crispr_details, $result, $design_params->{genomic_threshold});
     my @oligos = format_oligos($hit_data);
-    my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details, $hit_data);
+    $crispr_details->{primer_loci} = $hit_data;
+    my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details, $requirements->{name});
     my $design_info = {
         design_parameters   => $json_params,
-        created_by          => $c->user->name,
-        species             => $c->session->{selected_species},
+        created_by          => $requirements->{name},
+        species             => $requirements->{species},
         type                => $design_params->{design_type},
         gene_ids            => @gene_ids,
         oligos              => @oligos,
@@ -208,7 +210,8 @@ sub find_appropriate_primers {
 
 
 sub package_parameters {
-    my ($c, $design_params, $result_data, $offset, $crispr_details, $primer_loci) = @_;
+    my ($c, $design_params, $result_data, $offset, $crispr_details, $user_name) = @_;
+    my $primer_loci = $crispr_details->{primer_loci};
     my $date = strftime "%d-%m-%Y", localtime;
     my $version = $c->model('Golgi')->software_version . '_' . $date;
 
@@ -218,7 +221,7 @@ sub package_parameters {
         design_method       => $design_params->{design_type},
         'command-name'      => $design_params->{design_type} . '-design-location',
         assembly            => $crispr_details->{locus}->{assembly},
-        created_by          => $c->user->name,
+        created_by          => $user_name,
 
         target_start        => $primer_loci->{inf}->{loci}->{chr_end},
         target_end          => $primer_loci->{inr}->{loci}->{chr_start},

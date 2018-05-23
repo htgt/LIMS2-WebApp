@@ -538,8 +538,12 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
                 my $lims2_id = $crispr_rs->id;
                 my $wge_id = $crispr_rs->wge_id;
                 $crispr_info->{$lims2_id} = $wge_id;
-
-                my $results = generate_miseq_design($c, $design_requirements, $lims2_id);
+                my $requirements = {
+                    name => $c->user->name,
+                    species => $c->session->{selected_species},
+                };
+                my $results = generate_miseq_design($c, $design_requirements, $lims2_id, $requirements);
+                #Name and species are specified to allow for testing
                 my $crispr_ids;
                 if ($results->{error}) {
                     $crispr_ids = {

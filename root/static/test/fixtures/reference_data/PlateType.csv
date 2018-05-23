@@ -26,4 +26,4 @@
 "MS_QC","QC of samples during Mutation Signatures workflow","allele"
 "CRISPR_SEP","Crispr Second Electroporation","allele"
 "S_PIQ","Second Allele Pre-injection QC plate","allele"
-
+"EP_PIPELINE_II","Pipeline II electroporation plate, "allele"
