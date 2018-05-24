@@ -188,7 +188,7 @@ sub get_parent_gene {
     my $rs1 = $self->model->schema->resultset( 'Experiment' )->find({ design_id =>  $design_id, crispr_id => $crispr_id }, { columns => [ qw/id gene_id assigned_trivial/ ] });
     my $gene_id = $rs1->get_column('gene_id');
     my $exp_id = $rs1->get_column('id');
-    my $exp_trivial = $rs1->get_column('assigned_trivial');
+    my $exp_trivial = $rs1->trivial_name;
     my $gene_name = $self->get_gene_name($gene_id);
 
     my $rs2 = $self->model->schema->resultset( 'ProjectExperiment' )->find({ experiment_id =>  $exp_id }, { columns => [ qw/project_id/ ] });
