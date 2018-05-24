@@ -34,11 +34,11 @@ ul.ui-autocomplete
 }
 
 .first_gene_report_col{
-  background:#FCF3CF;
+  background:#FCF3CF !important;
 }
 
 .second_gene_report_col{
-  background:#D6EAF8;
+  background:#D6EAF8 !important;
 }
 
 .selector_size_display{
@@ -48,8 +48,12 @@ ul.ui-autocomplete
   position: fixed;
 }
 
-.trace_sequence{
-    font-family: "Lucida console", Courier, Lucida, monospace;
+.seq, .trace_sequence, .locus {
+    font-family: "Consolas",Monaco,"Lucida Console","Liberation Mono","DejaVu Sans Mono","Bitstream Vera Sans Mono","Courier New",monospace;
+}
+
+.locus {
+    white-space: nowrap;
 }
 
 .glyphicon.spinning {

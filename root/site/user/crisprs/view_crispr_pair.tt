@@ -27,7 +27,7 @@
         </a>
         </td>
       </tr>
-      <tr><th>Sequence</th> <td>[% left_crispr.seq %]</td></tr>
+      <tr><th>Sequence</th> <td class="seq">[% left_crispr.seq %]</td></tr>
       <tr><th>Chromosome</th> <td>[% left_crispr.locus.chr_name %]</td></tr>
       <tr><th>Start</th> <td>[% left_crispr.locus.chr_start %]</td></tr>
       <tr><th>End</th> <td>[% left_crispr.locus.chr_end %]</td></tr>
@@ -46,7 +46,7 @@
         </a>
         </td>
       </tr>
-      <tr><th>Sequence</th> <td>[% right_crispr.seq %]</td></tr>
+      <tr><th>Sequence</th> <td class="seq">[% right_crispr.seq %]</td></tr>
       <tr><th>Chromosome</th> <td>[% right_crispr.locus.chr_name %]</td></tr>
       <tr><th>Start</th> <td>[% right_crispr.locus.chr_start %]</td></tr>
       <tr><th>End</th> <td>[% right_crispr.locus.chr_end %]</td></tr>
@@ -106,7 +106,7 @@
       [%- FOR datum IN crispr_primers %]
       <tr>
         <td> [% datum.primer_name %] </td>
-        <td> [% datum.primer_seq %] </td>
+        <td class="seq"> [% datum.primer_seq %] </td>
         <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>

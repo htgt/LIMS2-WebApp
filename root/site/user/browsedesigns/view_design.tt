@@ -107,7 +107,9 @@
         <td>[% oligo.locus.chr_strand %]</td>
         <td>[% oligo.locus.chr_start  %]</td>
         <td>[% oligo.locus.chr_end    %]</td>
-        <td [% IF oligo.type == 'PM' %]class="mutant_seq"[% END %]>[% oligo.seq %]</td>
+        <td class="seq[% IF oligo.type == 'PM' %] mutant_seq[% END %]">
+            [% oligo.seq %]
+        </td>
       </tr>
     [%- END %]
     </tbody>
@@ -143,7 +145,7 @@
       [%- FOR primer IN design.genotyping_primers %]
       <tr>
         <td>[% primer.type %]</td>
-        <td>[% primer.seq  %]</td>
+        <td class="seq">[% primer.seq %]</td>
         [% IF primer.is_rejected %]
         <td> <span class="label label-important pull-right">Rejected</span> </td>
         [% ELSE %]
@@ -176,7 +178,7 @@
       [%- FOR crispr IN crisprs %]
       <tr>
         <td><a href="[% c.uri_for( '/user/crispr', crispr.id , 'view'  ) %]" target="_blank"> [% crispr.id %]</a></td>
-        <td>[% crispr.seq %]</td>
+        <td class="seq">[% crispr.seq %]</td>
         <td>[% crispr.locus.chr_start %]</td>
         <td>[% crispr.locus.chr_end %]</td>
         <td>[% crispr.locus.chr_name %]</td>
