@@ -1,3 +1,10 @@
+0.503     2018-05-25 15:20:12 Europe/London
+
+    Show generated trivials in the PICK plate report
+
+0.502     2018-05-21 16:08:59 Europe/London
+
+    Changes to the clone_pick process
 0.501     2018-05-21 12:53:09 Europe/London
 
     Provide example file for miseq batch import

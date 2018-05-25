@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::DoubleTargeted;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::DoubleTargeted::VERSION = '0.501';
+    $LIMS2::ReportGenerator::Plate::DoubleTargeted::VERSION = '0.503';
 }
 ## use critic
 
