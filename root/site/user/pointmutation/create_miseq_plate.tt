@@ -45,10 +45,10 @@ h4 {
     <h3>Parent Plates</h3>
     <div class="row">
         <div class="col-md-2">
-            <label>Freezer Plate Name:</label>
+            <label>Parent Plate Name:</label>
         </div>
         <div class="col-md-3">
-            <input type="text" class="form-control" id="fpPlate">
+            <input type="text" class="form-control" id="parentPlate">
         </div>
         <div class="col-md-1">
             <button class="btn btn-warning" id="addPlate"><i class="glyphicon glyphicon-plus"></i> Add</button>
@@ -64,6 +64,9 @@ h4 {
                 Name
             </th>
             <th>
+                Type
+            </th>
+            <th>
                 Details
             </th>
             <th>
@@ -77,9 +80,9 @@ h4 {
 <div id="plateVisual">
     <div id="plateRow" class="col-md-12">
         <div class="col-md-4">
-            <h4>Freezer Plate: </h4>
+            <h4>Parent Plate: </h4>
             <select id="freezeName" class="btn btn-default">
-                <option value="-">Freezer Plate</option>
+                <option value="-">Parent Plate</option>
             </select>
         </div>
         <div class="col-md-4" id="fpQuadDiv">
@@ -260,26 +263,34 @@ $('#quad').change(function() {
 
 
 
-$("#fpPlate").autocomplete({
+$("#parentPlate").autocomplete({
     source: function(request, response) {
         $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
         {
-            term : $('#fpPlate').val(),
-            type : 'FP'
+            term : $('#parentPlate').val(),
+            type : 'FP,MISEQ,PIQ',
         }, response);
     },
     minLength: 2,
 });
 
 $('#addPlate').click(function() {
-    $('#parentCollection').show();
-    var name = $('#fpPlate').val().trim();
-    if (parentPlates.indexOf(name) == -1) {
-        addTableRow(name);
-        addOption(name);
-    }
-
-    return;
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/api/miseq_parent_plate_type') %]',
+        data: { name: $('#parentPlate').val().trim() },
+    }).done(function(data){
+        if(data.type){
+            $('#parentCollection').show();
+            if (parentPlates.indexOf(data.name) == -1) {
+                addTableRow(data);
+                addOption(data);
+            }
+        }
+        else if (data.error) {
+            alert(data.error);
+        }
+    });
 });
 
 $('#plateVisual').on('click','rect.fpWell' , function() {
@@ -466,17 +477,19 @@ function updatePlateName(dir) {
     }
 }
 
-function addTableRow(name) {
-    parentPlates.push(name);
+function addTableRow(data) {
+    parentPlates.push(data.name);
 
     var table = document.getElementById('parentCollection');
     var row = table.insertRow(-1);
 
     var nameCell = row.insertCell(0);
-    var detailCell = row.insertCell(1);
-    var clearCell = row.insertCell(2);
+    var typeCell = row.insertCell(1);
+    var detailCell = row.insertCell(2);
+    var clearCell = row.insertCell(3);
 
-    nameCell.innerText = name;
+    nameCell.innerText = data.name;
+    typeCell.innerText = data.type;
     detailCell.innerText = "Place-holder";
     clearCell.innerHTML = '<button class="btn btn-danger" onclick="clearRow(this);"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
 
@@ -497,10 +510,11 @@ function clearRow(button) {
     } 
 }
 
-function addOption(name) {
+function addOption(data) {
     var select = document.getElementById('freezeName');
     var option = document.createElement('option');
-    option.text = option.value = name;
+    option.text = option.value = data.name;
+    option.tag = data.type;
     select.add(option,-1);
     if ($('#freezeName').val() == '-') {
         select.options[option.index].selected = true;
