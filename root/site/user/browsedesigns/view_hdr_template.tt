@@ -1,7 +1,7 @@
 <style>
 
-.seq {
-    width: 1000px;
+.hdrSeq {
+    width: 1125px;
     white-space: nowrap;
     font-family: "Lucida Console", Monaco, monospace;
     overflow-x: hidden;
@@ -15,13 +15,13 @@
 </style>
 
 <h2>HDR Template</h2>
-<table class="table table-striped" style="width: 1000px;">
+<table class="table table-striped" style="width: 1125px;">
     <tr>
         <th>Reference Sequence</th>
     </tr>
     <tr>
         <td>      
-            <div id="refSeq" class="seq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGTACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
+            <div id="refSeq" class="hdrSeq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGTACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
             </div>
         </td>
     </tr>
@@ -30,7 +30,7 @@
     </tr>
     <tr>
         <td>
-            <div id="templateSeq" class="seq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGCACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
+            <div id="templateSeq" class="hdrSeq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGCACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
             </div>
         </td>
     </tr>
@@ -43,24 +43,59 @@
 
 <script type="text/javascript" charset="utf-8">
 
-$(document).ready(function() {
-    $('.seq:last').css('overflow-x','scroll');
-    $('.seq:last').scroll(function() {
-        $('.seq').scrollLeft($(this).scrollLeft());
-    });
-    hdr_highlight();
+jQuery.fn.extend({
+    sequenceText: function() {
+        var regWhitespace = /\s/g;
+        var text = $(this).text() || $(this).val();
+        return text.replace(regWhitespace, '').toUpperCase();
+    }
 });
 
-function hdr_highlight() {
-    var whitespace = new RegExp("\s","g");
-    var refSeq = $('#refSeq').text().replace(whitespace, '');
-    var templateSeq = $('#templateSeq').text().replace(whitespace, '');
+$(document).ready(function() {
+    scrollable();
+    hdr_highlight('#templateSeq');
+});
+
+$('#editTemplate').click(function() {
+    var wrapper = $('<div class="editing"></div>');
+    var form = $('<form action="#" class="edit-form"></form>');
+    var input = $('<input id="templateInput" type="text" class="hdrSeq templateInput">');
+
+    $('#templateSeq').after(wrapper);
+    $('#templateSeq').remove().appendTo(wrapper).hide();
+
+    input.css({
+        display: 'block',
+        font: "Lucida Console",
+        width: "1125px",
+    });
+
+    wrapper.append(form);
+    form.append(input);
+    input.val($('#templateSeq').sequenceText()).focus();
+});
+
+$('.templateInput').on('change keydown paste input',function() {
+    hdr_highlight('#templateInput');
+});
+
+function scrollable() {
+    $('.hdrSeq:first').css('overflow-x','scroll');
+    $('.hdrSeq:first').scroll(function() {
+        $('.hdrSeq').scrollLeft($(this).scrollLeft());
+    });
+}
+
+function hdr_highlight(template) {
+    var refSeq = $('#refSeq').sequenceText();
+    var templateSeq = $(template).sequenceText();
 
     var refHigh = "";
     var templateHigh = "";
     var spanOpen = false;
     templateSeq.split("").forEach(function(value, index) {
         if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
+            console.log(index);
             refHigh += !spanOpen ? "<span class='highlight'>" : "";
             templateHigh += !spanOpen ? "<span class='highlight'>" : "";
             refHigh += refSeq.charAt(index);
@@ -75,7 +110,7 @@ function hdr_highlight() {
         }
     });
     $('#refSeq').html(refHigh);
-    $('#templateSeq').html(templateHigh);
+    //$(template).html(templateHigh);
 }
 
 </script>
