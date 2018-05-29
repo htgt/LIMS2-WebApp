@@ -240,6 +240,10 @@
   <p><em>No crispr groups linked to this design</em></p>
 [% END %]
 
+[% IF design.type == "miseq-hdr" %]
+<p>HDR detected</p>
+[% END %] 
+
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
 <script type="text/javascript">
 
