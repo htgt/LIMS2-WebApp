@@ -241,7 +241,7 @@
 [% END %]
 
 [% IF design.type == "miseq-hdr" %]
-<p>HDR detected</p>
+    [% INCLUDE 'user/browsedesigns/view_hdr_template.tt' %]
 [% END %] 
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>

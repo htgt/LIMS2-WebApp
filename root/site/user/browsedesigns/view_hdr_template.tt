@@ -1,0 +1,76 @@
+<style>
+
+.seq {
+    width: 1000px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+    text-transform: uppercase;
+}
+
+.highlight {
+    background-color: green;
+    color: white;
+}
+</style>
+
+<h2>HDR Template</h2>
+<table class="table table-striped" style="width: 1000px;">
+    <tr>
+        <th>Reference Sequence</th>
+    </tr>
+    <tr>
+        <td>      
+            <div id="refSeq" class="seq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGTACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th>HDR Template</th>
+    </tr>
+    <tr>
+        <td>
+            <div id="templateSeq" class="seq"> TCACACCGTGTTCTCCACTCCCCCGTCCCCTGGCAAGACTAATCTACTTTCTATTTTTATGGATCTGCCTTTTCTGGTCATTCCATATAAGTGGAATTGCACAACACTGTGGCCTTTCGCGACGGCTGCTTTCACTTAGCACAATGTTTTGAAACTTCCTCCATGTTGTAACATCTATTAGTACTTCGTTTCGTTTTGATTGATATTTATTGATGAGTAACATTTTGTTGTGTGGA
+            </div>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript" charset="utf-8">
+
+$(document).ready(function() {
+    $('.seq:last').css('overflow-x','scroll');
+    $('.seq:last').scroll(function() {
+        $('.seq').scrollLeft($(this).scrollLeft());
+    });
+    hdr_highlight();
+});
+
+function hdr_highlight() {
+    var whitespace = new RegExp("\s","g");
+    var refSeq = $('#refSeq').text().replace(whitespace, '');
+    var templateSeq = $('#templateSeq').text().replace(whitespace, '');
+
+    var refHigh = "";
+    var templateHigh = "";
+    var spanOpen = false;
+    templateSeq.split("").forEach(function(value, index) {
+        if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
+            refHigh += !spanOpen ? "<span class='highlight'>" : "";
+            templateHigh += !spanOpen ? "<span class='highlight'>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;
+            spanOpen = true;
+        } else {
+            refHigh += spanOpen ? "</span>" : "";
+            templateHigh += spanOpen ? "</span>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;  
+            spanOpen = false;
+        }
+    });
+    $('#refSeq').html(refHigh);
+    $('#templateSeq').html(templateHigh);
+}
+
+</script>
