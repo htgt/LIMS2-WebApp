@@ -36,6 +36,11 @@
     </tr>
 </table>
 
+<button id="editTemplate" class="btn btn-primary">
+    Edit
+</button>
+<div id="editControls"></div>
+
 <script type="text/javascript" charset="utf-8">
 
 $(document).ready(function() {
