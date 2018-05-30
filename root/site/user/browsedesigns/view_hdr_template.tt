@@ -12,6 +12,23 @@
     background-color: green;
     color: white;
 }
+
+#caret {
+  animation: blink-animation 1s step-start 0s infinite;
+  -webkit-animation: blink-animation 1s step-start 0s infinite;
+}
+
+@keyframes blink-animation {
+  50% {
+    opacity: 0.0;
+  }
+}
+
+@-webkit-keyframes blink-animation {
+  50% {
+    opacity: 0.0;
+  }
+}
 </style>
 
 <h2>HDR Template</h2>
@@ -39,13 +56,16 @@
 <button id="editTemplate" class="btn btn-primary">
     Edit
 </button>
+<button id="resetTemplate" class="btn btn-danger">
+    Reset
+</button>
 <div id="editControls"></div>
 
 <script type="text/javascript" charset="utf-8">
 
 jQuery.fn.extend({
     sequenceText: function() {
-        var regWhitespace = /\s/g;
+        var regWhitespace = /[^ACTG]+/g;
         var text = $(this).text() || $(this).val();
         return text.replace(regWhitespace, '').toUpperCase();
     }
@@ -72,11 +92,17 @@ $('#editTemplate').click(function() {
 
     wrapper.append(form);
     form.append(input);
-    input.val($('#templateSeq').sequenceText()).focus();
+    input.val($('#templateSeq').sequenceText());
 });
 
-$('.templateInput').on('change keydown paste input',function() {
+$('#resetTemplate').click(function() {
+    $('#templateInput').val($('#templateSeq').sequenceText()).focus();
     hdr_highlight('#templateInput');
+});
+
+var test;
+$(document).on("change keydown keyup paste input click", '#templateInput', function(evt) {
+    hdr_highlight('#templateInput', evt.target.selectionStart);
 });
 
 function scrollable() {
@@ -86,7 +112,7 @@ function scrollable() {
     });
 }
 
-function hdr_highlight(template) {
+function hdr_highlight(template, caret) {
     var refSeq = $('#refSeq').sequenceText();
     var templateSeq = $(template).sequenceText();
 
@@ -94,8 +120,10 @@ function hdr_highlight(template) {
     var templateHigh = "";
     var spanOpen = false;
     templateSeq.split("").forEach(function(value, index) {
+        if (index == caret) {
+            refHigh += '<span id="caret">|</span>';
+        }
         if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
-            console.log(index);
             refHigh += !spanOpen ? "<span class='highlight'>" : "";
             templateHigh += !spanOpen ? "<span class='highlight'>" : "";
             refHigh += refSeq.charAt(index);
