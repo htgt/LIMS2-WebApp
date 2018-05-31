@@ -526,8 +526,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
                 try {
                     my $species = $c->session->{selected_species};
                     my $assembly = $c->model('Golgi')->schema->resultset('SpeciesDefaultAssembly')->find({ species_id => $species })->assembly_id;
-                    my @crispr_arr = [$crispr];
-                    my @import_result = $c->model('Golgi')->import_wge_crisprs(\@crispr_arr, $species, $assembly);
+                    my @import_result = $c->model('Golgi')->import_wge_crisprs([$crispr], $species, $assembly);
                     $crispr_rs = $c->model('Golgi')->schema->resultset('Crispr')->find({ id => $import_result[0]->{lims2_id} });
                 } catch {
                     $c->log->debug("Failed to import crispr: " . $crispr);

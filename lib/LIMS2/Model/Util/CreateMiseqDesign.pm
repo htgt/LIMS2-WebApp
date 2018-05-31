@@ -157,7 +157,7 @@ sub generate_primers {
 
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
-        $params->{error} = sprintf("Primer generation failed: No adequate PCR primers found; Search width: %s, Offset width: %s\n", 
+        $params->{error} = sprintf("Primer generation failed: No adequate PCR primers found; Search width: %s, Offset width: %s\n",
             $ENV{'LIMS2_PCR_SEARCH_FIELD'}, $ENV{'LIMS2_PCR_DEAD_FIELD'});
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
