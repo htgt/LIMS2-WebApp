@@ -413,31 +413,31 @@ $('#presetNameArea').on('input', function() {
 });
 
 $('.meltEntry').on('input', function() {
-    var region = /^[1-9][0-9]$/; //Only 10-99
+    var region = /^[1-9][0-9]$/; //Integer with range validation, 10-99
     var message = "Melting temperatures are limited to 10-99 degrees.";
     errorNotification(this, region, message);
 });
 
 $('.gcEntry').on('input', function() {
-    var region = /^[1-9]?[0-9]$|^100$/; //Only 0-100
+    var region = /^[1-9]?[0-9]$|^100$/; //Integer with range validation, 0-100
     var message = "GC percentages must be an integer within 0-100.";
     errorNotification(this, region, message);
 });
 
 $('.genoThreshold').on('input', function() {
-    var region = /^[1-2]?[0-9]$|^30$/; //Only 0-30
+    var region = /^[1-2]?[0-9]$|^30$/; //Integer with range validation, 0-30
     var message = "Genomic threshold must be an integer within 0-30.";
     errorNotification(this, region, message);
 });
 
 $('.regionWidths').on('input', function() {
-    var region = /^[2-9][0-9]$|^[1-9][0-9]{2}$|^1000$/; //Only 20-1000
+    var region = /^[2-9][0-9]$|^[1-9][0-9]{2}$|^1000$/; //Integer with range validation, 20-1000
     var message = "Search ranges must be an integer within 20-1000.";
     errorNotification(this, region, message);
 });
 
 $('.increment').on('input', function() {
-    var region = /^[1-9]?[0-9]$|^100$/; //Only 0-50
+    var region = /^[1-9]?[0-9]$|^100$/; //Integer with range validation, 0-100
     var message = "Increments must be an integer within 0-100.";
     errorNotification(this, region, message);
 });

@@ -359,7 +359,6 @@ sub miseq_primer_preset_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    $c->require_ssl;
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
