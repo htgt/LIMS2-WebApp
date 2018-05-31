@@ -133,8 +133,8 @@ sub generate_primers {
 
     my ($internal_crispr, $internal_crispr_primers) = pick_miseq_internal_crispr_primers($c->model('Golgi'), $params);
     if ($internal_crispr_primers->{error_flag} eq 'fail') {
-        $params->{error} = "Primer generation failed: No adequate Miseq primers found; Search width: "
-            . $ENV{'LIMS2_SEQ_SEARCH_FIELD'} . ", Offset width: " . $ENV{'LIMS2_SEQ_DEAD_FIELD'} ."\n";
+        $params->{error} = sprintf("Primer generation failed: No adequate Miseq primers found; Search width: %s, Offset width: %s\n",
+            $ENV{'LIMS2_SEQ_SEARCH_FIELD'}, $ENV{'LIMS2_SEQ_DEAD_FIELD'});
         return $params;
     }
 
@@ -157,12 +157,12 @@ sub generate_primers {
 
     my ($pcr_crispr, $pcr_crispr_primers) = pick_miseq_crispr_PCR_primers($c->model('Golgi'), $params);
     if ($pcr_crispr->{error_flag} eq 'fail') {
-        $params->{error} = "Primer generation failed: No adequate PCR primers found; Search width: "
-            . $ENV{'LIMS2_PCR_SEARCH_FIELD'} . ", Offset width: " .$ENV{'LIMS2_PCR_DEAD_FIELD'} ."\n";
+        $params->{error} = sprintf("Primer generation failed: No adequate PCR primers found; Search width: %s, Offset width: %s\n", 
+            $ENV{'LIMS2_PCR_SEARCH_FIELD'}, $ENV{'LIMS2_PCR_DEAD_FIELD'});
         return $params;
     } elsif ($pcr_crispr_primers->{genomic_error_flag} eq 'fail') {
-        $params->{error} ="PCR genomic uniqueness check failed; PCR results - " . $pcr_crispr_primers->{genomic_error_flag} .
-            "; Genomic Threshold: " . $params->{genomic_threshold} . "\n";
+        $params->{error} = sprintf("PCR genomic uniqueness check failed; PCR results - %s; Genomic Threshold: %s\n",
+            $pcr_crispr_primers->{genomic_error_flag}, $params->{genomic_threshold});
         return $params;
     }
 
