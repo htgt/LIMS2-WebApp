@@ -16,7 +16,6 @@ build_requires:
   LIMS2::Report::VectorProductionDetail: 0
   LIMS2::Report::VectorProductionSummary: 0
   LIMS2::ReportGenerator::ProductionDetail: 0
-  LIMS2::WebApp::Controller::User::SummaryReports: 0
   LIMS2::t::js::Admin::Announcements: 0
   LIMS2::t::js::PublicReports::Reports: 0
   LIMS2::t::js::User::Barcodes::MutationSignatures: 0
@@ -25,7 +24,6 @@ build_requires:
   Test::Class: 0
   Test::More: 0.88
   Test::Most: 0
-  YAML: 0
   bytes: 0
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
@@ -199,6 +197,7 @@ requires:
   WebAppCommon::Util::EnsEMBL: 0
   WebAppCommon::Util::FarmJobRunner: 0
   WebAppCommon::Util::FindGene: 0
+  YAML: 0
   YAML::Any: 0
   YAML::XS: 0
   base: 0
@@ -208,4 +207,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.499
+version: 0.504

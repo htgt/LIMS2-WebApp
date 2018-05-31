@@ -1,8 +1,8 @@
-[% META title = "Create Miseq Designs"; META tab_name = "Designs" %]
+[% META title = "Miseq Design Creation"; META tab_name = "Designs" %]
 
 <style>
 
-#waiting {
+.waiting {
     left: -20px;
 }
 
@@ -27,37 +27,47 @@ tr.success td{
     background-color: #DFF0D8;
 }
 
+#owner {
+    left: 30px;
+}
+
 </style>
 
 <h1>Miseq Design Creation</h1>
 
-<fieldset class="col-md-12 well">
-    <div class="row col-md-12" align="center">
-        <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
-        <div class="col-md-3">
-            <select id="design_type" class="form-control" align="center">
-                <option value="miseq-nhej">miseq-nhej</option>
-                <option value="miseq-hdr">miseq-hdr</option>
-            </select>
+<form method="POST" class="col-md-12 well" id="crisprSearch">
+    <fieldset class="col-md-12 well">
+        <div class="row col-md-12" align="center">
+            <h4 class="col-md-2 col-md-offset-3">Design Type</h4>
+            <div class="col-md-3">
+                <select id="designType" name="design_type" class="form-control" align="center">
+                    <option value="miseq-nhej">miseq-nhej</option>
+                    <option value="miseq-hdr">miseq-hdr</option>
+                </select>
+            </div>
         </div>
-    </div>
-<!--- Hidden until back end implemented
-    <div class="row col-md-12" align="center">
-        <h4 class="col-md-2 col-md-offset-3">Presets</h4>
-        <div class="col-md-3">
-            <select class="form-control" align="center">
-                <option value="Default">Default</option>
-            </select>
+        <div class="row col-md-12" align="center">
+            <h4 class="col-md-2 col-md-offset-3">Presets</h4>
+            <div class="col-md-3">
+                <select id="presetSelection" name="preset_selection" class="presetDD form-control" align="center">
+                    [% FOREACH preset IN presets %]
+                        [% IF preset == selected_preset %]
+                            <option value="[% preset %]" selected>[% preset %]</option>
+                        [% ELSE %]
+                            <option value="[% preset %]">[% preset %]</option>
+                        [% END %]
+                    [% END %]
+                </select>
+            </div>
+            <button class="btn btn-warning col-md-2" id="showPreset" type="button" data-toggle="modal" data-target="#presetModal">
+                View Preset  <i class="glyphicon glyphicon-list-alt"></i>
+            </button>
         </div>
-    </div>
----->
-</fieldset>
-<br>
-<form method="POST" class="col-md-12 well">
-    <fieldset>
-        <legend>Design Progess Crispr Search</legend>
-
-        <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crispr_id.join(', ') %]">[%- crispr_id.join(', ') %]</textarea>
+    </fieldset>
+    <br>
+    <fieldset class="col-md-12 well">
+        <legend class="col-md-12 row">Design Progess Crispr Search</legend>
+        <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crisprID.join(', ') %]">[%- crisprID.join(', ') %]</textarea>
         <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
         <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
         <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
@@ -79,10 +89,10 @@ tr.success td{
         </thead>
         <tbody>
             [% FOR table IN crispr_table %]
-            [% IF table.status != 'Success' %]
-                <tr id="[% table.lims %]" class="fail">
+                [% IF table.status != 'Success' %]
+                    <tr id="[% table.lims %]" class="fail">
                 [% ELSE %]
-                <tr id="[% table.lims %]" class="success">
+                    <tr id="[% table.lims %]" class="success">
                 [% END %]
                     <td>
                         <a href="[% c.uri_for( '/user/crispr' , table.lims , 'view' ) %]" target="_blank"> [% table.lims %] </a>
@@ -100,150 +110,137 @@ tr.success td{
     </table>
 </div>
 
-    <div id="redoModal" class="modal fade" role="dialog">
-        <div class="modal-dialog modal-lg">
+<div id="redoModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Design Parameters</h4>
+            </div>
 
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Design Parameters</h4>
+            <div class="modal-body col-md-12">
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'redo'%]
+                <div class="col-md-12 row">
+                    [% INCLUDE 'user/createdesign/miseq_design_parameters_help.tt' panel_name = 'redoPanel' %]
                 </div>
-
-                <div class="modal-body col-md-12">
-                    <fieldset class="col-md-12">
-                        <legend>Primer Restraints</legend>
-                        <fieldset class="col-md-6">
-                            <legend>Miseq</legend>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Search width:</label>
-                                <div class="col-md-6">
-                                    <input name="Search Width" class="form-control" id="miseq_search_width" name="miseq_search_width" type="number" placeholder="Default 170" value="170"/>
-                                </div>
-                            </div>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Offset width:</label>
-                                <div class="col-md-6">
-                                    <input name="Dead Search Width" class="form-control" name="miseq_dead_search_width" id="miseq_dead_search_width" type="number" placeholder="Default 50" value="50"/>
-                                </div>
-                            </div>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Increment:</label>
-                                <div class="col-md-6">
-                                    <input name="increment" class="form-control" id="miseq_increment" name="miseq_increment" type="number" placeholder="Default 15" value="15"/>
-
-                                </div>
-                            </div>
-                        </fieldset>
-                        <fieldset class="col-md-6">
-                            <legend>PCR</legend>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Search width:</label>
-                                <div class="col-md-6">
-                                    <input name="Search Width" class="form-control" id="pcr_search_width" name="pcr_search_width" type="number" placeholder="Default 350" value="350"/>
-                                </div>
-                            </div>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Offset width:</label>
-                                <div class="col-md-6">
-                                    <input name="Dead Search Width" class="form-control" name="pcr_dead_search_width" id="pcr_dead_search_width" type="number" placeholder="Default 170" value="170"/>
-                                </div>
-                            </div>
-                            <div class="col-md-12 row">
-                                <label class="col-md-6">Increment:</label>
-                                <div class="col-md-6">
-                                    <input name="pcr_increment" class="form-control" id="pcr_increment" type="number" placeholder="Default 50" value="50"/>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </fieldset>
-                    <fieldset class="col-md-12">
-                        <legend>Design Restraints</legend>
-                        <div class="form-group col-md-12">
-                            <label class="col-md-5">Genomic Score Threshold</label>
-                            <div class="col-md-4">
-                                <input name="genomic" class="form-control" id="genomic" type="number" placeholder="Default 30" value="30"/>
-                            </div>
-                        </div>
-                        <div class="form-group col-md-12">
-                            <label class="col-md-5">Primer Melting Temperatures</label>
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Minimum</span>
-                                    <input class="form-control" id="min_mt" type="text" value="[% melting_temp.min %]">
-                                    <span class="input-group-addon">C</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-md-offset-5 row">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Optimum</span>
-                                    <input class="form-control" id="opt_mt" type="text" value="[% melting_temp.opt %]">
-                                    <span class="input-group-addon">C</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-md-offset-5 row">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Maximum</span>
-                                    <input class="form-control" id="max_mt" type="text" value="[% melting_temp.max %]">
-                                    <span class="input-group-addon">C</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group col-md-12">
-                            <label class="col-md-5">Primer GC Content</label>
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Minimum</span>
-                                    <input class="form-control" id="min_gc" type="text" value="[% gc_content.min %]">
-                                    <span class="input-group-addon">%</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-md-offset-5 row">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Optimum</span>
-                                    <input class="form-control" id="opt_gc" type="text" value="[% gc_content.opt %]">
-                                    <span class="input-group-addon">%</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4 col-md-offset-5 row">
-                                <div class="input-group">
-                                    <span class="input-group-addon">Maximum</span>
-                                    <input class="form-control" id="max_gc" type="text" value="[% gc_content.max %]">
-                                    <span class="input-group-addon">%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                    <div class="col-md-12 row">
-                        [% INCLUDE 'miseq_design_parameters_help.tt' %]
-                    </div>
-                    <div class="col-md-12" id="response">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span id="waiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
-                    <button type="submit" class="btn btn-primary" id="redo_submit">Submit</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <div id="redoResponse" class="col-md-12">
                 </div>
             </div>
+            <div class="modal-footer">
+                <span id="redoWaiting" class="waiting glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
+                <button type="submit" class="submission btn btn-primary" id="redoSubmit">Submit</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
         </div>
-
     </div>
+</div>
+    
+<div id="presetModal" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Custom Design Parameters</h4>
+            </div>
+            <div class="modal-body col-md-12">
+                <fieldset id="presetDDfield" class="col-md-12 row form-group">
+                    <h4 class="col-md-2 col-md-offset-2">Presets: </h4>
+                    <div class="col-md-4">
+                        <select id="presetModalDD" class="presetDD form-control" align="center">
+                            [% FOREACH preset IN presets %]
+                                <option value="[% preset %]">[% preset %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <button id="editPreset" class="btn btn-warning">
+                        Edit <i class="glyphicon glyphicon-pencil"></i>
+                    </button>
+                    <button id="newPreset" class="btn btn-primary">
+                        New <i class="glyphicon glyphicon-pencil"></i>
+                    </button>
+                </fieldset>
+                <div id="presetResponse" class="col-md-12">
+                </div>
+                <fieldset id="newPresetName" class="col-md-9 row form-group" hidden>
+                    <h4 class="col-md-3 col-md-offset-2">Preset Name: </h4>
+                    <div id="presetNameContainer" class="col-md-5">
+                        <input id="presetNameArea" class="form-control" placeholder="Enter Preset Name">
+                    </div>
+                    <p id="nameError" class="col-md-4"></p>
+                </fieldset>
+                [% INCLUDE 'user/createdesign/miseq_primer_params.tt' modal_function = 'preset' %]
+                <div class="col-md-12 row">
+                    <label id="owner" class="col-md-6 col-form-label"></label>
+                </div>
+                <div class="col-md-12 row">
+                    [% INCLUDE 'user/createdesign/miseq_design_parameters_help.tt' panel_name = 'customPanel' %]
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span id="customWaiting" class="waiting glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
+                <button type="submit" class="submission btn btn-primary" id="createPreset">Create <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="submit" class="submission btn btn-primary" id="updatePreset">Update <i class="glyphicon glyphicon-pencil"></i></button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close <i class="glyphicon glyphicon-remove"></i></button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<hr/>
+
+<div id="batch" class="col-md-12 well">
+    <h3>Batch upload</h3>
+    <p>
+        Upload a set of manually-verified Miseq designs.
+        You can download an <a href="[% c.uri_for('/user/batchdesign/miseq_example') %]">example file</a>.
+    </p>
+    <form method="POST" id="miseq_design_batch" enctype="multipart/form-data"
+        action="[% c.uri_for('/user/batchdesign/miseq_submit' ) %]">
+        <div class="btn btn-file">
+            <input class="file" name="datafile" type="file" />
+        </div>
+        <button name="batch_upload" id="batch_upload" type="submit"
+            value="batch_upload" class="btn btn-primary">
+            <i class="glyphicon glyphicon-upload"></i> Batch upload
+        </button>
+    </form>
+</div>
 
 <script type="text/javascript" charset="utf-8">
 
-var crispr_id = '[%- crispr_id.join(', ') %]';
+var crisprID = '[%- crispr_id.join(', ') %]';
+var presetNames = [];
 
 $(document).ready(function() {
     $('.button').hide().prop('disabled', true);
     $('#crisprWaiting').hide().prop('disabled', true);
     display();
-    $('#waiting').hide().prop('disabled', true);
+    $('.waiting').hide().prop('disabled', true);
+    $('#presetModal').find('input').attr('readonly',true);
+    $('#createPreset').hide().prop('disabled', true);
+    $('#updatePreset').hide().prop('disabled', true);
+    $('.responseContainer').hide();
+    
+    $.ajax({
+        url: '[% c.uri_for('/api/miseq_preset_names/') %]',
+        type: 'GET',
+        dataType: 'JSON',
+        success: function(result) {
+            console.log("Response received");
+            presetNames = result.map(function(val) {
+                return val.toUpperCase();
+            });
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
 });
 
 function clearSelection(){
     $("#clearTextArea").html("");
 }
-
 
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {
@@ -269,10 +266,10 @@ $('#action').click(function() {
     $('#crisprWaiting').show().prop('disabled', false);
 });
 
-$('#redo_submit').click(function() {
-    var params = gatherParameters();
+$('#redoSubmit').click(function() {
+    var params = gatherParameters('redo');
     var jsonified_params = JSON.stringify(params);
-    $('#waiting').show().prop('disabled', false);
+    $('#redoWaiting').show().prop('disabled', false);
 
     $.ajax({
         url: '[% c.uri_for('/api/redo_miseq_design/') %]',
@@ -286,28 +283,251 @@ $('#redo_submit').click(function() {
             console.log(result);
             var message;
             if (result.status == 'Success') {
-                $('#response').removeClass('alert-danger').addClass('alert-success');
+                $('#redoResponse').removeClass('alert-danger').addClass('alert-success');
                 var link = '[% c.uri_for("/user/view_design/") %]' + encodeURI('?design_id=' + result.design);
                 message = 'Created MiSeq Design: <a href="' + link + '" target="_blank">' + result.design + '</a>';
                 updateTable(params.crispr, result);
             } else {
-                $('#response').removeClass('alert-success').addClass('alert-danger');
+                $('#redoResponse').removeClass('alert-success').addClass('alert-danger');
                 message = 'Error: ' + result.status;
             }
             console.log(message);
-            $('#response').html(message);
-            $('#waiting').hide().prop('disabled', true);
+            $('#redoResponse').html(message);
+            $('#redoWaiting').hide().prop('disabled', true);
         },
         error: function(err) {
-            test = err;
             console.log(err);
-            $('#response').addClass('alert-danger');
-            $('#response').text('Failed to create MiSeq design: ' + err.responseText);
-            $('#waiting').hide().prop('disabled', true);
+            $('#redoResponse').addClass('alert-danger');
+            $('#redoResponse').text('Failed to create MiSeq design: ' + err.responseText);
+            $('#redoWaiting').hide().prop('disabled', true);
         }
     });
 
 });
+
+$('#createPreset').click(function() {
+    var jsonified_params = prepareParameters('preset');
+    $('#presetWaiting').show().prop('disabled', false);
+
+    $.ajax({
+        url: '[% c.uri_for('/api/miseq_primer_preset/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            criteria: jsonified_params
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            readonly();
+            $('.presetDD').append($('<option>', {
+                value: result.name,
+                text: result.name
+            }));
+            $('#presetModalDD').val(result.name);
+            updateParameters(result);
+            $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
+            $('#presetResponse').text('Created design preset: ' + result.name);
+            $('#customWaiting').hide().prop('disabled', true);
+            blockDefault();
+        },
+        error: function(err) {
+            console.log(err);
+            $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
+            $('#presetResponse').text('Failed to create MiSeq preset: ' + err.responseText);
+            $('#customWaiting').hide().prop('disabled', true);
+        }
+    });
+});
+
+$('#updatePreset').click(function() {
+    var jsonified_params = prepareParameters('preset');
+    $('#presetWaiting').show().prop('disabled', false);
+
+    $.ajax({
+        url: '[% c.uri_for('/api/edit_miseq_primer_preset/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            criteria: jsonified_params
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            readonly();
+            $('.presetDD').append($('<option>', {
+                value: result.name,
+                text: result.name
+            }));
+            $('#presetModalDD').val(result.name);
+            updateParameters(result);
+            $('#presetResponse').removeClass('alert-danger').addClass('alert-success');
+            $('#presetResponse').text('Edited design preset: ' + result.name);
+            $('#customWaiting').hide().prop('disabled', true);
+            blockDefault();
+        },
+        error: function(err) {
+            console.log(err);
+            $('#presetResponse').removeClass('alert-success').addClass('alert-danger');
+            $('#presetResponse').text('Failed to edit MiSeq preset - ' + $('#presetNameArea').val() + ' : ' + err.responseText);
+            $('#customWaiting').hide().prop('disabled', true);
+        }
+    });
+});
+
+$('#presetModalDD').change(function() {
+    $('#presetSelection').val($('#presetModalDD').val())
+    blockDefault();
+    getPreset();
+});
+
+$('#showPreset').click(function() {
+    readonly();
+    blockDefault();
+    getPreset();
+});
+
+$('#editPreset').click(function() {
+    var selectedPreset = $('#presetModalDD').val(); 
+    $('#presetNameArea').val(selectedPreset);
+    editMode('edit');
+    getPreset();
+});
+
+$('#newPreset').click(function() {
+    $('#presetNameArea').text('');
+    editMode('new');
+});
+
+$('#presetNameArea').on('input', function() {
+    var val = $(this).val();
+    if (presetNames.includes(val.toUpperCase())) {
+        $(this).css("background-color","#ED8B97"); //Red
+        $('#presetResponseContainer').show();
+        $('#presetDesignResponse').text("Name is already taken.");
+    } else {
+        var region = /^\w+$/; //Alpha-numeric
+        var message = "Name must be unique and alpha-numeric.";
+        errorNotification(this, region, message);
+    }
+});
+
+$('.meltEntry').on('input', function() {
+    var region = /^[1-9][0-9]$/; //Integer with range validation, 10-99
+    var message = "Melting temperatures are limited to 10-99 degrees.";
+    errorNotification(this, region, message);
+});
+
+$('.gcEntry').on('input', function() {
+    var region = /^[1-9]?[0-9]$|^100$/; //Integer with range validation, 0-100
+    var message = "GC percentages must be an integer within 0-100.";
+    errorNotification(this, region, message);
+});
+
+$('.genoThreshold').on('input', function() {
+    var region = /^[1-2]?[0-9]$|^30$/; //Integer with range validation, 0-30
+    var message = "Genomic threshold must be an integer within 0-30.";
+    errorNotification(this, region, message);
+});
+
+$('.regionWidths').on('input', function() {
+    var region = /^[2-9][0-9]$|^[1-9][0-9]{2}$|^1000$/; //Integer with range validation, 20-1000
+    var message = "Search ranges must be an integer within 20-1000.";
+    errorNotification(this, region, message);
+});
+
+$('.increment').on('input', function() {
+    var region = /^[1-9]?[0-9]$|^100$/; //Integer with range validation, 0-100
+    var message = "Increments must be an integer within 0-100.";
+    errorNotification(this, region, message);
+});
+
+function prepareParameters(set) {
+    var params = gatherParameters(set);
+    params.name = $('#' + set + 'NameArea').val();
+    var jsonified_params = JSON.stringify(params);
+
+    return jsonified_params;
+}
+
+function errorNotification(entry, pattern, err) {
+    var entity = $(entry);
+    
+    var modal = modalDecipher(entity);
+    var responseID = '#' + modal + 'DesignResponse';
+    var responseContainer = '#' + modal + 'ResponseContainer'
+    
+    var textEntry = entity.val();
+    if (textEntry.match(pattern)) {
+        entity.css("background-color","#67E593"); //Green
+        $(responseContainer).hide();
+        $(responseID).text("");
+    } else if (textEntry) {
+        entity.css("background-color","#ED8B97"); //Red
+        $(responseContainer).show();
+        $(responseID).text(err);
+    } else {
+        $(responseContainer).hide();
+        $(responseID).text("");
+        entity.css("background-color",""); //Clear
+    }
+    validationPreventSubmission(modal);
+}
+
+function modalDecipher(entity) {
+    var id = entity.context.id;
+    var splitOnCap = id.split(/(?=[A-Z])/);
+    return splitOnCap[0];
+}
+
+function validationPreventSubmission(modal) {
+    var check = 0;
+    $('#' + modal + 'Modal input').each(function() {
+        if ($(this).css('background-color') == "rgb(237, 139, 151)") { //Red
+            check = 1;
+        }
+    });
+
+    if (check == 1) {
+        $('.submission').prop('disabled', true);
+    } else {
+        $('.submission').each(function() {
+            if ($(this).is(':visible')) {
+                $(this).prop('disabled', false);
+            }
+        });
+    }
+}
+
+function readonly() {
+    $('#createPreset').hide().prop('disabled', true);
+    $('#updatePreset').hide().prop('disabled', false);
+    $('#newPresetName').hide();
+    $('#presetModal').find('input').attr('readonly',true);
+
+    $('#presetModalDD').val($('#presetSelection').val());
+    $('#presetDDfield').show();
+    $('#presetModal input').css("background-color","");
+    $('#presetResponseContainer').hide();
+
+    return;
+}
+
+function editMode(mode) {
+    if (mode == 'edit') {
+        $('#updatePreset').show().prop('disabled', false);
+        $('#createPreset').hide().prop('disabled', true);
+    } else {
+        $('#createPreset').show().prop('disabled', false);
+        $('#updatePreset').hide().prop('disabled', true);
+    }
+    $('#presetDDfield').hide();
+    $('#newPresetName').show();
+    $('#presetModal').find('input').attr('readonly',false);
+
+    return;
+}
+
 
 function updateTable(crispr, row) {
     $('#' + crispr).removeClass('failure').addClass('success');
@@ -320,44 +540,53 @@ function updateTable(crispr, row) {
         split = ", ";
     }
     $('#' + crispr).children('.tableDesign').append(split + designAtag);
+
+    return;
 }
 
-function gatherParameters() {
+function gatherParameters(modalType) {
     var miseq = {
-        search_width : $('#miseq_search_width').val(),
-        offset_width : $('#miseq_dead_search_width').val(),
-        increment    : $('#miseq_increment').val()
+        search      : $('#' + modalType + 'MiseqSearchWidth').val(),
+        offset      : $('#' + modalType + 'MiseqDeadSearchWidth').val(),
+        increment   : $('#' + modalType + 'MiseqIncrement').val()
     };
 
     var pcr = {
-        search_width : $('#pcr_search_width').val(),
-        offset_width : $('#pcr_dead_search_width').val(),
-        increment    : $('#pcr_increment').val()
+        search      : $('#' + modalType + 'PcrSearchWidth').val(),
+        offset      : $('#' + modalType + 'PcrDeadSearchWidth').val(),
+        increment   : $('#' + modalType + 'PcrIncrement').val()
     };
 
     var melt = {
-        min : $('#min_mt').val(),
-        opt : $('#opt_mt').val(),
-        max : $('#max_mt').val()
+        min : $('#' + modalType + 'MinMt').val(),
+        opt : $('#' + modalType + 'OptMt').val(),
+        max : $('#' + modalType + 'MaxMt').val()
     };
 
     var gc = {
-        min : $('#min_gc').val(),
-        opt : $('#opt_gc').val(),
-        max : $('#max_gc').val()
+        min : $('#' + modalType + 'MinGc').val(),
+        opt : $('#' + modalType + 'OptGc').val(),
+        max : $('#' + modalType + 'MaxGc').val()
     };
 
+    var primers = {
+        miseq   : {
+            widths  : miseq
+        },
+        pcr     : {
+            widths  : pcr
+        }
+    };
+
+    //Matching the as_hash structure
     var params = {
-        genomic_threshold   : $('#genomic').val(),
-        design_type         : $('#design_type').val(),
-        crispr              : $('#redoModal').attr("name"),        
-        miseq               : miseq,
-        pcr                 : pcr,
-        melt                : melt,
+        genomic_threshold   : $('#' + modalType + 'Genomic').val(),
+        design_type         : $('#' + modalType + 'DesignType').val(),
+        crispr              : $('#' + modalType + 'Modal').attr("name"), 
+        primers             : primers,
+        mt                  : melt,
         gc                  : gc
     };
-
-    console.log(params);
 
     return params;
 }
@@ -370,12 +599,79 @@ function transferCrispr(crispr) {
     document.getElementById('redoModal').setAttribute("name", crispr);
 }
 
-function display(){
-    if (!crispr_id) {
+function display() {
+    if (!crisprID) {
         $('.designProgressVisibility').hide().prop('disabled', true);
     } else {
         $('.designProgressVisibility').show().prop('disabled', false);
     }
+}
+
+function getPreset() {
+    var presetName = $('#presetModalDD').val();
+    console.log(presetName);
+    $.ajax({
+        url: '[% c.uri_for('/api/miseq_primer_preset/') %]',
+        type: 'GET',
+        dataType: 'JSON',
+        data: {
+            name: presetName,
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+            updateParameters(result);
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
+
+    return;
+}
+
+function updateParameters(data) {
+    console.log("update");
+    console.log(data);
+    $('#presetGenomic').val(data.genomic_threshold);
+    
+    var miseq = data.primers.miseq.widths;
+    $('#presetMiseqSearchWidth').val(miseq.search);
+    $('#presetMiseqDeadSearchWidth').val(miseq.offset);
+    $('#presetMiseqIncrement').val(miseq.increment);
+
+    var pcr = data.primers.pcr.widths;
+    $('#presetPcrSearchWidth').val(pcr.search);
+    $('#presetPcrDeadSearchWidth').val(pcr.offset);
+    $('#presetPcrIncrement').val(pcr.increment);
+
+    var mt = data.mt;
+    $('#presetMinMt').val(mt.min);
+    $('#presetOptMt').val(mt.opt);
+    $('#presetMaxMt').val(mt.max);
+
+    var gc = data.gc;
+    $('#presetMinGc').val(gc.min);
+    $('#presetOptGc').val(gc.opt);
+    $('#presetMaxGc').val(gc.max);
+
+    if ($('#presetModalDD').val() != 'Default') {
+        $('#owner').text('Created by ' + data.user);
+    } else {
+        $('#owner').text('');
+    }
+
+    return;
+}
+
+function blockDefault() {
+    if ($('#presetModalDD').val() == 'Default') {
+        $('#editPreset').prop('disabled', true);
+    } else {
+        $('#editPreset').prop('disabled', false);
+    }
+
+    return;
 }
 
 </script>

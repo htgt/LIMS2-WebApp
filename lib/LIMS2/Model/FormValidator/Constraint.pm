@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.499';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.504';
 }
 ## use critic
 
@@ -400,6 +400,71 @@ sub email {
 
 sub existing_requester {
     return shift->in_resultset( 'Requester', 'id' );
+}
+
+sub config_min_max {
+    my $self = shift;
+    return sub {
+        my $conf = shift;
+        my $result = 1;
+        my $params = {
+            max => 1,
+            min => 1,
+            opt => 1,
+        };
+        foreach my $requirement (keys %{$conf}) {
+            my $bool = $params->{$requirement} || 0;
+            if ($bool == 0) {
+                $result = 0;
+            }
+        }
+        return $result;
+    }
+}
+sub primer_set {
+    my $self = shift;
+    return sub {
+        my $result = 1;
+        my $check = {
+            pcr     => 1,
+            miseq   => 1,
+        };
+
+        my $primers = $self->{primers};
+        foreach my $primer (keys %$primers) {
+            $result = $check->{$primer} || 0;
+        }
+
+        my $pcr = primer_params($primers->{pcr}->{widths});
+        my $miseq = primer_params($primers->{miseq}->{widths});
+
+        if ($pcr == 0 || $miseq == 0) {
+            $result = 0
+        }
+
+        return $result;
+    }
+}
+
+sub primer_params {
+    my $self = shift;
+    return sub {
+        my $conf = shift;
+        my $result = 1;
+        my $params = {
+            increment       => 1,
+            offset_width    => 1,
+            search_width    => 1,
+        };
+
+        foreach my $requirement (keys %{$conf}) {
+            if (!$params->{$requirement}) {
+                $result = 0;
+            }
+        }
+
+        return $result;
+    }
 }
 
 __PACKAGE__->meta->make_immutable;

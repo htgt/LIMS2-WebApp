@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.499';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.504';
 }
 ## use critic
 
@@ -204,6 +204,25 @@ sub miseq_exp_parent_GET {
     catch {
         $c->log->error($_);
     };
+    return $self->status_ok($c, entity => \@results);
+}
+
+sub miseq_preset_names :Path( '/api/miseq_preset_names' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_preset_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my @results;
+    try {
+        @results = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
+    }
+    catch {
+        $c->log->error($_);
+    };
+
     return $self->status_ok($c, entity => \@results);
 }
 

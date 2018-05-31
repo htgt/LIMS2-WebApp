@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.499';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.504';
 }
 ## use critic
 
@@ -52,7 +52,7 @@ use LIMS2::Model::Util::DesignInfo;
 
 use Bio::SeqIO;
 use Path::Class;
-
+use YAML qw(LoadFile);
 
 =head pick_PCR_primers_for_crisprs
     given location of crispr primers as an input,
@@ -143,11 +143,21 @@ sub crispr_PCR_calculate {
                 dead_field_width => $params->{'dead_field_width'},
                 search_field_width => $params->{'search_field_width'},
             } );
-    my $p3 = DesignCreate::Util::Primer3->new_with_config(
-        configfile => $config_path,
-        primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+    my $p3;
+    if ($params->{gc} && $params->{tm}) {
+        my %configuration = primer3_config($params, $config_path, $target_sequence_length);
+        $p3 = DesignCreate::Util::Primer3->new_with_config(
+            %configuration,
+            primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
             + $params->{'search_field_width'} ),
-    );
+        );
+    } else {
+        $p3 = DesignCreate::Util::Primer3->new_with_config(
+            configfile => $config_path,
+            primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
+            + $params->{'search_field_width'} ),
+        );
+    }
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
     my $logfile = $dir_out->file( $well_id . '_pcr_oligos.log');
 
@@ -172,6 +182,21 @@ sub crispr_PCR_calculate {
         $primer_data->{'error_flag'} = 'fail';
     }
     return $primer_data, $primer_passes, $chr_seq_start;
+}
+
+sub primer3_config {
+    my ($params, $config_path, $target_sequence_length) = @_;
+
+    my %yaml_conf = %{LoadFile($config_path)};
+
+    $yaml_conf{primer_max_gc} = $params->{gc}->{max};
+    $yaml_conf{primer_min_gc} = $params->{gc}->{min};
+    $yaml_conf{primer_opt_gc_percent} = $params->{gc}->{opt};
+    $yaml_conf{primer_max_tm} = $params->{tm}->{max};
+    $yaml_conf{primer_min_tm} = $params->{tm}->{min};
+    $yaml_conf{primer_opt_tm} = $params->{tm}->{opt};
+
+    return %yaml_conf;
 }
 
 =head pick_genotyping_primers
@@ -931,13 +956,13 @@ sub pick_miseq_internal_crispr_primers {
     my $model = shift;
     my $params = shift;
 
-    my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'} );
+    my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'}, 'GRCh38' );
     $params->{'crispr_oligos'} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 170;
     $params->{'dead_field_width'} = $ENV{'LIMS2_SEQ_DEAD_FIELD'} // 50;
     # chr_strand for the gene is required because the crispr primers are named accordingly SF1, SR1
     my ($primer_data);
-    my $chr_strand = $model->schema->resultset('CrisprLocus')->search({ crispr_id => $params->{'crispr_id'} })->first->chr_strand eq '1' ? 'plus' : 'minus';
+    my $chr_strand = $params->{crispr_oligos}->{left_crispr}->{chr_id} eq '1' ? 'plus' : 'minus';
     TRIALS: foreach my $step ( 1..4 ) {
         INFO ('Attempt No. ' . $step );
 
@@ -1097,7 +1122,6 @@ sub oligo_for_single_crispr {
     my $schema = shift;
     my $crispr_id = shift;
     my $assembly_id = shift;
-
     my $crispr_rs = crispr_oligo_rs( $schema, $crispr_id );
     my $crispr = $crispr_rs->first;
 

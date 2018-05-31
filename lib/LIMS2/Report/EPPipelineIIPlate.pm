@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPipelineIIPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.499';
+    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.504';
 }
 ## use critic
 
@@ -210,7 +210,7 @@ sub get_well_info {
     if (scalar @crispr_boxes) { $crispr_locs = join ",", @crispr_boxes; }
 
     ## get well experiment
-    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id gene_id/ ] });
+    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id gene_id assigned_trivial/ ] });
     $info->{experiment_id} = $db_exp->get_column('id');
     $info->{trivial_name} = $db_exp->trivial_name;
 

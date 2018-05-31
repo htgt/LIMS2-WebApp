@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.499';
+    $LIMS2::Test::VERSION = '0.504';
 }
 ## use critic
 
@@ -373,6 +373,8 @@ sub load_dynamic_files {
             ProcessGuidedType
             GuidedType
             TrivialOffset
+            MiseqDesignPreset
+            MiseqPrimerPreset
         )
     );
 

@@ -1,14 +1,14 @@
 package LIMS2::WebApp::Controller::API::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.499';
+    $LIMS2::WebApp::Controller::API::Design::VERSION = '0.504';
 }
 ## use critic
 
 use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
-use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design );
+use LIMS2::Model::Util::CreateMiseqDesign qw( generate_miseq_design default_nulls );
 use JSON;
 use Try::Tiny;
 
@@ -59,14 +59,6 @@ sub design_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if($protocol eq 'HTTPS'){
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
     $c->require_ssl;
 
     my $design = $c->model( 'Golgi' )->txn_do(
@@ -166,6 +158,7 @@ sub design_oligo_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_oligo = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -193,6 +186,7 @@ sub design_oligo_locus_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_oligo_locus = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -234,6 +228,7 @@ sub design_attempt_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -257,6 +252,7 @@ sub design_attempt_PUT {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+    $c->require_ssl;
 
     my $design_attempt = $c->model( 'Golgi' )->txn_do(
         sub {
@@ -294,19 +290,10 @@ sub design_attempt_status_GET {
 sub redo_miseq_design :Path( '/api/redo_miseq_design' ) :Args(0) :ActionClass('REST') {
 }
 
-
 sub redo_miseq_design_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if ($protocol eq 'HTTPS') {
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
     $c->require_ssl;
 
     my $jsonified_reqs = $c->request->param('requirements');
@@ -359,6 +346,82 @@ sub redo_miseq_design_GET {
     $c->response->body( $body );
 
     return;
+}
+
+sub miseq_primer_preset :Path( '/api/miseq_primer_preset' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_primer_preset_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $jsonified_criteria = $c->request->param('criteria');
+    my $hashed_criteria = from_json $jsonified_criteria;
+    $hashed_criteria = default_nulls($c, $hashed_criteria, 'Default');
+    $hashed_criteria->{created_by} = $c->user->id;
+    my $preset = $c->model('Golgi')->create_primer_preset($hashed_criteria);
+
+    my $json = JSON->new->allow_nonref;
+    my $json_preset = $json->encode($preset->as_hash);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_preset );
+
+    return;
+}
+
+sub miseq_primer_preset_GET {
+    my ( $self, $c ) = @_;
+
+    my $name = $c->request->param('name');
+
+    my $preset = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $name })->as_hash;
+
+    return $self->status_ok( $c, entity => $preset );
+}
+
+sub edit_miseq_primer_preset :Path( '/api/edit_miseq_primer_preset' ) :Args(0) :ActionClass('REST') {
+}
+
+sub edit_miseq_primer_preset_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+    $c->require_ssl;
+
+    my $jsonified_criteria = $c->request->param('criteria');
+    my $hashed_criteria = from_json $jsonified_criteria;
+    $hashed_criteria = default_nulls($c, $hashed_criteria, $hashed_criteria->{name});
+    $hashed_criteria->{created_by} = $c->user->id;
+    my $preset = $c->model('Golgi')->edit_primer_preset($hashed_criteria);
+
+    my $json = JSON->new->allow_nonref;
+    my $json_preset = $json->encode($preset->as_hash);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_preset );
+
+    return;
+}
+
+sub miseq_preset_names :Path( '/api/miseq_preset_names' ) :Args(0) :ActionClass('REST') {
+}
+
+sub miseq_preset_names_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my @results;
+    try {
+        @results = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
+    }
+    catch {
+        $c->log->error($_);
+    };
+
+    return $self->status_ok($c, entity => \@results);
 }
 
 =head1 LICENSE

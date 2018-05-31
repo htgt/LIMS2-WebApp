@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.499';
+    $LIMS2::Model::Constants::VERSION = '0.504';
 }
 ## use critic
 
@@ -163,7 +163,7 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'clone_pick' => {
-        type   => [qw( EP XEP SEP CRISPR_EP CRISPR_SEP )],
+        type   => [qw( EP XEP SEP CRISPR_EP CRISPR_SEP EP_PIPELINE_II )],
         number => 1,
     },
     'clone_pool' => {

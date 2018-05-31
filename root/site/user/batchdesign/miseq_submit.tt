@@ -1,0 +1,143 @@
+[% META title = "Batch Miseq Designs"; META tab_name = "Designs" %]
+<style>
+    .glyphicon-refresh { color:  #6A5ACD; }
+    .glyphicon-refresh-animate {
+        -animation: spin 1.2s infinite linear;
+        -webkit-animation: spin2 1.2s infinite linear;
+    }
+    .glyphicon-ok { color: green; }
+    .glyphicon-remove { color: red }
+    td, th {
+        padding: 4px;
+        vertical-align: top;
+    }
+    .status { font-weight: bold; }
+    .status-ok { color: green; }
+    .status-fail { color: red; }
+    .sequence, .location, .oligo {
+        display: block;
+        font-family: monospace;
+    }
+</style>
+
+<h1>Batch import MiSEQ Designs</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>WGE ID</th>
+            <th>Gene</th>
+            <th>CRISPR</th>
+            <th>Oligos</th>
+            <th>Sequence</th>
+            <th>Locations</th>
+            <th>Design</th>
+        </tr>
+    </thead>
+    <tbody>
+        [% FOREACH design IN designs %]
+        <tr id="row_[% loop.index %]">
+            <td>[% design.wge_id %]</td>
+            <td>[% design.symbol %]</td>
+            <td class="crispr-id"></td>
+            <td>
+                <span class="oligo crispr">CRISPR</span>
+                <span class="oligo exf">EXF</span>
+                <span class="oligo exr">EXR</span>
+                <span class="oligo inf">INF</span>
+                <span class="oligo inr">INR</span>
+            </td>
+            <td>
+                <span class="sequence crispr">[% design.crispr_seq %]</span>
+                <span class="sequence primer exf">[% design.exf %]</span>
+                <span class="sequence primer exr">[% design.exr %]</span>
+                <span class="sequence primer inf">[% design.inf %]</span>
+                <span class="sequence primer inr">[% design.inr %]</span>
+            </td>
+            <td>
+                <span class="location crispr"></span>
+                <span class="location exf"></span>
+                <span class="location exr"></span>
+                <span class="location inf"></span>
+                <span class="location inr"></span>
+            </td>
+            <td class="design"></td>
+            <td class="status">
+                <span class="glyphicon glyphicon-time"></span>
+                <span class="status-fail"></span>
+            </td>
+        </tr>
+        [% END %]
+    </tbody>
+</table>
+
+<script type="text/javascript">
+
+function create_design(data){
+    var row = $('#row_' + data.index);
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/user/batchdesign/miseq_create') %]',
+        data: data,
+        beforeSend: function(xhr, settings){
+            workers++;
+            row.find('.status > .glyphicon').removeClass('glyphicon-time')
+                .addClass('glyphicon-refresh glyphicon-refresh-animate');
+    }}).always(function(data){
+        row.find('.status > .glyphicon')
+            .removeClass('glyphicon-refresh glyphicon-refresh-animate')
+    }).fail(function(xhr, status){
+        row.find('.status > .glyphicon').addClass('glyphicon-remove');
+        row.find('.status > .status-fail').html(xhr.responseText);
+    }).done(function(data){
+        if(data.crispr){
+            row.find('.crispr-id').html(data.crispr);
+        }
+        if(data.locations){
+            row.find('.location.crispr').html(data.locations.crispr);
+            row.find('.location.exf').html(data.locations.exf);
+            row.find('.location.exr').html(data.locations.exr);
+            row.find('.location.inf').html(data.locations.inf);
+            row.find('.location.inr').html(data.locations.inr);
+        }
+        if(data.error){
+            row.find('.status > .glyphicon').addClass('glyphicon-remove');
+            row.find('.status > .status-fail').html(data.error);
+        }
+        else{
+            row.find('.status > .glyphicon').addClass('glyphicon-ok');
+            row.find('.design').html(data.design.id);
+        }
+        workers--;
+        submit_design();
+    });
+}
+
+var queue = [ [% FOREACH design IN designs %] {
+        index: [% loop.index %],
+        wge_id: [% design.wge_id %],
+        symbol: "[% design.symbol %]",
+        crispr_seq: "[% design.crispr_seq %]",
+        exf: "[% design.exf %]",
+        exr: "[% design.exr %]",
+        inf: "[% design.inf %]",
+        inr: "[% design.inr %]",
+    }, [% END %]
+];
+/* JS array supports stack & queue functions, but using it as a queue is slow.
+ * but we never add any items to it, so just create a queue, reverse it,
+ * and then treat as a stack
+ */
+queue.reverse();
+
+var workers = 0;
+var MAX_WORKERS = 5;
+
+function submit_design() {
+    while ( workers < MAX_WORKERS && queue.length > 0 ){
+        var next = queue.pop();
+        create_design(next);
+    }
+}
+
+submit_design();
+</script>

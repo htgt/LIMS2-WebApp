@@ -1,7 +1,7 @@
 package LIMS2::WebApp::View::JSON;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::View::JSON::VERSION = '0.499';
+    $LIMS2::WebApp::View::JSON::VERSION = '0.504';
 }
 ## use critic
 
