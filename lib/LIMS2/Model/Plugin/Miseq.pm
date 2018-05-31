@@ -311,26 +311,14 @@ sub edit_primer_preset {
     my $preset;
     $preset->{name} = $validated_params->{name} || $preset_hash->{name};
     $preset->{genomic_threshold} = $validated_params->{genomic_threshold} || $preset_hash->{genomic_threshold};
-
-    $preset->{min_gc} = $validated_params->{gc}->{min} || $preset_hash->{gc}->{min};
-    $preset->{opt_gc} = $validated_params->{gc}->{opt} || $preset_hash->{gc}->{opt};
-    $preset->{max_gc} = $validated_params->{gc}->{max} || $preset_hash->{gc}->{max};
-
-    $preset->{min_mt} = $validated_params->{mt}->{min} || $preset_hash->{mt}->{min};
-    $preset->{opt_mt} = $validated_params->{mt}->{opt} || $preset_hash->{mt}->{opt};
-    $preset->{max_mt} = $validated_params->{mt}->{max} || $preset_hash->{mt}->{max};
+    $preset = update_preset_limits($preset, $validated_params, $preset_hash, 'gc');
+    $preset = update_preset_limits($preset, $validated_params, $preset_hash, 'mt');
     my $preset_update = $design_preset->update($preset);
 
-    my $internal;
-    $internal->{search_width} = $validated_params->{primers}->{miseq}->{widths}->{search} || $preset_hash->{primers}->{miseq}->{widths}->{search};
-    $internal->{increment_value} = $validated_params->{primers}->{miseq}->{widths}->{increment} || $preset_hash->{primers}->{widths}->{miseq}->{increment};
-    $internal->{offset_width} = $validated_params->{primers}->{miseq}->{widths}->{offset} || $preset_hash->{primers}->{miseq}->{widths}->{offset};
+    my $internal = update_primer_limits($validated_params, $preset_hash, 'miseq');
     my $internal_update = $internal_preset->update($internal);
 
-    my $external;
-    $external->{search_width} = $validated_params->{primers}->{pcr}->{widths}->{search} || $preset_hash->{primers}->{pcr}->{widths}->{search};
-    $external->{increment_value} = $validated_params->{primers}->{pcr}->{widths}->{increment} || $preset_hash->{primers}->{pcr}->{widths}->{increment};
-    $external->{offset_width} = $validated_params->{primers}->{pcr}->{widths}->{offset} || $preset_hash->{primers}->{pcr}->{widths}->{offset};
+    my $external = update_primer_limits($validated_params, $preset_hash, 'pcr');
     my $external_update = $external_preset->update($external);
 
     return $preset_update;
@@ -345,6 +333,48 @@ sub find_primer_params {
     my $primer_preset = $self->retrieve(MiseqPrimerPreset => \%search);
 
     return $primer_preset;
+}
+
+sub update_preset_limits {
+    my ($preset, $validated, $reference, $sect) = @_;
+
+    my @limits = qw(min opt max);
+    foreach my $limit (@limits) {
+        my $key_name = $limit . '_' . $sect;
+        $preset->{$key_name} = preset_param($validated, $reference, $sect, $limit);
+    }
+
+    return $preset;
+}
+
+sub preset_param {
+    my ($validated, $reference, $section, $param) = @_;
+
+    return $validated->{$section}->{$param} || $reference->{$section}->{$param};
+}
+
+sub update_primer_limits {
+    my ($validated, $reference, $sect) = @_;
+
+    my $primer;
+    my %limits = (
+        search      => 'width',
+        increment   => 'value',
+        offset      => 'width'
+    );
+
+    foreach my $limit (keys %limits) {
+        my $key_name = $limit . '_' . $limits{$limit};
+        $primer->{$key_name} = primer_param($validated, $reference, $sect, $limit);
+    }
+
+    return $primer;
+}
+
+sub primer_param {
+    my ($validated, $reference, $section, $param) = @_;
+
+    return $validated->{primers}->{$section}->{widths}->{$param} || $reference->{primers}->{$section}->{widths}->{$param};
 }
 
 1;
