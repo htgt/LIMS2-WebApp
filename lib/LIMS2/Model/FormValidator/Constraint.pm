@@ -452,8 +452,7 @@ sub primer_params {
         };
 
         foreach my $requirement (keys %{$conf}) {
-            my $bool = $params->{$requirement} || 0;
-            if ($bool == 0) {
+            if (!$params->{$requirement}) {
                 $result = 0;
             }
         }
