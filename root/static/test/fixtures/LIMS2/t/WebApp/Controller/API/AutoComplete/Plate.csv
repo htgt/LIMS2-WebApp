@@ -1,0 +1,4 @@
+name,type_id,created_by_id,species_id
+Miseq_004,MISEQ,1000,Human
+Miseq_004_FP,FP,1000,Human
+HUPEP0001,EP_PIPELINE_II,1000,Human
