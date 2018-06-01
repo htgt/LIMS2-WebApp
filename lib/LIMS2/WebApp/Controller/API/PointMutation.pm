@@ -135,12 +135,12 @@ sub miseq_parent_plate_type_GET {
     my ( $self, $c ) = @_;
     $c->assert_user_roles( 'read' );
     my $name = $c->request->param('name');
-    my @plates = $c->model('Golgi')->schema->resultset('Plate')->search( 
+    my @plates = $c->model('Golgi')->schema->resultset('Plate')->search(
         { name => $name, type_id => { in => [qw/FP MISEQ PIQ/] } },
         { columns => [qw/type_id/] },
     );
     if( @plates == 1 ) {
-        $c->stash->{json_data} = { 
+        $c->stash->{json_data} = {
             name => $name,
             type => $plates[0]->type_id,
         };
