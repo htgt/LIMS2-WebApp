@@ -65,7 +65,7 @@
 
 jQuery.fn.extend({
     sequenceText: function() {
-        var regWhitespace = /[^ACTG]+/g;
+        var regWhitespace = /[^ACTGactg]+/g;
         var text = $(this).text() || $(this).val();
         return text.replace(regWhitespace, '').toUpperCase();
     }
@@ -79,7 +79,7 @@ $(document).ready(function() {
 $('#editTemplate').click(function() {
     var wrapper = $('<div class="editing"></div>');
     var form = $('<form action="#" class="edit-form"></form>');
-    var input = $('<input id="templateInput" type="text" class="hdrSeq templateInput">');
+    var input = $('<input id="templateInput" type="text" class="hdrSeq templateInput" pattern="[ACTGactg]+">');
 
     $('#templateSeq').after(wrapper);
     $('#templateSeq').remove().appendTo(wrapper).hide();
@@ -93,6 +93,7 @@ $('#editTemplate').click(function() {
     wrapper.append(form);
     form.append(input);
     input.val($('#templateSeq').sequenceText());
+    $('#templateInput').bind('keypress', nucleotides);
 });
 
 $('#resetTemplate').click(function() {
@@ -100,10 +101,15 @@ $('#resetTemplate').click(function() {
     hdr_highlight('#templateInput');
 });
 
-var test;
-$(document).on("change keydown keyup paste input click", '#templateInput', function(evt) {
+$(document).on("change keydown keyup keypress paste input click", '#templateInput', function(evt) {
     hdr_highlight('#templateInput', evt.target.selectionStart);
 });
+
+function nucleotides(event) {
+    var value = String.fromCharCode(event.which);
+    var pattern = new RegExp(/[ACTGactg]/i);
+    return pattern.test(value);
+}
 
 function scrollable() {
     $('.hdrSeq:first').css('overflow-x','scroll');
