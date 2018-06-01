@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.505     2018-06-01 14:55:01 Europe/London
+
+    Allow PIQ and MISEQ plates as MISEQ parents
+
 0.504     2018-05-31 15:12:23 Europe/London
     Miseq design preset
 0.503     2018-05-25 15:20:12 Europe/London
