@@ -124,8 +124,11 @@ lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/GuidedType.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
+lib/LIMS2/Model/Schema/Result/MiseqDesignPreset.pm
 lib/LIMS2/Model/Schema/Result/MiseqExperiment.pm
 lib/LIMS2/Model/Schema/Result/MiseqPlate.pm
+lib/LIMS2/Model/Schema/Result/MiseqPrimerParameter.pm
+lib/LIMS2/Model/Schema/Result/MiseqPrimerPreset.pm
 lib/LIMS2/Model/Schema/Result/MiseqProject.pm
 lib/LIMS2/Model/Schema/Result/MiseqProjectWell.pm
 lib/LIMS2/Model/Schema/Result/MiseqProjectWellExp.pm
@@ -400,7 +403,6 @@ root/lib/design_plate_upload_help.tt
 root/lib/ep_pipeline_ii_experiments.tt
 root/lib/mini_storage_box.tt
 root/lib/miseq_creation_help.tt
-root/lib/miseq_design_parameters_help.tt
 root/lib/miseq_overview_table.tt
 root/lib/miseq_quadrant_table.tt
 root/lib/navigation.tt
@@ -474,6 +476,8 @@ root/site/user/createdesign/design_params_ucsc.tt
 root/site/user/createdesign/gibson_design_exon_pick.tt
 root/site/user/createdesign/gibson_design_gene_pick.tt
 root/site/user/createdesign/index.tt
+root/site/user/createdesign/miseq_design_parameters_help.tt
+root/site/user/createdesign/miseq_primer_params.tt
 root/site/user/createdesign/pending_design_attempt.tt
 root/site/user/createdesign/redirect_wge.tt
 root/site/user/createdesign/view_design_attempt.tt
@@ -2702,6 +2706,9 @@ root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Process
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/Plate.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crispr_loci.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crisprs.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/Admin/User.csv
@@ -2774,6 +2781,12 @@ root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/Proce
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/ProcessOutputWell.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateDesignPlate/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/Crispr.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/CrisprLocus.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/MiseqDesignPreset.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/MiseqPrimerPreset.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore/Crispr.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore/User.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage/Crispr.csv
@@ -3128,6 +3141,7 @@ t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowseTemplates.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateCrisprPlate.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesign.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateDesignPlate.t
+t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CreateMiseqDesign.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CrisprBrowseAndStore.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_CrisprLocateInStorage.t
 t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_Crisprs.t
@@ -3377,6 +3391,7 @@ t/lib/LIMS2/t/WebApp/Controller/User/BrowseTemplates.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateCrisprPlate.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesign.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CreateDesignPlate.pm
+t/lib/LIMS2/t/WebApp/Controller/User/CreateMiseqDesign.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CrisprBrowseAndStore.pm
 t/lib/LIMS2/t/WebApp/Controller/User/CrisprLocateInStorage.pm
 t/lib/LIMS2/t/WebApp/Controller/User/Crisprs.pm

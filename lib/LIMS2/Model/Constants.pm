@@ -1,7 +1,7 @@
 package LIMS2::Model::Constants;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Constants::VERSION = '0.503';
+    $LIMS2::Model::Constants::VERSION = '0.505';
 }
 ## use critic
 
@@ -239,15 +239,15 @@ const our %PROCESS_INPUT_WELL_CHECK => (
         number => 1,
     },
     'miseq_no_template' => {
-        type   => [qw( FP )],
+        type   => [qw( FP MISEQ PIQ )],
         number => 'MULTIPLE',
     },
     'miseq_oligo' => {
-        type   => [qw( FP )],
+        type   => [qw( FP MISEQ PIQ )],
         number => 'MULTIPLE',
     },
     'miseq_vector' => {
-        type   => [qw( FP )],
+        type   => [qw( FP MISEQ PIQ )],
         number => 'MULTIPLE',
     },
 );

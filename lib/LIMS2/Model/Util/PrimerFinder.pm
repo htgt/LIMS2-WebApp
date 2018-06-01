@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerFinder;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.503';
+    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.505';
 }
 ## use critic
 
@@ -151,7 +151,7 @@ sub loci_builder {
 =cut
 
 sub locate_primers {
-    my ( $species, $target_crispr, $primers ) = @_;
+    my ( $species, $target_crispr, $primers, $genomic_threshold ) = @_;
     my $data = shift;
     my ( $fasta, $dir ) = generate_bwa_query_file($primers);
     my $bwa = DesignCreate::Util::BWA->new(
@@ -162,6 +162,10 @@ sub locate_primers {
         num_bwa_threads   => 2,
         num_mismatches    => 0,
     );
+
+    if ( $genomic_threshold ) {
+        local $ENV{'BWA_GENOMIC_THRESHOLD'} = $genomic_threshold;
+    }
 
     $bwa->generate_sam_file;
     my $oligo_hits = $bwa->oligo_hits;

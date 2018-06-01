@@ -1,0 +1,2 @@
+id,name,created_by,genomic_threshold,min_gc,max_gc,opt_gc,min_mt,max_mt,opt_mt
+1,Default,1000,30,40,60,50,57,63,60

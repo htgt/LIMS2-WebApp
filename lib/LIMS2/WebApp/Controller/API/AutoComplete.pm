@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.503';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.505';
 }
 ## use critic
 
@@ -200,9 +200,10 @@ sub _entity_column_search {
 
     my %search;
     if ($plate_type) {
+        my @types = split /,/, $plate_type;
         %search = (
             $search_column => { ILIKE => '%' . sanitize_like_expr($search_term) . '%' },
-            type_id => $plate_type,
+            type_id => { in => \@types },
         );
     } else {
         %search = (

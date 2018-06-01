@@ -1,0 +1,113 @@
+<style>
+
+.monoLabel {
+    font-family: monospace;
+}
+
+</style>
+
+<fieldset class="col-md-12">
+    <legend>Primer3 Restraints</legend>
+    <fieldset class="col-md-6">
+        <legend>Miseq</legend>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Search width:</label>
+            <div class="col-md-4">
+                <input class="form-control regionWidths" id="[% modal_function %]MiseqSearchWidth" name="miseq_search_width" type="number" placeholder="Default 148" value="148"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Offset width:</label>
+            <div class="col-md-4">
+                <input class="form-control regionWidths" id="[% modal_function %]MiseqDeadSearchWidth" name="miseq_dead_search_width" type="number" placeholder="Default 50" value="50"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Increment:</label>
+            <div class="col-md-4">
+                <input class="form-control increment" id="[% modal_function %]MiseqIncrement" name="miseq_increment" type="number" placeholder="Default 15" value="15"/>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="col-md-6">
+        <legend>PCR</legend>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Search width:</label>
+            <div class="col-md-4">
+                <input class="form-control regionWidths" id="[% modal_function %]PcrSearchWidth" name="pcr_search_width" type="number" placeholder="Default 350" value="350"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Offset width:</label>
+            <div class="col-md-4">
+                <input class="form-control regionWidths" id="[% modal_function %]PcrDeadSearchWidth" name="pcr_dead_search_width"  type="number" placeholder="Default 148" value="148"/>
+            </div>
+        </div>
+        <div class="col-md-12 row">
+            <label class="col-md-6 col-form-label">Increment:</label>
+            <div class="col-md-4">
+                <input class="form-control increment" id="[% modal_function %]PcrIncrement" type="number" placeholder="Default 50" value="50"/>
+            </div>
+        </div>
+    </fieldset>
+</fieldset>
+<fieldset class="col-md-12">
+    <legend>Design Restraints</legend>
+    <div class="form-group col-md-12">
+        <label class="col-md-4 col-form-label">Genomic Score Threshold</label>
+        <div class="col-md-2">
+            <input name="genomic" class="form-control genoThreshold" id="[% modal_function %]Genomic" type="number" placeholder="Default 30" value="30"/>
+        </div>
+    </div>
+    <div class="form-group col-md-12">
+        <label class="col-md-4 col-form-label">Primer Melting Temperatures</label>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Minimum</span>
+                <input class="form-control meltEntry" id="[% modal_function %]MinMt" type="text" value="[% melting_temp.min %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-md-offset-4 row">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Optimum</span>
+                <input class="form-control meltEntry" id="[% modal_function %]OptMt" type="text" value="[% melting_temp.opt %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-md-offset-4 row">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Maximum</span>
+                <input class="form-control meltEntry" id="[% modal_function %]MaxMt" type="text" value="[% melting_temp.max %]">
+                <span class="input-group-addon">C</span>
+            </div>
+        </div>
+    </div>
+    <div class="form-group col-md-12">
+        <label class="col-md-4 col-form-label">Primer GC Content</label>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Minimum</span>
+                <input class="form-control gcEntry" id="[% modal_function %]MinGc" type="text" value="[% gc_content.min %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-md-offset-4 row">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Optimum</span>
+                <input class="form-control gcEntry" id="[% modal_function %]OptGc" type="text" value="[% gc_content.opt %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-md-offset-4 row">
+            <div class="input-group">
+                <span class="input-group-addon monoLabel">Maximum</span>
+                <input class="form-control gcEntry" id="[% modal_function %]MaxGc" type="text" value="[% gc_content.max %]">
+                <span class="input-group-addon">%</span>
+            </div>
+        </div>
+    </div>
+</fieldset>
+<fieldset id="[% modal_function %]ResponseContainer" class="responseContainer alert alert-danger">
+    <label id="[% modal_function %]DesignResponse"></label>
+</fieldset>
