@@ -105,7 +105,9 @@ miseq_project_well_exp,
 project_experiment,
 process_guided_type,
 guided_types,
-trivial_offset
+trivial_offset,
+miseq_primer_presets,
+miseq_design_presets
  CASCADE;
 
 

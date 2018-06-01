@@ -367,6 +367,8 @@ sub load_dynamic_files {
             ProcessGuidedType
             GuidedType
             TrivialOffset
+            MiseqDesignPreset
+            MiseqPrimerPreset
         )
     );
 
