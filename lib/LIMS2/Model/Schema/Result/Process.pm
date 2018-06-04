@@ -356,7 +356,6 @@ __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-02-19 09:56:10
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aE6sXqpDur7JmYLbqHs0xQ
 
-
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 sub as_string {
