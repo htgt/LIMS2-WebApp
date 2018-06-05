@@ -26,7 +26,6 @@ sub _build_pipelineII {
     my $pick_parent = $pick_parent_rs->parent_names();
     my $pick_info = $pick_parent->[0];
 
-    my $data;
     my $species = $self->plate->species_id;
     if ($pick_info->{type_id} eq 'EP_PIPELINE_II') {
         $data = retrieve_data($self->model, $pick_parent_rs, $species);

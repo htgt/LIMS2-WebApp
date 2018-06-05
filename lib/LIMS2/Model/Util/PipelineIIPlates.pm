@@ -37,7 +37,7 @@ sub retrieve_data {
     ## exp
     my $rs1 = $model->schema->resultset( 'Experiment' )->find({ design_id =>  $data->{design_id}, crispr_id => $crispr_id }, { columns => [ qw/id gene_id assigned_trivial/ ] });
     $data->{gene_id} = $rs1->get_column('gene_id');
-    
+
     $data->{exp_id} = $rs1->get_column('id');
     $data->{exp_trivial} = $rs1->trivial_name;
 
