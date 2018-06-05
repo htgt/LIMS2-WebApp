@@ -287,6 +287,7 @@ sub create_primer_preset {
 
 sub pspec_edit_primer_preset {
     return {
+        id                  => { validate => 'existing_preset_id' },
         name                => { validate => 'alphanumeric_string' },
         created_by          => { validate => 'existing_user_id' },
         genomic_threshold   => { validate => 'numeric' },
@@ -301,7 +302,7 @@ sub edit_primer_preset {
 
     my $validated_params = $self->check_params($params, pspec_edit_primer_preset);
     my %preset_search;
-    $preset_search{'me.name'} = $validated_params->{name};
+    $preset_search{'me.id'} = $validated_params->{id};
     my $design_preset = $self->retrieve(MiseqDesignPreset => \%preset_search);
     my $preset_hash = $design_preset->as_hash;
 
