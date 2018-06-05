@@ -3,7 +3,6 @@ package LIMS2::Report::FPPlate;
 use Moose;
 use namespace::autoclean;
 use TryCatch;
-use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
