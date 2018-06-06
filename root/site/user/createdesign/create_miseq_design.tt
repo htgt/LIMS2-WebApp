@@ -68,7 +68,7 @@ tr.success td{
     <fieldset class="col-md-12 well">
         <legend class="col-md-12 row">Design Progess Crispr Search</legend>
         <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crisprID.join(', ') %]">[%- crisprID.join(', ') %]</textarea>
-        <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
+        <span class="help-block">Enter either LIMS2 or WGE CRISPR IDs above. These can be separated by spaces, new lines, commas or symbols</span>
         <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
         <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
         <span id="crisprWaiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
