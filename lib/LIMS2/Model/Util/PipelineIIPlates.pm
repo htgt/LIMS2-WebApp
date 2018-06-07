@@ -62,7 +62,7 @@ sub retrieve_data {
         my $proj_id = $proj_exp_search->get_column('project_id');
 
         my @proj_sponsor_search = $model->schema->resultset( 'ProjectSponsor' )->search({ project_id =>  $proj_id })->all;
-    
+
         my @sponsor_ids = map { $_->sponsor_id } @proj_sponsor_search;
         foreach (@sponsor_ids) {
             if ($_ ne 'All') {
