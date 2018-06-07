@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.492';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.506';
 }
 ## use critic
 
@@ -25,6 +25,22 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
+
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
 
 sub auto : Private {
     my ( $self, $c ) = @_;

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::Admin;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::Admin::VERSION = '0.492';
+    $LIMS2::WebApp::Controller::Admin::VERSION = '0.506';
 }
 ## use critic
 
@@ -30,6 +30,22 @@ Catalyst Controller.
 =head1 METHODS
 
 =cut
+
+sub begin : Private {
+    my ( $self, $c ) = @_;
+
+    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
+    if($protocol eq 'HTTPS'){
+        my $base = $c->req->base;
+        $base =~ s/^http:/https:/;
+        $c->req->base(URI->new($base));
+        $c->req->secure(1);
+    }
+
+    $c->require_ssl;
+
+    return;
+}
 
 =head2 auto
 
@@ -77,6 +93,16 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
 
     my $username   = $c->request->param('user_name');
     my @user_roles = $c->request->param('user_roles');
+
+    my $query = $c->model('Golgi')->schema->resultset('User')->find({name => "$username"});
+
+    if ($query) {
+        $c->stash(
+            user_name => $username,
+            error_msg => "User $username already exists"
+        );
+        return;
+    }
 
     unless ( $username and @user_roles ) {
         $c->stash(

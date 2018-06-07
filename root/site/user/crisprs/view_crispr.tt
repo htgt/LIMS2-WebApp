@@ -42,7 +42,6 @@
 
 <style type="text/css">
 .seq {
-  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
   font-size:15px;
 }
 .mismatch {
@@ -57,7 +56,7 @@
 
 <table class="table table-bordered">
   <tr><th>ID</th> <td>[% crispr_data.id %]</td></tr>
-  <tr><th>Sequence</th> <td>[% crispr_data.seq %]</td></tr>
+  <tr><th>Sequence</th> <td class="seq">[% crispr_data.seq %]</td></tr>
   <tr><th>Species</th> <td>[% crispr_data.species %]</td></tr>
   <tr><th>Gene</th> <td>[%- FOR gene IN genes %] [% gene.gene_symbol %] ([% gene.gene_id %]) <br /> [%- END %]</td></tr>
   <tr><th>Chromosome</th> <td>[% crispr_data.locus.chr_name %]</td></tr>
@@ -212,7 +211,7 @@
       [%- FOR datum IN crispr_data.crispr_primers %]
       <tr>
         <td>[% datum.primer_name %]</td>
-        <td>[% datum.primer_seq %]</td>
+        <td class="seq">[% datum.primer_seq %]</td>
         <td>[% datum.locus.chr_name %]: [% datum.locus.chr_start %] - [% datum.locus.chr_end %] </td>
         <td>[% datum.locus.chr_strand %]</td>
         <td>[% datum.tm %]</td>

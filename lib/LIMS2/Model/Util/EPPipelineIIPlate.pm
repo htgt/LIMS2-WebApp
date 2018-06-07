@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::EPPipelineIIPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::EPPipelineIIPlate::VERSION = '0.492';
+    $LIMS2::Model::Util::EPPipelineIIPlate::VERSION = '0.506';
 }
 ## use critic
 
@@ -62,6 +62,7 @@ sub retrieve_experiments_by_field {
 
         for my $rec (@exp_records) {
             my %data = $rec->get_columns;
+            $data{trivial_name} = $rec->trivial_name;
             push @experiments, \%data;
         }
     };

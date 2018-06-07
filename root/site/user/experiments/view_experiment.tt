@@ -9,7 +9,7 @@
 [% ELSE %]
 
 <div class="page-header">
-  <h1>Experiment [% experiment_id %]
+  <h1>Experiment [% trivial_name %]
   </h1>
 </div>
 
@@ -97,7 +97,7 @@
   [% FOREACH crispr_primer IN experiment.crispr_primers %]
   <tr>
     <td>[% crispr_primer.primer_name %]</td>
-    <td>[% crispr_primer.primer_seq %]</td>
+    <td class="seq">[% crispr_primer.primer_seq %]</td>
     <td>[% crispr_primer.locus.chr_name %]</td>
     <td>[% crispr_primer.locus.chr_start %]</td>
     <td>[% crispr_primer.locus.chr_end %]</td>
@@ -114,7 +114,7 @@
   [% FOREACH crispr IN experiment.crisprs %]
   <tr>
     <td>[% crispr.id %]</td>
-    <td>[% crispr.seq %]</td>
+    <td class="seq">[% crispr.seq %]</td>
   </tr>
   [% END %]
 </table>
@@ -129,7 +129,7 @@
   [% FOREACH geno IN genotyping %]
   <tr>
     <td>[% geno.type %]</td>
-    <td>[% geno.sequence %]</td>
+    <td class="seq">[% geno.sequence %]</td>
   </tr>
   [% END %]
 </table>

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# 10_LIMS2_WebApp_Controller_User_SummaryReports.t
+# 10_LIMS2_WebApp_Controller_User_CreateMiseqDesign.t
 
 use strict;
 use warnings FATAL => 'all';
@@ -13,26 +13,20 @@ use FindBin qw($Bin);
 use lib "$Bin/../../../../lib";
 
 use Test::Class;
-use LIMS2::t::WebApp::Controller::User::SummaryReports;
+use LIMS2::t::WebApp::Controller::User::CreateMiseqDesign;
 
 =head1 NAME
 
-10_LIMS2_WebApp_Controller_User_SummaryReports.t - Test file for testing the perl module 'LIMS2::WebApp::Controller::User::SummaryReports'
+10_LIMS2_WebApp_Controller_User_CreateMiseqDesign.t - Test file for testing the perl module 'LIMS2::WebApp::Controller::User::CreateDesign'
 
 =head1 DESCRIPTION
 
 Test module structured for running under Test::Class
 
-=head1 AUTHOR
-
-Lars G. Erlandsen
-
 =cut
 
 Test::Class->runtests;
 
-
 1;
 
 __END__
-

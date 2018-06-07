@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::Result::GibsonDesignBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::GibsonDesignBrowser::VERSION = '0.492';
+    $LIMS2::Model::Schema::Result::GibsonDesignBrowser::VERSION = '0.506';
 }
 ## use critic
 
