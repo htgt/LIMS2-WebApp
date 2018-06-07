@@ -17,7 +17,8 @@ sub _build_pipelineII {
     my ($self) = @_;
 
     my $data;
-    ##
+
+    ## find the grandparent of FP plate
     my $fp_parent = $self->plate->parent_names();
     my $fp_info = $fp_parent->[0];
 
@@ -50,6 +51,8 @@ override _build_name => sub {
 
 override _build_columns => sub {
     my $self = shift;
+
+    ## Pipeline I and II columns differ
 
     if (defined $self->pipelineII) {
         return [

@@ -16,7 +16,7 @@ has pipelineII => (
 sub _build_pipelineII {
     my ($self) = @_;
 
-    ## some PICK plate wells are descendants of 1 parent EP_PIPELINE_II plate well
+    ## PICK plate wells are descendants of 1 parent EP_PIPELINE_II plate well
     my $parent_plates = $self->plate->parent_names();
     my $parent_info = $parent_plates->[0];
 
@@ -45,6 +45,8 @@ override _build_name => sub {
 
 override _build_columns => sub {
     my $self = shift;
+
+    ## Pipeline II PICK plate columns are different than pipeline I PICK
 
     if (defined $self->pipelineII) {
         return [
