@@ -42,11 +42,11 @@ sub retrieve_data {
     my $crispr_id = $parent_well->process_output_wells->first->process->process_crispr->crispr_id;
 
     ## experiment data
-    my $rs1 = $model->schema->resultset( 'Experiment' )->find({ design_id =>  $data->{design_id}, crispr_id => $crispr_id }, { columns => [ qw/id gene_id assigned_trivial/ ] });
-    $data->{gene_id} = $rs1->get_column('gene_id');
+    my $experiment_search = $model->schema->resultset( 'Experiment' )->find({ design_id =>  $data->{design_id}, crispr_id => $crispr_id }, { columns => [ qw/id gene_id assigned_trivial/ ] });
+    $data->{gene_id} = $experiment_search->get_column('gene_id');
 
-    $data->{exp_id} = $rs1->get_column('id');
-    $data->{exp_trivial} = $rs1->trivial_name;
+    $data->{exp_id} = $experiment_search->get_column('id');
+    $data->{exp_trivial} = $experiment_search->trivial_name;
 
     ## gene notations
     my $gene_info;
@@ -56,8 +56,8 @@ sub retrieve_data {
     $data->{gene_name} = $gene_info->{gene_symbol};
 
     ## sponsor name
-    my $rs2 = $model->schema->resultset( 'ProjectExperiment' )->find({ experiment_id => $data->{exp_id} }, { columns => [ qw/project_id/ ] });
-    my $proj_id = $rs2->get_column('project_id');
+    my $proj_exp_search = $model->schema->resultset( 'ProjectExperiment' )->find({ experiment_id => $data->{exp_id} }, { columns => [ qw/project_id/ ] });
+    my $proj_id = $proj_exp_search->get_column('project_id');
 
     my @rs3 = $model->schema->resultset( 'ProjectSponsor' )->search({ project_id =>  $proj_id })->all;
     $data->{sponsor_id} = 'All';
