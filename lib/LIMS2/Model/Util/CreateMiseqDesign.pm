@@ -113,12 +113,13 @@ sub generate_miseq_design {
 sub generate_primers {
     my ($c, $crispr_id, $search_range, $genomic_threshold) = @_;
 
+    my $time = strftime "%S-%M-%H_%d-%m-%Y", localtime;
     my $params = {
         crispr_id           => $crispr_id,
         species             => 'Human',
         repeat_mask         => [''],
         offset              => 20,
-        well_id             => 'Miseq_Crispr_' . $crispr_id,
+        well_id             => 'Miseq_Crispr_' . $crispr_id . '_' . $time,
         genomic_threshold   => $genomic_threshold || 30,
         gc                  => $search_range->{gc_content},
         tm                  => $search_range->{melting},
