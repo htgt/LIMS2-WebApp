@@ -179,10 +179,41 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-21 16:46:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JYYL1HZd6guNjVIuqNu8hQ
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-29 10:33:56
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OR+KrR7gf93alwm1vkKlUw
+sub as_hash {
+    my $self = shift;
 
+    my %h = (
+        id => $self->id,
+        name => $self->name,
+        user => $self->created_by->name,
+        genomic_threshold => $self->genomic_threshold,
+        gc => {
+            min => $self->min_gc,
+            opt => $self->opt_gc,
+            max => $self->max_gc,
+        },
+        mt => {
+            min => $self->min_mt,
+            opt => $self->opt_mt,
+            max => $self->max_mt,
+        },
+    );
+
+    my $intext_to_name = {
+        1   => 'miseq',
+        0   => 'pcr',
+    };
+
+    my @primers = $self->miseq_primer_presets;
+    foreach my $primer (@primers) {
+        $h{'primers'}{$intext_to_name->{$primer->internal}} = $primer->as_hash;
+    }
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
