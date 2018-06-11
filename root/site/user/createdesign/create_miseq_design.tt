@@ -68,7 +68,7 @@ tr.success td{
     <fieldset class="col-md-12 well">
         <legend class="col-md-12 row">Design Progess Crispr Search</legend>
         <textarea class="col-md-4 form-control textAreaKeys" id="clearTextArea" rows="8" name="crisprs" placeholder="Copy and paste Crisprs here. Press ENTER to submit, SHIFT+ENTER for a new line." value="[%- crisprID.join(', ') %]">[%- crisprID.join(', ') %]</textarea>
-        <span class="help-block">Valid search terms: Crisprs should be six digits and each crispr seperated by a comma</span>
+        <span class="help-block">Enter either LIMS2 or WGE CRISPR IDs above. These can be separated by spaces, new lines, commas or symbols</span>
         <button type="submit" name="action" id="action" class="btn btn-primary button" >Submit</button>
         <button class="btn btn-danger button" onclick="clearSelection();">Clear <i class="glyphicon glyphicon-remove"></i></button>
         <span id="crisprWaiting" class="glyphicon glyphicon-refresh glyphicon-refresh-animate" style="font-size:28px"></span>
@@ -143,6 +143,7 @@ tr.success td{
                 <h4 class="modal-title">Custom Design Parameters</h4>
             </div>
             <div class="modal-body col-md-12">
+                <div id="presetID" hidden></div>
                 <fieldset id="presetDDfield" class="col-md-12 row form-group">
                     <h4 class="col-md-2 col-md-offset-2">Presets: </h4>
                     <div class="col-md-4">
@@ -211,6 +212,7 @@ tr.success td{
 
 var crisprID = '[%- crispr_id.join(', ') %]';
 var presetNames = [];
+var presetIDs = {};
 
 $(document).ready(function() {
     $('.button').hide().prop('disabled', true);
@@ -237,10 +239,6 @@ $(document).ready(function() {
         }
     });
 });
-
-function clearSelection(){
-    $("#clearTextArea").html("");
-}
 
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {
@@ -307,6 +305,7 @@ $('#redoSubmit').click(function() {
 
 $('#createPreset').click(function() {
     var jsonified_params = prepareParameters('preset');
+
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -342,6 +341,7 @@ $('#createPreset').click(function() {
 
 $('#updatePreset').click(function() {
     var jsonified_params = prepareParameters('preset');
+
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -442,9 +442,16 @@ $('.increment').on('input', function() {
     errorNotification(this, region, message);
 });
 
+function clearSelection(){
+    $("#clearTextArea").html("");
+}
+
 function prepareParameters(set) {
     var params = gatherParameters(set);
     params.name = $('#' + set + 'NameArea').val();
+    if (presetIDs[$('#presetModalDD').val()]) {
+        params.id = presetIDs[$('#presetModalDD').val()];
+    }
     var jsonified_params = JSON.stringify(params);
 
     return jsonified_params;
@@ -631,8 +638,8 @@ function getPreset() {
 }
 
 function updateParameters(data) {
-    console.log("update");
-    console.log(data);
+    presetIDs[data.name] = data.id;
+
     $('#presetGenomic').val(data.genomic_threshold);
     
     var miseq = data.primers.miseq.widths;
