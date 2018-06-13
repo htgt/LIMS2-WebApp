@@ -265,6 +265,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_hdr_templates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqHdrTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_hdr_templates",
+  "LIMS2::Model::Schema::Result::MiseqHdrTemplate",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 nonsense_design_crispr
 
 Type: belongs_to
@@ -381,8 +396,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pP6TbTvP1aYUiLhUOZF9DQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 16:49:38
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sDsFPuPub4U8xG/O2hCmMg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -667,6 +682,14 @@ sub _fetch_region_coords {
     );
 
     return $amplicon->seq;
+}
+
+sub hdr_template {
+    my $self = shift;
+$DB::single=1;
+    my $oligos = $self->oligos;
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

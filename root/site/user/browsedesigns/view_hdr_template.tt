@@ -182,7 +182,7 @@ function saveHDR(hdrSeq) {
     var jsonifiedParams = JSON.stringify(params)
     
     $.ajax({
-        url: '[% c.uri_for('/api/update_hdr_template/') %]',
+        url: '[% c.uri_for('/api/miseq_hdr_template/') %]',
         type: 'POST',
         dataType: 'JSON',
         data: {
