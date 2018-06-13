@@ -54,7 +54,7 @@
 <button id="editTemplate" class="btn btn-primary">
     Edit
 </button>
-<button id="saveTemplate" class="btn btn-primary" hidden>
+<button id="saveTemplate" class="btn btn-primary">
     Save
 </button>
 <button id="resetTemplate" class="btn btn-danger">
@@ -104,8 +104,10 @@ $('#editTemplate').click(function() {
 
 $('#saveTemplate').click(function() {
     var hdr = $('#templateInput').val().toUpperCase();
+    saveHDR(hdr);
     $('#templateInput').remove();
     $('#templateSeq').show();
+
     $('#templateSeq').text(hdr);
     var hdrSeqSpanned = hdrHighlight('#templateSeq');
     $('#templateSeq').html(hdrSeqSpanned)
@@ -127,7 +129,6 @@ $(document).on("change keydown keyup keypress paste input click", '#templateInpu
 
 function nucleotides(event) {
     var charCode = event.which;
-    console.log(charCode);
     if (charCode !== 37 && charCode !== 39 && charCode !== 46) {
     // Except left, right arrow keys and delete
         var value = String.fromCharCode(charCode);
@@ -171,6 +172,30 @@ function hdrHighlight(template, caret) {
     });
     $('#refSeq').html(refHigh);
     return templateHigh;
+}
+
+function saveHDR(hdrSeq) {
+    var params = {
+        id  :   [% design.id %],
+        seq :   hdrSeq
+    };
+    var jsonifiedParams = JSON.stringify(params)
+    
+    $.ajax({
+        url: '[% c.uri_for('/api/update_hdr_template/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            requirements: jsonifiedParams
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
 }
 
 </script>
