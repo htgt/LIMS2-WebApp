@@ -608,7 +608,7 @@ sub design_wells {
     return \@design_wells;
 }
 
-sub current_primer{
+sub current_primer {
     my ( $self, $primer_type ) = @_;
 
     unless($primer_type){
@@ -623,7 +623,7 @@ sub current_primer{
     return $current_primer;
 }
 
-sub gene_ids{
+sub gene_ids {
     my ($self) = @_;
 
     my @ids = uniq map { $_->gene_id } $self->genes;
@@ -632,13 +632,41 @@ sub gene_ids{
 
 # requires a method to find gene, e.g.
 # my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
-sub gene_symbols{
+sub gene_symbols {
     my ($self, $gene_finder) = @_;
 
     my @ids = $self->gene_ids;
     my @symbols = map { $_->{gene_symbol} }
                   values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
+}
+
+sub amplicon {
+    my $self = shift;
+
+    my @oligos = @{$self->oligos_sorted};
+
+    #[Left external, Left internal, Right Internal, Right External] 
+    my $amplicon = _fetch_region_coords($self, $oligos[1], $oligos[2]);
+
+    return $amplicon;
+}
+
+sub _fetch_region_coords {
+    my ($self, $left, $right) = @_;
+
+    require WebAppCommon::Util::EnsEMBL;
+    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
+
+    my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $left->{locus}->{chr_name},
+        $left->{locus}->{chr_end},
+        $right->{locus}->{chr_start} + 1,
+        $left->{locus}->{chr_strand},
+    );
+
+    return $amplicon->seq;
 }
 
 __PACKAGE__->meta->make_immutable;

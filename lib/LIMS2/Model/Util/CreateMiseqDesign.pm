@@ -395,9 +395,9 @@ sub design_preset_params {
 }
 
 sub default_nulls {
-    my ($c, $criteria, $id) = @_;
+    my ($c, $criteria, $search) = @_;
 
-    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ id => $id })->as_hash;
+    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find($search)->as_hash;
 
     $criteria = null_check($criteria, $default, keys %$criteria);
 

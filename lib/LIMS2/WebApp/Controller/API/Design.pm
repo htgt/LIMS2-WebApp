@@ -352,7 +352,7 @@ sub miseq_primer_preset_POST {
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
-    $hashed_criteria = default_nulls($c, $hashed_criteria, 'Default');
+    $hashed_criteria = default_nulls($c, $hashed_criteria, { name => 'Default' });
     $hashed_criteria->{created_by} = $c->user->id;
     my $preset = $c->model('Golgi')->create_primer_preset($hashed_criteria);
 
@@ -386,7 +386,7 @@ sub edit_miseq_primer_preset_POST {
 
     my $jsonified_criteria = $c->request->param('criteria');
     my $hashed_criteria = from_json $jsonified_criteria;
-    $hashed_criteria = default_nulls($c, $hashed_criteria, $hashed_criteria->{id});
+    $hashed_criteria = default_nulls($c, $hashed_criteria, { id => $hashed_criteria->{id} });
     $hashed_criteria->{created_by} = $c->user->id;
     my $preset = $c->model('Golgi')->edit_primer_preset($hashed_criteria);
 
