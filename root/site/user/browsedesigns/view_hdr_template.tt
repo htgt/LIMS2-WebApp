@@ -54,10 +54,12 @@
 <button id="editTemplate" class="btn btn-primary">
     Edit
 </button>
+<button id="saveTemplate" class="btn btn-primary" hidden>
+    Save
+</button>
 <button id="resetTemplate" class="btn btn-danger">
     Reset
 </button>
-<div id="editControls"></div>
 
 <script type="text/javascript" charset="utf-8">
 
@@ -70,8 +72,10 @@ jQuery.fn.extend({
 });
 
 $(document).ready(function() {
+    $('#saveTemplate').hide().prop('disabled', true);
+    $('#resetTemplate').hide().prop('disabled', true);
     scrollable();
-    hdr_highlight('#templateSeq');
+    hdrHighlight('#templateSeq');
 });
 
 $('#editTemplate').click(function() {
@@ -91,22 +95,46 @@ $('#editTemplate').click(function() {
     wrapper.append(form);
     form.append(input);
     input.val($('#templateSeq').sequenceText());
-    $('#templateInput').bind('keypress', nucleotides);
+    $('#templateInput').bind('keydown', nucleotides);
+
+    $('#saveTemplate').show().prop('disabled', false);
+    $('#resetTemplate').show().prop('disabled', false);
+    $('#editTemplate').hide().prop('disabled', true);
 });
 
-$('#resetTemplate').click(function() {
+$('#saveTemplate').click(function() {
+    var hdr = $('#templateInput').val().toUpperCase();
+    $('#templateInput').remove();
+    $('#templateSeq').show();
+    $('#templateSeq').text(hdr);
+    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    $('#templateSeq').html(hdrSeqSpanned)
+    
+    $('#saveTemplate').hide().prop('disabled', true);
+    $('#editTemplate').show().prop('disabled', false);
+    $('#resetTemplate').hide().prop('disabled', true);
+});
+
+$('#resetTemplate').click(function(evt) {
     $('#templateInput').val($('#templateSeq').sequenceText()).focus();
-    hdr_highlight('#templateInput');
+    hdrHighlight('#templateInput');
+    evt.target.setSelectionRange(0, 0);
 });
 
 $(document).on("change keydown keyup keypress paste input click", '#templateInput', function(evt) {
-    hdr_highlight('#templateInput', evt.target.selectionStart);
+    hdrHighlight('#templateInput', evt.target.selectionStart);
 });
 
 function nucleotides(event) {
-    var value = String.fromCharCode(event.which);
-    var pattern = new RegExp(/[ACTGactg]/i);
-    return pattern.test(value);
+    var charCode = event.which;
+    console.log(charCode);
+    if (charCode !== 37 && charCode !== 39 && charCode !== 46) {
+    // Except left, right arrow keys and delete
+        var value = String.fromCharCode(charCode);
+        var pattern = new RegExp(/[ACTGactg\b]/i);
+        return pattern.test(value);
+    }
+    return 1;
 }
 
 function scrollable() {
@@ -116,7 +144,7 @@ function scrollable() {
     });
 }
 
-function hdr_highlight(template, caret) {
+function hdrHighlight(template, caret) {
     var refSeq = $('#refSeq').sequenceText();
     var templateSeq = $(template).sequenceText();
 
@@ -142,7 +170,7 @@ function hdr_highlight(template, caret) {
         }
     });
     $('#refSeq').html(refHigh);
-    //$(template).html(templateHigh);
+    return templateHigh;
 }
 
 </script>
