@@ -265,17 +265,17 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 miseq_hdr_templates
+=head2 hdr_templates
 
 Type: has_many
 
-Related object: L<LIMS2::Model::Schema::Result::MiseqHdrTemplate>
+Related object: L<LIMS2::Model::Schema::Result::HdrTemplate>
 
 =cut
 
 __PACKAGE__->has_many(
-  "miseq_hdr_templates",
-  "LIMS2::Model::Schema::Result::MiseqHdrTemplate",
+  "hdr_templates",
+  "LIMS2::Model::Schema::Result::HdrTemplate",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -396,8 +396,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 16:49:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sDsFPuPub4U8xG/O2hCmMg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:02:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ul0TV4QFZrKpksN+t7swZA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

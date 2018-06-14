@@ -1,5 +1,17 @@
 [% META title="View Design"; META tab_name = 'Designs' %]
 
+<style>
+
+.hdrSeq {
+    width: 1125px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+    text-transform: uppercase;
+}
+
+</style>
+
 <p>
   <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">
     <i class="icon-hand-left icon-white"></i>
@@ -130,8 +142,14 @@
   <p><em>No oligos for this design</em></p>
 [% END %]
 
- <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id, gene_symbol => 'N/A' } ) %]" target="_blank" class="btn btn-primary">Genoverse</a>
+<a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id, gene_symbol => 'N/A' } ) %]" target="_blank" class="btn btn-primary">Genoverse</a>
 
+[% IF design.type == "miseq-hdr" %]
+    [% INCLUDE 'user/browsedesigns/view_hdr_template.tt' %]
+[% ELSIF design.type == "miseq-nhej" %]
+    <h2>Amplicon Sequence</h2>
+    <div class="hdrSeq">[% amplicon %]</div>
+[% END %]
 
 <h2>Genotyping Primers</h2>
 [% IF design.genotyping_primers.size > 0 %]
@@ -240,9 +258,7 @@
   <p><em>No crispr groups linked to this design</em></p>
 [% END %]
 
-[% IF design.type == "miseq-hdr" %]
-    [% INCLUDE 'user/browsedesigns/view_hdr_template.tt' %]
-[% END %] 
+
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
 <script type="text/javascript">

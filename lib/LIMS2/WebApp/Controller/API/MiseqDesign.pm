@@ -101,25 +101,6 @@ sub miseq_primer_preset_GET {
     return $self->status_ok( $c, entity => $preset );
 }
 
-sub miseq_preset_names :Path( '/api/miseq_preset_names' ) :Args(0) :ActionClass('REST') {
-}
-
-sub miseq_preset_names_GET {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles('read');
-
-    my @results;
-    try {
-        @results = map { $_->name } $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->all;
-    }
-    catch {
-        $c->log->error($_);
-    };
-
-    return $self->status_ok($c, entity => \@results);
-}
-
 sub edit_miseq_primer_preset :Path( '/api/edit_miseq_primer_preset' ) :Args(0) :ActionClass('REST') {
 }
 

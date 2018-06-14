@@ -179,8 +179,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-21 16:46:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JYYL1HZd6guNjVIuqNu8hQ
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:03:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RwM9N+S66LX3fITl2u4idg
 
 sub as_hash {
     my $self = shift;

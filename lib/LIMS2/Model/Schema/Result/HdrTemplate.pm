@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::MiseqHdrTemplate;
+package LIMS2::Model::Schema::Result::HdrTemplate;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::MiseqHdrTemplate
+LIMS2::Model::Schema::Result::HdrTemplate
 
 =cut
 
@@ -30,11 +30,11 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<miseq_hdr_template>
+=head1 TABLE: C<hdr_template>
 
 =cut
 
-__PACKAGE__->table("miseq_hdr_template");
+__PACKAGE__->table("hdr_template");
 
 =head1 ACCESSORS
 
@@ -76,8 +76,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 16:50:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Il8Rsqc9h/gHAouCi2X4aA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:02:09
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6aJuvpUWH1dd0030eVLZIA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
