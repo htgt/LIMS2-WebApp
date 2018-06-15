@@ -3,6 +3,7 @@ audit_op CHAR(1) NOT NULL CHECK (audit_op IN ('D','I','U')),
 audit_user TEXT NOT NULL,
 audit_stamp TIMESTAMP NOT NULL,
 audit_txid INTEGER NOT NULL,
+id integer,
 design_id integer,
 template text
 );

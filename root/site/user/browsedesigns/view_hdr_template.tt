@@ -1,13 +1,5 @@
 <style>
 
-.hdrSeq {
-    width: 1125px;
-    white-space: nowrap;
-    font-family: "Lucida Console", Monaco, monospace;
-    overflow-x: hidden;
-    text-transform: uppercase;
-}
-
 .highlight {
     background-color: green;
     color: white;
@@ -29,6 +21,7 @@
     opacity: 0.0;
   }
 }
+
 </style>
 
 <h2>HDR Template</h2>
@@ -46,7 +39,13 @@
     </tr>
     <tr>
         <td>
-            <div id="templateSeq" class="hdrSeq">[% amplicon %]</div>
+            <div id="templateSeq" class="hdrSeq">
+                [% IF hdr_template %]
+                    [% hdr_template %]
+                [% ELSE %]
+                    [% amplicon %]
+                [% END %]
+            </div>
         </td>
     </tr>
 </table>
@@ -75,7 +74,8 @@ $(document).ready(function() {
     $('#saveTemplate').hide().prop('disabled', true);
     $('#resetTemplate').hide().prop('disabled', true);
     scrollable();
-    hdrHighlight('#templateSeq');
+    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    $('#templateSeq').html(hdrSeqSpanned)
 });
 
 $('#editTemplate').click(function() {

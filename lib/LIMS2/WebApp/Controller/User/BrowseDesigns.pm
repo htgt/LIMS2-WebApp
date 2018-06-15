@@ -90,8 +90,9 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     }
     if ( $design_data->{type} =~ /^miseq/xms ) {
         $c->stash->{amplicon} = $design->amplicon;
+        $c->stash->{hdr_template} = $design->hdr_template;
     }
-    
+
     my $design_attempt = $design->design_attempt;
 
     my $group_ids = join ", ", map { $_->id } @$crispr_groups;

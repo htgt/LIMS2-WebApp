@@ -668,28 +668,24 @@ sub amplicon {
 }
 
 sub _fetch_region_coords {
-    my ($self, $left, $right) = @_;
+    my ($self, $inf, $inr) = @_;
 
     require WebAppCommon::Util::EnsEMBL;
     my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
 
     my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
         'chromosome',
-        $left->{locus}->{chr_name},
-        $left->{locus}->{chr_end},
-        $right->{locus}->{chr_start} + 1,
-        $left->{locus}->{chr_strand},
+        $inf->{locus}->{chr_name},
+        $inf->{locus}->{chr_end},
+        $inr->{locus}->{chr_start} + 1,
+        $inf->{locus}->{chr_strand},
     );
 
     return $amplicon->seq;
 }
 
 sub hdr_template {
-    my $self = shift;
-$DB::single=1;
-    my $oligos = $self->oligos;
-
-    return;
+    return shift->hdr_templates->first->template;
 }
 
 __PACKAGE__->meta->make_immutable;

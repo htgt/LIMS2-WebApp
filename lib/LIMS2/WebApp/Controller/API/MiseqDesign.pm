@@ -151,25 +151,41 @@ sub miseq_hdr_template_GET {
 
     $c->assert_user_roles('read');
 
-    #my $json_reqs = $c->request->param('requirements');
-    my $id = $c->request->param('id');
-    #my $reqs = from_json $json_reqs;
+    my $design_id = $c->request->param('design_id');
 
-    #my $design_rs = $c->model('Golgi')->schema->resultset('Design')->find({ id => $reqs->{id} });
-    my $design_rs = $c->model('Golgi')->schema->resultset('Design')->find({ id => $id });
+    my $design_rs = $c->model('Golgi')->schema->resultset('Design')->find({ id => $design_id });
     unless ($design_rs) {
-        #err
-    }        
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not find design: " . $design_id,
+        );
+    }
+
     my $hdr = $design_rs->hdr_template;
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $hdr );
+
+    return;
 }
 
 sub miseq_hdr_template_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('edit');
+
+    my $json_reqs = $c->request->param('requirements');
+    my $reqs = from_json $json_reqs;
+
+    my $template_rc = $c->model('Golgi')->update_hdr_template($reqs);
+
+    my $json = JSON->new->allow_nonref;
+    my $json_template = $json->encode($template_rc->as_hash);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_template );
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

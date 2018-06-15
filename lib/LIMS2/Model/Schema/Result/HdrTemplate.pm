@@ -38,6 +38,13 @@ __PACKAGE__->table("hdr_template");
 
 =head1 ACCESSORS
 
+=head2 id
+
+  data_type: 'integer'
+  is_auto_increment: 1
+  is_nullable: 0
+  sequence: 'hdr_template_id_seq'
+
 =head2 design_id
 
   data_type: 'integer'
@@ -52,11 +59,30 @@ __PACKAGE__->table("hdr_template");
 =cut
 
 __PACKAGE__->add_columns(
+  "id",
+  {
+    data_type         => "integer",
+    is_auto_increment => 1,
+    is_nullable       => 0,
+    sequence          => "hdr_template_id_seq",
+  },
   "design_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "template",
   { data_type => "text", is_nullable => 0 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
@@ -76,8 +102,19 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:02:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6aJuvpUWH1dd0030eVLZIA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-15 15:07:54
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MvdK8yNrIoAWIH4S81zBKg
+
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        design_id       => $self->design_id,
+        hdr_template    => $self->template,
+    );
+
+    return \%h;
+}
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

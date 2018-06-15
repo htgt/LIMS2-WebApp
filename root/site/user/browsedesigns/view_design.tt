@@ -10,136 +10,144 @@
     text-transform: uppercase;
 }
 
+#amplicon {
+    overflow-x: scroll;
+}
+
+.mismatch {
+    color: #FF0000;
+}
+
 </style>
 
 <p>
-  <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">
-    <i class="icon-hand-left icon-white"></i>
-    Back to search
-  </a>
+    <a href="[% c.uri_for( '/user/browse_designs' ) %]" class="btn btn-primary">
+        <i class="icon-hand-left icon-white"></i>
+        Back to search
+    </a>
 </p>
 
 <div class="page-header">
-  <h1>Design <small> [% design.id %]</small></h1>
+    <h1>Design <small> [% design.id %]</small></h1>
 </div>
 
 <table class="table table-bordered">
-  [%- FOR r IN display_design %]
-  [%- SET title=r.0; SET accessor = r.1 -%]
-  <tr>
-    <th>[% title %]</th> <td>[% design.$accessor %]</td>
-  </tr>
-  [%- END %]
-  [% IF design.global_arm_shortened.defined %]
-  <tr>
-    <th>Short arm version of this design</th>
-    <td>
-    <a href="[% c.uri_for( '/user/view_design', { design_id => design.global_arm_shortened } ) %]"> [% design.global_arm_shortened %] </a>
-    </td>
-  </tr>
-  [% END %]
-  [% IF design_attempt %]
-  <tr>
-    <th>Design Attempt</th>
-    <td>
-    <a href="[% c.uri_for( '/user/design_attempt', design_attempt, 'view' ) %]">[% design_attempt %]</a>
-    </td>
-  </tr>
-  [% END %]
-  [% IF design.nonsense_design_crispr_id %]
-  <tr>
-    <th>Nonsense Design Crispr</th>
-    <td>
-    <a href="[% c.uri_for( '/user/crispr', design.nonsense_design_crispr_id, 'view' ) %]">[% design.nonsense_design_crispr_id %]</a>
-    </td>
-  </tr>
-  [% END %]
-  [% IF design.parent_id %]
-  <tr>
-    <th>Parent ID</th>
-    <td>
-    <a href="[% c.uri_for( '/user/view_design', { design_id => design.parent_id } ) %]"> [% design.parent_id %] </a>
-    </td>
-  </tr>
-  [% END %]
+    [%- FOR r IN display_design %]
+        [%- SET title=r.0; SET accessor = r.1 -%]
+        <tr>
+            <th>[% title %]</th> <td>[% design.$accessor %]</td>
+        </tr>
+    [%- END %]
+    [% IF design.global_arm_shortened.defined %]
+        <tr>
+            <th>Short arm version of this design</th>
+            <td>
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.global_arm_shortened } ) %]"> [% design.global_arm_shortened %] </a>
+            </td>
+        </tr>
+    [% END %]
+    [% IF design_attempt %]
+        <tr>
+            <th>Design Attempt</th>
+            <td>
+                <a href="[% c.uri_for( '/user/design_attempt', design_attempt, 'view' ) %]">[% design_attempt %]</a>
+            </td>
+        </tr>
+    [% END %]
+    [% IF design.nonsense_design_crispr_id %]
+        <tr>
+            <th>Nonsense Design Crispr</th>
+            <td>
+                <a href="[% c.uri_for( '/user/crispr', design.nonsense_design_crispr_id, 'view' ) %]">[% design.nonsense_design_crispr_id %]</a>
+            </td>
+        </tr>
+    [% END %]
+    [% IF design.parent_id %]
+        <tr>
+            <th>Parent ID</th>
+            <td>
+                <a href="[% c.uri_for( '/user/view_design', { design_id => design.parent_id } ) %]"> [% design.parent_id %] </a>
+            </td>
+        </tr>
+    [% END %]
 </table>
 
 <h2>Comments</h2>
 [% IF design.comments.size > 0 %]
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Comment</th>
-        <th>Public?</th>
-        <th>Created by</th>
-        <th>Created at</th>
-      </tr>
-    </thead>
-    <tbody>
-      [%- FOR comment IN design.comments %]
-      <tr>
-        <td>[% comment.category %]</td>
-        <td>[% comment.comment_text | html_line_break %]</td>
-        <td>
-          [% IF comment.is_public %]
-          yes
-          [% ELSE %]
-          no
-          [% END %]
-        </td>
-        <td>[% comment.created_by   %]</td>
-        <td>[% comment.created_at   %]</td>
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Comment</th>
+                <th>Public?</th>
+                <th>Created by</th>
+                <th>Created at</th>
+            </tr>
+        </thead>
+        <tbody>
+            [%- FOR comment IN design.comments %]
+                <tr>
+                    <td>[% comment.category %]</td>
+                    <td>[% comment.comment_text | html_line_break %]</td>
+                    <td>
+                        [% IF comment.is_public %]
+                            yes
+                        [% ELSE %]
+                            no
+                        [% END %]
+                    </td>
+                    <td>[% comment.created_by %]</td>
+                    <td>[% comment.created_at %]</td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
 [% ELSE %]
-  <p><em>No comments for this design</em></p>
+    <p><em>No comments for this design</em></p>
 [% END %]
 
 <h2>Oligos</h2>
 [% IF design.oligos.size > 0 %]
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Chromosome</th>
-        <th>Strand</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Sequence</th>
-      </tr>
-    </thead>
-    <tbody>
-    [%- FOR oligo IN design.oligos %]
-      <tr>
-        <td>[% oligo.type             %]</td>
-        <td>[% oligo.locus.chr_name   %]</td>
-        <td>[% oligo.locus.chr_strand %]</td>
-        <td>[% oligo.locus.chr_start  %]</td>
-        <td>[% oligo.locus.chr_end    %]</td>
-        <td class="seq[% IF oligo.type == 'PM' %] mutant_seq[% END %]">
-            [% oligo.seq %]
-        </td>
-      </tr>
-    [%- END %]
-    </tbody>
-  </table>
-  [% IF design.oligos_fasta %]
-  <form id="UCSC_BLAT" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgBlat" name="UCSC_BLAT" target="_blank">
-    <input type="hidden" name="org" value="[% species %]" />
-    <input type="hidden" name="db" value="[% ucsc_db %]" />
-    <input type="hidden" name="type" value="DNA" />
-    <input type="hidden" name="sort" value="query,score" />
-    <input type="hidden" name="output" value="hyperlink" />
-    <input type="hidden" name="userSeq" value="[% design.oligos_fasta %]"/>
-    <input type="hidden" name="Lucky" value="I'm feeling lucky" />
-    <input type="submit" class="btn btn-primary" value="UCSC BLAT" name="Lucky"/>
-   </form>
-   [% END %]
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Chromosome</th>
+                <th>Strand</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Sequence</th>
+            </tr>
+        </thead>
+        <tbody>
+            [%- FOR oligo IN design.oligos %]
+                <tr>
+                    <td>[% oligo.type             %]</td>
+                    <td>[% oligo.locus.chr_name   %]</td>
+                    <td>[% oligo.locus.chr_strand %]</td>
+                    <td>[% oligo.locus.chr_start  %]</td>
+                    <td>[% oligo.locus.chr_end    %]</td>
+                    <td class="seq[% IF oligo.type == 'PM' %] mutant_seq[% END %]">
+                        [% oligo.seq %]
+                    </td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
+    [% IF design.oligos_fasta %]
+        <form id="UCSC_BLAT" enctype="multipart/form-data" method="post" action="http://genome.ucsc.edu/cgi-bin/hgBlat" name="UCSC_BLAT" target="_blank">
+            <input type="hidden" name="org" value="[% species %]" />
+            <input type="hidden" name="db" value="[% ucsc_db %]" />
+            <input type="hidden" name="type" value="DNA" />
+            <input type="hidden" name="sort" value="query,score" />
+            <input type="hidden" name="output" value="hyperlink" />
+            <input type="hidden" name="userSeq" value="[% design.oligos_fasta %]"/>
+            <input type="hidden" name="Lucky" value="I'm feeling lucky" />
+            <input type="submit" class="btn btn-primary" value="UCSC BLAT" name="Lucky"/>
+        </form>
+    [% END %]
 [% ELSE %]
-  <p><em>No oligos for this design</em></p>
+    <p><em>No oligos for this design</em></p>
 [% END %]
 
 <a href="[% c.uri_for( '/user/genoverse_design_view', { design_id => design.id, gene_symbol => 'N/A' } ) %]" target="_blank" class="btn btn-primary">Genoverse</a>
@@ -148,133 +156,146 @@
     [% INCLUDE 'user/browsedesigns/view_hdr_template.tt' %]
 [% ELSIF design.type == "miseq-nhej" %]
     <h2>Amplicon Sequence</h2>
-    <div class="hdrSeq">[% amplicon %]</div>
+    <div id="amplicon" class="hdrSeq">
+        [% amplicon %]
+    </div>
 [% END %]
 
 <h2>Genotyping Primers</h2>
 [% IF design.genotyping_primers.size > 0 %]
-  <table class="table table-striped">
-    <thead>
-      <th>Type</th>
-      <th>Sequence</th>
-      <th class="pull-right">Validation State</th>
-    </thead>
-    <tbody>
-      [%- FOR primer IN design.genotyping_primers %]
-      <tr>
-        <td>[% primer.type %]</td>
-        <td class="seq">[% primer.seq %]</td>
-        [% IF primer.is_rejected %]
-        <td> <span class="label label-important pull-right">Rejected</span> </td>
-        [% ELSE %]
-        <td class="validation-state-cell"
-            data-validated="[% primer.is_validated %]"
-            data-primer-name="[% primer.type %]">
-        </td>
-        [% END %]
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
+    <table class="table table-striped">
+        <thead>
+            <th>Type</th>
+            <th>Sequence</th>
+            <th class="pull-right">Validation State</th>
+        </thead>
+        <tbody>
+            [%- FOR primer IN design.genotyping_primers %]
+                <tr>
+                    <td>[% primer.type %]</td>
+                    <td class="seq">[% primer.seq %]</td>
+                    [% IF primer.is_rejected %]
+                        <td>
+                            <span class="label label-important pull-right">Rejected</span>
+                        </td>
+                    [% ELSE %]
+                        <td class="validation-state-cell"
+                            data-validated="[% primer.is_validated %]"
+                            data-primer-name="[% primer.type %]">
+                        </td>
+                    [% END %]
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
 [% ELSE %]
-  <p><em>No genotyping primers for this design</em></p>
+    <p><em>No genotyping primers for this design</em></p>
 [% END %]
 
 <h2>Crisprs</h2>
 [% IF crisprs.size %]
-  <table class="table table-striped">
-    <thead>
-      <th>ID</th>
-      <th>Sequence</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Chromosome</th>
-      <th>Strand</th>
-      <th>PAM Right</th>
-    </thead>
-    <tbody>
-      [%- FOR crispr IN crisprs %]
-      <tr>
-        <td><a href="[% c.uri_for( '/user/crispr', crispr.id , 'view'  ) %]" target="_blank"> [% crispr.id %]</a></td>
-        <td class="seq">[% crispr.seq %]</td>
-        <td>[% crispr.locus.chr_start %]</td>
-        <td>[% crispr.locus.chr_end %]</td>
-        <td>[% crispr.locus.chr_name %]</td>
-        <td>[% crispr.locus.chr_strand %]</td>
-        <td>[% crispr.pam_right %]</td>
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
+    <table class="table table-striped">
+        <thead>
+            <th>ID</th>
+            <th>Sequence</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Chromosome</th>
+            <th>Strand</th>
+            <th>PAM Right</th>
+        </thead>
+        <tbody>
+            [%- FOR crispr IN crisprs %]
+                <tr>
+                    <td>
+                        <a href="[% c.uri_for( '/user/crispr', crispr.id , 'view'  ) %]" target="_blank"> [% crispr.id %]</a>
+                    </td>
+                    <td class="seq">[% crispr.seq %]</td>
+                    <td>[% crispr.locus.chr_start %]</td>
+                    <td>[% crispr.locus.chr_end %]</td>
+                    <td>[% crispr.locus.chr_name %]</td>
+                    <td>[% crispr.locus.chr_strand %]</td>
+                    <td>[% crispr.pam_right %]</td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
 [% ELSE %]
-  <p><em>No crisprs linked to this design</em></p>
+    <p><em>No crisprs linked to this design</em></p>
 [% END %]
 
 <h2>Crispr Pairs</h2>
 [% IF crispr_pairs.size %]
-  <table class="table table-striped">
-    <thead>
-      <th>ID</th>
-      <th>Left Crispr</th>
-      <th>Right Crispr</th>
-      <th>Spacer</th>
-    </thead>
-    <tbody>
-      [%- FOR cp IN crispr_pairs %]
-      <tr>
-        <td><a href="[% c.uri_for( '/user/crispr_pair', cp.id , 'view'  ) %]" target="_blank"> [% cp.id %]</a></td>
-        <td><a href="[% c.uri_for( '/user/crispr', cp.left_crispr_id , 'view'  ) %]" target="_blank"> [% cp.left_crispr_id %]</a></td>
-        <td><a href="[% c.uri_for( '/user/crispr', cp.right_crispr_id , 'view'  ) %]" target="_blank"> [% cp.right_crispr_id %]</a></td>
-        <td>[% cp.spacer %]</td>
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
+    <table class="table table-striped">
+        <thead>
+            <th>ID</th>
+            <th>Left Crispr</th>
+            <th>Right Crispr</th>
+            <th>Spacer</th>
+        </thead>
+        <tbody>
+            [%- FOR cp IN crispr_pairs %]
+                <tr>
+                    <td>
+                        <a href="[% c.uri_for( '/user/crispr_pair', cp.id , 'view'  ) %]" target="_blank"> [% cp.id %]</a>
+                    </td>
+                    <td>
+                        <a href="[% c.uri_for( '/user/crispr', cp.left_crispr_id , 'view'  ) %]" target="_blank"> [% cp.left_crispr_id %]</a>
+                    </td>
+                    <td>
+                        <a href="[% c.uri_for( '/user/crispr', cp.right_crispr_id , 'view'  ) %]" target="_blank"> [% cp.right_crispr_id %]</a>
+                    </td>
+                    <td>[% cp.spacer %]</td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
 [% ELSE %]
-  <p><em>No crispr pairs linked to this design</em></p>
+    <p><em>No crispr pairs linked to this design</em></p>
 [% END %]
 
 <h2>Crispr Groups</h2>
 [% IF crispr_groups.size %]
-  <table class="table table-striped">
-    <thead>
-      <th>ID</th>
-      <th>Group Target</th>
-      <th>Num Crisprs</th>
-      <th>Crisprs</th>
-    </thead>
-    <tbody>
-      [%- FOR cg IN crispr_groups %]
-      <tr>
-        <td><a href="[% c.uri_for( '/user/crispr_group', cg.id , 'view'  ) %]" target="_blank"> [% cg.id %]</a></td>
-        <td>[% cg.gene_id %]</td>
-        <td>[% cg.crispr_ids.size %]</td>
-        <td>[% cg.crispr_ids.join(', ') %]</td>
-      </tr>
-      [%- END %]
-    </tbody>
-  </table>
+    <table class="table table-striped">
+        <thead>
+            <th>ID</th>
+            <th>Group Target</th>
+            <th>Num Crisprs</th>
+            <th>Crisprs</th>
+        </thead>
+        <tbody>
+            [%- FOR cg IN crispr_groups %]
+                <tr>
+                    <td>
+                        <a href="[% c.uri_for( '/user/crispr_group', cg.id , 'view'  ) %]" target="_blank"> [% cg.id %]</a>
+                    </td>
+                    <td>[% cg.gene_id %]</td>
+                    <td>[% cg.crispr_ids.size %]</td>
+                    <td>[% cg.crispr_ids.join(', ') %]</td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
 [% ELSE %]
-  <p><em>No crispr groups linked to this design</em></p>
+    <p><em>No crispr groups linked to this design</em></p>
 [% END %]
-
-
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
 <script type="text/javascript">
 
-  $(document).ready(function() {
+$(document).ready(function() {
     document.title = 'Design: [% design.id %]';
+    
     $(".validation-state-cell").each(function(){
-      //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
-      addPrimerValidationState(
-        $(this),
-        "[% c.uri_for('/user/toggle_genotyping_primer_validation_state') %]",
-        'design_id',
-        '[% design.id %]',
-        $(this).data('primer-name'),
-        $(this).data('validated')
-      );
+    //(cell, api_url, object_id_param, object_id, primer_type, is_validated)
+        addPrimerValidationState(
+            $(this),
+            "[% c.uri_for('/user/toggle_genotyping_primer_validation_state') %]",
+            'design_id',
+            '[% design.id %]',
+            $(this).data('primer-name'),
+            $(this).data('validated')
+        );
     });
 
     $(".mutant_seq").each(function(){
@@ -296,13 +317,6 @@
         };
         $(this).html(result);
     });
-
-  })
+})
 
 </script>
-
-<style type="text/css">
-.mismatch {
-  color: #FF0000;
-}
-</style>
