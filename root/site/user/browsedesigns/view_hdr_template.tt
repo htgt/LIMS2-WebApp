@@ -6,20 +6,20 @@
 }
 
 #caret {
-  animation: blink-animation 1s step-start 0s infinite;
-  -webkit-animation: blink-animation 1s step-start 0s infinite;
+    animation: blink-animation 1s step-start 0s infinite;
+    -webkit-animation: blink-animation 1s step-start 0s infinite;
 }
 
 @keyframes blink-animation {
-  50% {
-    opacity: 0.0;
-  }
+    50% {
+        opacity: 0.0;
+    }
 }
 
 @-webkit-keyframes blink-animation {
-  50% {
-    opacity: 0.0;
-  }
+    50% {
+        opacity: 0.0;
+    }
 }
 
 </style>
