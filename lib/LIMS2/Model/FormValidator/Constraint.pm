@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.504';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.507';
 }
 ## use critic
 
@@ -465,6 +465,10 @@ sub primer_params {
 
         return $result;
     }
+}
+
+sub existing_preset_id {
+    return shift->in_resultset( 'MiseqDesignPreset', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

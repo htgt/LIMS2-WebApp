@@ -1,0 +1,3 @@
+id,name,password,active
+1000,test_user@example.org,{SSHA}yXvorbcq7J+gx0zvVZxlOKmmFRbOWjDn,t
+1080,unknown,,t

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GFFGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GFFGenerator::VERSION = '0.504';
+    $LIMS2::Model::Util::GFFGenerator::VERSION = '0.507';
 }
 ## use critic
 
@@ -69,6 +69,10 @@ sub generic_colour {
         'N' => '#18D6CD',
         'f5F' => '#68D310',
         'f3R' => '#BF249B',
+        'EXF' => '#68D310',
+        'EXR' => '#68D310',
+        'INF' => '#589BDD',
+        'INR' => '#589BDD',
         # These are for design oligo search regions:
         '5R_EF' => '#68D310',
         'ER_3F' => '#BF249B',

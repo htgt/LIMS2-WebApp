@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.504';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.507';
 }
 ## use critic
 
@@ -131,6 +131,30 @@ sub freezer_wells_GET {
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
 
+    return;
+}
+
+sub miseq_parent_plate_type : Path( '/api/miseq_parent_plate_type' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub miseq_parent_plate_type_GET {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles( 'read' );
+    my $name = $c->request->param('name');
+    my @plates = $c->model('Golgi')->schema->resultset('Plate')->search(
+        { name => $name, type_id => { in => [qw/FP MISEQ PIQ/] } },
+        { columns => [qw/type_id/] },
+    );
+    if( @plates == 1 ) {
+        $c->stash->{json_data} = {
+            name => $name,
+            type => $plates[0]->type_id,
+        };
+    }
+    else {
+        $c->stash->{json_data} = { error => "No valid plate found named '$name'" };
+    }
+    $c->forward('View::JSON');
     return;
 }
 

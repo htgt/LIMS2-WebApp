@@ -122,6 +122,7 @@ lib/LIMS2/Model/Schema/Result/GenotypingPrimersLoci.pm
 lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/GuidedType.pm
+lib/LIMS2/Model/Schema/Result/HdrTemplate.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
 lib/LIMS2/Model/Schema/Result/MiseqDesignPreset.pm
@@ -262,6 +263,7 @@ lib/LIMS2/Model/Util/Miseq.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
+lib/LIMS2/Model/Util/PipelineIIPlates.pm
 lib/LIMS2/Model/Util/PrimerChecks.pm
 lib/LIMS2/Model/Util/PrimerFinder.pm
 lib/LIMS2/Model/Util/PrimerGenerator.pm
@@ -340,6 +342,7 @@ lib/LIMS2/WebApp/Controller/API/Crispr.pm
 lib/LIMS2/WebApp/Controller/API/CrisprQc.pm
 lib/LIMS2/WebApp/Controller/API/Design.pm
 lib/LIMS2/WebApp/Controller/API/DesignTargets.pm
+lib/LIMS2/WebApp/Controller/API/MiseqDesign.pm
 lib/LIMS2/WebApp/Controller/API/PlateWell.pm
 lib/LIMS2/WebApp/Controller/API/PointMutation.pm
 lib/LIMS2/WebApp/Controller/API/Project.pm
@@ -461,6 +464,7 @@ root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
 root/site/user/browsedesigns/list_designs_compact.tt
 root/site/user/browsedesigns/view_design.tt
+root/site/user/browsedesigns/view_hdr_template.tt
 root/site/user/browseplates/index.tt
 root/site/user/browseplates/view.tt
 root/site/user/browseplates/view_well_barcode_results.tt
@@ -2706,6 +2710,9 @@ root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Process
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/ProcessRecombinase.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/User.csv
 root/static/test/fixtures/LIMS2/t/SummaryGeneration/SummariesWellDescend/Well.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/Plate.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/User.csv
+root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/AutoComplete/UserRole.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crispr_loci.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/API/Crisprs.csv
 root/static/test/fixtures/LIMS2/t/WebApp/Controller/Admin/User.csv
