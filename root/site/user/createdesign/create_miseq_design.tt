@@ -305,7 +305,6 @@ $('#redoSubmit').click(function() {
 
 $('#createPreset').click(function() {
     var jsonified_params = prepareParameters('preset');
-
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -341,7 +340,7 @@ $('#createPreset').click(function() {
 
 $('#updatePreset').click(function() {
     var jsonified_params = prepareParameters('preset');
-
+    var oldName = $('#presetModalDD').val();
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -355,6 +354,7 @@ $('#updatePreset').click(function() {
             console.log("Response received");
             console.log(result);
             readonly();
+            $("option[value=" + oldName + "]").remove();
             $('.presetDD').append($('<option>', {
                 value: result.name,
                 text: result.name
@@ -379,6 +379,11 @@ $('#presetModalDD').change(function() {
     $('#presetSelection').val($('#presetModalDD').val())
     blockDefault();
     getPreset();
+});
+
+$('#presetSelection').change(function() {
+    $('#presetModalDD').val($('#presetSelection').val())
+    blockDefault();
 });
 
 $('#showPreset').click(function() {
@@ -449,7 +454,7 @@ function clearSelection(){
 function prepareParameters(set) {
     var params = gatherParameters(set);
     params.name = $('#' + set + 'NameArea').val();
-    if (presetIDs[$('#presetModalDD').val()]) {
+    if (presetIDs[$('#presetModalDD').val()] && $('#presetModalDD').val() != 'Default') {
         params.id = presetIDs[$('#presetModalDD').val()];
     }
     var jsonified_params = JSON.stringify(params);

@@ -1,0 +1,201 @@
+<style>
+
+.highlight {
+    background-color: green;
+    color: white;
+}
+
+#caret {
+    animation: blink-animation 1s step-start 0s infinite;
+    -webkit-animation: blink-animation 1s step-start 0s infinite;
+}
+
+@keyframes blink-animation {
+    50% {
+        opacity: 0.0;
+    }
+}
+
+@-webkit-keyframes blink-animation {
+    50% {
+        opacity: 0.0;
+    }
+}
+
+</style>
+
+<h2>HDR Template</h2>
+<table class="table table-striped" style="width: 1125px;">
+    <tr>
+        <th>Reference Sequence</th>
+    </tr>
+    <tr>
+        <td>      
+            <div id="refSeq" class="hdrSeq">[% amplicon %]</div>
+        </td>
+    </tr>
+    <tr>
+        <th>HDR Template</th>
+    </tr>
+    <tr>
+        <td>
+            <div id="templateSeq" class="hdrSeq">
+                [% IF hdr_template %]
+                    [% hdr_template %]
+                [% ELSE %]
+                    [% amplicon %]
+                [% END %]
+            </div>
+        </td>
+    </tr>
+</table>
+
+<button id="editTemplate" class="btn btn-primary">
+    Edit
+</button>
+<button id="saveTemplate" class="btn btn-primary">
+    Save
+</button>
+<button id="resetTemplate" class="btn btn-danger">
+    Reset
+</button>
+
+<script type="text/javascript" charset="utf-8">
+
+jQuery.fn.extend({
+    sequenceText: function() {
+        var regWhitespace = /[^ACTGactg]+/g;
+        var text = $(this).text() || $(this).val();
+        return text.replace(regWhitespace, '').toUpperCase();
+    }
+});
+
+$(document).ready(function() {
+    $('#saveTemplate').hide().prop('disabled', true);
+    $('#resetTemplate').hide().prop('disabled', true);
+    scrollable();
+    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    $('#templateSeq').html(hdrSeqSpanned)
+});
+
+$('#editTemplate').click(function() {
+    var wrapper = $('<div class="editing"></div>');
+    var form = $('<form action="#" class="edit-form"></form>');
+    var input = $('<input id="templateInput" type="text" class="hdrSeq templateInput" pattern="[ACTGactg]+">');
+
+    $('#templateSeq').after(wrapper);
+    $('#templateSeq').remove().appendTo(wrapper).hide();
+
+    input.css({
+        display: 'block',
+        font: "Lucida Console",
+        width: "1125px",
+    });
+
+    wrapper.append(form);
+    form.append(input);
+    input.val($('#templateSeq').sequenceText());
+    $('#templateInput').bind('keydown', nucleotides);
+
+    $('#saveTemplate').show().prop('disabled', false);
+    $('#resetTemplate').show().prop('disabled', false);
+    $('#editTemplate').hide().prop('disabled', true);
+});
+
+$('#saveTemplate').click(function() {
+    var hdr = $('#templateInput').val().toUpperCase();
+    saveHDR(hdr);
+    $('#templateInput').remove();
+    $('#templateSeq').show();
+
+    $('#templateSeq').text(hdr);
+    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    $('#templateSeq').html(hdrSeqSpanned)
+    
+    $('#saveTemplate').hide().prop('disabled', true);
+    $('#editTemplate').show().prop('disabled', false);
+    $('#resetTemplate').hide().prop('disabled', true);
+});
+
+$('#resetTemplate').click(function(evt) {
+    $('#templateInput').val($('#templateSeq').sequenceText()).focus();
+    hdrHighlight('#templateInput');
+    evt.target.setSelectionRange(0, 0);
+});
+
+$(document).on("change keydown keyup keypress paste input click", '#templateInput', function(evt) {
+    hdrHighlight('#templateInput', evt.target.selectionStart);
+});
+
+function nucleotides(event) {
+    var charCode = event.which;
+    if (charCode !== 37 && charCode !== 39 && charCode !== 46) {
+    // Except left, right arrow keys and delete
+        var value = String.fromCharCode(charCode);
+        var pattern = new RegExp(/[ACTGactg\b]/i);
+        return pattern.test(value);
+    }
+    return 1;
+}
+
+function scrollable() {
+    $('.hdrSeq:first').css('overflow-x','scroll');
+    $('.hdrSeq:first').scroll(function() {
+        $('.hdrSeq').scrollLeft($(this).scrollLeft());
+    });
+}
+
+function hdrHighlight(template, caret) {
+    var refSeq = $('#refSeq').sequenceText();
+    var templateSeq = $(template).sequenceText();
+
+    var refHigh = "";
+    var templateHigh = "";
+    var spanOpen = false;
+    templateSeq.split("").forEach(function(value, index) {
+        if (index == caret) {
+            refHigh += '<span id="caret">|</span>';
+        }
+        if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
+            refHigh += !spanOpen ? "<span class='highlight'>" : "";
+            templateHigh += !spanOpen ? "<span class='highlight'>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;
+            spanOpen = true;
+        } else {
+            refHigh += spanOpen ? "</span>" : "";
+            templateHigh += spanOpen ? "</span>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;  
+            spanOpen = false;
+        }
+    });
+    $('#refSeq').html(refHigh);
+    return templateHigh;
+}
+
+function saveHDR(hdrSeq) {
+    var params = {
+        id  :   [% design.id %],
+        seq :   hdrSeq
+    };
+    var jsonifiedParams = JSON.stringify(params)
+    
+    $.ajax({
+        url: '[% c.uri_for('/api/miseq_hdr_template/') %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            requirements: jsonifiedParams
+        },
+        success: function(result) {
+            console.log("Response received");
+            console.log(result);
+        },
+        error: function(err) {
+            console.log(err);
+        }
+    });
+}
+
+</script>
