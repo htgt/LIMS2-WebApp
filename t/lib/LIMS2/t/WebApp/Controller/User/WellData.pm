@@ -86,7 +86,7 @@ sub concentration_upload  : Test(23)
     my $mech = mech();
 
     note("upload no spreadsheet");
-    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/select_species?species=Human');
     $mech->get_ok('/user/dna_concentration_upload');
     $mech->title_is('DNA Concentration Upload');
     ok $mech->click_button( name => 'spreadsheet' ), 'submit without spreadsheet ok';
@@ -148,7 +148,7 @@ sub egel_status_upload : Tests(22) {
     my $mech = mech();
 
     note("upload no plate name");
-    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/select_species?species=Human');
     $mech->get_ok('/user/dna_quality_update');
     $mech->title_is('DNA EGel Status Update');
     ok $mech->click_button( name => 'update_dna_quality' ), 'submit without plate name ok';

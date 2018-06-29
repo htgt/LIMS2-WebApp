@@ -445,16 +445,16 @@
         [% END %]
 
         [% IF c.session.selected_species %]
-          <li class="dropdown">
+          <li class="dropdown" name="select_species_dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" name="select_species_dropdown_menu">
               <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
+                    <a href="[% c.uri_for( '/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -469,16 +469,16 @@
      [% IF !c.session.selected_pipeline %]
         [% SET c.session.selected_pipeline = 'pipeline_II' %]  
      [% END %]
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          <li class="dropdown" name="select_pipeline_dropdown"> 
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" >
               [% c.session.selected_pipeline %] <b class="caret"></b>
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" name="select_pipeline_dropdown_menu" >
               <li>&nbsp; Switch mode::</li>
                 [%- FOR pipeline_id IN c.session.pipeline %]
                   [%- IF pipeline_id != c.session.selected_pipeline %]
                   <li>
-                    <a href="[% c.uri_for( '/user/select_pipeline', { pipeline => pipeline_id, goto_on_success => c.uri_for('/') } ) %]">
+                    <a href="[% c.uri_for( '/select_pipeline', { pipeline => pipeline_id, goto_on_success => c.uri_for('/') } ) %]" >
                       [% pipeline_id %]
                     </a>
                   </li>

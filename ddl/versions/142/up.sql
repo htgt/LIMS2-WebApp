@@ -3,5 +3,5 @@ CREATE TABLE pipelines (
 );
 
 ALTER TABLE user_preferences 
-ADD COLUMN default_pipeline_id text NOT NULL references pipelines(id); 
+ADD COLUMN default_pipeline_id text references pipelines(id); 
 

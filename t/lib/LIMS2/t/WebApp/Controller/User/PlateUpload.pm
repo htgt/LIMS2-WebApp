@@ -495,7 +495,7 @@ sub all_tests  : Test(120)
 
     {
     ## EP Pipeline II plate
-    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/select_species?species=Human');
     $mech->get_ok( '/user/plate_upload_ep_pipeline_ii' );
     $mech->text_contains('EP Pipeline II Plate - Graphical Interface', '...EP II plate interface');
 

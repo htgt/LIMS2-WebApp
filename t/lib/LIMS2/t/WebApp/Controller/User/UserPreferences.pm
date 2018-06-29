@@ -2,9 +2,8 @@ package LIMS2::t::WebApp::Controller::User::UserPreferences;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::User::UserPreferences;
-
+use LIMS2::Model;
 use LIMS2::Test;
-
 use strict;
 
 ## no critic
@@ -86,10 +85,9 @@ Code to execute all tests
 
 =cut
 
-sub all_tests  : Test(38)
+sub all_tests  : Test(44)
 {
     my $mech = mech();
-
     {   
 	note( "Don't specify new password" );
 	$mech->get_ok( '/user/change_password' );
@@ -123,6 +121,8 @@ sub all_tests  : Test(38)
 
 	ok $res->is_success, '...response is_success';
 	is $res->base->path, '/user/change_password', '...stays on the same page';
+
+
 	like $res->content, qr/You must fill in password confirm box as well/, '... no new password confirm specified';
     }
 
@@ -208,11 +208,22 @@ sub all_tests  : Test(38)
 	like $res->content, qr/Password successfully changed for: test_user/, '... password and password confirm values do not match';
     }
 
+    {
+    note( "Switching pipeline to pipeline I" );
+	$mech->get_ok( '/select_pipeline?pipeline=pipeline_I' );  
+    $mech->title_is('HTGT LIMS2');
+    $mech->text_contains('Switched to pipeline_I'); 
+    note( "Switching pipeline back to pipeline II" );
+	$mech->get_ok( '/select_pipeline?pipeline=pipeline_II' );  
+    $mech->title_is('HTGT LIMS2');
+    $mech->text_contains('Switched to pipeline_II');
+    }
 }
 
 =head1 AUTHOR
 
 Lars G. Erlandsen
+Gerasimos Vandoros
 
 =cut
 

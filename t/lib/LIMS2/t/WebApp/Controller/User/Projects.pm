@@ -16,7 +16,7 @@ BEGIN {
 my $mech = LIMS2::Test::mech();
 
 sub manage_projects_tests : Test(22) {
-    $mech->get_ok('/user/select_species?species=Mouse');
+    $mech->get_ok('/select_species?species=Mouse');
 
     $mech->get_ok('/user/manage_projects');
     $mech->content_lacks('Project ID');
@@ -106,7 +106,7 @@ sub manage_projects_tests : Test(22) {
 }
 
 sub view_edit_project_tests : Test(32){
-    $mech->get_ok('/user/select_species?species=Mouse');
+    $mech->get_ok('/select_species?species=Mouse');
 
     $mech->get_ok('/user/view_project?project_id=12');
     $mech->content_contains('MGI:109393');
@@ -215,7 +215,7 @@ sub view_edit_project_tests : Test(32){
 }
 
 sub edit_human_sponsor_list : Test(10){
-    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/select_species?species=Human');
 
     $mech->get_ok('/user/view_project?project_id=13');
     $mech->content_contains('HGNC:19417');

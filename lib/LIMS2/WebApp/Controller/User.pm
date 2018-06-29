@@ -136,7 +136,7 @@ sub error :Local {
 
 =cut
 
-sub select_pipeline :Local {
+sub select_pipeline :Path( '/select_pipeline' ) {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('read');
 
@@ -148,7 +148,7 @@ sub select_pipeline :Local {
             shift->set_user_preferences(
                 {
                     id              => $c->user->id,
-                    default_pipeline => $pipeline_id 
+                    default_pipeline => $pipeline_id
                 }
             );
         }
@@ -169,7 +169,7 @@ sub select_pipeline :Local {
 
 =cut
 
-sub select_species :Local {
+sub select_species  :Path( '/select_species' ){
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');

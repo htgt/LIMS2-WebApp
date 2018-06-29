@@ -9,7 +9,7 @@ use strict;
 sub all_tests : Test(7)
 {
     my $mech = LIMS2::Test::mech();
-    $mech->get_ok('/user/select_species?species=Human');
+    $mech->get_ok('/select_species?species=Human');
     note('Single type');
     {
         $mech->get_ok('/api/autocomplete/plate_names?term=Miseq&type=FP',
