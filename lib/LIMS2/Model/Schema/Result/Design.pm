@@ -265,6 +265,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 hdr_templates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::HdrTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "hdr_templates",
+  "LIMS2::Model::Schema::Result::HdrTemplate",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 nonsense_design_crispr
 
 Type: belongs_to
@@ -381,8 +396,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pP6TbTvP1aYUiLhUOZF9DQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:02:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ul0TV4QFZrKpksN+t7swZA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -608,7 +623,7 @@ sub design_wells {
     return \@design_wells;
 }
 
-sub current_primer{
+sub current_primer {
     my ( $self, $primer_type ) = @_;
 
     unless($primer_type){
@@ -623,7 +638,7 @@ sub current_primer{
     return $current_primer;
 }
 
-sub gene_ids{
+sub gene_ids {
     my ($self) = @_;
 
     my @ids = uniq map { $_->gene_id } $self->genes;
@@ -632,13 +647,45 @@ sub gene_ids{
 
 # requires a method to find gene, e.g.
 # my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
-sub gene_symbols{
+sub gene_symbols {
     my ($self, $gene_finder) = @_;
 
     my @ids = $self->gene_ids;
     my @symbols = map { $_->{gene_symbol} }
                   values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
+}
+
+sub amplicon {
+    my $self = shift;
+
+    my @oligos = @{$self->oligos_sorted};
+
+    #[Left external, Left internal, Right Internal, Right External] 
+    my $amplicon = _fetch_region_coords($self, $oligos[1], $oligos[2]);
+
+    return $amplicon;
+}
+
+sub _fetch_region_coords {
+    my ($self, $inf, $inr) = @_;
+
+    require WebAppCommon::Util::EnsEMBL;
+    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
+
+    my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $inf->{locus}->{chr_name},
+        $inf->{locus}->{chr_end},
+        $inr->{locus}->{chr_start} + 1,
+        $inf->{locus}->{chr_strand},
+    );
+
+    return $amplicon->seq;
+}
+
+sub hdr_template {
+    return shift->hdr_templates->first->template;
 }
 
 __PACKAGE__->meta->make_immutable;

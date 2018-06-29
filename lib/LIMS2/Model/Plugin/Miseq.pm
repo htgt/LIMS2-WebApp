@@ -287,6 +287,7 @@ sub create_primer_preset {
 
 sub pspec_edit_primer_preset {
     return {
+        id                  => { validate => 'existing_preset_id' },
         name                => { validate => 'alphanumeric_string' },
         created_by          => { validate => 'existing_user_id' },
         genomic_threshold   => { validate => 'numeric' },
@@ -301,7 +302,7 @@ sub edit_primer_preset {
 
     my $validated_params = $self->check_params($params, pspec_edit_primer_preset);
     my %preset_search;
-    $preset_search{'me.name'} = $validated_params->{name};
+    $preset_search{'me.id'} = $validated_params->{id};
     my $design_preset = $self->retrieve(MiseqDesignPreset => \%preset_search);
     my $preset_hash = $design_preset->as_hash;
 
@@ -324,11 +325,39 @@ sub edit_primer_preset {
     return $preset_update;
 }
 
+sub pspec_update_hdr_template {
+    return {
+        id  => { validate => 'existing_design_id', rename => 'design_id' },
+        seq => { validate => 'dna_seq', rename => 'template' },
+    };
+}
+
+sub update_hdr_template {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_update_hdr_template);
+
+    my $hdr_rc = $self->schema->resultset('HdrTemplate')->find({ design_id => $validated_params->{design_id} });
+
+    if ($hdr_rc) {
+        $hdr_rc = $hdr_rc->update($validated_params);
+    } else {
+        $hdr_rc = $self->schema->resultset('HdrTemplate')->create({
+            slice_def(
+                $validated_params,
+                qw( design_id template )
+            )
+        });
+    }
+
+    return $hdr_rc;
+}
+
 sub find_primer_params {
     my ($self, $id) = @_;
 
     my %search = (
-        'me.id'         => $id,
+        'me.id' => $id,
     );
     my $primer_preset = $self->retrieve(MiseqPrimerPreset => \%search);
 

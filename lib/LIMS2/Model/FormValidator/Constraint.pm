@@ -466,6 +466,10 @@ sub primer_params {
     }
 }
 
+sub existing_preset_id {
+    return shift->in_resultset( 'MiseqDesignPreset', 'id' );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;
