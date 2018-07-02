@@ -5,7 +5,7 @@
             [% SET count = 0 %]
             [% WHILE count < 12 %]
                 [% count = count + 1 %]
-                <th data-column-id="[% count %]">
+                <th data-column-id="[% count %]" class="text-center">
                     [% count + x %]
                 </th>
             [% END %]
