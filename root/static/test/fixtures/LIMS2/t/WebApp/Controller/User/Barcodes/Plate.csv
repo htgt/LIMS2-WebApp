@@ -44,5 +44,5 @@ id,name,description,type_id,created_by_id,created_at,species_id,is_virtual,barco
 8605,HCR0008_A,"",CRISPR_V,270,2015-04-28 09:29:27.866259,Human,,,,
 7771,HCR8,"",CRISPR,270,2014-12-18 11:49:11.019174,Human,,,,
 8899,HUFP0007_3_A,"",FP,178,2015-05-18 13:26:37.745282,Human,,,,
-1012,PIQ_CRE_0001,"",PIQ,270,2013-07-30 14:50:16.499839,Mouse,,,,
+1012,PIQ_CRE_0001,"",PIQ,270,2013-07-30 14:50:16.499839,Human,,,,
 1059,PIQ0002,Dist QC tests,PIQ,270,2013-05-29 11:00:00,Mouse,,,,
