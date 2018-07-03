@@ -210,11 +210,11 @@ sub all_tests  : Test(44)
 
     {
     note( "Switching pipeline to pipeline I" );
-	$mech->get_ok( '/select_pipeline?pipeline=pipeline_I' );  
+	$mech->get_ok( '/user/select_pipeline?pipeline=pipeline_I' );  
     $mech->title_is('HTGT LIMS2');
     $mech->text_contains('Switched to pipeline_I'); 
     note( "Switching pipeline back to pipeline II" );
-	$mech->get_ok( '/select_pipeline?pipeline=pipeline_II' );  
+	$mech->get_ok( '/user/select_pipeline?pipeline=pipeline_II' );  
     $mech->title_is('HTGT LIMS2');
     $mech->text_contains('Switched to pipeline_II');
     }

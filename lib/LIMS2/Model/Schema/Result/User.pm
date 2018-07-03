@@ -258,6 +258,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_design_presets
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqDesignPreset>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_design_presets",
+  "LIMS2::Model::Schema::Result::MiseqDesignPreset",
+  { "foreign.created_by" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 plate_comments
 
 Type: has_many
@@ -569,8 +584,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-12 12:21:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1O4Ihmif5mfnde2VUH4bcg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-03 11:49:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IkJlulRFNQ5qLgdIozD7Qg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

@@ -454,7 +454,7 @@
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
                   <li>
-                    <a href="[% c.uri_for( '/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
+                    <a href="[% c.uri_for( '/user/select_species', { species => species_id, goto_on_success => c.uri_for('/') } ) %]">
                       [% species_id %]
                     </a>
                   </li>
@@ -478,7 +478,7 @@
                 [%- FOR pipeline_id IN c.session.pipeline %]
                   [%- IF pipeline_id != c.session.selected_pipeline %]
                   <li>
-                    <a href="[% c.uri_for( '/select_pipeline', { pipeline => pipeline_id, goto_on_success => c.uri_for('/') } ) %]" >
+                    <a href="[% c.uri_for( '/user/select_pipeline', { pipeline => pipeline_id, goto_on_success => c.uri_for('/') } ) %]" >
                       [% pipeline_id %]
                     </a>
                   </li>

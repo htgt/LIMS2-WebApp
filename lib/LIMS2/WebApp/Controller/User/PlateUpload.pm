@@ -389,8 +389,7 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 
    if ($process_type eq 'miseq_oligo' ||  $process_type eq 'miseq_vector' ||
        $process_type eq 'miseq_no_template'){
-       return $c->res->redirect('/user/create_miseq_plate')
-       ;
+       return $c->res->redirect('/user/create_miseq_plate');
    }
 
     my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();

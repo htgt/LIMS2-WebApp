@@ -97,7 +97,7 @@ sub create_user {
     my $user = $self->schema->resultset('User')->create(
         {   name     => $validated_params->{name},
             password => $csh->generate
-         }
+        }
     );
 
     for my $role_name ( @{ $validated_params->{roles} || [] } ) {
@@ -110,7 +110,7 @@ sub create_user {
             create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
         }
     );
-       return $user;
+    return $user;
 }
 
 sub pspec_set_user_roles {
@@ -240,15 +240,15 @@ sub pspec_set_user_preferences {
 sub set_user_preferences
 {
     my ( $self, $params ) = @_;
-    my $user_preference = $self->retrieve( UserPreference => { user_id => $params->{id}});
-    $params->{default_species} = $params->{default_species}||$user_preference->default_species_id;
-    $params->{default_pipeline} = $params->{default_pipeline}||$user_preference->default_pipeline_id;
+    my $user_preference = $self->retrieve( UserPreference => { user_id => $params->{id} });
+    $params->{default_species} = $params->{default_species} || $user_preference->default_species_id;
+    $params->{default_pipeline} = $params->{default_pipeline} || $user_preference->default_pipeline_id;
     my $validated_params = $self->check_params( $params, $self->pspec_set_user_preferences );
     my $prefs = $self->retrieve_user_preferences( $validated_params );
     if ( $prefs->default_species_id ne $validated_params->{default_species} ){
         $prefs->update( { default_species_id => $validated_params->{default_species} } );
     }
-     if ( $prefs->default_pipeline_id ne $validated_params->{default_pipeline} ){
+    if ( $prefs->default_pipeline_id ne $validated_params->{default_pipeline} ){
         $prefs->update( { default_pipeline_id => $validated_params->{default_pipeline} } );
     }
     return $prefs;
