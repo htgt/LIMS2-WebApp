@@ -54,7 +54,7 @@ use Data::Dumper;
 print Dumper($design_id{$s}); 
     my $mech = LIMS2::Test::mech();
     ok(1, "Test of LIMS2::WebApp::Controller::User::BrowseDesigns");
-    $mech->get_ok('select_species?species=Mouse');
+    $mech->get_ok('/user/select_species?species=Mouse');
     $mech->get_ok('/user/browse_designs');
     $mech->title_is('Browse Designs');
     ok my $res = $mech->submit_form(
