@@ -155,6 +155,11 @@ sub existing_primer_band_type {
     return shift->in_resultset ( 'PrimerBandType', 'id')
 }
 
+sub existing_pipeline {
+    return shift->in_resultset( 'Pipeline', 'id' );
+}
+
+
 sub recombineering_result {
     return shift->in_set( 'pass', 'fail', 'weak' );
 }

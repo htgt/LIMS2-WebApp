@@ -28,7 +28,6 @@ Catalyst Controller.
 
 sub login : Global {
     my ( $self, $c ) = @_;
-
     my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
     if($protocol eq 'HTTPS'){
         my $base = $c->req->base;
@@ -38,7 +37,6 @@ sub login : Global {
     }
 
     $c->require_ssl;
-
     my $username = $c->req->param('username');
     my $password = $c->req->param('password');
     my $goto     = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
@@ -55,7 +53,11 @@ sub login : Global {
     }
 
     if ( $c->authenticate( { name => lc($username), password => $password, active => 1 } ) ) {
-
+        my $prefs = $c->model('Golgi')->retrieve_user_preferences({ id => $c->user->id } );
+        if ($prefs){
+            $c->session->{selected_species} = $prefs->default_species_id;
+            $c->session->{selected_pipeline} = $prefs->default_pipeline_id;
+        }
     	# Only set the flash message if we are staying in lims2 webapp
         # FIXME: assuming we redirect to a http page, not another https page
     	my $app_root = quotemeta( $c->uri_for('/') );
@@ -63,13 +65,10 @@ sub login : Global {
         if($goto=~/$app_root/){
             $c->flash( success_msg => 'Login successful' );
         }
-
         # If we have a htgt session id set a cookie that htgt can use
         # to check authentication
         if ($htgtsession){
-
             $c->log->debug('Writing LIMS2Auth cookie for htgt');
-
             my $conf_file = $ENV{LIMS2_HTGT_KEY}
                 or die "Cannot write cookie for HTGT - no LIMS2_HTGT_KEY environment variable set.";
 
@@ -93,8 +92,8 @@ sub login : Global {
     else {
         $c->stash( error_msg => 'Incorrect username or password' );
     }
-
     return;
+
 }
 
 =head2 logout
