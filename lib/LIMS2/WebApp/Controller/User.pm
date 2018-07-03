@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::VERSION = '0.506';
+    $LIMS2::WebApp::Controller::User::VERSION = '0.507';
 }
 ## use critic
 
@@ -58,21 +58,31 @@ sub auto : Private {
         }
     }
 
+    my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
     if ( ! $c->session->{selected_species} ) {
-        my $prefs = $c->model('Golgi')->retrieve_user_preferences( { id => $c->user->id } );
         $c->session->{selected_species} = $prefs->default_species_id;
     }
-
+    if(! $c->session->{selected_pipeline}) {
+     $c->session->{selected_pipeline} = $prefs->default_pipeline_id;
+    }
     if ( ! $c->session->{display_type} ) {
         $c->session->{display_type} = 'default';
     }
-
     if ( ! $c->session->{species} ) {
         $c->session->{species} = $c->model('Golgi')->list_species;
     }
-
+    if ( ! $c->session->{pipeline} ) {
+        $c->session->{pipeline} = $c->model('Golgi')->list_pipeline;
+    }
     return 1;
 }
+
+
+
+
+
+
+
 
 =head2 end
 
@@ -128,11 +138,44 @@ sub error :Local {
     return;
 }
 
+=head2 select_pipeline
+
+=cut
+
+sub select_pipeline :Local {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles('read');
+
+    my $pipeline_id = $c->request->param('pipeline');
+    my $goto = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            shift->set_user_preferences(
+                {
+                    id              => $c->user->id,
+                    default_pipeline => $pipeline_id
+                }
+            );
+        }
+    );
+
+    $c->session->{selected_pipeline} = $pipeline_id;
+
+    $c->flash( info_msg => "Switched to $pipeline_id" );
+
+    return $c->response->redirect( $goto );
+}
+
+
+
+
+
 =head2 select_species
 
 =cut
 
-sub select_species :Local {
+sub select_species  :Local {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
@@ -140,7 +183,7 @@ sub select_species :Local {
     my $species_id = $c->request->param('species');
     my $goto = $c->stash->{goto_on_success} || $c->req->param('goto_on_success') || $c->uri_for('/');
 
-    $c->model('Golgi')->txn_do(
+    my $user_rs = $c->model('Golgi')->txn_do(
         sub {
             shift->set_user_preferences(
                 {
@@ -152,7 +195,7 @@ sub select_species :Local {
     );
 
     $c->session->{selected_species} = $species_id;
-
+    $c->session->{selected_pipeline} = $user_rs->pipeline;
     $c->flash( info_msg => "Switched to species $species_id" );
 
     return $c->response->redirect( $goto );

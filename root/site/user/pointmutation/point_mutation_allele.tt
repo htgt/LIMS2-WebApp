@@ -240,60 +240,62 @@ input:checked + .slider:before {
 [% END %]
 
 [% FOREACH experiment IN experiments %]
-    [% IF experiment.gene %]
-        <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
-    [% ELSE %]
-        <h2>Experiment: [% experiment.id %]</h2>
+    [% IF !selection OR experiment.id == selection %]
+        [% IF experiment.gene %]
+            <h2>Experiment: [% experiment.id %], Gene: [% experiment.gene %]</h2>
+        [% ELSE %]
+            <h2>Experiment: [% experiment.id %]</h2>
+        [% END %]
+        <div id="clearfix[% experiment.id %]" class="clearfix row">
+            <div class="col-md-2">
+                <label class="lb-md">Classification: </label>
+            </div>
+            <div class="col-md-2">
+                <form action="#" method="POST" name="class[% experiment.id %]" id="class[% experiment.id %]">
+                    <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
+                    [% FOR class IN classifications %]
+                        [% IF class == experiment.class %]
+                            <option value="[% class %]" selected="selected">[% class %]</option>
+                        [% ELSE %]
+                            <option value="[% class %]">[% class %]</option>
+                        [% END %]
+                    [% END %]
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-2">
+                <label class="lb-md">Status: </label>
+            </div>
+            <div class="col-md-2">
+                <form action="#" method="POST" name="status[% experiment.id %]" id="status[% experiment.id %]">
+                    <select class="form-control" align="center" id="statusSelect" name="status[% experiment.id %]" onchange="this.form.submit();">
+                    [% FOR state IN status %]
+                        [% IF state == experiment.status %]
+                            <option value="[% state %]" selected="selected">[% state %]</option>
+                        [% ELSE %]
+                            <option value="[% state %]">[% state %]</option>
+                        [% END %]
+                    [% END %]
+                    </select>
+                </form>
+            </div>
+        </div>
+        <div class='genes [% experiment.id %]'></div>
+        <div class="row">
+            <div class="col-md-3">
+                <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
+                    Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
+                </button>
+            </div>
+            <div class="col-md-3">
+                <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
+                    Download CSV <i class="glyphicon glyphicon-download-alt"></i>
+                </button>
+            </div>
+        </div>
+        <div id='[% experiment.id %]'></div>
+        <br>
     [% END %]
-    <div id="clearfix[% experiment.id %]" class="clearfix row">
-        <div class="col-md-2">
-            <label class="lb-md">Classification: </label>
-        </div>
-        <div class="col-md-2">
-            <form action="#" method="POST" name="class[% experiment.id %]" id="class[% experiment.id %]">
-                <select class="form-control" align="center" id="classSelect" name="class[% experiment.id %]" onchange="this.form.submit();">
-                [% FOR class IN classifications %]
-                    [% IF class == experiment.class %]
-                        <option value="[% class %]" selected="selected">[% class %]</option>
-                    [% ELSE %]
-                        <option value="[% class %]">[% class %]</option>
-                    [% END %]
-                [% END %]
-                </select>
-            </form>
-        </div>
-        <div class="col-md-2">
-            <label class="lb-md">Status: </label>
-        </div>
-        <div class="col-md-2">
-            <form action="#" method="POST" name="status[% experiment.id %]" id="status[% experiment.id %]">
-                <select class="form-control" align="center" id="statusSelect" name="status[% experiment.id %]" onchange="this.form.submit();">
-                [% FOR state IN status %]
-                    [% IF state == experiment.status %]
-                        <option value="[% state %]" selected="selected">[% state %]</option>
-                    [% ELSE %]
-                        <option value="[% state %]">[% state %]</option>
-                    [% END %]
-                [% END %]
-                </select>
-            </form>
-        </div>
-    </div>
-    <div class='genes [% experiment.id %]'></div>
-    <div class="row">
-        <div class="col-md-3">
-            <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
-                Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
-            </button>
-        </div>
-        <div class="col-md-3">
-            <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
-                Download CSV <i class="glyphicon glyphicon-download-alt"></i>
-            </button>
-        </div>
-    </div>
-    <div id='[% experiment.id %]'></div>
-    <br>
 [% END %]
 
 <script type="text/javascript" charset="utf-8">

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::OligoSelection;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::OligoSelection::VERSION = '0.506';
+    $LIMS2::Model::Util::OligoSelection::VERSION = '0.507';
 }
 ## use critic
 
@@ -49,6 +49,7 @@ BEGIN {
 use DesignCreate::Util::Primer3;
 use DesignCreate::Util::BWA;
 use LIMS2::Model::Util::DesignInfo;
+use POSIX qw(strftime);
 
 use Bio::SeqIO;
 use Path::Class;
@@ -1012,8 +1013,9 @@ sub single_crispr_primer_generation {
             + $params->{'search_field_width' } + $offset ),
     );
 
+    my $time = strftime "%S-%M-%H_%d-%m-%Y", localtime;
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
-    my $logfile = $dir_out->file( $params->{'crispr_id'} . '_s_seq_oligos.log');
+    my $logfile = $dir_out->file( $params->{'crispr_id'} . '_' . $time . '_seq_oligos.log');
 
     my ( $result, $primer3_explain ) = $p3->run_primer3( $logfile->absolute, $region_bio_seq, # bio::seqI
             { SEQUENCE_TARGET => $target_sequence_mask ,

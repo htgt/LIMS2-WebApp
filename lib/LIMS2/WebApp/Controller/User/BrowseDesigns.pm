@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.506';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.507';
 }
 ## use critic
 
@@ -94,6 +94,11 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     if ( $design_data->{type} ne 'nonsense' ) {
         ( $crisprs, $crispr_pairs, $crispr_groups ) = crisprs_for_design( $c->model('Golgi'), $design );
     }
+    if ( $design_data->{type} =~ /^miseq/xms ) {
+        $c->stash->{amplicon} = $design->amplicon;
+        $c->stash->{hdr_template} = $design->hdr_template;
+    }
+
     my $design_attempt = $design->design_attempt;
 
     my $group_ids = join ", ", map { $_->id } @$crispr_groups;

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::UserPreference;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::UserPreference::VERSION = '0.506';
+    $LIMS2::Model::Schema::Result::UserPreference::VERSION = '0.507';
 }
 ## use critic
 
@@ -56,6 +56,13 @@ __PACKAGE__->table("user_preferences");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 default_pipeline_id
+
+  data_type: 'text'
+  default_value: 'pipeline_II'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +70,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "default_species_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "default_pipeline_id",
+  {
+    data_type      => "text",
+    default_value  => "pipeline_II",
+    is_foreign_key => 1,
+    is_nullable    => 1,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -78,6 +92,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("user_id");
 
 =head1 RELATIONS
+
+=head2 default_pipeline
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Pipeline>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "default_pipeline",
+  "LIMS2::Model::Schema::Result::Pipeline",
+  { id => "default_pipeline_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 default_species
 
@@ -110,9 +144,11 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c5cy5xbg858pVI4Mwe/rCA
-
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-12 12:21:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AoDJ2Pkopeao+dh3hJimFw
+sub pipeline {
+    return shift->default_pipeline_id;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

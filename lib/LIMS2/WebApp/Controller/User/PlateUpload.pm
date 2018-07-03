@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.506';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.507';
 }
 ## use critic
 
@@ -391,6 +391,11 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
 
    if ($process_type eq 'ep_pipeline_ii') {
      return $c->res->redirect( $c->uri_for('/user/plate_upload_ep_pipeline_ii') );
+   }
+
+   if ($process_type eq 'miseq_oligo' ||  $process_type eq 'miseq_vector' ||
+       $process_type eq 'miseq_no_template'){
+       return $c->res->redirect('/user/create_miseq_plate');
    }
 
     my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();
