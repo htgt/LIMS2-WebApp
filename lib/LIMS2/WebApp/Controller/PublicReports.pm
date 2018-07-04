@@ -16,6 +16,7 @@ use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
+use JSON qw( decode_json encode_json );
 use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -179,8 +180,12 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my $sub_cache_param;
     my $top_cache_param;
 
-# If logged in always use live top level report and cached sub_reports
-# The cache_param refers to the sub_reports
+    my $is_internal = 0;
+    my $client_host = $c->request->hostname;
+
+
+    $sub_cache_param = 'with_cache';
+    $top_cache_param = 'with_cache';
 
     if ( $c->request->params->{'generate_cache'} ){
         $sub_cache_param = 'without_cache';
@@ -189,19 +194,19 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     }
     elsif ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
+        $is_internal = 1;
         if ( !$c->request->params->{'cache_param'} ) {
             $sub_cache_param = 'with_cache';
-            $top_cache_param = 'without_cache';
+            $top_cache_param = 'with_cache';
         }
         else {
             $sub_cache_param = $c->request->params->{'cache_param'};
             $top_cache_param = 'without_cache';
         }
     }
-    else {
-        # not logged in - always use cached reports for top level and sub-reports
-        $sub_cache_param = 'with_cache';
-        $top_cache_param = 'with_cache';
+    
+    if ( $client_host =~ /internal.sanger.ac.uk/ ) {
+        $is_internal = 1;
     }
 
     if (!$c->request->params->{'species'}) {
@@ -218,7 +223,26 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     else {
         # by default show the single_targeted report
         if ( $top_cache_param eq  'with_cache' ) {
-            $self->_view_cached_lines( $c, lc( $species ) );
+            my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
+
+            my $report_id   = $top_level_data->{ report_id };
+            my $title       = $top_level_data->{ title };
+            my $title_ii    = $top_level_data->{ title_ii };
+            my $columns     = $top_level_data->{ columns };
+            my $rows        = $top_level_data->{ rows };
+            my $data        = $top_level_data->{ data };
+
+            $c->stash(
+                'report_id'      => $report_id,
+                'title'          => $title,
+                'title_ii'       => $title_ii,
+                'species'        => $species,
+                'targeting_type' => $targeting_type,
+                'cache_param'    => 'with_cache',
+                'columns'        => $columns,
+                'rows'           => $rows,
+                'data'           => $data,
+            );
         }
         else {
             $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
@@ -226,13 +250,37 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 
     }
 
-    if ( $top_cache_param eq 'without_cache' ) {
-        $c->stash(
-            template    => 'publicreports/sponsor_report.tt',
-        );
-    }
+
+    $c->stash(
+        template    => 'publicreports/sponsor_report.tt',
+        is_internal => $is_internal,
+    );
 
     return;
+}
+
+sub _view_cached_top_level_report {
+    my ( $self, $c, $name ) = @_;
+
+    my $server_path = $c->uri_for('/');
+    my $cache_server;
+
+    for ($server_path) {
+        if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+
+    open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
+
+    my $json_data = decode_json(<$json_handle>);
+    close $json_handle;
+    
+    return $json_data;
+
 }
 
 sub _generate_front_page_report {
@@ -244,7 +292,7 @@ sub _generate_front_page_report {
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors( );
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors($c->uri_for('/'));
 
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
@@ -341,7 +389,7 @@ sub _filter_public_attributes {
 
 #    /^(.*),.*$/xgms
 #        ^ assert position at start of a line
-#        1st Capturing group (.*)
+#        1st Cap$c->uri_for('/')ng group (.*)
 #            .* matches any character
 #                Quantifier: * Between zero and unlimited times, as many times as possible, giving back as needed [greedy]
 #        , matches the character , literally
@@ -458,6 +506,23 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             'species'              => $species,
             'cache_param'          => $cache_param,
         );
+
+        my $json_data = encode_json({
+            'report_id'            => $report_id,
+            'disp_target_type'     => $disp_target_type,
+            'disp_stage'           => $disp_stage,
+            'sponsor_id'           => $sponsor_id,
+            'columns'              => $columns,
+            'display_columns'      => $display_columns,
+            'data'                 => $data,
+            'link'                 => $link,
+            'type'                 => $type,
+            'species'              => $species,
+            'cache_param'          => $cache_param,
+            });
+
+        $sponsor_id =~ s/\ /_/g;
+        $sponsor_report->save_json_report($c->uri_for('/'), $json_data, $sponsor_id);
     }
 
     return;
@@ -542,7 +607,27 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
 
     $c->log->info( "Generate public detail report for : $report_name" );
 
-    return $self->_view_cached_lines($c, $report_name );
+    $report_name =~ s/\ /_/g;
+    my $sub_level_data = $self->_view_cached_top_level_report( $c, $report_name );
+    my $template = 'publicreports/sponsor_sub_report.tt';
+
+
+    $c->stash(
+        'template'             => $template,
+        'report_id'            => $sub_level_data->{report_id},
+        'disp_target_type'     => $sub_level_data->{disp_target_type},
+        'disp_stage'           => $sub_level_data->{disp_stage},
+        'sponsor_id'           => $sub_level_data->{sponsor_id},
+        'columns'              => $sub_level_data->{columns},
+        'display_columns'      => $sub_level_data->{display_columns},
+        'data'                 => $sub_level_data->{data},
+        'link'                 => $sub_level_data->{link},
+        'type'                 => $sub_level_data->{type},
+        'species'              => $sub_level_data->{species},
+        'cache_param'          => $sub_level_data->{cache_param},
+        );
+
+#    return $self->_view_cached_lines($c, $report_name );
 }
 
 sub view_cached_simple : Path( '/public_reports/cached_sponsor_report_simple' ) : Args(1) {
@@ -1004,3 +1089,4 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
