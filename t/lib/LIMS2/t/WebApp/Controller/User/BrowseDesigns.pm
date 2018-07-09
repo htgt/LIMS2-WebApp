@@ -43,7 +43,7 @@ my %design_id = (
     invalidid1=>{id => '201994', content => 'Design 201994 not found'}, 
     invalidid2=>{id => '10293840', content => 'Design 10293840 not found'},
 
-    invalidid3=>{id => '102 9&gf5', content => 'Design A'} 
+    invalidid3=>{id => '102 9&gf5', content => 'Please enter a valid design id'} 
     
 );
 
@@ -54,6 +54,7 @@ use Data::Dumper;
 print Dumper($design_id{$s}); 
     my $mech = LIMS2::Test::mech();
     ok(1, "Test of LIMS2::WebApp::Controller::User::BrowseDesigns");
+    $mech->get_ok('/user/select_species?species=Mouse');
     $mech->get_ok('/user/browse_designs');
     $mech->title_is('Browse Designs');
     ok my $res = $mech->submit_form(

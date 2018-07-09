@@ -107,7 +107,8 @@ process_guided_type,
 guided_types,
 trivial_offset,
 miseq_primer_presets,
-miseq_design_presets
+miseq_design_presets,
+hdr_template
  CASCADE;
 
 

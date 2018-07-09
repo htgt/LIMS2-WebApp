@@ -86,9 +86,9 @@
           Genoverse.Track.SequenceSelect.extend({
             name      : 'Sequence',
             [% IF c.session.selected_species == 'Mouse' %]
-            url       : 'http://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
+            url       : 'https://rest.ensembl.org/sequence/region/mouse/__CHR__:__START__-__END__?content-type=text/plain',
             [% ELSE  %]
-            url       : 'http://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
+            url       : 'https://rest.ensembl.org/sequence/region/human/__CHR__:__START__-__END__?content-type=text/plain',
             [% END %]
             resizable : 'auto',
             100000    : false,
@@ -123,9 +123,9 @@
           Genoverse.Track.Genes.extend({
             name   : 'Genes',
             [% IF c.session.selected_species == 'Mouse' %]
-            url    : 'http://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            url    : 'https://rest.ensembl.org/overlap/region/mouse/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% ELSE %]
-            url    : 'http://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
+            url    : 'https://rest.ensembl.org/overlap/region/human/__CHR__:__START__-__END__?feature=gene;feature=transcript;feature=exon;feature=cds;content-type=application/json',
             [% END %]
             height : 200
           })

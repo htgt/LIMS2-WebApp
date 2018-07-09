@@ -298,6 +298,7 @@ sub load_static_files {
             ProcessGuidedType
             GuidedType
             TrivialOffset
+            Pipeline
             )
     );
 

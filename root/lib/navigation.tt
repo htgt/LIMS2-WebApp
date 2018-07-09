@@ -97,27 +97,36 @@
             <li>
               <a href="[% c.uri_for( '/user/browse_designs' ) %]">Browse Designs</a>
             </li>
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li>
               <a href="[% c.uri_for( '/user/gibson_design_gene_pick' ) %]">Create Design</a>
             </li>
+            [% END %]
+            [% IF c.session.selected_pipeline == "pipeline_II" %] 
             <li>
               <a href="[% c.uri_for( '/user/create_miseq_design' ) %]">Create Miseq Design</a>
             </li>
+            [% END %]
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li>
               <a href="[% c.uri_for( '/user/design_attempts' ) %]">Design Attempts</a>
             </li>
+            [% END %]
             <li>
               <a href="[% c.uri_for( '/user/design_target_gene_search' ) %]">Design Target Crispr Search</a>
             </li>
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li>
               <a href="[% c.uri_for( '/user/report/cache/SummaryOligoPlate' ) %]">Summary by Oligo Plate</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/wge_design_importer' ) %]">Import Design From WGE</a>
             </li>
+            [% END %]
             <li>
               <a href="[% c.uri_for( '/user/pick_gene_generate_sequence_file' ) %]">Generate Sequence File</a>
             </li>
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li class="divider"></li>
             <li>
               <a href="[% c.uri_for( '/user/create_design_plate' ) %]">Upload Design Plate</a>
@@ -128,6 +137,7 @@
             <li>
               <a href="[% c.uri_for( '/user/generate_primers' ) %]">Generate Primers</a>
             </li>
+            [% END %]
 
           </ul>
         </li>
@@ -144,57 +154,87 @@
             <li>
               <a href="[% c.uri_for( '/user/wge_crispr_group_importer' ) %]">Import Crisprs From WGE as Group</a>
             </li>
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li class="divider"></li>
             <li>
               <a href="[% c.uri_for( '/user/create_crispr_plate' ) %]">Upload Crispr Plate</a>
             </li>
+            [% END %]
             <li class="divider"></li>
             <li>
               <a href="[% c.uri_for( '/user/search_crisprs' ) %]">Find Crisprs</a>
             </li>
+            [% IF c.session.selected_pipeline == "pipeline_II" %] 
             <li class="divider"></li>
             <li>
-              <a href="[% c.uri_for( '/user/crispr_browse_and_store' ) %]">Browse and Store</a>
+             <a href="[% c.uri_for( '/user/crispr_browse_and_store' ) %]">Browse and Store</a>
             </li>
             <li>
-              <a href="[% c.uri_for( '/user/crispr_locate_in_storage' ) %]">Locate Crisprs</a>
+             <a href="[% c.uri_for( '/user/crispr_locate_in_storage' ) %]">Locate Crisprs</a>
             </li>
+            [% END %]
           </ul>
         </li>
 
         <li class="dropdown[% IF template.tab_name == "Vectors" %] active[% END %]">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Vectors <b class="caret"></b></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Plates <b class="caret"></b></a>
           <ul class="dropdown-menu">
             <li>
               <a href="[% c.uri_for( '/user/browse_plates' ) %]">Browse Plates</a>
             </li>
-
             [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/plate_upload_step1' ) %]">Upload Plate</a>
             </li>
             [% END %]
 
+            [% IF c.check_user_roles( 'edit' ) && c.session.selected_pipeline == "pipeline_II" %]
+            <li>
+              <a href="[% c.uri_for( '/user/create_miseq_plate' ) %]">Create MiSEQ Plate</a>
+            </li>
+            [% END %]
+            
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li class="divider"></li>
-
             <li>
               <a href="[% c.uri_for( '/user/report/vector/DesignVectors' ) %]">
                 Vectors By Design
               </a>
             </li>
+            [% END %]
           </ul>
         </li>
 
         <li class="dropdown[% IF template.tab_name == "QC" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">QC <b class="caret"></b></a>
           <ul class="dropdown-menu">
+
+            [% IF c.session.selected_pipeline == "pipeline_II" %] 
             <li>
+              <a href="[% c.uri_for( '/user/browse_point_mutation' ) %]">Search Point Mutations</a>
+            </li>
+
+            <li class="divider"></li>
+            [% END %]
+
+            <li>
+              <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
+            </li>
+            <li>
+              <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
+            </li>
+            
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
+
+            <li class="divider"></li>
+
+             <li>
               <a href="[% c.uri_for( '/user/qc_runs' ) %]">Browse Sequencing QC</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/browse_templates' ) %]">Browse QC Templates</a>
             </li>
-            [% IF c.check_user_roles( 'edit' ) %]
+                [% IF c.check_user_roles( 'edit' ) %]
             <li>
               <a href="[% c.uri_for( '/user/create_template_plate' ) %]">Create QC Template</a>
             </li>
@@ -208,16 +248,6 @@
               <a href="[% c.uri_for( '/user/latest_runs' ) %]">Latest QC Runs</a>
             </li>
             <li class="divider"></li>
-
-            <li>
-              <a href="[% c.uri_for( '/user/show_genotyping_qc_data' ) %]">Genotyping QC Results</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/upload_genotyping_qc' ) %]">Upload Genotyping QC Results</a>
-            </li>
-
-            <li class="divider"></li>
-
             <li>
               <a href="[% c.uri_for( '/user/crisprqc/es_qc_runs' ) %]">CRISPR QC Results</a>
             </li>
@@ -241,15 +271,9 @@
             <li>
               <a href="[% c.uri_for( '/user/qc/view_traces' ) %]">View Sequencing Traces</a>
             </li>
-
-            <li class="divider"></li>
-            <li>
-              <a href="[% c.uri_for( '/user/create_miseq_plate' ) %]">Create MiSEQ Plate</a>
-            </li>
-            <li>
-              <a href="[% c.uri_for( '/user/browse_point_mutation' ) %]">Search Point Mutations</a>
-            </li>
+                [% END %]
             [% END %]
+
           </ul>
         </li>
 
@@ -269,6 +293,8 @@
             <li>
               <a href="[% c.uri_for( '/user/move_well' ) %]">Move Well</a>
             </li>
+        
+                [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li>
               <a href="[% c.uri_for( '/user/dna_concentration_upload' ) %]">Upload DNA Concentrations</a>
             </li>
@@ -279,15 +305,17 @@
               <a href="[% c.uri_for( '/user/dna_status_update' ) %]">Update DNA Status</a>
             </li>
             <li>
+              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
+            </li>
+                [% END %]
+
+            <li>
               <a href="[% c.uri_for( '/user/pcr_status_update' ) %]">Upload PCR Status</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/update_colony_picks_step_1' ) %]">Update Colony Counts</a>
             </li>
             [% END %]
-            <li>
-              <a href="[% c.uri_for( '/user/plate_from_copy' ) %]">Copy DNA Plate</a>
-            </li>
 
             <li class="divider"></li>
 
@@ -373,6 +401,8 @@
             <li>
               <a href="[% c.uri_for( '/user/rescan_barcoded_plate' ) %]">Rescan Barcoded Plate</a>
             </li>
+            
+            [% IF c.session.selected_pipeline == "pipeline_I" %] 
             <li class="divider"></li>
             <li>
               <a href="[% c.uri_for( '/user/mutation_signatures_barcodes' ) %]">Mutation Signatures Barcodes</a>
@@ -381,6 +411,8 @@
             <li>
               <a href="[% c.uri_for( '/user/search_cgap_friendly_name' ) %]">Search by CGAP Name</a>
             </li>
+            [% END %] 
+
           </ul>
         </li>
 
@@ -413,11 +445,11 @@
         [% END %]
 
         [% IF c.session.selected_species %]
-          <li class="dropdown">
+          <li class="dropdown" name="select_species_dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               [% c.session.selected_species %] <b class="caret"></b>
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu" name="select_species_dropdown_menu">
               <li>&nbsp; Switch species:</li>
                 [%- FOR species_id IN c.session.species %]
                   [%- IF species_id != c.session.selected_species %]
@@ -431,6 +463,31 @@
             </ul>
           </li>
         [% END %]
+
+
+     
+     [% IF !c.session.selected_pipeline %]
+        [% SET c.session.selected_pipeline = 'pipeline_II' %]  
+     [% END %]
+          <li class="dropdown" name="select_pipeline_dropdown"> 
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" >
+              [% c.session.selected_pipeline %] <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu" name="select_pipeline_dropdown_menu" >
+              <li>&nbsp; Switch mode::</li>
+                [%- FOR pipeline_id IN c.session.pipeline %]
+                  [%- IF pipeline_id != c.session.selected_pipeline %]
+                  <li>
+                    <a href="[% c.uri_for( '/user/select_pipeline', { pipeline => pipeline_id, goto_on_success => c.uri_for('/') } ) %]" >
+                      [% pipeline_id %]
+                    </a>
+                  </li>
+                  [% END %]
+                [% END %]
+            </ul>
+          </li>
+    
+
 
         <li class="dropdown[% IF template.tab_name == "User" %] active[% END %]">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">[% c.user.name %] <b class="caret"></b></a>
