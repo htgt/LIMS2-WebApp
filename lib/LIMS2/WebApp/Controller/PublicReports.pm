@@ -609,7 +609,7 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
         'cache_param'          => $sub_level_data->{cache_param},
         );
 
-#    return $self->_view_cached_lines($c, $report_name );
+    return;
 }
 
 sub view_cached_simple : Path( '/public_reports/cached_sponsor_report_simple' ) : Args(1) {
