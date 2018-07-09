@@ -177,24 +177,16 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my ( $self, $c, $targeting_type ) = @_;
 
     my $species;
-    my $cache_param;
-    my $sub_cache_param;
-    my $top_cache_param;
+    my $sub_cache_param = 'with_cache';
+    my $top_cache_param = 'with_cache';
 
     my $is_internal = 0;
     my $client_host = $c->request->hostname;
 
-    $sub_cache_param = 'with_cache';
-    $top_cache_param = 'with_cache';
-
     if ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
         $is_internal = 1;
-        if ( !$c->request->params->{'cache_param'} ) {
-            $sub_cache_param = 'with_cache';
-            $top_cache_param = 'with_cache';
-        }
-        else {
+        if ( $c->request->params->{'cache_param'} ) {
             $sub_cache_param = $c->request->params->{'cache_param'};
             $top_cache_param = $c->request->params->{'cache_param'};
         }
