@@ -389,7 +389,7 @@ sub _filter_public_attributes {
 
 #    /^(.*),.*$/xgms
 #        ^ assert position at start of a line
-#        1st Cap$c->uri_for('/')ng group (.*)
+#        1st Capturing group (.*)
 #            .* matches any character
 #                Quantifier: * Between zero and unlimited times, as many times as possible, giving back as needed [greedy]
 #        , matches the character , literally
