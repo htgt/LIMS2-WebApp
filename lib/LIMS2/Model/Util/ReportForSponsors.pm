@@ -404,9 +404,9 @@ sub build_page_title {
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
-    my $dt = DateTime->now();
+    my $dt = localtime time;
 
-    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
+    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
 };
 
 # columns relate to project sponsors

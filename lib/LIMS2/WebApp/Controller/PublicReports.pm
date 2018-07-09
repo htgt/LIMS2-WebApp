@@ -17,6 +17,7 @@ use Excel::Writer::XLSX;
 use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
 use JSON qw( decode_json encode_json );
+use File::stat;
 use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -183,16 +184,10 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my $is_internal = 0;
     my $client_host = $c->request->hostname;
 
-
     $sub_cache_param = 'with_cache';
     $top_cache_param = 'with_cache';
 
-    if ( $c->request->params->{'generate_cache'} ){
-        $sub_cache_param = 'without_cache';
-        $top_cache_param = 'without_cache';
-        $c->stash->{'cache_report'} = 1;
-    }
-    elsif ($c->user_exists) {
+    if ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
         $is_internal = 1;
         if ( !$c->request->params->{'cache_param'} ) {
@@ -201,10 +196,10 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         }
         else {
             $sub_cache_param = $c->request->params->{'cache_param'};
-            $top_cache_param = 'without_cache';
+            $top_cache_param = $c->request->params->{'cache_param'};
         }
     }
-    
+
     if ( $client_host =~ /internal.sanger.ac.uk/ ) {
         $is_internal = 1;
     }
@@ -216,40 +211,31 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     $species = $c->request->params->{'species'};
     $c->session->{'selected_species'} = $species;
 
-    if ( defined $targeting_type ) {
-        # show report for the requested targeting type
-        $self->_generate_front_page_report ( $c, $targeting_type, $species, $sub_cache_param );
+    if ( $top_cache_param eq  'with_cache' ) {
+        my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
+
+        my $report_id   = $top_level_data->{ report_id };
+        my $title       = $top_level_data->{ title };
+        my $title_ii    = $top_level_data->{ title_ii };
+        my $columns     = $top_level_data->{ columns };
+        my $rows        = $top_level_data->{ rows };
+        my $data        = $top_level_data->{ data };
+
+        $c->stash(
+            'report_id'      => $report_id,
+            'title'          => 'Pipeline I Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
+            'title_ii'       => 'Pipeline II Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
+            'species'        => $species,
+            'targeting_type' => $targeting_type,
+            'cache_param'    => 'with_cache',
+            'columns'        => $columns,
+            'rows'           => $rows,
+            'data'           => $data,
+        );
     }
     else {
-        # by default show the single_targeted report
-        if ( $top_cache_param eq  'with_cache' ) {
-            my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
-
-            my $report_id   = $top_level_data->{ report_id };
-            my $title       = $top_level_data->{ title };
-            my $title_ii    = $top_level_data->{ title_ii };
-            my $columns     = $top_level_data->{ columns };
-            my $rows        = $top_level_data->{ rows };
-            my $data        = $top_level_data->{ data };
-
-            $c->stash(
-                'report_id'      => $report_id,
-                'title'          => $title,
-                'title_ii'       => $title_ii,
-                'species'        => $species,
-                'targeting_type' => $targeting_type,
-                'cache_param'    => 'with_cache',
-                'columns'        => $columns,
-                'rows'           => $rows,
-                'data'           => $data,
-            );
-        }
-        else {
-            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
-        }
-
+        $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
     }
-
 
     $c->stash(
         template    => 'publicreports/sponsor_report.tt',
@@ -275,10 +261,13 @@ sub _view_cached_top_level_report {
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
+    my $file_stats = stat($cached_file_name) or die "$cached_file_name not found: $!";
 
     my $json_data = decode_json(<$json_handle>);
     close $json_handle;
-    
+
+    $json_data->{date} = localtime $file_stats->mtime;
+
     return $json_data;
 
 }
@@ -614,6 +603,7 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
 
     $c->stash(
         'template'             => $template,
+        'date'                 => $sub_level_data->{date},
         'report_id'            => $sub_level_data->{report_id},
         'disp_target_type'     => $sub_level_data->{disp_target_type},
         'disp_stage'           => $sub_level_data->{disp_stage},
