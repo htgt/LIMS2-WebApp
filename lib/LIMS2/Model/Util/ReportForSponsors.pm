@@ -16,6 +16,7 @@ use namespace::autoclean;
 use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
+use JSON qw( encode_json );
 use Data::Dumper;
 
 # Uncomment this to add time since last log entry to log output
@@ -358,7 +359,7 @@ sub select_sponsor_genes {
 
 # Generate front page report matrix
 sub generate_top_level_report_for_sponsors {
-    my ( $self ) = @_;
+    my ( $self, $uri ) = @_;
 
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
@@ -391,6 +392,9 @@ sub generate_top_level_report_for_sponsors {
         'data'           => $data,
     );
 
+    my $json_data = encode_json(\%return_params);
+    $self->save_json_report($uri, $json_data, $self->species);
+
     return \%return_params;
 }
 
@@ -400,9 +404,9 @@ sub build_page_title {
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
-    my $dt = DateTime->now();
+    my $dt = localtime time;
 
-    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt->dmy;
+    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
 };
 
 # columns relate to project sponsors
@@ -425,6 +429,30 @@ sub build_columns {
 
     return $sponsor_columns;
 };
+
+sub save_json_report {
+    my $self = shift;
+    my $uri = shift;
+    my $json_data = shift;
+    my $name = shift;
+
+    my $cache_server;
+
+    for ($uri) {
+        if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+
+    open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
+    print $json_fh $json_data;
+    close ($json_fh);
+
+    return;
+}
 
 #----------------------------------------------------------
 # For Sub-Reports

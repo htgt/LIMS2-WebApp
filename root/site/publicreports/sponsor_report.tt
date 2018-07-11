@@ -80,8 +80,10 @@
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
 
-        [%- IF c.user == '' %]
+        [%- IF c.user == '' && is_internal == 0 %]
                 <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[%- countval %]</a></b></td>
+        [%- ELSIF c.user == '' && is_internal %]
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- ELSE %]
@@ -138,8 +140,10 @@
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
 
-        [%- IF c.user == '' %]
+        [%- IF c.user == '' && is_internal == 0 %]
                 <b><a href="[%- c.uri_for('/public_reports/access_denied') %]">[%- countval %]</a></b></td>
+        [%- ELSIF c.user == '' && is_internal %]
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- ELSIF cache_param == "with_cache" %]
                 <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- ELSE %]
