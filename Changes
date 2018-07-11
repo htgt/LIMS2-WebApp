@@ -1,5 +1,11 @@
 {{$NEXT}}
 
+0.508     2018-07-03 15:55:04 Europe/London
+
+0.507     2018-07-03 15:25:37 Europe/London
+    Created pipeline I/II modes
+    fixed bug on saving default preferences
+
 0.507     2018-06-20 12:05:37 Europe/London
     miseq hdr designs
 0.506     2018-06-07 16:44:04 Europe/London
