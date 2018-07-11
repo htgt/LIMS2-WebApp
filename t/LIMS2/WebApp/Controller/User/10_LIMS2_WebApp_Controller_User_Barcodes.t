@@ -18,7 +18,6 @@ use LIMS2::t::WebApp::Controller::User::Barcodes;
 
 Test::Class->runtests;
 
-
 1;
 
 __END__

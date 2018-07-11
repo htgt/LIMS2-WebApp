@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqDesignPreset;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqDesignPreset::VERSION = '0.506';
+    $LIMS2::Model::Schema::Result::MiseqDesignPreset::VERSION = '0.509';
 }
 ## use critic
 
@@ -186,8 +186,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-05-21 16:46:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JYYL1HZd6guNjVIuqNu8hQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:03:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RwM9N+S66LX3fITl2u4idg
 
 sub as_hash {
     my $self = shift;
@@ -221,8 +221,6 @@ sub as_hash {
 
     return \%h;
 }
-
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateMiseqDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateMiseqDesign::VERSION = '0.506';
+    $LIMS2::Model::Util::CreateMiseqDesign::VERSION = '0.509';
 }
 ## use critic
 
@@ -119,12 +119,13 @@ sub generate_miseq_design {
 sub generate_primers {
     my ($c, $crispr_id, $search_range, $genomic_threshold) = @_;
 
+    my $time = strftime "%S-%M-%H_%d-%m-%Y", localtime;
     my $params = {
         crispr_id           => $crispr_id,
         species             => 'Human',
         repeat_mask         => [''],
         offset              => 20,
-        well_id             => 'Miseq_Crispr_' . $crispr_id,
+        well_id             => 'Miseq_Crispr_' . $crispr_id . '_' . $time,
         genomic_threshold   => $genomic_threshold || 30,
         gc                  => $search_range->{gc_content},
         tm                  => $search_range->{melting},
@@ -400,9 +401,9 @@ sub design_preset_params {
 }
 
 sub default_nulls {
-    my ($c, $criteria, $reference) = @_;
+    my ($c, $criteria, $search) = @_;
 
-    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find({ name => $reference })->as_hash;
+    my $default = $c->model('Golgi')->schema->resultset('MiseqDesignPreset')->find($search)->as_hash;
 
     $criteria = null_check($criteria, $default, keys %$criteria);
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.506';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.509';
 }
 ## use critic
 
@@ -25,15 +25,10 @@ Create, update or view specific plates well results.
 
 =cut
 
-sub begin :Private {
+sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
-    return;
-}
-
-sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
-    my ( $self, $c ) = @_;
 
     return unless $c->request->params->{update_dna_status};
 
@@ -78,6 +73,7 @@ sub dna_status_update :Path( '/user/dna_status_update' ) :Args(0) {
 sub pcr_status_update :Path( '/user/pcr_status_update' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'edit' );
     return unless $c->request->params->{update_pcr_status};
 
     my $plate_name = $c->request->params->{plate_name};
@@ -122,6 +118,7 @@ sub pcr_status_update :Path( '/user/pcr_status_update' ) :Args(0) {
 sub dna_quality_update :Path( '/user/dna_quality_update' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'edit' );
     return unless $c->request->params->{update_dna_quality};
 
     my $plate_name = $c->request->params->{plate_name};
@@ -279,7 +276,7 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     my $plate_name = $c->request->params->{plate_name};
     unless ( $plate_name ) {
         $c->flash->{error_msg} = 'You must specify a plate name';
-        return $c->res->redirect('/user/show_genotyping_qc_data');
+        return $c->res->redirect($c->secure_uri_for('/user/show_genotyping_qc_data'));
     }
 
     $c->stash->{plate_name} = $plate_name;
@@ -292,7 +289,7 @@ sub genotyping_qc_data : Path( '/user/genotyping_qc_data') : Args(0){
     }
     catch{
         $c->flash->{error_msg} = "Plate $plate_name not found";
-        return $c->res->redirect('/user/show_genotyping_qc_data');
+        return $c->res->redirect($c->secure_uri_for('/user/show_genotyping_qc_data'));
     };
 
     return unless $plate;

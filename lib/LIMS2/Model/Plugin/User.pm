@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::User;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::User::VERSION = '0.506';
+    $LIMS2::Model::Plugin::User::VERSION = '0.509';
 }
 ## use critic
 
@@ -87,7 +87,7 @@ sub pspec_create_user {
     return {
         name     => { validate => 'user_name' },
         password => { validate => 'non_empty_string' },
-        roles    => { validate => 'existing_role', optional => 1 }
+        roles    => { validate => 'existing_role', optional => 1 },
     };
 }
 
@@ -98,6 +98,7 @@ sub create_user {
 
     my $csh = Crypt::SaltedHash->new( algorithm => "SHA-1" );
     $csh->add( $validated_params->{password} );
+    $csh->add( $validated_params->{user_preference} );
 
     my $user = $self->schema->resultset('User')->create(
         {   name     => $validated_params->{name},
@@ -115,7 +116,6 @@ sub create_user {
             create_pg_user( $dbh, @{$validated_params}{qw(name roles)} );
         }
     );
-
     return $user;
 }
 
@@ -227,31 +227,36 @@ sub retrieve_user_preferences {
     my $validated_params = $self->check_params( $params, $self->pspec_retrieve_user_preferences, ignore_unknown => 1 );
 
     my $user = $self->retrieve( User => { slice_def $validated_params, qw( id name ) }, { prefetch => 'user_preference' } );
-
-    return $user->user_preference
-        || $user->create_related( user_preference => { default_species_id => 'Mouse' } );
+    if (!$user->user_preference){
+    $user->create_related(user_preference => { default_species_id => 'Human', default_pipeline_id => 'pipeline_II'} );
+    }
+    return $user->user_preference;
 }
 
 sub pspec_set_user_preferences {
     return {
         name            => { validate => 'user_name', optional => 1 },
         id              => { validate => 'integer',   optional => 1 },
-        default_species => { validate => 'existing_species', optional => 1, default => 'Mouse' },
+        default_species => { validate => 'existing_species', optional => 1, default => 'Human' },
+        default_pipeline => { validate => 'existing_pipeline', optional => 1, default => 'pipeline_II' },
         REQUIRE_SOME    => { name_or_id => [ 1, qw( name id ) ] }
     }
 }
 
-sub set_user_preferences {
+sub set_user_preferences
+{
     my ( $self, $params ) = @_;
-
+    my $user_preference = $self->retrieve( UserPreference => { user_id => $params->{id} });
+    $params->{default_species} = $params->{default_species} || $user_preference->default_species_id;
+    $params->{default_pipeline} = $params->{default_pipeline} || $user_preference->default_pipeline_id;
     my $validated_params = $self->check_params( $params, $self->pspec_set_user_preferences );
-
     my $prefs = $self->retrieve_user_preferences( $validated_params );
-
-    if ( $prefs->default_species_id ne $validated_params->{default_species} ) {
+    if ( $prefs->default_species_id ne $validated_params->{default_species} ){
         $prefs->update( { default_species_id => $validated_params->{default_species} } );
     }
-
+    if ( $prefs->default_pipeline_id ne $validated_params->{default_pipeline} ){
+        $prefs->update( { default_pipeline_id => $validated_params->{default_pipeline} } );
+    }
     return $prefs;
 }
 
@@ -262,7 +267,6 @@ sub pspec_change_user_password {
         new_password_confirm => { validate   => 'password_string' },
     };
 }
-
 
 sub change_user_password {
     my ( $self, $params ) = @_;

@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.506';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.509';
 }
 ## use critic
 
@@ -160,6 +160,11 @@ sub existing_colony_type {
 sub existing_primer_band_type {
     return shift->in_resultset ( 'PrimerBandType', 'id')
 }
+
+sub existing_pipeline {
+    return shift->in_resultset( 'Pipeline', 'id' );
+}
+
 
 sub recombineering_result {
     return shift->in_set( 'pass', 'fail', 'weak' );
@@ -465,6 +470,10 @@ sub primer_params {
 
         return $result;
     }
+}
+
+sub existing_preset_id {
+    return shift->in_resultset( 'MiseqDesignPreset', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

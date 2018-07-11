@@ -7,15 +7,6 @@ build_requires:
   HTTP::Request: 0
   HTTP::Request::Common: 0
   IO::Scalar: 0
-  LIMS2::Report::EPSummary: 0
-  LIMS2::Report::ElectroporationProductionSummary: 0
-  LIMS2::Report::FirstElectroporationProductionDetail: 0
-  LIMS2::Report::GenesToElectroporate: 0
-  LIMS2::Report::SecondElectroporationProductionDetail: 0
-  LIMS2::Report::SponsorProgress: 0
-  LIMS2::Report::VectorProductionDetail: 0
-  LIMS2::Report::VectorProductionSummary: 0
-  LIMS2::ReportGenerator::ProductionDetail: 0
   LIMS2::t::js::Admin::Announcements: 0
   LIMS2::t::js::PublicReports::Reports: 0
   LIMS2::t::js::User::Barcodes::MutationSignatures: 0
@@ -207,4 +198,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.506
+version: 0.509
