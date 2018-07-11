@@ -204,26 +204,31 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     $c->session->{'selected_species'} = $species;
 
     if ( $top_cache_param eq  'with_cache' ) {
-        my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
 
-        my $report_id   = $top_level_data->{ report_id };
-        my $title       = $top_level_data->{ title };
-        my $title_ii    = $top_level_data->{ title_ii };
-        my $columns     = $top_level_data->{ columns };
-        my $rows        = $top_level_data->{ rows };
-        my $data        = $top_level_data->{ data };
+        try {
+            my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
 
-        $c->stash(
-            'report_id'      => $report_id,
-            'title'          => 'Pipeline I Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
-            'title_ii'       => 'Pipeline II Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
-            'species'        => $species,
-            'targeting_type' => $targeting_type,
-            'cache_param'    => 'with_cache',
-            'columns'        => $columns,
-            'rows'           => $rows,
-            'data'           => $data,
-        );
+            my $report_id   = $top_level_data->{ report_id };
+            my $title       = $top_level_data->{ title };
+            my $title_ii    = $top_level_data->{ title_ii };
+            my $columns     = $top_level_data->{ columns };
+            my $rows        = $top_level_data->{ rows };
+            my $data        = $top_level_data->{ data };
+
+            $c->stash(
+              'report_id'      => $report_id,
+              'title'          => 'Pipeline I Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
+              'title_ii'       => 'Pipeline II Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
+              'species'        => $species,
+              'targeting_type' => $targeting_type,
+              'cache_param'    => 'with_cache',
+              'columns'        => $columns,
+              'rows'           => $rows,
+              'data'           => $data,
+            );
+        } catch {
+            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
+        };
     }
     else {
         $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
@@ -282,6 +287,7 @@ sub _generate_front_page_report {
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
+
     # Store report values in stash for display onscreen
     $c->stash(
         'report_id'      => $report_id,
@@ -454,7 +460,11 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
     }
     else {
 
+        my $on_date;
+
         if ($disp_stage eq 'Genes') {
+
+            $on_date = localtime time;
 
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
@@ -474,6 +484,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         }
         # Store report values in stash for display onscreen
         $c->stash(
+            'date'                 => $on_date,
             'template'             => $template,
             'report_id'            => $report_id,
             'disp_target_type'     => $disp_target_type,
@@ -589,25 +600,31 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
     $c->log->info( "Generate public detail report for : $report_name" );
 
     $report_name =~ s/\ /_/g;
-    my $sub_level_data = $self->_view_cached_top_level_report( $c, $report_name );
-    my $template = 'publicreports/sponsor_sub_report.tt';
+
+    try {
+        my $sub_level_data = $self->_view_cached_top_level_report( $c, $report_name );
+        my $template = 'publicreports/sponsor_sub_report.tt';
 
 
-    $c->stash(
-        'template'             => $template,
-        'date'                 => $sub_level_data->{date},
-        'report_id'            => $sub_level_data->{report_id},
-        'disp_target_type'     => $sub_level_data->{disp_target_type},
-        'disp_stage'           => $sub_level_data->{disp_stage},
-        'sponsor_id'           => $sub_level_data->{sponsor_id},
-        'columns'              => $sub_level_data->{columns},
-        'display_columns'      => $sub_level_data->{display_columns},
-        'data'                 => $sub_level_data->{data},
-        'link'                 => $sub_level_data->{link},
-        'type'                 => $sub_level_data->{type},
-        'species'              => $sub_level_data->{species},
-        'cache_param'          => $sub_level_data->{cache_param},
+        $c->stash(
+          'template'             => $template,
+          'date'                 => $sub_level_data->{date},
+          'report_id'            => $sub_level_data->{report_id},
+          'disp_target_type'     => $sub_level_data->{disp_target_type},
+          'disp_stage'           => $sub_level_data->{disp_stage},
+          'sponsor_id'           => $sub_level_data->{sponsor_id},
+          'columns'              => $sub_level_data->{columns},
+          'display_columns'      => $sub_level_data->{display_columns},
+          'data'                 => $sub_level_data->{data},
+          'link'                 => $sub_level_data->{link},
+          'type'                 => $sub_level_data->{type},
+          'species'              => $sub_level_data->{species},
+          'cache_param'          => $sub_level_data->{cache_param},
         );
+    } catch {
+        $c->flash( info_msg => 'No cached data found. Switch to live and generate new values!');
+        return $c->response->redirect( $c->uri_for('/public_reports/sponsor_report') );
+    };
 
     return;
 }
