@@ -61,7 +61,7 @@ __PACKAGE__->table("miseq_experiment");
   data_type: 'text'
   is_nullable: 1
 
-=head2 mutation_reads
+=head2 nheg_reads
 
   data_type: 'integer'
   is_nullable: 1
@@ -75,6 +75,16 @@ __PACKAGE__->table("miseq_experiment");
 
   data_type: 'integer'
   is_foreign_key: 1
+  is_nullable: 1
+
+=head2 hdr_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 mixed_reads
+
+  data_type: 'integer'
   is_nullable: 1
 
 =cut
@@ -93,12 +103,16 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "gene",
   { data_type => "text", is_nullable => 1 },
-  "mutation_reads",
+  "nheg_reads",
   { data_type => "integer", is_nullable => 1 },
   "total_reads",
   { data_type => "integer", is_nullable => 1 },
   "miseq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "hdr_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "mixed_reads",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -186,8 +200,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U9AC8wtWDx1VJPloxKBLUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-18 12:00:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XRTb1lcZ4hQTy7yJLpXZzA
 
 sub as_hash {
     my $self = shift;
@@ -197,7 +211,9 @@ sub as_hash {
         miseq_id    => $self->miseq_id,
         name        => $self->name,
         gene        => $self->gene,
-        nhej_count  => $self->mutation_reads,
+        nhej_count  => $self->nheg_reads,
+        hdr_count   => $self->hdr_reads,
+        mixed_count => $self->mixed_reads,
         read_count  => $self->total_reads,
         old_miseq_id => $self->old_miseq_id, #TODO delete after migration
     );

@@ -75,6 +75,11 @@ __PACKAGE__->table("miseq_well_experiment");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 indel_size_distribution_graph
+
+  data_type: 'bytea'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -95,6 +100,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "status",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "indel_size_distribution_graph",
+  { data_type => "bytea", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -129,6 +136,21 @@ __PACKAGE__->belongs_to(
     on_delete     => "CASCADE",
     on_update     => "CASCADE",
   },
+);
+
+=head2 miseq_alleles_frequencies
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqAllelesFrequency>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_alleles_frequencies",
+  "LIMS2::Model::Schema::Result::MiseqAllelesFrequency",
+  { "foreign.miseq_well_experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 miseq_exp
@@ -177,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r2SH7Oo75nCsoGyqDd2qlg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-18 12:00:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3pIkPxmCU69YQS1aChMt5g
 
 sub as_hash {
     my $self = shift;

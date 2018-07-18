@@ -2,17 +2,55 @@ package LIMS2::Model::Plugin::Miseq;
 
 use strict;
 use warnings FATAL => 'all';
-
 use Moose::Role;
-
+use Moose;
 use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
-use LIMS2::Model::Util::Miseq qw( miseq_well_processes );
 
 requires qw( schema check_params throw retrieve log trace );
+
+
+sub pspec_create_miseq_alleles_frequency{
+    return  {
+        foreach my $key (keys $param)
+        {
+            $key->miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp' },
+            $key->aligned_sequence          =>  { validate => 'non_empty_string'        },
+            $key->nhej                      =>  { validate => 'boolean'                 },
+            $key->unmodified                =>  { validate => 'boolean'                 },
+            $key->hdr                       =>  { validate => 'boolean'                 },
+            $key->n_deleted                 =>  { validate => 'integer'                 },
+            $key->n_mutated                 =>  { validate => 'integer'                 },
+            $key->n_reads                   =>  { validate => 'integer'                 }
+            };
+    };
+}
+
+sub create_miseq_alleles_frequency{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_miseq_alleles_frequency);
+
+    foreach my $frequency (keys $validated_params) {
+        my $miseq_frequency = $self->schema-resultset('MiseqAllelesFrequency')->create(
+            {
+                miseq_well_experiment_id=>$validated_params->$frequency->miseq_well_experiment_id;
+                aligned_sequence        =>$validated_params->$frequency->aligned_sequence;
+                nhej                    =>$validated_params->$frequency->nhej;
+                unmodified              =>$validated_params->$frequency->unmodified;
+                hdr                     =>$validated_params->$frequency->hdr;
+                n_deleted               =>$validated_params->$frequency->n_deleted;
+                n_mutated               =>$validated_params->$frequency->n_mutated;
+                n_reads                 =>$validated_params->$frequency->n_reads;
+            }
+        );
+    }
+    return 1;
+}
+
 
 sub pspec_create_miseq_plate {
     return {
@@ -105,8 +143,10 @@ sub pspec_create_miseq_experiment {
         miseq_id        => { validate => 'existing_miseq_plate' },
         name            => { validate => 'non_empty_string' },
         gene            => { validate => 'non_empty_string' },
-        mutation_reads  => { validate => 'integer' },
+        nhej_reads      => { validate => 'integer' },
         total_reads     => { validate => 'integer' },
+        hdr_reads       => { validate => 'integer' },
+        mixed_reads     => { validate => 'integer' },
     };
 }
 
@@ -120,7 +160,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name gene mutation_reads total_reads )
+                qw( miseq_id name gene nhej_reads total_reads hdr_reads mixed_reads)
             )
         }
     );
@@ -134,8 +174,10 @@ sub pspec_update_miseq_experiment {
         miseq_id        => { validate => 'existing_miseq_plate', optional => 1 },
         name            => { validate => 'non_empty_string', optional => 1 },
         gene            => { validate => 'non_empty_string', optional => 1 },
-        mutation_reads  => { validate => 'integer', optional => 1 },
+        nhej_reads      => { validate => 'integer', optional => 1 },
         total_reads     => { validate => 'integer', optional => 1 },
+        hdr_reads       => { validate => 'integer', optional => 1 },
+        mixed_reads     => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -153,9 +195,11 @@ sub update_miseq_experiment {
     $class->{miseq_id} = $validated_params->{miseq_id} || $hash_well->{miseq_id};
     $class->{name} = $validated_params->{name} || $hash_well->{name};
     $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
-    $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{nhej_count};
+    $class->{nhej_reads} = $validated_params->{nhej_reads} || $hash_well->{nhej_count};
     $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{read_count};
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
+    $class->{hdr_reads} = $validated_params->{hdr_reads} || $hash_well->{hdr_count};
+    $class->{mixed_reads} = $validated_params->{mixed_reads} || $hash_well->{hdr_count};
     my $update = $exp->update($class);
 
     return;

@@ -330,13 +330,13 @@ sub get_efficiencies {
 
     while (my $exp_rs = $experiments->next) {
         my $exp = {
-            nhej    => $exp_rs->mutation_reads,
+            nhej    => $exp_rs->nhej_reads,
             total   => $exp_rs->total_reads,
         };
         $efficiencies->{$exp_rs->name} = $exp;
-        $efficiencies->{all}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{all}->{nhej} += $exp_rs->nhej_reads;
         $efficiencies->{all}->{total} += $exp_rs->total_reads;
-        $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->nhej_reads;
         $efficiencies->{$exp_rs->gene}->{total} += $exp_rs->total_reads;
     }
 
