@@ -17,6 +17,7 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 use JSON qw( encode_json );
+use POSIX 'strftime';
 use Data::Dumper;
 
 # Uncomment this to add time since last log entry to log output
@@ -404,7 +405,7 @@ sub build_page_title {
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
-    my $dt = localtime time;
+    my $dt = strftime '%d %B %Y', localtime time;
 
     return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
 };

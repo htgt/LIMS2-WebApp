@@ -116,7 +116,7 @@
         [%- IF col == "Stage" %]
            <th style="width:240px">[%- col %]</th>
         [%- ELSE %]
-           <th style="width:240px">[%- col %]</th>
+           <th style="width:140px">[%- col %]</th>
         [%- END %]
       [%- END %]
     </tr>
@@ -135,7 +135,7 @@
         [%- IF row == "Genes" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
         <td style="border-top: 1px solid">
         [%- ELSE %]
-        <td style="width:240px">
+        <td style="width:140px">
         [%- END %]
         [%- IF countval != "" && countval > 0 %]
           [%- IF row == "Genes" %]
