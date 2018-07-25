@@ -75,7 +75,7 @@ __PACKAGE__->config(
         storage => $ENV{LIMS2_SESSION_STORE},
         cookie_domain => $ENV{LIMS2_COOKIE_DOMAIN},
     },
-    'static' => {
+    'Plugin::Static::Simple' => {
         include_path => [
             $ENV{SHARED_WEBAPP_STATIC_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_static',
             __PACKAGE__->path_to( 'root' ),
