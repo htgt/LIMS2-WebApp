@@ -713,7 +713,8 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
     $c->assert_user_roles( 'edit' );
 
     # Store form values
-    foreach my $param qw(template_plate source_plate cassette backbone phase_matched_cassette){
+    my @arr = ('template_plate', 'source_plate', 'cassette', 'backbone', 'phase_matched_cassette');
+    foreach my $param (@arr) {
     	$c->stash->{$param} = $c->req->param($param);
     }
     $c->stash->{recombinase} = [ $c->req->param('recombinase') ];
@@ -732,7 +733,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 
             my %overrides = map { $_ => $c->req->param($_) }
                             grep { $c->req->param($_) }
-                            qw( cassette backbone phase_matched_cassette);
+                            (qw( cassette backbone phase_matched_cassette));
             $overrides{recombinase} = [ $c->req->param('recombinase') ];
 
             my $template;
@@ -767,7 +768,7 @@ sub create_template_plate :Path('/user/create_template_plate') :Args(0){
 
             my %overrides = map { $_ => $c->req->param($_) }
                             grep { $c->req->param($_) }
-                            qw( cassette backbone phase_matched_cassette);
+                            (qw( cassette backbone phase_matched_cassette));
             $overrides{recombinase} = [ $c->req->param('recombinase') ];
 
 			my $template = $c->model('Golgi')->create_qc_template_from_csv({
@@ -832,7 +833,7 @@ sub create_plates :Path('/user/create_plates') :Args(0){
 	$c->stash->{qc_run_id} = $run_id;
 	$c->stash->{plate_type} = $c->req->param('plate_type');
 
-	$c->stash->{plate_types}   = [ qw(PREINT INT POSTINT FINAL FINAL_PICK CRISPR_V) ];
+	$c->stash->{plate_types}   = [ (qw(PREINT INT POSTINT FINAL FINAL_PICK CRISPR_V)) ];
 
 	unless ($run_id){
 		$c->flash->{error_msg} = "No QC run ID provided to create plates";
