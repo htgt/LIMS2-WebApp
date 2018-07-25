@@ -19,6 +19,7 @@ use Try::Tiny;
 use LIMS2::Exception;
 use Parse::BooleanLogic;
 use Log::Log4perl qw( :easy );
+use experimental qw(switch);
 
 has model => (
     is       => 'ro',
