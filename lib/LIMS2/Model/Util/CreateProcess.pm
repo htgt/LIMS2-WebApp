@@ -207,12 +207,14 @@ sub check_input_wells {
     return unless exists $PROCESS_INPUT_WELL_CHECK{$process_type}{type};
 
     my @types = uniq map { $_->plate_type } @input_wells;
+    @types = sort { $a cmp $b } @types;
     my %expected_input_process_types
         = map { $_ => 1 } @{ $PROCESS_INPUT_WELL_CHECK{$process_type}{type} };
 
+    my @sorted_keys = sort { $a cmp $b } keys %expected_input_process_types;
     LIMS2::Exception::Validation->throw(
         "$process_type process input well should be type "
-        . join( ',', keys %expected_input_process_types )
+        . join( ',', @sorted_keys )
         . ' (got '
         . join( ',', @types )
         . ')'
@@ -236,12 +238,14 @@ sub check_output_wells {
     return unless exists $PROCESS_PLATE_TYPES{$process_type};
 
     my @types = uniq map { $_->plate_type } @output_wells;
+    @types = sort { $a cmp $b } @types;
     my %expected_output_process_types
         = map { $_ => 1 } @{ $PROCESS_PLATE_TYPES{$process_type} };
 
+    my @sorted_keys = sort { $a cmp $b } keys %expected_output_process_types;
     LIMS2::Exception::Validation->throw(
         "$process_type process output well should be type "
-        . join( ',', keys %expected_output_process_types )
+        . join( ',', @sorted_keys )
         . ' (got '
         . join( ',', @types )
         . ')'
