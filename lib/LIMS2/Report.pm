@@ -281,7 +281,7 @@ sub load_generator_class {
 
     my $report_class = 'LIMS2::Report::' . $report;
     try {
-        eval "require $report_class" or die $@;
+        eval "require $report_class" or die $@; ## no critic
     }
     catch {
         if ( m/^Can't locate/ ) {
