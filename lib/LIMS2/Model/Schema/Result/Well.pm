@@ -1281,18 +1281,18 @@ sub first_ep_pick {
 #maybe think of a better name for this
 #it just means it must be ep_pick or later
 sub is_epd_or_later {
-  my $self = shift;
+    my $self = shift;
 
-  #epd is ok with us
-  return $self if $self->plate_type eq 'EP_PICK';
+    #EPD is ok with us
+    return $self if $self->plate_type eq 'EP_PICK';
 
-  my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
-  while ( my $ancestor = $ancestors->next ) {
-    return $ancestor if $ancestor->plate_type eq 'EP_PICK';
-  }
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while ( my $ancestor = $ancestors->next ) {
+        return $ancestor if $ancestor->plate_type eq 'EP_PICK';
+    }
 
-  #we didn't find any ep picks further up so its not
-  return;
+    #We didn't find any ep picks further up so its not
+    return;
 }
 
 # return the first parent well that has crispr es QC linked to it
@@ -1343,7 +1343,7 @@ sub get_input_wells_as_string {
 sub get_output_wells_as_string {
     my $well = shift;
 
-  my $children;
+    my $children;
 
     foreach my $process ($well->child_processes){
         foreach my $output ($process->output_wells){
@@ -2130,5 +2130,14 @@ sub most_recent_barcode_event{
 
     return $event;
 }
+
+sub parent_plates {
+    my ( $self ) = @_;
+
+    my @parent_wells = $self->parent_wells;
+
+    return [ map { $_->plate } @parent_wells ];
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

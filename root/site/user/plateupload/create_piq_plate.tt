@@ -11,12 +11,20 @@ body {
 h4 {
     display:inline;
 }
+
+.square {
+    width: 20px;
+    height: 20px;
+}
+
+
+
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
 <div id="response" class="alert"></div>
 <div class="page-header">
-  <h1>Create MiSEQ Plate</h1>
+  <h1>PIQ Plate</h1>
 </div>
 <div class="container">
     <div id="plateDetails">
@@ -24,20 +32,12 @@ h4 {
         <table class="table table-striped">
             <tr>
                 <td>
-                    <label>Name: </label>
+                    <label>PIQ Plate Name: </label>
                 </td>
                 <td>
                     <div class="col-md-4">
-                        <input type="text" class="form-control" id="plateName" oninput="updatePlateName(0);">
+                        <input type="text" class="form-control" id="plateName">
                     </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <label>384 wells?</label>
-                </td>
-                <td>
-                    <input type="checkbox" id="largeBox" value="1">
                 </td>
             </tr>
         </table>
@@ -67,7 +67,7 @@ h4 {
                 Type
             </th>
             <th>
-                Details
+                Colour
             </th>
             <th>
                 Clear
@@ -85,77 +85,29 @@ h4 {
                 <option value="-">Parent Plate</option>
             </select>
         </div>
-        <div class="col-md-4" id="fpQuadDiv">
-            <h4>Plate:</h4>
-            <select id="fpQuad" class="btn btn-default">
-                <option value="A_1" selected="selected">1-96 (A01-H12)</option>
-                <option value="A_13">97-192 (A13-H24)</option>
-                <option value="I_1">193-288 (I1-P12)</option>
-                <option value="I_13">289-384 (I13-P24)</option>
-            </select>           
-        </div>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
                 <div class="col-md-4">
-                    <h4>MiSEQ Plate: </h4>
-                    <h4 id="miseqName">MiSEQ Plate Name</h4>
+                    <h4>Rearray Plate: </h4>
+                    <h4 id="miseqName">PIQ Plate Name</h4>
                 </div>
                 <div class="col-md-4">
-                    <h4>Process:</h4>
-                    <select id="process" class="btn btn-default">
-                        <option value="nhej" selected="selected">No Template (NHEJ/WT only)</option>
-                        <option value="oligo">Oligo</option>
-                        <option value="vector">Vector</option>
-                    </select>
+                    <h4>Process: dist_qc</h4>
                 </div>
-                <div id="quadDiv" class="col-md-4">
-                    <h4>Plate:</h4>
-                    <select id="quad" class="btn btn-default">
-                        <option value="A_1" selected="selected">1-96 (A01-H12)</option>
-                        <option value="A_13">97-192 (A13-H24)</option>
-                        <option value="I_1">193-288 (I1-P12)</option>
-                        <option value="I_13">289-384 (I13-P24)</option>
-                    </select>
-                </div>
-
             </div>
         <div id="secondSplit" class="col-md-12"></div>
     </div>
     <div class="row">
         <button type="button" class="btn btn-danger" onclick="clearPlate();">
-            Clear
+            Clear <i class="glyphicon glyphicon-remove"></i>
         </button>
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmationModal" onclick="populateModal();">
-            Submit
+        <button type="button" class="btn btn-primary">
+            Submit <i class="glyphicon glyphicon-edit"></i>
         </button>
-    </div>
-</div>
-
-<div id="confirmationModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <div class="col-md-12">
-                    <h4 class="modal-title col-md-4" id="modalMiseqName">MiSEQ Plate: </h4>
-                    <div class="col-md-6">
-                        <input type="text" class="form-control" id="modalName">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <div class="panel-group" id="accordion"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="updatePlateName(1);">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submit();">Submit</button>
-            </div>
-        </div>
     </div>
 </div>
 
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
-
 
 <script>
 
@@ -179,8 +131,8 @@ $(function () {
         if (isMouseDown == true) {
             console.log("Up.");
             isMouseDown = false;
-            $('.selecting').toggleClass('selecting selected');
-            d3.selectAll('.selected').style('fill', green);
+            $('.selecting').toggleClass('selecting ' + selectedColour);
+            d3.selectAll('.' + selectedColour).style('fill', colourHash[selectedColour]);
             var key = $('#freezeName').val();
             if (key != '-') {
                 console.log('Triggered - body up');
@@ -195,11 +147,53 @@ $(function () {
                 plateDetails.process = $('#process').val(); //In case of change
                 plateDetails.wells[label] = { };
 
-                $('.miWell.selected').map(function() { return trackWells(key, label, this); });
-                $('.fpWell.selected').map(function() { return checkTile(this); } )
+                $('.miWell.' + selectedColour).map(function() { return trackWells(key, label, this); });
+                $('.fpWell.' + selectedColour).map(function() { return checkTile(this); } )
             }
         }
     });
 });
+
+$("#plateName").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
+        {
+            term : $('#plateName').val(),
+            type : 'PIQ',
+        }, response);
+    },
+    select: function(evt, ui) {
+        plateAncestors(ui.item.value);
+    },
+    minLength: 2,
+});
+
+function plateAncestors(selection) {
+    console.log(selection);
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/api/wells_parent_plate') %]',
+        data: { plate: selection },
+    }).done(function(data){
+        console.log(data);
+        $('#parentCollection').show();
+        var plates = Object.keys(data);
+        for (var i = 0; i < plates.length; i++) {
+            var plate = plates[i];
+            if (parentPlates.indexOf(plate) == -1) {
+                addTableRow({ 
+                    name:   plate, 
+                    type:   data[plate].type,
+                    colour: 1
+                });
+                addOption({ 
+                    name: plate,
+                    type: data[plate].type
+                });
+            }
+        }
+    });
+
+}
 
 </script>

@@ -604,6 +604,53 @@ sub well_genotyping_crispr_qc_GET {
                   : $self->status_ok( $c, entity => $data );
 }
 
+sub wells_parent_plate :Path('/api/wells_parent_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub wells_parent_plate_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $term = $c->request->param('plate');
+
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
+
+    unless ($plate_rs) {
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not find Plate: " . $term,
+        );
+    }
+
+    my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
+    my $parent_mapping;
+    foreach my $well (@wells) {
+        $parent_mapping = _well_parent_details($parent_mapping, $well);
+    }
+    
+    my $json = JSON->new->allow_nonref;
+    my $json_parents = $json->encode($parent_mapping);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_parents );
+
+    return;
+}
+
+sub _well_parent_details {
+    my ( $mapping, $well ) = @_;
+
+    foreach my $plate (@{ $well->parent_plates }) {
+        unless ($mapping->{$plate->name}) {
+            $mapping->{$plate->name}->{type} = $plate->type->id;
+        }
+        push @{ $mapping->{$plate->name}->{wells} }, $well->name;
+    }
+    
+    return $mapping;
+}
+
 =head1 AUTHOR
 
 Ray Miller
