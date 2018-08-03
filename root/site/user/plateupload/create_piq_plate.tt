@@ -1,27 +1,9 @@
-<meta http-equiv="Content-Language" content="en">
 <style>
-.freezerPlate {
-    margin-left: 12px;
-}
-
-body {
-    padding-bottom: 70px;
-}
-
-h4 {
-    display:inline;
-}
-
-.square {
-    width: 20px;
-    height: 20px;
-}
-
-
 
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
+
 <div id="response" class="alert"></div>
 <div class="page-header">
   <h1>PIQ Plate</h1>
@@ -131,24 +113,14 @@ $(function () {
         if (isMouseDown == true) {
             console.log("Up.");
             isMouseDown = false;
+            $('.selecting').removeClassesExcept('square fpWell miWell selecting');
             $('.selecting').toggleClass('selecting ' + selectedColour);
             d3.selectAll('.' + selectedColour).style('fill', colourHash[selectedColour]);
             var key = $('#freezeName').val();
             if (key != '-') {
                 console.log('Triggered - body up');
-                var label = quadLabels[$('#quad').val()];
-                if (miseqData[key] == null) {
-                    miseqData[key] = {
-                        wells : { },
-                        process : $('#process').val(),
-                    }
-                } 
-                var plateDetails = miseqData[key];
-                plateDetails.process = $('#process').val(); //In case of change
-                plateDetails.wells[label] = { };
-
-                $('.miWell.' + selectedColour).map(function() { return trackWells(key, label, this); });
-                $('.fpWell.' + selectedColour).map(function() { return checkTile(this); } )
+                $('.miWell.' + selectedColour).map(function() { return trackWells(key, this); });
+                checkTile(selectedColour);
             }
         }
     });
@@ -195,5 +167,59 @@ function plateAncestors(selection) {
     });
 
 }
+
+function trackWells(key, well) {
+    var freezerDetails = {
+        parentWell: well.value,
+        parentPlate: key
+    };
+
+    miseqData[$(well).parent()[0].id] = freezerDetails;
+}
+
+function checkTile(selectedColour) {
+    var currentFpMapping = findFpWells(miseqData);
+
+    $('.fpWell.' + selectedColour).map(function(index, well) { 
+        var wellName = well.parentNode.id;
+        if (!(wellName in currentFpMapping)) {
+            d3.select(well).style('fill', 'white');
+        }
+        return;
+    });
+}
+
+function findFpWells(mapData) {
+    var parentChildMapping = {};
+    for (var childWell in miseqData) {
+        if (miseqData[childWell].parentPlate == $('#freezeName').val()) {
+            parentChildMapping[miseqData[childWell].parentWell] = childWell;
+        }
+    }
+    return parentChildMapping;
+}
+
+function wellHistory(plate) {
+    var fpRelations = findFpWells(miseqData);
+    var fpWells = Object.keys(fpRelations);
+    $('.fpWell').removeClassesExcept('square fpWell');
+
+    fpWells.forEach(function(fp) {
+        var container = $('g#' + fp)[0];
+        var rect = $(container).children('rect')[plate];
+        d3.select(rect).classed(selectedColour, true);
+    });
+
+    d3.selectAll('.fpWell.' + selectedColour).style('fill', colourHash[selectedColour]);
+}
+
+function auditTables() {
+    //$('.fpWell').removeClassesExcept('square fpWell selecting');
+    //$('.miWell').removeClassesExcept('square miWell selecting');
+    for (var miseqWell in miseqData) {
+        console.log(miseqWell);
+    }
+}
+
 
 </script>

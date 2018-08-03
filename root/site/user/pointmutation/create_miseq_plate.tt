@@ -1,16 +1,6 @@
 <meta http-equiv="Content-Language" content="en">
 <style>
-.freezerPlate {
-    margin-left: 12px;
-}
 
-body {
-    padding-bottom: 70px;
-}
-
-h4 {
-    display:inline;
-}
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
@@ -201,5 +191,12 @@ $(function () {
         }
     });
 });
+
+function trackWells(key, section, well) {
+    var freezer = miseqData[key].wells[section];
+    freezer[$(well).parent()[0].id] = well.value;
+    miseqData[key].wells[section] = freezer;
+}
+
 
 </script>
