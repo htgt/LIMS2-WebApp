@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::Requester;
+package LIMS2::Model::Schema::Result::Programme;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::Requester
+LIMS2::Model::Schema::Result::Programme
 
 =cut
 
@@ -30,22 +30,32 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<requesters>
+=head1 TABLE: C<programmes>
 
 =cut
 
-__PACKAGE__->table("requesters");
+__PACKAGE__->table("programmes");
 
 =head1 ACCESSORS
 
 =head2 id
+
+  data_type: 'integer'
+  is_nullable: 0
+
+=head2 name
 
   data_type: 'text'
   is_nullable: 0
 
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "integer", is_nullable => 0 },
+  "name",
+  { data_type => "text", is_nullable => 0 },
+);
 
 =head1 PRIMARY KEY
 
@@ -61,21 +71,6 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
-=head2 experiments_including_deleted
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::Experiment>
-
-=cut
-
-__PACKAGE__->has_many(
-  "experiments_including_deleted",
-  "LIMS2::Model::Schema::Result::Experiment",
-  { "foreign.requester" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 projects
 
 Type: has_many
@@ -87,13 +82,13 @@ Related object: L<LIMS2::Model::Schema::Result::Project>
 __PACKAGE__->has_many(
   "projects",
   "LIMS2::Model::Schema::Result::Project",
-  { "foreign.requester_id" => "self.id" },
+  { "foreign.programme_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 12:28:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NjrTFF2fxnWek2qP+G2MJg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JIduGm1dXE1VynwGLJ1cNw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
