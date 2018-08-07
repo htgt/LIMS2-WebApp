@@ -8,6 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+use LIMS2::Model::Util::SponsorReportII;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
@@ -273,17 +274,16 @@ sub _generate_front_page_report {
     my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
 
     # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new({
+    my $sponsor_report_i = LIMS2::Model::Util::ReportForSponsors->new({
             'species' => $species,
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors($c->uri_for('/'));
+    my $report_params = $sponsor_report_i->generate_top_level_report_for_sponsors($c->uri_for('/'));
 
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
     my $title       = $report_params->{ title };
-    my $title_ii    = $report_params->{ title_ii };
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
@@ -292,7 +292,6 @@ sub _generate_front_page_report {
     $c->stash(
         'report_id'      => $report_id,
         'title'          => $title,
-        'title_ii'       => $title_ii,
         'species'        => $species,
         'targeting_type' => $targeting_type,
         'cache_param'    => $cache_param,
@@ -300,6 +299,14 @@ sub _generate_front_page_report {
         'rows'           => $rows,
         'data'           => $data,
     );
+
+    ## Generate Pipeline II report numbers
+    my $sponsor_report_ii = LIMS2::Model::Util::SponsorReportII->new({
+            'species' => $species,
+            'model' => $c->model( 'Golgi' ),
+        });
+
+    print Dumper $sponsor_report_ii->sponsor_gene_count;
 
     return;
 }
@@ -1088,3 +1095,4 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
