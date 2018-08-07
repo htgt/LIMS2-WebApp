@@ -1627,7 +1627,6 @@ Note: only works for assembly well or later at the moment
 use Time::HiRes qw(gettimeofday tv_interval);
 sub experiments {
     my $self = shift;
-
     my $assembly = $self->parent_assembly_well;
     unless($assembly){
         die "No assembly well parent found for $self. Cannot identify related experiments";
@@ -1636,6 +1635,28 @@ sub experiments {
     my $t0 = [gettimeofday];
     my $crispr_entity = $self->crispr_entity;
     DEBUG "Time taken to get crispr_entity: ".tv_interval($t0);
+    my $design = $self->design;
+
+    unless($crispr_entity or $design){
+        # This should never happen but just in case
+        die "No crispr entity or design found for $self. Cannot identify related experiments";
+    }
+
+    my $search = { deleted => 0};
+    if($crispr_entity){
+        $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
+    }
+    if($design){
+        $search->{design_id} = $design->id;
+    }
+
+    return $self->result_source->schema->resultset('Experiment')->search($search)->all;
+}
+
+sub experimentsPipelineII {
+    my $self = shift;
+
+    my $crispr_entity = $self->crispr_entity;
     my $design = $self->design;
 
     unless($crispr_entity or $design){
@@ -2136,7 +2157,12 @@ sub parent_plates {
 
     my @parent_wells = $self->parent_wells;
 
-    return [ map { $_->plate } @parent_wells ];
+    return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
+}
+
+sub miseq_classification {
+    
+    my ( $self ) = @_;
 }
 
 __PACKAGE__->meta->make_immutable;

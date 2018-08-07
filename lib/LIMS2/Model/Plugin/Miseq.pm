@@ -104,7 +104,7 @@ sub pspec_create_miseq_experiment {
     return {
         miseq_id        => { validate => 'existing_miseq_plate' },
         name            => { validate => 'non_empty_string' },
-        gene            => { validate => 'non_empty_string' },
+        #gene            => { validate => 'non_empty_string' },
         mutation_reads  => { validate => 'integer' },
         total_reads     => { validate => 'integer' },
     };
@@ -120,7 +120,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name gene mutation_reads total_reads )
+                qw( miseq_id name mutation_reads total_reads )
             )
         }
     );

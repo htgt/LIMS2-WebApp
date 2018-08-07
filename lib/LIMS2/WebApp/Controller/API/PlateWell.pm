@@ -604,10 +604,10 @@ sub well_genotyping_crispr_qc_GET {
                   : $self->status_ok( $c, entity => $data );
 }
 
-sub wells_parent_plate :Path('/api/wells_parent_plate') :Args(0) :ActionClass('REST') {
+sub sibling_miseq_plate :Path('/api/sibling_miseq_plate') :Args(0) :ActionClass('REST') {
 }
 
-sub wells_parent_plate_GET {
+sub sibling_miseq_plate_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
@@ -625,9 +625,33 @@ sub wells_parent_plate_GET {
     my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
     my $parent_mapping;
     foreach my $well (@wells) {
-        $parent_mapping = _well_parent_details($parent_mapping, $well);
+        my @miseq_wells = grep { $_->plate_type =~ /MISEQ/ } $well->sibling_wells;
+        foreach my $miseq_well (@miseq_wells) {
+            my $miseq_plate = $miseq_well->plate->miseq_details;
+            
+            my @experiment_ids = map { $_->id } $well->experimentsPipelineII;
+            foreach my $exp_id (@experiment_ids) {
+                my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({
+                    miseq_id => $miseq_plate->{id},
+                    experiment_id => $exp_id,
+                });
+                my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({
+                    well_id         => $miseq_well->id,
+                    miseq_exp_id    => $miseq_exp->id,
+                });
+
+                $parent_mapping->{$well->name}->{$exp_id} = {
+                    miseq_id    => $miseq_plate->{id},
+                    exp_id      => $exp_id,
+                };
+
+                if ($well_exp) {
+                    $parent_mapping->{$well->name}->{$exp_id}->{class} = $well_exp->classification->id;
+                }
+            }
+        }
     }
-    
+
     my $json = JSON->new->allow_nonref;
     my $json_parents = $json->encode($parent_mapping);
 
@@ -636,19 +660,6 @@ sub wells_parent_plate_GET {
     $c->response->body( $json_parents );
 
     return;
-}
-
-sub _well_parent_details {
-    my ( $mapping, $well ) = @_;
-
-    foreach my $plate (@{ $well->parent_plates }) {
-        unless ($mapping->{$plate->name}) {
-            $mapping->{$plate->name}->{type} = $plate->type->id;
-        }
-        push @{ $mapping->{$plate->name}->{wells} }, $well->name;
-    }
-    
-    return $mapping;
 }
 
 =head1 AUTHOR

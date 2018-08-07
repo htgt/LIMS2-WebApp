@@ -56,11 +56,6 @@ __PACKAGE__->table("miseq_experiment");
   data_type: 'text'
   is_nullable: 0
 
-=head2 gene
-
-  data_type: 'text'
-  is_nullable: 1
-
 =head2 mutation_reads
 
   data_type: 'integer'
@@ -72,6 +67,12 @@ __PACKAGE__->table("miseq_experiment");
   is_nullable: 1
 
 =head2 miseq_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 experiment_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -91,13 +92,13 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "text", is_nullable => 0 },
-  "gene",
-  { data_type => "text", is_nullable => 1 },
   "mutation_reads",
   { data_type => "integer", is_nullable => 1 },
   "total_reads",
   { data_type => "integer", is_nullable => 1 },
   "miseq_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "experiment_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -114,6 +115,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 experiment
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "experiment",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { id => "experiment_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 miseq
 
@@ -186,8 +207,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U9AC8wtWDx1VJPloxKBLUA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-06 10:49:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pMgsm8+Yssa8DjAIfxv4qQ
 
 sub as_hash {
     my $self = shift;
@@ -196,10 +217,9 @@ sub as_hash {
         id          => $self->id,
         miseq_id    => $self->miseq_id,
         name        => $self->name,
-        gene        => $self->gene,
+        experiment_id => $self->experiment_id,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
-        old_miseq_id => $self->old_miseq_id, #TODO delete after migration
     );
 
     return \%h;
