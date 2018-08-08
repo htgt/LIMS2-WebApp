@@ -604,6 +604,45 @@ sub well_genotyping_crispr_qc_GET {
                   : $self->status_ok( $c, entity => $data );
 }
 
+sub wells_parent_plate :Path('/api/wells_parent_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub wells_parent_plate_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $term = $c->request->param('plate');
+
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
+
+    unless ($plate_rs) {
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not find Plate: " . $term,
+        );
+    }
+    my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
+    my $mapping;
+    foreach my $well (@wells) {
+        foreach my $plate_well_rs (@{ $well->parent_plates }) {
+            my $plate = $plate_well_rs->{plate};
+            unless ($mapping->{$plate->name}) {
+                $mapping->{$plate->name}->{type} = $plate->type->id;
+            }
+            push @{ $mapping->{$plate->name}->{wells} }, $well->name;
+        }
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $json_parents = $json->encode($mapping);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_parents );
+
+    return;
+}
+
 sub sibling_miseq_plate :Path('/api/sibling_miseq_plate') :Args(0) :ActionClass('REST') {
 }
 
@@ -621,11 +660,18 @@ sub sibling_miseq_plate_GET {
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-
-    my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
+$DB::single=1;
+#my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
     my $parent_mapping;
-    foreach my $well (@wells) {
-        my @miseq_wells = grep { $_->plate_type =~ /MISEQ/ } $well->sibling_wells;
+    #foreach my $well (@wells) {
+    while (my $well = $plate_rs->wells->next) {
+        my @related_wells;
+        if ($plate_rs->type->id eq 'PIQ') {
+            @related_wells = $well->sibling_wells;
+        } else {
+            @related_wells = $well->child_wells;
+        }
+        my @miseq_wells = grep { $_->plate_type =~ /MISEQ/ } @related_wells;
         foreach my $miseq_well (@miseq_wells) {
             my $miseq_plate = $miseq_well->plate->miseq_details;
             
@@ -640,13 +686,12 @@ sub sibling_miseq_plate_GET {
                     miseq_exp_id    => $miseq_exp->id,
                 });
 
-                $parent_mapping->{$well->name}->{$exp_id} = {
-                    miseq_id    => $miseq_plate->{id},
-                    exp_id      => $exp_id,
-                };
-
                 if ($well_exp) {
-                    $parent_mapping->{$well->name}->{$exp_id}->{class} = $well_exp->classification->id;
+                    $parent_mapping->{$well_exp->classification->id}->{$well->name} = {
+                        miseq_id    => $miseq_plate->{id},
+                        exp_id      => $exp_id,
+                        well_exp_id => $well_exp->id,
+                    }
                 }
             }
         }

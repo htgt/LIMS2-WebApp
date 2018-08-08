@@ -369,7 +369,9 @@ function addTableRow(data) {
         detailCell.innerText = "Place-holder";
     }
     clearCell.innerHTML = '<button class="btn btn-danger" onclick="clearRow(this);"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
-
+    if ( $('.page-header').text().match(/PIQ/) ) {
+        fetchInheritedMiseqInfo(data.name);
+    }
     return;
 }
 

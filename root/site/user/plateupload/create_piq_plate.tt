@@ -93,6 +93,8 @@
 
 <script>
 
+var parentMiseqClassifications = {};
+
 $(function () {
     var isMouseDown = false;
     var startIndex;
@@ -165,7 +167,21 @@ function plateAncestors(selection) {
             }
         }
     });
+}
 
+function fetchInheritedMiseqInfo(plate) {
+    console.log('Launching: ' + plate);
+    var start_time = new Date().getTime();
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/api/sibling_miseq_plate') %]',
+        data: { plate: plate },
+    }).done(function(data) {
+        console.log(data);
+        var request_time = new Date().getTime() - start_time;
+        console.log(request_time);
+        parentMiseqClassifications[plate] = data;
+    });
 }
 
 function trackWells(key, well) {

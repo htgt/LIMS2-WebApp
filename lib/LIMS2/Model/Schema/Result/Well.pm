@@ -1655,19 +1655,11 @@ sub experiments {
 
 sub experimentsPipelineII {
     my $self = shift;
-
-    my $crispr_entity = $self->crispr_entity;
+$DB::single=1;
     my $design = $self->design;
 
-    unless($crispr_entity or $design){
-        # This should never happen but just in case
-        die "No crispr entity or design found for $self. Cannot identify related experiments";
-    }
-
     my $search = { deleted => 0};
-    if($crispr_entity){
-        $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
-    }
+    
     if($design){
         $search->{design_id} = $design->id;
     }
