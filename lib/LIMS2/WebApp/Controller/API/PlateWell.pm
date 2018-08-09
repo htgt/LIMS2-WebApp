@@ -2,6 +2,7 @@ package LIMS2::WebApp::Controller::API::PlateWell;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use LIMS2::Model::Util::Miseq qw( query_miseq_details );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -653,6 +654,7 @@ sub sibling_miseq_plate_GET {
     my $term = $c->request->param('plate');
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
+    my $results = query_miseq_details($c->model('Golgi'), '654401');
 
     unless ($plate_rs) {
         return $self->status_bad_request(
@@ -665,6 +667,17 @@ $DB::single=1;
     my $parent_mapping;
     #foreach my $well (@wells) {
     while (my $well = $plate_rs->wells->next) {
+        my @miseq_details = query_miseq_details($c->model('Golgi'), $well->id);
+        print "test";
+        foreach my $miseq_row (@miseq_details) {
+            $parent_mapping->{$miseq_row->{well_exp_classification}}->{$well->name} = {
+                miseq_id    => $miseq_row->{miseq_plate_id},
+                exp_id      => $miseq_row->{experiment_id},
+                well_exp_id => $miseq_row->{well_exp_id},
+            }
+        }
+
+=head
         my @related_wells;
         if ($plate_rs->type->id eq 'PIQ') {
             @related_wells = $well->sibling_wells;
@@ -673,6 +686,7 @@ $DB::single=1;
         }
         my @miseq_wells = grep { $_->plate_type =~ /MISEQ/ } @related_wells;
         foreach my $miseq_well (@miseq_wells) {
+
             my $miseq_plate = $miseq_well->plate->miseq_details;
             
             my @experiment_ids = map { $_->id } $well->experimentsPipelineII;
@@ -695,6 +709,8 @@ $DB::single=1;
                 }
             }
         }
+
+=cut
     }
 
     my $json = JSON->new->allow_nonref;

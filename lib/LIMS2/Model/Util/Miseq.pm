@@ -14,6 +14,7 @@ use Sub::Exporter -setup => {
               find_file
               find_child_dir
               read_file_lines
+              query_miseq_details
           )
     ]
 };
@@ -22,6 +23,59 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
 use JSON;
 use File::Find;
+use Const::Fast;
+
+const my $QUERY_MISEQ_DESCENDANTS => <<'EOT';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id) AS (
+    SELECT pr.id, pr_in.well_id, pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    WHERE pr_out.well_id = ?
+    UNION
+    SELECT pr.id, pr_in.well_id, pr_out.well_id
+    FROM processes pr
+    JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+    LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT process_id, input_well_id, output_well_id, plates.name, plates.type_id, mp.id, me.experiment_id, me.name, mwe.id, mwe.classification
+FROM well_hierarchy
+inner join wells well_out on output_well_id=well_out.id
+inner join plates on plates.id=well_out.plate_id
+inner join miseq_plate mp on plates.id=mp.plate_id
+inner join miseq_well_experiment mwe on mwe.well_id=well_out.id
+inner join miseq_experiment me on mwe.miseq_exp_id=me.id
+EOT
+
+sub query_miseq_details {
+    my ($self, $well_id) = @_;
+    
+    my @miseq_results;
+    my @headers = qw( process_id input_well_id output_well_id plate_name plate_type miseq_plate_id experiment_id miseq_exp_id miseq_exp_name well_exp_id well_exp_classification );
+    my @results = _traverse_process_tree($self, $well_id);
+    foreach my $miseq_row (@results) {
+        my %mapping;
+        @mapping{@headers} = @results;
+        push @miseq_results, \%mapping;
+    }
+
+    return \@miseq_results;
+}
+
+sub _traverse_process_tree {
+    my ($self, $well_id) = @_;
+    
+    my $query = $QUERY_MISEQ_DESCENDANTS;
+    return $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached( $query );
+            $sth->execute( $well_id );
+            $sth->fetchall_arrayref;
+        }
+    );
+}
 
 sub miseq_well_processes {
     my ($c, $params) = @_;
