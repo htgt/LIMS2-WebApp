@@ -101,24 +101,6 @@ __PACKAGE__->table("projects");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 programme_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 lab_head_id
-
-  data_type: 'integer'
-  is_foreign_key: 1
-  is_nullable: 1
-
-=head2 requester_id
-
-  data_type: 'text'
-  is_foreign_key: 1
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -148,12 +130,6 @@ __PACKAGE__->add_columns(
   "cell_line_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "strategy_id",
-  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
-  "programme_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "lab_head_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "requester_id",
   { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -219,46 +195,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 lab_head
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::LabHead>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "lab_head",
-  "LIMS2::Model::Schema::Result::LabHead",
-  { id => "lab_head_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
-=head2 programme
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::Programme>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "programme",
-  "LIMS2::Model::Schema::Result::Programme",
-  { id => "programme_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
 =head2 project_experiments
 
 Type: has_many
@@ -309,26 +245,6 @@ __PACKAGE__->belongs_to(
   },
 );
 
-=head2 requester
-
-Type: belongs_to
-
-Related object: L<LIMS2::Model::Schema::Result::Requester>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "requester",
-  "LIMS2::Model::Schema::Result::Requester",
-  { id => "requester_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
-  },
-);
-
 =head2 strategy
 
 Type: belongs_to
@@ -370,8 +286,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 12:28:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FrePT8Ze9b/rqX5+mCtzwA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kjaupYHfcjExbBkHPgLbIA
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',
@@ -456,3 +372,4 @@ sub strategy {
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
+

@@ -8,22 +8,16 @@ CREATE TABLE lab_heads (
   name TEXT NOT NULL
 );
 
-ALTER TABLE projects ADD COLUMN programme_id INT;
-ALTER TABLE projects ADD COLUMN lab_head_id INT;
-ALTER TABLE projects ADD COLUMN requester_id TEXT;
+ALTER TABLE project_sponsors ADD COLUMN programme_name TEXT;
+ALTER TABLE project_sponsors ADD COLUMN lab_head_name TEXT;
 
-ALTER TABLE projects
-  ADD CONSTRAINT programmes_projects_fkey FOREIGN KEY (programme_id)
-      REFERENCES programmes (id)
+ALTER TABLE project_sponsors
+  ADD CONSTRAINT programmes_project_sponsors_fkey FOREIGN KEY (programme_name)
+      REFERENCES programmes (name)
       ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE projects
-  ADD CONSTRAINT lab_heads_projects_fkey FOREIGN KEY (lab_head_id)
-      REFERENCES lab_heads (id)
-      ON UPDATE CASCADE ON DELETE CASCADE;
-
-ALTER TABLE projects
-  ADD CONSTRAINT requesetrs_projects_fkey FOREIGN KEY (requester_id)
-      REFERENCES requesters (id)
+ALTER TABLE project_sponsors
+  ADD CONSTRAINT lab_heads_project_sponsors_fkey FOREIGN KEY (lab_head_name)
+      REFERENCES lab_heads (name)
       ON UPDATE CASCADE ON DELETE CASCADE;
 

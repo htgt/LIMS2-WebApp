@@ -76,26 +76,12 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 projects
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::Project>
-
-=cut
-
-__PACKAGE__->has_many(
-  "projects",
-  "LIMS2::Model::Schema::Result::Project",
-  { "foreign.requester_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 12:28:24
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NjrTFF2fxnWek2qP+G2MJg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-03-01 14:11:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ge5LmanfBZhGDERXII46Pw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;
+
