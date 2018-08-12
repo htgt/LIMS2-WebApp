@@ -1,6 +1,6 @@
 job 1:
   before_script:
-  - pwd
+  - whoami
   script:
   - pwd
   after_script:
