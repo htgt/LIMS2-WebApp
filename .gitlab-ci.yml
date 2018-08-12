@@ -1,0 +1,10 @@
+job 1:
+  before_script:
+  - source /opt/t87/global/scripts/bash_utils.sh
+  - source /home/ubuntu/exports.txt
+  - source bin/lims2_setup.sh
+  - lims2 test
+  script:
+  - pwd
+  after_script:
+  - echo 'end'
