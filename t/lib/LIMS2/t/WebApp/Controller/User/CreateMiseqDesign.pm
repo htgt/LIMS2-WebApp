@@ -79,8 +79,8 @@ sub all_tests  : Test(21)
     is ($new_pass_design->{crispr}, 187845, 'New design is based on original crispr');
     isnt ($new_pass_design->{design}->id, "", 'New design has ID');
     ok my $new_geno_threshold_pass = CreateMiseqDesign::generate_miseq_design($self, $new_params, 188511, $details), 'Geno threshold new preset pass';
-    is ($new_geno_threshold_pass->{crispr}, 188511, 'New design is based on original crispr');
-    isnt ($new_geno_threshold_pass->{design}->id, "", 'New design has ID');
+    is ($new_geno_threshold_pass->{crispr_id}, 188511, 'New design is based on original crispr');
+    isnt ($new_geno_threshold_pass->{design_id}, "", 'New design has ID');
     ok my $new_primer_gen_fail = CreateMiseqDesign::generate_miseq_design($self, $new_params, 189889, $details), 'Primer generation default preset fail';
     like ($new_primer_gen_fail->{error}, qr/Primer generation failed/, 'Primer gen fail error check');
     }
