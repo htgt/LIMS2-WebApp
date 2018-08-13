@@ -53,6 +53,9 @@ case $1 in
     regenerate_schema)
         lims2_regenerate_schema
         ;;
+    fcgi)
+        lims2_fcgi $2
+        ;;
     *)
         printf "Usage: lims2 sub-command [option]\n"
         printf "see 'lims2 help' for commands and options\n"
@@ -252,6 +255,15 @@ function lims2_pg9.3 {
     use pg9.3
 }
 
+function lims2_fcgi ()
+{
+    if [[ "$1" ]]; then
+        $LIMS2_DEV_ROOT/bin/fcgi-manager.pl --config "${LIMS2_FCGI_CONFIG}" "$1" lims2
+    else
+        printf "$L2E: must supply start|stop|restart to lims2 fcgi command\n";
+    fi
+}
+
 function lims2_show {
 cat << END
 LIMS2 useful environment variables:
@@ -342,6 +354,8 @@ Commands avaiable:
     audit        - generate audit.up in the current directory for the selected database
     regenerate_schema
                  - generate new schema files for the currently selected database
+    fcgi <start|stop>
+                 - start/stop the server as a FastCGI process
     help         - displays this help message
 Files:
 ~/.lims2_local     - sourced near the end of the setup phase for you own mods
