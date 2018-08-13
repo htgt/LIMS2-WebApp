@@ -121,8 +121,8 @@ sub update_well_barcode {
                         new_plate_id  => undef,
                         new_well_name => undef,
                         new_state     => 'checked_out',
-                        comment       =>'barcode checked out to make space for '.$validated_params->barcode,
-                        user          => $validated_params->user,
+                        comment       =>'barcode checked out to make space for '.$validated_params->{barcode},
+                        user          => $validated_params->{user},
                     });
                     $well->update($new_location);
                 }

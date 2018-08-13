@@ -738,7 +738,9 @@ sub update_barcoded_plate{
 
         my $orig_well = $model->retrieve_well({ barcode => $barcode });
         # Check if the barcode has moved from existing location
-        if($orig_well->name ne $well_name or $orig_well->plate_id != $plate->id){
+        my $wells_name = (defined $orig_well->name) ? $orig_well->name : 'NA';
+
+        if ($wells_name  ne $well_name or $orig_well->plate_id != $plate->id) {
 
             my $orig_well_name = $orig_well->as_string;
             $model->update_well_barcode({
@@ -801,7 +803,6 @@ sub upload_plate_scan{
     my ($model, $params) = @_;
 
     my $validated_params = $model->check_params($params, pspec_upload_plate_scan);
-
     my $csv_data = _parse_plate_well_barcodes_csv_file($validated_params->{csv_fh});
 
     my $new_plate;
@@ -867,6 +868,7 @@ sub upload_plate_scan{
             $plate_update_params->{plate_name} = $validated_params->{existing_plate_name};
             $plate_update_params->{new_state} = 'in_freezer';
             my $messages;
+
             ($new_plate, $messages) = update_barcoded_plate($model, $plate_update_params);
 
             DEBUG "Plate layout updated for ".$new_plate->name;
