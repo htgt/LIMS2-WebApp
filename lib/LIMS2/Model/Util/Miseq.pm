@@ -217,6 +217,10 @@ sub generate_summary_data {
             details     => $details,
         };
     }
+    #print Dumper "\n \n \n \n \n \n \n \n \n \n";
+    #print Dumper $wells;
+    #print Dumper "\n \n \n \n \n \n \n \n \n \n";
+
     return $wells;
 }
 
