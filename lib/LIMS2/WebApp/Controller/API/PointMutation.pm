@@ -9,8 +9,8 @@ use MIME::Base64;
 use Bio::Perl;
 use POSIX;
 use Try::Tiny;
-
-use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines );
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines convert_index_to_well_name );
+use List::Util 'max';
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -19,11 +19,10 @@ sub point_mutation_image : Path( '/api/point_mutation_img' ) : Args(0) : ActionC
 
 sub point_mutation_image_GET {
     my ( $self, $c ) = @_;
-
-    my %whitelist = (
-        '1b.Indel_size_distribution_percentage.png' => 1,
-        '2.Unmodified_NHEJ_pie_chart.png'           => 1,
-    );
+    #my %whitelist = (
+    #    '1b.Indel_size_distribution_percentage.png' => 1,
+    #    '2.Unmodified_NHEJ_pie_chart.png'           => 1,
+    #);
 
     $c->assert_user_roles('read');
 
@@ -32,25 +31,15 @@ sub point_mutation_image_GET {
     my $experiment = $c->request->param( 'exp');
     my $file_name = $c->request->param( 'name' );
 
-    #Sanitise inputs since it's a broad search
-    unless (exists($whitelist{$file_name})) {
-        $c->response->status( 406 );
-        $c->response->body( "File name: " . $file_name . " is not acceptable. This query has been terminated.");
-        return;
-    }
-
-    my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
-
-    unless ($graph_dir) {
+    my $miseq_well_experiment_hash = get_miseq_well_experiment_hash($c, $miseq, $oligo_index, $experiment);
+    
+    unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
-        $c->response->body( "File name: " . $file_name . " can not be found.");
+        $c->response->body( "Database entry for filename: " . $file_name . " can not be found.");
         return;
     }
-
-    open my $fh, '<', $graph_dir or die "$!";
-    my $raw_string = do{ local $/ = undef; <$fh>; };
-    close $fh;
-
+     
+    my $raw_string = get_raw_image($c, $miseq_well_experiment_hash->{id});
     my $body = encode_base64( $raw_string );
 
     $c->response->status( 200 );
@@ -60,9 +49,9 @@ sub point_mutation_image_GET {
             . 'S' . $oligo_index . '_exp' . $experiment
     );
     $c->response->body( $body );
-
     return;
 }
+
 
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -75,27 +64,17 @@ sub point_mutation_summary_GET {
     my $experiment = $c->request->param( 'exp' );
     my $limit = $c->request->param( 'limit' );
 
-    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
-
-    unless ($sum_dir) {
+    my $miseq_well_experiment_hash = get_miseq_well_experiment_hash($c, $miseq, $oligo_index, $experiment);
+  
+    unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
-        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-        return;
+        $c->response->body( "Database entry for miseq well experiment id: " . $miseq_well_experiment_hash->{id} . " can not be found for $miseq, $oligo_index and $experiment");
+        return; 
     }
 
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
-    if ($limit) {
-        $res->{data} = join("\n", @lines[0..$limit]);
-    } else {
-        $res->{data} = join("\n", @lines);
-    }
+    my $res->{data} = get_frequency_data($c, $miseq_well_experiment_hash);
+        
     $res->{crispr} = crispr_seq($c, $miseq, $experiment);
-
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($res);
 
@@ -300,5 +279,167 @@ sub flatten_wells {
     return $new_structure;
 }
 
+
+sub get_frequency_data{
+    my ($c, $miseq_well_experiment_hash) = @_;
+   $DB::single=1; 
+    my $limit = $c->request->param('limit');
+    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
+    my $cou = $frequency_rs->count;
+    my @lines;
+    push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
+    $limit = $cou if ($limit > $cou);
+    if ($limit > 0){
+            for my $i (1..$limit){
+                my $hash = $frequency_rs->next->as_hash;
+                my $sum = $hash->{n_reads};
+                my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
+                push @lines, 
+                    $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".   
+                    $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
+                    $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
+                    $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                    $percentage;
+                }
+            }
+    elsif($frequency_rs->count < 1){
+        print "No results";
+    }
+    else{
+        print "Bug with alleles frequency rs";
+    }
+    my $data = join("\n", @lines[0..$limit]);
+    return $data;
+}
+
+sub get_raw_image{
+    my ($c, $miseq_well_experiment_id) = @_;
+
+    my $indel_graph_hash;
+    my $indel_graph_rs = $c->model('Golgi')->schema->resultset('IndelDistributionGraph')->search( { id => $miseq_well_experiment_id });
+
+    if ($indel_graph_rs->count > 1){
+        print "More than 1";
+    }
+    elsif($indel_graph_rs->count < 1){
+        print "No results";
+    }
+    else{
+        $indel_graph_hash = $indel_graph_rs->first->as_hash;
+    }
+    return $indel_graph_hash->{indel_size_distribution_graph};
+}
+
+
+
+
+
+sub get_miseq_well_experiment_hash{
+    my ($c, $miseq, $well, $exp) = @_;
+my $tmp;
+    my $model = LIMS2::Model->new({ user => 'tasks' });
+    
+
+    #First, extract the plate_id, using the miseq name
+    
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->search({ name => $miseq });
+    my $plate_hash;
+    my $plate;
+    if ($plate_rs->count > 1) {
+        print("Search returned multiple plates for given id \n");
+        next;
+    }
+    elsif ($plate_rs->count <  1){
+        print("Search returned empty \n");
+        next;
+    }
+
+    else{
+        $plate = $plate_rs->first;
+        $plate_hash =$plate->as_hash;
+    }
+$tmp = $plate_hash->{id};
+
+    #Then get the miseq plate id
+
+    my $miseq_plate_hash;
+    $miseq_plate_hash = $plate->miseq_details;
+   
+$tmp = $miseq_plate_hash->{id};
+
+#Plate id to well name gives well
+
+    my $well_hash;
+    my $well_name = convert_index_to_well_name($well);  
+    my $well_rs = $c->model('Golgi')->schema->resultset('Well')->search(
+        {   -and => 
+            [
+                'plate_id' => $plate_hash->{id},
+                'name'     => $well_name         
+            ]
+        });
+        
+    if ($well_rs->count > 1) {
+        print("Search returned multiple wells for given plate id and well name \n");
+        next;
+    }
+    elsif ($well_rs->count <  1){
+        print("Search returned empty \n");
+        next;
+    }
+    else{
+        $well_hash = $well_rs->first->as_hash;
+    }
+$tmp = $well_hash->{id};
+
+#Query miseq experiment for name(extracted from the path and converted) and plate id
+
+    my $miseq_experiment_hash; 
+    my $miseq_experiment_rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+        {   -and =>
+            [   
+                'miseq_id' => $miseq_plate_hash->{id},
+                'name'     => $exp                    
+            ]
+        }
+    );
+    if ($miseq_experiment_rs->count > 1) {
+        print("Search returned multiple miseq experiments for given miseq id and experiment name \n");
+        next;
+    }
+    elsif ($miseq_experiment_rs->count <  1){
+        print("Search returned empty \n");
+        next;
+    }
+    else{
+        $miseq_experiment_hash = $miseq_experiment_rs->first()->as_hash;
+    }
+
+$tmp = $miseq_experiment_hash->{id};
+    #Finally, query miseq well experiment for miseq experiment id and well id to get the miseq well experiment id.
+
+    my $miseq_well_experiment_hash; 
+    my $miseq_well_experiment_rs = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
+        {   -and =>
+            [
+                'miseq_exp_id'    => $miseq_experiment_hash->{id} ,
+                'well_id'         => $well_hash->{id}
+            ]
+        }
+    );
+    if ($miseq_well_experiment_rs->count > 1) {
+       print("Search returned multiple miseq well experiments for given miseq experiment id and well id \n");
+       next;
+    }
+    elsif ($miseq_well_experiment_rs->count <  1){
+       print("Search returned empty \n");
+       next;
+    }
+    else{
+       $miseq_well_experiment_hash = $miseq_well_experiment_rs->first->as_hash;
+   } 
+$tmp = $miseq_well_experiment_hash->{id};
+    return $miseq_well_experiment_hash;
+}
 
 1;

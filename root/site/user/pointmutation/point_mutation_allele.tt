@@ -501,7 +501,7 @@ function createTable(exp, result) {
     }
 
     //Crispresso update added a column not required by the lab. Hiding it temporarily.
-    $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
+    // $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
 }
 
 function highlightBases(seq, crispr, reference) {

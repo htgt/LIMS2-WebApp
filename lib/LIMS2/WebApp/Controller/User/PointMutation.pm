@@ -305,7 +305,7 @@ sub update_tracking {
         }
         if ($well_exp) {
             $exp_params->{id} = $well_exp->as_hash->{id};
-            delete $exp_params->{well_id};
+            #delete $exp_params->{well_id};
             unless ($exp_params->{$check} eq $well_exp->as_hash->{$check}) {
                 $c->model('Golgi')->update_miseq_well_experiment($exp_params);
             }
