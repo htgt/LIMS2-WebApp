@@ -61,7 +61,7 @@ __PACKAGE__->table("miseq_experiment");
   data_type: 'text'
   is_nullable: 1
 
-=head2 nheg_reads
+=head2 nhej_reads
 
   data_type: 'integer'
   is_nullable: 1
@@ -103,7 +103,7 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "gene",
   { data_type => "text", is_nullable => 1 },
-  "nheg_reads",
+  "nhej_reads",
   { data_type => "integer", is_nullable => 1 },
   "total_reads",
   { data_type => "integer", is_nullable => 1 },
@@ -200,8 +200,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-18 12:00:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XRTb1lcZ4hQTy7yJLpXZzA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-02 09:49:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VXW3r11eQw4a46jsMWMr4w
 
 sub as_hash {
     my $self = shift;
@@ -211,7 +211,7 @@ sub as_hash {
         miseq_id    => $self->miseq_id,
         name        => $self->name,
         gene        => $self->gene,
-        nhej_count  => $self->nheg_reads,
+        nhej_count  => $self->nhej_reads,
         hdr_count   => $self->hdr_reads,
         mixed_count => $self->mixed_reads,
         read_count  => $self->total_reads,

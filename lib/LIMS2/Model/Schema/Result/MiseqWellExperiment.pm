@@ -75,9 +75,9 @@ __PACKAGE__->table("miseq_well_experiment");
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 indel_size_distribution_graph
+=head2 total_reads
 
-  data_type: 'bytea'
+  data_type: 'integer'
   is_nullable: 1
 
 =cut
@@ -100,8 +100,8 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "status",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
-  "indel_size_distribution_graph",
-  { data_type => "bytea", is_nullable => 1 },
+  "total_reads",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -136,6 +136,21 @@ __PACKAGE__->belongs_to(
     on_delete     => "CASCADE",
     on_update     => "CASCADE",
   },
+);
+
+=head2 indel_distribution_graph
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::IndelDistributionGraph>
+
+=cut
+
+__PACKAGE__->might_have(
+  "indel_distribution_graph",
+  "LIMS2::Model::Schema::Result::IndelDistributionGraph",
+  { "foreign.id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 miseq_alleles_frequencies
@@ -199,8 +214,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-18 12:00:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3pIkPxmCU69YQS1aChMt5g
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3W65Ihe+LF+UalAjfJfoKQ
 
 sub as_hash {
     my $self = shift;
@@ -213,6 +228,7 @@ sub as_hash {
         frameshifted        => $self->frameshifted,
         well_name           => $self->well->name,
         status              => $self->status->id,
+        total_reads         => $self->total_reads,
     );
 
     return \%h;

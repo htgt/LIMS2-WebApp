@@ -77,19 +77,25 @@ __PACKAGE__->table("miseq_alleles_frequency");
 =head2 n_deleted
 
   data_type: 'integer'
-  default_value: -1
+  default_value: 0
+  is_nullable: 0
+
+=head2 n_inserted
+
+  data_type: 'integer'
+  default_value: 0
   is_nullable: 0
 
 =head2 n_mutated
 
   data_type: 'integer'
-  default_value: -1
+  default_value: 0
   is_nullable: 0
 
 =head2 n_reads
 
   data_type: 'integer'
-  default_value: -1
+  default_value: 0
   is_nullable: 0
 
 =cut
@@ -113,11 +119,13 @@ __PACKAGE__->add_columns(
   "hdr",
   { data_type => "boolean", default_value => \"false", is_nullable => 0 },
   "n_deleted",
-  { data_type => "integer", default_value => -1, is_nullable => 0 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "n_inserted",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "n_mutated",
-  { data_type => "integer", default_value => -1, is_nullable => 0 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
   "n_reads",
-  { data_type => "integer", default_value => -1, is_nullable => 0 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -155,9 +163,26 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-18 12:00:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ng23UVyzuZ8BVxcQgsZQDQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y+i+ywHGjqv4A/BFnhPGPA
+sub as_hash {
+    my $self = shift;
 
+    my %h = (
+        id                          => $self->id,
+        miseq_well_experiment_id    => $self->miseq_well_experiment_id,
+        aligned_sequence            => $self->aligned_sequence,
+        nhej                        => $self->nhej,
+        unmodified                  => $self->unmodified,
+        hdr                         => $self->hdr,
+        n_deleted                   => $self->n_deleted,
+        n_inserted                  => $self->n_inserted,
+        n_mutated                   => $self->n_mutated, #TODO delete after migration
+        n_reads                     => $self->n_reads,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
