@@ -48,6 +48,77 @@ sub _build_sponsor_gene_count {
     return $sponsor_gene_count;
 }
 
-## rule-based subs
+## rule-based approach
+
+## A dispatch table of subroutines for every value in the report
+my $dispatch_report_values = {
+    gene_symbol           => \&get_gene_symbol,
+    chromosome            => \&get_chromosome,
+    sponsors              => \&get_sponsors,
+    project_id            => \&get_project_id,
+    experiment_id         => \&get_experiment_id,
+    crisprs_seq           => \&get_crispr_sequences,
+    design_id             => \&get_design_id,
+    ipscs_ep              => \&get_ipsc_electroporation,
+    ep_cell_line          => \&get_electroporation_cell_line,
+    ipscs_colonies_picked => \&get_ipsc_colonies_picked,
+};
+
+## usage
+## $dispatch_report_values->{ gene_symbol }->($gene_id)
+
+sub get_gene_symbol {
+    my ($self, $gene_id, $species) = @_;
+
+    my $gene_info = try{ $self->model('Golgi')->find_gene( { search_term => $gene_id, species => $species_id } ) };
+}
+
+
+sub get_chromosome {
+    my ($self, $crispr_id) = @_;
+
+    ## using crispr_loci table?
+}
+
+
+sub get_sponsors {
+    my ($self, $gene_id) = @_;
+}
+
+
+sub get_project_id {
+    my ($self, $gene_id) = @_;
+}
+
+
+sub get_experiment_id {
+    my ($self, $gene_id, $project_id) = @_;
+}
+
+
+sub get_crispr_sequences {
+    my ($self) = @_;
+}
+
+
+sub get_design_id {
+    my ($self) = @_;
+}
+
+
+sub get_ipsc_electroporation {
+    my ($self) = @_;
+}
+
+
+sub get_electroporation_cell_line {
+    my ($self) = @_;
+}
+
+
+sub get_ipsc_colonies_picked {
+    my ($self) = @_;
+}
+
 
 1;
