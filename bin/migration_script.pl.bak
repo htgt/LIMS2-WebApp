@@ -13,7 +13,7 @@ use List::Compare::Functional qw( get_intersection );
 
 #SUBS GO HERE
 sub header_hash {
-    my ( $header, @expected_titles ) = @_;
+    my ($header, @expected_titles) = @_;
 
     my @titles = split( /\t/, lc $header );
     my @intersection = get_intersection( [ \@titles, \@expected_titles ] );
@@ -21,28 +21,29 @@ sub header_hash {
     %head = map { lc $titles[$_] => $_ }
         0 .. $#titles;    #creates a hash that has all the elements of the array as keys and their index as values
 
-#check if the length of the intersection of the full array of titles is equal to the length of the array of expected titles
-#This checks that all the requested elements were found within the header of the file
+    #check if the length of the intersection of the full array of titles is equal to the length of the array of expected titles
+    #This checks that all the requested elements were found within the header of the file
     scalar(@intersection) == scalar(@expected_titles) ? return %head : return;
-    return;
 }
 
 sub migrate_frequencies {
     my ( $model, $frequency_paths, $miseq_well_experiment_hash ) = @_;
-    my $limit   = 10;
-    my $sum     = 0;
-    my $counter = 0;      #counts the number of frequencies within one file
-    open( my $file_to_read, "<", "$frequency_paths" ) or die "Cannot open frequency file";
+
+    $DB::single=1;
+    my $sum = 0;
+    my $counter = 0;    #counts the number of frequencies within one file
+    open( my $file_to_read, "<", "$frequency_paths" ) or die "Cannot open file";
 
     my $header = <$file_to_read>;    #grab the header line that holds the titles of the columns
     chomp $header;
     my @expected_titles
         = ( 'aligned_sequence', 'nhej', 'unmodified', 'hdr', 'n_deleted', 'n_inserted', 'n_mutated', '#reads' );
-    my %head = header_hash( $header, @expected_titles );
+    my %head = header_hash($header, @expected_titles);
+    $DB::single=1;
     if (%head) {
         while ( my $line = <$file_to_read> ) {
             chomp $line;
-            if ( $counter < $limit ) {
+            if ( $counter < 10 ) {
                 $counter++;
                 my @words = split( /\t/, $line );    #split the space seperated values and store them in a hash
                 my $row = {
@@ -73,21 +74,21 @@ sub migrate_frequencies {
         }
     }
     else { warn "File: $frequency_paths is corrupt. Could not extract titles properly"; }
-    close($file_to_read) or die "Cannot close frequency file";
+    close($file_to_read);
     return;
 }
 
 sub migrate_images {
     my ( $model, $image_path, $miseq_well_experiment_hash ) = @_;
 
-    my $contents = q{};
+    my $contents = "";
     open( my $in_fh, "<", $image_path ) or die "Failed to open image file!";
     binmode $in_fh;
 
     while ( read $in_fh, my $buf, 16384 ) {
         $contents .= $buf;
     }
-    close $in_fh or die "Failed to close image file!";
+    close $in_fh;
 
     my $row = {
         id                            => $miseq_well_experiment_hash->{id},
@@ -130,7 +131,6 @@ sub update_miseq_well_exp {
             };
         }
     );
-    return;
 }
 
 sub migrate_quant_file {
@@ -209,7 +209,7 @@ sub create_miseq_well_exp {
     chomp $most_common_line;
 
     my $second_most_common_line = <$my_file>;
-    $second_most_common_line = "0" unless $second_most_common_line;
+    $second_most_common_line = "0" unless $second_most_common_line; 
     chomp $second_most_common_line;
 
     my $mixed_read_line = <$my_file>;
@@ -373,9 +373,14 @@ sub get_miseq_well_experiment {
 }
 
 sub extract_data_from_path {
-    my ( $model, $miseq, $well, $exp ) = @_;
+    my ($model, $file) = @_;
 
-   
+    my ( $miseq, $well, $exp ) = $file =~ m/
+        Miseq_(\w+) #miseq plate number
+        \/S(\d+)    #well name integer, before convert to "A01" format
+        _exp(\w+)   #experiment name as string in the format "AS_EWE_E"
+        /xgms;
+
     #First get the plate hash
     my $plate = get_plate( $model, $miseq );
     return 0 unless $plate;
@@ -412,14 +417,8 @@ open( my $fh, '<:encoding(UTF-8)', 'files_paths.txt' )
 
 while ( my $file = <$fh> ) {    #foreach file from the list of file directories
     chomp $file;
-    
-    my ( $miseq, $well, $exp ) = $file =~ m/
-        Miseq_(\w+) #miseq plate number
-        \/S(\d+)    #well name integer, before convert to "A01" format
-        _exp(\w+)   #experiment name as string in the format "AS_EWE_E"
-        /xgms;
 
-    my $data = extract_data_from_path( $model, $miseq, $well, $exp );
+    my $data = extract_data_from_path($model, $file);
     next unless $data;
 
     #Check if there is a graph entry for examined miseq_well_exp_id ad if not update database
@@ -444,13 +443,14 @@ while ( my $file = <$fh> ) {    #foreach file from the list of file directories
 }
 close($fh);
 
+
 __END__
 
 =pod           
 
 =head1 NAME
 
-Migration
+Migration Script
 
 =head1 DESCRIPTION
 
@@ -494,24 +494,15 @@ NOTE: Does not check first if there is a miseq well experiment for the passed pa
 
 =item C<frameshift_check> 
 
-Takes in a read, as an array, performs a frameshift check and returns the outcome.
+Takes a in a read, as an array, performs a frameshift check and returns the outcome.
 
 =item C<migrate_quant_file> 
 
-Takes in model, directory, miseq experiment hash and parses it to update the miseq well experiment. 
-Returns the total number of reads.
-
 =item C<update_miseq_well_exp> 
-
-Takes in model, miseq well experiment hash, total number of reads and updates the miseq well experiment
 
 =item C<migrate_images> 
 
-Takes in the model, png local path, miseq well experiment hash and creates a new entry to the appropriate database table. 
-
 =item C<migrate_frequencies> 
-
-Takes in model, alleles frequency txt file path and miseq_well_experiment_hash and creates an entry in the alleles frequency table foreach of the first 10 entries. 
 
 =item C<header_hash>
 

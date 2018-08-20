@@ -373,9 +373,14 @@ sub get_miseq_well_experiment {
 }
 
 sub extract_data_from_path {
-    my ( $model, $miseq, $well, $exp ) = @_;
+    my ( $model, $file ) = @_;
 
-   
+    my ( $miseq, $well, $exp ) = $file =~ m/
+        Miseq_(\w+) #miseq plate number
+        \/S(\d+)    #well name integer, before convert to "A01" format
+        _exp(\w+)   #experiment name as string in the format "AS_EWE_E"
+        /xgms;
+
     #First get the plate hash
     my $plate = get_plate( $model, $miseq );
     return 0 unless $plate;
@@ -412,14 +417,8 @@ open( my $fh, '<:encoding(UTF-8)', 'files_paths.txt' )
 
 while ( my $file = <$fh> ) {    #foreach file from the list of file directories
     chomp $file;
-    
-    my ( $miseq, $well, $exp ) = $file =~ m/
-        Miseq_(\w+) #miseq plate number
-        \/S(\d+)    #well name integer, before convert to "A01" format
-        _exp(\w+)   #experiment name as string in the format "AS_EWE_E"
-        /xgms;
 
-    my $data = extract_data_from_path( $model, $miseq, $well, $exp );
+    my $data = extract_data_from_path( $model, $file );
     next unless $data;
 
     #Check if there is a graph entry for examined miseq_well_exp_id ad if not update database
