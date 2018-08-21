@@ -106,7 +106,7 @@ $(function () {
             console.log("Down.");
         })
         .mouseover(function(evt) {
-            if (isMouseDown == true){
+            if (isMouseDown == true) {
                 highlighter(evt.target, startIndex);
             }
         });
