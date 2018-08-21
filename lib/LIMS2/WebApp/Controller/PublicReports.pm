@@ -193,11 +193,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         }
     }
 
-#    if ( $client_host =~ /internal.sanger.ac.uk/ ) {
-#        $is_internal = 1;
-#    }
-
-    if ( $c->request->address =~ m/^172/ ) {
+    if ( $client_host =~ /internal/ ) {
         $is_internal = 1;
     }
 
