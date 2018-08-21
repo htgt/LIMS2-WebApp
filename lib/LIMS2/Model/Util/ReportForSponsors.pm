@@ -98,7 +98,7 @@ sub _build_sponsors {
         DEBUG "Sponsor id found = ".$sponsor_id;
 
         $sponsor_id eq 'All' ? unshift( @sponsors, $sponsor_id ) : push( @sponsors, $sponsor_id );
-    }   
+    }
 
     return \@sponsors;
 }
