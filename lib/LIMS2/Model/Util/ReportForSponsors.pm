@@ -5824,5 +5824,3 @@ return $sql_query
 }
 
 1;
-
-
