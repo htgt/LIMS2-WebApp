@@ -10,7 +10,7 @@ INSERT INTO lab_heads (id) VALUES ('Andrew Bassett');
 INSERT INTO lab_heads (id) VALUES ('Matthew Hurles');
 INSERT INTO lab_heads (id) VALUES ('Daniel Gaffney');
 INSERT INTO lab_heads (id) VALUES ('Serena Nik-Zainal');
-INSERT INTO lab_heads (id) VALUES ('Nicholas Thomson');
+INSERT INTO lab_heads (id) VALUES ('Nicholas Thompson');
 INSERT INTO lab_heads (id) VALUES ('Antonio Vidal-Puig');
 INSERT INTO lab_heads (id) VALUES ('Ludovic Vallier');
 INSERT INTO lab_heads (id) VALUES ('David Adams');
@@ -131,5 +131,38 @@ UPDATE project_sponsors SET sponsor_id = 'Experimental Cancer Genetics' where pr
 UPDATE project_sponsors SET sponsor_id = 'Experimental Cancer Genetics' where project_id = 9202 and sponsor_id = 'Test';
 UPDATE project_sponsors SET sponsor_id = 'Experimental Cancer Genetics' where project_id = 9203 and sponsor_id = 'Test';
 
+UPDATE project_sponsors SET programme_id = 'Cellular Genetics', lab_head_id = 'Daniel Gaffney' where sponsor_id = 'NeuroMut' and project_id in (
+9133, 9339, 9340, 9341, 9342, 9343, 9344, 9345, 9346, 9347, 9348, 9349, 9350
+);
+
+UPDATE project_sponsors SET programme_id = 'Cellular Genetics', lab_head_id = 'Ludovic Vallier' where sponsor_id = 'Pancreatic Genetics' and project_id in (
+9141, 9142, 9143, 9308, 9309
+);
+
+UPDATE project_sponsors SET programme_id = 'Cellular Genetics', lab_head_id = 'Antonio Vidal-Puig' where sponsor_id = 'StemBAT' and project_id in (
+9279, 9306, 9307, 9416, 9417, 9418, 9419, 9420, 9421
+);
+
+UPDATE project_sponsors SET programme_id = 'Human Genetics', lab_head_id = 'Matthew Hurles' where sponsor_id = 'Decipher';
+
+UPDATE project_sponsors SET programme_id = 'Parasites and Microbes', lab_head_id = 'Robert Hancock' where sponsor_id = 'Pathogen BH' and project_id in (
+8792, 8797, 8799, 8800, 8803, 8807, 8808, 8810, 8813, 8821
+);
+
+UPDATE project_sponsors SET programme_id = 'Parasites and Microbes', lab_head_id = 'Nicholas Thompson' where sponsor_id = 'Pathogen NT' and project_id in (
+9269, 9282, 9298, 9299, 9300, 9301, 9302, 9303, 9304, 9326, 9327, 9332, 9335, 9336, 9337, 9400, 9401, 9402, 9403, 9404, 9405, 9406, 9407, 9408, 9409, 9410, 9412, 9413, 9414, 9415, 9268, 9271, 9288, 9295
+);
+
+UPDATE project_sponsors SET programme_id = 'Cancer Ageing and Somatic Mutation', lab_head_id = 'David Adams' where sponsor_id = 'Experimental Cancer Genetics' and project_id in (
+9270, 9274, 9289, 9305, 9321, 9324, 9338, 9188, 9189, 9191, 9195, 9197, 9187, 9190, 9192, 9193, 9194, 9196, 9198, 9199, 9201, 9202, 9203
+);
+
+UPDATE project_sponsors SET programme_id = 'Cancer Ageing and Somatic Mutation', lab_head_id = 'Serena Nik-Zainal' where sponsor_id = 'Mutation' and project_id in (
+9319, 9320, 9374, 9375
+);
+
+UPDATE project_sponsors SET programme_id = 'Other', lab_head_id = 'Andrew Bassett' where sponsor_id = 'Test' and project_id in (
+8787, 9296, 9297, 9333, 9334
+);
 
 ALTER TABLE project_sponsors ENABLE TRIGGER project_sponsors_audit;
