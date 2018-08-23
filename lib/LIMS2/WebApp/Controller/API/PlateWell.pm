@@ -654,7 +654,7 @@ sub sibling_miseq_plate_GET {
     my $term = $c->request->param('plate');
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
-    my $results = query_miseq_details($c->model('Golgi'), '654401');
+    my $results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
 
     unless ($plate_rs) {
         return $self->status_bad_request(
@@ -663,18 +663,25 @@ sub sibling_miseq_plate_GET {
         );
     }
 $DB::single=1;
+    use Data::Dumper;
 #my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
-    my $parent_mapping;
+    #my $parent_mapping;
+    my @test_dump;
     #foreach my $well (@wells) {
-    while (my $well = $plate_rs->wells->next) {
+    my $wells = $plate_rs->wells;
+    while (my $well = $wells->next) {
         my @miseq_details = query_miseq_details($c->model('Golgi'), $well->id);
-        print "test";
+        print Dumper $well->name;
         foreach my $miseq_row (@miseq_details) {
+            print Dumper $miseq_row->{output_well_id};
+            push @test_dump, $miseq_row;
+=head
             $parent_mapping->{$miseq_row->{well_exp_classification}}->{$well->name} = {
                 miseq_id    => $miseq_row->{miseq_plate_id},
                 exp_id      => $miseq_row->{experiment_id},
                 well_exp_id => $miseq_row->{well_exp_id},
             }
+=cut
         }
 
 =head
@@ -712,9 +719,10 @@ $DB::single=1;
 
 =cut
     }
-
+    print Dumper @test_dump;
     my $json = JSON->new->allow_nonref;
-    my $json_parents = $json->encode($parent_mapping);
+    my $json_parents = $json->encode(@test_dump);
+    #my $json_parents = $json->encode($parent_mapping);
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
