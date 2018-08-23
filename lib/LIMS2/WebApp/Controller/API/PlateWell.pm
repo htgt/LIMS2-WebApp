@@ -654,7 +654,6 @@ sub sibling_miseq_plate_GET {
     my $term = $c->request->param('plate');
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
-    my $results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
 
     unless ($plate_rs) {
         return $self->status_bad_request(
@@ -662,67 +661,22 @@ sub sibling_miseq_plate_GET {
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-$DB::single=1;
-    use Data::Dumper;
-#my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
-    #my $parent_mapping;
-    my @test_dump;
-    #foreach my $well (@wells) {
-    my $wells = $plate_rs->wells;
-    while (my $well = $wells->next) {
-        my @miseq_details = query_miseq_details($c->model('Golgi'), $well->id);
-        print Dumper $well->name;
-        foreach my $miseq_row (@miseq_details) {
-            print Dumper $miseq_row->{output_well_id};
-            push @test_dump, $miseq_row;
-=head
-            $parent_mapping->{$miseq_row->{well_exp_classification}}->{$well->name} = {
-                miseq_id    => $miseq_row->{miseq_plate_id},
-                exp_id      => $miseq_row->{experiment_id},
-                well_exp_id => $miseq_row->{well_exp_id},
-            }
-=cut
+
+    my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
+    my $class_mapping;
+    foreach my $result (@results) {
+        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
+            my $class_details = {
+                classification  => $result->{miseq_classification},
+                experiment_id   => $result->{experiment_id},
+                miseq_exp_name  => $result->{miseq_experiment_name},
+            };
+            push (@{ $class_mapping->{$result->{origin_well_name}} }, $class_details);
         }
-
-=head
-        my @related_wells;
-        if ($plate_rs->type->id eq 'PIQ') {
-            @related_wells = $well->sibling_wells;
-        } else {
-            @related_wells = $well->child_wells;
-        }
-        my @miseq_wells = grep { $_->plate_type =~ /MISEQ/ } @related_wells;
-        foreach my $miseq_well (@miseq_wells) {
-
-            my $miseq_plate = $miseq_well->plate->miseq_details;
-            
-            my @experiment_ids = map { $_->id } $well->experimentsPipelineII;
-            foreach my $exp_id (@experiment_ids) {
-                my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({
-                    miseq_id => $miseq_plate->{id},
-                    experiment_id => $exp_id,
-                });
-                my $well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({
-                    well_id         => $miseq_well->id,
-                    miseq_exp_id    => $miseq_exp->id,
-                });
-
-                if ($well_exp) {
-                    $parent_mapping->{$well_exp->classification->id}->{$well->name} = {
-                        miseq_id    => $miseq_plate->{id},
-                        exp_id      => $exp_id,
-                        well_exp_id => $well_exp->id,
-                    }
-                }
-            }
-        }
-
-=cut
     }
-    print Dumper @test_dump;
+
     my $json = JSON->new->allow_nonref;
-    my $json_parents = $json->encode(@test_dump);
-    #my $json_parents = $json->encode($parent_mapping);
+    my $json_parents = $json->encode($class_mapping);
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );

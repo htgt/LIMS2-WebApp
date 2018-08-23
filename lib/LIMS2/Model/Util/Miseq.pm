@@ -101,6 +101,8 @@ sub query_miseq_details {
     my @inherited_exp_rows = @{ _find_inherited_experiment($self, $plate_id) };
     my @experiments = map { @$_[0] } @inherited_exp_rows;
     my $experiments_str = join (',', @experiments);
+
+$DB::single=1; 
     my @results = @{ _traverse_process_tree($self, $plate_id, $experiments_str) };
     foreach my $miseq_row (@results) {
         my %mapping;
