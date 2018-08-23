@@ -11,15 +11,16 @@ use POSIX;
 use Try::Tiny;
 use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines convert_index_to_well_name );
 use List::Util 'max';
-
+use Data::Dumper;
+use LIMS2::Model::Util::ImportCrispressoQC  qw( get_data );
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 
-sub point_mutation_image_db : Path( '/api/point_mutation_img_db' ) : Args(0) : ActionClass( 'REST' ) {
+sub point_mutation_image : Path( '/api/point_mutation_img' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
-sub point_mutation_image_db_GET {
-    my ( $self, $c ) = @_;i
+sub point_mutation_image_GET {
+    my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
 
@@ -28,8 +29,7 @@ sub point_mutation_image_db_GET {
     my $experiment = $c->request->param( 'exp');
     my $file_name = $c->request->param( 'name' );
 
-    my $miseq_well_experiment_hash = extract_data_from_path($c->modeli('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
-    
+    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment);
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
         $c->response->body( "Database entry for filename: " . $file_name . " can not be found.");
@@ -50,10 +50,10 @@ sub point_mutation_image_db_GET {
 }
 
 
-sub point_mutation_summary_db : Path( '/api/point_mutation_summary_db' ) : Args(0) : ActionClass( 'REST' ) {
+sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
-sub point_mutation_summary_db_GET {
+sub point_mutation_summary_GET {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('read');
     my $miseq = $c->request->param('miseq');
@@ -61,7 +61,7 @@ sub point_mutation_summary_db_GET {
     my $experiment = $c->request->param( 'exp' );
     my $limit = $c->request->param( 'limit' );
 
-    my $miseq_well_experiment_hash = extract_data_from_path($c->modeli('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
+    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
   
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
@@ -83,10 +83,10 @@ sub point_mutation_summary_db_GET {
 }
 
 
-sub point_mutation_image : Path( '/api/point_mutation_img' ) : Args(0) : ActionClass( 'REST' ) {
+sub point_mutation_image_old : Path( '/api/point_mutation_img_old' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
-sub point_mutation_image_GET {
+sub point_mutation_image_old_GET {
     my ( $self, $c ) = @_;
 
     my %whitelist = (
@@ -133,10 +133,10 @@ sub point_mutation_image_GET {
     return;
 }
 
-sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
+sub point_mutation_summary_old : Path( '/api/point_mutation_summary_old' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
-sub point_mutation_summary_GET {
+sub point_mutation_summary_old_GET {
     my ( $self, $c ) = @_;
     $c->assert_user_roles('read');
     my $miseq = $c->request->param('miseq');
@@ -372,7 +372,7 @@ sub flatten_wells {
 
 sub get_frequency_data{
     my ($c, $miseq_well_experiment_hash) = @_;
-   $DB::single=1; 
+    
     my $limit = $c->request->param('limit');
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
     my $cou = $frequency_rs->count;
@@ -417,6 +417,7 @@ sub get_raw_image{
     else{
         $indel_graph_hash = $indel_graph_rs->first->as_hash;
     }
+    print Dumper $indel_graph_hash;
     return $indel_graph_hash->{indel_size_distribution_graph};
 }
 

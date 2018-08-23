@@ -7,7 +7,6 @@ use feature qw(say);
 use Data::Dumper;
 use Try::Tiny;
 use Moose;
-#use Text::File::Basename
 use Text::CSV;
 
 my @files = `find /warehouse/team229_wh01/lims2_managed_miseq_data/. -name Alleles_frequency_table.txt`;

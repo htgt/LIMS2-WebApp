@@ -120,7 +120,6 @@ sub pspec_create_miseq_well_experiment {
 # we need to convert this into a format expected by create_well
 sub create_miseq_well_experiment {
     my ($self, $params) = @_;
-$DB::single=1;
     my $validated_params = $self->check_params($params, pspec_create_miseq_well_experiment);
 
     my $miseq = $self->schema->resultset('MiseqWellExperiment')->create(
@@ -130,7 +129,6 @@ $DB::single=1;
             )
         }
     );
-$DB::single=1;
     return $miseq;
 }
 
