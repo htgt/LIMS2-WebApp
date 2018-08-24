@@ -29,7 +29,8 @@ sub point_mutation_image_GET {
     my $experiment = $c->request->param( 'exp');
     my $file_name = $c->request->param( 'name' );
 
-    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment);
+    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
+
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
         $c->response->body( "Database entry for filename: " . $file_name . " can not be found.");
@@ -61,8 +62,7 @@ sub point_mutation_summary_GET {
     my $experiment = $c->request->param( 'exp' );
     my $limit = $c->request->param( 'limit' );
 
-    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
-  
+    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};;
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
         $c->response->body( "Database entry for miseq well experiment id: " . $miseq_well_experiment_hash->{id} . " can not be found for $miseq, $oligo_index and $experiment");
@@ -417,7 +417,6 @@ sub get_raw_image{
     else{
         $indel_graph_hash = $indel_graph_rs->first->as_hash;
     }
-    print Dumper $indel_graph_hash;
     return $indel_graph_hash->{indel_size_distribution_graph};
 }
 

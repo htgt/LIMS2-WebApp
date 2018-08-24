@@ -258,7 +258,7 @@ sub create_miseq_well_exp {
         sub {
             try {
                 $miseq = $model->create_miseq_well_experiment($creation_params)->as_hash;
-                print Dumper "Created file at: $file";
+                print "Created file at: $file";
             }
             catch {
                 warn "Error creating entry";
@@ -439,7 +439,11 @@ $DB::single=1;
 
 sub get_data{
     my ( $model, $miseq, $well, $exp ) = @_;
+    $miseq =~ m/
+        Miseq_(\w+) #miseq plate pure number
+        /xgms;
     
+    $miseq = $1;
     my $plate;
     my $plate_hash;
     my $miseq_plate_hash;

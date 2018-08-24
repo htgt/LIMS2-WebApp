@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::User::PointMutation;
 
 use strict;
 use warnings FATAL => 'all';
-
+use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Path::Class;
@@ -343,9 +343,9 @@ sub get_efficiencies {
     return $efficiencies;
 }
 
-sub get_well_exp_graphs {
+sub get_well_exp_graphs_old {
     my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
-
+    
     my @exps;
     my @files = find_child_dir($miseq, $regex); #Structure - S(Index)_exp(Experiment)
     foreach my $file (@files) {
@@ -376,6 +376,19 @@ sub get_well_exp_graphs {
     return \@exps;
 }
 
+
+sub get_well_exp_graphs {
+    my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
+    my @exps;
+    my $miseq_well_exp_rs =  $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ well_id => $well_id });
+    my $next_miseq_well_exp;
+    while ($next_miseq_well_exp = $miseq_well_exp_rs->next){
+        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->as_hash->{miseq_exp_id} })->as_hash;
+        push (@exps, $miseq_exp);
+    }
+    print Dumper $exps[0];
+    print Dumper $exps[1];
+}
 __PACKAGE__->meta->make_immutable;
 
 1;
