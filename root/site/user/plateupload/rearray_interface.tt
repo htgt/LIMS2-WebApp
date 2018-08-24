@@ -219,6 +219,8 @@ function changePlateSelection() {
     
     if ( !$('.page-header').text().match(/PIQ/) ) {
         clearMiseqPlate();
+    } else {
+        displayClassifications(parentMiseqClassifications[name]);
     }
 
     if (name in miseqData) {
@@ -459,8 +461,6 @@ function populateModal(){
         $("#accordion").append(panel);
     }
 }
-
-
 
 function clearPlate() {
     var rects = $('rect').not('.invalid');

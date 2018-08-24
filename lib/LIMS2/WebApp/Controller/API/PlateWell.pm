@@ -670,6 +670,7 @@ sub sibling_miseq_plate_GET {
                 classification  => $result->{miseq_classification},
                 experiment_id   => $result->{experiment_id},
                 miseq_exp_name  => $result->{miseq_experiment_name},
+                miseq_plate_name => $result->{output_plate_name},
             };
             push (@{ $class_mapping->{$result->{origin_well_name}} }, $class_details);
         }

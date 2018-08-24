@@ -63,15 +63,15 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
     JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
 )
-SELECT DISTINCT start_well_id, sw.name as swname, sp.name as start_name, process_id, input_well_id, well_in.name, output_well_id, plates.name, mp.id, me.experiment_id as exp, me.name, mwe.id as mwe_id, mwe.classification
+SELECT DISTINCT start_well_id, sw.name as swname, sp.name as start_name, process_id, input_well_id, well_in.name, output_well_id, plate_out.name, mp.id, me.experiment_id as exp, me.name, mwe.id as mwe_id, mwe.classification
 FROM well_hierarchy
 inner join wells sw on start_well_id=sw.id
 inner join plates sp on sw.plate_id=sp.id
 inner join wells well_in on input_well_id=well_in.id
 inner join plates plate_in on well_in.plate_id=plate_in.id
 inner join wells well_out on output_well_id=well_out.id
-inner join plates on plates.id=well_out.plate_id
-inner join miseq_plate mp on plates.id=mp.plate_id
+inner join plates plate_out on plate_out.id=well_out.plate_id
+inner join miseq_plate mp on plate_out.id=mp.plate_id
 inner join miseq_experiment me on mp.id=me.miseq_id and experiment_id IN (?)
 inner join miseq_well_experiment mwe on mwe.well_id=well_out.id and me.id=mwe.miseq_exp_id
 ;
@@ -102,7 +102,6 @@ sub query_miseq_details {
     my @experiments = map { @$_[0] } @inherited_exp_rows;
     my $experiments_str = join (',', @experiments);
 
-$DB::single=1; 
     my @results = @{ _traverse_process_tree($self, $plate_id, $experiments_str) };
     foreach my $miseq_row (@results) {
         my %mapping;
@@ -110,7 +109,6 @@ $DB::single=1;
         push @miseq_results, \%mapping;
     }
 
-$DB::single=1; 
     return @miseq_results;
 }
 

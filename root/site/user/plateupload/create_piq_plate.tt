@@ -167,21 +167,28 @@ function plateAncestors(selection) {
             }
         }
     });
+
+    return;
 }
 
 function fetchInheritedMiseqInfo(plate) {
-    console.log('Launching: ' + plate);
-    var start_time = new Date().getTime();
-    $.ajax({
-        dataType: 'json',
-        url: '[% c.uri_for('/api/sibling_miseq_plate') %]',
-        data: { plate: plate },
-    }).done(function(data) {
-        console.log(data);
-        var request_time = new Date().getTime() - start_time;
-        console.log(request_time);
-        parentMiseqClassifications[plate] = data;
-    });
+    if (parentMiseqClassifications[plate] === undefined) {
+        console.log('Launching: ' + plate);
+
+        $.ajax({
+            dataType: 'json',
+            url: '[% c.uri_for("/api/sibling_miseq_plate") %]',
+            data: { plate: plate },
+        }).done(function(data) {
+            console.log(data);
+            parentMiseqClassifications[plate] = data;
+            if ($('#freezeName').val() == plate) {
+                displayClassifications(data);
+            }
+        });
+    }
+
+    return;
 }
 
 function trackWells(key, well) {
@@ -191,6 +198,7 @@ function trackWells(key, well) {
     };
 
     miseqData[$(well).parent()[0].id] = freezerDetails;
+    return;
 }
 
 function checkTile(selectedColour) {
@@ -203,15 +211,19 @@ function checkTile(selectedColour) {
         }
         return;
     });
+
+    return;
 }
 
 function findFpWells(mapData) {
     var parentChildMapping = {};
+
     for (var childWell in miseqData) {
         if (miseqData[childWell].parentPlate == $('#freezeName').val()) {
             parentChildMapping[miseqData[childWell].parentWell] = childWell;
         }
     }
+
     return parentChildMapping;
 }
 
@@ -227,15 +239,58 @@ function wellHistory(plate) {
     });
 
     d3.selectAll('.fpWell.' + selectedColour).style('fill', colourHash[selectedColour]);
+
+    return;
 }
 
-function auditTables() {
-    //$('.fpWell').removeClassesExcept('square fpWell selecting');
-    //$('.miWell').removeClassesExcept('square miWell selecting');
-    for (var miseqWell in miseqData) {
-        console.log(miseqWell);
+function displayClassifications(data) {
+    clearParentPlateText();
+    if (data === undefined) {
+        console.log("No classifications found");
+        return;
     }
+    var wells = Object.keys(data);
+    wells.map(function(well) { updateClassifications(well, data[well]) }); 
+
+    return;
 }
 
+function updateClassifications(wellName, classifications) {
+    var classes = classifications.map(function(val) { return val.classification.substring(0,3); });
+    if (classes === undefined) {
+        return;
+    }
+    var consistencyCheck = classes.every( (val, i, arr) => val === arr[0] );
+
+    var d3TextObj = d3.select('#firstSplit #' + wellName + ' .wellText');
+
+    var hyphen = d3TextObj.append('tspan')
+        .attr('dx', '-1.1em')
+        .attr('dy', '0.9em');
+    hyphen.html('&#8722');
+
+    var classification = d3TextObj.append('tspan')
+        .attr('dx', '-1.20em')
+        .attr('dy', '1em');
+
+    if (consistencyCheck === true) {
+        classification.text(classes[0]);
+    } else {
+        classification.text('Var');
+    }
+
+    return;
+}
+
+function clearParentPlateText() {
+    var parentTexts = $('#firstSplit .wellText');
+
+    parentTexts.map( function(item) {
+        var parentText = $(parentTexts[item]);
+        parentText.text( parentText.parent()[0].id ); 
+    });
+
+    return;
+}
 
 </script>
