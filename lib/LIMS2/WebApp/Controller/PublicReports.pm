@@ -18,6 +18,7 @@ use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
 use JSON qw( decode_json encode_json );
 use File::stat;
+use POSIX 'strftime';
 use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -192,7 +193,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         }
     }
 
-    if ( $client_host =~ /internal.sanger.ac.uk/ ) {
+    if ( $client_host =~ /internal/ ) {
         $is_internal = 1;
     }
 
@@ -258,12 +259,13 @@ sub _view_cached_top_level_report {
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
-    my $file_stats = stat($cached_file_name) or die "$cached_file_name not found: $!";
+    my $file_stats = stat $cached_file_name or die "$cached_file_name not found: $!";
 
     my $json_data = decode_json(<$json_handle>);
     close $json_handle;
 
-    $json_data->{date} = localtime $file_stats->mtime;
+    my $date_format = strftime '%d %B %Y', localtime $file_stats->mtime;
+    $json_data->{date} = $date_format;
 
     return $json_data;
 
@@ -464,7 +466,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
         if ($disp_stage eq 'Genes') {
 
-            $on_date = localtime time;
+            $on_date = strftime '%d %B %Y', localtime time;
 
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
