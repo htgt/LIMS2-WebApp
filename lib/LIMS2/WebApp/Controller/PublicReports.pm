@@ -8,6 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+use LIMS2::Model::Util::SponsorReportII;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
@@ -178,8 +179,12 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my ( $self, $c, $targeting_type ) = @_;
 
     my $species;
-    my $sub_cache_param = 'with_cache';
-    my $top_cache_param = 'with_cache';
+    my $cache_params = {
+        sub_cache_param_i  => 'with_cache',
+        sub_cache_param_ii => 'with_cache',
+        top_cache_param_i  => 'with_cache',
+        top_cache_param_ii => 'with_cache',
+    };
 
     my $is_internal = 0;
     my $client_host = $c->request->hostname;
@@ -187,9 +192,14 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     if ($c->user_exists) {
         $c->request->params->{'species'} = $c->session->{'selected_species'};
         $is_internal = 1;
-        if ( $c->request->params->{'cache_param'} ) {
-            $sub_cache_param = $c->request->params->{'cache_param'};
-            $top_cache_param = $c->request->params->{'cache_param'};
+
+        if ( $c->request->params->{'cache_param_i'} ) {
+            $cache_params->{sub_cache_param_i} = $c->request->params->{'cache_param_i'};
+            $cache_params->{top_cache_param_i} = $c->request->params->{'cache_param_i'};
+        }
+        if ( $c->request->params->{'cache_param_ii'} ) {
+            $cache_params->{sub_cache_param_ii} = $c->request->params->{'cache_param_ii'};
+            $cache_params->{top_cache_param_ii} = $c->request->params->{'cache_param_ii'};
         }
     }
 
@@ -204,10 +214,11 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     $species = $c->request->params->{'species'};
     $c->session->{'selected_species'} = $species;
 
-    if ( $top_cache_param eq  'with_cache' ) {
+    if ( $cache_params->{top_cache_param_i} eq  'with_cache' ) {
 
         try {
-            my $top_level_data = $self->_view_cached_top_level_report( $c, $species );
+            my $file = lc $species . '_pipeline_i';
+            my $top_level_data = $self->_view_cached_top_level_report( $c, $file );
 
             my $report_id   = $top_level_data->{ report_id };
             my $title       = $top_level_data->{ title };
@@ -219,20 +230,41 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
             $c->stash(
               'report_id'      => $report_id,
               'title'          => 'Pipeline I Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
-              'title_ii'       => 'Pipeline II Summary Report (Human, single_targeted projects) on ' . $top_level_data->{date},
               'species'        => $species,
               'targeting_type' => $targeting_type,
-              'cache_param'    => 'with_cache',
+              'cache_param_i'  => 'with_cache',
               'columns'        => $columns,
               'rows'           => $rows,
               'data'           => $data,
             );
         } catch {
-            $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
+            $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_i} );
         };
     }
     else {
-        $self->_generate_front_page_report ( $c, 'single_targeted', $species, $sub_cache_param );
+        $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_i} );
+    }
+
+    if ( $cache_params->{top_cache_param_ii} eq 'with_cache' ) {
+
+        try {
+            my $file = lc $species . '_pipeline_ii';
+            my $top_level_data = $self->_view_cached_top_level_report( $c, $file );
+
+            my $pipeline_ii_data = $top_level_data->{ pipeline_ii_report };
+            my $title_ii = $top_level_data->{ title_ii };
+
+            $c->stash(
+                'title_ii'           => $title_ii,
+                'pipeline_ii_report' => $pipeline_ii_data,
+                'cache_param_ii'     => 'with_cache',
+            );
+        } catch {
+            $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_ii} );
+        };
+    }
+    else {
+        $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_ii} );
     }
 
     $c->stash(
@@ -271,7 +303,7 @@ sub _view_cached_top_level_report {
 
 }
 
-sub _generate_front_page_report {
+sub _generate_front_page_report_pipeline_i {
     my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
 
     # Call ReportForSponsors plugin to generate report
@@ -280,32 +312,94 @@ sub _generate_front_page_report {
             'model' => $c->model( 'Golgi' ),
             'targeting_type' => $targeting_type,
         });
-    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors($c->uri_for('/'));
+    my $report_params = $sponsor_report->generate_top_level_report_for_sponsors();
 
     # Fetch details from returned report parameters
     my $report_id   = $report_params->{ report_id };
     my $title       = $report_params->{ title };
-    my $title_ii    = $report_params->{ title_ii };
     my $columns     = $report_params->{ columns };
     my $rows        = $report_params->{ rows };
     my $data        = $report_params->{ data };
 
-    # Store report values in stash for display onscreen
-    $c->stash(
+    my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
-        'title_ii'       => $title_ii,
-        'species'        => $species,
-        'targeting_type' => $targeting_type,
-        'cache_param'    => $cache_param,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
     );
 
+    my $json_data = encode_json(\%return_params);
+    my $file_name = lc $species . '_pipeline_i';
+    save_json_report($c->uri_for('/'), $json_data, $file_name);
+
+    # Store report values in stash for display onscreen
+    $c->stash(
+        'report_id'          => $report_id,
+        'title'              => $title,
+        'species'            => $species,
+        'targeting_type'     => $targeting_type,
+        'cache_param_i'      => $cache_param,
+        'columns'            => $columns,
+        'rows'               => $rows,
+        'data'               => $data,
+    );
+
     return;
 }
 
+sub _generate_front_page_report_pipeline_ii {
+    my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
+
+    my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
+        species => $species,
+        model   => $c->model('Golgi'),
+        targeting_type => $targeting_type,
+    });
+
+    my $pipeline_ii_data = $pipeline_ii_report->sponsor_gene_count;
+    my $pipeline_ii_title = $pipeline_ii_report->build_page_title;
+
+    my %return_params = (
+        'title_ii'           => $pipeline_ii_title,
+        'pipeline_ii_report' => $pipeline_ii_data,
+    );
+
+    my $json_data = encode_json(\%return_params);
+    my $file_name = lc $species . '_pipeline_ii';
+    save_json_report($c->uri_for('/'), $json_data, $file_name);
+
+    $c->stash(
+        'title_ii'           => $pipeline_ii_title,
+        'pipeline_ii_report' => $pipeline_ii_data,
+        'cache_param_ii'     => $cache_param,
+    );
+
+    return;
+}
+
+sub save_json_report {
+    my $uri = shift;
+    my $json_data = shift;
+    my $name = shift;
+
+    my $cache_server;
+
+    for ($uri) {
+        if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+
+    open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
+    print $json_fh $json_data;
+    close ($json_fh);
+
+    return;
+}
 
 sub view_cached_csv : Path( '/public_reports/cached_sponsor_csv' ) : Args(1) {
     my ( $self, $c, $sponsor_id ) = @_;
@@ -516,7 +610,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             });
 
         $sponsor_id =~ s/\ /_/g;
-        $sponsor_report->save_json_report($c->uri_for('/'), $json_data, $sponsor_id);
+        save_json_report($c->uri_for('/'), $json_data, $sponsor_id);
     }
 
     return;
@@ -1090,3 +1184,4 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
