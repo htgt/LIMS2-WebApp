@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::QC;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::QC::VERSION = '0.509';
+    $LIMS2::Model::Plugin::QC::VERSION = '0.511';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::MiseqDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::MiseqDesign::VERSION = '0.509';
+    $LIMS2::WebApp::Controller::API::MiseqDesign::VERSION = '0.511';
 }
 ## use critic
 

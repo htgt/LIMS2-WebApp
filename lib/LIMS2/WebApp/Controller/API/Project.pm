@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.509';
+    $LIMS2::WebApp::Controller::API::Project::VERSION = '0.511';
 }
 ## use critic
 
