@@ -98,6 +98,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
+    
 
     $c->stash(
         wells => $json,
@@ -305,7 +306,7 @@ sub update_tracking {
         }
         if ($well_exp) {
             $exp_params->{id} = $well_exp->as_hash->{id};
-            #delete $exp_params->{well_id};
+            delete $exp_params->{well_id};
             unless ($exp_params->{$check} eq $well_exp->as_hash->{$check}) {
                 $c->model('Golgi')->update_miseq_well_experiment($exp_params);
             }
@@ -373,6 +374,8 @@ sub get_well_exp_graphs_old {
     }
 
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
+    print Dumper $exps[0];
+    print Dumper $exps[1];
     return \@exps;
 }
 
@@ -383,11 +386,17 @@ sub get_well_exp_graphs {
     my $miseq_well_exp_rs =  $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ well_id => $well_id });
     my $next_miseq_well_exp;
     while ($next_miseq_well_exp = $miseq_well_exp_rs->next){
-        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->as_hash->{miseq_exp_id} })->as_hash;
-        push (@exps, $miseq_exp);
+        $next_miseq_well_exp = $next_miseq_well_exp->as_hash;
+        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->{miseq_exp_id} })->as_hash;
+        my $ref = { 'status'    => $next_miseq_well_exp->{status},
+                    'gene'      => $miseq_exp->{gene},
+                    'class'     => $next_miseq_well_exp->{classification},
+                    'id'        => $miseq_exp->{name},
+                };
+        push (@exps, $ref);
     }
-    print Dumper $exps[0];
-    print Dumper $exps[1];
+    
+    return \@exps;
 }
 __PACKAGE__->meta->make_immutable;
 
