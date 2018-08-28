@@ -21,10 +21,39 @@ h4 {
     pointer-events: none;
 }
 
+.d3-tip {
+    line-height: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #FFFFFF;
+    border-radius: 2px;
+    text-align: center;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
 </style>
 
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
-
+<script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
 <script>
 
 $.fn.extend({
@@ -87,6 +116,13 @@ var miseqGrid = d3.select("#secondSplit")
     .append("svg")
     .attr("width","610px")
     .attr("height","410px");
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return tooltip($(this))
+    });
 
 $(document).ready(function() {
     setupPlate(miseqGrid, "miWell", 'A', 1);
@@ -258,7 +294,7 @@ function highlighter(target, start) {
 
     var originIndex = startWell.id.split('_')[1];
     index = parseInt(index.split('_')[1]);
-    start = parseInt(start || index);
+    start = parseInt((start === null) ? index: start);
     
     d3.selectAll('rect').classed('selecting', false);
     
@@ -295,8 +331,9 @@ function selectionHighlighting(inc, originID) {
 
     d3.select('#miWell_' + inc).classed('selected',false);
     d3.select('#fpWell_' + originID).classed('selected',false);
+    
     tracking(inc, originID);
-
+    
     return originID;
 }
 
@@ -320,6 +357,8 @@ function tracking(miWellID, fpWellID) {
         .attr('dx', '-1.20em')
         .attr('dy', '1em');
     destination.text(newWell.parents()[0].id);
+
+    return;
 }
 
 
@@ -336,10 +375,10 @@ function cleanUpSelection(miseqHandlingClasses) {
 }
 
 function resetMiseqText(well) {
-    console.log("reseting");
     var wellID = well.parentNode.id;
     var textNode = $(well).siblings('text')[0];
     $(textNode).text(wellID);
+
     return;
 }
 
@@ -469,7 +508,6 @@ function clearPlate() {
     d3.selectAll(rects).classed('selected', false);
     var name = $('#freezeName').val();
     miseqData[name] = {};
-    console.log("triggered");
 }
 
 function submit() {

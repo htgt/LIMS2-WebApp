@@ -7,7 +7,7 @@
     line-height: 1;
     padding: 12px;
     background: rgba(0, 0, 0, 0.8);
-    color: #fff;
+    color: #FFFFFF;
     border-radius: 2px;
     text-align: center;
 }

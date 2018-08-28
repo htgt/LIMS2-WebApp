@@ -1,5 +1,31 @@
 <style>
 
+#tooltip {
+    position: absolute;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+#tooltip.hidden {
+    display: none;
+}
+
+#tooltip p {
+    margin: 0;
+    font-family: Futura;
+    font-size: 16px;
+    line-height: 20px;
+}
+
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
@@ -89,6 +115,12 @@
     </div>
 </div>
 
+<div id="tooltip" class="hidden">
+    <p><strong>MiSeq Plate: </strong><span id="tooltipValue">100</span></p>
+    <p><strong>MiSeq Experiment: </strong><span id="tooltipValue">100</span></p>
+    <p><strong>Experiment ID: </strong><span id="tooltipValue">100</span></p>
+</div>
+
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
 
 <script>
@@ -126,6 +158,20 @@ $(function () {
             }
         }
     });
+
+    $('#firstSplit .sqContainer').on("mouseover", function(cont) {
+        if (parentMiseqClassifications[$('#freezeName').val()] === undefined) {
+            return;
+        }
+        var wellName = cont.currentTarget.id;
+        var wellHistoryDetails = parentMiseqClassifications[$('#freezeName').val()][wellName];
+        if (wellHistoryDetails) {
+            wellHistoryConstruction(cont, wellHistoryDetails)
+        }
+    })
+    .on("mouseout", function() {
+        d3.select("#tooltip").classed("hidden", true);
+    });
 });
 
 $("#plateName").autocomplete({
@@ -143,13 +189,11 @@ $("#plateName").autocomplete({
 });
 
 function plateAncestors(selection) {
-    console.log(selection);
     $.ajax({
         dataType: 'json',
         url: '[% c.uri_for('/api/wells_parent_plate') %]',
         data: { plate: selection },
     }).done(function(data){
-        console.log(data);
         $('#parentCollection').show();
         var plates = Object.keys(data);
         for (var i = 0; i < plates.length; i++) {
@@ -173,14 +217,11 @@ function plateAncestors(selection) {
 
 function fetchInheritedMiseqInfo(plate) {
     if (parentMiseqClassifications[plate] === undefined) {
-        console.log('Launching: ' + plate);
-
         $.ajax({
             dataType: 'json',
             url: '[% c.uri_for("/api/sibling_miseq_plate") %]',
             data: { plate: plate },
         }).done(function(data) {
-            console.log(data);
             parentMiseqClassifications[plate] = data;
             if ($('#freezeName').val() == plate) {
                 displayClassifications(data);
@@ -289,6 +330,34 @@ function clearParentPlateText() {
         var parentText = $(parentTexts[item]);
         parentText.text( parentText.parent()[0].id ); 
     });
+
+    return;
+}
+
+function wellHistoryConstruction(cont, wellHistoryDetails) {
+    var xPos = cont.pageX;
+    var yPos = cont.pageY;
+
+    d3.select("#tooltip")
+        .style("left", xPos + "px")
+        .style("top", yPos + "px");
+    
+    var tooltipBuild = '';
+    wellHistoryDetails.forEach( function(classification) {
+        var classState = '<p><strong>Call: </strong><span>' + classification.classification + '</span></p>';
+        var miseqPlate = '<p><strong>MiSeq Plate: </strong><span>' + classification.miseq_plate_name + '</span></p>';
+        var miseqExp = '<p><strong>MiSeq Experiment: </strong><span>' + classification.miseq_exp_name + '</span></p>';
+        var exp = '<p><strong>Experiment ID: </strong><span>' + classification.experiment_id + '</span></p>';
+        var separate = '---';
+        if (tooltipBuild) {
+            tooltipBuild = tooltipBuild + separate + classState + miseqPlate + miseqExp + exp;
+        } else {
+            tooltipBuild = tooltipBuild + classState + miseqPlate + miseqExp + exp;
+        }
+    });
+
+    $('#tooltip').html(tooltipBuild);
+    d3.select("#tooltip").classed("hidden", false);
 
     return;
 }
