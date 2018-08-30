@@ -374,8 +374,7 @@ sub get_well_exp_graphs_old {
     }
 
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
-    print Dumper $exps[0];
-    print Dumper $exps[1];
+    
     return \@exps;
 }
 
@@ -395,6 +394,7 @@ sub get_well_exp_graphs {
                 };
         push (@exps, $ref);
     }
+    @exps = sort { $a->{id} cmp $b->{id} } @exps;
     
     return \@exps;
 }

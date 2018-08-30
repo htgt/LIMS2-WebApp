@@ -2,7 +2,6 @@ package LIMS2::Model::Util::Miseq;
 
 use strict;
 use warnings FATAL => 'all';
-
 use Sub::Exporter -setup => {
     exports => [
         qw(
@@ -92,6 +91,7 @@ sub convert_index_to_well_name {
     return $name;
 }
 
+
 sub wells_generator {
     my $name_to_index = shift;
     my @well_names;
@@ -141,7 +141,7 @@ sub well_builder {
     return @well_names;
 }
 
-sub generate_summary_data {
+sub generate_summary_data_old {
     my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
 
     my $wells;
@@ -162,7 +162,7 @@ sub generate_summary_data {
                 status      => $well->{status} ? $well->{status} : $blank->{status},
                 frameshift  => $well->{frameshifted} ? $well->{frameshifted} : $blank->{frameshifted},
             };
-        }
+       }
     }
 
     for (my $index = 1; $index < 385; $index++) {
@@ -212,15 +212,17 @@ sub generate_summary_data {
         $wells->{sprintf("%02d", $index)} = {
             gene        => \@selection,
             experiments => \@found_exps,
-            #barcode     => [$ug->create_str(), $ug->create_str()],
+            #barcode    => [$ug->create_str(), $ug->create_str()],
             percentages => $percentages,
             details     => $details,
         };
     }
-    #print Dumper "\n \n \n \n \n \n \n \n \n \n";
-    #print Dumper $wells;
-    #print Dumper "\n \n \n \n \n \n \n \n \n \n";
+    print Dumper "\n \n \n \n \n \n \n \n \n \n";
+    print Dumper $wells->{'85'};
+    print Dumper "\n \n \n \n \n \n \n \n \n \n";
 
+
+    
     return $wells;
 }
 
@@ -287,6 +289,50 @@ sub _wanted {
     return;
 }
 
+sub generate_summary_data {
+    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
+
+    my $wells;
+    my @well_conversion = wells_generator();
+    my @genes;
+    my @experiments;
+    my $details;
+    my $percentages;
+    my $index;
+    my $converter = wells_generator(1);
+
+    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+    foreach my $miseq_exp (@miseq_exp_rs) {
+        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        foreach my $well_exp (@well_exps) {
+            
+            $index = $c->model('Golgi')->schema->resultset('Well')->find({ id => $well_exp->{well_id} })->name;
+            $index = $converter->{$index};
+            $index = sprintf("%02d", $index);
+
+            push ( @{$wells->{$index}->{gene}}, $miseq_exp->{gene});
+
+            push ( @{$wells->{$index}->{experiments}}, $miseq_exp->{name});
+
+            $details->{class}       = $well_exp->{classification};
+            $details->{status}      = $well_exp->{status};
+            $details->{frameshift}  = $well_exp->{frameshifted};            
+             
+            $percentages->{wt}   = $miseq_exp->{total_reads};
+            $percentages->{nhej} = $miseq_exp->{nhej_reads};
+            $percentages->{hdr}  = $miseq_exp->{hdr_reads};
+            $percentages->{mix}  = $miseq_exp->{mixed_reads};
+             
+            $wells->{$index}->{percentages}->{$miseq_exp->{name}}  =   $percentages;
+            $wells->{$index}->{details}->{$miseq_exp->{name}}      =   $details;        
+        }
+    }
+    return $wells;
+
+}
+                                              
 1;
+
+
 
 __END__
