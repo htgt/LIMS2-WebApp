@@ -138,9 +138,12 @@ sub manage_projects :Path('/user/manage_projects'){
     $c->stash->{projects} = \@projects;
 
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    my @programmes = sort map { $_->id } $c->model('Golgi')->schema->resultset('Programme')->all;
+    my @lab_heads = sort map { $_->id } $c->model('Golgi')->schema->resultset('LabHead')->all;
 
     $c->stash->{sponsors} = \@sponsors;
-
+    $c->stash->{programmes} = \@programmes;
+    $c->stash->{lab_heads} = \@lab_heads;
 
     return;
 }

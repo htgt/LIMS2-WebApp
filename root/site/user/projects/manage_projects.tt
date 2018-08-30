@@ -83,6 +83,32 @@
         </select>
     </div>
   </div>
+<br>
+</br>
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Lab Head</label>
+    <div class="col-md-3">
+        <select class="form-control" name="lab_head">
+          <option value=""></option>
+          [% FOREACH lab_head IN lab_heads %]
+            <option value="[% lab_head %]">[% lab_head %]</option>
+          [% END %]
+        </select>
+    </div>
+  </div>
+<br>
+</br>
+  <div class="col-md-12 control-group row">
+    <label class="control-label col-md-2">Programme</label>
+    <div class="col-md-3">
+        <select class="form-control" name="programme">
+          <option value=""></option>
+          [% FOREACH programme IN programmes %]
+            <option value="[% programme %]">[% programme %]</option>
+          [% END %]
+        </select>
+    </div>
+  </div>
   <br>
   </br>
   <br />

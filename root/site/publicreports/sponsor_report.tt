@@ -30,12 +30,12 @@
 <h3>[%- title %]
 [%- IF c.user %]
     [%- IF cache_param_i == 'with_cache' %]
-        <a id='without_cache_i' type='button' name='without_cache' class='btn btn-info btn-sm'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param_i => 'without_cache_i'} ) %]">
+        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param_i => 'without_cache', cache_param_ii => cache_param_ii} ) %]">
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use live reports</b></a>
     [%- ELSE %]
-        <a id='with_cache_i' type='button' name='with_cache' class='btn btn-info btn-sm'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_i => 'with_cache_i'} ) %]">
+        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-sm'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_i => 'with_cache', cache_param_ii => cache_param_ii} ) %]">
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use cached reports</b></a>
     [%- END %]
 [%- END %]
@@ -85,11 +85,11 @@
         [%- IF c.user == '' && is_internal == 0 %]
                 <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[%- countval %]</a></b></td>
         [%- ELSIF c.user == '' && is_internal %]
-                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-        [%- ELSIF cache_param == "with_cache" %]
-                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}", { pipeline => 'pipeline_i' } ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+        [%- ELSIF cache_param_i == "with_cache" %]
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}", { pipeline => 'pipeline_i' } ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param_i => 'without_cache', pipeline => 'pipeline_i', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
         [%- END %]
 
           [%- ELSE %]
@@ -108,15 +108,16 @@
 </table>
 
 <br />
+[% IF species == 'Human' %]
 <h3>[%- title_ii %]
 [%- IF c.user %]
     [%- IF cache_param_ii == 'with_cache' %]
-        <a id='without_cache_ii' type='button' name='without_cache_ii' class='btn btn-info btn-sm'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param_ii => 'without_cache_ii'} ) %]">
+        <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', targeting_type, {species => species, cache_param_ii => 'without_cache', cache_param_i => cache_param_i, pipeline => 'pipeline_ii'} ) %]">
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use live reports</b></a>
     [%- ELSE %]
-        <a id='with_cache_ii' type='button' name='with_cache_ii' class='btn btn-info btn-sm'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_ii => 'with_cache_ii'} ) %]">
+        <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-sm'
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_ii => 'with_cache', ache_param_i => cache_param_i, pipeline => 'pipeline_ii'} ) %]">
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use cached reports</b></a>
     [%- END %]
 [%- END %]
@@ -132,7 +133,7 @@
     <tr>
       <td><b>Programme</b></td>
       [%- FOREACH programme IN pipeline_ii_report.programmes %]
-        <td>[% programme %]</td>
+        <td><b>[% programme %]</b></td>
       [%- END %]
     </tr>
 
@@ -145,15 +146,26 @@
 
     <tr>
       <td><b>Genes</b></td>
-      [%- FOREACH gene_count IN pipeline_ii_report.gene_counts %]
-        <td><b><a>[% gene_count %]</a></b></td>
+      [%- FOR index IN [ 0 .. pipeline_ii_report.gene_counts.max ] %]
+      <td>
+        [%- IF c.user == '' && is_internal == 0 %]
+                <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[% pipeline_ii_report.gene_counts.item(index) %]</a></b>
+        [%- ELSIF c.user == '' && is_internal %]
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report", pipeline_ii_report.sponsors.item(index), { pipeline => 'pipeline_ii' } ) %]" target="_blank" id='[% pipeline_ii_report.sponsors.item(index) %]'>[% pipeline_ii_report.gene_counts.item(index) %]</a></b>
+        [%- ELSIF cache_param_ii == "with_cache" %]
+                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${pipeline_ii_report.sponsors.item(index)}", { pipeline => 'pipeline_ii' } ) %]" target="_blank" id='[% pipeline_ii_report.sponsors.item(index) %]'>[% pipeline_ii_report.gene_counts.item(index) %]</a></b>
+        [%- ELSE %]
+                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${pipeline_ii_report.sponsors.item(index)}/Genes", { species => species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii' }) %]" target="_blank" id='[% pipeline_ii_report.sponsors.item(index) %]'>[% pipeline_ii_report.gene_counts.item(index) %]</a></b>
+        [%- END %]
+      </td>
       [%- END %]
     </tr>
 </table>
 
 <br/>
+[% END %]
 
-[%- IF c.user %]
+[%- IF c.user == '' %]
     <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Please <a href="[% c.uri_for('/login') %]">login</a> to click a number for more detailed information or contact <a href="mailto:htgt@sanger.ac.uk">htgt@sanger.ac.uk</a> for information on accessing clones from the HTGT Group. </p>
 [%- ELSE %]
     <p>* The numbers shown indicate distinct <i>genes</i> within that sponsor stage. Click the number for more detailed information.</p>

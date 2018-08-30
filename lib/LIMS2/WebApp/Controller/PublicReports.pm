@@ -233,16 +233,17 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
               'species'        => $species,
               'targeting_type' => $targeting_type,
               'cache_param_i'  => 'with_cache',
+              'cache_param_ii' => $cache_params->{top_cache_param_ii},
               'columns'        => $columns,
               'rows'           => $rows,
               'data'           => $data,
             );
         } catch {
-            $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_i} );
+            $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species );
         };
     }
     else {
-        $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_i} );
+        $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species );
     }
 
     if ( $cache_params->{top_cache_param_ii} eq 'with_cache' ) {
@@ -257,14 +258,17 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
             $c->stash(
                 'title_ii'           => $title_ii,
                 'pipeline_ii_report' => $pipeline_ii_data,
+                'targeting_type'     => $targeting_type,
+                'species'            => $species,
                 'cache_param_ii'     => 'with_cache',
+                'cache_param_i'      => $cache_params->{top_cache_param_i},
             );
         } catch {
-            $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_ii} );
+            $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{top_cache_param_i} );
         };
     }
     else {
-        $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{sub_cache_param_ii} );
+        $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{top_cache_param_i} );
     }
 
     $c->stash(
@@ -304,7 +308,7 @@ sub _view_cached_top_level_report {
 }
 
 sub _generate_front_page_report_pipeline_i {
-    my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
+    my ( $self, $c, $targeting_type, $species, $cache_param_ii ) = @_;
 
     # Call ReportForSponsors plugin to generate report
     my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new({
@@ -339,7 +343,8 @@ sub _generate_front_page_report_pipeline_i {
         'title'              => $title,
         'species'            => $species,
         'targeting_type'     => $targeting_type,
-        'cache_param_i'      => $cache_param,
+        'cache_param_i'      => 'without_cache',
+        'cache_param_ii'     => $cache_param_ii,
         'columns'            => $columns,
         'rows'               => $rows,
         'data'               => $data,
@@ -349,7 +354,7 @@ sub _generate_front_page_report_pipeline_i {
 }
 
 sub _generate_front_page_report_pipeline_ii {
-    my ( $self, $c, $targeting_type, $species, $cache_param ) = @_;
+    my ( $self, $c, $targeting_type, $species, $cache_param_i ) = @_;
 
     my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
         species => $species,
@@ -372,7 +377,10 @@ sub _generate_front_page_report_pipeline_ii {
     $c->stash(
         'title_ii'           => $pipeline_ii_title,
         'pipeline_ii_report' => $pipeline_ii_data,
-        'cache_param_ii'     => $cache_param,
+        'cache_param_ii'     => 'without_cache',
+        'cache_param_i'      => $cache_param_i,
+        'species'            => $species,
+        'targeting_type'     => $targeting_type,
     );
 
     return;
@@ -502,6 +510,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
     $c->stash->{no_wrapper} = 1;
     my $cache_param = $c->request->params->{'cache_param'};
+    my $pipeline = $c->request->params->{'pipeline'};
 
     if ($c->request->params->{generate_cache}) {
         $c->session->{display_type} = 'wide';
@@ -509,109 +518,124 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->session->{display_type} = 'default';
     }
 
-    # Call ReportForSponsors plugin to generate report
-    my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
-            'species' => $species,
-            'model' => $c->model( 'Golgi' ),
-            'targeting_type' => $targeting_type,
-        });
-
-    my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
-     # Fetch details from returned report parameters
-    my $report_id = $report_params->{ 'report_id' };
-    my $disp_target_type = $report_params->{ 'disp_target_type' };
-    my $disp_stage = $report_params->{ 'disp_stage' };
-    my $columns = $report_params->{ 'columns' };
-    my $display_columns = $report_params->{ 'display_columns' };
-    my $data = $report_params->{ 'data' };
-
-    my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
-    my $type;
-
-    # csv download
-    if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
-        $c->response->status( 200 );
-        my $body = join(',', map { $_ } @{$display_columns}) . "\n";
-
-        my @csv_colums;
-        if (@{$columns}[-1] eq 'ep_data') {
-            @csv_colums = splice (@{$columns}, 0, -1);
-        } else {
-            @csv_colums = @{$columns};
-        }
-        foreach my $column ( @{$data} ) {
-            $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
-        }
-        if ($c->request->param('xlsx')) {
-            $c->response->content_type( 'application/xlsx' );
-            $c->response->content_encoding( 'binary' );
-            $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
-            $body = get_raw_spreadsheet('report', $body);
-        }
-        else {
-            $c->response->content_type( 'text/csv' );
-            $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
-        }
-        $c->response->body( $body );
-    }
-    else {
-
-        my $on_date;
-
-        if ($disp_stage eq 'Genes') {
-
-            $on_date = strftime '%d %B %Y', localtime time;
-
-            if (! $c->request->params->{type}) {
-                $c->request->params->{type} = 'simple';
-            }
-
-            $type = $c->request->params->{type};
-
-            if ($type eq 'simple') {
-                $data = $self->_simple_transform( $data );
-            }
-        }
-
-        my $template = 'publicreports/sponsor_sub_report.tt';
-
-        if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
-            $template = 'publicreports/sponsor_sub_report_old.tt';
-        }
-        # Store report values in stash for display onscreen
-        $c->stash(
-            'date'                 => $on_date,
-            'template'             => $template,
-            'report_id'            => $report_id,
-            'disp_target_type'     => $disp_target_type,
-            'disp_stage'           => $disp_stage,
-            'sponsor_id'           => $sponsor_id,
-            'columns'              => $columns,
-            'display_columns'      => $display_columns,
-            'data'                 => $data,
-            'link'                 => $link,
-            'type'                 => $type,
-            'species'              => $species,
-            'cache_param'          => $cache_param,
-        );
-
-        my $json_data = encode_json({
-            'report_id'            => $report_id,
-            'disp_target_type'     => $disp_target_type,
-            'disp_stage'           => $disp_stage,
-            'sponsor_id'           => $sponsor_id,
-            'columns'              => $columns,
-            'display_columns'      => $display_columns,
-            'data'                 => $data,
-            'link'                 => $link,
-            'type'                 => $type,
-            'species'              => $species,
-            'cache_param'          => $cache_param,
+    if ( $pipeline eq 'pipeline_i' ) {
+        my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
+                'species' => $species,
+                'model' => $c->model( 'Golgi' ),
+                'targeting_type' => $targeting_type,
             });
 
-        $sponsor_id =~ s/\ /_/g;
-        save_json_report($c->uri_for('/'), $json_data, $sponsor_id);
-    }
+        my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
+         # Fetch details from returned report parameters
+        my $report_id = $report_params->{ 'report_id' };
+        my $disp_target_type = $report_params->{ 'disp_target_type' };
+        my $disp_stage = $report_params->{ 'disp_stage' };
+        my $columns = $report_params->{ 'columns' };
+        my $display_columns = $report_params->{ 'display_columns' };
+        my $data = $report_params->{ 'data' };
+
+        my $link = "/public_reports/sponsor_report/$targeting_type/$sponsor_id/$stage";
+        my $type;
+
+        # csv download
+        if ($c->request->params->{csv} || $c->request->params->{xlsx} ) {
+            $c->response->status( 200 );
+            my $body = join(',', map { $_ } @{$display_columns}) . "\n";
+
+            my @csv_colums;
+            if (@{$columns}[-1] eq 'ep_data') {
+                @csv_colums = splice (@{$columns}, 0, -1);
+            } else {
+                @csv_colums = @{$columns};
+            }
+            foreach my $column ( @{$data} ) {
+                $body .= join(',', map { $column->{$_} } @csv_colums ) . "\n";
+            }
+            if ($c->request->param('xlsx')) {
+                $c->response->content_type( 'application/xlsx' );
+                $c->response->content_encoding( 'binary' );
+                $c->response->header( 'content-disposition' => 'attachment; filename=report.xlsx' );
+                $body = get_raw_spreadsheet('report', $body);
+            }
+            else {
+                $c->response->content_type( 'text/csv' );
+                $c->response->header( 'Content-Disposition' => 'attachment; filename=report.csv');
+            }
+            $c->response->body( $body );
+        }
+        else {
+
+            my $on_date;
+
+            if ($disp_stage eq 'Genes') {
+
+                $on_date = strftime '%d %B %Y', localtime time;
+
+                if (! $c->request->params->{type}) {
+                    $c->request->params->{type} = 'simple';
+                }
+
+                $type = $c->request->params->{type};
+
+                if ($type eq 'simple') {
+                    $data = $self->_simple_transform( $data );
+                }
+            }
+
+            my $template = 'publicreports/sponsor_sub_report.tt';
+
+            if ($sponsor_id eq 'Cre Knockin' || $sponsor_id eq 'EUCOMMTools Recovery' || $sponsor_id eq 'MGP Recovery' || $sponsor_id eq 'Pathogens' || $sponsor_id eq 'Syboss' || $sponsor_id eq 'Core' ) {
+                $template = 'publicreports/sponsor_sub_report_old.tt';
+            }
+            # Store report values in stash for display onscreen
+            $c->stash(
+                'date'                 => $on_date,
+                'template'             => $template,
+                'report_id'            => $report_id,
+                'disp_target_type'     => $disp_target_type,
+                'disp_stage'           => $disp_stage,
+                'sponsor_id'           => $sponsor_id,
+                'columns'              => $columns,
+                'display_columns'      => $display_columns,
+                'data'                 => $data,
+                'link'                 => $link,
+                'type'                 => $type,
+                'species'              => $species,
+                'cache_param'          => $cache_param,
+            );
+
+            my $json_data = encode_json({
+                'report_id'            => $report_id,
+                'disp_target_type'     => $disp_target_type,
+                'disp_stage'           => $disp_stage,
+                'sponsor_id'           => $sponsor_id,
+                'columns'              => $columns,
+                'display_columns'      => $display_columns,
+                'data'                 => $data,
+                'link'                 => $link,
+                'type'                 => $type,
+                'species'              => $species,
+                'cache_param'          => $cache_param,
+                });
+
+            $sponsor_id =~ s/\ /_/g;
+            my $file = lc $sponsor_id . "_$pipeline";
+            save_json_report($c->uri_for('/'), $json_data, $file);
+        }
+
+    } else {
+            my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
+                species => $species,
+                model   => $c->model('Golgi'),
+                targeting_type => $targeting_type,
+            });
+
+            my $template = 'publicreports/sponsor_sub_report.tt';
+
+            $c->stash(
+                template => $template,
+            );
+        }
 
     return;
 }
@@ -695,10 +719,12 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
 
     $c->log->info( "Generate public detail report for : $report_name" );
 
+    my $pipeline = $c->request->params->{pipeline};
     $report_name =~ s/\ /_/g;
+    my $file = lc $report_name . "_$pipeline";
 
     try {
-        my $sub_level_data = $self->_view_cached_top_level_report( $c, $report_name );
+        my $sub_level_data = $self->_view_cached_top_level_report( $c, $file );
         my $template = 'publicreports/sponsor_sub_report.tt';
 
 
