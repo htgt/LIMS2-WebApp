@@ -135,7 +135,7 @@ for each process type
 
 sub create_plate {
     my ( $self, $params ) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params( $params, $self->pspec_create_plate );
     $self->log->info( 'Creating plate: ' . $validated_params->{name} );
 
