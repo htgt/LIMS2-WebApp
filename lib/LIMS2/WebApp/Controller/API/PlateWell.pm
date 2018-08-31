@@ -635,7 +635,7 @@ sub create_piq_plate_POST {
     return $self->status_created(
         $c,
         location => $c->uri_for( '/api/plate', { id => $plate->id } ),
-        entity   => $miseq
+        entity   => $plate
     );
 }
 

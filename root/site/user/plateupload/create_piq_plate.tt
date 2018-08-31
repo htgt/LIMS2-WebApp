@@ -381,4 +381,20 @@ function wellHistoryConstruction(cont, wellHistoryDetails) {
     return;
 }
 
+function clearPlate() {
+    var name = $('#freezeName').val();
+    var colour = assignedColours[name];
+    
+    $('.miWell.' + colour).map(function() { resetMiseqText(this); });
+    d3.selectAll('.' + colour).style('fill', 'white');
+    d3.selectAll('.' + colour).classed(colour, false);
+    
+    var wells = Object.keys(relationalData);
+    wells.forEach(function(well) {
+        if (relationalData[well].parent_plate === name) {
+            delete relationalData[well];
+        }
+    });
+}
+
 </script>
