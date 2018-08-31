@@ -254,10 +254,12 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 
             my $pipeline_ii_data = $top_level_data->{ pipeline_ii_report };
             my $title_ii = $top_level_data->{ title_ii };
+            my $programmes = $top_level_data->{ programmes };
 
             $c->stash(
                 'title_ii'           => $title_ii,
                 'pipeline_ii_report' => $pipeline_ii_data,
+                'programmes'         => $programmes,
                 'targeting_type'     => $targeting_type,
                 'species'            => $species,
                 'cache_param_ii'     => 'with_cache',
@@ -364,10 +366,12 @@ sub _generate_front_page_report_pipeline_ii {
 
     my $pipeline_ii_data = $pipeline_ii_report->sponsor_gene_count;
     my $pipeline_ii_title = $pipeline_ii_report->build_page_title;
+    my $programmes = $pipeline_ii_report->programmes;
 
     my %return_params = (
         'title_ii'           => $pipeline_ii_title,
         'pipeline_ii_report' => $pipeline_ii_data,
+        'programmes'         => $programmes,
     );
 
     my $json_data = encode_json(\%return_params);
@@ -377,6 +381,7 @@ sub _generate_front_page_report_pipeline_ii {
     $c->stash(
         'title_ii'           => $pipeline_ii_title,
         'pipeline_ii_report' => $pipeline_ii_data,
+        'programmes'         => $programmes,
         'cache_param_ii'     => 'without_cache',
         'cache_param_i'      => $cache_param_i,
         'species'            => $species,

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose;
 use POSIX 'strftime';
+use List::MoreUtils qw( uniq );
 use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
@@ -28,7 +29,13 @@ has targeting_type => (
 
 has sponsor_gene_count => (
     is         => 'ro',
-    isa        => 'HashRef',
+    isa        => 'ArrayRef',
+    lazy_build => 1,
+);
+
+has programmes => (
+    is         => 'ro',
+    isa        => 'ArrayRef',
     lazy_build => 1,
 );
 
@@ -38,6 +45,16 @@ sub build_page_title {
     my $dt = strftime '%d %B %Y', localtime time;
 
     return 'Pipeline II Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
+};
+
+sub _build_programmes {
+    my $self = shift;
+
+    my @programmes_rs = $self->model->schema->resultset('Programme')->all;
+
+    my @programmes = map { $_->id } @programmes_rs;
+
+    return \@programmes;
 };
 
 sub _build_sponsor_gene_count {
@@ -57,22 +74,51 @@ sub _build_sponsor_gene_count {
           { distinct => 1 }
         )->all;
 
-    foreach my $rec ( @project_sponsor_rs ) {
-        $interim_data->{$rec->sponsor_id}->{gene_count}++;
-        $interim_data->{$rec->sponsor_id}->{programme} = $rec->programme_id;
-        $interim_data->{$rec->sponsor_id}->{lab_head} = $rec->lab_head_id;
-    }
+    foreach my $rec (@project_sponsor_rs) {
+        my $current_programme = $rec->programme_id;
+        if ($current_programme) {
+            my $rec_hash = {
+                programme_id => $rec->programme_id,
+                sponsor_id => $rec->sponsor_id,
+                lab_head_id => $rec->lab_head_id,
+            };
+            my $hash_hit_index = find_my_hash($rec_hash, $sponsor_gene_count);
 
-    my @sponsors = sort keys %$interim_data;
-    $sponsor_gene_count->{sponsors} = \@sponsors;
-
-    foreach my $sponsor (@{$sponsor_gene_count->{sponsors}}) {
-        push @{$sponsor_gene_count->{programmes}}, $self->get_programme_abbr($interim_data->{$sponsor}->{programme});
-        push @{$sponsor_gene_count->{lab_heads}}, $interim_data->{$sponsor}->{lab_head};
-        push @{$sponsor_gene_count->{gene_counts}}, $interim_data->{$sponsor}->{gene_count};
+            if ($hash_hit_index ne 'NA') {
+                $sponsor_gene_count->[$hash_hit_index]->{gene_count}++;
+            } else {
+                my $concatenated_hashes = {%$rec_hash, (gene_count => 1)};
+                push @{$sponsor_gene_count}, $concatenated_hashes;
+            }
+        }
     }
 
     return $sponsor_gene_count;
+}
+
+sub find_my_hash {
+    my ($ref_hash, $ref_array) = @_;
+
+    my @hash_keys = keys %{$ref_hash};
+
+    my $index = 0;
+    foreach my $temp_hash (@{$ref_array}) {
+        my $total = 0;
+        foreach my $key (@hash_keys) {
+            if ($temp_hash->{$key} eq $ref_hash->{$key}) {
+                $total++;
+            }
+        }
+
+        if ($total == scalar @hash_keys) {
+            return $index;
+        }
+
+        $index++;
+    }
+
+    ## 'NA' instead of '0' since '0' can be an index in a list
+    return 'NA';
 }
 
 sub get_programme_abbr {
