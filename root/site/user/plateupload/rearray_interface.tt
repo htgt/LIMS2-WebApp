@@ -77,7 +77,7 @@ $.fn.extend({
 
 var parentPlates = [];
 var startWell = "";
-var miseqData = {};
+var relationalData = {};
 var quadLabels = {
     A_1 : 'first',
     A_13 : 'second',
@@ -147,7 +147,7 @@ $('#largeBox').change(function() {
 $('#process').change(function() {
     var fp = $('#freezeName').val(); 
     if (fp != '-') {
-        miseqData[fp].process = $('#process').val();
+        relationalData[fp].process = $('#process').val();
     }
 });
 
@@ -259,7 +259,7 @@ function changePlateSelection() {
         displayClassifications(parentMiseqClassifications[name]);
     }
 
-    if (name in miseqData) {
+    if (name in relationalData) {
         showPlateHistory(name);
     } else {
         wellHistory(0);
@@ -272,7 +272,7 @@ function clearMiseqPlate() {
 }
 
 function showPlateHistory(fpName) {
-    var gene = miseqData[fpName];
+    var gene = relationalData[fpName];
     var miWells = Object.keys(gene);
     for (var mi = 0; mi < miWells.length; mi++) {
         var miID = wellHistory(miWells[mi],1);
@@ -423,7 +423,7 @@ function addTableRow(data) {
 function clearRow(button) {
     var row = $(button).closest('tr');
     var name = row[0].cells[0].textContent;
-    delete miseqData[name];
+    delete relationalData[name];
     $('#freezeName option[value="' + name + '"]').remove();
     row.remove();
     changePlateSelection();
@@ -449,7 +449,7 @@ function addOption(data) {
 function populateModal(){
     $('#modalName').val($('#plateName').val());
     $('#accordion').html("");
-    var freezerPlates = Object.keys(miseqData);
+    var freezerPlates = Object.keys(relationalData);
 
     var panelOpening = '<div class="panel panel-default">';
     var panelClosing = '</div>';
@@ -464,8 +464,8 @@ function populateModal(){
     
     for (var key = 0; key < freezerPlates.length; key++) {
         var fpName = freezerPlates[key];
-        var fpDetails = miseqData[fpName].wells;
-        var process = miseqData[fpName].process;
+        var fpDetails = relationalData[fpName].wells;
+        var process = relationalData[fpName].process;
 
         var wellParagraph = "";
 
@@ -507,40 +507,10 @@ function clearPlate() {
     d3.selectAll(rects).style('fill', 'white');
     d3.selectAll(rects).classed('selected', false);
     var name = $('#freezeName').val();
-    miseqData[name] = {};
+    relationalData[name] = {};
 }
 
-function submit() {
-    var plateName = $('#modalName').val();
-    var largePlate = $('#largeBox:checked').val() || 0;
-    var container = {
-        name            : plateName,
-        large           : largePlate,
-        data            : miseqData
-    };
-    var data = JSON.stringify(container);
-    if (plateName != '') {
-        $('#response').attr('class','alert');
-        $.ajax({
-            url: '[% c.uri_for('/api/miseq_plate/') %]',
-            type: 'POST',
-            dataType: 'JSON',
-            data: {
-                json: data
-            },
-            success: function(result) {
-                $('#response').addClass('alert-success');
-                $('#response').text('Created MiSeq Plate: ' + result.name + ' with id: ' + result.id);
-                closeModal();
-            },
-            error: function(err) {
-                $('#response').addClass('alert-danger');
-                $('#response').text('Failed to create MiSeq plate: ' + err.responseJSON.error);
-                closeModal();
-            }
-        });
-    }
-}
+
 
 function closeModal() {
     $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling

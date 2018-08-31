@@ -485,6 +485,9 @@ sub process_plate_upload_form :Private {
 sub create_piq_plate :Path( '/user/create_piq_plate' ) :Args(0) {
     my ( $self, $c ) = @_;
 
+    $c->assert_user_roles( 'edit' );
+    #Submission handled via API
+
     return;
 }
 

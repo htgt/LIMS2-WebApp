@@ -3,8 +3,10 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use LIMS2::Model::Util::Miseq qw( query_miseq_details );
+use JSON;
+use POSIX;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -603,6 +605,56 @@ sub well_genotyping_crispr_qc_GET {
 
     return $error ? $self->status_bad_request( $c, message => $error )
                   : $self->status_ok( $c, entity => $data );
+}
+
+sub create_piq_plate :Path('/api/create_piq_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub create_piq_plate_GET {
+    my ( $self, $c ) = @_;
+
+    return;
+}
+
+sub create_piq_plate_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $json = $c->request->param('relations');
+    my $data = decode_json $json;
+
+    $data->{created_by} = $c->user->name;
+    $data->{species} = $c->session->{selected_species};
+    $data->{created_at} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
+    $data->{type} = 'PIQ';
+    $data->{wells} = _transform_wells($data->{wells});
+
+    my $plate = $c->model('Golgi')->create_plate($data);
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/plate', { id => $plate->id } ),
+        entity   => $miseq
+    );
+}
+
+sub _transform_wells {
+    my ( $wells_hash ) = @_;
+
+    my @wells_arr;
+    foreach my $well (keys %{ $wells_hash }) {
+        my $well_relation = {
+            well_name       => $well,
+            process_type    => 'dist_qc',
+            parent_well     => $wells_hash->{$well}->{parent_well},
+            parent_plate    => $wells_hash->{$well}->{parent_plate},
+        };
+
+        push (@wells_arr, $well_relation);
+    }
+
+    return \@wells_arr;
 }
 
 sub wells_parent_plate :Path('/api/wells_parent_plate') :Args(0) :ActionClass('REST') {

@@ -109,17 +109,13 @@
         <button type="button" class="btn btn-danger" onclick="clearPlate();">
             Clear <i class="glyphicon glyphicon-remove"></i>
         </button>
-        <button type="button" class="btn btn-primary">
+        <button type="button" class="btn btn-primary" onclick="submitPIQPlate();">
             Submit <i class="glyphicon glyphicon-edit"></i>
         </button>
     </div>
 </div>
 
-<div id="tooltip" class="hidden">
-    <p><strong>MiSeq Plate: </strong><span id="tooltipValue">100</span></p>
-    <p><strong>MiSeq Experiment: </strong><span id="tooltipValue">100</span></p>
-    <p><strong>Experiment ID: </strong><span id="tooltipValue">100</span></p>
-</div>
+<div id="tooltip" class="hidden"></div>
 
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
 
@@ -188,10 +184,33 @@ $("#plateName").autocomplete({
     minLength: 2,
 });
 
+function submitPIQPlate(){
+    var details = { 
+        name: $('#plateName').val(),
+        wells: relationalData,
+    };
+    var relations = JSON.stringify(details);
+    $.ajax({
+        url: '[% c.uri_for("/api/create_piq_plate") %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            relations: relations
+        },
+        success: function(result) {
+            console.log(result);
+        },
+        error: function(err) {
+            console.log('err');
+            console.log(err);
+        }
+    });
+}
+
 function plateAncestors(selection) {
     $.ajax({
         dataType: 'json',
-        url: '[% c.uri_for('/api/wells_parent_plate') %]',
+        url: '[% c.uri_for("/api/wells_parent_plate") %]',
         data: { plate: selection },
     }).done(function(data){
         $('#parentCollection').show();
@@ -234,16 +253,16 @@ function fetchInheritedMiseqInfo(plate) {
 
 function trackWells(key, well) {
     var freezerDetails = {
-        parentWell: well.value,
-        parentPlate: key
+        parent_well: well.value,
+        parent_plate: key
     };
 
-    miseqData[$(well).parent()[0].id] = freezerDetails;
+    relationalData[$(well).parent()[0].id] = freezerDetails;
     return;
 }
 
 function checkTile(selectedColour) {
-    var currentFpMapping = findFpWells(miseqData);
+    var currentFpMapping = findFpWells(relationalData);
 
     $('.fpWell.' + selectedColour).map(function(index, well) { 
         var wellName = well.parentNode.id;
@@ -259,9 +278,9 @@ function checkTile(selectedColour) {
 function findFpWells(mapData) {
     var parentChildMapping = {};
 
-    for (var childWell in miseqData) {
-        if (miseqData[childWell].parentPlate == $('#freezeName').val()) {
-            parentChildMapping[miseqData[childWell].parentWell] = childWell;
+    for (var childWell in relationalData) {
+        if (relationalData[childWell].parent_plate == $('#freezeName').val()) {
+            parentChildMapping[relationalData[childWell].parent_well] = childWell;
         }
     }
 
@@ -269,7 +288,7 @@ function findFpWells(mapData) {
 }
 
 function wellHistory(plate) {
-    var fpRelations = findFpWells(miseqData);
+    var fpRelations = findFpWells(relationalData);
     var fpWells = Object.keys(fpRelations);
     $('.fpWell').removeClassesExcept('square fpWell');
 

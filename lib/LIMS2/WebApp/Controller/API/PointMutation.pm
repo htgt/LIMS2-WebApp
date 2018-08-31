@@ -28,9 +28,9 @@ sub point_mutation_image_GET {
     $c->assert_user_roles('read');
 
     my $miseq = $c->request->param('miseq');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'exp');
-    my $file_name = $c->request->param( 'name' );
+    my $oligo_index = $c->request->param('oligo');
+    my $experiment = $c->request->param('exp');
+    my $file_name = $c->request->param('name');
 
     #Sanitise inputs since it's a broad search
     unless (exists($whitelist{$file_name})) {
@@ -157,16 +157,8 @@ sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
 
 sub miseq_plate_POST {
     my ( $self, $c ) = @_;
+    
     $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
-
-    if($protocol eq 'HTTPS'){
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
-    $c->require_ssl;
 
     my $json = $c->request->param('json');
     my $data = decode_json $json;

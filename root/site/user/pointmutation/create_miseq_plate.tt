@@ -175,13 +175,13 @@ $(function () {
             if (key != '-') {
                 console.log('Triggered - body up');
                 var label = quadLabels[$('#quad').val()];
-                if (miseqData[key] == null) {
-                    miseqData[key] = {
+                if (relationalData[key] == null) {
+                    relationalData[key] = {
                         wells : { },
                         process : $('#process').val(),
                     }
                 } 
-                var plateDetails = miseqData[key];
+                var plateDetails = relationalData[key];
                 plateDetails.process = $('#process').val(); //In case of change
                 plateDetails.wells[label] = { };
 
@@ -193,10 +193,41 @@ $(function () {
 });
 
 function trackWells(key, section, well) {
-    var freezer = miseqData[key].wells[section];
+    var freezer = relationalData[key].wells[section];
     freezer[$(well).parent()[0].id] = well.value;
-    miseqData[key].wells[section] = freezer;
+    relationalData[key].wells[section] = freezer;
 }
 
+function submit() {
+    var plateName = $('#modalName').val();
+    var largePlate = $('#largeBox:checked').val() || 0;
+    var container = {
+        name            : plateName,
+        large           : largePlate,
+        data            : relationalData
+    };
+    var data = JSON.stringify(container);
+    if (plateName != '') {
+        $('#response').attr('class','alert');
+        $.ajax({
+            url: '[% c.uri_for('/api/miseq_plate/') %]',
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                json: data
+            },
+            success: function(result) {
+                $('#response').addClass('alert-success');
+                $('#response').text('Created MiSeq Plate: ' + result.name + ' with id: ' + result.id);
+                closeModal();
+            },
+            error: function(err) {
+                $('#response').addClass('alert-danger');
+                $('#response').text('Failed to create MiSeq plate: ' + err.responseJSON.error);
+                closeModal();
+            }
+        });
+    }
+}
 
 </script>
