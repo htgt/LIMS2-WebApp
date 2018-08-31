@@ -87,16 +87,30 @@ var quadLabels = {
 
 var colourHash = {
     orange:     '#FF9D17',
-    aegean:     '#3A5C83',
-    yellow:     '#FFF600',
-    pink:       '#E57ABC',
-    cerulean:   '#64B9F2',
-    seafoam:    '#61E786',
-    red:        '#E54B4B',
-    peach:      '#F2E0B3',
-    teal:       '#0E7C79',
-    green:      '#03c03c',
-    grey:       '#93979e'
+    blue:       '#2EB4E6',
+    yellow:     '#FBE870',
+    maroon:     '#C32148',
+    brown:      '#AF593E',
+    green:      '#3AA655',
+    violet:     '#835953',
+    carnation:  '#EBB0D7',
+    lime:       '#CCFF00',
+    silver:     '#C9C0BB',
+    sunset:     '#FFB97B',
+    blueGreen:  '#0D98BA',
+    redViolet:  '#C0448F',
+    redOrange:  '#FF5349',
+    apple:      '#9DE093',
+    blueViolet: '#7366BD',
+    flamingo:   '#FC74FD',
+    shamrock:   '#33CC99', 
+    violetRed:  '#F75394',
+    midnight:   '#702670',
+    sky:        '#76D7EA',
+    apricot:    '#FDD9B5',
+    venetian:   '#FA5B3D',
+    ultramarine:'#0066FF',
+    grey:       '#95918C'
 };
 
 var colourArr = Object.keys(colourHash);
@@ -500,17 +514,6 @@ function populateModal(){
         $("#accordion").append(panel);
     }
 }
-
-function clearPlate() {
-    var rects = $('rect').not('.invalid');
-    $('.miWell').map(function() { resetMiseqText(this); });
-    d3.selectAll(rects).style('fill', 'white');
-    d3.selectAll(rects).classed('selected', false);
-    var name = $('#freezeName').val();
-    relationalData[name] = {};
-}
-
-
 
 function closeModal() {
     $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling
