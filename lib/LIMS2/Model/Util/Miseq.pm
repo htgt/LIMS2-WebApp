@@ -290,7 +290,7 @@ sub _wanted {
 }
 
 sub generate_summary_data {
-    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
+    my ($c, $plate_id, $miseq_id) = @_;
 
     my $wells;
     my @well_conversion = wells_generator();
