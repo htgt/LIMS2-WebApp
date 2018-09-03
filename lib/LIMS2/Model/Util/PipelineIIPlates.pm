@@ -26,10 +26,12 @@ sub retrieve_data {
 
     my @wells = $target_plate->wells;
 
-    my @parent_wells = $wells[0]->parent_wells;
-    my $parent_well = $parent_wells[0];
+my $wells_data;
+foreach my $well (@wells) {
 
-    my $data = {};
+    my $data;
+    my @parent_wells = $well->parent_wells;
+    my $parent_well = $parent_wells[0];
 
     ## getting design data
     $data->{design_id} = $parent_well->design->id;
@@ -71,8 +73,10 @@ sub retrieve_data {
             };
         }
     };
+$wells_data->{$well->name} = $data;
+}
 
-    return $data;
+    return $wells_data;
 }
 
 1;
