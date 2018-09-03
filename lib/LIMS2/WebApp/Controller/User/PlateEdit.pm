@@ -204,6 +204,34 @@ sub delete_comment_plate :Path( '/user/delete_comment_plate' ) :Args(0) {
     return;
 }
 
+sub edit_comment_plate :Path( '/user/edit_comment_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    my $params = $c->request->params;
+
+    $c->model('Golgi')->txn_do(
+        sub {
+            try{
+                $c->model('Golgi')->schema->resultset('PlateComment')->find(
+                    {
+                        id => $params->{comment_id},
+                    })->update(
+                        comment_text => $params->{comment},
+                    );
+
+                $c->flash->{success_msg} = 'Comment has been edited for plate ' . $params->{name};
+            }
+            catch {
+                $c->flash->{error_msg} = 'Error encountered while editing comment: ' . $_;
+                $c->model('Golgi')->txn_rollback;
+            };
+        }
+    );
+
+    $c->res->redirect( $c->uri_for('/user/view_plate', { id => $params->{id} }) );
+    return;
+}
+
 sub update_plate_barcode :Path( '/user/update_plate_barcode' ) :Args(0) {
     my ( $self, $c ) = @_;
 
