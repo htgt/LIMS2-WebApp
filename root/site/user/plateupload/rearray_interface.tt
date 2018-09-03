@@ -180,7 +180,13 @@ $("#parentPlate").autocomplete({
         $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
         {
             term : $('#parentPlate').val(),
-            type : 'FP,MISEQ,PIQ',
+            type : function() {
+                var parentTypes = 'FP,MISEQ,PIQ';
+                if ( $('.page-header').text().match(/PIQ/) ) {
+                    parentTypes = 'FP,PIQ';
+                }
+                return parentTypes;
+            },
         }, response);
     },
     minLength: 2,
@@ -421,9 +427,20 @@ function addTableRow(data) {
     typeCell.innerText = data.type;
 
     if (data.colour) {
+        var takenColourKeys = Object.keys(assignedColours);
         var colourCount = Object.keys(assignedColours).length;
-        assignedColours[data.name] = colourArr[colourCount];
-        detailCell.innerHTML = '<div class="colourKeySquare" style="background-color:' + colourHash[colourArr[colourCount]] + '"></div>';
+
+        var selectedColour;
+        var assignedColourValues = Object.values(assignedColours);
+        var assignedCheck = colourArr.filter( function(i) { return !this.has(i); }, new Set(assignedColourValues) );
+        if (assignedCheck) {
+            selectedColour = assignedCheck.shift();
+        } else {
+            selectedColour = "grey";
+        }
+
+        assignedColours[data.name] = selectedColour;
+        detailCell.innerHTML = '<div class="colourKeySquare" style="background-color:' + colourHash[selectedColour] + '"></div>';
     } else {
         detailCell.innerText = "Place-holder";
     }
@@ -444,8 +461,11 @@ function clearRow(button) {
 
     var index = parentPlates.indexOf(name);
     if (index > -1) {
-        array.splice(index, 1);
-    } 
+        parentPlates.splice(index, 1);
+    }
+    if (assignedColours[name]) {
+        delete assignedColours[name];
+    }
 }
 
 function addOption(data) {
