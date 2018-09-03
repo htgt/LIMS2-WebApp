@@ -194,7 +194,7 @@ $("#parentPlate").autocomplete({
 
 $('#addPlate').click(function() {
     $.ajax({
-        dataType: 'json',
+        dataType: 'JSON',
         url: '[% c.uri_for('/api/miseq_parent_plate_type') %]',
         data: { name: $('#parentPlate').val().trim() },
     }).done(function(data){
@@ -289,16 +289,6 @@ function changePlateSelection() {
 function clearMiseqPlate() {
     d3.selectAll('.miWell').style("fill", "white");
     $('.miWell').map(function() { resetMiseqText(this); });
-}
-
-function showPlateHistory(fpName) {
-    var gene = relationalData[fpName];
-    var miWells = Object.keys(gene);
-    for (var mi = 0; mi < miWells.length; mi++) {
-        var miID = wellHistory(miWells[mi],1);
-        var fpID = wellHistory(gene[miWells[mi]],0);
-        tracking(miID, fpID);
-    }
 }
 
 function highlighter(target, start) {
@@ -430,17 +420,17 @@ function addTableRow(data) {
         var takenColourKeys = Object.keys(assignedColours);
         var colourCount = Object.keys(assignedColours).length;
 
-        var selectedColour;
+        var nextColour;
         var assignedColourValues = Object.values(assignedColours);
         var assignedCheck = colourArr.filter( function(i) { return !this.has(i); }, new Set(assignedColourValues) );
         if (assignedCheck) {
-            selectedColour = assignedCheck.shift();
+            nextColour = assignedCheck.shift();
         } else {
-            selectedColour = "grey";
+            nextColour = "grey";
         }
 
-        assignedColours[data.name] = selectedColour;
-        detailCell.innerHTML = '<div class="colourKeySquare" style="background-color:' + colourHash[selectedColour] + '"></div>';
+        assignedColours[data.name] = nextColour;
+        detailCell.innerHTML = '<div class="colourKeySquare" style="background-color:' + colourHash[nextColour] + '"></div>';
     } else {
         detailCell.innerText = "Place-holder";
     }
@@ -480,61 +470,6 @@ function addOption(data) {
     }
 }
 
-function populateModal(){
-    $('#modalName').val($('#plateName').val());
-    $('#accordion').html("");
-    var freezerPlates = Object.keys(relationalData);
-
-    var panelOpening = '<div class="panel panel-default">';
-    var panelClosing = '</div>';
-    
-    var header = '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion" href="#collapse';
-    var headerClosing = '</a></h4></div>';
-    
-    var bodyOpen = '<div id="collapse';
-    var bodyClass = '" class="panel-collapse collapse"><div class="panel-body"><p>';
-    var bodyClosing = '</p></div></div>';
-
-    
-    for (var key = 0; key < freezerPlates.length; key++) {
-        var fpName = freezerPlates[key];
-        var fpDetails = relationalData[fpName].wells;
-        var process = relationalData[fpName].process;
-
-        var wellParagraph = "";
-
-        var quads = Object.keys(fpDetails);
-
-        for (var quad = 0; quad < quads.length; quad++) {
-            var quadDetails = fpDetails[quads[quad]];
-
-            var wellKeys = Object.keys(quadDetails);
-            var plateStructure = {};
-        
-            for (var well = 0; well < wellKeys.length; well++) {
-                var miseqWellName = wellKeys[well];
-                var fpWellName = quadDetails[miseqWellName];
-                var row = miseqWellName.charAt(0);
-                if (!(row in plateStructure)) {
-                    plateStructure[row] = [];
-                    plateStructure[row].push(fpWellName + " &rarr; " + miseqWellName);
-                } else {
-                    plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
-                }
-            }
-            var rows = Object.keys(plateStructure);
-
-            for (var row = 0; row < rows.length; row++) {
-                wellParagraph += plateStructure[rows[row]].toString() + '</br>';
-            }
-        }
-        var panelHeader = header + fpName + '">' + fpName + '&nbsp ~ &nbsp Process: ' + process + headerClosing;
-        var panelBody = bodyOpen + fpName + bodyClass + wellParagraph + bodyClosing;
-        var panel = panelOpening + panelHeader + panelBody + panelClosing;
-        $("#accordion").append(panel);
-    }
-}
-
 function closeModal() {
     $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling
     $("html, body").animate({
@@ -551,6 +486,20 @@ function changeQuad(selectVal, splitID, gridClass) {
         .attr("height", "410px");
     setupPlate(grid, gridClass, quadDef[0], quadDef[1]);
     addWellNames();
+}
+
+function checkTile() {
+    var currentFpMapping = findFpWells(relationalData);
+
+    $('.fpWell.' + selectedColour).map(function(index, well) { 
+        var wellName = well.parentNode.id;
+        if (!(wellName in currentFpMapping)) {
+            d3.select(well).style('fill', 'white');
+        }
+        return;
+    });
+
+    return;
 }
 
 </script>

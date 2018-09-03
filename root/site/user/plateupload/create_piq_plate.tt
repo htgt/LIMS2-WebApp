@@ -150,7 +150,7 @@ $(function () {
             if (key != '-') {
                 console.log('Triggered - body up');
                 $('.miWell.' + selectedColour).map(function() { return trackWells(key, this); });
-                checkTile(selectedColour);
+                checkTile();
             }
         }
     });
@@ -258,20 +258,6 @@ function trackWells(key, well) {
     };
 
     relationalData[$(well).parent()[0].id] = freezerDetails;
-    return;
-}
-
-function checkTile(selectedColour) {
-    var currentFpMapping = findFpWells(relationalData);
-
-    $('.fpWell.' + selectedColour).map(function(index, well) { 
-        var wellName = well.parentNode.id;
-        if (!(wellName in currentFpMapping)) {
-            d3.select(well).style('fill', 'white');
-        }
-        return;
-    });
-
     return;
 }
 
@@ -395,6 +381,16 @@ function clearPlate() {
             delete relationalData[well];
         }
     });
+}
+
+function showPlateHistory(parentName) {
+    var parentDetails = relationalData[parentName];
+    var miWells = Object.keys(parentDetails);
+    for (var mi = 0; mi < miWells.length; mi++) {
+        var miID = wellHistory(miWells[mi],1);
+        var fpID = wellHistory(parentDetails[miWells[mi]],0);
+        tracking(miID, fpID);
+    }
 }
 
 </script>

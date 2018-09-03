@@ -146,7 +146,6 @@
 
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
 
-
 <script>
 
 $(function () {
@@ -170,7 +169,7 @@ $(function () {
             console.log("Up.");
             isMouseDown = false;
             $('.selecting').toggleClass('selecting selected');
-            d3.selectAll('.selected').style('fill', green);
+            d3.selectAll('.selected').style('fill', colourHash['green']);
             var key = $('#freezeName').val();
             if (key != '-') {
                 console.log('Triggered - body up');
@@ -186,7 +185,7 @@ $(function () {
                 plateDetails.wells[label] = { };
 
                 $('.miWell.selected').map(function() { return trackWells(key, label, this); });
-                $('.fpWell.selected').map(function() { return checkTile(this); } )
+                $('.fpWell.selected').map(function() { return checkTile(); } )
             }
         }
     });
@@ -230,4 +229,118 @@ function submit() {
     }
 }
 
+function clearPlate() {
+    var rects = $('rect').not('.invalid');
+    $('.miWell').map(function() { resetMiseqText(this); });
+    d3.selectAll(rects).style('fill', 'white');
+    d3.selectAll(rects).classed('selected', false);
+    var name = $('#freezeName').val();
+    relationalData[name] = {};
+}
+
+
+
+function findFpWells() {
+    var parentChildMapping = {};
+
+    var plateDetails = relationalData[$('#freezeName').val()];
+    if (plateDetails === undefined) {
+        return;
+    }
+    var quadrantLabel = quadLabels[$('#quad').val()];
+    var quadrantWellData = plateDetails.wells[quadrantLabel];
+
+    for (var childWell in quadrantWellData) {
+        parentChildMapping[quadrantWellData[childWell]] = childWell; //Parent => Child
+    }
+
+    return parentChildMapping;
+}
+
+function populateModal(){
+    $('#modalName').val($('#plateName').val());
+    $('#accordion').html("");
+    var freezerPlates = Object.keys(relationalData);
+
+    var panelOpening = '<div class="panel panel-default">';
+    var panelClosing = '</div>';
+    
+    var header = '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion" href="#collapse';
+    var headerClosing = '</a></h4></div>';
+    
+    var bodyOpen = '<div id="collapse';
+    var bodyClass = '" class="panel-collapse collapse"><div class="panel-body"><p>';
+    var bodyClosing = '</p></div></div>';
+
+    
+    for (var key = 0; key < freezerPlates.length; key++) {
+        var fpName = freezerPlates[key];
+        var fpDetails = relationalData[fpName].wells;
+        var process = relationalData[fpName].process;
+
+        var wellParagraph = "";
+
+        var quads = Object.keys(fpDetails);
+
+        for (var quad = 0; quad < quads.length; quad++) {
+            var quadDetails = fpDetails[quads[quad]];
+
+            var wellKeys = Object.keys(quadDetails);
+            var plateStructure = {};
+        
+            for (var well = 0; well < wellKeys.length; well++) {
+                var miseqWellName = wellKeys[well];
+                var fpWellName = quadDetails[miseqWellName];
+                var row = miseqWellName.charAt(0);
+                if (!(row in plateStructure)) {
+                    plateStructure[row] = [];
+                    plateStructure[row].push(fpWellName + " &rarr; " + miseqWellName);
+                } else {
+                    plateStructure[row].push('</br>' + fpWellName + " &rarr; " + miseqWellName);
+                }
+            }
+            var rows = Object.keys(plateStructure);
+
+            for (var row = 0; row < rows.length; row++) {
+                wellParagraph += plateStructure[rows[row]].toString() + '</br>';
+            }
+        }
+        var panelHeader = header + fpName + '">' + fpName + '&nbsp ~ &nbsp Process: ' + process + headerClosing;
+        var panelBody = bodyOpen + fpName + bodyClass + wellParagraph + bodyClosing;
+        var panel = panelOpening + panelHeader + panelBody + panelClosing;
+        $("#accordion").append(panel);
+    }
+}
+
+function showPlateHistory(parentName) {
+    var parentDetails = relationalData[parentName];
+    var quadrantLabel = quadLabels[$('#quad').val()];
+    var quadrantWells = parentDetails.wells[quadrantLabel];
+    var miWells = Object.keys(quadrantWells);
+    console.log(miWells);
+    wellHistory(0);
+    wellHistory(1);
+    for (var mi = 0; mi < miWells.length; mi++) {
+        var fpID = $('#firstSplit #' + quadrantWells[miWells[mi]] + ' .square')[0].id.split('_')[1];
+        var miID = $('#secondSplit #' + miWells[mi] + ' .square')[0].id.split('_')[1];
+        tracking(miID, fpID);
+    }
+}
+
+function wellHistory(plate) {
+    var fpRelations = findFpWells(relationalData);
+    if (fpRelations === undefined) {
+        return;
+    }
+    var fpWells = Object.keys(fpRelations);
+    $('.square').removeClassesExcept('square fpWell miWell');
+
+    fpWells.forEach(function(fp) {
+        d3.select('#firstSplit #' + fp + ' rect').classed('selected', true);
+        d3.select('#secondSplit #' + fpRelations[fp] + ' rect').classed('selected', true);
+    });
+    d3.selectAll('.selected').style('fill', colourHash['green']);
+
+    return;
+}
 </script>
