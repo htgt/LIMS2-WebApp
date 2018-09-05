@@ -105,6 +105,8 @@ sub pspec_create_miseq_experiment {
         miseq_id        => { validate => 'existing_miseq_plate' },
         name            => { validate => 'non_empty_string' },
         gene            => { validate => 'non_empty_string' },
+        parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
         mutation_reads  => { validate => 'integer' },
         total_reads     => { validate => 'integer' },
     };
@@ -120,7 +122,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name gene mutation_reads total_reads )
+                qw( miseq_id name experiment_id parent_plate_id gene mutation_reads total_reads )
             )
         }
     );
@@ -133,6 +135,7 @@ sub pspec_update_miseq_experiment {
         id              => { validate => 'existing_miseq_experiment' },
         miseq_id        => { validate => 'existing_miseq_plate', optional => 1 },
         name            => { validate => 'non_empty_string', optional => 1 },
+        gene            => { validate => 'non_empty_string', optional => 1 },
         experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
         parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
         mutation_reads  => { validate => 'integer', optional => 1 },
@@ -153,6 +156,7 @@ sub update_miseq_experiment {
     my $class;
     $class->{miseq_id} = $validated_params->{miseq_id} || $hash_well->{miseq_id};
     $class->{name} = $validated_params->{name} || $hash_well->{name};
+    $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
     $class->{experiment_id} = $validated_params->{experiment_id} || $hash_well->{experiment_id};
     $class->{parent_plate_id} = $validated_params->{parent_plate_id} || $hash_well->{parent_plate_id};
     $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{nhej_count};
