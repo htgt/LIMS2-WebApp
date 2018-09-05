@@ -117,7 +117,7 @@
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use live reports</b></a>
     [%- ELSE %]
         <a id='with_cache' type='button' name='with_cache' class='btn btn-info btn-sm'
-        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_ii => 'with_cache', ache_param_i => cache_param_i, pipeline => 'pipeline_ii'} ) %]">
+        href="[%- c.uri_for( '/public_reports/sponsor_report', {species => species, cache_param_ii => 'with_cache', cache_param_i => cache_param_i, pipeline => 'pipeline_ii'} ) %]">
         <i class="glyphicon glyphicon-exclamation-sign"></i><b> Use cached reports</b></a>
     [%- END %]
 [%- END %]
@@ -141,9 +141,9 @@
       [% IF unit.programme_id == programme %]
         <tr style="display:none;" class="[% programme %]_ii">
           <td></td>
-          <td class="info"><b>[% unit.sponsor_id %]</b></td>
-          <td class="info"><b>[% unit.lab_head_id %]</b></td>
-          <td class="info">
+          <td style="background-color:#B3ECFF;"><b>[% unit.sponsor_id %]</b></td>
+          <td style="background-color:#E5E4E2;"><b>[% unit.lab_head_id %]</b></td>
+          <td style="background-color:#B3ECFF;">
             [%- IF c.user == '' && is_internal == 0 %]
             <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[% unit.gene_count %]</a></b>
             [%- ELSIF c.user == '' && is_internal %]
@@ -151,7 +151,7 @@
             [%- ELSIF cache_param_ii == "with_cache" %]
              <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${unit.sponsor_id}", { pipeline => 'pipeline_ii' } ) %]" target="_blank" id='[% unit.sponsor_id %]'>[% unit.gene_count %]</a></b>
             [%- ELSE %]
-            <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/$unit.sponsor_id/Genes", { species => species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii' }) %]" target="_blank" id='[% unit.sponsor_id %]'>[% unit.gene_count %]</a></b>
+            <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/$unit.sponsor_id/Genes/$unit.lab_head_id/$unit.programme_id", { species => species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii' }) %]" target="_blank" id='[% unit.sponsor_id %]'>[% unit.gene_count %]</a></b>
             [%- END %]
           </td>
         </tr>
