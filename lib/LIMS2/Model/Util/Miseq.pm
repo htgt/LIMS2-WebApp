@@ -21,6 +21,7 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
 use JSON;
 use File::Find;
+use Data::Dumper;
 
 sub miseq_well_processes {
     my ($c, $params) = @_;
@@ -217,12 +218,9 @@ sub generate_summary_data_old {
             details     => $details,
         };
     }
-    print Dumper "\n \n \n \n \n \n \n \n \n \n";
-    print Dumper $wells->{'85'};
-    print Dumper "\n \n \n \n \n \n \n \n \n \n";
-
-
     
+
+    #print Dumper $wells; 
     return $wells;
 }
 
@@ -292,9 +290,10 @@ sub _wanted {
 sub generate_summary_data {
     my ($c, $plate_id, $miseq_id) = @_;
 
+    my $genes;
+    my $ranges;
     my $wells;
-    my @well_conversion = wells_generator();
-    my @genes;
+    
     my @experiments;
     my $details;
     my $percentages;
@@ -304,10 +303,11 @@ sub generate_summary_data {
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
     foreach my $miseq_exp (@miseq_exp_rs) {
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        my @indexes;
         foreach my $well_exp (@well_exps) {
+            $index = $converter->{$well_exp->{well_name}};
+            push (@indexes, $index);
             
-            $index = $c->model('Golgi')->schema->resultset('Well')->find({ id => $well_exp->{well_id} })->name;
-            $index = $converter->{$index};
             $index = sprintf("%02d", $index);
 
             push ( @{$wells->{$index}->{gene}}, $miseq_exp->{gene});
@@ -318,17 +318,32 @@ sub generate_summary_data {
             $details->{status}      = $well_exp->{status};
             $details->{frameshift}  = $well_exp->{frameshifted};            
              
-            $percentages->{wt}   = $miseq_exp->{total_reads};
-            $percentages->{nhej} = $miseq_exp->{nhej_reads};
-            $percentages->{hdr}  = $miseq_exp->{hdr_reads};
-            $percentages->{mix}  = $miseq_exp->{mixed_reads};
-             
+            $percentages->{wt}   = $well_exp->{total_reads};
+            $percentages->{nhej} = $well_exp->{nhej_reads};
+            $percentages->{hdr}  = $well_exp->{hdr_reads};
+            $percentages->{mix}  = $well_exp->{mixed_reads};
+            #print Dumper $details; 
+            print Dumper $well_exp;
+            print Dumper $miseq_exp;
+            print Dumper $percentages; 
             $wells->{$index}->{percentages}->{$miseq_exp->{name}}  =   $percentages;
             $wells->{$index}->{details}->{$miseq_exp->{name}}      =   $details;        
         }
+        return unless @indexes;
+        @indexes = sort { $a <=> $b } @indexes;
+        my $range = $indexes[0] . '-' . $indexes[-1];
+        $ranges->{$miseq_exp->{name}} = $range;
+        
+        my @gene;
+        push @gene, $miseq_exp->{gene};
+        $genes->{$miseq_exp->{name}} = \@gene;
     }
-    return $wells;
-
+        
+    return { 
+        ranges  => $ranges,
+        genes   => $genes,
+        wells   => $wells
+    };
 }
                                               
 1;

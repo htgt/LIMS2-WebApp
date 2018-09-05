@@ -37,16 +37,18 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
+    my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
+    #print Dumper $summary_data->{wells};
 
     if ($miseq_plate->{'384'} == 1 ) {
-        my $quadrants = experiment_384_distribution($c, $miseq_plate->{id}, $plate_id, $miseq_plate->{id});
+        my $quadrants = experiment_384_distribution($c, $summary_data->{ranges});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
     }
     
-    my $overview = get_experiments($c, $miseq_plate->{id}, 'genes');
+    my $overview = $summary_data->{genes}; 
     my $ov_json = encode_json ({ summary => $overview });
 
-    my $json = encode_json ({ summary => generate_summary_data($c, $plate_id, $miseq_plate->{id}) });
+    my $json = encode_json ({ summary => $summary_data->{wells}});
 
     my ($gene_keys, $gene_prefix_keys) = get_genes($c, $overview);
 
@@ -200,8 +202,7 @@ sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
 }
 
 sub experiment_384_distribution {
-    my ( $c, $miseq ) = @_;
-    my $range_summary = get_experiments($c, $miseq, 'range');
+    my ( $c, $range_summary ) = @_;
     my $quadrants;
     foreach my $exp (keys %$range_summary) {
         my $value = $range_summary->{$exp};
@@ -221,7 +222,7 @@ sub experiment_384_distribution {
     return $quadrants;
 }
 
-sub get_experiments_old {
+sub get_experiments {
     my ( $c, $miseq, $opt ) = @_;
 
     my $csv = Text::CSV->new({ binary => 1 }) or die "Can't use CSV: " . Text::CSV->error_diag();
@@ -233,38 +234,30 @@ sub get_experiments_old {
     return $ov;
 }
 
-sub get_experiments {
-    my ( $c, $miseq, $opt ) = @_;
-   
-    my $ov;
-    my $model = $c->model('Golgi');
-    my $converter = wells_generator(1);
-    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq });
-    return unless @miseq_exp_rs;
-    foreach my $miseq_exp (@miseq_exp_rs) {
-        my @well_exp_rs = map { $_->as_hash } $model->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-        
-        my @range_ar = map {$_->{well_name}} @well_exp_rs;
-        #print Dumper "Well names: \n";
-        #print Dumper @range_ar;
-        @range_ar = map {$converter->{$_}} @range_ar;
-        #print Dumper "Converted: \n";
-        #print Dumper @range_ar;
-        return unless @range_ar;
-        @range_ar = sort { $a <=> $b } @range_ar;
-        my $range = $range_ar[0] . '-' . $range_ar[-1];
-        if ($opt eq 'range'){
-            $ov->{$miseq_exp->{name}} = $range;
-        }
-        else{
-            my @genes;
-            push @genes, $miseq_exp->{gene};
-            $ov->{$miseq_exp->{name}} = \@genes;
-        }
-    }
-    print Dumper $ov;
-    return $ov;
-}
+#sub get_experiments {
+#    my ( $c, $miseq, $opt, $range) = @_;
+#   
+#    my $ov;
+#    my $model = $c->model('Golgi');
+#    my $converter = wells_generator(1);
+#    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq });
+#    return unless @miseq_exp_rs;
+#    foreach my $miseq_exp (@miseq_exp_rs) {
+        #my @range_ar = sort { $a <=> $b } (map { $converter->{$_->as_hash->{well_name}} } $model->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} }));
+#        return unless @range_ar;
+#        my $range = $range_ar[0] . '-' . $range_ar[-1];
+#        if ($opt eq 'range'){
+#            $ov->{$miseq_exp->{name}} = $range;
+#        }
+#        else{
+#            my @genes;
+#            push @genes, $miseq_exp->{gene};
+#            $ov->{$miseq_exp->{name}} = \@genes;
+#        }
+#    }
+    #print Dumper $ov;
+#    return $ov;
+#}
 
 
 sub read_columns {
