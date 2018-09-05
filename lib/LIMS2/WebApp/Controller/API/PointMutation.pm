@@ -202,7 +202,7 @@ sub miseq_exp_parent_GET {
 
     my @results;
     try {
-        @results = map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+        @results = map { $_->miseq_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
             },

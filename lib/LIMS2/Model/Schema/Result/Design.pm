@@ -443,6 +443,8 @@ has 'info' => (
 
 use Log::Log4perl qw(:easy);
 use List::MoreUtils qw( uniq );
+use Try::Tiny;
+
 BEGIN {
     #try not to override the lims2 logger
     unless ( Log::Log4perl->initialized ) {
@@ -553,7 +555,6 @@ sub design_parameters_hash {
     my $self = shift;
 
     require JSON;
-    use Try::Tiny;
 
     if ( my $design_param_string = $self->design_parameters ) {
         return try{ JSON->new->utf8->decode( $design_param_string ); };
@@ -685,7 +686,14 @@ sub _fetch_region_coords {
 }
 
 sub hdr_template {
-    return shift->hdr_templates->first->template;
+    my $self = shift;
+
+    try {
+        my $template = $self->hdr_templates->first->template;
+        return $template;
+    };
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

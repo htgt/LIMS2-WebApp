@@ -304,7 +304,10 @@ $('#redoSubmit').click(function() {
 });
 
 $('#createPreset').click(function() {
-    var jsonified_params = prepareParameters('preset');
+    var params = prepareParameters('preset');
+    delete params["id"];
+    var jsonified_params = JSON.stringify(params);
+    
     $('#presetWaiting').show().prop('disabled', false);
 
     $.ajax({
@@ -339,7 +342,12 @@ $('#createPreset').click(function() {
 });
 
 $('#updatePreset').click(function() {
-    var jsonified_params = prepareParameters('preset');
+    var params = prepareParameters('preset');
+    if (presetIDs[$('#presetModalDD').val()] && $('#presetModalDD').val() != 'Default') {
+        params.id = presetIDs[$('#presetModalDD').val()];
+    }
+    var jsonified_params = JSON.stringify(params);
+
     var oldName = $('#presetModalDD').val();
     $('#presetWaiting').show().prop('disabled', false);
 
@@ -454,12 +462,9 @@ function clearSelection(){
 function prepareParameters(set) {
     var params = gatherParameters(set);
     params.name = $('#' + set + 'NameArea').val();
-    if (presetIDs[$('#presetModalDD').val()] && $('#presetModalDD').val() != 'Default') {
-        params.id = presetIDs[$('#presetModalDD').val()];
-    }
-    var jsonified_params = JSON.stringify(params);
 
-    return jsonified_params;
+
+    return params;
 }
 
 function errorNotification(entry, pattern, err) {

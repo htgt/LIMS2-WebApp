@@ -56,6 +56,11 @@ __PACKAGE__->table("miseq_experiment");
   data_type: 'text'
   is_nullable: 0
 
+=head2 gene
+
+  data_type: 'text'
+  is_nullable: 1
+
 =head2 mutation_reads
 
   data_type: 'integer'
@@ -78,6 +83,12 @@ __PACKAGE__->table("miseq_experiment");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 parent_plate_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -92,6 +103,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "name",
   { data_type => "text", is_nullable => 0 },
+  "gene",
+  { data_type => "text", is_nullable => 1 },
   "mutation_reads",
   { data_type => "integer", is_nullable => 1 },
   "total_reads",
@@ -99,6 +112,8 @@ __PACKAGE__->add_columns(
   "miseq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "experiment_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_plate_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -206,9 +221,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 parent_plate
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-06 10:49:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pMgsm8+Yssa8DjAIfxv4qQ
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "parent_plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "parent_plate_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 11:40:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:knIx/x0tVwTwtGQrvet+mA
 
 sub as_hash {
     my $self = shift;
@@ -217,7 +252,9 @@ sub as_hash {
         id          => $self->id,
         miseq_id    => $self->miseq_id,
         name        => $self->name,
-        experiment_id => $self->experiment_id,
+        experiment_id   => $self->experiment_id,
+        parent_plate_id => $self->parent_plate_id,
+        gene        => $self->gene,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
     );
@@ -225,7 +262,7 @@ sub as_hash {
     return \%h;
 }
 
-sub parent_plate {
+sub miseq_plate {
     my $self = shift;
 
     my %h = (
