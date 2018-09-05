@@ -1,0 +1,239 @@
+[%- META title = "Summary Report II" %]
+
+
+<style type="text/css">
+
+a:hover {
+  cursor: pointer;
+}
+
+table.table-bordered {
+  border: 1.5px solid black;
+}
+
+table.table-bordered > thead > tr > th{
+  border: 1.5px solid black;
+}
+
+table.table-bordered > tbody > tr > td{
+  border: 1.5px solid black;
+}
+
+</style>
+
+<span style="float:right">
+  <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');"><b>Expand All</b></a>
+
+  [%- IF type == 'full' %]
+  <a id='type_simple' type='button' class='btn btn-info btn-sm'
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        cache_param => cache_param,
+        type => 'simple'
+    }
+  ) %]><i class="glyphicon glyphicon-zoom-out"></i><b> Simple Report</b></a>
+  [%- ELSIF type == 'simple' %]
+  <a id='type_full' type='button' class='btn btn-info btn-sm'
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        cache_param => cache_param,
+        type => 'full'
+    }
+  ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
+  [%- END %]
+  <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        csv => 1
+    }
+  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
+  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+    {
+        xlsx => 1
+    }
+  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+</span>
+</span>
+<div class="page-header">
+  <h2>Sponsor Progress Sub-Report on [% date %]</h2>
+</div>
+<p>
+<big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+</p>
+
+<div>
+  <input class="form-text" style="padding:5px;margin:5px;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search gene symbol..." autofocus>
+</div>
+
+<table class="table table-bordered table-condensed" id="sub_report">
+  <thead>
+    <tr>
+      [%- FOR col IN columns.general %]
+        <th style="width:100%;" class="">[% col %]</th>
+      [% END %]
+      [%- FOR col IN columns.primary_genotyping %]
+        <th style="width:100%;background-color:#32CD32;" class="">[% col %]</th>
+      [% END %]
+      [%- FOR col IN columns.secondary_genotyping %]
+        <th style="width:100%;background-color:#FFFF00;" class="">[% col %]</th>
+      [% END %]
+    </tr>
+  </thead>
+  <tbody>
+    [%- FOREACH elem IN data %]
+      <tr class="main_row">
+        <td style="background-color:#B3ECFF;"><a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% elem.gene_id %]" target="_blank">[% elem.gene_id %]</a></td>
+        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/public_reports/gene_report', elem.gene_id ) %]" target="_blank">[% elem.gene_symbol %]</a></td>
+        <td style="background-color:#B3ECFF;">[% elem.chromosome %]</td>
+        <td style="background-color:#B3ECFF;">[% elem.programme %]</td>
+        <td style="background-color:#B3ECFF;">[% elem.sponsor %]</td>
+        <td style="background-color:#B3ECFF;">[% elem.lab_head %]</td>
+        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/user/view_project/',{ project_id => elem.project_id }) %]" target="_blank">[% elem.project_id %]</a></td>
+
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+
+        <td style="background-color:#B3ECFF;">[% elem.cell_line %]</td>
+        <td></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+
+        [% FOREACH exp IN elem.experiments %]
+        [% IF exp.id %]
+        <tr class="[% elem.project_id %]" style="display:none;">
+          <td></td>
+          <td><span style="display:none;">[% elem.gene_id %]</span></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a></td>
+          <td class="p-3 mb-2 bg-warning">[% exp.crispr.seq %]</td>
+          <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
+          <td class="p-3 mb-2 bg-warning">
+          [% FOREACH ep_ii IN exp.ep_ii_plates %]
+          <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
+          [% END %]
+          </td>
+          <td></td>
+          <td></td>
+          <td class="p-3 mb-2 bg-warning">[% exp.requester.id %]</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        [% END %]
+        [% END %]
+      </tr>
+    [% END %]
+  </tbody>
+</table>
+
+<script type="text/javascript">
+function get_genes() {
+    var collape_expand_btn = document.getElementById('collapse_expand');
+    collape_expand_btn.style.display = "none";
+
+    var input = document.getElementById("myInput");
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("sub_report");
+    var main_trs = table.getElementsByClassName("main_row");
+
+    var all_tds = table.getElementsByTagName("span");
+    for (var j=0; j < all_tds.length; j++) {
+      if (all_tds[j].className.includes("glyphicon-minus")) {
+        all_tds[j].parentElement.click();
+      }
+    }
+
+    for (var i=0; i < main_trs.length; i++) {
+        var td = main_trs[i].getElementsByTagName("td")[1];
+        if (td) {
+            if (td.innerHTML.toUpperCase().indexOf(filter) > -1){
+                main_trs[i].style.display = "";
+            } else {
+                main_trs[i].style.display = "none";
+            }
+        }
+    }
+
+    var collape_expand_btn = document.getElementById('collapse_expand');
+    if (input.value == "") {
+      collape_expand_btn.style.display = "";
+    }
+
+    return;
+}
+
+
+function ShowExpsFor(target) {
+  var exps = document.getElementsByClassName(target);
+  for(var i = 0; i < exps.length; ++i) {
+    if (exps[i].style.display == '') {
+      exps[i].style.display = 'none';
+      var nav_btns = document.getElementsByClassName('nav_' + target);
+      for(var j = 0; j < nav_btns.length; ++j) {
+        nav_btns[j].className = 'nav_' + target + ' glyphicon glyphicon-plus';
+      }
+    } else {
+      exps[i].style.display = '';
+      var nav_btns = document.getElementsByClassName('nav_' + target);
+      for(var j = 0; j < nav_btns.length; ++j) {
+        nav_btns[j].className = 'nav_' + target + ' glyphicon glyphicon-minus';
+      }
+    }
+  }
+
+  return;
+}
+
+function collape_expand_exps(command) {
+  var collape_expand_btn = document.getElementById('collapse_expand');
+  var table = document.getElementById("sub_report");
+  var all_tds = table.getElementsByTagName("span");
+
+  if (command == 'expand') {
+    for (var j=0; j < all_tds.length; j++) {
+      console.log(all_tds[j].parentElement);
+      if ( all_tds[j].className.includes("glyphicon-plus") ) {
+        all_tds[j].parentElement.click();
+      }
+    }
+
+    if (collape_expand_btn.innerHTML.trim() == '<b>Expand All</b>') {
+      collape_expand_btn.innerHTML = '<b>Collapse All</b>';
+      collape_expand_btn.onclick = function () { collape_expand_exps("collapse"); };
+    }
+  } else if (command == 'collapse') {
+    for (var j=0; j < all_tds.length; j++) {
+      console.log(all_tds[j].parentElement);
+      if ( all_tds[j].className.includes("glyphicon-minus") ) {
+        all_tds[j].parentElement.click();
+      }
+    }
+
+    if (collape_expand_btn.innerHTML.trim() == '<b>Collapse All</b>') {
+      collape_expand_btn.innerHTML = '<b>Expand All</b>';
+      collape_expand_btn.onclick = function () { collape_expand_exps("expand"); };
+    }
+  }
+
+  return;
+}
+
+</script>
+
