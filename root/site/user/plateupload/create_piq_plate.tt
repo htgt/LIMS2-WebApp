@@ -93,6 +93,10 @@
                 <option value="-">Parent Plate</option>
             </select>
         </div>
+        <div class="col-md-3">
+            <h4>Direction: </h4>
+            <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-right"></i></button>
+        </div>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
                 <div class="col-md-4">
@@ -182,6 +186,10 @@ $("#plateName").autocomplete({
         plateAncestors(ui.item.value);
     },
     minLength: 2,
+});
+
+$('#directionSwitch').on('click', function() {
+    $(this).find('i').toggleClass('glyphicon-arrow-right').toggleClass('glyphicon-arrow-down');
 });
 
 function submitPIQPlate(){
@@ -388,7 +396,7 @@ function showPlateHistory(parentName) {
     var miWells = Object.keys(parentDetails);
     for (var mi = 0; mi < miWells.length; mi++) {
         var miID = wellHistory(miWells[mi],1);
-        var fpID = wellHistory(parentDetails[miWells[mi]],0);
+        var fpID = wellHistory(parentDetails[miWells[mi]],0); //check
         tracking(miID, fpID);
     }
 }
