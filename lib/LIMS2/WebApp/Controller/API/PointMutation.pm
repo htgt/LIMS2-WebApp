@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.510';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.512';
 }
 ## use critic
 
@@ -216,7 +216,7 @@ sub miseq_exp_parent_GET {
 
     my @results;
     try {
-        @results = map { $_->parent_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+        @results = map { $_->miseq_plate } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
             },

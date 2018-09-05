@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.510';
+    $LIMS2::Model::Schema::Result::Plate::VERSION = '0.512';
 }
 ## use critic
 
@@ -235,6 +235,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.parent_plate_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 miseq_plates
 
 Type: has_many
@@ -331,8 +346,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lkWpBnDdwOmcZpmE1htdnQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-04 15:49:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Si+PaSdv3PjcDls+uKZrcA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

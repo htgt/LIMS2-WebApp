@@ -108,62 +108,7 @@
 <br />
 <br />
 <h3>[%- title_ii %]</h3>
-
-<table class="table table-striped table-bordered" style="table-layout:fixed;">
-  <thead>
-    <tr>
-      [%- FOR col IN columns.pipeline_ii %]
-        [%- IF col == "Stage" %]
-           <th style="width:240px">[%- col %]</th>
-        [%- ELSE %]
-           <th style="width:240px">[%- col %]</th>
-        [%- END %]
-      [%- END %]
-    </tr>
-  </thead>
-  <tbody>
-    [%- FOREACH row IN rows %]
-    <tr>
-      [%- IF row == "Genes" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
-      <td style="border-top: 1px solid"><b>[%- row %]</b></td>
-      [%- ELSE %]
-      <td><b>[%- row %]</b></td>
-      [%- END %]
-      [%- FOR colname IN columns.pipeline_ii %]
-          [%- UNLESS colname == "Stage" %]
-        [%- countval = 0; countval = data.item(row).item(colname) %]
-        [%- IF row == "Genes" || row == "Valid DNA" || row == "Genes Electroporated"|| row == "First Electroporations" || row == "Second Electroporations" || row == "Targeted Genes" || row == "Accepted First ES Clones" || row == "Accepted Second ES Clones" %]
-        <td style="border-top: 1px solid">
-        [%- ELSE %]
-        <td style="width:240px">
-        [%- END %]
-        [%- IF countval != "" && countval > 0 %]
-          [%- IF row == "Genes" %]
-
-        [%- IF c.user == '' && is_internal == 0 %]
-                <b><a href="[%- c.uri_for('/public_reports/access_denied') %]">[%- countval %]</a></b></td>
-        [%- ELSIF c.user == '' && is_internal %]
-                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-        [%- ELSIF cache_param == "with_cache" %]
-                <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/${colname}" ) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-        [%- ELSE %]
-                <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/${targeting_type}/${colname}/${row}",{ species => species, cache_param => 'without_cache', type => 'full' }) %]" target="_blank" id='[% colname %]'>[%- countval %]</a></b></td>
-        [%- END %]
-
-          [%- ELSE %]
-            <b>[%- countval %]</b></td>
-          [%- END %]
-        [%- ELSIF countval != "" && countval < 0 %]
-          -</td>
-        [%- ELSE %]
-          0</td>
-        [%- END %]
-          [%- END %]
-      [%- END %]
-    </tr>
-    [%- END %]
-  </tbody>
-</table>
+<h4>(Report under construction)</h4>
 
 <br/>
 
