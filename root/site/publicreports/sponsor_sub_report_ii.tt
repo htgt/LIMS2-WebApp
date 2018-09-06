@@ -1,4 +1,7 @@
 [%- META title = "Summary Report II" %]
+<SCRIPT LANGUAGE = JavaScript >
+document.title = "[%- sponsor_id %]";
+</SCRIPT>
 
 
 <style type="text/css">
@@ -63,7 +66,7 @@ table.table-bordered > tbody > tr > td{
 </p>
 
 <div>
-  <input class="form-text" style="padding:5px;margin:5px;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search gene symbol..." autofocus>
+  <input class="form-text" style="padding:5px;margin:5px;background-color:#E5E4E2;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search gene symbol..." autofocus>
 </div>
 
 <table class="table table-bordered table-condensed" id="sub_report">
@@ -118,16 +121,16 @@ table.table-bordered > tbody > tr > td{
           <td></td>
           <td></td>
           <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a></td>
-          <td class="p-3 mb-2 bg-warning">[% exp.crispr.seq %]</td>
+          <td class="p-3 mb-2 bg-warning">[% exp.crispr_seq %]</td>
           <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
           <td class="p-3 mb-2 bg-warning">
-          [% FOREACH ep_ii IN exp.ep_ii_plates %]
+          [% FOREACH ep_ii IN elem.experiment_ep_ii_info.${exp.id} %]
           <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
           [% END %]
           </td>
           <td></td>
           <td></td>
-          <td class="p-3 mb-2 bg-warning">[% exp.requester.id %]</td>
+          <td class="p-3 mb-2 bg-warning">[% exp.requester %]</td>
           <td></td>
           <td></td>
           <td></td>
@@ -208,7 +211,6 @@ function collape_expand_exps(command) {
 
   if (command == 'expand') {
     for (var j=0; j < all_tds.length; j++) {
-      console.log(all_tds[j].parentElement);
       if ( all_tds[j].className.includes("glyphicon-plus") ) {
         all_tds[j].parentElement.click();
       }
@@ -220,7 +222,6 @@ function collape_expand_exps(command) {
     }
   } else if (command == 'collapse') {
     for (var j=0; j < all_tds.length; j++) {
-      console.log(all_tds[j].parentElement);
       if ( all_tds[j].className.includes("glyphicon-minus") ) {
         all_tds[j].parentElement.click();
       }

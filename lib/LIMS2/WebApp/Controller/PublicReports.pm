@@ -501,8 +501,8 @@ sub _filter_public_attributes {
 }
 
 
-sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
-    my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
+sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
+    my ( $self, $c, $targeting_type, $sponsor_id, $stage, $lab_head, $programme ) = @_;
 
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
@@ -628,18 +628,40 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
             save_json_report($c->uri_for('/'), $json_data, $file);
         }
 
-    } else {
+    }
+    elsif ( $pipeline eq 'pipeline_ii' ) {
             my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
                 species => $species,
                 model   => $c->model('Golgi'),
                 targeting_type => $targeting_type,
             });
 
-            my $template = 'publicreports/sponsor_sub_report.tt';
+            my $sub_report = $pipeline_ii_report->generate_sub_report($sponsor_id, $lab_head, $programme);
+
+            my $template = 'publicreports/sponsor_sub_report_ii.tt';
 
             $c->stash(
-                template => $template,
-            );
+                template       => $template,
+                columns        => $sub_report->{columns},
+                data           => $sub_report->{data},
+                date           => $sub_report->{date},
+                targeting_type => $targeting_type,
+                sponsor_id     => $sponsor_id,
+                cache_param    => $cache_param,
+                );
+
+            my $json_data = encode_json({
+                template       => $template,
+                columns        => $sub_report->{columns},
+                data           => $sub_report->{data},
+                targeting_type => $targeting_type,
+                sponsor_id     => $sponsor_id,
+                cache_param    => $cache_param
+                });
+
+            $sponsor_id =~ s/\ /_/g;
+            my $file = lc $sponsor_id . "_$pipeline";
+            save_json_report($c->uri_for('/'), $json_data, $file);
         }
 
     return;
@@ -730,8 +752,12 @@ sub view_cached : Path( '/public_reports/cached_sponsor_report' ) : Args(1) {
 
     try {
         my $sub_level_data = $self->_view_cached_top_level_report( $c, $file );
+
         my $template = 'publicreports/sponsor_sub_report.tt';
 
+        if ($pipeline eq 'pipeline_ii') {
+            $template = 'publicreports/sponsor_sub_report_ii.tt';
+        }
 
         $c->stash(
           'template'             => $template,

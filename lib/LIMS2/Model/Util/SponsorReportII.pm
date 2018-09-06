@@ -212,8 +212,19 @@ sub get_exp_info {
     my @proj_exps = map { $_->experiment_id } @proj_exp_rs;
 
     foreach my $exp_id (@proj_exps) {
-        my $exp_rs = $self->model->schema->resultset('Experiment')->find({ id => $exp_id });
-        push @exps, $exp_rs;
+        if ($exp_id) {
+            my $exp_rs = $self->model->schema->resultset('Experiment')->find({ id => $exp_id });
+            my $temp_h = {
+                id         => $exp_rs->id,
+                crispr_id  => $exp_rs->crispr_id,
+                design_id  => $exp_rs->design_id,
+            };
+
+            try {$temp_h->{crispr_seq} = $exp_rs->crispr->seq;};
+            try {$temp_h->{requester} = $exp_rs->requester->id;};
+
+            push @exps, $temp_h;
+        }
     }
 
     return @exps;
@@ -225,11 +236,12 @@ sub get_ipsc_electroporation {
 
     my @exps = @$exps;
     my @exps_with_ep_ii_data;
+    my $exps_ep_ii;
 
     foreach my $experiment (@exps) {
         try {
-            my $exp_id = $experiment->id;
-            my ($design_id, $crispr_id) = ($experiment->design_id, $experiment->crispr_id);
+            my $exp_id = $experiment->{id};
+            my ($design_id, $crispr_id) = ($experiment->{design_id}, $experiment->{crispr_id});
 
             if ($design_id && $crispr_id && $cell_line_id) {
 
@@ -282,13 +294,12 @@ sub get_ipsc_electroporation {
                     }
                 }
 
-                $experiment->{ep_ii_plates} = \@ep_ii_plate_data;
-                push @exps_with_ep_ii_data, $experiment;
+                $exps_ep_ii->{$exp_id} = \@ep_ii_plate_data;
             }
         }
     };
 
-    return \@exps_with_ep_ii_data;
+    return $exps_ep_ii;
 }
 
 sub get_ipsc_colonies_picked {
@@ -328,8 +339,9 @@ sub generate_sub_report {
         $row_data->{sponsor} = $sponsor_id;
 
         my @proj_exps = &{$launch_report_subs->{ 'exp_info' }}($self, $project_rec->id);
-        my $ep_ii_plate_names = &{$launch_report_subs->{ 'ipscs_ep' }}($self, \@proj_exps, $project_rec->cell_line_id);
-        $row_data->{experiments} = $ep_ii_plate_names;
+        $row_data->{experiments} = \@proj_exps;#$ep_ii_plate_names;
+        my $exps_ep_ii_plate_names = &{$launch_report_subs->{ 'ipscs_ep' }}($self, \@proj_exps, $project_rec->cell_line_id);
+        $row_data->{experiment_ep_ii_info} = $exps_ep_ii_plate_names;
 
         push @data, $row_data;
     }
