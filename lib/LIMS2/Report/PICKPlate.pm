@@ -17,7 +17,7 @@ has pipelineII => (
 sub _build_pipelineII {
     my ($self) = @_;
 
-    ## PICK plate wells are descendants of 1 parent EP_PIPELINE_II plate well
+    ## PICK plate wells are descendants of EP_PIPELINE_II plate wells
     my $parent_plates = $self->plate->parent_names();
     my $parent_info = $parent_plates->[0];
 
