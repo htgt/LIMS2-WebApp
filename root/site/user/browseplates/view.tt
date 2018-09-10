@@ -399,4 +399,3 @@
     document.title = 'Plate: [% plate.name %]';
   });
 </script>
-
