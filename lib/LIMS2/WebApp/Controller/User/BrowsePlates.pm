@@ -81,10 +81,6 @@ sub view :Path( '/user/view_plate' ) :Args(0) {
     # prefetch wells->process_input_wells so we can do the has_child_wells check on plates ( for plate delete button condition )
     my $plate = $c->model('Golgi')->retrieve_plate( $c->request->params,
         { prefetch => { 'wells' => 'process_input_wells' } } );
-
-    my @comments = sort { $a->created_at <=> $b->created_at } $plate->plate_comments;
-    $plate->{plate_comments} = \@comments;
-
     my $report_class = LIMS2::ReportGenerator::Plate->report_class_for( $plate->type_id );
     $report_class =~ s/^.*\:\://;
     $c->log->debug( "Report class: $report_class" );
@@ -164,3 +160,4 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
