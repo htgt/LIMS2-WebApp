@@ -202,11 +202,14 @@ function submitPIQPlate(){
             relations: relations
         },
         success: function(result) {
-            console.log(result);
+            $('#response').removeClass('alert-danger').addClass('alert-success');
+            $('#response').text('Created PIQ Plate: ' + result.name + ' with id: ' + result.id);
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
         },
         error: function(err) {
-            console.log('err');
-            console.log(err);
+            $('#response').removeClass('alert-success').addClass('alert-danger');
+            $('#response').text('Failed to create PIQ plate: ' + err.responseJSON.error);
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
         }
     });
 }

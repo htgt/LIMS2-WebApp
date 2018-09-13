@@ -123,13 +123,13 @@ var assignedColours = {};
 
 var freezeGrid = d3.select("#firstSplit")
     .append("svg")
-    .attr("width","610px")
-    .attr("height","410px");
+    .attr("width", "610px")
+    .attr("height", "410px");
 
 var miseqGrid = d3.select("#secondSplit")
     .append("svg")
-    .attr("width","610px")
-    .attr("height","410px");
+    .attr("width", "610px")
+    .attr("height", "410px");
 
 var tip = d3.tip()
     .attr('class', 'd3-tip')
