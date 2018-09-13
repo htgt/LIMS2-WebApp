@@ -95,7 +95,7 @@
         </div>
         <div class="col-md-3">
             <h4>Direction: </h4>
-            <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-right"></i></button>
+            <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-down"></i></button>
         </div>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
@@ -160,7 +160,7 @@ $(function () {
     });
 
     $('#firstSplit .sqContainer').on("mouseover", function(cont) {
-        if (parentMiseqClassifications[$('#freezeName').val()] === undefined) {
+        if (parentMiseqClassifications[$('#freezeName').val()] == undefined) {
             return;
         }
         var wellName = cont.currentTarget.id;
@@ -189,7 +189,7 @@ $("#plateName").autocomplete({
 });
 
 $('#directionSwitch').on('click', function() {
-    $(this).find('i').toggleClass('glyphicon-arrow-right').toggleClass('glyphicon-arrow-down');
+    $(this).find('i').toggleClass('glyphicon-arrow-down').toggleClass('glyphicon-arrow-right');
 });
 
 function submitPIQPlate(){
@@ -299,7 +299,7 @@ function wellHistory(plate) {
 
 function displayClassifications(data) {
     clearParentPlateText();
-    if (data === undefined) {
+    if (data == undefined) {
         console.log("No classifications found");
         return;
     }

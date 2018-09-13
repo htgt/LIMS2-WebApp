@@ -215,7 +215,7 @@ $('#addPlate').click(function() {
 });
 
 $('#plateVisual').on('click','rect.fpWell' , function() {
-    if (startWell != '' && !$(startWell).hasClass('selected')) {
+    if (startWell != '' && !$(startWell).hasClass(selectedColour)) {
         d3.select(startWell).style('fill', 'white');
     }
 
@@ -273,10 +273,10 @@ function changePlateSelection() {
         });
     }
     
-    if ( !$('.page-header').text().match(/PIQ/) ) {
-        clearMiseqPlate();
-    } else {
+    if ( $('.page-header').text().match(/PIQ/) ) {
         displayClassifications(parentMiseqClassifications[name]);
+    } else {
+        clearMiseqPlate();
     }
 
     if (name in relationalData) {
@@ -307,13 +307,11 @@ function highlighter(target, start) {
     start = parseInt((start === null) ? index: start);
     
     d3.selectAll('rect').classed('selecting', false);
-    
-    var diff = +originIndex - +start;
-    originID = +start + +diff;
 
-    for (var inc = start; inc <= index; inc++) {
-        originID = selectionHighlighting(inc, originID);
-        originID++;
+    if ($('#directionIcon').hasClass('glyphicon-arrow-right')) {    
+        scanRight(originIndex, start, index);
+    } else {
+        scanDown(originIndex, start, index);
     }
    
     var miseqHandlingClasses = [ "selecting", "selected", "invalid" ];
@@ -328,12 +326,77 @@ function highlighter(target, start) {
     return index;
 }
 
+function scanRight(originIndex, start, index) {
+    var diff = +originIndex - +start;
+    originID = +start + +diff;
+
+    for (var inc = start; inc <= index; inc++) {
+        originID = selectionHighlighting(inc, originID);
+        originID++;
+    }
+
+    return;
+}
+
+function scanDown(originIndex, start, index) {
+    console.log("Origin: " + originIndex + " start: " + start + " Index: " + index);
+    var childWellIDs = [];
+    var parentWellIDs = [];
+    if (isNaN(start)) {
+        childWellIDs.push(index);
+        parentWellIDs.push(originIndex);
+    }
+    else {
+        var startMod = start % 12;
+        var originMod = originIndex % 12;
+        var targetMod = index % 12;
+        
+        var startQuot = Math.floor( start / 12 );
+        var originQuot = Math.floor( originIndex / 12 );
+        var targetQuot = Math.floor( index / 12 );
+
+        var wellMovementLength = ( targetMod - startMod ) * 8 - ( startQuot - targetQuot );
+
+        console.log(wellMovementLength);
+        
+        var childColumn = startMod;
+        var childRow = startQuot;
+        var parentColumn = originMod;
+        var parentRow = originQuot;
+
+        for (var inc = 0; inc <= wellMovementLength; inc++) {
+            var currentChildID = (childRow * 12)  + childColumn;
+            var currentParentID = (parentRow * 12)  + parentColumn;
+
+            childWellIDs.push(currentChildID);
+            parentWellIDs.push(currentParentID);
+            childRow++;
+            parentRow++;
+            if (childRow > 7) {
+                childColumn++;
+                childRow = 0;
+            }
+            if (parentRow > 7) {
+                parentColumn++;
+                parentRow = 0;
+            }
+
+        }
+    }
+    console.log(childWellIDs);
+    console.log(parentWellIDs);
+    
+    for (var inc = 0; inc < childWellIDs.length; inc++) {
+        selectionHighlighting(childWellIDs[inc], parentWellIDs[inc]);
+    }
+}
+
 function selectionHighlighting(inc, originID) {
     if (!document.getElementById('fpWell_' + originID)) {
         return;
     }
     if ($('#fpWell_' + originID).hasClass('invalid')) {
-        return selectionHighlighting(inc, originID + 1);
+        return;
     }
 
     d3.select('#miWell_' + inc).classed('selecting',true);
