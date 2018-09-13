@@ -215,7 +215,7 @@ $('#addPlate').click(function() {
 });
 
 $('#plateVisual').on('click','rect.fpWell' , function() {
-    if (startWell != '' && !$(startWell).hasClass(selectedColour)) {
+    if (startWell != '' && !( $(startWell).hasClass(selectedColour) || $(startWell).hasClass('selected') )) {
         d3.select(startWell).style('fill', 'white');
     }
 
@@ -223,6 +223,10 @@ $('#plateVisual').on('click','rect.fpWell' , function() {
         startWell = this;
         d3.select(startWell).style('fill', colourHash[selectedColour])
     }
+});
+
+$('#directionSwitch').on('click', function() {
+    $(this).find('i').toggleClass('glyphicon-arrow-down').toggleClass('glyphicon-arrow-right');
 });
 
 function validateWells(fp, result) {

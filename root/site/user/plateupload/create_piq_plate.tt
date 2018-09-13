@@ -188,10 +188,6 @@ $("#plateName").autocomplete({
     minLength: 2,
 });
 
-$('#directionSwitch').on('click', function() {
-    $(this).find('i').toggleClass('glyphicon-arrow-down').toggleClass('glyphicon-arrow-right');
-});
-
 function submitPIQPlate(){
     var details = { 
         name: $('#plateName').val(),
