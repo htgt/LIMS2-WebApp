@@ -341,54 +341,67 @@ function scanRight(originIndex, start, index) {
 function scanDown(originIndex, start, index) {
     console.log("Origin: " + originIndex + " start: " + start + " Index: " + index);
     var childWellIDs = [];
-    var parentWellIDs = [];
+    var ancestorWellIDs = [];
+
     if (isNaN(start)) {
         childWellIDs.push(index);
-        parentWellIDs.push(originIndex);
+        ancestorWellIDs.push(originIndex);
     }
     else {
-        var startMod = start % 12;
-        var originMod = originIndex % 12;
-        var targetMod = index % 12;
+        var startCoords = getAxisPositions(start);
+        var originCoords = getAxisPositions(originIndex);
+        var targetCoords = getAxisPositions(index);
         
-        var startQuot = Math.floor( start / 12 );
-        var originQuot = Math.floor( originIndex / 12 );
-        var targetQuot = Math.floor( index / 12 );
-
-        var wellMovementLength = ( targetMod - startMod ) * 8 - ( startQuot - targetQuot );
+        var wellMovementLength = ( targetCoords.column - startCoords.column ) * 8 - ( startCoords.row - targetCoords.row );
 
         console.log(wellMovementLength);
         
-        var childColumn = startMod;
-        var childRow = startQuot;
-        var parentColumn = originMod;
-        var parentRow = originQuot;
+        var child = startCoords;
+        var ancestor = originCoords;
 
         for (var inc = 0; inc <= wellMovementLength; inc++) {
-            var currentChildID = (childRow * 12)  + childColumn;
-            var currentParentID = (parentRow * 12)  + parentColumn;
+            var currentChildID = calculateVerticalID(child);
+            var currentAncestorID = calculateVerticalID(ancestor);
 
             childWellIDs.push(currentChildID);
-            parentWellIDs.push(currentParentID);
-            childRow++;
-            parentRow++;
-            if (childRow > 7) {
-                childColumn++;
-                childRow = 0;
-            }
-            if (parentRow > 7) {
-                parentColumn++;
-                parentRow = 0;
-            }
-
+            ancestorWellIDs.push(currentAncestorID);
+            
+            child = incrementVerticalPositions(child);
+            ancestor = incrementVerticalPositions(ancestor);
         }
     }
+   
+
     console.log(childWellIDs);
-    console.log(parentWellIDs);
-    
+    console.log(ancestorWellIDs);
     for (var inc = 0; inc < childWellIDs.length; inc++) {
-        selectionHighlighting(childWellIDs[inc], parentWellIDs[inc]);
+        selectionHighlighting(childWellIDs[inc], ancestorWellIDs[inc]);
     }
+}
+
+function calculateVerticalID(positions) {
+    return (positions.row * 12)  + positions.column;
+}
+
+function incrementVerticalPositions(positions) {
+    positions.row = positions.row + 1;
+
+    if (positions.row > 7) {
+        positions.column = positions.column + 1;
+        positions.row = 0;
+    }
+
+    return positions;
+}
+
+function getAxisPositions(value) {
+    var quot = Math.floor(value / 12); // row length = 12
+    var mod = value % 12;
+
+    return {
+        row: quot,
+        column: mod
+    };
 }
 
 function selectionHighlighting(inc, originID) {
