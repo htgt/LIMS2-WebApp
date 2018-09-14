@@ -299,12 +299,13 @@ sub generate_summary_data {
     my $percentages;
     my $index;
     my $converter = wells_generator(1);
-
+    print Dumper $converter;
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
     foreach my $miseq_exp (@miseq_exp_rs) {
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @indexes;
         foreach my $well_exp (@well_exps) {
+
             $index = $converter->{$well_exp->{well_name}};
             push (@indexes, $index);
             
@@ -322,10 +323,11 @@ sub generate_summary_data {
             $percentages->{nhej} = $well_exp->{nhej_reads};
             $percentages->{hdr}  = $well_exp->{hdr_reads};
             $percentages->{mix}  = $well_exp->{mixed_reads};
+            #print Dumper $well_exp;
+            #print Dumper $index;
+            #print Dumper $miseq_exp->{name};
             #print Dumper $details; 
-            print Dumper $well_exp;
-            print Dumper $miseq_exp;
-            print Dumper $percentages; 
+            #print Dumper $percentages;
             $wells->{$index}->{percentages}->{$miseq_exp->{name}}  =   $percentages;
             $wells->{$index}->{details}->{$miseq_exp->{name}}      =   $details;        
         }
@@ -338,13 +340,14 @@ sub generate_summary_data {
         push @gene, $miseq_exp->{gene};
         $genes->{$miseq_exp->{name}} = \@gene;
     }
-        
-    return { 
+
+    print Dumper $genes;
+    return   { 
         ranges  => $ranges,
         genes   => $genes,
         wells   => $wells
-    };
-}
+        };
+    }
                                               
 1;
 
