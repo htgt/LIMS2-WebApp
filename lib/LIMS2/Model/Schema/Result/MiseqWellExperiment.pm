@@ -80,6 +80,21 @@ __PACKAGE__->table("miseq_well_experiment");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 hdr_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 mixed_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 nhej_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -101,6 +116,12 @@ __PACKAGE__->add_columns(
   "status",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "total_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "hdr_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "mixed_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "nhej_reads",
   { data_type => "integer", is_nullable => 1 },
 );
 
@@ -214,10 +235,10 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3W65Ihe+LF+UalAjfJfoKQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 14:01:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r6GSctDb6qLgMisoK5siew
 
-sub as_hash {
+sub as_hash{ 
     my $self = shift;
 
     my %h = (
@@ -229,6 +250,9 @@ sub as_hash {
         well_name           => $self->well->name,
         status              => $self->status->id,
         total_reads         => $self->total_reads,
+        nhej_reads          => $self->nhej_reads,
+        hdr_reads           => $self->hdr_reads,
+        mixed_reads         => $self->mixed_reads,
     );
 
     return \%h;

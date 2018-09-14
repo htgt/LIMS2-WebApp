@@ -19,11 +19,10 @@ CREATE TABLE indel_distribution_graph (
 );
 
 AlTER TABLE miseq_well_experiment
-    ADD COLUMN total_reads integer;
-    
+    ADD COLUMN total_reads integer,
+    ADD COLUMN hdr_reads integer,
+    ADD COLUMN mixed_reads integer,
+    ADD COLUMN nhej_reads integer;
+
 ALTER TABLE miseq_experiment 
     RENAME COLUMN mutation_reads TO nhej_reads;
-
-ALTER TABLE miseq_experiment
-    ADD COLUMN hdr_reads integer,
-    ADD COLUMN mixed_reads integer;

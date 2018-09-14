@@ -1,1 +1,1 @@
-Failed to migrate_images: /warehouse/team229_wh01/lims2_managed_miseq_data/./Miseq_014/S186_expHUEDQ0502_SETD1A_1/CRISPResso_on_186_S186_L001_R1_001_186_S186_L001_R2_001/Alleles_frequency_table.txt
+Failed to migrate quant_file: /warehouse/team229_wh01/lims2_managed_miseq_data/./Miseq_008/S51_expHUPEPD0019_2/CRISPResso_on_51_S51_L001_R1_001_51_S51_L001_R2_001/Alleles_frequency_table.txt

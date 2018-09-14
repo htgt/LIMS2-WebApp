@@ -15,7 +15,7 @@ use Sub::Exporter -setup => {
             get_data_from_file
             extract_data_from_path 
             migrate_quant_file 
-            update_miseq_well_exp
+            update_miseq_exp
             migrate_images
             migrate_frequencies
         ) 
@@ -118,22 +118,13 @@ sub migrate_images {
     return;
 }
 
-sub update_miseq_well_exp {
-    my ( $model, $miseq_well_experiment_hash, $sum_of_reads ) = @_;
-
-    my $row = {
-        id             => $miseq_well_experiment_hash->{id},
-        well_id        => $miseq_well_experiment_hash->{well_id},
-        miseq_exp_id   => $miseq_well_experiment_hash->{miseq_exp_id},
-        classification => $miseq_well_experiment_hash->{classification},
-        frameshifted   => $miseq_well_experiment_hash->{frameshifted},
-        status         => $miseq_well_experiment_hash->{status},
-        total_reads    => $sum_of_reads
-    };
+sub update_miseq_exp {
+    my ( $model, $params ) = @_;
+    my $update;
     $model->schema->txn_do(
         sub {
             try {
-                $model->update_miseq_well_experiment($row);
+                $update = $model->update_miseq_experiment($params);
             }
             catch {
                 warn "Error creating entry";
@@ -141,18 +132,20 @@ sub update_miseq_well_exp {
             };
         }
     );
-    return;
+    return $update;
 }
 
 sub migrate_quant_file {
-    my ( $model, $directory, $miseq_experiment_hash ) = @_;
+    my ( $model, $directory, $miseq_well_experiment_hash ) = @_;
 
     open( my $quant_fh, '<:encoding(UTF-8)', $directory ) or die "Failed to open quant file";
     my %params;
     my %commands = (
+        'NHEJ'           => 'nhej_reads',
         'HDR'            => 'hdr_reads',
         'Mixed HDR-NHEJ' => 'mixed_reads',
         'Total Aligned'  => 'total_reads',
+        
     );
 
     while ( my $line = <$quant_fh> ) {
@@ -171,20 +164,22 @@ sub migrate_quant_file {
     #params hash holds the info that need to be passed to the plugin
     #miseq_experiment_hash the location it should be placed in
     my $row = {
-        id          => $miseq_experiment_hash->{id},
-        miseq_id    => $miseq_experiment_hash->{miseq_id},
-        name        => $miseq_experiment_hash->{name},
-        gene        => $miseq_experiment_hash->{gene},
-        nhej_reads  => $miseq_experiment_hash->{nhej_count},
-        total_reads => $miseq_experiment_hash->{read_count},
-        hdr_reads   => $params{hdr_reads},
-        mixed_reads => $params{mixed_reads},
+        id              => $miseq_well_experiment_hash->{id},
+        miseq_exp_id    => $miseq_well_experiment_hash->{miseq_exp_id},
+        classification  => $miseq_well_experiment_hash->{classification},
+        frameshifted    => $miseq_well_experiment_hash->{frameshifted},
+        status          => $miseq_well_experiment_hash->{status},
+        well_id         => $miseq_well_experiment_hash->{well_id},
+        nhej_reads      => $params{nhej_reads},
+        total_reads     => $params{total_reads},
+        hdr_reads       => $params{hdr_reads},
+        mixed_reads     => $params{mixed_reads},
     };
 
     $model->schema->txn_do(
         sub {
             try {
-                $model->update_miseq_experiment($row);
+                $model->update_miseq_well_experiment($row);
             }
             catch {
                 warn "Error creating entry";
@@ -192,7 +187,7 @@ sub migrate_quant_file {
             };
         }
     );
-    return $params{total_reads};
+    return %params;
 }
 
 sub frameshift_check {
@@ -422,7 +417,6 @@ sub get_data_from_file {
         
         $miseq_well_experiment_hash = get_miseq_well_experiment( $model, $miseq_experiment_hash, $well_hash );
 
-$DB::single=1;
         $miseq_well_experiment_hash = create_miseq_well_exp( $model, $file, $well_hash, $miseq_experiment_hash ) unless $miseq_well_experiment_hash;
 
     

@@ -30,15 +30,15 @@ sub create_indel_distribution_graph{
 
     my $validated_params = $self->check_params($params, pspec_create_indel_distribution_graph);
 
-    my $graph = $self->schema->resultset('IndelDistributionGraph')->create(
+    $self->schema->resultset('IndelDistributionGraph')->create(
            { slice_def(
                    $validated_params,
                    qw( id indel_size_distribution_graph )
                )
            }
        );
-    $self->log->info('Created Indel Distribution Graph for miseq well experiment: ' . $graph->id);
-    return $graph;
+    $self->log->info('Created Indel Distribution Graph for miseq well experiment ');
+    return;
 
 }
 
@@ -140,8 +140,11 @@ sub pspec_update_miseq_well_experiment {
         classification                  => { validate => 'existing_miseq_classification', optional => 1 },
         frameshifted                    => { validate => 'boolean', optional => 1 },
         status                          => { validate => 'existing_miseq_status', optional => 1 },
-        total_reads                     => { validate => 'integer', optional => 1},
-        well_id                         => { validate => 'existing_well_id'}
+        well_id                         => { validate => 'existing_well_id'},
+        nhej_reads                      => { validate => 'integer', optional => 1 },
+        total_reads                     => { validate => 'integer', optional => 1 },
+        hdr_reads                       => { validate => 'integer', optional => 1 },
+        mixed_reads                     => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -162,9 +165,11 @@ sub update_miseq_well_experiment {
     $class->{miseq_exp_id} = check_undef($validated_params->{miseq_exp_id}, $hash_well->{miseq_exp_id});
     $class->{frameshifted} = check_undef($validated_params->{frameshifted}, $hash_well->{frameshifted});
     $class->{status} = check_undef($validated_params->{status}, $hash_well->{status});
-    $class->{total_reads} = check_undef($validated_params->{total_reads}, $hash_well->{total_reads}); 
-    my $update = $well->update($class);
-    print Dumper $class->{id};
+    $class->{total_reads} = check_undef($validated_params->{total_reads}, $hash_well->{total_reads});
+    $class->{nhej_reads} = check_undef($validated_params->{nhej_reads}, $hash_well->{nhej_reads});
+    $class->{hdr_reads} = check_undef($validated_params->{hdr_reads}, $hash_well->{hdr_reads}); 
+    $class->{mixed_reads} = check_undef($validated_params->{mixed_reads}, $hash_well->{mixed_reads}); 
+    $well->update($class);
 }
 
 
@@ -178,8 +183,6 @@ sub pspec_create_miseq_experiment {
         gene            => { validate => 'non_empty_string' },
         nhej_reads      => { validate => 'integer' },
         total_reads     => { validate => 'integer' },
-        hdr_reads       => { validate => 'integer' },
-        mixed_reads     => { validate => 'integer' },
     };
 }
 
@@ -194,7 +197,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name gene nhej_reads total_reads hdr_reads mixed_reads)
+                qw( miseq_id name gene nhej_reads total_reads)
             )
         }
     );
@@ -214,13 +217,12 @@ sub pspec_update_miseq_experiment {
         gene            => { validate => 'non_empty_string', optional => 1 },
         nhej_reads      => { validate => 'integer', optional => 1 },
         total_reads     => { validate => 'integer', optional => 1 },
-        hdr_reads       => { validate => 'integer', optional => 1 },
-        mixed_reads     => { validate => 'integer', optional => 1 },
     };
 }
 
 sub update_miseq_experiment {
     my ($self, $params) = @_;
+    $DB::single=1; 
 
     my $validated_params = $self->check_params($params, pspec_update_miseq_experiment);
 
@@ -236,11 +238,10 @@ sub update_miseq_experiment {
     $class->{nhej_reads} = check_undef( $validated_params->{nhej_reads}, $hash_well->{nhej_count} );
     $class->{total_reads} = check_undef( $validated_params->{total_reads}, $hash_well->{read_count} );
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
-    $class->{hdr_reads} = check_undef( $validated_params->{hdr_reads}, $hash_well->{hdr_count} );
-    $class->{mixed_reads} =  check_undef( $validated_params->{mixed_reads}, $hash_well->{miced_count} );
     my $update = $exp->update($class);
-    print Dumper "Updated \n";
-    return;
+    print Dumper "Updated miseq experiment: \n";
+    #print Dumper $update;
+    return $update;
 }
 
 

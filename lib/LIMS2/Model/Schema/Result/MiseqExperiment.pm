@@ -77,16 +77,6 @@ __PACKAGE__->table("miseq_experiment");
   is_foreign_key: 1
   is_nullable: 1
 
-=head2 hdr_reads
-
-  data_type: 'integer'
-  is_nullable: 1
-
-=head2 mixed_reads
-
-  data_type: 'integer'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -109,10 +99,6 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "miseq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "hdr_reads",
-  { data_type => "integer", is_nullable => 1 },
-  "mixed_reads",
-  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -200,8 +186,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-02 09:49:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VXW3r11eQw4a46jsMWMr4w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 15:16:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MiyBfvMUjNUTb/u0K1sbfA
 
 sub as_hash {
     my $self = shift;
@@ -212,8 +198,6 @@ sub as_hash {
         name        => $self->name,
         gene        => $self->gene,
         nhej_count  => $self->nhej_reads,
-        hdr_count   => $self->hdr_reads,
-        mixed_count => $self->mixed_reads,
         read_count  => $self->total_reads,
         old_miseq_id => $self->old_miseq_id, #TODO delete after migration
     );
