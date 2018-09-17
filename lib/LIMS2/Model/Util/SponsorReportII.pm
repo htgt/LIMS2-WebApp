@@ -8,29 +8,32 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
 use Readonly;
+use Switch;
 use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
 
 Readonly my $SUBREPORT_COLUMNS => {
-    general => [
+    general_first => [
     'Gene ID',
     'Gene Symbol',
     'Chr',
-    'Programme',
-    'Sponsor',
-    'Lab Head',
     'Project ID',
+    'Cell line',
     'Experiment ID',
     'Ordered Crisprs',
     'Design ID',
     'Electroporation iPSCs',
-    'EP_II cell line',
     'iPSC Colonies Picked',
+    ],
+    general_second => [
     'Requester',
+    'Programme',
+    'Sponsor',
+    'Lab Head',
     ],
     primary_genotyping => [
-    'Total Number of Clones on MiSEQ Plate',
+    'Clones on MiSEQ Plate',
     'WT Clones Selected',
     'HET Clones Selected',
     'HOM Clones Selected',
@@ -90,6 +93,11 @@ sub _build_programmes {
     return \@programmes;
 };
 
+
+=head _build_sponsor_gene_count
+    Build the gene count of Pipeline II sponsors
+=cut
+
 sub _build_sponsor_gene_count {
     my $self = shift;
     my $sponsor_gene_count;
@@ -129,6 +137,11 @@ sub _build_sponsor_gene_count {
     return $sponsor_gene_count;
 }
 
+
+=head find_my_hash
+    Find a matching hash in an array
+=cut
+
 sub find_my_hash {
     my ($ref_hash, $ref_array) = @_;
 
@@ -167,7 +180,7 @@ sub get_programme_abbr {
     return $abbr;
 }
 
-## rule-based approach
+
 
 ## A dispatch table of subroutines for every value in the report
 my $launch_report_subs = {
@@ -176,6 +189,7 @@ my $launch_report_subs = {
     ipscs_ep              => \&get_ipsc_electroporation,
     ep_cell_line          => \&get_electroporation_cell_line,
     ipscs_colonies_picked => \&get_ipsc_colonies_picked,
+    genotyping            => \&get_genotyping_data,
 };
 
 ## usage
@@ -203,6 +217,52 @@ sub get_gene_info {
 }
 
 
+=head get_crispr_seq
+    This is able to get ordered crispr sequences based on a crispr id, crispr pair id or a crispr group id
+=cut
+
+sub get_crispr_seq {
+    my ($self, $search_info)= @_;
+    my @seq;
+
+    my $crispr_type = $search_info->{type};
+    my $experiment = $search_info->{experiment};
+
+    switch ($crispr_type) {
+        case "crispr" {
+            push @seq, $experiment->crispr->seq;
+            return @seq;
+        }
+
+        case "crispr_pair" {
+            my $crispr_pair_id = $experiment->crispr_pair_id;
+            my @crispr_pair_rs = $self->model->schema->resultset('CrisprPair')->search({
+                crispr_pair_id => $crispr_pair_id,
+                });
+
+            @seq = map { $_->crispr->seq } @crispr_pair_rs;
+            return @seq;
+
+        }
+
+        case "crispr_group" {
+            my $crispr_group_id = $experiment->crispr_group_id;
+            my @crispr_group_rs = $self->model->schema->resultset('CrisprGroupCrispr')->search({
+                crispr_group_id => $crispr_group_id,
+                });
+
+            @seq = map { $_->crispr->seq } @crispr_group_rs;
+            return @seq;
+        }
+
+    }
+}
+
+
+=head get_exp_info
+    .
+=cut
+
 sub get_exp_info {
     my ($self, $project_id) = @_;
 
@@ -215,12 +275,32 @@ sub get_exp_info {
         if ($exp_id) {
             my $exp_rs = $self->model->schema->resultset('Experiment')->find({ id => $exp_id });
             my $temp_h = {
-                id         => $exp_rs->id,
-                crispr_id  => $exp_rs->crispr_id,
-                design_id  => $exp_rs->design_id,
+                id               => $exp_rs->id,
+                crispr_id        => $exp_rs->crispr_id,
+                crispr_pair_id   => $exp_rs->crispr_pair_id,
+                crispr_group_id  => $exp_rs->crispr_group_id,
+                design_id        => $exp_rs->design_id,
             };
 
-            try {$temp_h->{crispr_seq} = $exp_rs->crispr->seq;};
+            try {
+                my $crispr_search;
+
+                if ( $temp_h->{crispr_id} ) {
+                    $crispr_search->{type} = 'crispr';
+                } elsif ( $temp_h->{crispr_pair_id} ) {
+                    $crispr_search->{type} = 'crispr_pair';
+                } elsif ( $temp_h->{crispr_group_id} ) {
+                    $crispr_search->{type} = 'crispr_group';
+                } else {
+                    die "An experiment without a crispr?! :o ";
+                }
+
+                $crispr_search->{experiment} = $exp_rs;
+                my @crispr_result = $self->get_crispr_seq($crispr_search);
+
+                $temp_h->{crispr_seq} = \@crispr_result;
+            };
+
             try {$temp_h->{requester} = $exp_rs->requester->id;};
 
             push @exps, $temp_h;
@@ -231,12 +311,16 @@ sub get_exp_info {
 }
 
 
+=head get_ipsc_electroporation
+    Get the EP II plate names/ids according to experiment info and cell line
+=cut
+
 sub get_ipsc_electroporation {
     my ($self, $exps, $cell_line_id) = @_;
 
     my @exps = @$exps;
-    my @exps_with_ep_ii_data;
     my $exps_ep_ii;
+    my $flag;
 
     foreach my $experiment (@exps) {
         try {
@@ -294,17 +378,123 @@ sub get_ipsc_electroporation {
                     }
                 }
 
-                $exps_ep_ii->{$exp_id} = \@ep_ii_plate_data;
+                if (scalar @ep_ii_plate_data) {
+                    $flag = 1;
+                }
+
+                $exps_ep_ii->{exps}->{$exp_id} = \@ep_ii_plate_data;
             }
         }
     };
 
+    $exps_ep_ii->{has_plates} = $flag;
+
     return $exps_ep_ii;
 }
 
+
+=head get_ipsc_colonies_picked
+    get the number of colonies picked per experiment's EP II plates
+=cut
+
 sub get_ipsc_colonies_picked {
-    my ($self) = @_;
+    my ($self, $exp_info) = @_;
+
+    my $exp_colonies;
+    my $total = 0;
+
+    while (my ($exp_id,$ep_ii_plates) = each %{$exp_info}) {
+        my $colonies = 0;
+
+        foreach my $ep_ii_plate (@{$ep_ii_plates}) {
+            my $plate_id = $ep_ii_plate->{id};
+
+            my @ep_ii_wells_rs = $self->model->schema->resultset('Well')->search({
+                plate_id => $plate_id,
+                });
+
+            foreach my $well (@ep_ii_wells_rs) {
+                foreach my $rec  ($well->process_input_wells()) {
+                    $colonies++;
+                }
+            }
+        }
+
+        $exp_colonies->{$exp_id}->{picked_colonies} = $colonies;
+        $total += $colonies;
+    }
+
+    $exp_colonies->{total} = $total;
+    return $exp_colonies;
 }
+
+
+=head get_primary_genotyping
+    Primary genotyping info: clones on Miseq plate / wild-type clones selected / Het clone selected / Hom clones selected
+    per experiment and total per project
+=cut
+
+sub get_genotyping_data {
+    my ($self, @proj_exps) = @_;
+
+    my $genotyping;
+
+    foreach my $proj_exp_rec (@proj_exps) {
+        my @miseq_exps_and_wells;
+        my $original_exp_id = $proj_exp_rec->{id};
+
+        my @miseq_exp_rs = $self->model->schema->resultset('MiseqExperiment')->search({
+            experiment_id => $original_exp_id,
+            });
+
+        my @miseq_exp_ids = map { $_->id } @miseq_exp_rs;
+
+        if (@miseq_exp_ids) {
+            foreach my $exp_id (@miseq_exp_ids) {
+                @miseq_exps_and_wells = $self->model->schema->resultset('MiseqWellExperiment')->search({
+                    miseq_exp_id => $exp_id,
+                    });
+
+                $genotyping->{$original_exp_id}->{primary}->{total_number_of_clones} = scalar @miseq_exps_and_wells;
+                $genotyping->{total}->{total_number_of_clones} += scalar @miseq_exps_and_wells;
+
+                foreach my $miseq_well (@miseq_exps_and_wells) {
+                    my $class = lc $miseq_well->classification->id;
+                    my $status = $miseq_well->status;
+                    if ($class eq 'wild type') {
+                        $genotyping->{$original_exp_id}->{primary}->{wt}++;
+                        $genotyping->{total}->{primary}->{wt}++;
+                        if ($status eq 'Scanned-Out') {
+                            $genotyping->{$original_exp_id}->{secondary}->{wt}++;
+                            $genotyping->{total}->{secondary}->{wt}++;
+                        }
+                    } elsif ($class eq 'mixed') {
+                        $genotyping->{$original_exp_id}->{primary}->{het}++;
+                        $genotyping->{total}->{primary}->{het}++;
+                        if ($status eq 'Scanned-Out') {
+                            $genotyping->{$original_exp_id}->{secondary}->{het}++;
+                            $genotyping->{total}->{secondary}->{het}++;
+                        }
+                    } elsif ($class =~ 'hom') {
+                        $genotyping->{$original_exp_id}->{primary}->{hom}++;
+                        $genotyping->{total}->{primary}->{hom}++;
+                        if ($status eq 'Scanned-Out') {
+                            $genotyping->{$original_exp_id}->{secondary}->{hom}++;
+                            $genotyping->{total}->{secondary}->{hom}++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return $genotyping;
+}
+
+
+=head generate_sub_report
+    .
+=cut
 
 sub generate_sub_report {
     my ($self, $sponsor_id, $lab_head, $programme) = @_;
@@ -326,6 +516,8 @@ sub generate_sub_report {
     my ($gene_info, $sponsor_info);
     foreach my $project_rec (@project_ii_rs) {
         my $row_data;
+
+        ## general info
         $row_data->{project_id} = $project_rec->id;
         $row_data->{cell_line} = $project_rec->cell_line->name;
 
@@ -338,10 +530,19 @@ sub generate_sub_report {
         $row_data->{lab_head} = $lab_head;
         $row_data->{sponsor} = $sponsor_id;
 
+        ## experiment info
         my @proj_exps = &{$launch_report_subs->{ 'exp_info' }}($self, $project_rec->id);
-        $row_data->{experiments} = \@proj_exps;#$ep_ii_plate_names;
+        $row_data->{experiments} = \@proj_exps;
+
+        ## EP II plate info
         my $exps_ep_ii_plate_names = &{$launch_report_subs->{ 'ipscs_ep' }}($self, \@proj_exps, $project_rec->cell_line_id);
         $row_data->{experiment_ep_ii_info} = $exps_ep_ii_plate_names;
+
+        ## picked colonies
+        $row_data->{exp_ipscs_colonies_picked} = &{$launch_report_subs->{ 'ipscs_colonies_picked' }}($self, $exps_ep_ii_plate_names->{exps});
+
+        ## primary and secondary genotyping
+        $row_data->{genotyping} = &{$launch_report_subs->{ 'genotyping' }}($self, @proj_exps);
 
         push @data, $row_data;
     }
@@ -350,7 +551,9 @@ sub generate_sub_report {
 
     $report->{date} = $date_format;
     $report->{columns} = $SUBREPORT_COLUMNS;
-    $report->{data} = \@data;
+
+    my @sorted_data =  sort { $a->{gene_symbol} cmp $b->{gene_symbol} } @data;
+    $report->{data} = \@sorted_data;
 
     return $report;
 
@@ -358,4 +561,3 @@ sub generate_sub_report {
 
 
 1;
-

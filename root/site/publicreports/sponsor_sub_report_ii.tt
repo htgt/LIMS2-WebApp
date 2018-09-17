@@ -22,6 +22,16 @@ table.table-bordered > tbody > tr > td{
   border: 1.5px solid black;
 }
 
+#stripes {
+  background: repeating-linear-gradient(
+  45deg,
+  #CCCCCC,
+  #CCCCCC 10px,
+  #EEEEEE 10px,
+  #EEEEEE 20px
+);
+}
+
 </style>
 
 <span style="float:right">
@@ -72,14 +82,23 @@ table.table-bordered > tbody > tr > td{
 <table class="table table-bordered table-condensed" id="sub_report">
   <thead>
     <tr>
-      [%- FOR col IN columns.general %]
-        <th style="width:100%;" class="">[% col %]</th>
+      <th colspan="[% columns.general_first.size %]" style="border-left:1px solid white;border-top:1px solid white;"></th>
+      <th colspan="[% columns.primary_genotyping.size %]" style="background-color:#BDBDBD;">Primary Genotyping</th>
+      <th colspan="[% columns.secondary_genotyping.size %]" style="background-color:#9E9E9E;">Secondary Genotyping</th>
+      <th colspan="[% columns.general_second.size %]" style="border-right:1px solid white;border-top:1px solid white;"></th>
+    </tr>
+    <tr>
+      [%- FOR col IN columns.general_first %]
+        <th style="width:100%;background-color:#EEEEEE;" class="">[% col %]</th>
       [% END %]
       [%- FOR col IN columns.primary_genotyping %]
-        <th style="width:100%;background-color:#32CD32;" class="">[% col %]</th>
+        <th style="width:100%;background-color:#BDBDBD;" class="">[% col %]</th>
       [% END %]
       [%- FOR col IN columns.secondary_genotyping %]
-        <th style="width:100%;background-color:#FFFF00;" class="">[% col %]</th>
+        <th style="width:100%;background-color:#9E9E9E;" class="">[% col %]</th>
+      [% END %]
+      [%- FOR col IN columns.general_second %]
+        <th style="width:100%;background-color:#EEEEEE;" class="">[% col %]</th>
       [% END %]
     </tr>
   </thead>
@@ -89,55 +108,154 @@ table.table-bordered > tbody > tr > td{
         <td style="background-color:#B3ECFF;"><a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% elem.gene_id %]" target="_blank">[% elem.gene_id %]</a></td>
         <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/public_reports/gene_report', elem.gene_id ) %]" target="_blank">[% elem.gene_symbol %]</a></td>
         <td style="background-color:#B3ECFF;">[% elem.chromosome %]</td>
+        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/user/view_project/',{ project_id => elem.project_id }) %]" target="_blank">[% elem.project_id %]</a></td>
+        <td style="background-color:#B3ECFF;">[% elem.cell_line %]</td>
+
+        [% IF elem.experiments.size %]
+        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        [% ELSE %]
+        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        [% END %]
+
+        [% IF elem.experiment_ep_ii_info.has_plates %]
+        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        [% ELSE %]
+        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        [% END %]
+
+        [% IF elem.exp_ipscs_colonies_picked.total %]
+          <td style="background-color:#B0E502;">[% elem.exp_ipscs_colonies_picked.total %] colonies picked</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.total_number_of_clones %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.total_number_of_clones %] Miseq clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.primary.wt %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.wt %] WT clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.primary.het %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.het %] Het clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.primary.hom %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.hom %] Hom clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.secondary.wt %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.wt %] WT clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.secondary.het %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.het %] Het clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        [% IF elem.genotyping.total.secondary.hom %]
+          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.hom %] Hom clones</td>
+        [% ELSE %]
+          <td style="background-color:#FF4444"></td>
+        [% END %]
+
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         <td style="background-color:#B3ECFF;">[% elem.programme %]</td>
         <td style="background-color:#B3ECFF;">[% elem.sponsor %]</td>
         <td style="background-color:#B3ECFF;">[% elem.lab_head %]</td>
-        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/user/view_project/',{ project_id => elem.project_id }) %]" target="_blank">[% elem.project_id %]</a></td>
-
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-
-        <td style="background-color:#B3ECFF;">[% elem.cell_line %]</td>
-        <td></td>
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
 
         [% FOREACH exp IN elem.experiments %]
         [% IF exp.id %]
         <tr class="[% elem.project_id %]" style="display:none;">
-          <td></td>
-          <td><span style="display:none;">[% elem.gene_id %]</span></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a></td>
-          <td class="p-3 mb-2 bg-warning">[% exp.crispr_seq %]</td>
-          <td class="p-3 mb-2 bg-warning"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
-          <td class="p-3 mb-2 bg-warning">
-          [% FOREACH ep_ii IN elem.experiment_ep_ii_info.${exp.id} %]
-          <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
-          [% END %]
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"><span style="display:none;">[% elem.gene_id %]</span></td>
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a></td>
+          <td style="background-color:#FFCC80;">
+            [% FOREACH seq IN exp.crispr_seq %]
+            [% seq %]
+            [% END %]
           </td>
-          <td></td>
-          <td></td>
-          <td class="p-3 mb-2 bg-warning">[% exp.requester %]</td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
+          <td style="background-color:#FFCC80;"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
+          [% IF elem.experiment_ep_ii_info.exps.${exp.id}.size %]
+            <td style="background-color:#FFCC80;">  
+              [% FOREACH ep_ii IN elem.experiment_ep_ii_info.exps.${exp.id} %]
+                <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
+              [% END %]
+            </td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+          [% IF elem.exp_ipscs_colonies_picked.${exp.id}.picked_colonies %]
+            <td style="background-color:#FFCC80;">[% elem.exp_ipscs_colonies_picked.${exp.id}.picked_colonies %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.primary.total_number_of_clones %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.total_number_of_clones %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.primary.wt %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.wt %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.primary.het %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.het %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.primary.hom %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.hom %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.secondary.wt %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.wt %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.secondary.het %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.het %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          [% IF elem.genotyping.${exp.id}.secondary.hom %]
+            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.hom %]</td>
+          [% ELSE %]
+            <td style="background-color:#FFCC80;"></td>
+          [% END %]
+
+          <td style="background-color:#FFCC80;">[% exp.requester %]</td>
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"></td>
+          <td style="background-color:#FFCC80;"></td>
         </tr>
         [% END %]
         [% END %]
