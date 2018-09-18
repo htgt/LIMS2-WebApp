@@ -120,7 +120,7 @@ sub wells_generator {
 
     if ($name_to_index) {
         my %well_indexes;
-        @well_indexes{@well_names} = (0..$#well_names);
+        @well_indexes{@well_names} = (1..$#well_names+1);
         return \%well_indexes;
     }
 
