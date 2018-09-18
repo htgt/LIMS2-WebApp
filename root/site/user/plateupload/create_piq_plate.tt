@@ -26,6 +26,10 @@
     line-height: 20px;
 }
 
+.row {
+    margin-bottom: 15px;
+}
+
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
@@ -109,6 +113,11 @@
             </div>
         <div id="secondSplit" class="col-md-12"></div>
     </div>
+
+    <div class="row">
+        <input id="barcodeUpload" class="btn btn-primary btn-file" type="file" value="Barcode CSV" accept=".csv" />
+    </div>
+
     <div class="row">
         <button type="button" class="btn btn-danger" onclick="clearPlate();">
             Clear <i class="glyphicon glyphicon-remove"></i>
@@ -118,7 +127,6 @@
         </button>
     </div>
 </div>
-
 <div id="tooltip" class="hidden"></div>
 
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
@@ -187,6 +195,65 @@ $("#plateName").autocomplete({
     },
     minLength: 2,
 });
+
+$('#barcodeUpload').on('change', function(evt) {
+    console.log("triggered");
+    var file = evt.target.files[0];
+    console.log(file);
+    if (file) {
+        var csvReg = /\.csv$/i;
+        if (!csvReg.exec(file.name)) {
+            console.log("not csv");
+            return;
+        }
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = function(event){
+            var csv = event.target.result;
+
+            var headerLine = csv.split(/\n/)[0];
+            var barcodeReg = /barcode*/i;
+
+            var header;
+            if (!barcodeReg.test(headerLine)) {
+                console.log("not");
+                var columns = headerLine.split(/,/);
+                if (columns.length == 1) {
+                    header = "barcode\n";
+                } else if (columns.length == 2) {
+                    var wellReg = /([A-H](0?[1-9]|1[0-2])|([1-9]|[1-8]?[0-9]|9[0-6]))/i; //Match wells or indexes
+                    header = remapHeaders(columns[0], wellReg);
+                } else {
+                    console.log("Too many columns");
+                    return;
+                }
+            } else { 
+                var wellReg = /well*/i;
+                header = remapHeaders(headerLine, wellReg);//uniform headers
+                csv.split(/\n/).pop();
+            }
+
+            csv = header + csv;
+            console.log(csv);
+
+            var data = d3.csvParse(csv, function(row){
+                console.log(row);   
+            });
+            console.log(data);
+        };
+    }
+});
+
+function remapHeaders(headerRow, regex) {
+    var header = "barcode,well\n";
+
+    if (regex.test(headerRow)) {
+        console.log("well");
+        header = "well,barcode\n"; //Easier to match to wells since they're more predictable
+    } 
+
+    return header;
+}
 
 function submitPIQPlate(){
     var details = { 
