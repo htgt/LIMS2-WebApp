@@ -9,31 +9,35 @@ document.title = "[%- sponsor_id %]";
 
   [%- IF type == 'full' %]
   <a id='type_simple' type='button' class='btn btn-info btn-sm'
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage, 'NA', 'NA',
     {
         cache_param => cache_param,
-        type => 'simple'
+        type => 'simple',
+        pipeline => 'pipeline_i'
     }
   ) %]><i class="glyphicon glyphicon-zoom-out"></i><b> Simple Report</b></a>
   [%- ELSIF type == 'simple' %]
   <a id='type_full' type='button' class='btn btn-info btn-sm'
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage, 'NA', 'NA',
     {
         cache_param => cache_param,
-        type => 'full'
+        type => 'full',
+        pipeline => 'pipeline_i'
     }
   ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
   [%- END %]
   <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage, 'NA', 'NA',
     {
-        csv => 1
+        csv => 1,
+        pipeline => 'pipeline_i'
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
+  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage, 'NA', 'NA',
     {
-        xlsx => 1
+        xlsx => 1,
+        pipeline => 'pipeline_i'
     }
   ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
 </span>

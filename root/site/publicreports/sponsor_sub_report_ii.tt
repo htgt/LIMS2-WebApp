@@ -36,43 +36,36 @@ table.table-bordered > tbody > tr > td{
 
 <span style="float:right">
   <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');"><b>Expand All</b></a>
+[% IF sponsor_id %]
+  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
+  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme", {csv => '1', pipeline => 'pipeline_ii'}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
+  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
+  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme",{xlsx => '1',pipeline => 'pipeline_ii'}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
 
-  [%- IF type == 'full' %]
-  <a id='type_simple' type='button' class='btn btn-info btn-sm'
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        cache_param => cache_param,
-        type => 'simple'
-    }
-  ) %]><i class="glyphicon glyphicon-zoom-out"></i><b> Simple Report</b></a>
-  [%- ELSIF type == 'simple' %]
-  <a id='type_full' type='button' class='btn btn-info btn-sm'
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        cache_param => cache_param,
-        type => 'full'
-    }
-  ) %]><i class="glyphicon glyphicon-zoom-in"></i><b> Show Numbers</b></a>
-  [%- END %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        csv => 1
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' target="_blank"
-  href=[%- c.uri_for( '/public_reports/sponsor_report', disp_target_type.replace('-', '_' ), sponsor_id, disp_stage,
-    {
-        xlsx => 1
-    }
-  ) %]><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+  [% IF c.user %]
+    <a type='button' class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii' }) %]" id='[% unit.sponsor_id %]'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
+  [% END %]
+[% ELSE %]
+  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
+  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total", {csv => '1', pipeline => 'pipeline_ii', total => '1' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
+  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
+  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total",{xlsx => '1',pipeline => 'pipeline_ii', total => '1' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+
+  [% IF c.user %]
+    <a type='button' class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1' }) %]" id='total'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
+  [% END %]
+[% END %]
 </span>
-</span>
+
 <div class="page-header">
   <h2>Sponsor Progress Sub-Report on [% date %]</h2>
 </div>
 <p>
-<big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+[% IF sponsor_id %]
+  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+[% ELSE %]
+  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for <b>all</b> sponsors</b></big>
+[% END %]
 </p>
 
 <div>

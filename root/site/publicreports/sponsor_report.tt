@@ -158,12 +158,31 @@
       [% END %]
     [% END %]
   [% END %]
+
+  <tr style="background-color:#9E9E9E;">
+    <td><b> Total Genes for Pipeline II</b></td>
+    <td></td>
+    <td></td>
+    <td>
+      [%- IF c.user == '' && is_internal == 0 %]
+      <b><a href="[%- c.uri_for('/public_reports/access_denied') %]" target="_blank">[% pipeline_ii_total_gene_count %]</a></b>
+      [%- ELSIF c.user == '' && is_internal %]
+      <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/total", { species => species, pipeline => 'pipeline_ii', cache_param_ii => 'with_cache', total => '1' } ) %]" target="_blank">[% pipeline_ii_total_gene_count %]</a></b>
+      [%- ELSIF cache_param_ii == "with_cache" %]
+       <b><a href="[%- c.uri_for( "/public_reports/cached_sponsor_report/total", { species => species, pipeline => 'pipeline_ii', cache_param_ii => 'with_cache', total => '1' } ) %]" target="_blank">[% pipeline_ii_total_gene_count %]</a></b>
+      [%- ELSE %]
+      <b><a href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total", { species => species, cache_param_ii => 'without_cache', pipeline => 'pipeline_ii', total => '1' }) %]" target="_blank">[% pipeline_ii_total_gene_count %]</a></b>
+      [%- END %]
+    </td>
+  </tr>
+
+
 </table>
 
 <br/>
 [% END %]
 
-<script>
+<script type="text/javascript">
 
 function display_rows_for(programme) {
   var elems = document.getElementsByClassName(programme);

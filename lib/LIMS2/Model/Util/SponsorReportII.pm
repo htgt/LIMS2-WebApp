@@ -75,6 +75,12 @@ has programmes => (
     lazy_build => 1,
 );
 
+has total_gene_count => (
+    is         => 'ro',
+    isa        => 'Int',
+    lazy_build => 1,
+);
+
 sub build_page_title {
     my $self = shift;
 
@@ -93,6 +99,23 @@ sub _build_programmes {
     return \@programmes;
 };
 
+sub _build_total_gene_count {
+    my $self = shift;
+
+    my @project_ii_rs = $self->model->schema->resultset('Project')->search(
+          { strategy_id => 'Pipeline II' },
+          { distinct => 1 }
+        )->all;
+
+    my @projects_ii = map { $_->id } @project_ii_rs;
+
+    my @project_sponsor_rs = $self->model->schema->resultset('ProjectSponsor')->search(
+          { project_id => { -in => \@projects_ii }, sponsor_id => { 'not in' => ['All'] }, programme_id => { 'is not' => undef } },
+          { distinct => 1 }
+        )->all;
+
+    return scalar @project_sponsor_rs;
+};
 
 =head _build_sponsor_gene_count
     Build the gene count of Pipeline II sponsors
@@ -111,7 +134,7 @@ sub _build_sponsor_gene_count {
     my @projects_ii = map { $_->id } @project_ii_rs;
 
     my @project_sponsor_rs = $self->model->schema->resultset('ProjectSponsor')->search(
-          { project_id => { -in => \@projects_ii }, sponsor_id => { 'not in' => ['All', 'Test'] } },
+          { project_id => { -in => \@projects_ii }, sponsor_id => { 'not in' => ['All'] } },
           { distinct => 1 }
         )->all;
 
@@ -559,5 +582,83 @@ sub generate_sub_report {
 
 }
 
+
+sub generate_total_sub_report {
+    my $self = shift;
+
+    my @total_data;
+    my $total_sub_report;
+
+    foreach my $unit ( @{$self->sponsor_gene_count} ) {
+
+        my $curr_sponsor = $unit->{sponsor_id};
+        my $curr_lab_head = $unit->{lab_head_id};
+        my $curr_programme = $unit->{programme_id};
+
+        my $current_sub_report = $self->generate_sub_report($curr_sponsor, $curr_lab_head, $curr_programme);
+
+        push @total_data, @{$current_sub_report->{data}};
+    }
+
+    my $date_format = strftime '%d %B %Y', localtime;
+    $total_sub_report->{date} = $date_format;
+    $total_sub_report->{columns} = $SUBREPORT_COLUMNS;
+
+    my @sorted_data =  sort { $a->{gene_symbol} cmp $b->{gene_symbol} } @total_data;
+    $total_sub_report->{data} = \@sorted_data;
+
+    return $total_sub_report;
+}
+
+
+sub save_file_data_format {
+    my ($self, $data) = @_;
+
+    my $general = '';
+    my @csv_data;
+
+## columns:
+  ## gene_id => string
+  ## gene_symbol => string
+  ## chromosome => string
+  ## project_id => string
+  ## cell_line => string
+  ## programme => string
+  ## sponsor => string
+  ## lab_head => string
+  ## exp_id
+  ## design_id
+  ## crispr_seq
+  ## ep_ii_plate_name
+  ## ipscs_colonies_picked
+  ## total_number_of_clones
+  ## selected_wt
+  ## selected_het
+  ## selected_hom
+  ## distributable_wt
+  ## distributable_het
+  ## distributable_hom
+
+  ## experiments => array of hashes
+  ## experiment_ep_ii_info => hash
+  ## exp_ipscs_colonies_picked => hash
+  ## genotyping => hash
+    push @csv_data, "gene id,gene symbol,chromosome,project id,cell line,programme,sponsor,lab head,experiment id,design id,crispr sequence,ipscs electroporation plate names,ipscs colonies picked,miseq clones,selected wt,selected het,selected hom,distributable wt,distributable het,distributable hom";
+
+    foreach my $data_unit (@{$data}) {
+        $general = join ",", ($data_unit->{gene_id}, $data_unit->{gene_symbol}, $data_unit->{chromosome}, $data_unit->{project_id}, $data_unit->{cell_line}, $data_unit->{programme}, $data_unit->{sponsor}, $data_unit->{lab_head});
+
+        foreach my $exp (@{$data_unit->{experiments}}) {
+            my $exp_id = $exp->{id};
+            my @exp_ep_ii_plates = map { $_->{name} } @{$data_unit->{experiment_ep_ii_info}->{exps}->{$exp_id}};
+            my $primary_genotyping = $data_unit->{genotyping}->{$exp_id}->{primary}->{total_number_of_clones} . "," . $data_unit->{genotyping}->{$exp_id}->{primary}->{wt} . "," . $data_unit->{genotyping}->{$exp_id}->{primary}->{het} . "," . $data_unit->{genotyping}->{$exp_id}->{primary}->{hom};
+            my $secondary_genotyping = $data_unit->{genotyping}->{$exp_id}->{secondary}->{wt} . "," . $data_unit->{genotyping}->{$exp_id}->{secondary}->{het} . "," . $data_unit->{genotyping}->{$exp_id}->{secondary}->{hom};
+            push @csv_data, $general . "," . $exp_id . "," . $exp->{$exp_id}->{design_id} . "," . $exp->{$exp_id}->{crispr_seq} . "," . join ",", @exp_ep_ii_plates . "," . $data_unit->{exp_ipscs_colonies_picked}->{$exp_id}->{picked_colonies} . "," . $primary_genotyping . "," . $secondary_genotyping;
+        }
+    }
+
+    return join "\n", @csv_data;
+
+}
 
 1;
