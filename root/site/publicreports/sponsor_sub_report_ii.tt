@@ -1,7 +1,14 @@
 [%- META title = "Summary Report II" %]
-<SCRIPT LANGUAGE = JavaScript >
-document.title = "[%- sponsor_id %]";
-</SCRIPT>
+
+[% IF sponsor_id %]
+  <SCRIPT LANGUAGE = JavaScript >
+  document.title = "[%- sponsor_id %]";
+  </SCRIPT>
+[% ELSE %]
+  <SCRIPT LANGUAGE = JavaScript >
+  document.title = "Total - Pipeline II";
+  </SCRIPT>
+[% END %]
 
 
 <style type="text/css">
@@ -168,7 +175,7 @@ table.table-bordered > tbody > tr > td{
           <td style="background-color:#FF4444"></td>
         [% END %]
 
-        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#B3ECFF;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         <td style="background-color:#B3ECFF;">[% elem.programme %]</td>
         <td style="background-color:#B3ECFF;">[% elem.sponsor %]</td>
         <td style="background-color:#B3ECFF;">[% elem.lab_head %]</td>
@@ -181,7 +188,7 @@ table.table-bordered > tbody > tr > td{
           <td style="background-color:#FFCC80;"></td>
           <td style="background-color:#FFCC80;"></td>
           <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a></td>
+          <td style="background-color:#FFCC80;"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.trivial_name %]</a></td>
           <td style="background-color:#FFCC80;">
             [% FOREACH seq IN exp.crispr_seq %]
             [% seq %]

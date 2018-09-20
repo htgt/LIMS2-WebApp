@@ -695,13 +695,13 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
 
             if ( $c->request->params->{csv} || $c->request->params->{xlsx} ) {
 
-                my $curr_file = lc $sponsor_id . "_$pipeline";
+                (my $current_file = $sponsor_id) =~ s/\s+/_/g;
+
+                my $curr_file = lc $current_file . "_$pipeline";
                 my $sub_level_data = $self->_view_cached_top_level_report( $c, $curr_file );
 
                 $c->response->status( 200 );
                 my $body = $pipeline_ii_report->save_file_data_format($sub_level_data->{data});
-
-                (my $current_file = $sponsor_id) =~ s/\s+/_/g;
 
                 if ($c->request->param('xlsx')) {
                     $c->response->content_type( 'application/xlsx' );

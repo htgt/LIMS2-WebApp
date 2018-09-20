@@ -20,7 +20,7 @@ Readonly my $SUBREPORT_COLUMNS => {
     'Chr',
     'Project ID',
     'Cell line',
-    'Experiment ID',
+    'Experiment',
     'Ordered Crisprs',
     'Design ID',
     'Electroporation iPSCs',
@@ -299,6 +299,7 @@ sub get_exp_info {
             my $exp_rs = $self->model->schema->resultset('Experiment')->find({ id => $exp_id });
             my $temp_h = {
                 id               => $exp_rs->id,
+                trivial_name     => $exp_rs->trivial_name,
                 crispr_id        => $exp_rs->crispr_id,
                 crispr_pair_id   => $exp_rs->crispr_pair_id,
                 crispr_group_id  => $exp_rs->crispr_group_id,
