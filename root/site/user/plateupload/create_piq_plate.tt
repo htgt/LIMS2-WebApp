@@ -129,11 +129,39 @@
 </div>
 <div id="tooltip" class="hidden"></div>
 
+<div id="columnModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div class="col-md-12">
+                    <h4 class="modal-title">Which order are the barcodes in?</h4>
+                </div>
+            </div>
+            <div class="modal-footer" id="modalBody">
+                <div class="container col-md-12">
+                    <div class="row">
+                        <div class="col-md-offset-2 col-md-3">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick='orderBarcodes("letter");'>A01, B01, C01..</button>
+                        </div>
+                        <div class="col-md-offset-2 col-md-3">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick='orderBarcodes("number");'>A01, A02, A03..</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 [% INCLUDE 'user/plateupload/rearray_interface.tt' %]
 
 <script>
 
 var parentMiseqClassifications = {};
+var csvString = "";
+var piqBarcodes = {};
+var miWellReg = /miWell_\d+/;
 
 $(function () {
     var isMouseDown = false;
@@ -141,6 +169,7 @@ $(function () {
 
     $("#secondSplit")
         .mousedown(function(evt) {
+            d3.select("#tooltip").classed("hidden", true);
             startIndex = highlighter(evt.target);
             isMouseDown = true;
             console.log("Down.");
@@ -148,7 +177,15 @@ $(function () {
         .mouseover(function(evt) {
             if (isMouseDown == true) {
                 highlighter(evt.target, startIndex);
+            } else if (miWellReg.test(evt.target.id)) {
+                console.log(evt.target.id);
+                showBarcodeAssignment(evt, evt.target.id);
+            } else {
+                d3.select("#tooltip").classed("hidden", true);
             }
+        })
+        .mouseout(function(evt) {
+            d3.select("#tooltip").classed("hidden", true);
         });
 
     $('body').mouseup(function(evt) {
@@ -180,6 +217,7 @@ $(function () {
     .on("mouseout", function() {
         d3.select("#tooltip").classed("hidden", true);
     });
+
 });
 
 $("#plateName").autocomplete({
@@ -203,23 +241,25 @@ $('#barcodeUpload').on('change', function(evt) {
     if (file) {
         var csvReg = /\.csv$/i;
         if (!csvReg.exec(file.name)) {
-            console.log("not csv");
+            console.log("Not a csv");
             return;
         }
         var reader = new FileReader();
         reader.readAsText(file);
         reader.onload = function(event){
-            var csv = event.target.result;
+            csvString = event.target.result;
 
-            var headerLine = csv.split(/\n/)[0];
+            var headerLine = csvString.split(/\n/)[0];
+            var columns = headerLine.split(/,/);
             var barcodeReg = /barcode*/i;
 
             var header;
             if (!barcodeReg.test(headerLine)) {
                 console.log("not");
-                var columns = headerLine.split(/,/);
                 if (columns.length == 1) {
-                    header = "barcode\n";
+                    csvString = "barcode\n" + csvString;
+                    $("#columnModal").modal("show");
+                    return;
                 } else if (columns.length == 2) {
                     var wellReg = /([A-H](0?[1-9]|1[0-2])|([1-9]|[1-8]?[0-9]|9[0-6]))/i; //Match wells or indexes
                     header = remapHeaders(columns[0], wellReg);
@@ -230,13 +270,13 @@ $('#barcodeUpload').on('change', function(evt) {
             } else { 
                 var wellReg = /well*/i;
                 header = remapHeaders(headerLine, wellReg);//uniform headers
-                csv.split(/\n/).pop();
+                csvString.split(/\n/).pop();
             }
 
-            csv = header + csv;
-            console.log(csv);
+            csvString = header + csvString;
+            console.log(csvString);
 
-            var data = d3.csvParse(csv, function(row){
+            var data = d3.csvParse(csvString, function(row){
                 console.log(row);   
             });
             console.log(data);
@@ -413,14 +453,20 @@ function clearParentPlateText() {
     return;
 }
 
-function wellHistoryConstruction(cont, wellHistoryDetails) {
+function tooltipPositioning(cont) {
     var xPos = cont.pageX;
     var yPos = cont.pageY;
 
     d3.select("#tooltip")
         .style("left", xPos + "px")
         .style("top", yPos + "px");
-    
+
+    return;
+}
+
+function wellHistoryConstruction(cont, wellHistoryDetails) {
+    tooltipPositioning(cont);
+
     var tooltipBuild = '';
     wellHistoryDetails.forEach( function(classification) {
         var classState = '<p><strong>Call: </strong><span>' + classification.classification + '</span></p>';
@@ -441,6 +487,38 @@ function wellHistoryConstruction(cont, wellHistoryDetails) {
     return;
 }
 
+function showBarcodeAssignment(cont, rectID) {
+    tooltipPositioning(cont);
+
+    var wellID = rectID.split('_')[1];
+    var wellBarcode = piqBarcodes[wellID];
+    var siblingWell = $('#' + rectID).siblings('text').text().split(/[^A-H0-9]/);
+    var childWell = siblingWell.pop();
+
+    var barcodeBuild = '';
+    var well = '<p><strong>Well: </strong><span>' + childWell + '</span></p>';
+    var parentDetails = '';
+    var barcode = '';
+
+    if (relationalData[childWell]) {
+        parentDetails = '<p><strong>Parent: </strong><span>' + relationalData[childWell].parent_plate + '_' + relationalData[childWell].parent_well + '</span></p>';
+    }
+    if (wellBarcode) {
+        barcode = '<p><strong>Barcode: </strong><span>' + wellBarcode + '</span></p>';
+    }
+
+    if (parentDetails == '' && barcode == '') {
+        d3.select("#tooltip").classed("hidden", true);
+        return;
+    }
+
+    barcodeBuild = well + parentDetails + barcode;
+    $('#tooltip').html(barcodeBuild);
+    d3.select("#tooltip").classed("hidden", false);
+
+    return;
+}
+
 function clearPlate() {
     var name = $('#freezeName').val();
     var colour = assignedColours[name];
@@ -455,6 +533,8 @@ function clearPlate() {
             delete relationalData[well];
         }
     });
+
+    return;
 }
 
 function showPlateHistory(parentName) {
@@ -465,6 +545,38 @@ function showPlateHistory(parentName) {
         var fpID = wellHistory(parentDetails[miWells[mi]],0); //check
         tracking(miID, fpID);
     }
+
+    return;
+}
+
+function orderBarcodes(order) {
+    var wells = [];
+
+    if (order == 'number') {
+        wells = [...Array(95).keys()];
+    } else {
+        for (var x = 0; x < 12; x++) {
+            for (var y = 0; y < 8; y++) {
+                wells.push((y * 12) + x);
+            }
+        }
+        //[0,12,24...1,13,25...95]
+    }
+    
+    var barcodeHeaderReg = /barcode*/i;
+    var count = 0;
+    d3.csvParse(csvString, function(row){
+        console.log(row.barcode);
+
+        if (!barcodeHeaderReg.test(row.barcode)) {
+            piqBarcodes[wells[count]] = row.barcode;
+            count++;
+        }
+    });
+    console.log(wells);
+    console.log(piqBarcodes);
+
+    return;
 }
 
 </script>
