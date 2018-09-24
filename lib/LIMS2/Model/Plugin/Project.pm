@@ -199,7 +199,7 @@ sub _pspec_create_project{
 }
 
 sub create_project {
-    my ($self, $params) = @_;
+    my ($self, $params, $other) = @_;
 
     my $validated_params = $self->check_params( $params, $self->_pspec_create_project);
 
@@ -209,9 +209,11 @@ sub create_project {
 
     foreach my $sponsor(keys %{ $sponsors_priority || {} }) {
         $self->update_or_create_project_sponsor({
-            project_id => $project->id,
-            sponsor_id => $sponsor,
-            priority   => $sponsors_priority->{$sponsor},
+            project_id   => $project->id,
+            sponsor_id   => $sponsor,
+            priority     => $sponsors_priority->{$sponsor},
+            lab_head_id  => $other->{lab_head_id},
+            programme_id => $other->{programme_id},
         });
     }
 
@@ -276,9 +278,11 @@ sub retrieve_project_sponsor{
 
 sub _pspec_update_create_project_sponsor{
     return {
-        project_id => { validate => 'integer' },
-        sponsor_id => { validate => 'existing_sponsor' },
-        priority   => { validate => 'non_empty_string', optional => 1 },
+        project_id   => { validate => 'integer' },
+        sponsor_id   => { validate => 'existing_sponsor' },
+        priority     => { validate => 'non_empty_string', optional => 1 },
+        lab_head_id  => { validate => 'non_empty_string', optional => 1 },
+        programme_id => { validate => 'non_empty_string', optional => 1 },
         MISSING_OPTIONAL_VALID => 1,
     }
 }
@@ -288,10 +292,20 @@ sub update_or_create_project_sponsor{
 
     my $validated_params = $self->check_params($params, $self->_pspec_update_create_project_sponsor);
 
-    my $project_sponsor = $self->schema->resultset('ProjectSponsor')->find({
-        project_id => $validated_params->{project_id},
-        sponsor_id => $validated_params->{sponsor_id},
-    });
+    my $project_sponsor;
+    if ($validated_params->{lab_head_id} && $validated_params->{programme_id}) {
+        $project_sponsor = $self->schema->resultset('ProjectSponsor')->find({
+            project_id   => $validated_params->{project_id},
+            sponsor_id   => $validated_params->{sponsor_id},
+            lab_head_id  => $validated_params->{lab_head_id},
+            programme_id => $validated_params->{programme_id},
+        });
+    } else {
+        $project_sponsor = $self->schema->resultset('ProjectSponsor')->find({
+            project_id   => $validated_params->{project_id},
+            sponsor_id   => $validated_params->{sponsor_id},
+        });
+    }
 
     if($project_sponsor){
         if($project_sponsor->priority ne $validated_params->{priority}){

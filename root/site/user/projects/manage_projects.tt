@@ -89,9 +89,11 @@
     <label class="control-label col-md-2">Lab Head</label>
     <div class="col-md-3">
         <select class="form-control" name="lab_head">
-          <option value=""></option>
+          <option value="Other">Other</option>
           [% FOREACH lab_head IN lab_heads %]
-            <option value="[% lab_head %]">[% lab_head %]</option>
+            [% IF lab_head != 'Other' %]
+              <option value="[% lab_head %]">[% lab_head %]</option>
+            [% END %]
           [% END %]
         </select>
     </div>
@@ -102,9 +104,11 @@
     <label class="control-label col-md-2">Programme</label>
     <div class="col-md-3">
         <select class="form-control" name="programme">
-          <option value=""></option>
+          <option value="Other">Other</option>
           [% FOREACH programme IN programmes %]
-            <option value="[% programme %]">[% programme %]</option>
+            [% IF programme != 'Other' %]
+              <option value="[% programme %]">[% programme %]</option>
+            [% END %]
           [% END %]
         </select>
     </div>
@@ -136,6 +140,8 @@
    [% END %]
    <th>Strategy</th>
    <th>Sponsor</th>
+   <th>Lab Head</th>
+   <th>Programme</th>
   </tr>
   [% FOREACH project IN projects %]
    <tr>
@@ -154,6 +160,8 @@
      [% END %]
      <td>[% project.strategy %]</td>
      <td>[% project.sponsors %]</td>
+     <td>[% project.lab_heads %]</td>
+     <td>[% project.programmes %]</td>
    </tr>
   [% END %]
 </table>

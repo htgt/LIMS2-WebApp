@@ -89,6 +89,14 @@
     <th>Sponsors</th>
     <td>[% project.sponsors %]</td>
   </tr>
+  <tr>
+    <th>Lab Heads</th>
+    <td>[% project.lab_heads %]</td>
+  </tr>
+  <tr>
+    <th>Programmes</th>
+    <td>[% project.programmes %]</td>
+  </tr>
 [% IF c.user.is_sanger %]
   <tr>
     <th>Tracker Issues (Sanger users only)</th>
