@@ -89,6 +89,12 @@
           <td></td>
         </tr>
 [% END %]
+[% IF plate.type_id == 'MISEQ' %]
+        <tr>
+            <td><strong>Spreadsheet</strong></td>
+            <td><a href="[% c.uri_for('/user/miseqspreadsheet/download') _ '?plate=' _ plate.id %]">Download</a></td>
+        </tr>
+[% END %]
 [% IF plate.type_id == 'INT' || plate.type_id == 'FINAL_PICK' %]
         <tr>
           <td>

@@ -73,7 +73,7 @@ WHERE piw.well_id IS NULL
 QUERY_END
 }
 
-sub query_ancestors_by_plate_name {
+sub query_ancestors_by_plate_id {
     return << 'QUERY_END';
 -- Ancestors by plate_name
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
@@ -95,7 +95,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
 ),
 well_list(starting_well) AS (
 	SELECT platewells.id FROM wells platewells, plates
-	WHERE plates.name =?
+	WHERE plates.id = ?
 	AND platewells.plate_id = plates.id
 )
 SELECT w.process_id, w.input_well_id, w.output_well_id, pd.design_id, w.path[1] "original_well", w.path
@@ -104,6 +104,19 @@ WHERE w.process_id = pd.process_id
 --ORDER BY pd.design_id;
 GROUP BY w.process_id, w.input_well_id, w.output_well_id, pd.design_id,"original_well", w.path;
 QUERY_END
+}
+
+sub get_ancestors_by_plate_id {
+    my ( $model, $plate_id ) = @_;
+    my $sql = $model->query_ancestors_by_plate_id;
+    return $model->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached($sql);
+            $sth->execute($plate_id);
+            $sth->fetchall_arrayref();
+        }
+    );
 }
 
 sub query_ancestors_by_well_id_with_paths {
