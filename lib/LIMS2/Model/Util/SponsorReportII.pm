@@ -8,7 +8,7 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
 use Readonly;
-use Switch;
+use feature 'switch';
 use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
@@ -124,7 +124,6 @@ sub _build_total_gene_count {
 sub _build_sponsor_gene_count {
     my $self = shift;
     my $sponsor_gene_count;
-    my $interim_data;
 
     my @project_ii_rs = $self->model->schema->resultset('Project')->search(
           { strategy_id => 'Pipeline II' },
@@ -196,7 +195,7 @@ sub get_programme_abbr {
     my $abbr = 'None';
     if ($programme_id) {
         my $programme_rs = $self->model->schema->resultset('Programme')->find({id => $programme_id}, {columns => [ qw/abbr/ ]});
-        my $abbr = $programme_rs->get_column('abbr');
+        $abbr = $programme_rs->get_column('abbr');
         $abbr ? return $abbr : return 'None';
     }
 
@@ -233,10 +232,6 @@ sub get_gene_info {
     };
 
     return $gene_info;
-
-        # Now we grab this from the solr index
-        my $gene_symbol = $gene_info->{'gene_symbol'};
-        my $chromosome = $gene_info->{'chromosome'};
 }
 
 
@@ -251,13 +246,13 @@ sub get_crispr_seq {
     my $crispr_type = $search_info->{type};
     my $experiment = $search_info->{experiment};
 
-    switch ($crispr_type) {
-        case "crispr" {
+    given ($crispr_type) {
+        when(/^crispr$/) {
             push @seq, $experiment->crispr->seq;
             return @seq;
         }
 
-        case "crispr_pair" {
+        when(/^crispr_pair$/) {
             my $crispr_pair_id = $experiment->crispr_pair_id;
             my @crispr_pair_rs = $self->model->schema->resultset('CrisprPair')->search({
                 crispr_pair_id => $crispr_pair_id,
@@ -268,7 +263,7 @@ sub get_crispr_seq {
 
         }
 
-        case "crispr_group" {
+        when(/^crispr_group$/) {
             my $crispr_group_id = $experiment->crispr_group_id;
             my @crispr_group_rs = $self->model->schema->resultset('CrisprGroupCrispr')->search({
                 crispr_group_id => $crispr_group_id,
@@ -277,8 +272,9 @@ sub get_crispr_seq {
             @seq = map { $_->crispr->seq } @crispr_group_rs;
             return @seq;
         }
-
     }
+
+    return;
 }
 
 
@@ -485,26 +481,30 @@ sub get_genotyping_data {
                 foreach my $miseq_well (@miseq_exps_and_wells) {
                     my $class = lc $miseq_well->classification->id;
                     my $status = $miseq_well->status;
-                    if ($class eq 'wild type') {
-                        $genotyping->{$original_exp_id}->{primary}->{wt}++;
-                        $genotyping->{total}->{primary}->{wt}++;
-                        if ($status eq 'Scanned-Out') {
-                            $genotyping->{$original_exp_id}->{secondary}->{wt}++;
-                            $genotyping->{total}->{secondary}->{wt}++;
+                    given ($class) {
+                        when(/wild type/) {
+                            $genotyping->{$original_exp_id}->{primary}->{wt}++;
+                            $genotyping->{total}->{primary}->{wt}++;
+                            if ($status eq 'Scanned-Out') {
+                                $genotyping->{$original_exp_id}->{secondary}->{wt}++;
+                                $genotyping->{total}->{secondary}->{wt}++;
+                            }
                         }
-                    } elsif ($class eq 'mixed') {
-                        $genotyping->{$original_exp_id}->{primary}->{het}++;
-                        $genotyping->{total}->{primary}->{het}++;
-                        if ($status eq 'Scanned-Out') {
-                            $genotyping->{$original_exp_id}->{secondary}->{het}++;
-                            $genotyping->{total}->{secondary}->{het}++;
+                        when(/mixed/) {
+                            $genotyping->{$original_exp_id}->{primary}->{het}++;
+                            $genotyping->{total}->{primary}->{het}++;
+                            if ($status eq 'Scanned-Out') {
+                                $genotyping->{$original_exp_id}->{secondary}->{het}++;
+                                $genotyping->{total}->{secondary}->{het}++;
+                            }
                         }
-                    } elsif ($class =~ 'hom') {
-                        $genotyping->{$original_exp_id}->{primary}->{hom}++;
-                        $genotyping->{total}->{primary}->{hom}++;
-                        if ($status eq 'Scanned-Out') {
-                            $genotyping->{$original_exp_id}->{secondary}->{hom}++;
-                            $genotyping->{total}->{secondary}->{hom}++;
+                        when(/hom/) {
+                            $genotyping->{$original_exp_id}->{primary}->{hom}++;
+                            $genotyping->{total}->{primary}->{hom}++;
+                            if ($status eq 'Scanned-Out') {
+                                $genotyping->{$original_exp_id}->{secondary}->{hom}++;
+                                $genotyping->{total}->{secondary}->{hom}++;
+                            }
                         }
                     }
                 }
@@ -537,7 +537,7 @@ sub generate_sub_report {
           { strategy_id => 'Pipeline II' , id => { -in => \@all_sponsor_projects } }
         )->all;
 
-    my ($gene_info, $sponsor_info);
+    my $gene_info;
     foreach my $project_rec (@project_ii_rs) {
         my $row_data;
 

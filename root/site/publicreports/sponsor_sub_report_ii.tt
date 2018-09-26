@@ -39,27 +39,41 @@ table.table-bordered > tbody > tr > td{
 );
 }
 
+#loading {
+   width: 100%;
+   height: 100%;
+   top: 0;
+   left: 0;
+   position: fixed;
+   opacity: 0.7;
+   background-color: #fff;
+   z-index: 99;
+   text-align: center;
+}
+
 </style>
+
+<div id="loading"></div>
 
 <span style="float:right">
   <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');"><b>Expand All</b></a>
 [% IF sponsor_id %]
   <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme", {csv => '1', pipeline => 'pipeline_ii'}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
+  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", {csv => '1', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme",{xlsx => '1',pipeline => 'pipeline_ii'}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes",{xlsx => '1',pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
 
   [% IF c.user %]
-    <a type='button' class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes/$lab_head/$programme", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii' }) %]" id='[% unit.sponsor_id %]'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
+    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme }) %]" id='[% unit.sponsor_id %]'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
   [% END %]
 [% ELSE %]
   <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total", {csv => '1', pipeline => 'pipeline_ii', total => '1' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
+  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes", {csv => '1', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
   <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total",{xlsx => '1',pipeline => 'pipeline_ii', total => '1' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes",{xlsx => '1',pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
 
   [% IF c.user %]
-    <a type='button' class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes/total/total", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1' }) %]" id='total'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
+    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]" id='total'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
   [% END %]
 [% END %]
 </span>
@@ -112,7 +126,7 @@ table.table-bordered > tbody > tr > td{
         <td style="background-color:#B3ECFF;">[% elem.cell_line %]</td>
 
         [% IF elem.experiments.size %]
-        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td style="background-color:#B0E502;"><a class="target_anchor" onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         [% ELSE %]
@@ -196,7 +210,7 @@ table.table-bordered > tbody > tr > td{
           </td>
           <td style="background-color:#FFCC80;"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
           [% IF elem.experiment_ep_ii_info.exps.${exp.id}.size %]
-            <td style="background-color:#FFCC80;">  
+            <td style="background-color:#FFCC80;">
               [% FOREACH ep_ii IN elem.experiment_ep_ii_info.exps.${exp.id} %]
                 <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
               [% END %]
@@ -265,6 +279,15 @@ table.table-bordered > tbody > tr > td{
 </table>
 
 <script type="text/javascript">
+
+window.onload = function() {
+  document.getElementById('loading').style.display = "none";
+};
+
+function trigger_loader() {
+  document.getElementById('loading').style.display = "";
+}
+
 function get_genes() {
     var collape_expand_btn = document.getElementById('collapse_expand');
     collape_expand_btn.style.display = "none";
@@ -273,6 +296,7 @@ function get_genes() {
     var filter = input.value.toUpperCase();
     var table = document.getElementById("sub_report");
     var main_trs = table.getElementsByClassName("main_row");
+
 
     var all_tds = table.getElementsByTagName("span");
     for (var j=0; j < all_tds.length; j++) {
@@ -325,12 +349,12 @@ function ShowExpsFor(target) {
 function collape_expand_exps(command) {
   var collape_expand_btn = document.getElementById('collapse_expand');
   var table = document.getElementById("sub_report");
-  var all_tds = table.getElementsByTagName("span");
+  var all_target_anchors = table.getElementsByClassName("target_anchor");
 
   if (command == 'expand') {
-    for (var j=0; j < all_tds.length; j++) {
-      if ( all_tds[j].className.includes("glyphicon-plus") ) {
-        all_tds[j].parentElement.click();
+    for (var j=0; j < all_target_anchors.length; j++) {
+      if ( all_target_anchors[j].childNodes[0].className.includes("glyphicon-plus") ) {
+        all_target_anchors[j].click();
       }
     }
 
@@ -339,9 +363,9 @@ function collape_expand_exps(command) {
       collape_expand_btn.onclick = function () { collape_expand_exps("collapse"); };
     }
   } else if (command == 'collapse') {
-    for (var j=0; j < all_tds.length; j++) {
-      if ( all_tds[j].className.includes("glyphicon-minus") ) {
-        all_tds[j].parentElement.click();
+    for (var j=0; j < all_target_anchors.length; j++) {
+      if ( all_target_anchors[j].childNodes[0].className.includes("glyphicon-minus") ) {
+        all_target_anchors[j].click();
       }
     }
 

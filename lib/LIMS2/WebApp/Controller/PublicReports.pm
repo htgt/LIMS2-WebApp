@@ -178,6 +178,10 @@ sub access_denied : Path( '/public_reports/access_denied' ) {
 sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my ( $self, $c, $targeting_type ) = @_;
 
+    if (! $targeting_type) {
+        $targeting_type = 'single_targeted';
+    }
+
     my $species;
     my $cache_params = {
         sub_cache_param_i  => 'with_cache',
@@ -506,8 +510,8 @@ sub _filter_public_attributes {
 }
 
 
-sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
-    my ( $self, $c, $targeting_type, $sponsor_id, $stage, $lab_head, $programme ) = @_;
+sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
+    my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
 
     # expecting :
     # targeting type i.e. 'st' or 'dt' for single- or double-targeted
@@ -517,6 +521,8 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
     # depending on combination of targeting type and stage fetch details
 
     my $species = $c->session->{selected_species};
+    my $lab_head = $c->request->params->{'lab_head'};
+    my $programme = $c->request->params->{'programme'};
 
     $c->stash->{no_wrapper} = 1;
     my $cache_param = $c->request->params->{'cache_param'};
@@ -528,7 +534,9 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
         $c->session->{display_type} = 'default';
     }
 
-    if ( $pipeline eq 'pipeline_i' ) {
+    given ($pipeline) {
+
+    when(/^pipeline_i$/) {
         my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
                 'species' => $species,
                 'model' => $c->model( 'Golgi' ),
@@ -603,6 +611,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
                 'template'             => $template,
                 'report_id'            => $report_id,
                 'disp_target_type'     => $disp_target_type,
+                'targeting_type'       => $targeting_type,
                 'disp_stage'           => $disp_stage,
                 'sponsor_id'           => $sponsor_id,
                 'columns'              => $columns,
@@ -620,6 +629,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
                 'disp_stage'           => $disp_stage,
                 'sponsor_id'           => $sponsor_id,
                 'columns'              => $columns,
+                'targeting_type'       => $targeting_type,
                 'display_columns'      => $display_columns,
                 'data'                 => $data,
                 'link'                 => $link,
@@ -634,122 +644,138 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(5) {
         }
 
     }
-    elsif ( $pipeline eq 'pipeline_ii' ) {
-            my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
-                species => $species,
-                model   => $c->model('Golgi'),
+    when(/^pipeline_ii$/) {
+        $self->pipeline_ii_workflow($c, $targeting_type, $sponsor_id, $stage);
+    }
+}
+    return;
+}
+
+sub pipeline_ii_workflow {
+    my ( $self, $c, $targeting_type, $sponsor_id, $stage ) = @_;
+
+    my $species = $c->session->{selected_species};
+    my $lab_head = $c->request->params->{'lab_head'};
+    my $programme = $c->request->params->{'programme'};
+    my $cache_param = $c->request->params->{'cache_param'};
+    my $pipeline = $c->request->params->{'pipeline'};
+
+    my $pipeline_ii_report = LIMS2::Model::Util::SponsorReportII->new({
+        species => $species,
+        model   => $c->model('Golgi'),
+        targeting_type => $targeting_type,
+    });
+
+    if ( $c->request->params->{'total'} ) {
+
+        if ( $c->request->params->{csv} || $c->request->params->{xlsx} ) {
+
+            my $sub_level_data = $self->_view_cached_top_level_report( $c, 'total_pipeline_ii' );
+
+            $c->response->status( 200 );
+            my $body = $pipeline_ii_report->save_file_data_format($sub_level_data->{data});
+
+            if ($c->request->param('xlsx')) {
+                $c->response->content_type( 'application/xlsx' );
+                $c->response->content_encoding( 'binary' );
+                $c->response->header( 'content-disposition' => 'attachment; filename=total_pipeline_ii.xlsx' );
+                $body = get_raw_spreadsheet('total_pipeline_ii', $body);
+            }
+            else {
+                $c->response->content_type( 'text/csv' );
+                $c->response->header( 'Content-Disposition' => 'attachment; filename=total_pipeline_ii.csv');
+            }
+            $c->response->body( $body );
+
+        } else {
+
+            my $total_sub_report = $pipeline_ii_report->generate_total_sub_report();
+
+            my $template = 'publicreports/sponsor_sub_report_ii.tt';
+
+            $c->stash(
+                template       => $template,
+                columns        => $total_sub_report->{columns},
+                data           => $total_sub_report->{data},
+                date           => $total_sub_report->{date},
                 targeting_type => $targeting_type,
-            });
+                lab_head       => $lab_head,
+                programme      => $programme,
+                );
 
-            if ( $c->request->params->{'total'} ) {
+            my $json_data = encode_json({
+                template       => $template,
+                columns        => $total_sub_report->{columns},
+                data           => $total_sub_report->{data},
+                targeting_type => $targeting_type,
+                lab_head       => $lab_head,
+                programme      => $programme,
+                });
 
-                if ( $c->request->params->{csv} || $c->request->params->{xlsx} ) {
-
-                    my $sub_level_data = $self->_view_cached_top_level_report( $c, 'total_pipeline_ii' );
-
-                    $c->response->status( 200 );
-                    my $body = $pipeline_ii_report->save_file_data_format($sub_level_data->{data});
-
-                    if ($c->request->param('xlsx')) {
-                        $c->response->content_type( 'application/xlsx' );
-                        $c->response->content_encoding( 'binary' );
-                        $c->response->header( 'content-disposition' => 'attachment; filename=total_pipeline_ii.xlsx' );
-                        $body = get_raw_spreadsheet('total_pipeline_ii', $body);
-                    }
-                    else {
-                        $c->response->content_type( 'text/csv' );
-                        $c->response->header( 'Content-Disposition' => 'attachment; filename=total_pipeline_ii.csv');
-                    }
-                    $c->response->body( $body );
-
-
-                } else {
-
-                    my $total_sub_report = $pipeline_ii_report->generate_total_sub_report();
-
-                    my $template = 'publicreports/sponsor_sub_report_ii.tt';
-
-                    $c->stash(
-                        template       => $template,
-                        columns        => $total_sub_report->{columns},
-                        data           => $total_sub_report->{data},
-                        date           => $total_sub_report->{date},
-                        targeting_type => $targeting_type,
-                        );
-
-                    my $json_data = encode_json({
-                        template       => $template,
-                        columns        => $total_sub_report->{columns},
-                        data           => $total_sub_report->{data},
-                        targeting_type => $targeting_type,
-                        });
-
-                    my $file = "total_$pipeline";
-                    save_json_report($c->uri_for('/'), $json_data, $file);
-
-                   return;
-                }
-
-            }
-
-
-            if ( $c->request->params->{csv} || $c->request->params->{xlsx} ) {
-
-                (my $current_file = $sponsor_id) =~ s/\s+/_/g;
-
-                my $curr_file = lc $current_file . "_$pipeline";
-                my $sub_level_data = $self->_view_cached_top_level_report( $c, $curr_file );
-
-                $c->response->status( 200 );
-                my $body = $pipeline_ii_report->save_file_data_format($sub_level_data->{data});
-
-                if ($c->request->param('xlsx')) {
-                    $c->response->content_type( 'application/xlsx' );
-                    $c->response->content_encoding( 'binary' );
-                    $c->response->header( 'content-disposition' => 'attachment; filename=' . $current_file . '_pipeline_ii_report.xlsx' );
-                    $body = get_raw_spreadsheet($current_file, $body);
-                }
-                else {
-                    $c->response->content_type( 'text/csv' );
-                    $c->response->header( 'Content-Disposition' => 'attachment; filename=' . $current_file . '_pipeline_ii_report.csv');
-                }
-                $c->response->body( $body );
-
-
-            } else {
-
-                my $sub_report = $pipeline_ii_report->generate_sub_report($sponsor_id, $lab_head, $programme);
-                my $template = 'publicreports/sponsor_sub_report_ii.tt';
-
-                $c->stash(
-                    template       => $template,
-                    columns        => $sub_report->{columns},
-                    data           => $sub_report->{data},
-                    date           => $sub_report->{date},
-                    targeting_type => $targeting_type,
-                    sponsor_id     => $sponsor_id,
-                    programme      => $programme,
-                    lab_head       => $lab_head,
-                    cache_param    => $cache_param,
-                    );
-
-                my $json_data = encode_json({
-                    template       => $template,
-                    columns        => $sub_report->{columns},
-                    data           => $sub_report->{data},
-                    targeting_type => $targeting_type,
-                    sponsor_id     => $sponsor_id,
-                    programme      => $programme,
-                    lab_head       => $lab_head,
-                    cache_param    => $cache_param
-                    });
-
-                $sponsor_id =~ s/\ /_/g;
-                my $file = lc $sponsor_id . "_$pipeline";
-                save_json_report($c->uri_for('/'), $json_data, $file);
-            }
+            my $file = "total_$pipeline";
+            save_json_report($c->uri_for('/'), $json_data, $file);
 
         }
+
+        return;
+
+    }
+
+
+    if ( $c->request->params->{csv} || $c->request->params->{xlsx} ) {
+
+        (my $current_file = $sponsor_id) =~ s/\s+/_/g;
+
+        my $curr_file = lc $current_file . "_$pipeline";
+        my $sub_level_data = $self->_view_cached_top_level_report( $c, $curr_file );
+
+        $c->response->status( 200 );
+        my $body = $pipeline_ii_report->save_file_data_format($sub_level_data->{data});
+
+        if ($c->request->param('xlsx')) {
+            $c->response->content_type( 'application/xlsx' );
+            $c->response->content_encoding( 'binary' );
+            $c->response->header( 'content-disposition' => 'attachment; filename=' . $current_file . '_pipeline_ii_report.xlsx' );
+            $body = get_raw_spreadsheet($current_file, $body);
+        }
+        else {
+            $c->response->content_type( 'text/csv' );
+            $c->response->header( 'Content-Disposition' => 'attachment; filename=' . $current_file . '_pipeline_ii_report.csv');
+        }
+        $c->response->body( $body );
+
+    } else {
+
+        my $sub_report = $pipeline_ii_report->generate_sub_report($sponsor_id, $lab_head, $programme);
+        my $template = 'publicreports/sponsor_sub_report_ii.tt';
+
+        $c->stash(
+            template       => $template,
+            columns        => $sub_report->{columns},
+            data           => $sub_report->{data},
+            date           => $sub_report->{date},
+            targeting_type => $targeting_type,
+            sponsor_id     => $sponsor_id,
+            programme      => $programme,
+            lab_head       => $lab_head,
+            cache_param    => $cache_param,
+            );
+
+        my $json_data = encode_json({
+            template       => $template,
+            columns        => $sub_report->{columns},
+            data           => $sub_report->{data},
+            targeting_type => $targeting_type,
+            sponsor_id     => $sponsor_id,
+            programme      => $programme,
+            lab_head       => $lab_head,
+            cache_param    => $cache_param
+            });
+
+        $sponsor_id =~ s/\ /_/g;
+        my $file = lc $sponsor_id . "_$pipeline";
+        save_json_report($c->uri_for('/'), $json_data, $file);
+    }
 
     return;
 }
@@ -1332,4 +1358,5 @@ it under the same terms as Perl itself.
 __PACKAGE__->meta->make_immutable;
 
 1;
+
 

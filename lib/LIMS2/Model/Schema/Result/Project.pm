@@ -297,7 +297,7 @@ __PACKAGE__->many_to_many(
 sub as_hash {
     my $self = shift;
 
-    my $sponsors = $self->sponsor_ids;
+    my @sponsors = $self->sponsor_ids;
     my $lab_heads = $self->lab_head_ids;
     my $programmes = $self->programme_ids;
 
@@ -314,7 +314,7 @@ sub as_hash {
           "priority"          => $self->priority,
           "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "strategy"          => $self->strategy_id,
-          "sponsors"          => $sponsors,
+          "sponsors"          => join "/", @sponsors,
           "lab_heads"         => $lab_heads,
           "programmes"        => $programmes,
     }
@@ -349,15 +349,9 @@ sub recovery_class_name {
 sub sponsor_ids{
     my $self = shift;
 
-    my $sponsors = '';
     my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
-    my @existing_sponsors = grep defined, @sponsors;
-    if ( @existing_sponsors ) {
-        my @sorted = sort @existing_sponsors;
-        $sponsors = join "/", @sorted;
-    }
-
-    return $sponsors;
+    my @sorted = sort @sponsors;
+    return @sorted;
 }
 
 sub lab_head_ids{
@@ -365,7 +359,7 @@ sub lab_head_ids{
 
     my $lab_heads = '';
     my @lab_heads = map { $_->lab_head_id } $self->project_sponsors;
-    my @existing_lab_heads = grep defined, @lab_heads;
+    my @existing_lab_heads = grep { defined $_ } @lab_heads;
     if ( @existing_lab_heads ) {
         my @sorted = sort @existing_lab_heads;
         $lab_heads = join "/", @sorted;
@@ -379,7 +373,7 @@ sub programme_ids{
 
     my $programmes = '';
     my @programmes = map { $_->programme_id } $self->project_sponsors;
-    my @existing_programmes = grep defined, @programmes;
+    my @existing_programmes = grep { defined $_ } @programmes;
     if ( @existing_programmes ) {
         my @sorted = sort @existing_programmes;
         $programmes = join "/", @sorted;
