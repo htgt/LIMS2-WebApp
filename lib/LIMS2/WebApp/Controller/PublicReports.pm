@@ -11,7 +11,7 @@ use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
 use LIMS2::Model::Util::SponsorReportII;
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
-use feature 'switch';
+use experimental qw(switch);
 use Text::CSV_XS;
 use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
@@ -297,6 +297,7 @@ sub _view_cached_top_level_report {
         if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -411,6 +412,7 @@ sub save_json_report {
         if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 

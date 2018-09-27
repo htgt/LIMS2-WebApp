@@ -8,7 +8,7 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
 use Readonly;
-use feature 'switch';
+use experimental qw(switch);
 use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );

@@ -298,6 +298,7 @@ sub as_hash {
     my $self = shift;
 
     my @sponsors = $self->sponsor_ids;
+    my $joint_sponsors = join "/", @sponsors;
     my $lab_heads = $self->lab_head_ids;
     my $programmes = $self->programme_ids;
 
@@ -314,7 +315,7 @@ sub as_hash {
           "priority"          => $self->priority,
           "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "strategy"          => $self->strategy_id,
-          "sponsors"          => join "/", @sponsors,
+          "sponsors"          => $joint_sponsors,
           "lab_heads"         => $lab_heads,
           "programmes"        => $programmes,
     }
