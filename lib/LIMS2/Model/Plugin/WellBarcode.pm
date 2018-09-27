@@ -128,7 +128,7 @@ sub update_well_barcode {
                 }
                 else{
                     $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
-                                                ." to $existing because there is already a well here with no barcode" );
+                                               ." to $existing because there is already a well here with no barcode" );
                 }
             }
             else{

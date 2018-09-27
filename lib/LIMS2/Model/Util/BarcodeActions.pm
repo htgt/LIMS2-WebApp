@@ -18,6 +18,7 @@ use Sub::Exporter -setup => {
               do_picklist_checkout
               start_doubling_well_barcode
               upload_qc_plate
+              create_barcoded_plate
 
           )
     ]
@@ -828,7 +829,6 @@ sub upload_plate_scan{
         });
 
         my @barcoded_wells = grep { $_->barcode } $existing_plate->wells;
-
         if(@barcoded_wells){
             # Error if some but not all wells have barcodes
             my $barcoded_count = scalar @barcoded_wells;
@@ -845,7 +845,6 @@ sub upload_plate_scan{
             if ($existing_plate->type_id eq "FP"){
                 _remove_empty_tube_barcodes($model,$existing_plate,$csv_data,\@list_messages);
             }
-
             # If well barcodes have not changed at all do nothing
             if(_csv_barcodes_match_existing($existing_plate, $csv_data)){
 
@@ -858,7 +857,6 @@ sub upload_plate_scan{
                 };
                 return ($existing_plate, \@list_messages);
             }
-
             # Otherwise update plate
             my $plate_update_params = {
                 slice_def($validated_params, qw(user comment))
@@ -878,14 +876,14 @@ sub upload_plate_scan{
             };
 
             push @list_messages, @$messages;
-        }
-        else{
+                   }
+             else{
 
             DEBUG "Adding barcodes to existing wells";
             # These are new barcodes to add to wells that have been created manually in LIMS2
             # Method returns list of messages
             push @list_messages, _add_csv_barcodes_to_plate($model, $existing_plate, $csv_data);
-        }
+            }
     }
 
     return ($new_plate, \@list_messages);

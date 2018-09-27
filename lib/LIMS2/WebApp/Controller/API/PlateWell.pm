@@ -2,7 +2,8 @@ package LIMS2::WebApp::Controller::API::PlateWell;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
-use LIMS2::Model::Util::Miseq qw( query_miseq_details );
+use LIMS2::Model::Util::Miseq qw( query_miseq_details wells_generator );
+use LIMS2::Model::Util::BarcodeActions qw( create_barcoded_plate );
 use JSON;
 use POSIX;
 
@@ -629,8 +630,17 @@ sub create_piq_plate_POST {
     $data->{created_at} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
     $data->{type} = 'PIQ';
     $data->{wells} = _transform_wells($data->{wells});
+    my $barcodes = $data->{barcodes};
+    delete $data->{barcodes};
 
-    my $plate = $c->model('Golgi')->create_plate($data);
+    my $plate;# = $c->model('Golgi')->create_plate($data);
+    if ($barcodes) {
+        $plate = create_barcoded_plate($c->model('Golgi'), {
+            plate_name          => $data->{name},
+            barcode_for_well    => $barcodes,
+            user                => $c->user->name,
+        });
+    }
 
     return $self->status_created(
         $c,

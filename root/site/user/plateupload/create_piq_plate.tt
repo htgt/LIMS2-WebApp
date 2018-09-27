@@ -172,13 +172,11 @@ $(function () {
             d3.select("#tooltip").classed("hidden", true);
             startIndex = highlighter(evt.target);
             isMouseDown = true;
-            console.log("Down.");
         })
         .mouseover(function(evt) {
             if (isMouseDown == true) {
                 highlighter(evt.target, startIndex);
             } else if (miWellReg.test(evt.target.id)) {
-                console.log(evt.target.id);
                 showBarcodeAssignment(evt, evt.target.id);
             } else {
                 d3.select("#tooltip").classed("hidden", true);
@@ -190,14 +188,12 @@ $(function () {
 
     $('body').mouseup(function(evt) {
         if (isMouseDown == true) {
-            console.log("Up.");
             isMouseDown = false;
             $('.selecting').removeClassesExcept('square fpWell miWell selecting');
             $('.selecting').toggleClass('selecting ' + selectedColour);
             d3.selectAll('.' + selectedColour).style('fill', colourHash[selectedColour]);
             var key = $('#freezeName').val();
             if (key != '-') {
-                console.log('Triggered - body up');
                 $('.miWell.' + selectedColour).map(function() { return trackWells(key, this); });
                 checkTile();
             }
@@ -235,9 +231,7 @@ $("#plateName").autocomplete({
 });
 
 $('#barcodeUpload').on('change', function(evt) {
-    console.log("triggered");
     var file = evt.target.files[0];
-    console.log(file);
     if (file) {
         var csvReg = /\.csv$/i;
         if (!csvReg.exec(file.name)) {
@@ -252,16 +246,15 @@ $('#barcodeUpload').on('change', function(evt) {
             var headerLine = csvString.split(/\n/)[0];
             var columns = headerLine.split(/,/);
             var barcodeReg = /barcode*/i;
+            var wellReg = /(^[A-H]{1}(1[0-2]|0?[1-9])$|^([1-9]|[1-8][0-9]|9[0-6])$)/i; //Match wells or indexes
 
             var header;
             if (!barcodeReg.test(headerLine)) {
-                console.log("not");
                 if (columns.length == 1) {
                     csvString = "barcode\n" + csvString;
                     $("#columnModal").modal("show");
                     return;
                 } else if (columns.length == 2) {
-                    var wellReg = /([A-H](0?[1-9]|1[0-2])|([1-9]|[1-8]?[0-9]|9[0-6]))/i; //Match wells or indexes
                     header = remapHeaders(columns[0], wellReg);
                 } else {
                     console.log("Too many columns");
@@ -269,17 +262,19 @@ $('#barcodeUpload').on('change', function(evt) {
                 }
             } else { 
                 var wellReg = /well*/i;
-                header = remapHeaders(headerLine, wellReg);//uniform headers
-                csvString.split(/\n/).pop();
+                header = remapHeaders(columns[0], wellReg);//uniform headers
+                csvSplit = csvString.split(/\n/);
+                csvSplit.shift()
+                csvString = csvSplit.join("\n");
             }
 
             csvString = header + csvString;
-            console.log(csvString);
 
-            var data = d3.csvParse(csvString, function(row){
-                console.log(row);   
+            d3.csvParse(csvString, function(row){
+                var wellID = $('g#' + row.well + ' rect')[0].id;
+                var intID = wellID.split(/_/)[1];
+                piqBarcodes[intID] = row.barcode;
             });
-            console.log(data);
         };
     }
 });
@@ -288,17 +283,27 @@ function remapHeaders(headerRow, regex) {
     var header = "barcode,well\n";
 
     if (regex.test(headerRow)) {
-        console.log("well");
         header = "well,barcode\n"; //Easier to match to wells since they're more predictable
     } 
 
     return header;
 }
 
-function submitPIQPlate(){
+function remapWellBarcode() {
+    var barcodeRemap = {};
+    var wellIDs = Object.keys(piqBarcodes);
+    wellIDs.forEach(function(wellID) {
+        var wellName = $('#miWell_' + wellID).parent('g')[0].id;
+        barcodeRemap[wellName] = piqBarcodes[wellID];
+    });
+    return barcodeRemap;
+}
+
+function submitPIQPlate() {
     var details = { 
         name: $('#plateName').val(),
         wells: relationalData,
+        barcodes: remapWellBarcode(),
     };
     var relations = JSON.stringify(details);
     $.ajax({
@@ -566,15 +571,11 @@ function orderBarcodes(order) {
     var barcodeHeaderReg = /barcode*/i;
     var count = 0;
     d3.csvParse(csvString, function(row){
-        console.log(row.barcode);
-
         if (!barcodeHeaderReg.test(row.barcode)) {
             piqBarcodes[wells[count]] = row.barcode;
             count++;
         }
     });
-    console.log(wells);
-    console.log(piqBarcodes);
 
     return;
 }
