@@ -14,6 +14,7 @@ use Sub::Exporter -setup => {
               find_file
               find_child_dir
               read_file_lines
+              find_miseq_data_from_experiment
           )
     ]
 };
@@ -22,6 +23,23 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
 use JSON;
 use File::Find;
+use Const::Fast;
+
+sub find_miseq_data_from_experiment {
+    my ($c, $experiment_id) = @_;
+$DB::single=1;
+    my $rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
+    {
+        experiment_id => $experiment_id,
+    },
+    {
+        prefetch => {
+            MiseqWellExperiment => ['Well'],
+        },
+    });
+
+    return;
+}
 
 sub miseq_well_processes {
     my ($c, $params) = @_;
