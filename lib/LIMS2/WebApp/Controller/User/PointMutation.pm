@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::User::PointMutation;
 
 use strict;
 use warnings FATAL => 'all';
-use Data::Dumper;
+#use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Path::Class;
@@ -38,7 +38,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
     my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
-    #print Dumper $summary_data->{wells};
 
     if ($miseq_plate->{'384'} == 1 ) {
         my $quadrants = experiment_384_distribution($c, $summary_data->{ranges});
@@ -255,7 +254,6 @@ sub get_experiments {
 #            $ov->{$miseq_exp->{name}} = \@genes;
 #        }
 #    }
-    #print Dumper $ov;
 #    return $ov;
 #}
 

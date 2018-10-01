@@ -121,7 +121,7 @@ sub wells_generator {
 
     if ($name_to_index) {
         my %well_indexes;
-        @well_indexes{@well_names} = (0..$#well_names);
+        @well_indexes{@well_names} = (1..$#well_names+1);
         return \%well_indexes;
     }
 
@@ -220,7 +220,6 @@ sub generate_summary_data_old {
     }
     
 
-    #print Dumper $wells; 
     return $wells;
 }
 
@@ -294,43 +293,46 @@ sub generate_summary_data {
     my $ranges;
     my $wells;
     
-    my @experiments;
-    my $details;
-    my $percentages;
+
     my $index;
     my $converter = wells_generator(1);
-    print Dumper $converter;
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
     foreach my $miseq_exp (@miseq_exp_rs) {
+        my $exp_name = $miseq_exp->{name};
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @indexes;
         foreach my $well_exp (@well_exps) {
-
+    my $percentages;
+    my @experiments;
+    my $details;
             $index = $converter->{$well_exp->{well_name}};
             push (@indexes, $index);
             
-            $index = sprintf("%02d", $index);
-
             push ( @{$wells->{$index}->{gene}}, $miseq_exp->{gene});
 
             push ( @{$wells->{$index}->{experiments}}, $miseq_exp->{name});
 
-            $details->{class}       = $well_exp->{classification};
-            $details->{status}      = $well_exp->{status};
-            $details->{frameshift}  = $well_exp->{frameshifted};            
+            $details->{$exp_name}->{class}       = $well_exp->{classification};
+            $details->{$exp_name}->{status}      = $well_exp->{status};
+            $details->{$exp_name}->{frameshift}  = $well_exp->{frameshifted};            
              
-            $percentages->{wt}   = $well_exp->{total_reads};
-            $percentages->{nhej} = $well_exp->{nhej_reads};
-            $percentages->{hdr}  = $well_exp->{hdr_reads};
-            $percentages->{mix}  = $well_exp->{mixed_reads};
-            #print Dumper $well_exp;
-            #print Dumper $index;
-            #print Dumper $miseq_exp->{name};
-            #print Dumper $details; 
-            #print Dumper $percentages;
-            $wells->{$index}->{percentages}->{$miseq_exp->{name}}  =   $percentages;
-            $wells->{$index}->{details}->{$miseq_exp->{name}}      =   $details;        
+            $percentages->{$exp_name}->{wt}   = $well_exp->{total_reads};
+            $percentages->{$exp_name}->{nhej} = $well_exp->{nhej_reads};
+            $percentages->{$exp_name}->{hdr}  = $well_exp->{hdr_reads};
+            $percentages->{$exp_name}->{mix}  = $well_exp->{mixed_reads};
+            #print Dumper "Index: $index";
+            #print Dumper $miseq_exp;
+            #print Dumper $percentages->{$miseq_exp->{name}}->{wt};  
+            #print Dumper $percentages->{$miseq_exp->{name}}->{nhej};
+            #print Dumper $percentages->{$miseq_exp->{name}}->{hdr};
+            #print Dumper $percentages->{$miseq_exp->{name}}->{mix};
+            #print Dumper "\n";
+       
+            push ( @{$wells->{sprintf("%02d", $index)}->{percentages}}, $percentages);
+            push ( @{$wells->{sprintf("%02d", $index)}->{details}}, $details);
+
         }
+        
         return unless @indexes;
         @indexes = sort { $a <=> $b } @indexes;
         my $range = $indexes[0] . '-' . $indexes[-1];
@@ -341,7 +343,7 @@ sub generate_summary_data {
         $genes->{$miseq_exp->{name}} = \@gene;
     }
 
-    print Dumper $genes;
+    print Dumper $wells->{26};
     return   { 
         ranges  => $ranges,
         genes   => $genes,
