@@ -23,18 +23,20 @@ sub _build_wells_data {
         my $well_info = $self->get_well_info($well->id);
         push @well_ids, $well->id;
         my $temp = {
-            cell_number   => $well_name[1],
-            trivial_name  => $well_info->{trivial_name},
-            experiment_id => $well_info->{experiment_id},
-            design_id     => $well_info->{design_id},
-            crispr_id     => $well_info->{crispr_id},
-            crispr_loc    => $well_info->{crispr_loc},
-            gene_id       => $well_info->{gene_id},
-            cell_line     => $well_info->{cell_line},
-            protein_type  => $well_info->{protein_type},
-            guided_type   => $well_info->{guided_type},
-            project_id    => $well_info->{project_id},
-            created_by    => $well_info->{created_by}
+            cell_number     => $well_name[1],
+            trivial_name    => $well_info->{trivial_name},
+            experiment_id   => $well_info->{experiment_id},
+            design_id       => $well_info->{design_id},
+            crispr_id       => $well_info->{crispr_info}->{crispr_id},
+            crispr_loc      => $well_info->{crispr_loc},
+            crispr_pair_id  => $well_info->{crispr_info}->{crispr_pair_id},
+            crispr_group_id => $well_info->{crispr_info}->{crispr_group_id},
+            gene_id         => $well_info->{gene_id},
+            cell_line       => $well_info->{cell_line},
+            protein_type    => $well_info->{protein_type},
+            guided_type     => $well_info->{guided_type},
+            project_id      => $well_info->{project_id},
+            created_by      => $well_info->{created_by}
         };
         push @wells_data, $temp;
     }
@@ -56,7 +58,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Crispr Pair ID', 'Crispr Group ID', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
     ];
 };
 
@@ -77,6 +79,8 @@ override iterator => sub {
             $well_data->{design_id},
             $well_data->{crispr_id},
             $well_data->{crispr_loc},
+            $well_data->{crispr_pair_id},
+            $well_data->{crispr_group_id},
             $well_data->{gene_id},
             $well_data->{cell_line},
             $well_data->{protein_type},
@@ -113,12 +117,29 @@ sub get_well_design {
 sub get_well_crispr {
     my ($self, $well_id) = @_;
 
+    my $crispr_info;
+
     my $well_process = $self->get_well_process($well_id);
 
     my $res = $self->model->schema->resultset( 'ProcessCrispr' )->find({ process_id =>  $well_process }, { columns => [ qw/crispr_id/ ] });
-    my $crispr_id = $res->get_column('crispr_id');
+    my $res_pair = $self->model->schema->resultset( 'ProcessCrisprPair' )->find({ process_id =>  $well_process }, { columns => [ qw/crispr_pair_id/ ] });
+    my $res_group = $self->model->schema->resultset( 'ProcessCrisprGroup' )->find({ process_id =>  $well_process }, { columns => [ qw/crispr_group_id/ ] });
 
-    return $crispr_id;
+    if ($res) {
+        $crispr_info->{crispr_id} = $res->get_column('crispr_id');
+    } elsif ($res_pair) {
+        my $crispr_pair_id = $res_pair->get_column('crispr_pair_id');
+#        my $rec = $self->model->schema->resultset( 'CrisprPair' )->find({ id =>  $crispr_pair_id }, { columns => [ qw/left_crispr_id right_crispr_id/ ] });
+#        my @crisprs = ($rec->get_column('left_crispr_id'), $rec->get_column('right_crispr_id'));
+        $crispr_info->{crispr_pair_id} = $crispr_pair_id;# @crisprs;
+    } elsif ($res_group) {
+        my $crispr_group_id = $res_group->get_column('crispr_group_id');
+#        my @rec = $self->model->schema->resultset( 'CrisprGroupCrispr' )->search({ id =>  $crispr_group_id })->all;
+#        my @crisprs = map { $_->crispr_id } @rec;
+        $crispr_info->{crispr_group_id} = $crispr_group_id;#@crisprs;
+    }
+
+    return $crispr_info;
 }
 
 sub get_well_cell_line {
@@ -155,9 +176,10 @@ sub get_well_guided_type {
 }
 
 sub get_well_gene {
-    my ($self, $design_id, $crispr_id) = @_;
+    my ($self, $design_id, $other_info) = @_;
 
-    my $res = $self->model->schema->resultset( 'Experiment' )->find({ design_id =>  $design_id, crispr_id => $crispr_id }, { columns => [ qw/gene_id/ ] });
+    $other_info->{design_id} = $design_id;
+    my $res = $self->model->schema->resultset( 'Experiment' )->find( $other_info, { columns => [ qw/gene_id/ ] });
 
     return $res->get_column('gene_id');
 }
@@ -185,26 +207,34 @@ sub get_well_info {
 
     my $info;
     $info->{design_id} = $self->get_well_design($well_id);
-    $info->{crispr_id} = $self->get_well_crispr($well_id);
-    $info->{gene_id} = $self->get_well_gene($info->{design_id}, $info->{crispr_id});
+    $info->{crispr_info} = $self->get_well_crispr($well_id);
+    $info->{gene_id} = $self->get_well_gene($info->{design_id}, $info->{crispr_info});
 
     ## get created by
     my $db_user_id = $self->model->schema->resultset( 'Well' )->find({ id => $well_id }, { columns => [ qw/created_by_id/ ] });
     my $db_user = $self->model->schema->resultset( 'User' )->find({ id => $db_user_id->get_column('created_by_id') }, { columns => [ qw/name/ ] });
 
     ## get crispr location in storage
-    my @db_crispr_storage = $self->model->schema->resultset( 'CrisprStorage' )->search({ crispr_id => $info->{crispr_id} }, { distinct => 1 })->all;
     my @crispr_boxes;
     my $crispr_locs = 'NA';
 
-    for my $rec (@db_crispr_storage) {
-        push @crispr_boxes, $rec->get_column('box_name');
+    if ($info->{crispr_info}->{crispr_id}) {
+        my @db_crispr_storage = $self->model->schema->resultset( 'CrisprStorage' )->search({ crispr_id => $info->{crispr_info}->{crispr_id} }, { distinct => 1 })->all;
+        for my $rec (@db_crispr_storage) {
+            push @crispr_boxes, $rec->get_column('box_name');
+        }
     }
 
     if (scalar @crispr_boxes) { $crispr_locs = join ",", @crispr_boxes; }
 
+    my $exp_search;
+    $exp_search->{design_id} = $info->{design_id};
+    $exp_search->{crispr_id} = $info->{crispr_info}->{crispr_id};
+    $exp_search->{crispr_pair_id} = $info->{crispr_info}->{crispr_pair_id};
+    $exp_search->{crispr_group_id} = $info->{crispr_info}->{crispr_group_id};
+
     ## get well experiment
-    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($info, { columns => [ qw/id gene_id assigned_trivial/ ] });
+    my $db_exp = $self->model->schema->resultset( 'Experiment' )->find($exp_search, { columns => [ qw/id gene_id assigned_trivial/ ] });
     $info->{experiment_id} = $db_exp->get_column('id');
     $info->{trivial_name} = $db_exp->trivial_name;
 
@@ -231,7 +261,7 @@ sub get_well_info {
     $info->{cell_line} = $db_cell_line->get_column('name');
     $info->{protein_type} = $db_protein_type->get_column('name');
     $info->{guided_type} = $db_guided_type->get_column('name');
-    $info->{gene_id} = $self->get_gene_name($info->{gene_id});
+#    $info->{gene_id} = $self->get_gene_name($info->{gene_id});
     $info->{crispr_loc} = $crispr_locs;
     $info->{created_by} = $db_user->get_column('name');
 
