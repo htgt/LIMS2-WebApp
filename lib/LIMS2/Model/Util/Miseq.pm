@@ -25,21 +25,122 @@ use JSON;
 use File::Find;
 use Const::Fast;
 
+const my $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID => <<'EOT';
+SELECT me.name, mwe.classification, mwell.name, mplate.name, fpwell.name, fp.name
+FROM miseq_experiment me
+LEFT JOIN miseq_well_experiment mwe ON mwe.miseq_exp_id=me.id
+LEFT JOIN wells mwell ON mwe.well_id=mwell.id
+LEFT JOIN plates mplate ON mwell.plate_id=mplate.id
+INNER JOIN process_output_well pow ON mwell.id=pow.well_id
+LEFT JOIN process_input_well piw ON pow.process_id=piw.process_id
+LEFT JOIN wells fpwell ON piw.well_id=fpwell.id
+INNER JOIN plates fp ON fpwell.plate_id=fp.id AND me.parent_plate_id=fp.id
+WHERE experiment_id = ? AND mwe.classification != 'Not Called' AND mwe.classification != 'Mixed';
+EOT
+
+sub _find_miseq_data_by_exp {
+    my ($self, $experiment_id) = @_;
+
+    my $query = $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID;
+    return $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached( $query );
+            $sth->execute( $experiment_id );
+            $sth->fetchall_arrayref;
+        }
+    );
+}
+
 sub find_miseq_data_from_experiment {
     my ($c, $experiment_id) = @_;
-$DB::single=1;
+
+    my @results = @{ _find_miseq_data_by_exp($c->model('Golgi'), $experiment_id) };
+
+    my @headers = qw(
+        miseq_experiment_name
+        classification
+        miseq_well_name
+        miseq_plate_name
+        parent_well_name
+        parent_plate_name
+    );
+    my @miseq_relations;
+    foreach my $miseq_well_relation (@results) {
+        my %mapping;
+        @mapping{@headers} = @{ $miseq_well_relation };
+        push @miseq_relations, \%mapping;
+    }
+
+    return @miseq_relations;
+}
+
+
+=head
+sub find_miseq_data_from_experiment {
+    my ($c, $experiment_id) = @_;
     my $rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
     {
-        experiment_id => $experiment_id,
+
+        experiment_id   => $experiment_id,
+        'miseq_well_experiments.classification'  => { '!=' => 'Not Called' },
+        'miseq_well_experiments.classification'  => { '!=' => 'Mixed' },
+        'plate_2.id' => { -ident => 'parent_plate_id' },
     },
     {
-        prefetch => {
-            MiseqWellExperiment => ['Well'],
+        join => {
+            'miseq_well_experiments' => [{
+                'well' => [
+                    'plate',
+                    {
+                        'process_output_wells' => {
+                            'process' => {
+                                'process_input_wells' => {
+                                    'well' => 'plate',
+                                }
+                            }
+                        }
+                    }
+                ],
+            }],
         },
+        prefetch => 'parent_plate',
     });
+    
+
+    my @miseq_experiments;
+    while (my $miseq_exp = $rs->next) {
+        my $result = {
+            parent_plate    => $miseq_exp->parent_plate->as_hash,
+            #clones          => map { clone_information($_) } @{ $miseq_exp->miseq_well_experiments },
+        };
+        while (my $me = $miseq_exp->miseq_well_experiments->next) {
+            clone_information($me);
+        }
+        print Dumper $miseq_exp->parent_plate->name;
+        push (@miseq_experiments, $result);
+    }
+
+    return \@miseq_experiments;
+}
+
+sub clone_information {
+    my ($well_exp) = @_;
+    my $pows = $well_exp->well->process_output_wells;
+
+    while (my $pow = $pows->next) {
+        my $piws = $pow->process->process_input_wells;
+        while (my $piw = $piws->next) {
+            my $dets = $well_exp->as_hash;
+            $dets->{clone} = $piw->well->plate->name . '_' . $piw->well->name;
+            print Dumper $dets;
+        }
+    }
 
     return;
 }
+=cut
+
 
 sub miseq_well_processes {
     my ($c, $params) = @_;

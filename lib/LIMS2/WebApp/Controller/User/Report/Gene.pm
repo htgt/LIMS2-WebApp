@@ -1300,8 +1300,6 @@ sub crispr_qc_data {
 sub fetch_pipeline_ii_primary_qc_values {
     my ( $c, $experiments ) = @_;
 
-$DB::single=1;
-
     print $experiments;
     my @exp_ids = map { $_->{id} } @$experiments;
 
