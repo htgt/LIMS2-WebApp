@@ -261,7 +261,7 @@ sub get_well_info {
     $info->{cell_line} = $db_cell_line->get_column('name');
     $info->{protein_type} = $db_protein_type->get_column('name');
     $info->{guided_type} = $db_guided_type->get_column('name');
-#    $info->{gene_id} = $self->get_gene_name($info->{gene_id});
+    $info->{gene_id} = $self->get_gene_name($info->{gene_id});
     $info->{crispr_loc} = $crispr_locs;
     $info->{created_by} = $db_user->get_column('name');
 
