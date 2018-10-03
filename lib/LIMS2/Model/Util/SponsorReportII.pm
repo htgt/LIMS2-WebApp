@@ -8,7 +8,9 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
 use Readonly;
-use experimental qw(switch);
+#use experimental qw(switch);
+use feature 'switch';
+use Time::HiRes 'time';
 use Data::Dumper;
 
 extends qw( LIMS2::ReportGenerator );
@@ -214,8 +216,6 @@ my $launch_report_subs = {
     genotyping            => \&get_genotyping_data,
 };
 
-## usage
-## $dispatch_report_values->{ gene_symbol }->($gene_id)
 
 sub get_gene_info {
     my ($self, $gene_id, $species) = @_;
@@ -236,7 +236,7 @@ sub get_gene_info {
 
 
 =head get_crispr_seq
-    This is able to get ordered crispr sequences based on a crispr id, crispr pair id or a crispr group id
+    Used to get ordered crispr sequences based on a crispr id, crispr pair id or a crispr group id
 =cut
 
 sub get_crispr_seq {
@@ -279,7 +279,7 @@ sub get_crispr_seq {
 
 
 =head get_exp_info
-    .
+    Get experiment info in the form of hash for downstream file creation purposes
 =cut
 
 sub get_exp_info {
@@ -287,44 +287,39 @@ sub get_exp_info {
 
     my @exps;
 
-    my @proj_exp_rs = $self->model->schema->resultset('ProjectExperiment')->search({ project_id => $project_id });
-    my @proj_exps = map { $_->experiment_id } @proj_exp_rs;
+    my @proj_exp_rs = $self->model->schema->resultset('ProjectExperiment')->search({ project_id => $project_id, experiment_id => { 'is not' => undef }});
 
-    foreach my $exp_id (@proj_exps) {
-        if ($exp_id) {
-            my $exp_rs = $self->model->schema->resultset('Experiment')->find({ id => $exp_id });
+    foreach my $rec (@proj_exp_rs) {
+        try {
             my $temp_h = {
-                id               => $exp_rs->id,
-                trivial_name     => $exp_rs->trivial_name,
-                crispr_id        => $exp_rs->crispr_id,
-                crispr_pair_id   => $exp_rs->crispr_pair_id,
-                crispr_group_id  => $exp_rs->crispr_group_id,
-                design_id        => $exp_rs->design_id,
+                id               => $rec->experiment->id,
+                trivial_name     => $rec->experiment->trivial_name,
+                crispr_id        => $rec->experiment->crispr_id,
+                crispr_pair_id   => $rec->experiment->crispr_pair_id,
+                crispr_group_id  => $rec->experiment->crispr_group_id,
+                design_id        => $rec->experiment->design_id,
             };
 
-            try {
-                my $crispr_search;
+            my $crispr_search;
 
-                if ( $temp_h->{crispr_id} ) {
-                    $crispr_search->{type} = 'crispr';
-                } elsif ( $temp_h->{crispr_pair_id} ) {
-                    $crispr_search->{type} = 'crispr_pair';
-                } elsif ( $temp_h->{crispr_group_id} ) {
-                    $crispr_search->{type} = 'crispr_group';
-                } else {
-                    die "An experiment without a crispr?! :o ";
-                }
+            if ( $temp_h->{crispr_id} ) {
+                $crispr_search->{type} = 'crispr';
+            } elsif ( $temp_h->{crispr_pair_id} ) {
+                $crispr_search->{type} = 'crispr_pair';
+            } elsif ( $temp_h->{crispr_group_id} ) {
+                $crispr_search->{type} = 'crispr_group';
+            } else {
+                die "An experiment without a crispr?! :o ";
+            }
 
-                $crispr_search->{experiment} = $exp_rs;
-                my @crispr_result = $self->get_crispr_seq($crispr_search);
+            $crispr_search->{experiment} = $rec->experiment;
+            my @crispr_result = $self->get_crispr_seq($crispr_search);
+            $temp_h->{crispr_seq} = \@crispr_result;
 
-                $temp_h->{crispr_seq} = \@crispr_result;
-            };
 
-            try {$temp_h->{requester} = $exp_rs->requester->id;};
-
+            try{ $temp_h->{requester} = $rec->experiment->requester->id; };
             push @exps, $temp_h;
-        }
+        };
     }
 
     return @exps;
@@ -345,19 +340,34 @@ sub get_ipsc_electroporation {
     foreach my $experiment (@exps) {
         try {
             my $exp_id = $experiment->{id};
-            my ($design_id, $crispr_id) = ($experiment->{design_id}, $experiment->{crispr_id});
+            my ($design_id, $crispr_id, $crispr_pair_id, $crispr_group_id) = ($experiment->{design_id}, $experiment->{crispr_id}, $experiment->{crispr_pair_id}, $experiment->{crispr_group_id});
 
-            if ($design_id && $crispr_id && $cell_line_id) {
+            if ($design_id and $cell_line_id and ($crispr_id or $crispr_pair_id or $crispr_group_id)) {
+
+                ## EP II plate processes incl. process_design, process_cell_line, process_crispr, process_crispr_pair, process_crispr_group
+                ## the code below links an experiment attributes to an EP II plate
 
                 my @process_design_rs = $self->model->schema->resultset('ProcessDesign')->search(
                       { design_id => $design_id }
                     )->all;
                 my @process_design = map { $_->process_id } @process_design_rs;
 
+                my @process_crispr;
                 my @process_crispr_rs = $self->model->schema->resultset('ProcessCrispr')->search(
                       { crispr_id => $crispr_id }
                     )->all;
-                my @process_crispr = map { $_->process_id } @process_crispr_rs;
+                push @process_crispr, map { $_->process_id } @process_crispr_rs;
+
+#                TODO: uncomment once related tables are created in DB 
+#                my @process_crispr_pair_rs = $self->model->schema->resultset('ProcessCrisprPair')->search(
+#                      { crispr_pair_id => $crispr_pair_id }
+#                    )->all;
+#                push @process_crispr, map { $_->process_id } @process_crispr_pair_rs;
+
+#                my @process_crispr_group_rs = $self->model->schema->resultset('ProcessCrisprGroup')->search(
+#                      { crispr_group_id => $crispr_group_id }
+#                    )->all;
+#                push @process_crispr, map { $_->process_id } @process_crispr_group_rs;
 
                 my @process_cell_line_rs = $self->model->schema->resultset('ProcessCellLine')->search(
                       { cell_line_id => $cell_line_id }
@@ -366,7 +376,7 @@ sub get_ipsc_electroporation {
 
                 my @intersect_processes;
                 foreach my $pr (@process_crispr) {
-                    if ((map { $_ == $pr } @process_design) && (map { $_ == $pr } @process_cell_line)) {
+                    if ((map { $_ == $pr } @process_design) and (map { $_ == $pr } @process_cell_line)) {
                         push @intersect_processes, $pr;
                     }
                 }
@@ -378,17 +388,14 @@ sub get_ipsc_electroporation {
                         )->all;
                 }
 
-                my @wells_rs;
+                my @input_wells;
                 if (scalar @input_wells_rs) {
-                    my @input_wells = map { $_->well_id } @input_wells_rs;
-                    @wells_rs = $self->model->schema->resultset('Well')->search(
-                          { id => { -in => \@input_wells } }
-                        )->all;
+                    @input_wells = map { $_->well } @input_wells_rs;
                 }
 
                 my @ep_ii_plate_data;
                 my @plate_name_tracker;
-                foreach my $well (@wells_rs) {
+                foreach my $well (@input_wells) {
                     if ($well->plate->type_id eq 'EP_PIPELINE_II') {
                         if (!(map { $_ eq $well->plate->name } @plate_name_tracker)) {
                             my $temp_h = { name => $well->plate->name, id => $well->plate->id};
@@ -398,6 +405,7 @@ sub get_ipsc_electroporation {
                     }
                 }
 
+                ## This flag is used to determine the color in the frontend view
                 if (scalar @ep_ii_plate_data) {
                     $flag = 1;
                 }
@@ -414,7 +422,7 @@ sub get_ipsc_electroporation {
 
 
 =head get_ipsc_colonies_picked
-    get the number of colonies picked per experiment's EP II plates
+    Get the number of colonies picked per experiment's EP II plates
 =cut
 
 sub get_ipsc_colonies_picked {
@@ -423,7 +431,7 @@ sub get_ipsc_colonies_picked {
     my $exp_colonies;
     my $total = 0;
 
-    while (my ($exp_id,$ep_ii_plates) = each %{$exp_info}) {
+    while (my ($exp_id, $ep_ii_plates) = each %{$exp_info}) {
         my $colonies = 0;
 
         foreach my $ep_ii_plate (@{$ep_ii_plates}) {
@@ -433,11 +441,22 @@ sub get_ipsc_colonies_picked {
                 plate_id => $plate_id,
                 });
 
-            foreach my $well (@ep_ii_wells_rs) {
-                foreach my $rec  ($well->process_input_wells()) {
-                    $colonies++;
-                }
-            }
+            my @ep_well_ids = map { $_->id } @ep_ii_wells_rs;
+
+            my @process_rs_1 = $self->model->schema->resultset('ProcessInputWell')->search({
+                well_id => { -in => \@ep_well_ids }
+                });
+
+            my @processes = map { $_->process_id } @process_rs_1;
+
+            my @process_rs_2 = $self->model->schema->resultset('ProcessOutputWell')->search({
+                process_id => { -in => \@processes }
+                });
+
+            my @child_plates = map { $_->well->plate->id } @process_rs_2;
+
+            @child_plates = uniq @child_plates;
+            $colonies += scalar @child_plates;
         }
 
         $exp_colonies->{$exp_id}->{picked_colonies} = $colonies;
@@ -455,21 +474,22 @@ sub get_ipsc_colonies_picked {
 =cut
 
 sub get_genotyping_data {
-    my ($self, @proj_exps) = @_;
+    my ($self, @exps) = @_;
 
     my $genotyping;
 
-    foreach my $proj_exp_rec (@proj_exps) {
+    foreach my $exp_rec (@exps) {
         my @miseq_exps_and_wells;
-        my $original_exp_id = $proj_exp_rec->{id};
+        my $original_exp_id = $exp_rec->{id};
 
+        ## Get the miseq experiment id using an experiment id
         my @miseq_exp_rs = $self->model->schema->resultset('MiseqExperiment')->search({
             experiment_id => $original_exp_id,
             });
 
         my @miseq_exp_ids = map { $_->id } @miseq_exp_rs;
 
-        if (@miseq_exp_ids) {
+        if ( @miseq_exp_ids ) {
             foreach my $exp_id (@miseq_exp_ids) {
                 @miseq_exps_and_wells = $self->model->schema->resultset('MiseqWellExperiment')->search({
                     miseq_exp_id => $exp_id,
@@ -517,7 +537,7 @@ sub get_genotyping_data {
 
 
 =head generate_sub_report
-    .
+
 =cut
 
 sub generate_sub_report {
