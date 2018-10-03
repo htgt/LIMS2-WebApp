@@ -212,7 +212,7 @@ table.table-bordered > tbody > tr > td{
           [% IF elem.experiment_ep_ii_info.exps.${exp.id}.size %]
             <td style="background-color:#FFCC80;">
               [% FOREACH ep_ii IN elem.experiment_ep_ii_info.exps.${exp.id} %]
-                <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.id } ) %]" target="_blank">[% ep_ii.name %]</a>
+                <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.plate_id } ) %]" target="_blank">[% ep_ii.name %]</a>
               [% END %]
             </td>
           [% ELSE %]

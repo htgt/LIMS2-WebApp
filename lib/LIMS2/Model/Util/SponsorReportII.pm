@@ -398,7 +398,7 @@ sub get_ipsc_electroporation {
                 foreach my $well (@input_wells) {
                     if ($well->plate->type_id eq 'EP_PIPELINE_II') {
                         if (!(map { $_ eq $well->plate->name } @plate_name_tracker)) {
-                            my $temp_h = { name => $well->plate->name, id => $well->plate->id};
+                            my $temp_h = { name => $well->plate->name, plate_id => $well->plate->id, well_id => $well->id };
                             push @plate_name_tracker, $well->plate->name;
                             push @ep_ii_plate_data, $temp_h;
                         }
@@ -435,28 +435,22 @@ sub get_ipsc_colonies_picked {
         my $colonies = 0;
 
         foreach my $ep_ii_plate (@{$ep_ii_plates}) {
-            my $plate_id = $ep_ii_plate->{id};
-
-            my @ep_ii_wells_rs = $self->model->schema->resultset('Well')->search({
-                plate_id => $plate_id,
-                });
-
-            my @ep_well_ids = map { $_->id } @ep_ii_wells_rs;
+            my $ep_ii_well_id = $ep_ii_plate->{well_id};
 
             my @process_rs_1 = $self->model->schema->resultset('ProcessInputWell')->search({
-                well_id => { -in => \@ep_well_ids }
+                well_id => $ep_ii_well_id
                 });
 
-            my @processes = map { $_->process_id } @process_rs_1;
+            my @process_ids = map { $_->process_id } @process_rs_1;
 
             my @process_rs_2 = $self->model->schema->resultset('ProcessOutputWell')->search({
-                process_id => { -in => \@processes }
+                process_id => { -in => \@process_ids }
                 });
 
-            my @child_plates = map { $_->well->plate->id } @process_rs_2;
+            my @child_pick_wells = map { $_->well_id } @process_rs_2;
 
-            @child_plates = uniq @child_plates;
-            $colonies += scalar @child_plates;
+            @child_plates = uniq @child_pick_wells;
+            $colonies += scalar @child_pick_wells;
         }
 
         $exp_colonies->{$exp_id}->{picked_colonies} = $colonies;
