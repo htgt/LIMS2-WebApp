@@ -449,7 +449,7 @@ sub get_ipsc_colonies_picked {
 
             my @child_pick_wells = map { $_->well_id } @process_rs_2;
 
-            @child_plates = uniq @child_pick_wells;
+            @child_pick_wells = uniq @child_pick_wells;
             $colonies += scalar @child_pick_wells;
         }
 
