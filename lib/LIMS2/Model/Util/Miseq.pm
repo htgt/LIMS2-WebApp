@@ -289,11 +289,9 @@ sub _wanted {
 sub generate_summary_data {
     my ($c, $plate_id, $miseq_id) = @_;
 
-    my $genes;
+    my $overview;
     my $ranges;
     my $wells;
-    
-
     my $index;
     my $converter = wells_generator(1);
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
@@ -302,37 +300,29 @@ sub generate_summary_data {
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @indexes;
         foreach my $well_exp (@well_exps) {
-    my $percentages;
-    my @experiments;
-    my $details;
+            my $percentages;
+            my @experiments;
+            my $details;
             $index = $converter->{$well_exp->{well_name}};
             push (@indexes, $index);
-            
-            push ( @{$wells->{$index}->{gene}}, $miseq_exp->{gene});
-
-            push ( @{$wells->{$index}->{experiments}}, $miseq_exp->{name});
+            push ( @{$wells->{sprintf("%02d", $index)}->{gene}}, $miseq_exp->{gene});
+            push ( @{$wells->{sprintf("%02d", $index)}->{experiments}}, $miseq_exp->{name});
 
             $details->{$exp_name}->{class}       = $well_exp->{classification};
             $details->{$exp_name}->{status}      = $well_exp->{status};
             $details->{$exp_name}->{frameshift}  = $well_exp->{frameshifted};            
-             
-            $percentages->{$exp_name}->{wt}   = $well_exp->{total_reads};
-            $percentages->{$exp_name}->{nhej} = $well_exp->{nhej_reads};
-            $percentages->{$exp_name}->{hdr}  = $well_exp->{hdr_reads};
-            $percentages->{$exp_name}->{mix}  = $well_exp->{mixed_reads};
-            #print Dumper "Index: $index";
-            #print Dumper $miseq_exp;
-            #print Dumper $percentages->{$miseq_exp->{name}}->{wt};  
-            #print Dumper $percentages->{$miseq_exp->{name}}->{nhej};
-            #print Dumper $percentages->{$miseq_exp->{name}}->{hdr};
-            #print Dumper $percentages->{$miseq_exp->{name}}->{mix};
-            #print Dumper "\n";
-       
-            push ( @{$wells->{sprintf("%02d", $index)}->{percentages}}, $percentages);
-            push ( @{$wells->{sprintf("%02d", $index)}->{details}}, $details);
+            print Dumper $well_exp; 
+            $percentages->{$exp_name}->{wt}   = qq/$well_exp->{total_reads}/;
+            $percentages->{$exp_name}->{nhej} = qq/$well_exp->{nhej_reads}/;
+            $percentages->{$exp_name}->{hdr}  = qq/$well_exp->{hdr_reads}/;
+            $percentages->{$exp_name}->{mix}  = qq/$well_exp->{mixed_reads}/;
+
+            $wells->{sprintf("%02d", $index)}->{percentages} = $percentages;
+            $wells->{sprintf("%02d", $index)}->{details} = $details;
+            #push ( @{$wells->{sprintf("%02d", $index)}->{percentages}}, $percentages);
+            #push ( @{$wells->{sprintf("%02d", $index)}->{details}}, $details);
 
         }
-        
         return unless @indexes;
         @indexes = sort { $a <=> $b } @indexes;
         my $range = $indexes[0] . '-' . $indexes[-1];
@@ -340,16 +330,13 @@ sub generate_summary_data {
         
         my @gene;
         push @gene, $miseq_exp->{gene};
-        $genes->{$miseq_exp->{name}} = \@gene;
+        $overview->{$miseq_exp->{name}} = \@gene;
     }
-
-    print Dumper $wells->{26};
-    return   { 
-        ranges  => $ranges,
-        genes   => $genes,
-        wells   => $wells
-        };
-    }
+return{ 
+    ranges      => $ranges,
+    overview    => $overview,
+    wells       => $wells};
+}
                                               
 1;
 

@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::User::PointMutation;
 
 use strict;
 use warnings FATAL => 'all';
-#use Data::Dumper;
+use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Path::Class;
@@ -38,19 +38,21 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
     my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
+    
 
     if ($miseq_plate->{'384'} == 1 ) {
         my $quadrants = experiment_384_distribution($c, $summary_data->{ranges});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
     }
     
-    my $overview = $summary_data->{genes}; 
+    my $overview = $summary_data->{overview}; 
     my $ov_json = encode_json ({ summary => $overview });
 
     my $json = encode_json ({ summary => $summary_data->{wells}});
 
     my ($gene_keys, $gene_prefix_keys) = get_genes($c, $overview);
-
+    
+    
     my $revov = encode_json({ summary => $gene_keys });
     my $prefix = encode_json({summary => $gene_prefix_keys});
     my @exps = sort keys %$overview;
@@ -100,6 +102,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
     
+    print Dumper $revov;
 
     $c->stash(
         wells => $json,
