@@ -20,7 +20,7 @@ use LIMS2::Model::Util::QCPlasmidView qw( add_display_info_to_qc_results );
 use IPC::System::Simple qw( capturex );
 use Path::Class;
 use LIMS2::Model::Util::ImportSequencing qw( get_seq_file_import_date );
-
+use Text::CSV;
 use HTGT::QC::Util::SubmitQCFarmJob::Vector;
 use HTGT::QC::Util::SubmitQCFarmJob::ESCell;
 
@@ -1124,6 +1124,26 @@ sub download_reads :Path( '/user/download_reads' ) :Args() {
     $c->response->content_type( 'text/csv' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$seq_project.fasta" );
     $c->response->body( $fasta );
+    return;
+}
+
+sub crispresso_submission :Path( '/user/crispresso_submission' ) :Args(0) {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles( 'edit' );
+    return;
+}
+
+sub crispresso_submission_template :Path( '/user/qc/cripsresso_submission_template' ) :Args(0) {
+      my ( $self, $c ) = @_;
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename=crispresso_submission_template.csv' );
+    my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
+    my $output;
+    open my $fh, '>', \$output or die 'Could not create example file';
+    $csv->print( $fh, [qw/Experiment Gene Crispr Strand Amplicon Range HDR/] );
+        close $fh or die 'Could not close example file';
+    $c->response->body( $output );
     return;
 }
 
