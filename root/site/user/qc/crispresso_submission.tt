@@ -22,7 +22,7 @@ p.ex1 {
             </a>
         </td>
     </li>
-    
+ 
     <li>
         <h3>Step 2</h3>
         <p>Rename the template csv according to the following formula:</p>
@@ -37,85 +37,85 @@ p.ex1 {
         <div class="panel-group" id="accordian">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <a class="panel-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                    <a class="panel-toggle" data-toggle="collapse" href="#collapseTwo">
                     <i class="glyphicon glyphicon-question-sign"></i> CSV data types
                     </a>
                 </div>
                 <div id="collapseTwo" class="panel-body collapse">
                     <div class="panel-body">
                         <div class="well well-sm">
-                        <dl class="dl-horizontal">
-                            <dt>Experiment</dt>
-                            <dd>
-                                <p> Must be unique within the plate. It can contain only letters, numbers or underscores.<br/>
-                                    To get the experiment name the suggested process would be to concatenate the plate name and the gene. <br/> 
-                                    f(x) = CONCATENATE(<i>plate</i>+"_"+<i>gene</i>) <br/>
-                                    <b>I.e.</b>&nbsp;<i>HUPEPD0043_4A_SMARCA4_1</i> 
-                                </p>
-                            </dd>
+                            <dl class="dl-horizontal">
+                                <dt>Experiment</dt>
+                                <dd>
+                                    <p> Must be unique within the plate. It can contain only letters, numbers or underscores.<br/>
+                                        To get the experiment name the suggested process would be to concatenate the plate name and the gene. <br/> 
+                                        f(x) = CONCATENATE(<i>plate</i>+"_"+<i>gene</i>) <br/>
+                                        <b>e.g.</b>&nbsp;<i>HUPEPD0043_4A_SMARCA4_1</i> 
+                                    </p>
+                                </dd>
 
-                            <dt>Gene</dt>
-                            <dd> 
-                                <p>
-                                    It can contain only letters, numbers or underscores. Ideally trivial gene name.<br/><b>I.e.</b>&nbsp;<i>SMARCA4_1</i>
-                                </p>
-                            </dd>
+                                <dt>Gene</dt>
+                                <dd> 
+                                    <p>
+                                    It can contain only letters, numbers or underscores. Ideally trivial gene name.<br/><b>e.g.</b>&nbsp;<i>SMARCA4_1</i>
+                                    </p>
+                                </dd>
 
-                            <dt>Crispr</dt>
-                            <dd>
-                                <p>
-                                    Result sequence.<br/>
-                                        <b>I.e.</b>&nbsp;<i>CCACCCTCGGTGTCCGCAAC</i>
-                                </p>
-                            </dd>
+                                <dt>Crispr</dt>
+                                <dd>
+                                    <p>
+                                        Result sequence.<br/>
+                                        <b>e.g.</b>&nbsp;<i>CCACCCTCGGTGTCCGCAAC</i>
+                                    </p>
+                                </dd>
 
-                            <dt>Strand</dt>
-                            <dd>
-                                <p>
-                                    Can be either "<b>+</b>" or "<b>-</b>".<br/>
-                                    <b>I.e.</b>&nbsp;<i>+</i> 
-                                </p>
-                            </dd>
+                                <dt>Strand</dt>
+                                <dd>
+                                    <p>
+                                        Can be either "<b>+</b>" or "<b>-</b>".<br/>
+                                        <b>e.g.</b>&nbsp;<i>+</i> 
+                                    </p>
+                                </dd>
 
 
-                            <dt>Amplicon</dt>
-                            <dd>
-                                <p>
-                                    Target region sequence.<br/>
-                                        <b>I.e.</b>&nbsp;
+                                <dt>Amplicon</dt>
+                                <dd>
+                                    <p>
+                                        Target region sequence.Case insensitive.<br/>
+                                            <b>e.g.</b>&nbsp;
+                                            <i>
+                                                GAGCTCAGATCATGGCCTACaagatgctggccagggggcagcccctccccg
+                                                accacctgcagatggcggtgcagggcaagcggccgatgcccgggatgcagc
+                                                agcagatgccaacgctacctccaccctcggtgtccgcaacaggacccggcc
+                                                ctggccctggccctggccccggcccgggtcccggcccggcacctccaaatt
+                                                acagcaggcCTCATGGTAAGACTGGCTGC
+                                            </i> 
+                                    </p>
+                                </dd>
+
+                                <dt>Range</dt>
+                                <dd>
+                                    <p>
+                                        The minimum and the maximum Illumina indexes of the target wells.<br/>
+                                        <b>e.g.</b>&nbsp;<i>1 - 96</i> 
+                                    </p>
+                                </dd>
+
+                                <dt>HDR</dt>
+                                <dd>
+                                    <p>
+                                        HDR template amplicon. Must match amplicon in length. Case insensitive.<br/>
+                                        <b>e.g.</b>&nbsp;
                                         <i>
-                                            GAGCTCAGATCATGGCCTACaagatgctggccagggggcagcccctccccg
-                                            accacctgcagatggcggtgcagggcaagcggccgatgcccgggatgcagc
-                                            agcagatgccaacgctacctccaccctcggtgtccgcaacaggacccggcc
-                                            ctggccctggccctggccccggcccgggtcccggcccggcacctccaaatt
-                                            acagcaggcCTCATGGTAAGACTGGCTGC
+                                            GAGCTCAGATCATGGCCTACaagatgctggccagggggcagcccctccccga
+                                            ccacctgcagatggcggtgcagggcaagcggccgatgcccgggatTcagcag
+                                            cagatgccaacgctacctccaccctcggtgtccgcaacaggacccggccctg
+                                            gccctggccctggccccggcccgggtcccggcccggcacctccaaattacag
+                                            caggcCTCATGGTAAGACTGGCTGC
                                         </i> 
-                                </p>
-                            </dd>
-
-                            <dt>Range</dt>
-                            <dd>
-                                <p>
-                                    The minimun and the maximun Illumina indexes of the target wells.<br/>
-                                    <b>I.e.</b>&nbsp;<i>1 - 96</i> 
-                                </p>
-                            </dd>
-
-                            <dt>HDR</dt>
-                            <dd>
-                                <p>
-                                    HDR template amplicon. Must match amplicon in length.<br/>
-                                    <b>I.e.</b>&nbsp;
-                                    <i>
-                                        GAGCTCAGATCATGGCCTACaagatgctggccagggggcagcccctccccga
-                                        ccacctgcagatggcggtgcagggcaagcggccgatgcccgggatTcagcag
-                                        cagatgccaacgctacctccaccctcggtgtccgcaacaggacccggccctg
-                                        gccctggccctggccccggcccgggtcccggcccggcacctccaaattacag
-                                        caggcCTCATGGTAAGACTGGCTGC
-                                    </i> 
-                                </p>
-                            </dd>
-                        </dl>
+                                    </p>
+                                </dd>
+                            </dl>
                         </div>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ p.ex1 {
 
     <li>
         <h3>Step 4</h3>
-        <p>Save the csv and attach it to a new RT ticket.
+        <p>Save the csv and attach it to a new RT ticket. Please specify walk up number.
         Email address: <b> htgt@sanger.ac.uk </b>
         </p>
     </li>

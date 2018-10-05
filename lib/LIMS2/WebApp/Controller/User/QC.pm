@@ -1134,15 +1134,16 @@ sub crispresso_submission :Path( '/user/crispresso_submission' ) :Args(0) {
 }
 
 sub crispresso_submission_template :Path( '/user/qc/cripsresso_submission_template' ) :Args(0) {
-      my ( $self, $c ) = @_;
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/csv' );
-    $c->response->header( 'Content-Disposition' => 'attachment; filename=crispresso_submission_template.csv' );
+    my ( $self, $c ) = @_;
+    
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
     open my $fh, '>', \$output or die 'Could not create example file';
     $csv->print( $fh, [qw/Experiment Gene Crispr Strand Amplicon Range HDR/] );
-        close $fh or die 'Could not close example file';
+    close $fh or die 'Could not close example file';
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/csv' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename=crispresso_submission_template.csv' );
     $c->response->body( $output );
     return;
 }
