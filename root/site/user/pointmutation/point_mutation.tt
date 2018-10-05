@@ -581,14 +581,17 @@ function buildExps() {
             var expName = wellData.experiments[expInt];
             var expDetails = wellData.details[expName];
 
-            /* 
+            /*
+
             if (wellData.percentages[expName].miss != null) {
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
             } else {
                 Place below code here
             }
+            
             */
+
             if (expDetails.status == 'Scanned-Out' || expDetails.status == 'Empty') {
                 console.log("Adding status circle");
                 d3.select(nodes[i].childNodes[0]).append("circle")
