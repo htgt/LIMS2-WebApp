@@ -93,13 +93,22 @@ p.ex1 {
                                     </p>
                                 </dd>
 
-                                <dt>Range</dt>
+                                <dt>Minimum_Well</dt>
                                 <dd>
                                     <p>
-                                        The minimum and the maximum Illumina indexes of the target wells.<br/>
-                                        <b>e.g.</b>&nbsp;<i>1 - 96</i> 
+                                        The minimum Illumina index of the target wells.<br/>
+                                        <b>e.g.</b>&nbsp;<i>1</i> 
                                     </p>
                                 </dd>
+                                
+                                <dt>Maximum_Well</dt>
+                                <dd>
+                                    <p>
+                                        The maximum Illumina index of the target wells.<br/>
+                                        <b>e.g.</b>&nbsp;<i>96</i> 
+                                    </p>
+                                </dd>
+
 
                                 <dt>HDR</dt>
                                 <dd>
