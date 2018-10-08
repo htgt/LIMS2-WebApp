@@ -29,6 +29,8 @@ sub _build_wells_data {
             design_id     => $well_info->{design_id},
             crispr_id     => $well_info->{crispr_id},
             crispr_loc    => $well_info->{crispr_loc},
+            t7_score      => $well_info->{t7_score},
+            t7_status     => $well_info->{t7_status},
             gene_id       => $well_info->{gene_id},
             cell_line     => $well_info->{cell_line},
             protein_type  => $well_info->{protein_type},
@@ -56,7 +58,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
     ];
 };
 
@@ -77,6 +79,8 @@ override iterator => sub {
             $well_data->{design_id},
             $well_data->{crispr_id},
             $well_data->{crispr_loc},
+            $well_data->{t7_score},
+            $well_data->{t7_status},
             $well_data->{gene_id},
             $well_data->{cell_line},
             $well_data->{protein_type},
@@ -188,9 +192,21 @@ sub get_well_info {
     $info->{crispr_id} = $self->get_well_crispr($well_id);
     $info->{gene_id} = $self->get_well_gene($info->{design_id}, $info->{crispr_id});
 
-    ## get created by
-    my $db_user_id = $self->model->schema->resultset( 'Well' )->find({ id => $well_id }, { columns => [ qw/created_by_id/ ] });
-    my $db_user = $self->model->schema->resultset( 'User' )->find({ id => $db_user_id->get_column('created_by_id') }, { columns => [ qw/name/ ] });
+    ## get created by and t7 info
+    my $db_well = $self->model->schema->resultset( 'Well' )->find({ id => $well_id });
+
+    my ($t7_score, $t7_status);
+    try {
+        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id });
+        $t7_score = $db_well_t7->get_column('t7_score');
+    };
+
+    try {
+        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id });
+        $t7_status = $db_well_t7->get_column('t7_status');
+    };
+
+    my $db_user = $self->model->schema->resultset( 'User' )->find({ id => $db_well->get_column('created_by_id') }, { columns => [ qw/name/ ] });
 
     ## get crispr location in storage
     my @db_crispr_storage = $self->model->schema->resultset( 'CrisprStorage' )->search({ crispr_id => $info->{crispr_id} }, { distinct => 1 })->all;
@@ -233,6 +249,8 @@ sub get_well_info {
     $info->{guided_type} = $db_guided_type->get_column('name');
     $info->{gene_id} = $self->get_gene_name($info->{gene_id});
     $info->{crispr_loc} = $crispr_locs;
+    $info->{t7_score} = $t7_score;
+    $info->{t7_status} = $t7_status;
     $info->{created_by} = $db_user->get_column('name');
 
     return $info;

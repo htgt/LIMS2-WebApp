@@ -126,12 +126,74 @@
                 }
             });
 
+            var boolean_t7_status = Ext.create('Ext.data.Store', {
+                fields: ['t_s'],
+                data: [
+                {"t_s":"-"},
+                {"t_s":"pass"},
+                {"t_s":"fail"}
+                ]
+            });
+
+            var t7_percent = Ext.create('Ext.data.Store', {
+                fields: ['t_p'],
+                data: [
+                {"t_p":"0"},
+                {"t_p":"10"},
+                {"t_p":"20"},
+                {"t_p":"30"},
+                {"t_p":"40"},
+                {"t_p":"50"},
+                {"t_p":"60"},
+                {"t_p":"70"},
+                {"t_p":"80"},
+                {"t_p":"90"},
+                {"t_p":"100"}
+                ]
+            });
+
+            var override_t7_score = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: t7_percent,
+                displayField: 't_p',
+                forceSelection: true
+            });
+
+            var override_t7_status = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: boolean_t7_status,
+                displayField: 't_s',
+                forceSelection: true
+            });
+
             var columns = [
                 [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
 
                 [% first_column == 1 ?  '' : ',' %]
                 [% first_column = 0 %]
+                    [%- IF col.match('T7 Score') %]
+                    {
+                        header: "T7<br>Score",
+                        dataIndex: 't7_score',
+                        editor: override_t7_score,
+                        locked: true,
+                        width: 55,
+                        listeners: {
+                            change: function (field, newValue, oldValue) {
+                                console.log('T7 score listener' );
+                            }
+                        }
+                    }
+                    [%- ELSIF col.match('T7 Status') %]
+                    {
+                        header: "T7<br>Status",
+                        dataIndex: 't7_status',
+                        editor: override_t7_status,
+                        locked: true,
+                        width: 55
+                    }
+                    [%- ELSE %]
                 {
 
                     header: "[%- col %]",
@@ -254,6 +316,7 @@
 
                     dataIndex: '[%- col %]'
                 }
+                [%- END %]
                 [%- END %]
             ];
 
@@ -409,10 +472,18 @@
                     }
                 },
                 tools:[
-
+                    {
+                        id        : 'save_t7_changes',
+                        type      : 'save',
+                        minHeight : '20',
+                        minWidth  : '20',
+                        handler   : function(event, toolEl, panel){
+                            SaveT7Changes();
+                        }
+                    },
                     {
                         id        : 'download_csv_file_btn',
-                        type      : 'save',
+                        type      : 'next',
                         minHeight : '20',
                         minWidth  : '20',
                         handler   : function(event, toolEl, panel){
@@ -426,12 +497,22 @@
             var tooltips = [{
                 target   : 'download_csv_file_btn',
                 html     : 'Click to download the grid data as a CSV spreadsheet file'
-            }];
+            },
+            {
+                target   : 'save_t7_changes',
+                html     : 'Click to save T7 changes made'
+            }
+            ];
 
             Ext.each(tooltips, function(config) {
                 Ext.create('Ext.tip.ToolTip', config);
             });
 
+            function SaveT7Changes() {
+
+              console.log('SaveT7Changes()');
+
+            }
 
             function DownloadCsvFile(grid) {
                 var cols    = grid.columns;
@@ -507,4 +588,3 @@
 
 </script>
 
-<br />
