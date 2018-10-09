@@ -189,7 +189,7 @@
                     [%- IF col.match('T7 Score') %]
                     {
                         header: "T7<br>Score",
-                        dataIndex: 't7_score',
+                        dataIndex: 'T7 Score',
                         editor: override_t7_score,
                         locked: true,
                         width: 55
@@ -197,7 +197,7 @@
                     [%- ELSIF col.match('T7 Status') %]
                     {
                         header: "T7<br>Status",
-                        dataIndex: 't7_status',
+                        dataIndex: 'T7 Status',
                         editor: override_t7_status,
                         locked: true,
                         width: 55
@@ -481,15 +481,7 @@
                     }
                 },
                 tools:[
-                    {
-                        id        : 'save_t7_changes',
-                        type      : 'save',
-                        minHeight : '20',
-                        minWidth  : '20',
-                        handler   : function(event, toolEl, panel){
-                            SaveT7Changes();
-                        }
-                    },
+
                     {
                         id        : 'download_csv_file_btn',
                         type      : 'save',
@@ -506,34 +498,11 @@
             var tooltips = [{
                 target   : 'download_csv_file_btn',
                 html     : 'Click to download the grid data as a CSV spreadsheet file'
-            },
-            {
-                target   : 'save_t7_changes',
-                html     : 'Click to save T7 changes'
-            }
-            ];
+            }];
 
             Ext.each(tooltips, function(config) {
                 Ext.create('Ext.tip.ToolTip', config);
             });
-
-            function SaveT7Changes() {
-
-                Ext.Ajax.request({
-                   url: '[% c.uri_for( '/api/plate/save_well_t7_changes' ) %]',
-                   method: 'GET',
-                   params: { plate_name: plateName },
-                   headers: {'Content-Type': 'application/json'},
-                   success: function(response, opts) {
-
-                      // callback function on the store load to refresh the grid
-                      grid.store.load( function( records, operation, success ){ grid.getView().refresh(); } );
-                   },
-                   failure: function(response, opts) {
-                      console.log('server-side failure with status code ' + response.status);
-                   }
-                });
-            }
 
             function DownloadCsvFile(grid) {
                 var cols    = grid.columns;

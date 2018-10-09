@@ -37,7 +37,7 @@ sub _build_wells_data {
             guided_type   => $well_info->{guided_type},
             project_id    => $well_info->{project_id},
             created_by    => $well_info->{created_by},
-            well_id       => $well->id,
+            well_id       => $well_info->{well_id},
         };
         push @wells_data, $temp;
     }
@@ -199,12 +199,12 @@ sub get_well_info {
 
     my ($t7_score, $t7_status);
     try {
-        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id });
+        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id }, { columns => [ qw/t7_score/ ] });
         $t7_score = $db_well_t7->get_column('t7_score');
     };
 
     try {
-        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id });
+        my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id }, { columns => [ qw/t7_status/ ] });
         $t7_status = $db_well_t7->get_column('t7_status');
     };
 
@@ -254,6 +254,7 @@ sub get_well_info {
     $info->{t7_score} = $t7_score;
     $info->{t7_status} = $t7_status;
     $info->{created_by} = $db_user->get_column('name');
+    $info->{well_id} = $well_id;
 
     return $info;
 }
