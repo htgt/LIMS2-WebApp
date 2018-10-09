@@ -273,7 +273,10 @@ $('#barcodeUpload').on('change', function(evt) {
             d3.csvParse(csvString, function(row){
                 var wellID = $('g#' + row.well + ' rect')[0].id;
                 var intID = wellID.split(/_/)[1];
-                piqBarcodes[intID] = row.barcode;
+                if (piqBarcodes[intID] == undefined) {
+                    piqBarcodes[intID] = [];
+                }
+                piqBarcodes[intID].push(row.barcode);
             });
         };
     }
@@ -496,20 +499,24 @@ function showBarcodeAssignment(cont, rectID) {
     tooltipPositioning(cont);
 
     var wellID = rectID.split('_')[1];
-    var wellBarcode = piqBarcodes[wellID];
+    var wellBarcodes = piqBarcodes[wellID];
     var siblingWell = $('#' + rectID).siblings('text').text().split(/[^A-H0-9]/);
     var childWell = siblingWell.pop();
 
     var barcodeBuild = '';
     var well = '<p><strong>Well: </strong><span>' + childWell + '</span></p>';
     var parentDetails = '';
-    var barcode = '';
+    var barcodeString = '';
 
     if (relationalData[childWell]) {
         parentDetails = '<p><strong>Parent: </strong><span>' + relationalData[childWell].parent_plate + '_' + relationalData[childWell].parent_well + '</span></p>';
     }
-    if (wellBarcode) {
-        barcode = '<p><strong>Barcode: </strong><span>' + wellBarcode + '</span></p>';
+    if (wellBarcodes) {
+        barcodeString = '<p><strong>Barcodes: </strong></p>';
+        for (var bc = 0; bc < wellBarcodes.length; bc++) { 
+            var barcode = '<p><strong>&nbsp;' + (bc + 1) + ' - </strong><span>' + wellBarcodes[bc] + '</span></p>';
+            barcodeString = barcodeString + barcode;
+        }
     }
 
     if (parentDetails == '' && barcode == '') {
@@ -517,7 +524,7 @@ function showBarcodeAssignment(cont, rectID) {
         return;
     }
 
-    barcodeBuild = well + parentDetails + barcode;
+    barcodeBuild = well + parentDetails + barcodeString;
     $('#tooltip').html(barcodeBuild);
     d3.select("#tooltip").classed("hidden", false);
 

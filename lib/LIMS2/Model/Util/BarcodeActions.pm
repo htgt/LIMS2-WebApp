@@ -19,12 +19,13 @@ use Sub::Exporter -setup => {
               start_doubling_well_barcode
               upload_qc_plate
               create_barcoded_plate
-
+              attach_distru_barcodes_to_piq
           )
     ]
 };
 
 use LIMS2::Model::Util::WellName qw( generate_96_well_annotations );
+use LIMS2::Model::Util::Miseq qw( wells_generator );
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
@@ -37,7 +38,7 @@ use Data::Dumper;
 # e.g. <input type="text" name="barcode_[% well.id %]">
 sub add_barcodes_to_wells{
     my ($model, $params, $state) = @_;
-
+$DB::single=1;
     my @csv_barcodes;
     my @barcode_keys;
 
@@ -1165,5 +1166,195 @@ sub _parse_plate_well_barcodes_csv_file {
 
     return $csv_data;
 }
+
+sub attach_distru_barcodes_to_piq {
+    my ($model, $piq_plate, $well_barcodes, $state) = @_;
+    my $well_details;
+    my $piq_wells = $piq_plate->wells;
+    while (my $well = $piq_wells->next) {
+        $well_details->{$well->name} = $well->id;
+    }
+    my @well_order = wells_generator();
+    foreach my $well_name (keys %$well_barcodes) {
+        my @well_barcodes = @{ $well_barcodes->{$well_name} };
+        my @child_well_data;
+        my $barcode_tubes;
+        for (my $num = 0; $num < scalar @well_barcodes; $num++){
+            my $temp_well_name = $well_order[$num];
+            my $well_data = {
+                well_name => $temp_well_name,
+                parent_plate => $piq_plate->name,
+                parent_well => $well_name,
+                process_type => 'rearray',
+                barcode => $well_barcodes[$num],
+            };
+            $barcode_tubes->{$temp_well_name} = $well_barcodes[$num];
+            push (@child_well_data, $well_data);
+        }
+
+$DB::single=1; 
+        my $temp_plate_name = $model->random_plate_name({ prefix => 'TMP_' . $piq_plate->type->id .'ii_' });
+        my $temp_piq_plate = $model->create_plate({
+            name       => $temp_plate_name,
+            species    => $piq_plate->species_id,
+            type       => $piq_plate->type_id,
+            created_by => $piq_plate->created_by->name,
+            wells      => \@child_well_data,
+            is_virtual => 1,
+        });
+$DB::single=1; 
+            
+        my $temp_piq_wells = $temp_piq_plate->wells;
+        while (my $piq_well = $temp_piq_wells->next) {
+            $model->create_well_barcode({
+                barcode     => $barcode_tubes->{$piq_well->name},
+                state       => 'frozen_back',
+                user        => $piq_plate->created_by->name,
+                well_id     => $piq_well->id,
+            });
+        }
+    }
+
+    return;
+}
+
+=head
+piq_expand_freeze_back_barcode
+    my ($model, $params) = @_;
+
+    my $validated_params = $model->check_params($params, pspec_freeze_back_fp_barcode, ignore_unknown => 1);
+
+    my $barcode = $validated_params->{barcode};
+
+    # Fetch FP well_barcode
+    my $bc_well = _fetch_barcode_for_freeze_back($model,$barcode,'checked_out');
+
+    my @freeze_back_outputs;
+    foreach my $qc_well_params (@{ $validated_params->{qc_well_params} }){
+        $validated_params = $model->check_params($qc_well_params, pspec_freeze_back_fp_barcode_qc_well);
+
+        # Fetch QC PIQ plate or create it if not found
+        my $qc_plate = _fetch_qc_piq_for_freeze_back($model,$bc_well,$validated_params);
+
+        # Create the QC PIQ well
+        my $process_data = {
+            type        => 'dist_qc',
+            input_wells => [ { id => $bc_well->id } ],
+        };
+        if($validated_params->{lab_number}){
+            $process_data->{lab_number} = $validated_params->{lab_number};
+        }
+
+        my ($qc_well,$tmp_piq_plate) = _create_qc_piq_and_child_wells($model, $qc_plate, $bc_well, $process_data, $validated_params);
+        push @freeze_back_outputs, {
+            qc_well => $qc_well,
+            tmp_piq_plate => $tmp_piq_plate,
+        };
+    }
+    die "No QC wells provided for freeze back" unless @freeze_back_outputs;
+    return @freeze_back_outputs;
+}
+
+sub _create_qc_piq_and_child_wells{
+    my ($model, $qc_plate, $bc_well, $process_data, $validated_params) = @_;
+
+    my $wells_96 = &generate_96_well_annotations;
+
+    my $qc_well = $model->create_well({
+        plate_name   => $qc_plate->name,
+        well_name    => $validated_params->{qc_piq_well_name},
+        created_by   => $validated_params->{user},
+        process_data => $process_data,
+    });
+
+    # Create a well accepted override with value "FALSE"
+    # to prevent these wells being automatically released
+    # when they pass QC
+    # This is due to requirments change in April 2016
+    $model->create_well_accepted_override({
+       well_id    => $qc_well->id,
+       created_by => $validated_params->{user},
+       accepted   => 0,
+    });
+
+    # Create temporary plate containing daughter PIQ wells
+    my @child_well_data;
+    foreach my $num (1..$validated_params->{number_of_wells}){
+        my $temp_well_name = $wells_96->{$num};
+        my $well_data = {
+            well_name => $temp_well_name,
+            parent_plate => $qc_plate->name,
+            parent_plate_version => $qc_plate->version,
+            parent_well => $qc_well->name,
+            process_type => 'rearray',
+        };
+
+        if($validated_params->{lab_number}){
+            $well_data->{lab_number} = $validated_params->{lab_number}."_$num";
+        }
+
+        push @child_well_data, $well_data;
+    }
+
+    my $tmp_piq_plate;
+
+    # In some cases there are no child wells
+    if(@child_well_data){
+        my $random_name = $model->random_plate_name({ prefix => 'TMP_'. $qc_plate->type_id .'_' });
+        $tmp_piq_plate = $model->create_plate({
+            name       => $random_name,
+            species    => $bc_well->last_known_plate->species_id,
+            type       => $qc_plate->type_id,
+            created_by => $validated_params->{user},
+            wells      => \@child_well_data,
+            is_virtual => 1,
+        });
+    }
+
+    # Set original barcode's status to 'frozen_back'
+    $model->update_well_barcode({
+        barcode   => $validated_params->{barcode},
+        new_state => 'frozen_back',
+        user      => $validated_params->{user},
+        new_plate_id  => undef,
+        new_well_name => undef,
+    });
+
+    return ($qc_well, $tmp_piq_plate);
+}
+
+    sub _fetch_qc_piq_for_freeze_back{
+    my ($model, $well, $validated_params) = @_;
+
+    my $type = 'PIQ';
+    if ($well->plate_type eq 'SFP') {
+        $type = 'S_PIQ';
+    }
+
+    my $qc_plate = $model->schema->resultset('Plate')->search({
+        name => $validated_params->{qc_piq_plate_name},
+    })->first;
+
+    if($qc_plate){
+        # Make sure the well we want to create does not already exist
+        my $qc_piq_well = $qc_plate->search_related('wells',
+            { name => $validated_params->{qc_piq_well_name} }
+        )->first;
+        die "Well ".$qc_piq_well->name." already exists on plate ".$qc_plate->as_string if $qc_piq_well;
+    }
+    else{
+        $qc_plate = $model->create_plate({
+            name       => $validated_params->{qc_piq_plate_name},
+            species    => $well->last_known_plate->species_id,
+            type       => $type,
+            created_by => $validated_params->{user},
+        });
+    }
+
+    return $qc_plate;
+}
+
+
+=cut
 
 1;

@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use Try::Tiny;
 use LIMS2::Model::Util::Miseq qw( query_miseq_details wells_generator );
-use LIMS2::Model::Util::BarcodeActions qw( create_barcoded_plate );
+use LIMS2::Model::Util::BarcodeActions qw( create_barcoded_plate attach_distru_barcodes_to_piq );
 use JSON;
 use POSIX;
 
@@ -633,15 +633,13 @@ sub create_piq_plate_POST {
     my $barcodes = $data->{barcodes};
     delete $data->{barcodes};
 
-    my $plate;# = $c->model('Golgi')->create_plate($data);
+    my $plate = $c->model('Golgi')->create_plate($data);
+$DB::single=1;
+    print "turtle";
     if ($barcodes) {
-        $plate = create_barcoded_plate($c->model('Golgi'), {
-            plate_name          => $data->{name},
-            barcode_for_well    => $barcodes,
-            user                => $c->user->name,
-        });
+        my $test = attach_distru_barcodes_to_piq($c->model('Golgi'), $plate, $barcodes, 'frozen_back');
+        print $test;
     }
-
     return $self->status_created(
         $c,
         location => $c->uri_for( '/api/plate', { id => $plate->id } ),
