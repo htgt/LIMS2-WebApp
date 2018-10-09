@@ -156,14 +156,28 @@
                 queryMode: 'local',
                 store: t7_percent,
                 displayField: 't_p',
-                forceSelection: true
+                forceSelection: true,
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        var record = grid.getSelectionModel().getSelection()[0];
+                        console.log(record.data);
+                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_score', t7_value:newValue}, function(data){record.commit()})
+                    }
+                }
             });
 
             var override_t7_status = Ext.create( 'Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: boolean_t7_status,
                 displayField: 't_s',
-                forceSelection: true
+                forceSelection: true,
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        var record = grid.getSelectionModel().getSelection()[0];
+                        console.log(record.data);
+                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_status', t7_value:newValue}, function(data){record.commit()})
+                    }
+                }
             });
 
             var columns = [
@@ -178,12 +192,7 @@
                         dataIndex: 't7_score',
                         editor: override_t7_score,
                         locked: true,
-                        width: 55,
-                        listeners: {
-                            change: function (field, newValue, oldValue) {
-                                console.log('T7 score listener' );
-                            }
-                        }
+                        width: 55
                     }
                     [%- ELSIF col.match('T7 Status') %]
                     {
@@ -483,7 +492,7 @@
                     },
                     {
                         id        : 'download_csv_file_btn',
-                        type      : 'next',
+                        type      : 'save',
                         minHeight : '20',
                         minWidth  : '20',
                         handler   : function(event, toolEl, panel){
@@ -500,7 +509,7 @@
             },
             {
                 target   : 'save_t7_changes',
-                html     : 'Click to save T7 changes made'
+                html     : 'Click to save T7 changes'
             }
             ];
 
@@ -510,8 +519,20 @@
 
             function SaveT7Changes() {
 
-              console.log('SaveT7Changes()');
+                Ext.Ajax.request({
+                   url: '[% c.uri_for( '/api/plate/save_well_t7_changes' ) %]',
+                   method: 'GET',
+                   params: { plate_name: plateName },
+                   headers: {'Content-Type': 'application/json'},
+                   success: function(response, opts) {
 
+                      // callback function on the store load to refresh the grid
+                      grid.store.load( function( records, operation, success ){ grid.getView().refresh(); } );
+                   },
+                   failure: function(response, opts) {
+                      console.log('server-side failure with status code ' + response.status);
+                   }
+                });
             }
 
             function DownloadCsvFile(grid) {

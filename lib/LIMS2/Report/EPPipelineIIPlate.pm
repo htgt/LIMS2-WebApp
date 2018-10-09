@@ -36,7 +36,8 @@ sub _build_wells_data {
             protein_type  => $well_info->{protein_type},
             guided_type   => $well_info->{guided_type},
             project_id    => $well_info->{project_id},
-            created_by    => $well_info->{created_by}
+            created_by    => $well_info->{created_by},
+            well_id       => $well->id,
         };
         push @wells_data, $temp;
     }
@@ -58,7 +59,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By'
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By', 'Well ID'
     ];
 };
 
@@ -86,7 +87,8 @@ override iterator => sub {
             $well_data->{protein_type},
             $well_data->{guided_type},
             $well_data->{project_id},
-            $well_data->{created_by}
+            $well_data->{created_by},
+            $well_data->{well_id}
         );
 
         $well_data = shift @wells_data;

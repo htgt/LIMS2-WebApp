@@ -1508,6 +1508,34 @@ sub delete_well_lab_number {
     return;
 }
 
+sub update_well_t7_info {
+    my ( $self, $user, $params ) = @_;
+
+    my $db_hash;
+    my $user_rs = $self->schema->resultset( 'User' )->find({ name => $user }, { columns => [ qw/id/ ] });
+    $db_hash->{created_by_id} = $user_rs->get_column('id');
+
+    my $well_t7_rs = $self->schema->resultset( 'WellT7' )->find({ well_id => $params->{well_id} });
+
+    if ( $params->{t7_type} eq 't7_score' ) {
+        $db_hash->{t7_score} = $params->{t7_value};
+    } elsif ( $params->{t7_type} eq 't7_status' ) {
+        my $bool = $params->{t7_value} eq 'pass' ? 1 : 0;
+        $db_hash->{t7_status} = $bool;
+    }
+
+    if ($well_t7_rs) {
+        $well_t7_rs->update($db_hash);
+    } else {
+        $db_hash->{well_id} = $params->{well_id};
+        $self->schema->resultset( 'WellT7' )->create($db_hash);
+    }
+
+    $self->log->debug( 'Successful T7 update for well ID ' . $params->{well_id} );
+
+    return;
+}
+
 1;
 
 __END__
