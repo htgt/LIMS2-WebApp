@@ -30,6 +30,10 @@
     margin-bottom: 15px;
 }
 
+.actions {
+    align: right;
+}
+
 </style>
 
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
@@ -101,6 +105,7 @@
             <h4>Direction: </h4>
             <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-down"></i></button>
         </div>
+        </br>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
                 <div class="col-md-4">
@@ -114,15 +119,18 @@
         <div id="secondSplit" class="col-md-12"></div>
     </div>
 
-    <div class="row">
-        <input id="barcodeUpload" class="btn btn-primary btn-file" type="file" value="Barcode CSV" accept=".csv" />
+    <div class="row col-md-12">
+        <button type="button" class="btn btn-danger col-md-2" onclick="clearBarcodes();">
+            Clear Barcodes <i class="glyphicon glyphicon-remove"></i>
+        </button>
+        <input id="barcodeUpload" class="col-md-offset-4 btn btn-primary btn-file" type="file" value="Barcode CSV" accept=".csv" />
     </div>
 
-    <div class="row">
-        <button type="button" class="btn btn-danger" onclick="clearPlate();">
-            Clear <i class="glyphicon glyphicon-remove"></i>
+    <div class="row col-md-12">
+        <button type="button" class="btn btn-danger col-md-2" onclick="clearPlate();">
+            Clear Wells <i class="glyphicon glyphicon-remove"></i>
         </button>
-        <button type="button" class="btn btn-primary" onclick="submitPIQPlate();">
+        <button type="button" class="col-md-offset-4 btn btn-primary" onclick="submitPIQPlate();">
             Submit <i class="glyphicon glyphicon-edit"></i>
         </button>
     </div>
@@ -276,7 +284,9 @@ $('#barcodeUpload').on('change', function(evt) {
                 if (piqBarcodes[intID] == undefined) {
                     piqBarcodes[intID] = [];
                 }
-                piqBarcodes[intID].push(row.barcode);
+                if (piqBarcodes[intID].indexOf(row.barcode) == -1) {
+                    piqBarcodes[intID].push(row.barcode);
+                }
             });
         };
     }
@@ -519,7 +529,7 @@ function showBarcodeAssignment(cont, rectID) {
         }
     }
 
-    if (parentDetails == '' && barcode == '') {
+    if (parentDetails == '' && barcodeString == '') {
         d3.select("#tooltip").classed("hidden", true);
         return;
     }
@@ -585,6 +595,10 @@ function orderBarcodes(order) {
     });
 
     return;
+}
+
+function clearBarcodes() {
+    piqBarcodes = {};
 }
 
 </script>
