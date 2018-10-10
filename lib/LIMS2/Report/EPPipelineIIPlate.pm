@@ -206,6 +206,11 @@ sub get_well_info {
     try {
         my $db_well_t7 = $self->model->schema->resultset( 'WellT7' )->find({ well_id => $well_id }, { columns => [ qw/t7_status/ ] });
         $t7_status = $db_well_t7->get_column('t7_status');
+        if ($t7_status == 0) {
+            $t7_status = 'fail';
+        } elsif ($t7_status == 1) {
+            $t7_status = 'pass';
+        }
     };
 
     my $db_user = $self->model->schema->resultset( 'User' )->find({ id => $db_well->get_column('created_by_id') }, { columns => [ qw/name/ ] });
