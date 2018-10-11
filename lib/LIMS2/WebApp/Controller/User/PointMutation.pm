@@ -14,7 +14,7 @@ use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
-
+use Data::Dumper;
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -56,6 +56,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my @genes = sort keys %$gene_keys;
     my @gene_prefixs = sort keys %$gene_prefix_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
+
     my $crispr;
     my $gene_crisprs;
     my $revgc;
@@ -205,7 +206,8 @@ sub experiment_384_distribution {
     my $quadrants;
 
     foreach my $exp (keys %$range_summary) {
-        my $value = $range_summary->{$exp};
+    my $value = $range_summary->{$exp};
+    print Dumper $range_summary;
 
         my @ranges = split(/\|/,$value);
         foreach my $range (@ranges) {
@@ -238,19 +240,25 @@ sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
 
     my $overview;
-
-    while ( my $row = $csv->getline($fh)) {
+    $csv->column_names(($csv->getline($fh)));
+    while ( my $row = $csv->getline_hr($fh)) {
         next if $. < 2;
         if ($opt eq 'range') {
-            my $range = $row->[5];
-            $overview->{$row->[0]} = $range;
+            my $range; 
+            if ($row->{Range}){
+                $range = $row->{Range};
+            }
+            else{
+                $range = $row->{Min}."-".$row->{Max};
+            }
+            $overview->{$row->{Experiment}} = $range;
+
         } else {
             my @genes;
-            push @genes, $row->[1];
-            $overview->{$row->[0]} = \@genes;
+            push @genes, $row->{Gene};
+            $overview->{$row->{Experiment}} = \@genes;
         }
     }
-
     return $overview;
 }
 
@@ -320,14 +328,12 @@ sub update_tracking {
 
 sub get_efficiencies {
     my ($c, $miseq_id) = @_;
-
     my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
 
     my $efficiencies = {
         nhej => 0,
         total => 0,
     };
-
     while (my $exp_rs = $experiments->next) {
         my $exp = {
             nhej    => $exp_rs->mutation_reads,
@@ -339,7 +345,7 @@ sub get_efficiencies {
         $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->mutation_reads;
         $efficiencies->{$exp_rs->gene}->{total} += $exp_rs->total_reads;
     }
-
+$DB::single=1;
     return $efficiencies;
 }
 

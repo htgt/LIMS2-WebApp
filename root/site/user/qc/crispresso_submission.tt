@@ -45,7 +45,7 @@ p.ex1 {
                     <div class="panel-body">
                         <div class="well well-sm">
                             <dl class="dl-horizontal">
-                                <dt>Experiment</dt>
+                                <dt>experiment</dt>
                                 <dd>
                                     <p> Must be unique within the plate. It can contain only letters, numbers or underscores.<br/>
                                         To get the experiment name the suggested process would be to concatenate the plate name and the gene. <br/> 
@@ -54,14 +54,14 @@ p.ex1 {
                                     </p>
                                 </dd>
 
-                                <dt>Gene</dt>
+                                <dt>gene</dt>
                                 <dd> 
                                     <p>
                                     It can contain only letters, numbers or underscores. Ideally trivial gene name.<br/><b>e.g.</b>&nbsp;<i>SMARCA4_1</i>
                                     </p>
                                 </dd>
 
-                                <dt>Crispr</dt>
+                                <dt>crispr</dt>
                                 <dd>
                                     <p>
                                         Result sequence.<br/>
@@ -69,7 +69,7 @@ p.ex1 {
                                     </p>
                                 </dd>
 
-                                <dt>Strand</dt>
+                                <dt>strand</dt>
                                 <dd>
                                     <p>
                                         Can be either "<b>+</b>" or "<b>-</b>".<br/>
@@ -78,7 +78,7 @@ p.ex1 {
                                 </dd>
 
 
-                                <dt>Amplicon</dt>
+                                <dt>amplicon</dt>
                                 <dd>
                                     <p>
                                         Target region sequence.Case insensitive.<br/>
@@ -93,7 +93,7 @@ p.ex1 {
                                     </p>
                                 </dd>
 
-                                <dt>Minimum_Well</dt>
+                                <dt>min_index</dt>
                                 <dd>
                                     <p>
                                         The minimum Illumina index of the target wells.<br/>
@@ -101,7 +101,7 @@ p.ex1 {
                                     </p>
                                 </dd>
                                 
-                                <dt>Maximum_Well</dt>
+                                <dt>max_index</dt>
                                 <dd>
                                     <p>
                                         The maximum Illumina index of the target wells.<br/>
@@ -110,7 +110,7 @@ p.ex1 {
                                 </dd>
 
 
-                                <dt>HDR</dt>
+                                <dt>hdr</dt>
                                 <dd>
                                     <p>
                                         HDR template amplicon. Must match amplicon in length. Case insensitive.<br/>
@@ -134,8 +134,10 @@ p.ex1 {
 
     <li>
         <h3>Step 4</h3>
-        <p>Save the csv and attach it to a new RT ticket. Please specify walk up number.
+        <p>
+        Save the csv and attach it to a new RT ticket. Please specify walk up number.</b>
         Email address: <b> htgt@sanger.ac.uk </b>
+        NOTE: Make sure the headers of the CSV files are in all lowercase. 
         </p>
     </li>
 </ul>

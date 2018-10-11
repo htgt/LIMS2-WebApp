@@ -1139,7 +1139,7 @@ sub crispresso_submission_template :Path( '/user/qc/cripsresso_submission_templa
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
     open my $fh, '>', \$output or die 'Could not create example file';
-    $csv->print( $fh, [qw/Experiment Gene Crispr Strand Amplicon Minumum_Well Maximum_Well HDR/] );
+    $csv->print( $fh, [qw/experiment gene crispr strand amplicon min_index max_index hdr/] );
     close $fh or die 'Could not close example file';
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
