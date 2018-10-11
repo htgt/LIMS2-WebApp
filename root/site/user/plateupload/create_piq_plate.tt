@@ -452,7 +452,11 @@ function updateClassifications(wellName, classifications) {
         .attr('dy', '1em');
 
     if (consistencyCheck === true) {
-        classification.text(classes[0]);
+        var classed = classes[0];
+        if (classed == 'Wil') {
+            classed = 'WT';
+        }
+        classification.text(classed);
     } else {
         classification.text('Var');
     }
@@ -520,6 +524,23 @@ function showBarcodeAssignment(cont, rectID) {
 
     if (relationalData[childWell]) {
         parentDetails = '<p><strong>Parent: </strong><span>' + relationalData[childWell].parent_plate + '_' + relationalData[childWell].parent_well + '</span></p>';
+        var classCheck = parentMiseqClassifications[relationalData[childWell].parent_plate][relationalData[childWell].parent_well];
+        if (classCheck) {
+            var classes = classCheck.map(function(val) { return val.classification.substring(0,3); });
+            if (classes !== undefined) {
+                var consistencyCheck = classes.every( (val, i, arr) => val === arr[0] );
+                var classed;
+                if (consistencyCheck === true) {
+                    classed = classes[0];
+                    if (classed == 'Wil') {
+                        classed = 'WT';
+                    }
+                } else {
+                    classed = 'Var';
+                }
+                parentDetails += '<p><strong>Classification: </strong><span>' + classed + '</span></p>';
+            }
+        }
     }
     if (wellBarcodes) {
         barcodeString = '<p><strong>Barcodes: </strong></p>';
