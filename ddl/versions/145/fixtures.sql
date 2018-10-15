@@ -29,6 +29,8 @@ INSERT INTO sponsors (id, description, abbr) VALUES ('HealthyObesity', 'Genes as
 
 ALTER TABLE project_sponsors DISABLE TRIGGER project_sponsors_audit;
 
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 8787 and sponsor_id = 'Stem Cell Engineering';
+
 UPDATE project_sponsors SET sponsor_id = 'NeuroMut' where project_id = 9133 and sponsor_id = 'Cellular Genetics';
 
 UPDATE project_sponsors SET sponsor_id = 'Pancreatic Genetics' where project_id = 9141 and sponsor_id = 'Cellular Genetics';
