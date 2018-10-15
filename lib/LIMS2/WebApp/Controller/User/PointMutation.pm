@@ -202,13 +202,11 @@ sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
 sub experiment_384_distribution {
     my ( $c, $miseq ) = @_;
 
-    my $range_summary = get_experiments($c, $miseq, 'range');
+    my $range_summary = get_experiments($c, $miseq, 'Range');
     my $quadrants;
 
     foreach my $exp (keys %$range_summary) {
     my $value = $range_summary->{$exp};
-    print Dumper $range_summary;
-
         my @ranges = split(/\|/,$value);
         foreach my $range (@ranges) {
             my @pos = split(/-/, $range);
@@ -226,6 +224,7 @@ sub experiment_384_distribution {
 
 sub get_experiments {
     my ( $c, $miseq, $opt ) = @_;
+$DB::single=1;
 
     my $csv = Text::CSV->new({ binary => 1 }) or die "Can't use CSV: " . Text::CSV->error_diag();
     my $loc = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
@@ -238,25 +237,36 @@ sub get_experiments {
 
 sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
+$DB::single=1;
 
     my $overview;
-    $csv->column_names(($csv->getline($fh)));
+    
+    my @col = $csv->column_names($csv->getline($fh));
+    if ($col[5] =~  m/^min/gmi){
+        my @heads = qw(experiment gene crispr strand amplicon min_index max_index nhej total hdr);
+        $csv->column_names(\@heads);
+    }
+    else{
+        my @heads = qw(experiment gene crispr strand amplicon range nhej total hdr);
+        $csv->column_names(\@heads);
+    }
+    
     while ( my $row = $csv->getline_hr($fh)) {
         next if $. < 2;
-        if ($opt eq 'range') {
+        if ($opt eq 'Range') {
             my $range; 
-            if ($row->{Range}){
-                $range = $row->{Range};
+            if($row->{min_index} && $row->{max_index}){
+                $range = $row->{min_index}."-".$row->{max_index};
             }
             else{
-                $range = $row->{Min}."-".$row->{Max};
+               $range = $row->{range};
             }
-            $overview->{$row->{Experiment}} = $range;
+            $overview->{$row->{experiment}} = $range;
 
         } else {
             my @genes;
-            push @genes, $row->{Gene};
-            $overview->{$row->{Experiment}} = \@genes;
+            push @genes, $row->{gene};
+            $overview->{$row->{experiment}} = \@genes;
         }
     }
     return $overview;
@@ -345,7 +355,7 @@ sub get_efficiencies {
         $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->mutation_reads;
         $efficiencies->{$exp_rs->gene}->{total} += $exp_rs->total_reads;
     }
-$DB::single=1;
+
     return $efficiencies;
 }
 
