@@ -24,6 +24,8 @@ INSERT INTO sponsors (id, description, abbr) VALUES ('Pancreatic Genetics', 'Hum
 INSERT INTO sponsors (id, description, abbr) VALUES ('StemBAT', 'Human genes in brown adipose tissue for Toni Vidal-Puig', 'SBAT');
 INSERT INTO sponsors (id, description, abbr) VALUES ('Pathogen BH', 'Human pathogen response genes for Robert Hancock', 'PBH');
 INSERT INTO sponsors (id, description, abbr) VALUES ('Pathogen NT', 'Human pathogen response genes for Nick Thompson', 'PNT');
+INSERT INTO sponsors (id, description, abbr) VALUES ('Cell Ops R&D', 'R&D genes for Andrew Bassett', 'COR&D');
+INSERT INTO sponsors (id, description, abbr) VALUES ('NIH_TVP', 'NIH-funded project for Antonio Vidal-Puig', 'NIH_TVP');
 
 ALTER TABLE project_sponsors DISABLE TRIGGER project_sponsors_audit;
 
@@ -106,17 +108,17 @@ UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9413 a
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9414 and sponsor_id = 'Pathogen';
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9415 and sponsor_id = 'Pathogen';
 
-UPDATE project_sponsors SET sponsor_id = 'Test' where project_id = 8787 and sponsor_id = 'Stem Cell Engineering';
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 8787 and sponsor_id = 'Stem Cell Engineering';
 
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9268 and sponsor_id = 'Stem Cell Engineering';
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9271 and sponsor_id = 'Stem Cell Engineering';
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9288 and sponsor_id = 'Stem Cell Engineering';
 UPDATE project_sponsors SET sponsor_id = 'Pathogen NT' where project_id = 9295 and sponsor_id = 'Stem Cell Engineering';
 
-UPDATE project_sponsors SET sponsor_id = 'Test' where project_id = 9296 and sponsor_id = 'Stem Cell Engineering';
-UPDATE project_sponsors SET sponsor_id = 'Test' where project_id = 9297 and sponsor_id = 'Stem Cell Engineering';
-UPDATE project_sponsors SET sponsor_id = 'Test' where project_id = 9333 and sponsor_id = 'Stem Cell Engineering';
-UPDATE project_sponsors SET sponsor_id = 'Test' where project_id = 9334 and sponsor_id = 'Stem Cell Engineering';
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 9296 and sponsor_id = 'Stem Cell Engineering';
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 9297 and sponsor_id = 'Stem Cell Engineering';
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 9333 and sponsor_id = 'Stem Cell Engineering';
+UPDATE project_sponsors SET sponsor_id = 'Cell Ops R&D' where project_id = 9334 and sponsor_id = 'Stem Cell Engineering';
 
 
 UPDATE project_sponsors SET sponsor_id = 'Experimental Cancer Genetics' where project_id = 9187 and sponsor_id = 'Test';
@@ -164,5 +166,11 @@ UPDATE project_sponsors SET programme_id = 'Cancer Ageing and Somatic Mutation',
 UPDATE project_sponsors SET programme_id = 'Other', lab_head_id = 'Andrew Bassett' where sponsor_id = 'Test' and project_id in (
 8787, 9296, 9297, 9333, 9334
 );
+
+UPDATE project_sponsors SET programme_id = 'Parasites and Microbes', lab_head_id = 'Nicholas Thompson', sponsor_id = 'Pathogen NT' where project_id in (9422, 9427) and sponsor_id = 'Pathogen';
+
+UPDATE project_sponsors SET programme_id = 'Cellular Genetics', lab_head_id = 'Antonio Vidal-Puig', sponsor_id = 'NIH_TVP' where project_id in (9451, 9452, 9453);
+UPDATE project_sponsors SET programme_id = 'Cellular Genetics', lab_head_id = 'Antonio Vidal-Puig', sponsor_id = 'StemBAT' where project_id in (9454, 9455, 9456, 9457);
+
 
 ALTER TABLE project_sponsors ENABLE TRIGGER project_sponsors_audit;
