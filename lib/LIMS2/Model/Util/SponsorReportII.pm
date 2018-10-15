@@ -98,7 +98,12 @@ sub _build_programmes {
 
     my @programmes = map { $_->id } @programmes_rs;
 
-    return \@programmes;
+    ## custom-sorting
+    my @sorted_programmes = sort { $a cmp $b } @programmes;
+    @sorted_programmes = grep { $_ ne 'Other' } @sorted_programmes;
+    push @sorted_programmes, 'Other';
+
+    return \@sorted_programmes;
 };
 
 sub _build_total_gene_count {
