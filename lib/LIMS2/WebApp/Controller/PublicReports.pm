@@ -294,12 +294,12 @@ sub _view_cached_top_level_report {
     my $server_path = $c->uri_for('/');
     my $cache_server;
 
-    for ($server_path) {
-        if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
-        else  { die 'Error finding path for cached sponsor report'; }
+    given ($server_path) {
+        when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        default  { die 'Error finding path for cached sponsor report'; }
     }
 
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
@@ -409,12 +409,12 @@ sub save_json_report {
 
     my $cache_server;
 
-    for ($uri) {
-        if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
-        else  { die 'Error finding path for cached sponsor report'; }
+    given ($uri) {
+        when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        default  { die 'Error finding path for cached sponsor report'; }
     }
 
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
