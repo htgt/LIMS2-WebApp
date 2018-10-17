@@ -11,6 +11,7 @@ use LIMS2::Model::Util::PipelineIIPlates qw( retrieve_data );
 has pipelineII => (
     is         => 'ro',
     lazy_build => 1,
+    isa        => 'HashRef',
 );
 
 sub _build_pipelineII {
@@ -78,15 +79,15 @@ override iterator => sub {
 
             my @data = (
                 $well_data->name,
-                $self->pipelineII->{exp_id},
-                $self->pipelineII->{exp_trivial},
+                $self->pipelineII->{$well_data->name}->{exp_id},
+                $self->pipelineII->{$well_data->name}->{exp_trivial},
                 $self->plate_name . '_' . $well_data->well_name,
-                $self->pipelineII->{design_id},
-                $self->pipelineII->{design_type},
-                $self->pipelineII->{gene_id},
-                $self->pipelineII->{gene_name},
-                $self->pipelineII->{cell_line},
-                $self->pipelineII->{sponsor_id},
+                $self->pipelineII->{$well_data->name}->{design_id},
+                $self->pipelineII->{$well_data->name}->{design_type},
+                $self->pipelineII->{$well_data->name}->{gene_id},
+                $self->pipelineII->{$well_data->name}->{gene_name},
+                $self->pipelineII->{$well_data->name}->{cell_line},
+                $self->pipelineII->{$well_data->name}->{sponsor_id},
                 $well_data->created_at,
                 $well_data->created_by->name,
                 $well_data->accepted ? 'yes' : 'no',
