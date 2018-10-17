@@ -135,8 +135,8 @@ p.ex1 {
     <li>
         <h3>Step 4</h3>
         <p>
-        Save the csv and attach it to a new RT ticket. Please specify walk up number.</b>
-        Email address: <b> htgt@sanger.ac.uk </b>
+        Save the csv and attach it to a new RT ticket. Please specify walk up number.<br/>
+        Email address: <b> htgt@sanger.ac.uk </b><br/>
         NOTE: Make sure the headers of the CSV files are in all lowercase. 
         </p>
     </li>

@@ -14,7 +14,6 @@ use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
-use Data::Dumper;
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -34,7 +33,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
-
+    $DB::single=1;
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
 
@@ -224,7 +223,6 @@ sub experiment_384_distribution {
 
 sub get_experiments {
     my ( $c, $miseq, $opt ) = @_;
-$DB::single=1;
 
     my $csv = Text::CSV->new({ binary => 1 }) or die "Can't use CSV: " . Text::CSV->error_diag();
     my $loc = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
@@ -237,7 +235,6 @@ $DB::single=1;
 
 sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
-$DB::single=1;
 
     my $overview;
     
