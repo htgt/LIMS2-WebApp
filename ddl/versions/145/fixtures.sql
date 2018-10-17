@@ -1,4 +1,4 @@
-INSERT INTO schema_versions(version) VALUES (144);
+INSERT INTO schema_versions(version) VALUES (145);
 
 INSERT INTO programmes (id, abbr) VALUES ('Human Genetics', 'HG');
 INSERT INTO programmes (id, abbr) VALUES ('Cellular Genetics', 'CG');
