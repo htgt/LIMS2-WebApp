@@ -450,7 +450,6 @@ $('#quadBack').on('click', function() {
 });
 
 function clearSelection() {
-
     $("#expSelect").children('option').show().prop('disabled', false);
     $("#geneSelect").children('option').show().prop('disabled', false);
     $('select').each(function() { this.selectedIndex = 0 });
@@ -698,7 +697,6 @@ function buildDonut(exp) {
 }
 
 function clearHighlight() {
-    console.log("We got in");
     if (prevExp == "") {
         d3.selectAll(".donut").transition().duration(250).attrTween("d", arcTween(0, arc));
         d3.selectAll('.frame').transition().duration(250).attrTween("d", arcTween(0, fsArc));
@@ -709,7 +707,6 @@ function clearHighlight() {
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
     d3.selectAll('.scan').transition().duration(500).attr('r',0);
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
-    console.log("We got out");
 }
 
 function arcTween(newAngle, specArc) {
@@ -764,7 +761,8 @@ function tooltip(node) {
             'Genes: ' + dataPoint.gene.sort().toString() + '<br>';   
         
         return response;
-    }else if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
+    }
+    if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
             Gene: ` + overview.summary[focusExp].sort().toString() + `<br>
