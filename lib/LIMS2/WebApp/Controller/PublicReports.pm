@@ -422,6 +422,7 @@ sub save_json_report {
     open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
     print $json_fh $json_data;
     close ($json_fh);
+    chmod 0777, $cached_file_name;
 
     return;
 }
