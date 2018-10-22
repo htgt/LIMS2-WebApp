@@ -12,12 +12,6 @@ a:hover {
 
 <span style="float:right">
 
-[%- IF targeting_type == "single_targeted" && species == 'Mouse' %]
-  <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/double_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show double-targeted</b></a>
-[%- ELSIF targeting_type == "double_targeted" %]
-  <a class="btn btn-sm btn-primary" href="[%- c.uri_for( "/public_reports/sponsor_report/single_targeted", {species => 'Mouse'} ) %]"><i class="glyphicon glyphicon-list-alt"></i><b> Show single-targeted</b></a>
-[%- END %]
-
 [%- IF !c.user %]
     [%- IF species == 'Human' %]
         <a id='without_cache' type='button' name='without_cache' class='btn btn-info btn-sm'
@@ -34,6 +28,7 @@ a:hover {
 </div>
 
 [% IF species == 'Human' %]
+
 <h3>[%- title_ii %]
 [%- IF c.user %]
     [%- IF cache_param_ii == 'with_cache' %]
@@ -236,6 +231,8 @@ function display_hide(target_id) {
 <p>* <b>Pipeline I</b> corresponds to Eurofins sequencing.</p>
 <p>* <b>Pipeline II</b> corresponds to MiSeq sequencing.</p>
 </div>
+[% ELSIF species == 'Mouse' %]
+  [% INCLUDE 'mouse_fp_report.tt' %]
 [%- ELSE %]
 <div>
 <h3>No projects found for this species / targeting type.</h3>
