@@ -33,7 +33,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
-    $DB::single=1;
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
 
@@ -237,7 +236,6 @@ sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
 
     my $overview;
-    
     my @col = $csv->column_names($csv->getline($fh));
     if ($col[5] =~  m/^min/gmi){
         my @heads = qw(experiment gene crispr strand amplicon min_index max_index nhej total hdr);
@@ -247,11 +245,11 @@ sub read_columns {
         my @heads = qw(experiment gene crispr strand amplicon range nhej total hdr);
         $csv->column_names(\@heads);
     }
-    
-    while ( my $row = $csv->getline_hr($fh)) {
+
+    while(my $row = $csv->getline_hr($fh)) {
         next if $. < 2;
         if ($opt eq 'Range') {
-            my $range; 
+            my $range;
             if($row->{min_index} && $row->{max_index}){
                 $range = $row->{min_index}."-".$row->{max_index};
             }
