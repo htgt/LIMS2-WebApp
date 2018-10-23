@@ -55,6 +55,18 @@ __PACKAGE__->table("project_sponsors");
   data_type: 'text'
   is_nullable: 1
 
+=head2 programme_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 lab_head_id
+
+  data_type: 'text'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -64,25 +76,53 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
   "priority",
   { data_type => "text", is_nullable => 1 },
+  "programme_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
+  "lab_head_id",
+  { data_type => "text", is_foreign_key => 1, is_nullable => 1 },
 );
 
-=head1 UNIQUE CONSTRAINTS
+=head1 RELATIONS
 
-=head2 C<project_sponsors_key>
+=head2 lab_head
 
-=over 4
+Type: belongs_to
 
-=item * L</project_id>
-
-=item * L</sponsor_id>
-
-=back
+Related object: L<LIMS2::Model::Schema::Result::LabHead>
 
 =cut
 
-__PACKAGE__->add_unique_constraint("project_sponsors_key", ["project_id", "sponsor_id"]);
+__PACKAGE__->belongs_to(
+  "lab_head",
+  "LIMS2::Model::Schema::Result::LabHead",
+  { id => "lab_head_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
-=head1 RELATIONS
+=head2 programme
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Programme>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "programme",
+  "LIMS2::Model::Schema::Result::Programme",
+  { id => "programme_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 project
 
@@ -115,8 +155,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-21 10:31:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3WOM8Z0i0NsiZHr924/6rQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-27 10:56:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DrInmwXP8r0vwY852qUSKw
 
 __PACKAGE__->set_primary_key( qw/sponsor_id project_id/);
 
