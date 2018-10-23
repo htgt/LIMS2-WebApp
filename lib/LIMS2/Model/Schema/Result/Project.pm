@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Project;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Project::VERSION = '0.511';
+    $LIMS2::Model::Schema::Result::Project::VERSION = '0.513';
 }
 ## use critic
 
@@ -304,6 +304,9 @@ sub as_hash {
     my $self = shift;
 
     my @sponsors = $self->sponsor_ids;
+    my $joint_sponsors = join "/", @sponsors;
+    my $lab_heads = $self->lab_head_ids;
+    my $programmes = $self->programme_ids;
 
     return {
           "id"                => $self->id,
@@ -318,7 +321,9 @@ sub as_hash {
           "priority"          => $self->priority,
           "cell_line"         => ( $self->cell_line ? $self->cell_line->name : undef ),
           "strategy"          => $self->strategy_id,
-          "sponsors"          => join "/", @sponsors,
+          "sponsors"          => $joint_sponsors,
+          "lab_heads"         => $lab_heads,
+          "programmes"        => $programmes,
     }
 }
 
@@ -354,6 +359,34 @@ sub sponsor_ids{
     my @sponsors = map { $_->sponsor_id } $self->project_sponsors;
     my @sorted = sort @sponsors;
     return @sorted;
+}
+
+sub lab_head_ids{
+    my $self = shift;
+
+    my $lab_heads = '';
+    my @lab_heads = map { $_->lab_head_id } $self->project_sponsors;
+    my @existing_lab_heads = grep { defined $_ } @lab_heads;
+    if ( @existing_lab_heads ) {
+        my @sorted = sort @existing_lab_heads;
+        $lab_heads = join "/", @sorted;
+    }
+
+    return $lab_heads;
+}
+
+sub programme_ids{
+    my $self = shift;
+
+    my $programmes = '';
+    my @programmes = map { $_->programme_id } $self->project_sponsors;
+    my @existing_programmes = grep { defined $_ } @programmes;
+    if ( @existing_programmes ) {
+        my @sorted = sort @existing_programmes;
+        $programmes = join "/", @sorted;
+    }
+
+    return $programmes;
 }
 
 # removed direct link between experiments and projects so recreate

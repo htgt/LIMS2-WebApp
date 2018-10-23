@@ -124,6 +124,7 @@ lib/LIMS2/Model/Schema/Result/GenotypingResultType.pm
 lib/LIMS2/Model/Schema/Result/GibsonDesignBrowser.pm
 lib/LIMS2/Model/Schema/Result/GuidedType.pm
 lib/LIMS2/Model/Schema/Result/HdrTemplate.pm
+lib/LIMS2/Model/Schema/Result/LabHead.pm
 lib/LIMS2/Model/Schema/Result/Message.pm
 lib/LIMS2/Model/Schema/Result/MiseqClassification.pm
 lib/LIMS2/Model/Schema/Result/MiseqDesignPreset.pm
@@ -166,6 +167,7 @@ lib/LIMS2/Model/Schema/Result/ProcessOutputWell.pm
 lib/LIMS2/Model/Schema/Result/ProcessParameter.pm
 lib/LIMS2/Model/Schema/Result/ProcessRecombinase.pm
 lib/LIMS2/Model/Schema/Result/ProcessType.pm
+lib/LIMS2/Model/Schema/Result/Programme.pm
 lib/LIMS2/Model/Schema/Result/Project.pm
 lib/LIMS2/Model/Schema/Result/ProjectAllele.pm
 lib/LIMS2/Model/Schema/Result/ProjectExperiment.pm
@@ -277,6 +279,7 @@ lib/LIMS2/Model/Util/RedmineAPI.pm
 lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
 lib/LIMS2/Model/Util/SequencingProject.pm
+lib/LIMS2/Model/Util/SponsorReportII.pm
 lib/LIMS2/Model/Util/Trivial.pm
 lib/LIMS2/Model/Util/WellName.pm
 lib/LIMS2/Report.pm
@@ -407,6 +410,7 @@ root/lib/crispr_validation.tt
 root/lib/design_plate_upload_help.tt
 root/lib/ep_pipeline_ii_experiments.tt
 root/lib/mini_storage_box.tt
+root/lib/mouse_fp_report.tt
 root/lib/navigation.tt
 root/lib/pagination.tt
 root/lib/plate_copy_help.tt
@@ -435,6 +439,7 @@ root/site/publicreports/index.tt
 root/site/publicreports/public_gene_report.tt
 root/site/publicreports/sponsor_report.tt
 root/site/publicreports/sponsor_sub_report.tt
+root/site/publicreports/sponsor_sub_report_ii.tt
 root/site/publicreports/sponsor_sub_report_old.tt
 root/site/publicreports/well_genotyping_info.tt
 root/site/publicreports/well_genotyping_info_search.tt

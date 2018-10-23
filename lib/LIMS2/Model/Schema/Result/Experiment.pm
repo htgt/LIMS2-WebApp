@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.511';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.513';
 }
 ## use critic
 
@@ -227,6 +227,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_experiments
 
 Type: has_many
@@ -263,8 +278,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-04-13 16:36:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TNpeqj/Yy9aR/nYp6SNCUQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-04 15:49:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H4uesntSRqggnsQ2DSKZtQ
 
 __PACKAGE__->has_one(
   'trivial',

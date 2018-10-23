@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CrisprBrowseAndStore;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CrisprBrowseAndStore::VERSION = '0.511';
+    $LIMS2::WebApp::Controller::User::CrisprBrowseAndStore::VERSION = '0.513';
 }
 ## use critic
 

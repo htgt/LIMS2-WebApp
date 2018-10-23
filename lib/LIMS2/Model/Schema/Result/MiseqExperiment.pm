@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqExperiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqExperiment::VERSION = '0.511';
+    $LIMS2::Model::Schema::Result::MiseqExperiment::VERSION = '0.513';
 }
 ## use critic
 
@@ -83,6 +83,18 @@ __PACKAGE__->table("miseq_experiment");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 experiment_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
+=head2 parent_plate_id
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -105,6 +117,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "miseq_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "experiment_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "parent_plate_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -120,6 +136,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 experiment
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Experiment>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "experiment",
+  "LIMS2::Model::Schema::Result::Experiment",
+  { id => "experiment_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 miseq
 
@@ -191,9 +227,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 parent_plate
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U9AC8wtWDx1VJPloxKBLUA
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Plate>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "parent_plate",
+  "LIMS2::Model::Schema::Result::Plate",
+  { id => "parent_plate_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 11:40:49
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:knIx/x0tVwTwtGQrvet+mA
 
 sub as_hash {
     my $self = shift;
@@ -202,6 +258,8 @@ sub as_hash {
         id          => $self->id,
         miseq_id    => $self->miseq_id,
         name        => $self->name,
+        experiment_id   => $self->experiment_id,
+        parent_plate_id => $self->parent_plate_id,
         gene        => $self->gene,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
@@ -211,7 +269,7 @@ sub as_hash {
     return \%h;
 }
 
-sub parent_plate {
+sub miseq_plate {
     my $self = shift;
 
     my %h = (

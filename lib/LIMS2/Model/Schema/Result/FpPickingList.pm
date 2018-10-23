@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::FpPickingList;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::FpPickingList::VERSION = '0.511';
+    $LIMS2::Model::Schema::Result::FpPickingList::VERSION = '0.513';
 }
 ## use critic
 
