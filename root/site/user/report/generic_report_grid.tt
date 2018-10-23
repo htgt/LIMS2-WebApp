@@ -126,12 +126,83 @@
                 }
             });
 
+            var boolean_t7_status = Ext.create('Ext.data.Store', {
+                fields: ['t_s'],
+                data: [
+                {"t_s":"-"},
+                {"t_s":"pass"},
+                {"t_s":"fail"}
+                ]
+            });
+
+            var t7_percent = Ext.create('Ext.data.Store', {
+                fields: ['t_p'],
+                data: [
+                {"t_p":"0"},
+                {"t_p":"10"},
+                {"t_p":"20"},
+                {"t_p":"30"},
+                {"t_p":"40"},
+                {"t_p":"50"},
+                {"t_p":"60"},
+                {"t_p":"70"},
+                {"t_p":"80"},
+                {"t_p":"90"},
+                {"t_p":"100"}
+                ]
+            });
+
+            var override_t7_score = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: t7_percent,
+                displayField: 't_p',
+                forceSelection: true,
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        var record = grid.getSelectionModel().getSelection()[0];
+                        console.log(record.data);
+                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_score', t7_value:newValue}, function(data){record.commit()})
+                    }
+                }
+            });
+
+            var override_t7_status = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: boolean_t7_status,
+                displayField: 't_s',
+                forceSelection: true,
+                listeners: {
+                    change: function (field, newValue, oldValue) {
+                        var record = grid.getSelectionModel().getSelection()[0];
+                        console.log(record.data);
+                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_status', t7_value:newValue}, function(data){record.commit()})
+                    }
+                }
+            });
+
             var columns = [
                 [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
 
                 [% first_column == 1 ?  '' : ',' %]
                 [% first_column = 0 %]
+                    [%- IF col.match('T7 Score') %]
+                    {
+                        header: "T7<br>Score",
+                        dataIndex: 'T7 Score',
+                        editor: override_t7_score,
+                        locked: true,
+                        width: 55
+                    }
+                    [%- ELSIF col.match('T7 Status') %]
+                    {
+                        header: "T7<br>Status",
+                        dataIndex: 'T7 Status',
+                        editor: override_t7_status,
+                        locked: true,
+                        width: 55
+                    }
+                    [%- ELSE %]
                 {
 
                     header: "[%- col %]",
@@ -254,6 +325,7 @@
 
                     dataIndex: '[%- col %]'
                 }
+                [%- END %]
                 [%- END %]
             ];
 
@@ -432,7 +504,6 @@
                 Ext.create('Ext.tip.ToolTip', config);
             });
 
-
             function DownloadCsvFile(grid) {
                 var cols    = grid.columns;
                 var store   = grid.store;
@@ -507,4 +578,3 @@
 
 </script>
 
-<br />
