@@ -173,7 +173,7 @@ sub well_accepted_override_PUT {
 sub save_well_t7_changes :Path('/api/well/save_well_t7_change') :Args(0) :ActionClass('REST') {
 }
 
-sub save_well_t7_changes_GET {
+sub save_well_t7_changes_POST {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles( 'edit' );
@@ -182,17 +182,17 @@ sub save_well_t7_changes_GET {
     my $well_id = $c->request->param('well_id');
     my $t7_value = $c->request->param('t7_value');
 
-    print "here $t7_type and $well_id " . $c->user->name . "\n";
-    ##TODO validations
-
     my $update_well_t7 = $c->model('Golgi')->txn_do(
         sub {
             shift->update_well_t7_info( $c->user->name, $c->request->params );
         }
     );
 
-    return;
-#    return $self->status_ok( $c, entity => $override );
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/save_well_t7_change'),
+        entity   => $update_well_t7
+    );
 }
 
 sub well_toggle_to_report : Path( '/api/well/toggle_to_report' ) : Args(0) : ActionClass( 'REST' ) {

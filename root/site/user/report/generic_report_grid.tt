@@ -161,7 +161,7 @@
                     change: function (field, newValue, oldValue) {
                         var record = grid.getSelectionModel().getSelection()[0];
                         console.log(record.data);
-                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_score', t7_value:newValue}, function(data){record.commit()})
+                        $.post( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_score', t7_value:newValue}, function(data){record.commit()})
                     }
                 }
             });
@@ -175,7 +175,7 @@
                     change: function (field, newValue, oldValue) {
                         var record = grid.getSelectionModel().getSelection()[0];
                         console.log(record.data);
-                        $.getJSON( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_status', t7_value:newValue}, function(data){record.commit()})
+                        $.post( "[% c.uri_for('/api/well/save_well_t7_change') %]", {well_id:record.data['Well ID'], t7_type:'t7_status', t7_value:newValue}, function(data){record.commit()})
                     }
                 }
             });

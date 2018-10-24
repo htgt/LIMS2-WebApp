@@ -135,13 +135,9 @@ sub get_well_crispr {
         $crispr_info->{crispr_id} = $res->get_column('crispr_id');
     } elsif ($res_pair) {
         my $crispr_pair_id = $res_pair->get_column('crispr_pair_id');
-#        my $rec = $self->model->schema->resultset( 'CrisprPair' )->find({ id =>  $crispr_pair_id }, { columns => [ qw/left_crispr_id right_crispr_id/ ] });
-#        my @crisprs = ($rec->get_column('left_crispr_id'), $rec->get_column('right_crispr_id'));
         $crispr_info->{crispr_pair_id} = $crispr_pair_id;# @crisprs;
     } elsif ($res_group) {
         my $crispr_group_id = $res_group->get_column('crispr_group_id');
-#        my @rec = $self->model->schema->resultset( 'CrisprGroupCrispr' )->search({ id =>  $crispr_group_id })->all;
-#        my @crisprs = map { $_->crispr_id } @rec;
         $crispr_info->{crispr_group_id} = $crispr_group_id;#@crisprs;
     }
 
