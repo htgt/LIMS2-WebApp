@@ -1,7 +1,7 @@
 [% META title = "Crispresso Submission" %]
 
 <style>
-p.ex1 {
+p.tab{
     padding-left: 50px;
 }
 </style>
@@ -26,9 +26,9 @@ p.ex1 {
     <li>
         <h3>Step 2</h3>
         <p>Rename the template csv according to the following formula:</p>
-        <p class="ex1">MiSeq_<i><b>"Run Number"</i></b>_<i><b>"Walkup Number"</b></i>.csv</p>
+        <p class="tab">MiSeq_<i><b>"Run Number"</i></b>_<i><b>"Walkup Number"</b></i>.csv</p>
         <p>Example:</p>
-        <p class="ex1"> <b>Miseq_038_123.csv </b></p>
+        <p class="tab"> <b>Miseq_038_123.csv </b></p>
     </li>
 
     <li>
@@ -38,7 +38,7 @@ p.ex1 {
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <a class="panel-toggle" data-toggle="collapse" href="#collapseTwo">
-                    <i class="glyphicon glyphicon-question-sign"></i> CSV data types
+                        <i class="glyphicon glyphicon-question-sign"></i> CSV data types
                     </a>
                 </div>
                 <div id="collapseTwo" class="panel-body collapse">

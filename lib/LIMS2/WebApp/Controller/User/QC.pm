@@ -8,7 +8,6 @@ use LWP::UserAgent;
 use JSON qw( encode_json decode_json );
 use Try::Tiny;
 use Config::Tiny;
-use Data::Dumper;
 use List::MoreUtils qw( uniq any firstval );
 use HTGT::QC::Config;
 use HTGT::QC::Run;
@@ -23,7 +22,7 @@ use LIMS2::Model::Util::ImportSequencing qw( get_seq_file_import_date );
 use Text::CSV;
 use HTGT::QC::Util::SubmitQCFarmJob::Vector;
 use HTGT::QC::Util::SubmitQCFarmJob::ESCell;
-
+use Data::Dumper;
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -1135,12 +1134,13 @@ sub crispresso_submission :Path( '/user/crispresso_submission' ) :Args(0) {
 
 sub crispresso_submission_template :Path( '/user/qc/cripsresso_submission_template' ) :Args(0) {
     my ( $self, $c ) = @_;
-    
+
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
     open my $fh, '>', \$output or die 'Could not create example file';
     $csv->print( $fh, [qw/experiment gene crispr strand amplicon min_index max_index hdr/] );
     close $fh or die 'Could not close example file';
+
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
     $c->response->header( 'Content-Disposition' => 'attachment; filename=crispresso_submission_template.csv' );

@@ -14,7 +14,6 @@ use Sub::Exporter -setup => {
               find_file
               find_child_dir
               read_file_lines
-              lc_hashkeys
           )
     ]
 };
@@ -283,19 +282,6 @@ sub _wanted {
 
     return;
 }
-
-sub lc_hashkeys {
-    my $hr = @_;
-    
-    foreach my $key( keys %{ $hr } ){
-        if ($key ne lc $key){
-            $hr->{lc $key} = $hr->{$key};
-            delete $hr->{$key};
-        }
-    }
-    return $hr;
-}
-
 1;
 
 __END__

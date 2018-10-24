@@ -204,7 +204,7 @@ sub experiment_384_distribution {
     my $quadrants;
 
     foreach my $exp (keys %$range_summary) {
-    my $value = $range_summary->{$exp};
+        my $value = $range_summary->{$exp};
         my @ranges = split(/\|/,$value);
         foreach my $range (@ranges) {
             my @pos = split(/-/, $range);
@@ -216,7 +216,6 @@ sub experiment_384_distribution {
             push(@{$quadrants->{$exp}}, $region);
         }
     }
-
     return $quadrants;
 }
 
@@ -241,23 +240,22 @@ sub read_columns {
         my @heads = qw(experiment gene crispr strand amplicon min_index max_index nhej total hdr);
         $csv->column_names(\@heads);
     }
-    else{
+    else {
         my @heads = qw(experiment gene crispr strand amplicon range nhej total hdr);
         $csv->column_names(\@heads);
     }
 
-    while(my $row = $csv->getline_hr($fh)) {
+    while (my $row = $csv->getline_hr($fh)) {
         next if $. < 2;
         if ($opt eq 'Range') {
             my $range;
-            if($row->{min_index} && $row->{max_index}){
+            if ($row->{min_index} && $row->{max_index}){
                 $range = $row->{min_index}."-".$row->{max_index};
             }
-            else{
+            else {
                $range = $row->{range};
             }
             $overview->{$row->{experiment}} = $range;
-
         } else {
             my @genes;
             push @genes, $row->{gene};
