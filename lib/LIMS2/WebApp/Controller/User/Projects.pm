@@ -72,6 +72,7 @@ sub manage_projects :Path('/user/manage_projects'){
 
     my @project_results;
     if($c->req->param('create_project')){
+        my $other;
         # create project and redirect to view_project
         my $projects_rs = $c->model('Golgi')->schema->resultset('Project')->search( $search,
                           { order_by => 'id' });
@@ -82,11 +83,22 @@ sub manage_projects :Path('/user/manage_projects'){
                 # Priority is undef for now. User can set priority on the view project page
                 $search->{sponsors_priority} = { $sponsor => undef };
             }
+
+            if (my $lab_head = $c->req->param('lab_head')) {
+                $c->stash->{lab_head} = $lab_head;
+                $other->{lab_head_id} = $lab_head;
+            }
+
+            if (my $programme = $c->req->param('programme')) {
+                $c->stash->{programme} = $programme;
+                $other->{programme_id} = $programme;
+            }
+
             my $project;
             $c->model('Golgi')->txn_do(
                 sub {
                     try{
-                        $project = $c->model('Golgi')->create_project($search);
+                        $project = $c->model('Golgi')->create_project($search, $other);
                         $c->flash->{success_msg} = "New project created";
                         $c->res->redirect( $c->uri_for('/user/view_project/',{ project_id => $project->id }) );
                     }
@@ -109,6 +121,8 @@ sub manage_projects :Path('/user/manage_projects'){
         if(my $sponsor = $c->req->param('sponsor')){
             $c->stash->{sponsor} = $sponsor;
             $search->{'project_sponsors.sponsor_id'} = $sponsor;
+            $search->{'project_sponsors.lab_head_id'} = $c->req->param('lab_head');
+            $search->{'project_sponsors.programme_id'} = $c->req->param('programme');
         }
 
         my $projects_rs = $c->model('Golgi')->schema->resultset('Project')->search( $search,
@@ -138,9 +152,12 @@ sub manage_projects :Path('/user/manage_projects'){
     $c->stash->{projects} = \@projects;
 
     my @sponsors = sort map { $_->id } $c->model('Golgi')->schema->resultset('Sponsor')->all;
+    my @programmes = sort map { $_->id } $c->model('Golgi')->schema->resultset('Programme')->all;
+    my @lab_heads = sort map { $_->id } $c->model('Golgi')->schema->resultset('LabHead')->all;
 
     $c->stash->{sponsors} = \@sponsors;
-
+    $c->stash->{programmes} = \@programmes;
+    $c->stash->{lab_heads} = \@lab_heads;
 
     return;
 }
