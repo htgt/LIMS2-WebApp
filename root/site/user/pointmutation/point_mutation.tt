@@ -772,7 +772,7 @@ function tooltip(node) {
             Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
             Classification: ` + dataPoint.details[focusExp].class || "";
     } else { 
-        response = `Oligo Index: ` + oligoIndex;
+        response = 'Oligo Index: ' + oligoIndex;
     }
     return response;
 }
