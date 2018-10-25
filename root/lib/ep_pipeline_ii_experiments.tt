@@ -3,7 +3,7 @@
 <div class="panel panel-default">
   <div style="height:60px;" class="panel-heading">
     <h1 class="panel-title" style="float:left;">
-      EP Pipeline II Plate - Graphical Interface <span id="ep_ii_plate_tooltip" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-html="true" title="An EP II well requires a: crispr id, design id, gene id, cell line, project.<br />All wells of this plate share the same cell line.</br>"></span>
+      EP Pipeline II Plate - Graphical Interface <span id="ep_ii_plate_tooltip" class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-html="true" title="An EP II well requires a: crispr, design id, gene id, cell line, project.<br />All wells of this plate share the same cell line.</br>"></span>
     </h1>
       <button class="btn btn-default" style="float:right;height:45px;width:45px;padding:1px;" type="submit" id="save_assembly_ii" data-toggle="tooltip" data-html="true" title="Save Plate</br>" name="save_assembly_ii" value="save_assembly_ii" onClick="return save_plate_check()"><span class="glyphicon glyphicon-floppy-disk" style="font-size:25px;"></span></button>
 
@@ -27,8 +27,8 @@
             IF id < 10;
                 padded_id = padded_id.prepend('0');
             END %]
-            <td><div id="square_[% id %]" class="square" 
-                onmouseover="scaleup('square_[% id %]')" onmouseout="scaledown('square_[% id %]')" 
+            <td><div id="square_[% id %]" class="square"
+                onmouseover="scaleup('square_[% id %]')" onmouseout="scaledown('square_[% id %]')"
                 ondrop="drop_handler(event)" ondragover="dragover_handler(event)">
                 [% id %]
                 <span class="glyphicon glyphicon-refresh" onClick="refresh_square('square_[% id %]')"></span>
@@ -48,7 +48,7 @@
     <div id="experiments_div">
 
     <p style="color:grey;font-size:12px">
-      <br />Drag target icon to a plate well. <b>*</b> Required parameters.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Dragged experiments in wells will be lost when page is refreshed or when project attributes change.<br /> <span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> You can only choose 1 Protein and Guided Type per Experiment.<br />
+      <br />Drag target icon to a plate well. <b>*</b> Required parameters.<br /><span class="glyphicon glyphicon-exclamation-sign" style="color:#cc0000;"></span> Find all your experiments then start dragging.<br />
     </p>
 
 <div class="modal fade expand_exp" tabindex="-1" role="dialog" aria-labelledby="expand_exp" aria-hidden="true">
@@ -63,7 +63,7 @@
             Design ID *
           </th>
           <th style="width:60px;height:30px;">
-            Crispr ID *
+            Crispr ID
           </th>
           [% IF assembly_ii_experiments.list.size > 0 %]
           <th style="width:150px;height:40px;">
@@ -96,7 +96,7 @@
 
         <tbody>
       [% FOR exp IN assembly_ii_experiments %]
-        [% IF exp.project_check AND exp.design_id AND exp.crispr_id %]
+        [% IF exp.project_check AND exp.design_id AND (exp.crispr_id OR exp.crispr_pair_id OR exp.crispr_group_id) %]
         <tr style="background-color:#;">
           <td style="font-size:10px;">
             [% exp.trivial_name or exp.gene_id or '-' %]
@@ -222,7 +222,7 @@
             Design ID *
           </th>
           <th style="width:60px;height:30px;">
-            Crispr ID *
+            Crispr ID
           </th>
           [% IF assembly_ii_experiments.list.size > 0 %]
           <th style="width:150px;height:40px;">
