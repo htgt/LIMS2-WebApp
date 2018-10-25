@@ -138,7 +138,7 @@
             &#10008;
             [% END %]
           </td>
-          <td>
+          <td style="font-size:10px;">
             [% exp.id or '-' %]
           </td>
           <td style="font-size:10px;">
@@ -190,7 +190,7 @@
             &#10008;
             [% END %]
           </td>
-          <td>
+          <td style="font-size:10px;">
             [% exp.id or '-' %]
           </td>
           <td style="font-size:10px;">
@@ -260,18 +260,30 @@
         <tbody>
       [% FOR exp IN assembly_ii_experiments %]
         [% IF exp.project_check AND exp.design_id AND (exp.crispr_id OR exp.crispr_pair_id OR exp.crispr_group_id) %]
-        <tr style="background-color:#;">
+        <tr>
           <td>
             <div class="btn btn-success" id=[% exp.id %] tag=[% exp.trivial_name %] type="" draggable="true" ondragstart="dragstart_handler(event);"><span class="glyphicon glyphicon-move" style="font-size:20px;"></span></div>
           </td>
           <td style="font-size:10px;">
-            [% exp.trivial_name or exp.gene_id or '-' %]
+            [% IF exp.id %]
+              <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.trivial_name or exp.gene_id %]</a>
+            [% ELSE %]
+              [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.design_id or '-' %]
+            [% IF exp.design_id %]
+            <a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_id or '-' %]
+            [% IF exp.crispr_id %]
+            <a href="[% c.uri_for( "/user/crispr/$exp.crispr_id/view" ) %]" target="_blank">[% exp.crispr_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;width:200px;">
             <select class="form-control" id="[% exp.id %]_protein_type_assembly_ii" name="[% exp.id %]_protein_type_assembly_ii">
@@ -304,21 +316,33 @@
             &#10008;
             [% END %]
           </td>
-          <td style="font-size:20px;">
+          <td>
             [% IF exp.add_check %]
-            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" style="font-size:10px;" onClick="return save_add_exp_check()"><b>ADD</b></button>
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()" style="font-size:10px;"><b>ADD</b></button>
             [% ELSE %]
             <button class="btn btn-basic disabled" id="" type="button" style="font-size:10px;"><b>ADD</b></button>
             [% END %]
           </td>
-          <td>
-            [% exp.id or '-' %]
+          <td style="font-size:10px;">
+            [% IF exp.id %]
+            <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_pair_id or '-' %]
+            [% IF exp.crispr_pair_id %]
+            <a href="[% c.uri_for( "/user/crispr_pair/$exp.crispr_pair_id/view" ) %]" target="_blank">[% exp.crispr_pair_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_group_id or '-' %]
+            [% IF exp.crispr_group_id %]
+            <a href="[% c.uri_for( "/user/crispr_group/$exp.crispr_group_id/view" ) %]" target="_blank">[% exp.crispr_group_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
         </tr>
         [% ELSE %]
@@ -327,13 +351,25 @@
             <button class="btn btn-default disabled" id=[% exp.id %] type="button" draggable="false"><span class="glyphicon glyphicon-ban-circle" style="font-size:20px;"></span></button>
           </td>
           <td style="font-size:10px;">
-            [% exp.trivial_name or exp.gene_id or '-' %]
+            [% IF exp.id %]
+            <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.trivial_name or exp.gene_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.design_id or '-' %]
+            [% IF exp.design_id %]
+            <a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_id or '-' %]
+            [% IF exp.crispr_id %]
+            <a href="[% c.uri_for( "/user/crispr/$exp.crispr_id/view" ) %]" target="_blank">[% exp.crispr_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;width:200px;">
             <select class="form-control" id="" name="" disabled>
@@ -368,19 +404,31 @@
           </td>
           <td>
             [% IF exp.add_check %]
-            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" style="font-size:10px;" onClick="return save_add_exp_check()"><b>ADD</b></button>
+            <button class="btn btn-basic" type="submit" id="add_exp_to_proj" name="add_exp_to_proj" value="[% exp.id %],[% exp.gene_id %],[% exp.design_id %],[% exp.crispr_id %],[% exp.crispr_pair %],[% exp.crispr_group %]" onClick="return save_add_exp_check()" style="font-size:10px;"><b>ADD</b></button>
             [% ELSE %]
             <button class="btn btn-basic disabled" id="" type="button" style="font-size:10px;"><b>ADD</b></button>
             [% END %]
           </td>
-          <td>
-            [% exp.id or '-' %]
+          <td style="font-size:10px;">
+            [% IF exp.id %]
+            <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_pair_id or '-' %]
+            [% IF exp.crispr_pair_id %]
+            <a href="[% c.uri_for( "/user/crispr_pair/$exp.crispr_pair_id/view" ) %]" target="_blank">[% exp.crispr_pair_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
           <td style="font-size:10px;">
-            [% exp.crispr_group_id or '-' %]
+            [% IF exp.crispr_group_id %]
+            <a href="[% c.uri_for( "/user/crispr_group/$exp.crispr_group_id/view" ) %]" target="_blank">[% exp.crispr_group_id %]</a>
+            [% ELSE %]
+            [% '-' %]
+            [% END %]
           </td>
         </tr>
         [% END %]
