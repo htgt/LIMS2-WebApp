@@ -1,0 +1,86 @@
+[% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
+<h1>Import MiSEQ sequencing</h1>
+<form method="POST" enctype="multipart/form-data"
+    action="[% c.uri_for('/user/miseq/submit') %]">
+    <div class="form-group">
+        <label>
+            Plate:
+            <input name="plate" type="text" class="form-control" />
+        </label>
+    </div>
+    <div class="form-group">
+        <label>
+            Spreadsheet:
+            <input class="form-control-file" name="spreadsheet" type="file" />
+        </label>
+    </div>
+    <div class="form-group">
+        <label>
+            Walk-up:
+            <select id="walkup" name="walkup" class="form-control">
+                <option disabled selected>
+                    &#x2500;&#x2500;Please select a project&#x2500;&#x2500;
+                </option>
+                [% FOREACH project IN projects %]
+                    <option value="[% project.id %]">[% project.name %]</option>
+                [% END %]
+            </select>
+        </label>
+    </div>
+    <div id="plates">
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            <i class="glyphicon glyphicon-import"></i>
+            Import
+        </button>
+    </div>
+</form>
+
+<script type="text/javascript">
+$('#walkup').on('change', function() {
+    var val = this.value;
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for('/user/basespace/samples') %]?project=' + val,
+        beforeSend: function(xhr, settings) {
+            $('#plates').children().remove();
+        },
+    }).done(function(wells) {
+        var rows = 0, cols = 0, plates = 0;
+        var ordA = "A".charCodeAt(0);
+        var map = {};
+        wells.forEach(function(well) {
+            var match = well.match(/^([A-Z])([0-9]+)_([0-9]+)/);
+            if (!match) {
+                return;
+            }
+            rows = Math.max(rows, match[1].charCodeAt(0) - ordA + 1);
+            cols = Math.max(cols, match[2]);
+            plates = Math.max(plates, match[3]);
+            map[match[0]] = 1;
+        });
+        for(var p = 1; p <= plates; p++) {
+            var plate = $('<div class="well-plate"></div>');
+            for(var r = 0; r < rows; r++ ) {
+                var row = $('<div class="well-row"></div>');
+                for(var c = 1; c <= cols; c++) {
+                    var col = $('<div class="well-well"></div>');
+                    var key = String.fromCharCode(ordA + r) //row
+                        + (( c < 10 ) ? '0' : '') //left pad the column
+                        + c
+                        + '_' + p; //plate
+                    col.prop('title', key);
+                    if (key in map) {
+                        col.addClass('well-well-active');
+                    }
+                    row.append(col);
+                }
+                plate.append(row);
+            }
+            $('#plates').append(plate);
+        }
+    });
+});
+</script>
