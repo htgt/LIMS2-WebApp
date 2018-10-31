@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.513';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.514';
 }
 ## use critic
 
@@ -126,6 +126,7 @@ sub delete_process {
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
                                   process_input_wells process_output_wells process_recombinases
                                   process_cell_line process_crispr process_nuclease
+                                  process_crispr_pair process_crispr_group
                                   process_global_arm_shortening_design
                                   process_crispr_tracker_rna
                                   process_parameters process_guided_type

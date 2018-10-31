@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.513';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.514';
 }
 ## use critic
 
@@ -550,6 +550,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 well_t7
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::WellT7>
+
+=cut
+
+__PACKAGE__->might_have(
+  "well_t7",
+  "LIMS2::Model::Schema::Result::WellT7",
+  { "foreign.well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 well_targeting_neo_pass
 
 Type: might_have
@@ -616,8 +631,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4NxejflffTpjiuyHnXH8Yw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mlqUNAvEp6//qLOCJGjhlg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.513';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.514';
 }
 ## use critic
 
@@ -145,6 +145,20 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<experiments_assigned_trivial_key>
+
+=over 4
+
+=item * L</assigned_trivial>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("experiments_assigned_trivial_key", ["assigned_trivial"]);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -278,8 +292,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-04 15:49:07
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H4uesntSRqggnsQ2DSKZtQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j6HiANndPVnIQd1PckT/jQ
 
 __PACKAGE__->has_one(
   'trivial',

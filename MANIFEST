@@ -156,6 +156,8 @@ lib/LIMS2/Model/Schema/Result/ProcessBackbone.pm
 lib/LIMS2/Model/Schema/Result/ProcessCassette.pm
 lib/LIMS2/Model/Schema/Result/ProcessCellLine.pm
 lib/LIMS2/Model/Schema/Result/ProcessCrispr.pm
+lib/LIMS2/Model/Schema/Result/ProcessCrisprGroup.pm
+lib/LIMS2/Model/Schema/Result/ProcessCrisprPair.pm
 lib/LIMS2/Model/Schema/Result/ProcessCrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/ProcessDesign.pm
 lib/LIMS2/Model/Schema/Result/ProcessElectroporation.pm
@@ -226,6 +228,7 @@ lib/LIMS2/Model/Schema/Result/WellLabNumber.pm
 lib/LIMS2/Model/Schema/Result/WellPrimerBand.pm
 lib/LIMS2/Model/Schema/Result/WellQcSequencingResult.pm
 lib/LIMS2/Model/Schema/Result/WellRecombineeringResult.pm
+lib/LIMS2/Model/Schema/Result/WellT7.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingNeoPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPass.pm
 lib/LIMS2/Model/Schema/Result/WellTargetingPuroPass.pm
@@ -2914,6 +2917,7 @@ root/static/test/fixtures/reference_data/GeneType.csv
 root/static/test/fixtures/reference_data/GenotypingPrimerType.csv
 root/static/test/fixtures/reference_data/GenotypingResultType.csv
 root/static/test/fixtures/reference_data/GuidedType.csv
+root/static/test/fixtures/reference_data/LabHead.csv
 root/static/test/fixtures/reference_data/MutationDesignType.csv
 root/static/test/fixtures/reference_data/Nuclease.csv
 root/static/test/fixtures/reference_data/Pipeline.csv
@@ -2921,6 +2925,7 @@ root/static/test/fixtures/reference_data/PlateType.csv
 root/static/test/fixtures/reference_data/PrimerBandType.csv
 root/static/test/fixtures/reference_data/Priority.csv
 root/static/test/fixtures/reference_data/ProcessType.csv
+root/static/test/fixtures/reference_data/Programme.csv
 root/static/test/fixtures/reference_data/Recombinase.csv
 root/static/test/fixtures/reference_data/RecombineeringResultType.csv
 root/static/test/fixtures/reference_data/Role.csv

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Plate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Plate::VERSION = '0.513';
+    $LIMS2::Model::Plugin::Plate::VERSION = '0.514';
 }
 ## use critic
 
@@ -328,7 +328,16 @@ sub delete_plate {
         if $plate->has_child_wells;
 
     for my $well ( $plate->wells ) {
+        if ($plate->type_id eq 'EP_PIPELINE_II') {
+            try {
+                $self->schema->resultset('WellT7')->find({
+                    well_id  => $well->id,
+                })->delete;
+            };
+        }
+
         $self->delete_well( { id => $well->id } );
+
     }
 
     $plate->search_related_rs('plate_comments')->delete;

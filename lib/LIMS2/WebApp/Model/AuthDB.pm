@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Model::AuthDB;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Model::AuthDB::VERSION = '0.513';
+    $LIMS2::WebApp::Model::AuthDB::VERSION = '0.514';
 }
 ## use critic
 

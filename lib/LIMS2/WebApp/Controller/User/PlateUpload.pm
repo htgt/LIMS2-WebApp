@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PlateUpload;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.513';
+    $LIMS2::WebApp::Controller::User::PlateUpload::VERSION = '0.514';
 }
 ## use critic
 
@@ -10,10 +10,10 @@ use namespace::autoclean;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use LIMS2::Model::Util::EPPipelineIIPlate qw( retrieve_experiments_ep_pipeline_ii
-                                              retrieve_experiments_by_field 
-                                              import_wge_crispr_ep_pipeline_ii 
-                                              find_projects_ep_pipeline_ii 
-                                              create_project_ep_pipeline_ii 
+                                              retrieve_experiments_by_field
+                                              import_wge_crispr_ep_pipeline_ii
+                                              find_projects_ep_pipeline_ii
+                                              create_project_ep_pipeline_ii
                                               proj_exp_check_ep_ii
                                               add_exp_check_ep_ii
                                               create_exp_ep_pipeline_ii
@@ -47,14 +47,16 @@ sub plate_upload_ep_pipeline_ii :Path( '/user/plate_upload_ep_pipeline_ii' ) :Ar
     ## persistent input
     ## ----------------
     $c->stash(
-        gene_id_assembly_ii        => $params->{gene_id_assembly_ii},
-        cell_line_assembly_ii      => $params->{cell_line_assembly_ii},
-        strategy_assembly_ii       => $params->{strategy_assembly_ii},
-        targeting_type_assembly_ii => $params->{targeting_type_assembly_ii},
-        sponsor_assembly_ii        => $params->{sponsor_assembly_ii},
-        crispr_id_assembly_ii      => $params->{crispr_id_assembly_ii},
-        wge_crispr_assembly_ii     => $params->{wge_crispr_assembly_ii},
-        design_id_assembly_ii      => $params->{design_id_assembly_ii}
+        gene_id_assembly_ii         => $params->{gene_id_assembly_ii},
+        cell_line_assembly_ii       => $params->{cell_line_assembly_ii},
+        strategy_assembly_ii        => $params->{strategy_assembly_ii},
+        targeting_type_assembly_ii  => $params->{targeting_type_assembly_ii},
+        sponsor_assembly_ii         => $params->{sponsor_assembly_ii},
+        crispr_id_assembly_ii       => $params->{crispr_id_assembly_ii},
+        crispr_pair_id_assembly_ii  => $params->{crispr_pair_id_assembly_ii},
+        crispr_group_id_assembly_ii => $params->{crispr_group_id_assembly_ii},
+        wge_crispr_assembly_ii      => $params->{wge_crispr_assembly_ii},
+        design_id_assembly_ii       => $params->{design_id_assembly_ii}
     );
 
     $params->{species} = $species;
@@ -348,13 +350,15 @@ sub build_ep_pipeline_ii_well_data {
 
             my @name_split = split "well_", $well;
             my $temp_data = {
-                well_name    => 'A' . $name_split[1],
-                design_id    => $exp->{design_id},
-                crispr_id    => $exp->{crispr_id},
-                nuclease     => $well_protein_type,
-                guided_type  => $well_guided_type,
-                cell_line    => $cell_line_id,
-                process_type => 'ep_pipeline_ii'
+                well_name       => 'A' . $name_split[1],
+                design_id       => $exp->{design_id},
+                crispr_id       => $exp->{crispr_id},
+                crispr_pair_id  => $exp->{crispr_pair_id},
+                crispr_group_id => $exp->{crispr_group_id},
+                nuclease        => $well_protein_type,
+                guided_type     => $well_guided_type,
+                cell_line       => $cell_line_id,
+                process_type    => 'ep_pipeline_ii'
             };
             push @wells, $temp_data;
         }
