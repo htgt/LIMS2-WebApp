@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPipelineIIPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.514';
+    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.515';
 }
 ## use critic
 
@@ -33,7 +33,7 @@ sub _build_wells_data {
             trivial_name    => $well_info->{trivial_name},
             experiment_id   => $well_info->{experiment_id},
             design_id       => $well_info->{design_id},
-            crispr_id       => $well_info->{crispr_id},
+            crispr_id       => $well_info->{crispr_info}->{crispr_id},
             crispr_loc      => $well_info->{crispr_loc},
             crispr_pair_id  => $well_info->{crispr_info}->{crispr_pair_id},
             crispr_group_id => $well_info->{crispr_info}->{crispr_group_id},
@@ -141,10 +141,10 @@ sub get_well_crispr {
         $crispr_info->{crispr_id} = $res->get_column('crispr_id');
     } elsif ($res_pair) {
         my $crispr_pair_id = $res_pair->get_column('crispr_pair_id');
-        $crispr_info->{crispr_pair_id} = $crispr_pair_id;# @crisprs;
+        $crispr_info->{crispr_pair_id} = $crispr_pair_id;
     } elsif ($res_group) {
         my $crispr_group_id = $res_group->get_column('crispr_group_id');
-        $crispr_info->{crispr_group_id} = $crispr_group_id;#@crisprs;
+        $crispr_info->{crispr_group_id} = $crispr_group_id;
     }
 
     return $crispr_info;
