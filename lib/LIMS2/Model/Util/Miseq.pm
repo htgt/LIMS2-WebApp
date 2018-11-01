@@ -109,6 +109,7 @@ sub query_miseq_details {
         push @miseq_results, \%mapping;
     }
 
+$DB::single=1;
     return @miseq_results;
 }
 

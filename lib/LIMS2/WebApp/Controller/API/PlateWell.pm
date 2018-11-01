@@ -634,8 +634,7 @@ sub create_piq_plate_POST {
     delete $data->{barcodes};
 
     my $plate = $c->model('Golgi')->create_plate($data);
-$DB::single=1;
-    print "turtle";
+
     if ($barcodes) {
         my $test = attach_distru_barcodes_to_piq($c->model('Golgi'), $plate, $barcodes, 'frozen_back');
         print $test;
@@ -721,7 +720,7 @@ sub sibling_miseq_plate_GET {
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-
+$DB::single=1;
     my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
     my $class_mapping;
     foreach my $result (@results) {

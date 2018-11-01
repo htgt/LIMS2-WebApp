@@ -299,7 +299,9 @@ sub load_static_files {
             GuidedType
             TrivialOffset
             Pipeline
-            )
+            MiseqClassification
+            MiseqStatus
+        )
     );
 
     for my $table (@reference_tables) {
@@ -370,6 +372,9 @@ sub load_dynamic_files {
             TrivialOffset
             MiseqDesignPreset
             MiseqPrimerPreset
+            MiseqPlate
+            MiseqExperiment
+            MiseqWellExperiment
         )
     );
 

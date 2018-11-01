@@ -1,0 +1,8 @@
+id,name,description,type_id,created_by_id,created_at,species_id,is_virtual,barcode,sponsor_id,version
+501,Test_Ref_FP,"",FP,1000,2016-12-21 12:03:18.073435,Human,f,,,
+502,Test_Ref_EP,"",EP,1000,2016-12-21 12:03:18.073435,Human,f,,,
+503,Parent_FP,"",FP,1000,2016-12-21 12:03:18.073435,Human,f,,,
+504,Sibling_Miseq,"",MISEQ,1000,2016-12-21 12:03:18.073435,Human,f,,,
+505,Sibling_PIQ,"",PIQ,1000,2016-12-21 12:03:18.073435,Human,f,,,
+506,EP_Inherit,"",EP_PIPELINE_II,1000,2016-12-21 12:03:18.073435,Human,f,,,
+507,Parent_EPD,"",EP_PICK,1000,2016-12-21 12:03:18.073475,Human,f,,,
