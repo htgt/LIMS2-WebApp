@@ -34,7 +34,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
-
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
     my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
@@ -102,7 +101,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
     
-    print Dumper $revov;
 
     $c->stash(
         wells => $json,

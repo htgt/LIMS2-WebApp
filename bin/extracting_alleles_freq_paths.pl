@@ -14,8 +14,7 @@ my @files = `find /warehouse/team229_wh01/lims2_managed_miseq_data/. -name Allel
 open (my $fh, '>', 'files_paths.txt') or die 'Cannot open files_location.txt to write';
 
 foreach my $file ( @files ){
+    print $file;
     print $fh $file;
 }
 close($fh);
-
-

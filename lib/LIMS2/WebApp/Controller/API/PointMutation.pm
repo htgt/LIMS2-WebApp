@@ -11,7 +11,6 @@ use POSIX;
 use Try::Tiny;
 use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines convert_index_to_well_name );
 use List::Util 'max';
-#use Data::Dumper;
 use LIMS2::Model::Util::ImportCrispressoQC  qw( get_data );
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 

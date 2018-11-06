@@ -288,42 +288,64 @@ sub _wanted {
 
 sub generate_summary_data {
     my ($c, $plate_id, $miseq_id) = @_;
-
+    
+        
     my $overview;
     my $ranges;
     my $wells;
     my $index;
     my $converter = wells_generator(1);
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+    
+           $DB::single=1; 
+
     foreach my $miseq_exp (@miseq_exp_rs) {
         my $exp_name = $miseq_exp->{name};
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @indexes;
+
         foreach my $well_exp (@well_exps) {
             my $percentages;
-            my @experiments;
             my $details;
+
+            my @experiments;
             $index = $converter->{$well_exp->{well_name}};
             push (@indexes, $index);
-            push ( @{$wells->{sprintf("%02d", $index)}->{gene}}, $miseq_exp->{gene});
-            push ( @{$wells->{sprintf("%02d", $index)}->{experiments}}, $miseq_exp->{name});
+            
+            $details->{class}       = $well_exp->{classification};
+            $details->{status}      = $well_exp->{status};
+            $details->{frameshift}  = $well_exp->{frameshifted};            
+            
+            my $total = $well_exp->{total_reads};
+            my $nhej = $well_exp->{nhej_reads};
+            my $hdr = $well_exp->{hdr_reads};
+            my $mixed = $well_exp->{mixed_reads};     
+            my $wt;
+            if (defined $total and defined $nhej and defined $hdr and defined $mixed) {
+                $wt = $total - $nhej - $hdr - $mixed;
+            } else {
+                warn "\nCorrupt data for experiment: $exp_name \n";
+                last;
+            }
+            $percentages->{wt}   = qq/$wt/;
+            $percentages->{nhej} = qq/$nhej/;
+            $percentages->{hdr}  = qq/$hdr/;
+            $percentages->{mix}  = qq/$mixed/;
 
-            $details->{$exp_name}->{class}       = $well_exp->{classification};
-            $details->{$exp_name}->{status}      = $well_exp->{status};
-            $details->{$exp_name}->{frameshift}  = $well_exp->{frameshifted};            
-            print Dumper $well_exp; 
-            $percentages->{$exp_name}->{wt}   = qq/$well_exp->{total_reads}/;
-            $percentages->{$exp_name}->{nhej} = qq/$well_exp->{nhej_reads}/;
-            $percentages->{$exp_name}->{hdr}  = qq/$well_exp->{hdr_reads}/;
-            $percentages->{$exp_name}->{mix}  = qq/$well_exp->{mixed_reads}/;
-
-            $wells->{sprintf("%02d", $index)}->{percentages} = $percentages;
-            $wells->{sprintf("%02d", $index)}->{details} = $details;
+            $wells->{sprintf("%02d", $index)}->{percentages}->{$exp_name} = $percentages;
+            $wells->{sprintf("%02d", $index)}->{details}->{$exp_name} = $details;
+            
             #push ( @{$wells->{sprintf("%02d", $index)}->{percentages}}, $percentages);
             #push ( @{$wells->{sprintf("%02d", $index)}->{details}}, $details);
+            
+            push ( @{$wells->{sprintf("%02d", $index)}->{gene}}, $miseq_exp->{gene});
+            push ( @{$wells->{sprintf("%02d", $index)}->{experiments}}, $exp_name);
 
         }
-        return unless @indexes;
+        if ( !@indexes ) {
+            warn "\n Empty experiment: $exp_name \n";
+            next;
+        }
         @indexes = sort { $a <=> $b } @indexes;
         my $range = $indexes[0] . '-' . $indexes[-1];
         $ranges->{$miseq_exp->{name}} = $range;
@@ -332,6 +354,7 @@ sub generate_summary_data {
         push @gene, $miseq_exp->{gene};
         $overview->{$miseq_exp->{name}} = \@gene;
     }
+
 return{ 
     ranges      => $ranges,
     overview    => $overview,

@@ -18,6 +18,7 @@ use Sub::Exporter -setup => {
             update_miseq_exp
             migrate_images
             migrate_frequencies
+            get_crispr
         ) 
     ],
 };
@@ -264,6 +265,7 @@ sub create_miseq_well_exp {
     return $miseq;
 }
 
+
 sub get_plate {
     my ( $model, $miseq ) = @_;
 
@@ -472,7 +474,34 @@ sub get_data{
         warn "Corrupt Data \n ";
     };
     return $hash;
-}   
+}
+
+sub get_crispr{
+    my $file = shift;
+    open( my $jobout_fh, '<:encoding(UTF-8)', $file ) or die "Failed to open file at $file";
+    my $line; 
+    my $crispr;
+    my $date;
+    while ($line = <$jobout_fh>) {
+        chomp $line;
+        if (!$crispr){
+            $line =~ m/-g\ (\w+)/xgms;
+            $crispr = $1;
+        }
+
+        if (!$date){
+            $line =~ m/Started\ at\ (.+$)/xgms;
+            $date = $1;
+        }
+        last if $crispr and $date;
+    }    
+    close $jobout_fh;
+    my $hash = {
+        date => $date,
+        crispr => $crispr
+    };
+    return $hash;
+}
 
 1;
 

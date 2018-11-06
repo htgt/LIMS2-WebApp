@@ -239,8 +239,6 @@ sub update_miseq_experiment {
     $class->{total_reads} = check_undef( $validated_params->{total_reads}, $hash_well->{read_count} );
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
     my $update = $exp->update($class);
-    print Dumper "Updated miseq experiment: \n";
-    #print Dumper $update;
     return $update;
 }
 

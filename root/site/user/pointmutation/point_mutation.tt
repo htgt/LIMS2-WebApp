@@ -580,9 +580,7 @@ function buildExps() {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
             var expDetails = wellData.details[expName];
-
             /*
-
             if (wellData.percentages[expName].miss != null) {
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
@@ -761,9 +759,7 @@ function tooltip(node) {
     var dataPoint = json.summary[oligoIndex];
     var response = "";
     var focusExp = document.getElementById('expSelect').value;
-    if (dataPoint === undefined) {
-        return;
-    }
+
     if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
@@ -782,7 +778,8 @@ function tooltip(node) {
             Genes: ` + dataPoint.gene.sort().toString() + `<br>
             Status: ` + dataPoint.details[focusExp].status;
     }
-    return response;
+return response;
+
 }
 
 </script>
