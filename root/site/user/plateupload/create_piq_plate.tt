@@ -340,6 +340,7 @@ function submitPIQPlate() {
 }
 
 function plateAncestors(selection) {
+console.log("call anc");
     $.ajax({
         dataType: 'json',
         url: '[% c.uri_for("/api/wells_parent_plate") %]',
@@ -367,6 +368,8 @@ function plateAncestors(selection) {
 }
 
 function fetchInheritedMiseqInfo(plate) {
+
+console.log("call sibling");
     if (parentMiseqClassifications[plate] === undefined) {
         $.ajax({
             dataType: 'json',

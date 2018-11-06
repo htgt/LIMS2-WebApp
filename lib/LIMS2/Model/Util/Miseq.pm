@@ -24,10 +24,11 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
+use List::MoreUtils qw( uniq );
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
-WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id) AS (
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id, pr_out.well_id
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -35,7 +36,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_
      LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
      WHERE pr_out.well_id IN (select id from wells where plate_id = ?)
      UNION
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id, well_hierarchy.start_well_id
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
@@ -43,74 +44,103 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_
      LEFT JOIN process_crispr pc ON pr_out.process_id = pc.process_id
      LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
 )
-SELECT exp.id as experiment_id, wh.crispr_id, wh.design_id
+SELECT DISTINCT exp.id as experiment_id, wh.crispr_id, wh.design_id, output_well_id, start_well_id
 FROM well_hierarchy wh
 inner join experiments exp ON exp.crispr_id = wh.crispr_id and exp.design_id = wh.design_id
 where wh.crispr_id is not null and wh.design_id is not null
 EOT
 
-const my $QUERY_MISEQ_DESCENDANTS => <<'EOT';
-WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
+#Crisprs and Designs are attached to processes at a much higher level.
+#The second pr_out.well_id preserves the well id we started with. Using that we can trace exactly which well has lineage to the miseq classifications
+
+const my $QUERY_MISEQ_SIBLINGS => <<'EOT';
+WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well_id) AS (
     SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-    WHERE pr_out.well_id IN (SELECT wells.id from wells where plate_id = ?)
+    WHERE pr_out.well_id IN (?)
     UNION
-    SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
+    SELECT pr.id, pr_in.well_id, pr_out.well_id, start_well_id
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-    JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+    JOIN descendants ON descendants.output_well_id = pr_in.well_id
 )
-SELECT DISTINCT start_well_id, sw.name as swname, sp.name as start_name, process_id, input_well_id, well_in.name, output_well_id, plate_out.name, mp.id, me.experiment_id as exp, me.name, mwe.id as mwe_id, mwe.classification
-FROM well_hierarchy
-inner join wells sw on start_well_id=sw.id
-inner join plates sp on sw.plate_id=sp.id
-inner join wells well_in on input_well_id=well_in.id
-inner join plates plate_in on well_in.plate_id=plate_in.id
-inner join wells well_out on output_well_id=well_out.id
-inner join plates plate_out on plate_out.id=well_out.plate_id
-inner join miseq_plate mp on plate_out.id=mp.plate_id
-inner join miseq_experiment me on mp.id=me.miseq_id and experiment_id IN (?)
-inner join miseq_well_experiment mwe on mwe.well_id=well_out.id and me.id=mwe.miseq_exp_id
-;
+SELECT DISTINCT dest.input_well_id, dest.start_well_id, dest.process_id, well_in.name, plate_in.name,
+well_out.id, plate_out.name, mp.id, me.experiment_id as exp, me.name, mwe.id as mwe_id, mwe.classification
+FROM descendants dest
+INNER JOIN wells well_in on input_well_id=well_in.id
+INNER JOIN plates plate_in on well_in.plate_id=plate_in.id
+INNER JOIN wells well_out on output_well_id=well_out.id
+INNER JOIN plates plate_out on well_out.plate_id=plate_out.id
+INNER JOIN miseq_plate mp on plate_out.id=mp.plate_id
+INNER JOIN miseq_experiment me on mp.id=me.miseq_id and experiment_id IN (?)
+INNER JOIN miseq_well_experiment mwe on mwe.well_id=well_out.id and me.id=mwe.miseq_exp_id
+ORDER BY dest.start_well_id ASC
 EOT
 
-
+#Query is meant for finding Miseq calls from a sibling or distant-relation plate. Find classifications which stem from the same parent / grandparent well as the supplied plate (i.e. PIQ)
+#This query first looks for parent wells then searches for child Miseq wells stemming from that parent 
 
 sub query_miseq_details {
     my ($self, $plate_id) = @_;
-    my @miseq_results;
-    my @headers = qw( 
+
+$DB::single=1;
+    my @ancestor_rows = @{ _find_inherited_experiment($self, $plate_id) };
+    my @ancestor_headers = qw(
+        exp_id
+        crispr_id
+        design_id
+        well_id
+        start_well_id
+    );
+    my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
+
+    my $experiments_str = _stringify_multiples('exp_id', @ancestor_results);
+    my $ancestor_wells_str = _stringify_multiples('well_id', @ancestor_results);
+
+    my @offspring_headers = qw(
+        ancestor_well_id
         origin_well_id
+        origin_process_id
         origin_well_name
         origin_plate_name
-        miseq_process_id
-        input_well_id
-        input_well_name
-        output_well_id
-        output_plate_name
-        miseq_id
+        miseq_well_id
+        miseq_plate_name
+        miseq_plate_details_id
         experiment_id
         miseq_experiment_name
         miseq_well_exp_id
         miseq_classification
     );
+    my @offspring_rows = @{ _traverse_process_tree($self, $experiments_str, $ancestor_wells_str) };
+    my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
 
-    my @inherited_exp_rows = @{ _find_inherited_experiment($self, $plate_id) };
-    my @experiments = map { @$_[0] } @inherited_exp_rows;
-    my $experiments_str = join (',', @experiments);
+    return @miseq_results;
+}
 
-    my @results = @{ _traverse_process_tree($self, $plate_id, $experiments_str) };
-    foreach my $miseq_row (@results) {
+sub _prepare_headers {
+    my ($data) = @_;
+    
+    my @headers = @{ $data->{headers} };
+    my @formatted_rows;
+    foreach my $miseq_row (@{ $data->{results} }) {
         my %mapping;
         @mapping{@headers} = @{ $miseq_row };
-        push @miseq_results, \%mapping;
+        push @formatted_rows, \%mapping;
     }
 
-$DB::single=1;
-    return @miseq_results;
+    return @formatted_rows;
+}
+
+sub _stringify_multiples {
+    my ($key, @rows) = @_;
+
+    my @values = map { $_->{$key} } @rows;
+    my $str = join (',', uniq @values);
+
+    return $str;
 }
 
 sub _find_inherited_experiment {
@@ -129,15 +159,15 @@ sub _find_inherited_experiment {
 }
 
 sub _traverse_process_tree {
-    my ($self, $plate_id, $experiments) = @_;
+    my ($self, $experiments, $ancestors) = @_;
     
-    my $query = $QUERY_MISEQ_DESCENDANTS;
+    my $query = $QUERY_MISEQ_SIBLINGS;
     return $self->schema->storage->dbh_do(
         sub {
-            my ( $storage, $dbh ) = @_;
-            my $sth = $dbh->prepare_cached( $query );
-            $sth->bind_param( 1, $plate_id ); #Starts at 1 for some reason
-            $sth->bind_param( 2, $experiments );
+            my ($storage, $dbh) = @_;
+            my $sth = $dbh->prepare_cached($query);
+            $sth->bind_param(1, $ancestors); #Starts at 1 for some reason
+            $sth->bind_param(2, $experiments);
             $sth->execute();
             $sth->fetchall_arrayref;
         }
