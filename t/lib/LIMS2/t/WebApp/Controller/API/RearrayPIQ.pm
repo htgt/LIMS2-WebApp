@@ -27,7 +27,7 @@ BEGIN
 
 my $mech = LIMS2::Test::mech();
 
-sub all_tests  : Test(15)
+sub all_tests  : Test(27)
 {
     note ('Testing Create PIQ REST API');
     create_piq_post();
@@ -124,11 +124,32 @@ sub wells_parent_plate_get {
 }
 
 sub sibling_miseq_plate_get {
-$DB::single=1;
-    $mech->get_ok('/api/sibling_miseq_plate/?plate=Sibling_PIQ', {'content-type' => 'application/json'} );
+    note ('Successful PIQ sibling');
+    $mech->get_ok('/api/sibling_miseq_plate/?plate=Sibling_PIQ', {'content-type' => 'text/plain'} );
     ok my $json = decode_json($mech->content), 'Response is JSON';
-    print Dumper $json;
+    is ($json->{C01}[0]->{classification}, 'Het', 'Sibling is C01 and Het'); 
 
+    note ('Successful self search');
+    $mech->get_ok('/api/sibling_miseq_plate/?plate=Sibling_Miseq', {'content-type' => 'text/plain'} );
+    ok $json = decode_json($mech->content), 'Response is JSON';
+    is ($json->{A01}[0]->{classification}, 'Het', 'Miseq well is A01 and Het'); 
+    is ($json->{D06}[0]->{classification}, 'Wild Type', 'Miseq well is D06 and WT'); 
+
+    note ('Successful Parent FP');
+    $mech->get_ok('/api/sibling_miseq_plate/?plate=Parent_FP', {'content-type' => 'text/plain'} );
+    ok $json = decode_json($mech->content), 'Response is JSON';
+    is ($json->{B10}[0]->{classification}, 'Het', 'Miseq well is A01 and Het'); 
+    is ($json->{F11}[0]->{classification}, 'Wild Type', 'Miseq well is D06 and WT');
+
+
+    note ('No relation to Miseq data');
+    $mech->get('/api/sibling_miseq_plate/?plate=Test_Ref_EP', {'content-type' => 'text/plain'} );
+    is ($mech->content, 'null', "Plate has no relation to Miseq");
+
+    note ('Unknown plate');
+    $mech->get('/api/sibling_miseq_plate/?plate=iDoNotExist', {'content-type' => 'text/plain'} );
+    is ($mech->status, '415', "Bad request - plate does not exist");
+    
     return;
 }
 

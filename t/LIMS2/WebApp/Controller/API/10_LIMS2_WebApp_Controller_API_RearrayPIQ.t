@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -d
+#!/usr/bin/env perl
 
 use strict;
 use warnings FATAL => 'all';
