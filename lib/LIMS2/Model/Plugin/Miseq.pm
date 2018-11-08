@@ -140,7 +140,7 @@ sub pspec_update_miseq_well_experiment {
         classification                  => { validate => 'existing_miseq_classification', optional => 1 },
         frameshifted                    => { validate => 'boolean', optional => 1 },
         status                          => { validate => 'existing_miseq_status', optional => 1 },
-        well_id                         => { validate => 'existing_well_id'},
+        well_id                         => { validate => 'existing_well_id', optional => 1 },
         nhej_reads                      => { validate => 'integer', optional => 1 },
         total_reads                     => { validate => 'integer', optional => 1 },
         hdr_reads                       => { validate => 'integer', optional => 1 },
