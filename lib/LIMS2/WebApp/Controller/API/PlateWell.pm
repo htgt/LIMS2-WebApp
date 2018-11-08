@@ -2,7 +2,11 @@ package LIMS2::WebApp::Controller::API::PlateWell;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
-use LIMS2::Model::Util::Miseq qw( query_miseq_details wells_generator );
+use LIMS2::Model::Util::Miseq qw( 
+    query_miseq_details
+    wells_generator
+    damage_classifications
+);
 use LIMS2::Model::Util::BarcodeActions qw( create_barcoded_plate attach_distru_barcodes_to_piq );
 use JSON;
 use POSIX;
@@ -720,20 +724,9 @@ sub sibling_miseq_plate_GET {
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-    
+
     my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
-    my $class_mapping;
-    foreach my $result (@results) {
-        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
-            my $class_details = {
-                classification  => $result->{miseq_classification},
-                experiment_id   => $result->{experiment_id},
-                miseq_exp_name  => $result->{miseq_experiment_name},
-                miseq_plate_name => $result->{miseq_plate_name},
-            };
-            map { push (@{ $class_mapping->{$_} }, $class_details) } @{ $result->{sibling_origin_wells} };
-        }
-    }
+    my $class_mapping = damage_classifications(@results);
 
     my $json = JSON->new->allow_nonref;
     my $json_parents = $json->encode($class_mapping);

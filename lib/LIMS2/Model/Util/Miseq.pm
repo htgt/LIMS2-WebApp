@@ -15,6 +15,7 @@ use Sub::Exporter -setup => {
               find_child_dir
               read_file_lines
               query_miseq_details
+              damage_classifications
           )
     ]
 };
@@ -107,7 +108,7 @@ sub query_miseq_details {
 
     my $parent_mapping;
     map { push( @{ $parent_mapping->{ $_->{well_id} } },  $_->{start_well_name} ) } @ancestor_results;
-    
+
     my @offspring_headers = qw(
         ancestor_well_id
         origin_well_id
@@ -125,14 +126,14 @@ sub query_miseq_details {
     my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
 
-    map { $_->{sibling_origin_wells} = $parent_mapping->{$_->{origin_well_id}} } @miseq_results;
-    
+    map { $_->{sibling_origin_wells} = $parent_mapping->{ $_->{origin_well_id} } } @miseq_results;
+
     return @miseq_results;
 }
 
 sub _prepare_headers {
     my ($data) = @_;
-    
+
     my @headers = @{ $data->{headers} };
     my @formatted_rows;
     foreach my $miseq_row (@{ $data->{results} }) {
@@ -161,7 +162,7 @@ sub _find_inherited_experiment {
 
 sub _traverse_process_tree {
     my ($self, $data_arrays) = @_;
-   
+
     my $query = $QUERY_MISEQ_SIBLINGS;
 
     my $parent_well_ids = $data_arrays->{parents};
@@ -174,9 +175,9 @@ sub _traverse_process_tree {
     my ($exps_where, @exps_binds) = $sql->where(
         { experiment_id => { -in => $experiments } },
     );
-    
+
     $query = sprintf ($query, $well_where, $exps_where);
-    
+
     return $self->schema->storage->dbh_do(
         sub {
             my ($storage, $dbh) = @_;
@@ -185,6 +186,27 @@ sub _traverse_process_tree {
             $sth->fetchall_arrayref;
         }
     );
+}
+
+sub damage_classifications {
+    my (@query_results) = @_;
+
+    my $class_mapping;
+    foreach my $result (@query_results) {
+        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
+            my $class_details = {
+                classification  => $result->{miseq_classification},
+                experiment_id   => $result->{experiment_id},
+                miseq_exp_name  => $result->{miseq_experiment_name},
+                miseq_plate_name => $result->{miseq_plate_name},
+            };
+            foreach my $sib_well (@{ $result->{sibling_origin_wells} }) {
+                push (@{ $class_mapping->{$sib_well} }, $class_details);
+            }
+        }
+    }
+
+    return $class_mapping;
 }
 
 sub miseq_well_processes {

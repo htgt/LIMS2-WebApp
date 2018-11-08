@@ -179,12 +179,12 @@ sub pspec_append_process {
 
 sub append_process {
     my ( $self, $params ) = @_;
-$DB::single=1;
+
     my $validated_params = $self->check_params($params, $self->pspec_append_process);
     my @output_wells = $validated_params->{output_wells};
     my @well_rs;
     foreach my $output (@output_wells) {
-        push @well_rs, $self->model('Golgi')->schema->resultset('Well')->find({ id => $output }); 
+        push @well_rs, $self->model('Golgi')->schema->resultset('Well')->find({ id => $output });
     }
 
     return;

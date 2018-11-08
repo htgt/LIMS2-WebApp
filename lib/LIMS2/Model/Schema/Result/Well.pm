@@ -1653,14 +1653,14 @@ sub experiments {
     return $self->result_source->schema->resultset('Experiment')->search($search)->all;
 }
 
-sub experimentsPipelineII {
+sub experiments_pipelineII {
     my $self = shift;
-$DB::single=1;
+
     my $design = $self->design;
 
     my $search = { deleted => 0};
-    
-    if($design){
+
+    if ($design) {
         $search->{design_id} = $design->id;
     }
 
@@ -1824,92 +1824,92 @@ sub input_process_parameters_skip_versioned_plates{
 #see code in WellData for an example
 # NOTE this will return the QC data for the first parent well with crispr QC attached
 sub genotyping_info {
-  my ( $self, $gene_finder, $only_qc_data ) = @_;
+    my ( $self, $gene_finder, $only_qc_data ) = @_;
 
-  require LIMS2::Exception;
+    require LIMS2::Exception;
 
-  #get the epd well if one exists (could be ourself)
-  my $epd = $self->is_epd_or_later;
+    #get the epd well if one exists (could be ourself)
+    my $epd = $self->is_epd_or_later;
 
-  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
-      unless $epd;
+    LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+        unless $epd;
 
-  LIMS2::Exception->throw( "EPD well is not accepted" )
-     unless $epd->accepted;
+    LIMS2::Exception->throw( "EPD well is not accepted" )
+        unless $epd->accepted;
 
-  my $parent_qc_well = $self->first_parent_with_crispr_qc;
+    my $parent_qc_well = $self->first_parent_with_crispr_qc;
 
-  DEBUG "First parent with crispr QC is $parent_qc_well";
+    DEBUG "First parent with crispr QC is $parent_qc_well";
 
-  my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
-  LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
-     unless $accepted_qc_well;
+    my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
+    LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
+        unless $accepted_qc_well;
 
-  if ( $only_qc_data ) {
-    DEBUG "Formatting QC data";
-    my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-    DEBUG "Formatting QC data DONE";
-    return $data;
-  }
-  my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
+    if ( $only_qc_data ) {
+        DEBUG "Formatting QC data";
+        my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+        DEBUG "Formatting QC data DONE";
+        return $data;
+    }
+    my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
-  # Add some extra info about which well the reported QC comes from
-  $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
-  $qc_info->{qc_well_name} = $parent_qc_well->name;
-  $qc_info->{qc_plate_type} = $parent_qc_well->plate_type;
-  if($qc_info->{qc_plate_type} eq 'EP_PICK'){
-      $qc_info->{qc_type} = 'Primary QC';
-  }
-  elsif($qc_info->{qc_plate_type} eq 'PIQ'){
-      $qc_info->{qc_type} = 'Secondary QC';
-  }
+    # Add some extra info about which well the reported QC comes from
+    $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
+    $qc_info->{qc_well_name} = $parent_qc_well->name;
+    $qc_info->{qc_plate_type} = $parent_qc_well->plate_type;
+    if($qc_info->{qc_plate_type} eq 'EP_PICK'){
+        $qc_info->{qc_type} = 'Primary QC';
+    }
+    elsif($qc_info->{qc_plate_type} eq 'PIQ'){
+        $qc_info->{qc_type} = 'Secondary QC';
+    }
 
-  # store primers in a hash of primer name -> seq
-  my %primers;
-  for my $primer ( $accepted_qc_well->get_crispr_primers ) {
-    #val is hash with name + seq
-    my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
+    # store primers in a hash of primer name -> seq
+    my %primers;
+    for my $primer ( $accepted_qc_well->get_crispr_primers ) {
+        #val is hash with name + seq
+        my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
 
-    push @{ $primers{crispr_primers}{$key} }, $val;
-  }
+        push @{ $primers{crispr_primers}{$key} }, $val;
+    }
 
-  my $vector_well = $self->final_vector;
-  my $design = $vector_well->design;
+    my $vector_well = $self->final_vector;
+    my $design = $vector_well->design;
 
-  #find primers related to the design
-  my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
-    { design_id => $design->id },
-    { order_by => { -asc => 'me.id'} }
-  );
+    #find primers related to the design
+    my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
+        { design_id => $design->id },
+        { order_by => { -asc => 'me.id'} }
+    );
 
-  for my $primer ( @design_primers ) {
-    my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
+    for my $primer ( @design_primers ) {
+        my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
 
-    push @{ $primers{design_primers}{$key} }, $val;
-  }
+        push @{ $primers{design_primers}{$key} }, $val;
+    }
 
-  my @gene_ids = $design->gene_ids;
+    my @gene_ids = $design->gene_ids;
 
-  #get gene symbol from the solr
-  my @genes = $design->gene_symbols($gene_finder);
+    #get gene symbol from the solr
+    my @genes = $design->gene_symbols($gene_finder);
 
-  return {
-      %$qc_info,
-      gene             => @genes == 1 ? $genes[0] : [ @genes ],
-      gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
-      design_id        => $design->id,
-      well_id          => $self->id,
-      barcode          => $self->barcode,
-      well_name        => $self->name,
-      plate_name       => $self->plate_name,
-      epd_plate_name   => $epd->plate_name,
-      accepted         => $epd->accepted,
-      targeting_vector => $vector_well->plate_name,
-      vector_cassette  => $vector_well->cassette->name,
-      primers          => \%primers,
-      species          => $design->species_id,
-      cell_line        => $self->first_cell_line->name,
-  };
+    return {
+        %$qc_info,
+        gene             => @genes == 1 ? $genes[0] : [ @genes ],
+        gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
+        design_id        => $design->id,
+        well_id          => $self->id,
+        barcode          => $self->barcode,
+        well_name        => $self->name,
+        plate_name       => $self->plate_name,
+        epd_plate_name   => $epd->plate_name,
+        accepted         => $epd->accepted,
+        targeting_vector => $vector_well->plate_name,
+        vector_cassette  => $vector_well->cassette->name,
+        primers          => \%primers,
+        species          => $design->species_id,
+        cell_line        => $self->first_cell_line->name,
+    };
 }
 
 # Get QC results for related MS_QC plates (mutation signatures workflow)
@@ -2001,14 +2001,14 @@ sub _qc_info{
 }
 
 sub _group_primers {
-  my ( $name, $seq ) = @_;
+    my ( $name, $seq ) = @_;
 
-  #split SF1 into qw(S F 1) so we can group properly
-  my @fields = split //, $name;
+    #split SF1 into qw(S F 1) so we can group properly
+    my @fields = split //, $name;
 
-  my $key = $fields[0] . $fields[-1];
+    my $key = $fields[0] . $fields[-1];
 
-  return $key, { name => $name, seq => $seq };
+    return $key, { name => $name, seq => $seq };
 }
 
 sub egel_pass_string {
@@ -2150,11 +2150,6 @@ sub parent_plates {
     my @parent_wells = $self->parent_wells;
 
     return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
-}
-
-sub miseq_classification {
-    
-    my ( $self ) = @_;
 }
 
 __PACKAGE__->meta->make_immutable;

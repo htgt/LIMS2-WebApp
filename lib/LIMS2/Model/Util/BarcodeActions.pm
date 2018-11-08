@@ -38,7 +38,7 @@ use Data::Dumper;
 # e.g. <input type="text" name="barcode_[% well.id %]">
 sub add_barcodes_to_wells{
     my ($model, $params, $state) = @_;
-$DB::single=1;
+
     my @csv_barcodes;
     my @barcode_keys;
 
@@ -1192,7 +1192,6 @@ sub attach_distru_barcodes_to_piq {
             push (@child_well_data, $well_data);
         }
 
-$DB::single=1; 
         my $temp_plate_name = $model->random_plate_name({ prefix => 'TMP_' . $piq_plate->type->id .'ii_' });
         my $temp_piq_plate = $model->create_plate({
             name       => $temp_plate_name,
@@ -1202,8 +1201,7 @@ $DB::single=1;
             wells      => \@child_well_data,
             is_virtual => 1,
         });
-$DB::single=1; 
-            
+
         my $temp_piq_wells = $temp_piq_plate->wells;
         while (my $piq_well = $temp_piq_wells->next) {
             $model->create_well_barcode({
