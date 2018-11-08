@@ -720,7 +720,7 @@ sub sibling_miseq_plate_GET {
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-$DB::single=1;
+    
     my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
     my $class_mapping;
     foreach my $result (@results) {
@@ -731,7 +731,7 @@ $DB::single=1;
                 miseq_exp_name  => $result->{miseq_experiment_name},
                 miseq_plate_name => $result->{miseq_plate_name},
             };
-            push (@{ $class_mapping->{$result->{origin_well_name}} }, $class_details);
+            map { push (@{ $class_mapping->{$_} }, $class_details) } @{ $result->{sibling_origin_wells} };
         }
     }
 

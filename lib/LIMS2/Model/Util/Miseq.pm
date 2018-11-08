@@ -45,11 +45,12 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_
      LEFT JOIN process_crispr pc ON pr_out.process_id = pc.process_id
      LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
 )
-SELECT DISTINCT exp.id as experiment_id, wh.crispr_id, wh.design_id, output_well_id, op.type_id, start_well_id
+SELECT DISTINCT exp.id AS experiment_id, wh.crispr_id, wh.design_id, output_well_id, op.type_id, start_well_id, sw.name AS start_well_name
 FROM well_hierarchy wh
-left join experiments exp ON exp.crispr_id = wh.crispr_id and exp.design_id = wh.design_id
-inner join wells ow on ow.id=output_well_id
-inner join plates op on ow.plate_id=op.id
+LEFT JOIN experiments exp ON exp.crispr_id = wh.crispr_id AND exp.design_id = wh.design_id
+INNER JOIN wells ow ON ow.id=output_well_id
+INNER JOIN plates op ON ow.plate_id=op.id
+INNER JOIN wells sw ON sw.id=start_well_id
 WHERE op.type_id IN ('EP_PIPELINE_II','PIQ','FP')
 EOT
 
@@ -71,15 +72,15 @@ WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well
     JOIN descendants ON descendants.output_well_id = pr_in.well_id
 )
 SELECT DISTINCT dest.input_well_id, dest.start_well_id, dest.process_id, well_in.name, plate_in.name,
-well_out.id, plate_out.name, mp.id, me.experiment_id as exp, me.name, mwe.id as mwe_id, mwe.classification
+well_out.id, plate_out.name, mp.id, me.experiment_id AS exp, me.name, mwe.id AS mwe_id, mwe.classification
 FROM descendants dest
-INNER JOIN wells well_in on input_well_id=well_in.id
-INNER JOIN plates plate_in on well_in.plate_id=plate_in.id
-INNER JOIN wells well_out on output_well_id=well_out.id
-INNER JOIN plates plate_out on well_out.plate_id=plate_out.id
-INNER JOIN miseq_plate mp on plate_out.id=mp.plate_id
-INNER JOIN miseq_experiment me on mp.id=me.miseq_id
-INNER JOIN miseq_well_experiment mwe on mwe.well_id=well_out.id and me.id=mwe.miseq_exp_id
+INNER JOIN wells well_in ON input_well_id=well_in.id
+INNER JOIN plates plate_in ON well_in.plate_id=plate_in.id
+INNER JOIN wells well_out ON output_well_id=well_out.id
+INNER JOIN plates plate_out ON well_out.plate_id=plate_out.id
+INNER JOIN miseq_plate mp ON plate_out.id=mp.plate_id
+INNER JOIN miseq_experiment me ON mp.id=me.miseq_id
+INNER JOIN miseq_well_experiment mwe ON mwe.well_id=well_out.id AND me.id=mwe.miseq_exp_id
 %s
 ORDER BY dest.start_well_id ASC
 EOT
@@ -98,11 +99,15 @@ sub query_miseq_details {
         well_id
         type_id
         start_well_id
+        start_well_name
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
     my @epii = uniq map { $_->{exp_id} } grep { $_->{type_id} eq 'EP_PIPELINE_II'} @ancestor_results;
     my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II'} @ancestor_results;
 
+    my $parent_mapping;
+    map { push( @{ $parent_mapping->{ $_->{well_id} } },  $_->{start_well_name} ) } @ancestor_results;
+    
     my @offspring_headers = qw(
         ancestor_well_id
         origin_well_id
@@ -119,7 +124,9 @@ sub query_miseq_details {
     );
     my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
-$DB::single=1;
+
+    map { $_->{sibling_origin_wells} = $parent_mapping->{$_->{origin_well_id}} } @miseq_results;
+    
     return @miseq_results;
 }
 
