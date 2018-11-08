@@ -25,6 +25,7 @@ use JSON;
 use File::Find;
 use Const::Fast;
 use List::MoreUtils qw( uniq );
+use SQL::Abstract;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -44,10 +45,12 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_
      LEFT JOIN process_crispr pc ON pr_out.process_id = pc.process_id
      LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
 )
-SELECT DISTINCT exp.id as experiment_id, wh.crispr_id, wh.design_id, output_well_id, start_well_id
+SELECT DISTINCT exp.id as experiment_id, wh.crispr_id, wh.design_id, output_well_id, op.type_id, start_well_id
 FROM well_hierarchy wh
-inner join experiments exp ON exp.crispr_id = wh.crispr_id and exp.design_id = wh.design_id
-where wh.crispr_id is not null and wh.design_id is not null
+left join experiments exp ON exp.crispr_id = wh.crispr_id and exp.design_id = wh.design_id
+inner join wells ow on ow.id=output_well_id
+inner join plates op on ow.plate_id=op.id
+WHERE op.type_id IN ('EP_PIPELINE_II','PIQ','FP')
 EOT
 
 #Crisprs and Designs are attached to processes at a much higher level.
@@ -59,7 +62,7 @@ WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well
     FROM processes pr
     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-    WHERE pr_out.well_id IN (?)
+    %s
     UNION
     SELECT pr.id, pr_in.well_id, pr_out.well_id, start_well_id
     FROM processes pr
@@ -75,8 +78,9 @@ INNER JOIN plates plate_in on well_in.plate_id=plate_in.id
 INNER JOIN wells well_out on output_well_id=well_out.id
 INNER JOIN plates plate_out on well_out.plate_id=plate_out.id
 INNER JOIN miseq_plate mp on plate_out.id=mp.plate_id
-INNER JOIN miseq_experiment me on mp.id=me.miseq_id and experiment_id IN (?)
+INNER JOIN miseq_experiment me on mp.id=me.miseq_id
 INNER JOIN miseq_well_experiment mwe on mwe.well_id=well_out.id and me.id=mwe.miseq_exp_id
+%s
 ORDER BY dest.start_well_id ASC
 EOT
 
@@ -86,19 +90,18 @@ EOT
 sub query_miseq_details {
     my ($self, $plate_id) = @_;
 
-$DB::single=1;
     my @ancestor_rows = @{ _find_inherited_experiment($self, $plate_id) };
     my @ancestor_headers = qw(
         exp_id
         crispr_id
         design_id
         well_id
+        type_id
         start_well_id
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
-
-    my $experiments_str = _stringify_multiples('exp_id', @ancestor_results);
-    my $ancestor_wells_str = _stringify_multiples('well_id', @ancestor_results);
+    my @epii = uniq map { $_->{exp_id} } grep { $_->{type_id} eq 'EP_PIPELINE_II'} @ancestor_results;
+    my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II'} @ancestor_results;
 
     my @offspring_headers = qw(
         ancestor_well_id
@@ -114,9 +117,9 @@ $DB::single=1;
         miseq_well_exp_id
         miseq_classification
     );
-    my @offspring_rows = @{ _traverse_process_tree($self, $experiments_str, $ancestor_wells_str) };
+    my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
-
+$DB::single=1;
     return @miseq_results;
 }
 
@@ -132,15 +135,6 @@ sub _prepare_headers {
     }
 
     return @formatted_rows;
-}
-
-sub _stringify_multiples {
-    my ($key, @rows) = @_;
-
-    my @values = map { $_->{$key} } @rows;
-    my $str = join (',', uniq @values);
-
-    return $str;
 }
 
 sub _find_inherited_experiment {
@@ -159,16 +153,28 @@ sub _find_inherited_experiment {
 }
 
 sub _traverse_process_tree {
-    my ($self, $experiments, $ancestors) = @_;
-    
+    my ($self, $data_arrays) = @_;
+   
     my $query = $QUERY_MISEQ_SIBLINGS;
+
+    my $parent_well_ids = $data_arrays->{parents};
+    my $experiments = $data_arrays->{experiments};
+
+    my $sql = SQL::Abstract->new;
+    my ($well_where, @well_binds) = $sql->where(
+        { 'pr_out.well_id' => { -in => $parent_well_ids } },
+    );
+    my ($exps_where, @exps_binds) = $sql->where(
+        { experiment_id => { -in => $experiments } },
+    );
+    
+    $query = sprintf ($query, $well_where, $exps_where);
+    
     return $self->schema->storage->dbh_do(
         sub {
             my ($storage, $dbh) = @_;
             my $sth = $dbh->prepare_cached($query);
-            $sth->bind_param(1, $ancestors); #Starts at 1 for some reason
-            $sth->bind_param(2, $experiments);
-            $sth->execute();
+            $sth->execute(@{ $parent_well_ids }, @{ $experiments });
             $sth->fetchall_arrayref;
         }
     );
