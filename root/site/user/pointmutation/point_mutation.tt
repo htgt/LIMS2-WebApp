@@ -6,8 +6,8 @@
 .d3-tip {
     line-height: 1;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #FFFFFF;
+    background: rgba(0, 0, 0, 0.8); //Black, 80% opacity
+    color: #FFFFFF; //White
     border-radius: 2px;
     text-align: center;
 }
@@ -19,7 +19,7 @@
     font-size: 10px;
     width: 100%;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.8);
+    color: rgba(0, 0, 0, 0.8); //Black, 80% opacity
     content: "\25BC";
     position: absolute;
     text-align: center;
@@ -241,41 +241,41 @@ function createRings() {
         .append("path")
         .attr("class","wellPath")
         .datum({endAngle: tau})
-        .style("fill","#887bf7")
+        .style("fill","#887BF7") //Purple
         .attr("d",arc);
 
     var wt = d3.selectAll("g.node")
         .append("path")
         .datum(initDonut[0])
-        .style("fill","#66c2a5")
+        .style("fill","#66C2A5") //Green
         .attr("d", arc)
         .attr("class","donut wild");
 
     var nhej = d3.selectAll("g.node")
         .append("path")
         .datum(initDonut[1])
-        .style("fill","#ffaa00")
+        .style("fill","#FFAA00") //Orange
         .attr("d", arc)
         .attr("class", "donut nhej");
 
     var hdr = d3.selectAll("g.node")
         .append("path")
         .datum(initDonut[1])
-        .style("fill","#d9e354")
+        .style("fill","#D9E354") //Yellow
         .attr("d", arc)
         .attr("class", "donut hdr");
 
     var mixed = d3.selectAll("g.node")
         .append("path")
         .datum(initDonut[1])
-        .style("fill","#73667a")
+        .style("fill","#73667A") //Blue-grey
         .attr("d", arc)
         .attr("class", "donut mix");
 
     var frameshift = d3.selectAll("g.node")
         .append("path")
         .datum(initDonut[1])
-        .style("fill","#103877")
+        .style("fill","#103877") //Dark Blue
         .attr("d", fsArc)
         .attr("class", "frame");
 
@@ -297,13 +297,13 @@ d3.selectAll("g.teNode")
     .append("path")
     .attr("class","tePath")
     .datum({endAngle: tau})
-    .style("fill","#887bf7")
+    .style("fill","#887BF7") //Purple
     .attr("d",teArc);
 
 var targetEff = d3.select("g.teNode")
     .append("path")
     .datum(initDonut[1])
-    .style("fill","#ffaa00")
+    .style("fill","#FFAA00") //Orange
     .attr("d", teArc)
     .attr("class","tePath targeting");
 

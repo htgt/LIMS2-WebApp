@@ -55,8 +55,10 @@ INNER JOIN wells sw ON sw.id=start_well_id
 WHERE op.type_id IN ('EP_PIPELINE_II','PIQ','FP')
 EOT
 
-#Crisprs and Designs are attached to processes at a much higher level.
+#The two queries are meant for finding Miseq calls from a sibling or distant-relation plate. 
 #The second pr_out.well_id preserves the well id we started with. Using that we can trace exactly which well has lineage to the miseq classifications
+#Crisprs and Designs are attached to processes at the highest Pipeline II level (EPII).
+#Miseq Parents can only consist of FP and PIQ plates so we must preserve the parent branch to the EPII plate
 
 const my $QUERY_MISEQ_SIBLINGS => <<'EOT';
 WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well_id) AS (
@@ -86,8 +88,8 @@ INNER JOIN miseq_well_experiment mwe ON mwe.well_id=well_out.id AND me.id=mwe.mi
 ORDER BY dest.start_well_id ASC
 EOT
 
-#Query is meant for finding Miseq calls from a sibling or distant-relation plate. Find classifications which stem from the same parent / grandparent well as the supplied plate (i.e. PIQ)
-#This query first looks for parent wells then searches for child Miseq wells stemming from that parent 
+#Following on from the ancestory query, we place the potential parent wells (FP, PIQ) into this query to search for Miseq offspring 
+#Find classifications which share a common ancestor (Usually FP) with our supplied plate (i.e. PIQ)
 
 sub query_miseq_details {
     my ($self, $plate_id) = @_;

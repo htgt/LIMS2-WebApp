@@ -9,7 +9,7 @@
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
-    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4); //Black, 40% Opacity
     -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
     pointer-events: none;
@@ -368,8 +368,6 @@ console.log("call anc");
 }
 
 function fetchInheritedMiseqInfo(plate) {
-
-console.log("call sibling");
     if (parentMiseqClassifications[plate] === undefined) {
         $.ajax({
             dataType: 'json',
