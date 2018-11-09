@@ -238,7 +238,7 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 14:01:29
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r6GSctDb6qLgMisoK5siew
 
-sub as_hash{ 
+sub as_hash{
     my $self = shift;
 
     my %h = (

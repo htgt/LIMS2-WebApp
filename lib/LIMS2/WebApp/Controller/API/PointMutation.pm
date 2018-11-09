@@ -35,7 +35,7 @@ sub point_mutation_image_GET {
         $c->response->body( "Database entry for filename: " . $file_name . " can not be found.");
         return;
     }
-     
+
     my $raw_string = get_raw_image($c, $miseq_well_experiment_hash->{id});
     my $body = encode_base64( $raw_string );
 
@@ -65,11 +65,11 @@ sub point_mutation_summary_GET {
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
         $c->response->body( "Database entry for miseq well experiment id: " . $miseq_well_experiment_hash->{id} . " can not be found for $miseq, $oligo_index and $experiment");
-        return; 
+        return;
     }
 
     my $res->{data} = get_frequency_data($c, $miseq_well_experiment_hash);
-        
+
     $res->{crispr} = crispr_seq($c, $miseq, $experiment);
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($res);
@@ -371,7 +371,7 @@ sub flatten_wells {
 
 sub get_frequency_data{
     my ($c, $miseq_well_experiment_hash) = @_;
-    
+
     my $limit = $c->request->param('limit');
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
     my $cou = $frequency_rs->count;
@@ -383,8 +383,8 @@ sub get_frequency_data{
                 my $hash = $frequency_rs->next->as_hash;
                 my $sum = $hash->{n_reads};
                 my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
-                push @lines, 
-                    $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".   
+                push @lines,
+                    $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
                     $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
                     $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
                     $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".

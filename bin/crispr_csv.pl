@@ -37,14 +37,13 @@ while (my $file = <$th>){ #foreach file from the list of file directories
     $jobout =~ s/CRISPR\S*txt/job.out/g;
     next unless (-e $jobout);
     my $job = get_crispr($jobout);
-        
     my $efficiency = sprintf("%.2f", $data->{miseq_well_experiment}->{nhej_reads} / $data->{miseq_well_experiment}->{total_reads} * 100) ."%";
     my @array = (
             $data->{miseq_experiment}->{name},
-            $data->{miseq_well_experiment}->{well_name}, 
+            $data->{miseq_well_experiment}->{well_name},
             $job ->{crispr},
-            $data->{miseq_well_experiment}->{nhej_reads}, 
-            $data->{miseq_well_experiment}->{total_reads}, 
+            $data->{miseq_well_experiment}->{nhej_reads},
+            $data->{miseq_well_experiment}->{total_reads},
             $efficiency,
             $job->{date}
     );
@@ -55,5 +54,3 @@ while (my $file = <$th>){ #foreach file from the list of file directories
     close($ch);
 }
 close($th);
-
-

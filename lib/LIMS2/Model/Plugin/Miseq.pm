@@ -167,9 +167,11 @@ sub update_miseq_well_experiment {
     $class->{status} = check_undef($validated_params->{status}, $hash_well->{status});
     $class->{total_reads} = check_undef($validated_params->{total_reads}, $hash_well->{total_reads});
     $class->{nhej_reads} = check_undef($validated_params->{nhej_reads}, $hash_well->{nhej_reads});
-    $class->{hdr_reads} = check_undef($validated_params->{hdr_reads}, $hash_well->{hdr_reads}); 
-    $class->{mixed_reads} = check_undef($validated_params->{mixed_reads}, $hash_well->{mixed_reads}); 
+    $class->{hdr_reads} = check_undef($validated_params->{hdr_reads}, $hash_well->{hdr_reads});
+    $class->{mixed_reads} = check_undef($validated_params->{mixed_reads}, $hash_well->{mixed_reads});
     $well->update($class);
+
+    return;
 }
 
 
@@ -222,13 +224,10 @@ sub pspec_update_miseq_experiment {
 
 sub update_miseq_experiment {
     my ($self, $params) = @_;
-    $DB::single=1; 
 
     my $validated_params = $self->check_params($params, pspec_update_miseq_experiment);
-
     my %search;
     $search{'me.id'} = $validated_params->{id};
-
     my $exp = $self->retrieve( MiseqExperiment => \%search );
     my $hash_well = $exp->as_hash;
     my $class;
@@ -238,11 +237,11 @@ sub update_miseq_experiment {
     $class->{nhej_reads} = check_undef( $validated_params->{nhej_reads}, $hash_well->{nhej_count} );
     $class->{total_reads} = check_undef( $validated_params->{total_reads}, $hash_well->{read_count} );
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
+
     my $update = $exp->update($class);
+
     return $update;
 }
-
-
 
 
 

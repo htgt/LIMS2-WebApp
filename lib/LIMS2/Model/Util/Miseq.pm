@@ -218,7 +218,6 @@ sub generate_summary_data_old {
             details     => $details,
         };
     }
-    
 
     return $wells;
 }
@@ -288,16 +287,14 @@ sub _wanted {
 
 sub generate_summary_data {
     my ($c, $plate_id, $miseq_id) = @_;
-    
-        
+
+
     my $overview;
     my $ranges;
     my $wells;
     my $index;
     my $converter = wells_generator(1);
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
-    
-           $DB::single=1; 
 
     foreach my $miseq_exp (@miseq_exp_rs) {
         my $exp_name = $miseq_exp->{name};
@@ -308,18 +305,16 @@ sub generate_summary_data {
             my $percentages;
             my $details;
 
-            my @experiments;
             $index = $converter->{$well_exp->{well_name}};
             push (@indexes, $index);
-            
             $details->{class}       = $well_exp->{classification};
             $details->{status}      = $well_exp->{status};
-            $details->{frameshift}  = $well_exp->{frameshifted};            
-            
+            $details->{frameshift}  = $well_exp->{frameshifted};
+
             my $total = $well_exp->{total_reads};
             my $nhej = $well_exp->{nhej_reads};
             my $hdr = $well_exp->{hdr_reads};
-            my $mixed = $well_exp->{mixed_reads};     
+            my $mixed = $well_exp->{mixed_reads};
             my $wt;
             if (defined $total and defined $nhej and defined $hdr and defined $mixed) {
                 $wt = $total - $nhej - $hdr - $mixed;
@@ -334,10 +329,6 @@ sub generate_summary_data {
 
             $wells->{sprintf("%02d", $index)}->{percentages}->{$exp_name} = $percentages;
             $wells->{sprintf("%02d", $index)}->{details}->{$exp_name} = $details;
-            
-            #push ( @{$wells->{sprintf("%02d", $index)}->{percentages}}, $percentages);
-            #push ( @{$wells->{sprintf("%02d", $index)}->{details}}, $details);
-            
             push ( @{$wells->{sprintf("%02d", $index)}->{gene}}, $miseq_exp->{gene});
             push ( @{$wells->{sprintf("%02d", $index)}->{experiments}}, $exp_name);
 
@@ -349,20 +340,17 @@ sub generate_summary_data {
         @indexes = sort { $a <=> $b } @indexes;
         my $range = $indexes[0] . '-' . $indexes[-1];
         $ranges->{$miseq_exp->{name}} = $range;
-        
+
         my @gene;
         push @gene, $miseq_exp->{gene};
         $overview->{$miseq_exp->{name}} = \@gene;
     }
-
-return{ 
-    ranges      => $ranges,
-    overview    => $overview,
-    wells       => $wells};
+    return {
+        ranges      => $ranges,
+        overview    => $overview,
+        wells       => $wells
+    };
 }
-                                              
 1;
-
-
 
 __END__

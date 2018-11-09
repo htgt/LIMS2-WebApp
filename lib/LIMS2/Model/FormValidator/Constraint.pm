@@ -97,7 +97,6 @@ sub cre_bac_recom_backbone {
 
 sub binary {
     my $self = shift;
-    $DB::single=1;
     return $self;
 }
 

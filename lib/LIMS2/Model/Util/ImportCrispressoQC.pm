@@ -8,7 +8,7 @@ use Try::Tiny;
 use Moose;
 use LIMS2::Model::Util::Miseq qw( miseq_well_processes convert_index_to_well_name );
 use List::Compare::Functional qw( get_intersection );
-use Sub::Exporter -setup => { 
+use Sub::Exporter -setup => {
     exports => [
         qw(
             get_data
@@ -19,7 +19,7 @@ use Sub::Exporter -setup => {
             migrate_images
             migrate_frequencies
             get_crispr
-        ) 
+        )
     ],
 };
 
@@ -42,18 +42,21 @@ sub header_hash {
 
 sub migrate_frequencies {
     my ( $model, $frequency_paths, $miseq_well_experiment_hash ) = @_;
-    my $limit   = 10;
-    my $counter = 0;      #counts the number of frequencies within one file
+    my $limit = 10;
+    my $counter = 0;#counts the number of frequencies within one file
+$DB::single=1;
     open( my $file_to_read, "<", "$frequency_paths" ) or die "Cannot open frequency file";
+    chomp(my @lines = <$file_to_read>);
+    close $file_to_read or die "Cannot close frequency file";
 
-    my $header = <$file_to_read>;    #grab the header line that holds the titles of the columns
-    chomp $header;
+    my $header = shift(@lines);    #grab the header line that holds the titles of the columns
+
     my @expected_titles
         = ( 'aligned_sequence', 'nhej', 'unmodified', 'hdr', 'n_deleted', 'n_inserted', 'n_mutated', '#reads' );
     my %head = header_hash( $header, @expected_titles );
     if (%head) {
-        while ( my $line = <$file_to_read> ) {
-            chomp $line;
+        while (@lines) {
+            my $line = shift @lines;
             if ( $counter < $limit ) {
                 $counter++;
                 my @words = split( /\t/, $line );    #split the space seperated values and store them in a hash
@@ -81,11 +84,14 @@ sub migrate_frequencies {
                     }
                 );
             }
-            else { last; }    #to escape the while after getting 10 lines of frequencies
+            else { 
+                last; 
+            }#to escape the while after getting 10 lines of frequencies
         }
     }
-    else { warn "File: $frequency_paths is corrupt. Could not extract titles properly"; }
-    close($file_to_read) or die "Cannot close frequency file";
+    else { 
+        warn "File: $frequency_paths is corrupt. Could not extract titles properly"; 
+    }
     return;
 }
 
@@ -138,19 +144,21 @@ sub update_miseq_exp {
 
 sub migrate_quant_file {
     my ( $model, $directory, $miseq_well_experiment_hash ) = @_;
-
+ 
     open( my $quant_fh, '<:encoding(UTF-8)', $directory ) or die "Failed to open quant file";
+    chomp(my @lines = <$quant_fh>);
+    close $quant_fh or die "Cannot close frequency file";
+
     my %params;
     my %commands = (
         'NHEJ'           => 'nhej_reads',
         'HDR'            => 'hdr_reads',
         'Mixed HDR-NHEJ' => 'mixed_reads',
         'Total Aligned'  => 'total_reads',
-        
     );
 
-    while ( my $line = <$quant_fh> ) {
-        chomp $line;
+    while ( @lines) {
+        my $line =  shift @lines;
         my ( $type, $number ) = $line =~ m/^[\s\-]* #ignore whitespace, dashes at start of line
             ([\w\-\s]+) #then grab the type e.g. "HDR", "Mixed HDR-NHEJ", etc
             :(\d+) #finally the number of reads
@@ -160,7 +168,6 @@ sub migrate_quant_file {
             $params{ $commands{$type} } = $number;
         }
     }
-    close $quant_fh;
 
     #params hash holds the info that need to be passed to the plugin
     #miseq_experiment_hash the location it should be placed in
@@ -208,22 +215,19 @@ sub create_miseq_well_exp {
     my $classification = "Not Called";
     my $frameshifted   = 0;
     open( my $my_file, "<", "$file" ) or die "Cannot open file";
-    my $head = <$my_file>;
-    chomp $head;
+    chomp(my @lines = <$my_file>);
+    close $my_file;
 
-    my $most_common_line = <$my_file>;
+    my $head = shift @lines;
+
+    my $most_common_line = shift @lines;
     $most_common_line = "0" unless $most_common_line;
-    chomp $most_common_line;
 
-    my $second_most_common_line = <$my_file>;
+    my $second_most_common_line = shift @lines;
     $second_most_common_line = "0" unless $second_most_common_line;
-    chomp $second_most_common_line;
 
-    my $mixed_read_line = <$my_file>;
+    my $mixed_read_line = shift @lines;
     $mixed_read_line = "0" unless $mixed_read_line;
-    chomp $mixed_read_line;
-
-    close($my_file);
 
     my @mixed_read = split( /\t/, $mixed_read_line );
     my $mixed_check = $mixed_read[-1];
@@ -379,7 +383,7 @@ sub extract_data_from_path {
         \/S(\d+)    #well name integer, before convert to "A01" format
         _exp(\w+)   #experiment name as string in the format "AS_EWE_E"
         /xgms;
-    
+
     return 0 unless $miseq && $well && $exp;
     return {
         miseq           =>  $miseq,
@@ -390,7 +394,6 @@ sub extract_data_from_path {
 
 sub get_data_from_file {
     my ( $model, $file ) = @_;
-    
     my $extracted = extract_data_from_path($file);
     my $plate;
     my $plate_hash;
@@ -406,7 +409,7 @@ sub get_data_from_file {
         $plate_hash = $plate->as_hash;
 
         #Then get the miseq plate id
-        
+
         $miseq_plate_hash = $plate->miseq_details;
 
         #Plate id to well name gives well
@@ -414,14 +417,14 @@ sub get_data_from_file {
 
         #Query miseq experiment for name(extracted from the path and converted) and plate id
         $miseq_experiment_hash = get_miseq_experiment( $model, $extracted->{experiment}, $miseq_plate_hash );
-    
+
         #Finally, query miseq well experiment for miseq experiment id and well id to get the miseq well experiment id.
-        
+
         $miseq_well_experiment_hash = get_miseq_well_experiment( $model, $miseq_experiment_hash, $well_hash );
 
         $miseq_well_experiment_hash = create_miseq_well_exp( $model, $file, $well_hash, $miseq_experiment_hash ) unless $miseq_well_experiment_hash;
 
-    
+
         $hash = {
             miseq_experiment      => $miseq_experiment_hash,
             miseq_well_experiment => $miseq_well_experiment_hash,
@@ -435,11 +438,9 @@ sub get_data_from_file {
 
 sub get_data{
     my ( $model, $miseq, $well, $exp ) = @_;
-    $miseq =~ m/
-        Miseq_(\w+) #miseq plate pure number
-        /xgms;
-    
-    $miseq = $1;
+    if ($miseq =~ m/Miseq_(\w+) #miseq plate pure number/xgms ) {
+        $miseq = $1;
+    }
     my $plate;
     my $plate_hash;
     my $miseq_plate_hash;
@@ -461,7 +462,7 @@ sub get_data{
 
         #Query miseq experiment for name(extracted from the path and converted) and plate id
         $miseq_experiment_hash = get_miseq_experiment( $model, $exp, $miseq_plate_hash );
-        
+
         #Finally, query miseq well experiment for miseq experiment id and well id to get the miseq well experiment id.
         $miseq_well_experiment_hash = get_miseq_well_experiment( $model, $miseq_experiment_hash, $well_hash );
 
@@ -478,24 +479,28 @@ sub get_data{
 
 sub get_crispr{
     my $file = shift;
+$DB::single=1;
     open( my $jobout_fh, '<:encoding(UTF-8)', $file ) or die "Failed to open file at $file";
-    my $line; 
+    chomp(my @lines= <$jobout_fh>);
+    close $jobout_fh;
+
     my $crispr;
     my $date;
-    while ($line = <$jobout_fh>) {
-        chomp $line;
-        if (!$crispr){
-            $line =~ m/-g\ (\w+)/xgms;
-            $crispr = $1;
-        }
 
-        if (!$date){
-            $line =~ m/Started\ at\ (.+$)/xgms;
-            $date = $1;
+    while (@lines) {
+    my $line = shift @lines;
+        if (!$crispr) {
+            if ($line =~ m/-g\ (\w+)/xgms) {
+                $crispr = $1;
+            }
+        }
+        if (!$date) {
+            if ($line =~ m/Started\ at\ (.+$)/xgms) {
+                $date = $1;
+            }
         }
         last if $crispr and $date;
-    }    
-    close $jobout_fh;
+    }
     my $hash = {
         date => $date,
         crispr => $crispr

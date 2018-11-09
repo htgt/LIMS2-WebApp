@@ -37,21 +37,21 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
     my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
-    
+
 
     if ($miseq_plate->{'384'} == 1 ) {
         my $quadrants = experiment_384_distribution($c, $summary_data->{ranges});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
     }
-    
-    my $overview = $summary_data->{overview}; 
+
+    my $overview = $summary_data->{overview};
     my $ov_json = encode_json ({ summary => $overview });
 
     my $json = encode_json ({ summary => $summary_data->{wells}});
 
     my ($gene_keys, $gene_prefix_keys) = get_genes($c, $overview);
-    
-    
+
+
     my $revov = encode_json({ summary => $gene_keys });
     my $prefix = encode_json({summary => $gene_prefix_keys});
     my @exps = sort keys %$overview;
@@ -100,7 +100,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
-    
+
 
     $c->stash(
         wells => $json,
@@ -370,7 +370,7 @@ sub get_efficiencies {
 
 sub get_well_exp_graphs_old {
     my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
-    
+
     my @exps;
     my @files = find_child_dir($miseq, $regex); #Structure - S(Index)_exp(Experiment)
     foreach my $file (@files) {
@@ -398,7 +398,7 @@ sub get_well_exp_graphs_old {
     }
 
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
-    
+
     return \@exps;
 }
 
@@ -419,7 +419,7 @@ sub get_well_exp_graphs {
         push (@exps, $ref);
     }
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
-    
+
     return \@exps;
 }
 __PACKAGE__->meta->make_immutable;
