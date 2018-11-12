@@ -44,7 +44,6 @@ sub migrate_frequencies {
     my ( $model, $frequency_paths, $miseq_well_experiment_hash ) = @_;
     my $limit = 10;
     my $counter = 0;#counts the number of frequencies within one file
-$DB::single=1;
     open( my $file_to_read, "<", "$frequency_paths" ) or die "Cannot open frequency file";
     chomp(my @lines = <$file_to_read>);
     close $file_to_read or die "Cannot close frequency file";
@@ -84,13 +83,13 @@ $DB::single=1;
                     }
                 );
             }
-            else { 
-                last; 
+            else {
+                last;
             }#to escape the while after getting 10 lines of frequencies
         }
     }
-    else { 
-        warn "File: $frequency_paths is corrupt. Could not extract titles properly"; 
+    else {
+        warn "File: $frequency_paths is corrupt. Could not extract titles properly";
     }
     return;
 }
@@ -144,7 +143,7 @@ sub update_miseq_exp {
 
 sub migrate_quant_file {
     my ( $model, $directory, $miseq_well_experiment_hash ) = @_;
- 
+
     open( my $quant_fh, '<:encoding(UTF-8)', $directory ) or die "Failed to open quant file";
     chomp(my @lines = <$quant_fh>);
     close $quant_fh or die "Cannot close frequency file";
@@ -479,7 +478,7 @@ sub get_data{
 
 sub get_crispr{
     my $file = shift;
-$DB::single=1;
+
     open( my $jobout_fh, '<:encoding(UTF-8)', $file ) or die "Failed to open file at $file";
     chomp(my @lines= <$jobout_fh>);
     close $jobout_fh;
