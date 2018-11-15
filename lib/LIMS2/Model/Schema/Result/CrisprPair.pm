@@ -162,6 +162,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 process_crispr_pairs
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprPair>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_crispr_pairs",
+  "LIMS2::Model::Schema::Result::ProcessCrisprPair",
+  { "foreign.crispr_pair_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 right_crispr
 
 Type: belongs_to
@@ -178,8 +193,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LhiddgZPOuluhszoE32LqQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y96Ob9mt/W7Cdl3x1ZIcbw
 
 __PACKAGE__->has_many(
   "experiments",

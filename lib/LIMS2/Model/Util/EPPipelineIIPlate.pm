@@ -30,6 +30,16 @@ sub retrieve_experiments_ep_pipeline_ii {
         push @experiments_ii, @temp;
     }
 
+    if ($params->{crispr_pair_id_assembly_ii}) {
+        my @temp = retrieve_experiments_by_field($model, 'crispr_pair_id', $params->{crispr_pair_id_assembly_ii});
+        push @experiments_ii, @temp;
+    }
+
+    if ($params->{crispr_group_id_assembly_ii}) {
+        my @temp = retrieve_experiments_by_field($model, 'crispr_group_id', $params->{crispr_group_id_assembly_ii});
+        push @experiments_ii, @temp;
+    }
+
     if ($params->{gene_id_assembly_ii}) {
         my @temp = retrieve_experiments_by_field($model, 'gene_id', $params->{gene_id_assembly_ii});
         push @experiments_ii, @temp;
@@ -75,12 +85,29 @@ sub create_exp_ep_pipeline_ii {
                 my $exp_params = {
                     gene_id         =>  $gene_id,
                     design_id       =>  $params->{design_id_assembly_ii},
-                    crispr_id       =>  $params->{crispr_id_assembly_ii}
+                    crispr_id       =>  $params->{crispr_id_assembly_ii},
+                    crispr_pair_id  => $params->{crispr_pair_id_assembly_ii},
+                    crispr_group_id => $params->{crispr_group_id_assembly_ii}
                 };
 
                 my $crispr = $model->schema->resultset('Crispr')->find({ id => $params->{crispr_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
+                my $crispr_pair = $model->schema->resultset('CrisprPair')->find({ id => $params->{crispr_pair_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
+                my $crispr_group = $model->schema->resultset('CrisprGroup')->find({ id => $params->{crispr_group_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
+
                 my $design = $model->schema->resultset('Design')->find({ id => $params->{design_id_assembly_ii} }, { columns => [ qw/id species_id/ ] });
-                if ($crispr->get_column('species_id') ne $design->get_column('species_id')) {
+                my $crispr_species;
+
+                try {
+                    if ($crispr->get_column('species_id')) {
+                        $crispr_species = $crispr->get_column('species_id');
+                    } elsif ($crispr_pair->get_column('species_id')) {
+                        $crispr_species = $crispr_pair->get_column('species_id');
+                    } elsif ($crispr->get_column('species_id')) {
+                        $crispr_species = $crispr_group->get_column('species_id')
+                    }
+                };
+
+                if ($crispr_species ne $design->get_column('species_id')) {
                     $msg = 'Create experiment error - Crispr ID species:  ' . $crispr->get_column('species_id') . ' and Design ID species: ' . $design->get_column('species_id');
                     return;
                 }

@@ -139,6 +139,20 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<experiments_assigned_trivial_key>
+
+=over 4
+
+=item * L</assigned_trivial>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("experiments_assigned_trivial_key", ["assigned_trivial"]);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -221,6 +235,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_experiments
 
 Type: has_many
@@ -257,8 +286,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-04-13 16:36:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TNpeqj/Yy9aR/nYp6SNCUQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j6HiANndPVnIQd1PckT/jQ
 
 __PACKAGE__->has_one(
   'trivial',

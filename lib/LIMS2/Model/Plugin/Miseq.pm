@@ -184,6 +184,8 @@ sub pspec_create_miseq_experiment {
         name            => { validate => 'non_empty_string' },
         gene            => { validate => 'non_empty_string' },
         nhej_reads      => { validate => 'integer' },
+        parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
+        experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
         total_reads     => { validate => 'integer' },
     };
 }
@@ -199,7 +201,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name gene nhej_reads total_reads)
+                qw( miseq_id name experiment_id parent_plate_id gene nhej_reads total_reads )
             )
         }
     );
@@ -218,6 +220,8 @@ sub pspec_update_miseq_experiment {
         name            => { validate => 'non_empty_string', optional => 1 },
         gene            => { validate => 'non_empty_string', optional => 1 },
         nhej_reads      => { validate => 'integer', optional => 1 },
+        experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
+        parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
         total_reads     => { validate => 'integer', optional => 1 },
     };
 }
@@ -236,6 +240,9 @@ sub update_miseq_experiment {
     $class->{gene} =  check_undef( $validated_params->{gene}, $hash_well->{gene} );
     $class->{nhej_reads} = check_undef( $validated_params->{nhej_reads}, $hash_well->{nhej_count} );
     $class->{total_reads} = check_undef( $validated_params->{total_reads}, $hash_well->{read_count} );
+
+    $class->{experiment_id} = $validated_params->{experiment_id} || $hash_well->{experiment_id};
+    $class->{parent_plate_id} = $validated_params->{parent_plate_id} || $hash_well->{parent_plate_id};
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
 
     my $update = $exp->update($class);

@@ -403,6 +403,7 @@ sub get_data_from_file {
     my $hash;
 
     try{
+
         #First get the plate hash
         $plate = get_plate( $model, $extracted->{miseq} );
         $plate_hash = $plate->as_hash;
