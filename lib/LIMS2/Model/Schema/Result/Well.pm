@@ -1624,7 +1624,6 @@ Note: only works for assembly well or later at the moment
 use Time::HiRes qw(gettimeofday tv_interval);
 sub experiments {
     my $self = shift;
-
     my $assembly = $self->parent_assembly_well;
     unless($assembly){
         die "No assembly well parent found for $self. Cannot identify related experiments";
@@ -1645,6 +1644,20 @@ sub experiments {
         $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
     }
     if($design){
+        $search->{design_id} = $design->id;
+    }
+
+    return $self->result_source->schema->resultset('Experiment')->search($search)->all;
+}
+
+sub experiments_pipelineII {
+    my $self = shift;
+
+    my $design = $self->design;
+
+    my $search = { deleted => 0};
+
+    if ($design) {
         $search->{design_id} = $design->id;
     }
 
@@ -1814,6 +1827,7 @@ sub genotyping_info {
 
     #get the epd well if one exists (could be ourself)
     my $epd = is_plate_type_or_later($self, 'EP_PICK');
+
 
     LIMS2::Exception->throw( "Provided well must be an epd well or later" )
         unless $epd;
@@ -2007,14 +2021,14 @@ sub _qc_info{
 }
 
 sub _group_primers {
-  my ( $name, $seq ) = @_;
+    my ( $name, $seq ) = @_;
 
-  #split SF1 into qw(S F 1) so we can group properly
-  my @fields = split //, $name;
+    #split SF1 into qw(S F 1) so we can group properly
+    my @fields = split //, $name;
 
-  my $key = $fields[0] . $fields[-1];
+    my $key = $fields[0] . $fields[-1];
 
-  return $key, { name => $name, seq => $seq };
+    return $key, { name => $name, seq => $seq };
 }
 
 sub egel_pass_string {
@@ -2149,5 +2163,14 @@ sub most_recent_barcode_event{
 
     return $event;
 }
+
+sub parent_plates {
+    my ( $self ) = @_;
+
+    my @parent_wells = $self->parent_wells;
+
+    return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

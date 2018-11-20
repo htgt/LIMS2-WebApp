@@ -18,12 +18,14 @@ use Sub::Exporter -setup => {
               do_picklist_checkout
               start_doubling_well_barcode
               upload_qc_plate
-
+              create_barcoded_plate
+              attach_distru_barcodes_to_piq
           )
     ]
 };
 
 use LIMS2::Model::Util::WellName qw( generate_96_well_annotations );
+use LIMS2::Model::Util::Miseq qw( wells_generator );
 use Log::Log4perl qw( :easy );
 use List::MoreUtils qw( uniq any );
 use LIMS2::Exception;
@@ -828,7 +830,6 @@ sub upload_plate_scan{
         });
 
         my @barcoded_wells = grep { $_->barcode } $existing_plate->wells;
-
         if(@barcoded_wells){
             # Error if some but not all wells have barcodes
             my $barcoded_count = scalar @barcoded_wells;
@@ -845,7 +846,6 @@ sub upload_plate_scan{
             if ($existing_plate->type_id eq "FP"){
                 _remove_empty_tube_barcodes($model,$existing_plate,$csv_data,\@list_messages);
             }
-
             # If well barcodes have not changed at all do nothing
             if(_csv_barcodes_match_existing($existing_plate, $csv_data)){
 
@@ -858,7 +858,6 @@ sub upload_plate_scan{
                 };
                 return ($existing_plate, \@list_messages);
             }
-
             # Otherwise update plate
             my $plate_update_params = {
                 slice_def($validated_params, qw(user comment))
@@ -878,14 +877,14 @@ sub upload_plate_scan{
             };
 
             push @list_messages, @$messages;
-        }
-        else{
+                   }
+             else{
 
             DEBUG "Adding barcodes to existing wells";
             # These are new barcodes to add to wells that have been created manually in LIMS2
             # Method returns list of messages
             push @list_messages, _add_csv_barcodes_to_plate($model, $existing_plate, $csv_data);
-        }
+            }
     }
 
     return ($new_plate, \@list_messages);
@@ -1166,6 +1165,55 @@ sub _parse_plate_well_barcodes_csv_file {
     }
 
     return $csv_data;
+}
+
+sub attach_distru_barcodes_to_piq {
+    my ($model, $piq_plate, $well_barcodes, $state) = @_;
+    my $well_details;
+    my $piq_wells = $piq_plate->wells;
+    while (my $well = $piq_wells->next) {
+        $well_details->{$well->name} = $well->id;
+    }
+    my @well_order = wells_generator();
+    foreach my $well_name (keys %$well_barcodes) {
+        my @well_barcodes = @{ $well_barcodes->{$well_name} };
+        my @child_well_data;
+        my $barcode_tubes;
+        for (my $num = 0; $num < scalar @well_barcodes; $num++){
+            my $temp_well_name = $well_order[$num];
+            my $well_data = {
+                well_name => $temp_well_name,
+                parent_plate => $piq_plate->name,
+                parent_well => $well_name,
+                process_type => 'rearray',
+                barcode => $well_barcodes[$num],
+            };
+            $barcode_tubes->{$temp_well_name} = $well_barcodes[$num];
+            push (@child_well_data, $well_data);
+        }
+
+        my $temp_plate_name = $model->random_plate_name({ prefix => 'TMP_' . $piq_plate->type->id .'ii_' });
+        my $temp_piq_plate = $model->create_plate({
+            name       => $temp_plate_name,
+            species    => $piq_plate->species_id,
+            type       => $piq_plate->type_id,
+            created_by => $piq_plate->created_by->name,
+            wells      => \@child_well_data,
+            is_virtual => 1,
+        });
+
+        my $temp_piq_wells = $temp_piq_plate->wells;
+        while (my $piq_well = $temp_piq_wells->next) {
+            $model->create_well_barcode({
+                barcode     => $barcode_tubes->{$piq_well->name},
+                state       => 'frozen_back',
+                user        => $piq_plate->created_by->name,
+                well_id     => $piq_well->id,
+            });
+        }
+    }
+
+    return;
 }
 
 1;

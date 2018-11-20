@@ -1,0 +1,626 @@
+<style>
+
+#tooltip {
+    position: absolute;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4); //Black, 40% Opacity
+    -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+#tooltip.hidden {
+    display: none;
+}
+
+#tooltip p {
+    margin: 0;
+    font-family: Futura;
+    font-size: 16px;
+    line-height: 20px;
+}
+
+.row {
+    margin-bottom: 15px;
+}
+
+.actions {
+    align: right;
+}
+
+</style>
+
+[% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
+
+<div id="response" class="alert"></div>
+<div class="page-header">
+  <h1>PIQ Plate</h1>
+</div>
+<div class="container">
+    <div id="plateDetails">
+        <h3>Plate Details</h3>
+        <table class="table table-striped">
+            <tr>
+                <td>
+                    <label>PIQ Plate Name: </label>
+                </td>
+                <td>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="plateName">
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <h3>Parent Plates</h3>
+    <div class="row">
+        <div class="col-md-2">
+            <label>Parent Plate Name:</label>
+        </div>
+        <div class="col-md-3">
+            <input type="text" class="form-control" id="parentPlate">
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-warning" id="addPlate"><i class="glyphicon glyphicon-plus"></i> Add</button>
+        </div>
+    </div>
+    <br>
+</div>
+
+<div id="miseq">
+    <table id="parentCollection" class="table table-striped" hidden>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Type
+            </th>
+            <th>
+                Colour
+            </th>
+            <th>
+                Clear
+            </th>
+        </tr>
+    </table>
+    <br>
+<div>
+
+<div id="plateVisual">
+    <div id="plateRow" class="col-md-12">
+        <div class="col-md-4">
+            <h4>Parent Plate: </h4>
+            <select id="freezeName" class="btn btn-default">
+                <option value="-">Parent Plate</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <h4>Direction: </h4>
+            <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-down"></i></button>
+        </div>
+        </br>
+        <div id="firstSplit" class="col-md-12"></div>
+            <div class="row col-md-12">
+                <div class="col-md-4">
+                    <h4>Rearray Plate: </h4>
+                    <h4 id="miseqName">PIQ Plate Name</h4>
+                </div>
+                <div class="col-md-4">
+                    <h4>Process: dist_qc</h4>
+                </div>
+            </div>
+        <div id="secondSplit" class="col-md-12"></div>
+    </div>
+
+    <div class="row col-md-12">
+        <button type="button" class="btn btn-danger col-md-2" onclick="clearBarcodes();">
+            Clear Barcodes <i class="glyphicon glyphicon-remove"></i>
+        </button>
+        <input id="barcodeUpload" class="col-md-offset-4 btn btn-primary btn-file" type="file" value="Barcode CSV" accept=".csv" />
+    </div>
+
+    <div class="row col-md-12">
+        <button type="button" class="btn btn-danger col-md-2" onclick="clearPlate();">
+            Clear Wells <i class="glyphicon glyphicon-remove"></i>
+        </button>
+        <button type="button" class="col-md-offset-4 btn btn-primary" onclick="submitPIQPlate();">
+            Submit <i class="glyphicon glyphicon-edit"></i>
+        </button>
+    </div>
+</div>
+<div id="tooltip" class="hidden"></div>
+
+<div id="columnModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div class="col-md-12">
+                    <h4 class="modal-title">Which order are the barcodes in?</h4>
+                </div>
+            </div>
+            <div class="modal-footer" id="modalBody">
+                <div class="container col-md-12">
+                    <div class="row">
+                        <div class="col-md-offset-2 col-md-3">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick='orderBarcodes("letter");'>A01, B01, C01..</button>
+                        </div>
+                        <div class="col-md-offset-2 col-md-3">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick='orderBarcodes("number");'>A01, A02, A03..</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+[% INCLUDE 'user/plateupload/rearray_interface.tt' %]
+
+<script>
+
+var parentMiseqClassifications = {};
+var csvString = "";
+var piqBarcodes = {};
+var miWellReg = /miWell_\d+/;
+
+$(function () {
+    var isMouseDown = false;
+    var startIndex;
+
+    $("#secondSplit")
+        .mousedown(function(evt) {
+            d3.select("#tooltip").classed("hidden", true);
+            startIndex = highlighter(evt.target);
+            isMouseDown = true;
+        })
+        .mouseover(function(evt) {
+            if (isMouseDown == true) {
+                highlighter(evt.target, startIndex);
+            } else if (miWellReg.test(evt.target.id)) {
+                showBarcodeAssignment(evt, evt.target.id);
+            } else {
+                d3.select("#tooltip").classed("hidden", true);
+            }
+        })
+        .mouseout(function(evt) {
+            d3.select("#tooltip").classed("hidden", true);
+        });
+
+    $('body').mouseup(function(evt) {
+        if (isMouseDown == true) {
+            isMouseDown = false;
+            $('.selecting').removeClassesExcept('square fpWell miWell selecting');
+            $('.selecting').toggleClass('selecting ' + selectedColour);
+            d3.selectAll('.' + selectedColour).style('fill', colourHash[selectedColour]);
+            var key = $('#freezeName').val();
+            if (key != '-') {
+                $('.miWell.' + selectedColour).map(function() { return trackWells(key, this); });
+                checkTile();
+            }
+        }
+    });
+
+    $('#firstSplit .sqContainer').on("mouseover", function(cont) {
+        if (parentMiseqClassifications[$('#freezeName').val()] == undefined) {
+            return;
+        }
+        var wellName = cont.currentTarget.id;
+        var wellHistoryDetails = parentMiseqClassifications[$('#freezeName').val()][wellName];
+        if (wellHistoryDetails) {
+            wellHistoryConstruction(cont, wellHistoryDetails)
+        }
+    })
+    .on("mouseout", function() {
+        d3.select("#tooltip").classed("hidden", true);
+    });
+
+});
+
+$("#plateName").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
+        {
+            term : $('#plateName').val(),
+            type : 'PIQ',
+        }, response);
+    },
+    select: function(evt, ui) {
+        plateAncestors(ui.item.value);
+    },
+    minLength: 2,
+});
+
+$('#barcodeUpload').on('change', function(evt) {
+    var file = evt.target.files[0];
+    if (file) {
+        var csvReg = /\.csv$/i;
+        if (!csvReg.exec(file.name)) {
+            console.log("Not a csv");
+            return;
+        }
+        var reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = function(event){
+            csvString = event.target.result;
+
+            var headerLine = csvString.split(/\n/)[0];
+            var columns = headerLine.split(/,/);
+            var barcodeReg = /barcode*/i;
+            var wellReg = /(^[A-H]{1}(1[0-2]|0?[1-9])$|^([1-9]|[1-8][0-9]|9[0-6])$)/i; //Match wells or indexes
+
+            var header;
+            if (!barcodeReg.test(headerLine)) {
+                if (columns.length == 1) {
+                    csvString = "barcode\n" + csvString;
+                    $("#columnModal").modal("show");
+                    return;
+                } else if (columns.length == 2) {
+                    header = remapHeaders(columns[0], wellReg);
+                } else {
+                    console.log("Too many columns");
+                    return;
+                }
+            } else { 
+                var wellReg = /well*/i;
+                header = remapHeaders(columns[0], wellReg);//uniform headers
+                csvSplit = csvString.split(/\n/);
+                csvSplit.shift()
+                csvString = csvSplit.join("\n");
+            }
+
+            csvString = header + csvString;
+
+            d3.csvParse(csvString, function(row){
+                var wellID = $('g#' + row.well + ' rect')[0].id;
+                var intID = wellID.split(/_/)[1];
+                if (piqBarcodes[intID] == undefined) {
+                    piqBarcodes[intID] = [];
+                }
+                if (piqBarcodes[intID].indexOf(row.barcode) == -1) {
+                    piqBarcodes[intID].push(row.barcode);
+                }
+            });
+        };
+    }
+});
+
+function remapHeaders(headerRow, regex) {
+    var header = "barcode,well\n";
+
+    if (regex.test(headerRow)) {
+        header = "well,barcode\n"; //Easier to match to wells since they're more predictable
+    } 
+
+    return header;
+}
+
+function remapWellBarcode() {
+    var barcodeRemap = {};
+    var wellIDs = Object.keys(piqBarcodes);
+    wellIDs.forEach(function(wellID) {
+        var wellName = $('#miWell_' + wellID).parent('g')[0].id;
+        barcodeRemap[wellName] = piqBarcodes[wellID];
+    });
+    return barcodeRemap;
+}
+
+function submitPIQPlate() {
+    var details = { 
+        name: $('#plateName').val(),
+        wells: relationalData,
+        barcodes: remapWellBarcode(),
+    };
+    var relations = JSON.stringify(details);
+    $.ajax({
+        url: '[% c.uri_for("/api/create_piq_plate") %]',
+        type: 'POST',
+        dataType: 'JSON',
+        data: {
+            relations: relations
+        },
+        success: function(result) {
+            $('#response').removeClass('alert-danger').addClass('alert-success');
+            $('#response').text('Created PIQ Plate: ' + result.name + ' with id: ' + result.id);
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+        },
+        error: function(err) {
+            $('#response').removeClass('alert-success').addClass('alert-danger');
+            $('#response').text('Failed to create PIQ plate: ' + err.responseJSON.error);
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+        }
+    });
+}
+
+function plateAncestors(selection) {
+console.log("call anc");
+    $.ajax({
+        dataType: 'json',
+        url: '[% c.uri_for("/api/wells_parent_plate") %]',
+        data: { plate: selection },
+    }).done(function(data){
+        $('#parentCollection').show();
+        var plates = Object.keys(data);
+        for (var i = 0; i < plates.length; i++) {
+            var plate = plates[i];
+            if (parentPlates.indexOf(plate) == -1) {
+                addTableRow({ 
+                    name:   plate, 
+                    type:   data[plate].type,
+                    colour: 1
+                });
+                addOption({ 
+                    name: plate,
+                    type: data[plate].type
+                });
+            }
+        }
+    });
+
+    return;
+}
+
+function fetchInheritedMiseqInfo(plate) {
+    if (parentMiseqClassifications[plate] === undefined) {
+        $.ajax({
+            dataType: 'json',
+            url: '[% c.uri_for("/api/sibling_miseq_plate") %]',
+            data: { plate: plate },
+        }).done(function(data) {
+            parentMiseqClassifications[plate] = data;
+            if ($('#freezeName').val() == plate) {
+                displayClassifications(data);
+            }
+        });
+    }
+
+    return;
+}
+
+function trackWells(key, well) {
+    var freezerDetails = {
+        parent_well: well.value,
+        parent_plate: key
+    };
+
+    relationalData[$(well).parent()[0].id] = freezerDetails;
+    return;
+}
+
+function findFpWells(mapData) {
+    var parentChildMapping = {};
+
+    for (var childWell in relationalData) {
+        if (relationalData[childWell].parent_plate == $('#freezeName').val()) {
+            parentChildMapping[relationalData[childWell].parent_well] = childWell;
+        }
+    }
+
+    return parentChildMapping;
+}
+
+function wellHistory(plate) {
+    var fpRelations = findFpWells(relationalData);
+    var fpWells = Object.keys(fpRelations);
+    $('.fpWell').removeClassesExcept('square fpWell');
+
+    fpWells.forEach(function(fp) {
+        var container = $('g#' + fp)[0];
+        var rect = $(container).children('rect')[plate];
+        d3.select(rect).classed(selectedColour, true);
+    });
+
+    d3.selectAll('.fpWell.' + selectedColour).style('fill', colourHash[selectedColour]);
+
+    return;
+}
+
+function displayClassifications(data) {
+    clearParentPlateText();
+    if (data == undefined) {
+        console.log("No classifications found");
+        return;
+    }
+    var wells = Object.keys(data);
+    wells.map(function(well) { updateClassifications(well, data[well]) }); 
+
+    return;
+}
+
+function updateClassifications(wellName, classifications) {
+    var classes = classifications.map(function(val) { return val.classification.substring(0,3); });
+    if (classes === undefined) {
+        return;
+    }
+    var consistencyCheck = classes.every( (val, i, arr) => val === arr[0] );
+
+    var d3TextObj = d3.select('#firstSplit #' + wellName + ' .wellText');
+
+    var hyphen = d3TextObj.append('tspan')
+        .attr('dx', '-1.1em')
+        .attr('dy', '0.9em');
+    hyphen.html('&#8722');
+
+    var classification = d3TextObj.append('tspan')
+        .attr('dx', '-1.20em')
+        .attr('dy', '1em');
+
+    if (consistencyCheck === true) {
+        var classed = classes[0];
+        if (classed == 'Wil') {
+            classed = 'WT';
+        }
+        classification.text(classed);
+    } else {
+        classification.text('Var');
+    }
+
+    return;
+}
+
+function clearParentPlateText() {
+    var parentTexts = $('#firstSplit .wellText');
+
+    parentTexts.map( function(item) {
+        var parentText = $(parentTexts[item]);
+        parentText.text( parentText.parent()[0].id ); 
+    });
+
+    return;
+}
+
+function tooltipPositioning(cont) {
+    var xPos = cont.pageX;
+    var yPos = cont.pageY;
+
+    d3.select("#tooltip")
+        .style("left", xPos + "px")
+        .style("top", yPos + "px");
+
+    return;
+}
+
+function wellHistoryConstruction(cont, wellHistoryDetails) {
+    tooltipPositioning(cont);
+
+    var tooltipBuild = '';
+    wellHistoryDetails.forEach( function(classification) {
+        var classState = '<p><strong>Call: </strong><span>' + classification.classification + '</span></p>';
+        var miseqPlate = '<p><strong>MiSeq Plate: </strong><span>' + classification.miseq_plate_name + '</span></p>';
+        var miseqExp = '<p><strong>MiSeq Experiment: </strong><span>' + classification.miseq_exp_name + '</span></p>';
+        var exp = '<p><strong>Experiment ID: </strong><span>' + classification.experiment_id + '</span></p>';
+        var separate = '---';
+        if (tooltipBuild) {
+            tooltipBuild = tooltipBuild + separate + classState + miseqPlate + miseqExp + exp;
+        } else {
+            tooltipBuild = tooltipBuild + classState + miseqPlate + miseqExp + exp;
+        }
+    });
+
+    $('#tooltip').html(tooltipBuild);
+    d3.select("#tooltip").classed("hidden", false);
+
+    return;
+}
+
+function showBarcodeAssignment(cont, rectID) {
+    tooltipPositioning(cont);
+
+    var wellID = rectID.split('_')[1];
+    var wellBarcodes = piqBarcodes[wellID];
+    var siblingWell = $('#' + rectID).siblings('text').text().split(/[^A-H0-9]/);
+    var childWell = siblingWell.pop();
+
+    var barcodeBuild = '';
+    var well = '<p><strong>Well: </strong><span>' + childWell + '</span></p>';
+    var parentDetails = '';
+    var barcodeString = '';
+
+    if (relationalData[childWell]) {
+        parentDetails = '<p><strong>Parent: </strong><span>' + relationalData[childWell].parent_plate + '_' + relationalData[childWell].parent_well + '</span></p>';
+        var classCheck = parentMiseqClassifications[relationalData[childWell].parent_plate][relationalData[childWell].parent_well];
+        if (classCheck) {
+            var classes = classCheck.map(function(val) { return val.classification.substring(0,3); });
+            if (classes !== undefined) {
+                var consistencyCheck = classes.every( (val, i, arr) => val === arr[0] );
+                var classed;
+                if (consistencyCheck === true) {
+                    classed = classes[0];
+                    if (classed == 'Wil') {
+                        classed = 'WT';
+                    }
+                } else {
+                    classed = 'Var';
+                }
+                parentDetails += '<p><strong>Classification: </strong><span>' + classed + '</span></p>';
+            }
+        }
+    }
+    if (wellBarcodes) {
+        barcodeString = '<p><strong>Barcodes: </strong></p>';
+        for (var bc = 0; bc < wellBarcodes.length; bc++) { 
+            var barcode = '<p><strong>&nbsp;' + (bc + 1) + ' - </strong><span>' + wellBarcodes[bc] + '</span></p>';
+            barcodeString = barcodeString + barcode;
+        }
+    }
+
+    if (parentDetails == '' && barcodeString == '') {
+        d3.select("#tooltip").classed("hidden", true);
+        return;
+    }
+
+    barcodeBuild = well + parentDetails + barcodeString;
+    $('#tooltip').html(barcodeBuild);
+    d3.select("#tooltip").classed("hidden", false);
+
+    return;
+}
+
+function clearPlate() {
+    var name = $('#freezeName').val();
+    var colour = assignedColours[name];
+    
+    $('.miWell.' + colour).map(function() { resetMiseqText(this); });
+    d3.selectAll('.' + colour).style('fill', 'white');
+    d3.selectAll('.' + colour).classed(colour, false);
+    
+    var wells = Object.keys(relationalData);
+    wells.forEach(function(well) {
+        if (relationalData[well].parent_plate === name) {
+            delete relationalData[well];
+        }
+    });
+
+    return;
+}
+
+function showPlateHistory(parentName) {
+    var parentDetails = relationalData[parentName];
+    var miWells = Object.keys(parentDetails);
+    for (var mi = 0; mi < miWells.length; mi++) {
+        var miID = wellHistory(miWells[mi],1);
+        var fpID = wellHistory(parentDetails[miWells[mi]],0); //check
+        tracking(miID, fpID);
+    }
+
+    return;
+}
+
+function orderBarcodes(order) {
+    var wells = [];
+
+    if (order == 'number') {
+        wells = [...Array(95).keys()];
+    } else {
+        for (var x = 0; x < 12; x++) {
+            for (var y = 0; y < 8; y++) {
+                wells.push((y * 12) + x);
+            }
+        }
+        //[0,12,24...1,13,25...95]
+    }
+    
+    var barcodeHeaderReg = /barcode*/i;
+    var count = 0;
+    d3.csvParse(csvString, function(row){
+        if (!barcodeHeaderReg.test(row.barcode)) {
+            piqBarcodes[wells[count]] = row.barcode;
+            count++;
+        }
+    });
+
+    return;
+}
+
+function clearBarcodes() {
+    piqBarcodes = {};
+}
+
+</script>
