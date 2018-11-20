@@ -700,16 +700,19 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
     if ( @args == 1 ) {
         my $barcode = shift @args;
         my $well;
-
+$DB::single=1;
         try {
             $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
-            # $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
         } catch {
             $c->stash( error_msg => "Barcode doesn't exist" );
         };
 
         if ($well) {
-            $self->_stash_well_genotyping_info( $c, $well );
+            if ($well->design->type->id =~ /^miseq.*/) {
+                $self->_stash_pipeline_ii_genotyping_info( $c, $well );
+            } else {
+                $self->_stash_well_genotyping_info( $c, $well );
+            }
         } else {
             $c->go( 'well_genotyping_info_search' );
             return;
@@ -762,7 +765,7 @@ sub _stash_well_genotyping_info {
         #needs to be given a method for finding genes
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
         my $data = $well->genotyping_info( $gene_finder );
-        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+        if ( my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
             $data->{ms_qc_data} = $ms_qc_data;
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
@@ -821,6 +824,111 @@ sub _stash_well_genotyping_info {
         #get string representation if its a lims2::exception
         $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
+
+    return;
+}
+
+sub _stash_pipeline_ii_genotyping_info {
+    my ( $self, $c, $well ) = @_;
+
+$DB::single=1;
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+    my $data = $well->pipeline_ii_genotyping_info( $gene_finder );
+    my @crispr_data;
+    my @crisprs = $well->parent_crispr_wells;
+    foreach my $crispr_well ( @crisprs ) {
+        my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
+        if ( $process_crispr ) {
+            my $crispr_data_hash = $process_crispr->crispr->as_hash;
+            $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
+            my $seq = $crispr_data_hash->{fwd_seq};
+            my $grna = substr $seq, 0, 20;
+            my $pam = substr $seq, 20 ,3;
+            $crispr_data_hash->{'grna'} = $grna;
+            $crispr_data_hash->{'pam'} = $pam;
+            push @crispr_data, $crispr_data_hash;
+        }
+    }
+    my $type = 'Crispr';
+    my $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+    my $crispr_primers = $data->{primers}->{crispr_primers};
+    my $match;
+    foreach my $set (values %$crispr_primers)
+    {
+        foreach my $primer(@$set)
+        {
+            #Compare sequences to find the correct tag for the correct sequence
+            $match = search_primers($primer->{seq}, $crispr_result->{crispr_primers});
+            $primer->{is_validated} = $match->{is_validated};
+            $primer->{is_rejected} = $match->{is_rejected};
+        }
+    }
+    $c->stash( data => $data, crispr_data => \@crispr_data);
+=head
+    try {
+        #needs to be given a method for finding genes
+        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+        my $data = $well->genotyping_info( $gene_finder );
+        if ( my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+            $data->{ms_qc_data} = $ms_qc_data;
+        }
+        $data->{child_barcodes} = $well->distributable_child_barcodes;
+        my @crispr_data;
+        my @crisprs = $well->parent_crispr_wells;
+        foreach my $crispr_well ( @crisprs ) {
+            my $process_crispr = $crispr_well->process_output_wells->first->process->process_crispr;
+            if ( $process_crispr ) {
+                my $crispr_data_hash = $process_crispr->crispr->as_hash;
+                $crispr_data_hash->{crispr_well} = $crispr_well->as_string;
+                my $seq = $crispr_data_hash->{fwd_seq};
+                my $grna = substr $seq, 0, 20;
+                my $pam = substr $seq, 20 ,3;
+                $crispr_data_hash->{'grna'} = $grna;
+                $crispr_data_hash->{'pam'} = $pam;
+                push @crispr_data, $crispr_data_hash;
+            }
+        }
+        my $crispr_result;
+        my $type;
+        try{
+            #Depending on type of crispr, retrieve crispr hash ref
+            if ($data->{qc_data}->{is_crispr_pair}){
+                $type = 'CrisprPair';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            elsif ($data->{qc_data}->{is_crispr_group}){
+                $type = 'CrisprGroup';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+            else {
+                $type = 'Crispr';
+                $crispr_result = retrieve_crispr_hash($c, $type, @crispr_data);
+            }
+        } catch {
+            $c->stash( error_msg => "Validation tags not found");
+            $c->stash( data => $data, crispr_data => \@crispr_data);
+            return;
+        };
+        #Crispr hash ref contains validation confirmation
+        my $crispr_primers = $data->{primers}->{crispr_primers};
+        my $match;
+        foreach my $set (values %$crispr_primers)
+        {
+            foreach my $primer(@$set)
+            {
+                #Compare sequences to find the correct tag for the correct sequence
+                $match = search_primers($primer->{seq}, $crispr_result->{crispr_primers});
+                $primer->{is_validated} = $match->{is_validated};
+                $primer->{is_rejected} = $match->{is_rejected};
+            }
+        }
+        $c->stash( data => $data, crispr_data => \@crispr_data);
+    }
+    catch {
+        #get string representation if its a lims2::exception
+        $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
+    };
+=cut
 
     return;
 }
