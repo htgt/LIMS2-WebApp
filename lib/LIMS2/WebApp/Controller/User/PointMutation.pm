@@ -183,7 +183,7 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
             order_by => {-desc => 'id'}
         }
     );
-    
+
     $c->stash(
         miseqs => \@miseqs,
     );
