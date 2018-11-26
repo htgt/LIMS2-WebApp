@@ -2,7 +2,7 @@
 
 <style>
 
-#div1{
+#scroll-y{
     display: block;
     overflow-x: hidden;
     overflow-y: scroll; 
@@ -51,7 +51,7 @@
 </div>
 
 <div class="col-md-8 col-md-offset-2">
-    <table class="table" style="table-layout:fixed;" id="div1" align="center">
+    <table class="table" style="table-layout:fixed;" id="scroll-y" align="center">
         <thead>
             <h4 align="center">Recently Added <i id="recLoading"></i></h4>
             <tr>
