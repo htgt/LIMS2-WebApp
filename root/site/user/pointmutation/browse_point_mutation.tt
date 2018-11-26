@@ -6,11 +6,11 @@
     display: block;
     overflow-x: hidden;
     overflow-y: scroll; 
-    width: 350px;
     height: 50vh;
 }
 
 </style>
+
 <div class="col-md-8 col-md-offset-2">
     <form id ="geneForm" class="well">
         <fieldset>
@@ -50,8 +50,8 @@
     </form>
 </div>
 
-<div class="col-md-8 col-md-offset-2">
-    <table class="table" style="table-layout:fixed;" id="scroll-y" align="center">
+<div class="col-md-8 col-md-offset-2" id="scroll-y" >
+    <table class="table table-striped">
         <thead>
             <h4 align="center">Recently Added <i id="recLoading"></i></h4>
             <tr>
