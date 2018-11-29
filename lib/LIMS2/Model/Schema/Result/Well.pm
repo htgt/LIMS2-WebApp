@@ -1910,28 +1910,6 @@ sub genotyping_info {
     };
 }
 
-sub pipeline_ii_genotyping_info {
-    my ( $self, $gene_finder ) = @_;
-$DB::single=1;
-    my $epii = is_plate_type_or_later($self, 'EP_PIPELINE_II');
-
-    my $design = $epii->design;
-    my @gene_ids = $design->gene_ids;
-    
-    return {
-        gene    => ,
-        gene_id          => ,
-        design_id        => $design->id,
-        well_id => ,
-        barcode => ,
-        well_name        => $self->name,
-        plate_name       => $self->plate_name,
-        epd_plate_name   => $epd->plate_name,    
-        species          => $design->species_id,
-        cell_line        => $self->first_cell_line->name,
-    };
-}
-
 # Get QC results for related MS_QC plates (mutation signatures workflow)
 sub ms_qc_data{
     my ($self, $gene_finder) = @_;

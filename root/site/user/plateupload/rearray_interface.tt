@@ -24,8 +24,8 @@ h4 {
 .d3-tip {
     line-height: 1;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.8); //Black, 80% Opacity
-    color: #FFFFFF; //White
+    background: rgba(0, 0, 0, 0.8); /*Black, 80% Opacity*/
+    color: #FFFFFF; /*White*/
     border-radius: 2px;
     text-align: center;
 }
@@ -37,7 +37,7 @@ h4 {
     font-size: 10px;
     width: 100%;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.8); //Black, 80% Opacity
+    color: rgba(0, 0, 0, 0.8); /*Black, 80% Opacity*/
     content: "\25BC";
     position: absolute;
     text-align: center;

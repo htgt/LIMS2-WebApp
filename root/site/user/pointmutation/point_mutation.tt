@@ -6,8 +6,8 @@
 .d3-tip {
     line-height: 1;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.8); //Black, 80% opacity
-    color: #FFFFFF; //White
+    background: rgba(0, 0, 0, 0.8); /*Black, 80% opacity*/
+    color: #FFFFFF; /*White*/
     border-radius: 2px;
     text-align: center;
 }
@@ -19,7 +19,7 @@
     font-size: 10px;
     width: 100%;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.8); //Black, 80% opacity
+    color: rgba(0, 0, 0, 0.8); /*Black, 80% opacity*/
     content: "\25BC";
     position: absolute;
     text-align: center;

@@ -17,6 +17,8 @@ use Sub::Exporter -setup => {
               find_miseq_data_from_experiment
               query_miseq_details
               damage_classifications
+              miseq_genotyping_info
+              read_alleles_frequency_file
           )
     ]
 };
@@ -26,9 +28,10 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
+use List::Util qw( sum );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
-
+use Bio::Perl;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -77,7 +80,7 @@ WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well
     JOIN descendants ON descendants.output_well_id = pr_in.well_id
 )
 SELECT DISTINCT dest.input_well_id, dest.start_well_id, dest.process_id, well_in.name, plate_in.name,
-well_out.id, plate_out.name, mp.id, me.experiment_id AS exp, me.name, mwe.id AS mwe_id, mwe.classification
+well_out.id, well_out.name, plate_out.name, mp.id, me.experiment_id AS exp, me.name, mwe.id AS mwe_id, mwe.classification
 FROM descendants dest
 INNER JOIN wells well_in ON input_well_id=well_in.id
 INNER JOIN plates plate_in ON well_in.plate_id=plate_in.id
@@ -121,6 +124,7 @@ sub query_miseq_details {
         origin_well_name
         origin_plate_name
         miseq_well_id
+        miseq_well_name
         miseq_plate_name
         miseq_plate_details_id
         experiment_id
@@ -158,10 +162,59 @@ sub _find_inherited_experiment {
         sub {
             my ( $storage, $dbh ) = @_;
             my $sth = $dbh->prepare_cached( $query );
-            $sth->execute( $experiment_id );
+            $sth->execute( $plate_id );
             $sth->fetchall_arrayref;
         }
     );
+}
+
+sub _traverse_process_tree {
+    my ($self, $data_arrays) = @_;
+
+    my $query = $QUERY_MISEQ_SIBLINGS;
+
+    my $parent_well_ids = $data_arrays->{parents};
+    my $experiments = $data_arrays->{experiments};
+
+    my $sql = SQL::Abstract->new;
+    my ($well_where, @well_binds) = $sql->where(
+        { 'pr_out.well_id' => { -in => $parent_well_ids } },
+    );
+    my ($exps_where, @exps_binds) = $sql->where(
+        { experiment_id => { -in => $experiments } },
+    );
+
+    $query = sprintf ($query, $well_where, $exps_where);
+
+    return $self->schema->storage->dbh_do(
+        sub {
+            my ($storage, $dbh) = @_;
+            my $sth = $dbh->prepare_cached($query);
+            $sth->execute(@{ $parent_well_ids }, @{ $experiments });
+            $sth->fetchall_arrayref;
+        }
+    );
+}
+
+sub damage_classifications {
+    my (@query_results) = @_;
+
+    my $class_mapping;
+    foreach my $result (@query_results) {
+        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
+            my $class_details = {
+                classification  => $result->{miseq_classification},
+                experiment_id   => $result->{experiment_id},
+                miseq_exp_name  => $result->{miseq_experiment_name},
+                miseq_plate_name => $result->{miseq_plate_name},
+            };
+            foreach my $sib_well (@{ $result->{sibling_origin_wells} }) {
+                push (@{ $class_mapping->{$sib_well} }, $class_details);
+            }
+        }
+    }
+
+    return $class_mapping;
 }
 
 const my $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID => <<'EOT';
@@ -278,56 +331,6 @@ sub clone_information {
     return;
 }
 =cut
-
-sub _traverse_process_tree {
-    my ($self, $data_arrays) = @_;
-
-    my $query = $QUERY_MISEQ_SIBLINGS;
-
-    my $parent_well_ids = $data_arrays->{parents};
-    my $experiments = $data_arrays->{experiments};
-
-    my $sql = SQL::Abstract->new;
-    my ($well_where, @well_binds) = $sql->where(
-        { 'pr_out.well_id' => { -in => $parent_well_ids } },
-    );
-    my ($exps_where, @exps_binds) = $sql->where(
-        { experiment_id => { -in => $experiments } },
-    );
-
-    $query = sprintf ($query, $well_where, $exps_where);
-
-    return $self->schema->storage->dbh_do(
-        sub {
-            my ($storage, $dbh) = @_;
-            my $sth = $dbh->prepare_cached($query);
-            $sth->execute(@{ $parent_well_ids }, @{ $experiments });
-            $sth->fetchall_arrayref;
-        }
-    );
-}
-
-sub damage_classifications {
-    my (@query_results) = @_;
-
-    my $class_mapping;
-    foreach my $result (@query_results) {
-        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
-            my $class_details = {
-                classification  => $result->{miseq_classification},
-                experiment_id   => $result->{experiment_id},
-                miseq_exp_name  => $result->{miseq_experiment_name},
-                miseq_plate_name => $result->{miseq_plate_name},
-            };
-            foreach my $sib_well (@{ $result->{sibling_origin_wells} }) {
-                push (@{ $class_mapping->{$sib_well} }, $class_details);
-            }
-        }
-    }
-
-    return $class_mapping;
-}
->>>>>>> PIQ_creation_interface
 
 sub miseq_well_processes {
     my ($c, $params) = @_;
@@ -497,18 +500,9 @@ sub generate_summary_data {
                 push (@selection, $gene);
             }
 
-            my $quant = find_file($miseq, $index, $exp, "Quantification_of_editing_frequency.txt");
-            if ($quant) {
-                my $fh;
-                open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
-                my @lines = read_file_lines($fh);
-                close $fh;
-
-                $percentages->{$exp}->{wt} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
-                $percentages->{$exp}->{nhej} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
-                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
-                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
-
+            my $quant_data = read_quant_file($miseq, $index, $exp);
+            if ($quant_data) {
+                $percentages->{$exp} = $quant_data;
                 push(@found_exps, $exp); #In case of missing data
             }
 
@@ -524,6 +518,71 @@ sub generate_summary_data {
         };
     }
     return $wells;
+}
+
+sub read_alleles_frequency_file {
+    my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
+$DB::single=1;
+    my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
+    if (!defined $path) {
+        return { error => 'No path available' };
+    }
+
+    my $fh;
+    open ($fh, '<:encoding(UTF-8)', $path) or die "$!";
+    my @lines = read_file_lines($fh);
+    close $fh;
+
+    my $res;
+    if ($percentage_bool) {
+        @lines = _find_read_quantification_gt_threshold($threshold, @lines);
+    } elsif ($threshold != 0) {
+        @lines = @lines[0..$threshold];
+    } 
+
+    return @lines;
+}
+
+sub _find_read_quantification_gt_threshold {
+    my ($threshold, @lines) = @_;
+$DB::single=1;
+    my @relevant_reads;
+    my $count = 1;
+    my $read_perc = 100;
+    
+    push @relevant_reads, $lines[0];
+    while ($read_perc > $threshold) {
+        push @relevant_reads, $lines[$count];
+        $count++;
+        my @cells = split /,/, $lines[$count];
+        $read_perc = $cells[-1];
+    }
+
+    return @relevant_reads;
+}
+
+sub read_quant_file {
+    my ($miseq, $index, $exp) = @_;
+
+    my $quant = find_file($miseq, $index, $exp, "Quantification_of_editing_frequency.txt");
+
+    if ($quant) {
+        my $fh;
+        open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
+        my @lines = read_file_lines($fh);
+        close $fh;
+
+        my $data = {
+            wt      => ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0],
+            nhej    => ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0],
+            hdr     => ($lines[3] =~ qr/^,- HDR:(\d+)/)[0],
+            mix     => ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0],
+        };
+
+        return $data;
+    }
+
+    return;
 }
 
 sub find_file {
@@ -587,6 +646,145 @@ sub _wanted {
     push( @$charts, $File::Find::name ) if $File::Find::name =~ /$file_name/;
 
     return;
+}
+
+sub miseq_genotyping_info {
+    my ($c, $well) = @_;
+    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
+
+
+    my $experiments = {
+        well_id             => $well->id,
+        barcode             => $well->barcode,
+        well_name           => $well->name,
+        plate_name          => $well->plate_name,
+        cell_line           => $well->first_cell_line->name,
+    };
+
+    my $index_converter = wells_generator(1);
+    my @overview_symbols;
+    my @overview_gene_ids;
+    my @overview_design_ids;
+    foreach my $qc (@related_qc) {
+        my $exp_rs = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $qc->{experiment_id} });
+        my $design_rs = $exp_rs->design;
+        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+        my @gene_symbols = $design_rs->gene_symbols($gene_finder);
+        my @gene_ids = $design_rs->gene_ids;
+        my $illumina_index = $index_converter->{ $qc->{miseq_well_name} };
+
+        my $miseq_quant = read_quant_file( 
+            $qc->{miseq_plate_name},
+            $illumina_index,
+            $qc->{miseq_experiment_name}
+        );
+        $miseq_quant = _calc_read_percentages($miseq_quant);
+        my $qc_origin_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{miseq_well_id} });
+
+        my @alleles_frequency = read_alleles_frequency_file($c, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
+
+$DB::single=1;
+        my @crisprs = map { $_->seq } $exp_rs->crispr;
+        my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
+
+        my $alleles_table_data = {
+            data    => _map_comma_string(@alleles_frequency),
+            crisprs => @crispr_locs,
+        };
+        $experiments->{species} = $design_rs->species_id;
+        my $exp_details = {
+            experiment_id       => $exp_rs->id,
+            read_counts         => $miseq_quant,
+            gene                => _handle_singular(@gene_symbols),
+            gene_id             => _handle_singular(@gene_ids),
+            design_id           => $design_rs->id,
+            crisprs             => join (',', @crisprs),
+            qc_origin_plate     => $qc_origin_well->plate_name,
+            qc_origin_well      => $qc_origin_well->name,
+            species             => $design_rs->species_id,
+            oligos              => $exp_rs->design->oligos_sorted,
+            experiment_name     => $qc->{miseq_experiment_name},
+            classification      => $qc->{miseq_classification},
+            alleles_freq        => $alleles_table_data,
+        };
+use Data::Dumper;
+print Dumper $exp_details;
+        push (@{$experiments->{experiments}}, $exp_details);
+        push (@overview_symbols, @gene_symbols);
+        push (@overview_gene_ids, @gene_ids);
+        push (@overview_design_ids, $design_rs->id);
+    }
+
+    $experiments->{gene} = _handle_singular(uniq @overview_symbols); 
+    $experiments->{gene_id} = _handle_singular(uniq @overview_gene_ids);
+    $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
+
+    return $experiments;
+}
+
+sub _handle_singular {
+    my @array = shift;
+
+    return @array == 1 ? $array[0] : [ @array ];
+}
+
+sub _calc_read_percentages {
+    my $calls = shift;
+
+    my $total = 0;
+    $total = sum values %$calls;
+    my $factor = 100 / $total;
+    
+    my $perc;
+    foreach my $class (keys %$calls) {
+        my $call_perc = sprintf("%0.2f", $factor * $calls->{$class});
+        $perc->{$class} = {
+            count   => $calls->{$class},
+            perc    => $call_perc,
+        };
+    }
+
+    return $perc;
+}
+
+sub crispr_location_in_amplicon {
+    my ($c, $amplicon, @crisprs) = @_;
+
+    my @crispr_positions;
+    foreach my $crispr (@crisprs) {
+        my $loc = index($amplicon, $crispr);
+        if ($loc == -1) {
+            try {
+                $loc = index($loc, revcom($crispr)->seq);
+            } catch {
+                $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+            };
+        }
+        my $crispr_data = {
+            seq         => $crispr,
+            position    => $loc,
+        };
+        push @crispr_positions, $crispr_data;
+    }
+
+    return @crispr_positions;
+}
+
+sub _map_comma_string {
+    my (@reads) = @_;
+$DB::single=1;
+    my @headers = split /,/, shift @reads;
+    my $hashed_reads->{headers} = \@headers;
+    foreach my $read (@reads) {
+        my $row;
+        my @cells = split /,/, $read;
+        for (my $i = 0; $i < scalar @headers; $i++) {
+            $row->{$headers[$i]} = $cells[$i];
+        }
+        push (@{ $hashed_reads->{rows} }, $row);
+    }
+
+    return $hashed_reads;
 }
 
 1;
