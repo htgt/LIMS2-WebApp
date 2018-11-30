@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GFFGenerator;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GFFGenerator::VERSION = '0.515';
+    $LIMS2::Model::Util::GFFGenerator::VERSION = '0.516';
 }
 ## use critic
 

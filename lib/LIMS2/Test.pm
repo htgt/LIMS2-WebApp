@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.515';
+    $LIMS2::Test::VERSION = '0.516';
 }
 ## use critic
 
@@ -305,6 +305,8 @@ sub load_static_files {
             GuidedType
             TrivialOffset
             Pipeline
+            LabHead
+            Programme
             )
     );
 

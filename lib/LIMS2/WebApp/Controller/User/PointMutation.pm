@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.515';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.516';
 }
 ## use critic
 
@@ -186,7 +186,6 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search(
         { },
         {
-            rows => 15,
             order_by => {-desc => 'id'}
         }
     );
