@@ -299,6 +299,8 @@ sub load_static_files {
             GuidedType
             TrivialOffset
             Pipeline
+            LabHead
+            Programme
             )
     );
 
