@@ -761,7 +761,7 @@ sub crispr_location_in_amplicon {
             };
         }
         my $crispr_data = {
-            seq         => $crispr,
+            crispr      => $crispr,
             position    => $loc,
         };
         push @crispr_positions, $crispr_data;

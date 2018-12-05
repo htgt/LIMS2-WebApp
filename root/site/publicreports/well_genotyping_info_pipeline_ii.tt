@@ -1,3 +1,5 @@
+<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+
 <h2>QC results</h2>
 [% FOREACH exp IN data.experiments %]
     <h3>[% exp.qc_origin_plate %]_[% exp.qc_origin_well %] - [% exp.experiment_name %]: [% exp.gene %]</h3>
@@ -75,7 +77,7 @@
     </div>
     <h4>Read Quantification - [% exp.classification %]</h4>
     <div class="col-md-12">
-        <div id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="col-md-6">
+        <div id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="donuts col-md-6">
 
         </div>
         <div class="col-md-6">
@@ -119,42 +121,24 @@
                 </h4>
             </div>
             <div id="collapse[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="panel-collapse collapse">
-                <table id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]Freq" class="table table-striped table-bordered">
-                    <colgroup id="allele">
-                        <col class="Aligned_Sequence">
-                        <col class="NHEJ">
-                        <col class="UNMODIFIED">
-                        <col class="HDR">
-                        <col class="n_deleted">
-                        <col class="n_inserted">
-                        <col class="n_mutated">
-                        <col class="#Reads">
-                        <col class="%Reads">
-                    </colgroup>
-                    <tr>
-                        <th>Aligned Sequence</th>
-                        <th>NHEJ</th>
-                        <th>UNMODIFIED</th>
-                        <th>HDR</th>
-                        <th>n_deleted</th>
-                        <th>n_inserted</th>
-                        <th>n_mutated</th>
-                        <th>#Reads</th>
-                        <th>%Reads</th>
-                    </tr>
-                </table>
+                <table id="freq[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="table table-striped table-bordered"></table>
             <div>
         </div>
     </div>
 [% END %]
 
+[% INCLUDE 'user/pointmutation/miseq_alleles_frequency.tt' %]
+[% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
+
 <script type="text/javascript" charset="utf-8">
 var data = '[% tables %]';
 data = jsonify(data);
 
-
 $(document).ready(function() {
     fillTables();
+    setRingDimensions();
+    ringSVG();
+    //createRings();
 });
 
 function jsonify(raw) {
@@ -166,9 +150,59 @@ function fillTables() {
     var colNames = $('#allele').children().map(function(i) {
         return i.className;
     });
-    expName.forEach(function(exp) {
-        var rowDetails = data[exp];
 
+    expNames.forEach(function(exp) {
+        var rowDetails = data[exp];
+        var columns = rowDetails.data.headers;
+        columns = columns.filter(function(col) { return col != "Reference_Sequence" });
+        
+        var table = document.getElementById('freq' + exp);
+        var tHead = table.createTHead();
+        var headerRow = tHead.insertRow(0);
+        for (var i = 0; i < columns.length; i++) {
+            var hCell = headerRow.insertCell(i);
+            $(hCell).text(columns[i]);
+        }
+
+        var rowData = rowDetails.data.rows;
+        var tBody = table.createTBody();
+        rowData.forEach(function(rData) {
+            var row = tBody.insertRow(-1);
+            for (var i = 0; i < columns.length; i++) {
+                var cell = row.insertCell(i);
+                if (columns[i] == 'Aligned_Sequence') {
+                    $(cell).html('<div class="seq' + exp + ' sequence">' + highlightBases(rData[columns[i]], rowDetails.crisprs, rData.Reference_Sequence) + '</div>');
+                } else {
+                    $(cell).text(rData[columns[i]]);
+                }
+            }
+        });
+
+        $('.seq' + exp + ':last').css('overflow-x','scroll');
+        $('.seq' + exp + ':last').scroll(function() {
+            $('.seq' + exp).scrollLeft($(this).scrollLeft());
+        });
     });
 }
+
+function setRingDimensions() {
+    width = 450,
+    height = 175,
+    radius = 60,
+    arcWidth = 15,
+    fsRadius = radius - arcWidth;
+    rebuildArcs();
+}
+
+function ringSVG() {
+    var svg = d3.selectAll('.donuts')
+        .append("svg:svg")
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("class","svgTool")
+        .append("svg:g")
+        .attr("class","node")
+        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+}
+
 </script>
