@@ -1,1 +1,1 @@
-INSERT INTO schema_versions(version) VALUES (144);
+INSERT INTO schema_versions(version) VALUES (147);

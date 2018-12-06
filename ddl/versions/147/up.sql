@@ -26,3 +26,11 @@ AlTER TABLE miseq_well_experiment
 
 ALTER TABLE miseq_experiment 
     RENAME COLUMN mutation_reads TO nhej_reads;
+
+CREATE TABLE indel_histogram (
+    id SERIAL PRIMARY KEY NOT NULL,
+    miseq_well_experiment_id integer REFERENCES miseq_well_experiment(id),
+    indel_size integer,
+    frequency integer
+);
+

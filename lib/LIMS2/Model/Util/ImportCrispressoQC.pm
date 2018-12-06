@@ -19,6 +19,7 @@ use Sub::Exporter -setup => {
             migrate_images
             migrate_frequencies
             get_crispr
+            migrate_histogram
         )
     ],
 };
@@ -36,8 +37,14 @@ sub header_hash {
 
 #check if the length of the intersection of the full array of titles is equal to the length of the array of expected titles
 #This checks that all the requested elements were found within the header of the file
-    scalar(@intersection) == scalar(@expected_titles) ? return %head : return;
-    return;
+    if (scalar(@intersection) == scalar(@expected_titles)) {
+        return %head;
+    }
+    else {
+        warn "Miseq Alleles Frequency file does not hold all the required headers";
+        return;
+    }
+    return 1;
 }
 
 sub migrate_frequencies {
@@ -94,6 +101,67 @@ sub migrate_frequencies {
     return;
 }
 
+
+sub migrate_histogram {
+    my ( $model, $path, $miseq_well_exp, $alleles_path ) = @_;
+    
+    my %histogram;
+    
+    if (-e $path) {
+        open( my $file_to_read, "<", "$path" ) or die "Cannot open histogram file";
+        chomp(my @lines = <$file_to_read>);
+        close $file_to_read or die "Cannot close histogram file";
+        shift @lines;
+        while (@lines) {
+            my $line = shift @lines;
+            my ($key, $val) = split /\s+/, $line;
+            if ($val and $key) {
+                $histogram{$key} = $val;
+            }
+        }
+    }
+    else {
+        open( my $fh, "<", "$alleles_path" ) or die "Cannot open frequency file";
+        chomp(my @alleles = <$fh>);
+        close $fh or die "Cannot close frequency file";
+        my $header = shift(@alleles);    #grab the header line that holds the titles of the columns
+        my @expected_titles = ( 'aligned_sequence', 'nhej', 'unmodified', 'hdr', 'n_deleted', 'n_inserted', 'n_mutated', '#reads' );
+        my %head = header_hash( $header, @expected_titles );
+
+        while (@alleles) {
+            my $line = shift @alleles;
+            my @elements = split /\s+/, $line;
+            my $indel = $elements[$head{n_inserted}] - $elements[$head{n_deleted}];
+            if ($indel) {
+                $histogram{$indel}++;
+            }
+        }
+    }
+    foreach my $key (keys %histogram) {
+        my $row = {
+            miseq_well_experiment_id    =>  $miseq_well_exp->{id},
+            indel_size                  =>  $key,
+            frequency                   =>  $histogram{$key},
+        };
+
+        $model->schema->txn_do(
+            sub {
+                try {
+                    $model->create_indel_histogram($row);
+                }
+                catch {
+                    warn "Error creating indel histogram entry";
+                    $model->schema->txn_rollback;
+                };
+            }
+        );
+    }
+    return 1;
+}
+
+
+
+
 sub migrate_images {
     my ( $model, $image_path, $miseq_well_experiment_hash ) = @_;
 
@@ -121,7 +189,7 @@ sub migrate_images {
             };
         }
     );
-    return;
+    return 1;
 }
 
 sub update_miseq_exp {

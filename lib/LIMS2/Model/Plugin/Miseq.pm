@@ -75,6 +75,29 @@ sub create_miseq_alleles_frequency{
 }
 
 
+sub pspec_create_indel_histogram{
+    return  {
+        miseq_well_experiment_id    => { validate => 'existing_miseq_well_exp'  },
+        indel_size                  => { validate => 'integer'                  },
+        frequency                   => { validate => 'integer'                  }
+    };
+}
+
+
+sub create_indel_histogram{
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params($params, pspec_create_indel_histogram);
+
+    my $entry = $self->schema->resultset('IndelHistogram')->create(
+            { slice_def(
+                    $validated_params,
+                    qw( miseq_well_experiment_id indel_size frequency )
+                )
+            }
+        );
+    $self->log->info('Created indel entry with id= ' . $entry->id);
+    return 1;
+}
 
 
 sub pspec_create_miseq_plate {

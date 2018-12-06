@@ -174,6 +174,21 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 indel_histograms
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::IndelHistogram>
+
+=cut
+
+__PACKAGE__->has_many(
+  "indel_histograms",
+  "LIMS2::Model::Schema::Result::IndelHistogram",
+  { "foreign.miseq_well_experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 miseq_alleles_frequencies
 
 Type: has_many
@@ -235,8 +250,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-09-05 14:01:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r6GSctDb6qLgMisoK5siew
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-05 09:21:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QmsZvQPLie5pG1yFGww8mw
 
 sub as_hash{
     my $self = shift;
