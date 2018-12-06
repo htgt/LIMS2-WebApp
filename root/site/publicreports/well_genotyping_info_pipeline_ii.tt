@@ -1,4 +1,45 @@
 <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+<style>
+
+.colourSVG {
+    width:  20px;
+    height: 20px;
+}
+
+.wtKey {
+    fill:   #66C2A5; /* Green */
+    stroke: #66C2A5;
+}
+
+.nhejKey {
+    fill:   #FFAA00; /* Orange */
+    stroke: #FFAA00;
+}
+
+.hdrKey {
+    fill:   #D9E354; /* Yellow */
+    stroke: #D9E354;
+}
+
+.mixedKey {
+    fill:   #73667A; /* Plum */
+    stroke: #73667A;
+}
+
+.frameKey {
+    fill:   #103877; /* Dark Blue */
+    stroke: #103877;
+}
+
+.calls td:last-child {
+    text-align: right;
+}
+
+.calls th:last-child {
+    text-align: right;
+}
+
+</style>
 
 <h2>QC results</h2>
 [% FOREACH exp IN data.experiments %]
@@ -50,8 +91,12 @@
                         <td>[% exp.gene %]</td>
                     </tr>
                     <tr>
-                        <td>Crisprs</td>
-                        <td>[% crisprs %]</td>
+                        <td>Species</td>
+                        <td>[% exp.species %]</td>
+                    </tr>
+                    <tr>
+                        <td>Crispr</td>
+                        <td>[% exp.crisprs.join(', ') %]</td>
                     </tr>
                 </table>
                 <div class="col-md-12">
@@ -75,37 +120,98 @@
             </div>
         </div>
     </div>
-    <h4>Read Quantification - [% exp.classification %]</h4>
+    [% IF exp.frameshift == 1 %]
+        <div class="col-md-12">
+        <h4 class="col-md-6">Read Quantification : [% exp.classification %] - Frameshifted </h4>
+        <div class="col-md-6">
+
+        </div>
+        </div>
+    [% ELSE %]
+        <h4>Read Quantification : [% exp.classification %]</h4>
+    [% END %]
     <div class="col-md-12">
         <div id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="donuts col-md-6">
 
         </div>
         <div class="col-md-6">
-            <table class="table table-striped">
+            <table class="table table-striped calls">
                  <tr>
-                    <th>Call</th>
+                    <th class="col-md-5">Call</th>
+                    <th>Colour</th>
                     <th>#Read</th>
                     <th>%Read</th>
                 </tr>       
                 <tr>
                     <td>Wild Type</td>
+                    <td>
+                        <svg class="colourSVG">
+                            <rect class="wtKey" width="18px" height="18px"></rect>
+                            <!--- Width and Height are attributes of SVG thus can not be set via CSS --->
+                        </svg>
+                    </td>
                     <td>[% exp.read_counts.wt.count %]</td>
                     <td>[% exp.read_counts.wt.perc %]%</td>
                 </tr>
                 <tr>
                     <td>NHEJ</td>
+                    <td>
+                        <svg class="colourSVG">
+                            <rect class="nhejKey" width="18px" height="18px"></rect>
+                        </svg>
+                    </td>
                     <td>[% exp.read_counts.nhej.count %]</td>
                     <td>[% exp.read_counts.nhej.perc %]%</td>
                 </tr>
                 <tr>
                     <td>HDR</td>
+                    <td>
+                        <svg class="colourSVG">
+                            <rect class="hdrKey" width="18px" height="18px"></rect>
+                        </svg>
+                    </td>
                     <td>[% exp.read_counts.hdr.count %]</td>
                     <td>[% exp.read_counts.hdr.perc %]%</td>
                 </tr>
                 <tr>
                     <td>Mixed HDR-NHEJ</td>
+                    <td>
+                        <svg class="colourSVG">
+                            <rect class="mixedKey" width="18px" height="18px"></rect>
+                        </svg>
+                    </td>
                     <td>[% exp.read_counts.mix.count %]</td>
                     <td>[% exp.read_counts.mix.perc %]%</td>
+                </tr>
+            </table>
+            <table class="table">
+                <tr>
+                    <th class="col-md-5">
+                        Call
+                    </th>
+                    <th>
+                        Colour
+                    </th>
+                    <th>
+                        Frameshifted?
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        Frameshifted
+                    </td>
+                    <td>
+                        <svg class="colourSVG">
+                            <rect class="frameKey" width="18px" height="18px" vertical-align="bottom"></rect>
+                        </svg>
+                    </td>
+                    <td>
+                        [% IF exp.frameshift == 1 %]
+                            <i class="glyphicon glyphicon-ok"></i>
+                        [% ELSE %]
+                            <i class="glyphicon glyphicon-remove"></i>
+                        [% END %]
+                    </td>
                 </tr>
             </table>
         </div>
@@ -138,7 +244,9 @@ $(document).ready(function() {
     fillTables();
     setRingDimensions();
     ringSVG();
-    //createRings();
+    createRings();
+    var exps = Object.keys(data);
+    exps.map(function(exp) { buildDonut(exp) });
 });
 
 function jsonify(raw) {
@@ -182,7 +290,17 @@ function fillTables() {
         $('.seq' + exp + ':last').scroll(function() {
             $('.seq' + exp).scrollLeft($(this).scrollLeft());
         });
+
+        $('#freq' + exp).find('td:last-child').map(function() {
+            var percCell = $(this).text();
+            if (!isNaN(percCell)) {
+                var perc = parseFloat(percCell);
+                $(this).text(perc.toFixed(2) + '%');
+            } 
+        });
     });
+
+    return;
 }
 
 function setRingDimensions() {
@@ -192,6 +310,8 @@ function setRingDimensions() {
     arcWidth = 15,
     fsRadius = radius - arcWidth;
     rebuildArcs();
+
+    return;
 }
 
 function ringSVG() {
@@ -203,6 +323,50 @@ function ringSVG() {
         .append("svg:g")
         .attr("class","node")
         .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+    return;
+}
+
+function buildDonut(exp) {
+    donutText(exp);
+
+    var values = data[exp].read_quant;
+    var arcTypes = ['nhej', 'hdr', 'mix'];
+    var ancestory = '#' + exp + ' > .svgTool > .node > ';
+
+    var wtNode = d3.select(ancestory + '.wild').node();
+    animateArc(wtNode, 100);
+    
+    arcTypes.map(function(type) {
+        var node = d3.select(ancestory + '.' + type).node();
+        animateArc(node, values[type].perc);
+    });
+
+    frameshiftDonut(ancestory, exp);
+
+    return;
+}
+
+function animateArc(node, value) {
+    value = value / Math.pow(10, 2);
+    d3.select(node).transition().duration(500).attrTween("d", arcTween(value * tau, arc));
+    return;
+}
+
+function frameshiftDonut(ancestory, exp) {
+    var expData = data[exp];
+    var frameNode = d3.select(ancestory + '.frame').node();
+    var frameTau = expData.frameshift ? expData.frameshift : 0;
+
+    d3.select(frameNode).transition().duration(500).attrTween("d", arcTween(frameTau * tau, fsArc));
+
+    return;
+}
+
+function donutText(exp) {
+    var splitExp = exp.split('_');
+    var wellName = splitExp.slice(-1)[0];
+    console.log(wellName);
+    d3.select("#" + exp + " > .svgTool > g.node").append("svg:text").attr("class","nodeText").attr("dx","-1em").attr("dy","0.4em").text(wellName);
 }
 
 </script>

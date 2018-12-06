@@ -833,18 +833,19 @@ sub _stash_well_genotyping_info {
 sub _stash_pipeline_ii_genotyping_info {
     my ( $self, $c, $well ) = @_;
 
-$DB::single=1;
     my $data = miseq_genotyping_info($c, $well);
     my $alleles_data;
     foreach my $exp (@{ $data->{experiments} }) {
         my $table = $exp->{alleles_freq};
         my $key = $exp->{qc_origin_plate} . '_' . $exp->{qc_origin_well};
         $alleles_data->{$key} = $table;
+        $alleles_data->{$key}->{read_quant} = $exp->{read_counts};
+        $alleles_data->{$key}->{frameshift} = $exp->{frameshift};
     }
 
     my $json = JSON->new->allow_nonref;
     my $alleles_json = $json->encode($alleles_data);
-$DB::single=1; 
+
     $c->stash( data => $data, tables => $alleles_json );
     return;
 }

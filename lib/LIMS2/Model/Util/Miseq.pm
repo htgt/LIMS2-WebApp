@@ -80,7 +80,7 @@ WITH RECURSIVE descendants(process_id, input_well_id, output_well_id, start_well
     JOIN descendants ON descendants.output_well_id = pr_in.well_id
 )
 SELECT DISTINCT dest.input_well_id, dest.start_well_id, dest.process_id, well_in.name, plate_in.name,
-well_out.id, well_out.name, plate_out.name, mp.id, me.experiment_id AS exp, me.name, mwe.id AS mwe_id, mwe.classification
+well_out.id, well_out.name, plate_out.name, mp.id, me.experiment_id AS exp, me.name, mwe.id AS mwe_id, mwe.classification, mwe.frameshifted
 FROM descendants dest
 INNER JOIN wells well_in ON input_well_id=well_in.id
 INNER JOIN plates plate_in ON well_in.plate_id=plate_in.id
@@ -130,7 +130,8 @@ sub query_miseq_details {
         experiment_id
         miseq_experiment_name
         miseq_well_exp_id
-        miseq_classification
+        miseq_well_exp_classification
+        miseq_well_exp_frameshift
     );
     my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
@@ -704,7 +705,8 @@ $DB::single=1;
             species             => $design_rs->species_id,
             oligos              => $exp_rs->design->oligos_sorted,
             experiment_name     => $qc->{miseq_experiment_name},
-            classification      => $qc->{miseq_classification},
+            classification      => $qc->{miseq_well_exp_classification},
+            frameshift          => $qc->{miseq_well_exp_frameshift},
             alleles_freq        => $alleles_table_data,
         };
 use Data::Dumper;
