@@ -107,7 +107,7 @@
                         </tr>
                         <tr>
                             <td>Crispr</td>
-                            <td>[% exp.crisprs.join(', ') %]</td>
+                            <td class="crispr">[% exp.crisprs.join(',') %]</td>
                         </tr>
                         <tr>
                             <td>Miseq WT Amplicon</td>
@@ -146,20 +146,15 @@
             </div>
         </div>
     </div>
-    [% IF exp.frameshift == 1 %]
-        <div class="col-md-12">
-        <h4 class="col-md-6">Read Quantification : [% exp.classification %] - Frameshifted </h4>
-        <div class="col-md-6">
-
-        </div>
-        </div>
-    [% ELSE %]
-        <h4>Read Quantification : [% exp.classification %]</h4>
-    [% END %]
     <div class="col-md-12">
-        <div id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="donuts col-md-6">
-
-        </div>
+        [% IF exp.frameshift == 1 %]
+            <h4 class="col-md-6">Read Quantification : [% exp.classification %] - Frameshifted </h4>
+        [% ELSE %]
+            <h4>Read Quantification : [% exp.classification %]</h4>
+        [% END %]
+    </div>
+    <div class="col-md-12">
+        <div id="[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="donuts col-md-6"></div>
         <div class="col-md-6">
             <table class="table table-striped calls">
                  <tr>
@@ -284,6 +279,7 @@ function fillTables() {
 
     expNames.forEach(function(exp) {
         var rowDetails = data[exp];
+        formatDesigns(exp);
         fillAlleles(exp, rowDetails);
         fillOligos(exp, rowDetails);
     });
@@ -329,6 +325,8 @@ function fillAlleles(exp, rowDetails) {
             $(this).text(perc.toFixed(2) + '%');
         } 
     });
+
+    return;
 }
 
 function fillOligos(exp, rowDetails) {
@@ -336,7 +334,6 @@ function fillOligos(exp, rowDetails) {
     var rowKeys = ['chr_start', 'chr_end', 'chr_strand', 'chr_name', 'assembly'];
     oligos.forEach(function(oligo) {
         var loci = oligo.locus;
-        console.log(oligo.type.toLowerCase + exp);
         var oligoTable = document.getElementById(oligo.type.toLowerCase() + exp);
 
         rowKeys.forEach(function(key) { 
@@ -358,6 +355,8 @@ function fillOligos(exp, rowDetails) {
         titleCell.innerText = "Sequence";
         valueCell.innerText = oligo.seq;
     });
+
+    return;
 }
 
 function setRingDimensions() {
@@ -422,9 +421,30 @@ function frameshiftDonut(ancestory, exp) {
 function donutText(exp) {
     var splitExp = exp.split('_');
     var wellName = splitExp.slice(-1)[0];
-    console.log(wellName);
     d3.select("#" + exp + " > .svgTool > g.node").append("svg:text").attr("class","nodeText").attr("dx","-1em").attr("dy","0.4em").text(wellName);
+
+    return;
 }
 
+function formatDesigns(exp) {
+    var crisprDiv = $('#designs' + exp + ' .crispr');
+    var seqText = crisprDiv.text();
+    var strand = data[exp].oligos[0].locus.chr_strand;
+    var seqs = seqText.split(',');
+    
+    var formattedSeq = [];
+    seqs.forEach(function(seq) {
+        if (strand == 1) {
+            var pam = seq.slice(seq.length - 3, seq.length);
+            formattedSeq.push(seq + ' ' + pam);
+        } else {
+            var pam = seq.slice(0, 3);
+            formattedSeq.push(pam + ' ' + seq);
+        }
+    });
+    $(crisprDiv).text(formattedSeq.join(', '));
+
+    return;
+}
 
 </script>
