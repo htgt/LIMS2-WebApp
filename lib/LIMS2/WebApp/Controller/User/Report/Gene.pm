@@ -5,7 +5,6 @@ use namespace::autoclean;
 use Date::Calc qw(Delta_Days);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::CrisprESQCView qw( crispr_damage_type_for_ep_pick ep_pick_is_het );
-use LIMS2::Model::Util::Miseq qw( find_miseq_data_from_experiment );
 use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use LIMS2::Model;
@@ -80,6 +79,7 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         dna        => \&fetch_values_for_type_dna,
         assembly   => \&fetch_values_for_type_assembly,
         ep         => \&fetch_values_for_type_ep,
+        ep_pick    => \&fetch_values_for_type_ep_pick,
         xep        => \&fetch_values_for_type_xep,
         sep        => \&fetch_values_for_type_sep,
         sep_pick   => \&fetch_values_for_type_sep_pick,
@@ -87,10 +87,6 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         piq        => \&fetch_values_for_type_piq,
         sfp        => \&fetch_values_for_type_sfp,
     };
-
-    if ($c->session->{selected_pipeline} eq "pipeline_I") {
-        $dispatch_fetch_values->{ep_pick} = \&fetch_values_for_type_ep_pick;
-    }
 
     my @plate_types = ('design','int','final','final_pick','dna','assembly','ep','ep_pick','xep','sep','sep_pick','fp','sfp','piq');
     my @plate_types_rev = reverse @plate_types;
@@ -213,10 +209,6 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         }
     }
     my $crispr_ids_str = join ",", @all_crispr_vecs;
-
-    if ($c->session->{selected_pipeline} eq "pipeline_II") {
-       $sorted_wells{ep_pick} = fetch_pipeline_ii_primary_qc_values($c, $experiments);
-    }
 
     $c->stash(
         'info'                 => $gene_info,
@@ -1296,20 +1288,6 @@ sub crispr_qc_data {
     my @sorted = sort { $a->{epd_well} cmp $b->{epd_well} } @crispr_qc;
     return \@sorted;
 }
-
-sub fetch_pipeline_ii_primary_qc_values {
-    my ( $c, $experiments ) = @_;
-
-    print $experiments;
-    my @exp_ids = map { $_->{id} } @$experiments;
-
-    foreach my $id (@exp_ids) {
-        find_miseq_data_from_experiment($c, $id);
-    }
-
-    return;
-}
-
 
 =head1 AUTHOR
 
