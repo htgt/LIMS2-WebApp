@@ -701,7 +701,7 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
     if ( @args == 1 ) {
         my $barcode = shift @args;
         my $well;
-$DB::single=1;
+
         try {
             $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
         } catch {
@@ -848,6 +848,7 @@ sub _stash_pipeline_ii_genotyping_info {
     my $alleles_json = $json->encode($alleles_data);
 
     $c->stash( data => $data, tables => $alleles_json );
+
     return;
 }
 

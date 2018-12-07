@@ -523,7 +523,7 @@ sub generate_summary_data {
 
 sub read_alleles_frequency_file {
     my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
-$DB::single=1;
+
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
         return { error => 'No path available' };
@@ -539,18 +539,18 @@ $DB::single=1;
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
         @lines = @lines[0..$threshold];
-    } 
+    }
 
     return @lines;
 }
 
 sub _find_read_quantification_gt_threshold {
     my ($threshold, @lines) = @_;
-$DB::single=1;
+
     my @relevant_reads;
     my $count = 1;
     my $read_perc = 100;
-    
+
     push @relevant_reads, $lines[0];
     while ($read_perc > $threshold) {
         push @relevant_reads, $lines[$count];
@@ -674,7 +674,7 @@ sub miseq_genotyping_info {
         my @gene_ids = $design_rs->gene_ids;
         my $illumina_index = $index_converter->{ $qc->{miseq_well_name} };
 
-        my $miseq_quant = read_quant_file( 
+        my $miseq_quant = read_quant_file(
             $qc->{miseq_plate_name},
             $illumina_index,
             $qc->{miseq_experiment_name}
@@ -684,7 +684,6 @@ sub miseq_genotyping_info {
 
         my @alleles_frequency = read_alleles_frequency_file($c, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
 
-$DB::single=1;
         my @crisprs = map { $_->seq } $exp_rs->crispr;
         my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
 
@@ -710,15 +709,14 @@ $DB::single=1;
             alleles_freq        => $alleles_table_data,
             amplicon            => $design_rs->amplicon,
         };
-use Data::Dumper;
-print Dumper $exp_details;
+
         push (@{$experiments->{experiments}}, $exp_details);
         push (@overview_symbols, @gene_symbols);
         push (@overview_gene_ids, @gene_ids);
         push (@overview_design_ids, $design_rs->id);
     }
 
-    $experiments->{gene} = _handle_singular(uniq @overview_symbols); 
+    $experiments->{gene} = _handle_singular(uniq @overview_symbols);
     $experiments->{gene_id} = _handle_singular(uniq @overview_gene_ids);
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
@@ -737,7 +735,7 @@ sub _calc_read_percentages {
     my $total = 0;
     $total = sum values %$calls;
     my $factor = 100 / $total;
-    
+
     my $perc;
     foreach my $class (keys %$calls) {
         my $call_perc = sprintf("%0.2f", $factor * $calls->{$class});
@@ -775,7 +773,7 @@ sub crispr_location_in_amplicon {
 
 sub _map_comma_string {
     my (@reads) = @_;
-$DB::single=1;
+
     my @headers = split /,/, shift @reads;
     my $hashed_reads->{headers} = \@headers;
     foreach my $read (@reads) {
