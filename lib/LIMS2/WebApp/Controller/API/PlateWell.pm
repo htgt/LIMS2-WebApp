@@ -718,7 +718,7 @@ sub sibling_miseq_plate_GET {
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
 
-    unless ($plate_rs) {
+    if ($plate_rs == undef) {
         return $self->status_bad_request(
             $c,
             message => "Bad Request: Can not find Plate: " . $term,

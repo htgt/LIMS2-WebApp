@@ -110,7 +110,7 @@
                             <td>[% exp.crisprs.join(', ') %]</td>
                         </tr>
                         <tr>
-                            <td>Amplicon</td>
+                            <td>Miseq WT Amplicon</td>
                             <td class="amplicon">[% exp.amplicon %]</td>
                         </tr>
                     </table>
