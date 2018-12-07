@@ -211,6 +211,9 @@
 
             [% IF c.session.selected_pipeline == "pipeline_II" %] 
             <li>
+              <a href="[% c.uri_for( '/user/crispresso_submission' ) %]">Crispresso Submission</a>
+            </li>
+            <li>
               <a href="[% c.uri_for( '/user/browse_point_mutation' ) %]">Search Point Mutations</a>
             </li>
 
