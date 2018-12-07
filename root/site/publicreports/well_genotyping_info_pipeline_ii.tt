@@ -39,6 +39,16 @@
     text-align: right;
 }
 
+.amplicon {
+    width: 800px;
+    display: inline-block;
+    overflow-x: scroll;
+}
+
+.designOV td:last-child {
+    width: 800px;
+}
+
 </style>
 
 <h2>QC results</h2>
@@ -77,45 +87,61 @@
                 </h4>
             </div>
             <div id="desColl[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="panel-collapse collapse">
-                <table class="table table-striped">
-                    <tr>
-                        <td>Design</td>
-                        <td>[% exp.design_id %]</td>
-                    </tr>
-                    <tr>
-                        <td>Gene ID</td>
-                        <td>[% exp.gene_id %]</td>
-                    </tr>
-                    <tr>
-                        <td>Gene Symbol</td>
-                        <td>[% exp.gene %]</td>
-                    </tr>
-                    <tr>
-                        <td>Species</td>
-                        <td>[% exp.species %]</td>
-                    </tr>
-                    <tr>
-                        <td>Crispr</td>
-                        <td>[% exp.crisprs.join(', ') %]</td>
-                    </tr>
-                </table>
-                <div class="col-md-12">
-                    [% FOREACH oligo IN exp.design_oligos %]
-                        <table class="table table-striped">
-                            <tr>
-                                <td>Primer</td>
-                                <td>[% oligo.name %]</td>
-                            </tr>
-                            <tr>
-                                <td>Chr Start</td>
-                                <td>[% oligo.start %]</td>
-                            </tr>
-                            <tr>
-                                <td>Chr End</td>
-                                <td>[% oligo.end %]</td>
-                            </tr>
-                        </table>
-                    [% END %]
+                <div class="panel-body">
+                    <table class="designOV table table-striped">
+                        <tr>
+                            <th>Design</th>
+                            <th>[% exp.design_id %]</th>
+                        </tr>
+                        <tr>
+                            <td>Gene ID</td>
+                            <td>[% exp.gene_id %]</td>
+                        </tr>
+                        <tr>
+                            <td>Gene Symbol</td>
+                            <td>[% exp.gene %]</td>
+                        </tr>
+                        <tr>
+                            <td>Species</td>
+                            <td>[% exp.species %]</td>
+                        </tr>
+                        <tr>
+                            <td>Crispr</td>
+                            <td>[% exp.crisprs.join(', ') %]</td>
+                        </tr>
+                        <tr>
+                            <td>Amplicon</td>
+                            <td class="amplicon">[% exp.amplicon %]</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="panel-footer">
+                    <div class="row">
+                        [% SET externals = ['exf','exr'] %]
+                        [% FOREACH ext IN externals %]
+                            <div class="col-md-6">
+                                <table id="[% ext %][% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="table table-striped">
+                                    <tr>
+                                        <th class="col-md-4">Primer</th>
+                                        <th>[% ext FILTER upper %]</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        [% END %]
+                    </div>
+                    <div class="row">
+                        [% SET internals = ['inf','inr'] %]
+                        [% FOREACH inte IN internals %]
+                            <div class="col-md-6">
+                                <table id="[% inte %][% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="table table-striped">
+                                    <tr>
+                                        <th class="col-md-4">Primer</th>
+                                        <th>[% inte FILTER upper %]</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        [% END %]
+                    </div>
                 </div>
             </div>
         </div>
@@ -255,52 +281,83 @@ function jsonify(raw) {
 
 function fillTables() {
     var expNames = Object.keys(data);
-    var colNames = $('#allele').children().map(function(i) {
-        return i.className;
-    });
 
     expNames.forEach(function(exp) {
         var rowDetails = data[exp];
-        var columns = rowDetails.data.headers;
-        columns = columns.filter(function(col) { return col != "Reference_Sequence" });
-        
-        var table = document.getElementById('freq' + exp);
-        var tHead = table.createTHead();
-        var headerRow = tHead.insertRow(0);
-        for (var i = 0; i < columns.length; i++) {
-            var hCell = headerRow.insertCell(i);
-            $(hCell).text(columns[i]);
-        }
-
-        var rowData = rowDetails.data.rows;
-        var tBody = table.createTBody();
-        rowData.forEach(function(rData) {
-            var row = tBody.insertRow(-1);
-            for (var i = 0; i < columns.length; i++) {
-                var cell = row.insertCell(i);
-                if (columns[i] == 'Aligned_Sequence') {
-                    $(cell).html('<div class="seq' + exp + ' sequence">' + highlightBases(rData[columns[i]], rowDetails.crisprs, rData.Reference_Sequence) + '</div>');
-                } else {
-                    $(cell).text(rData[columns[i]]);
-                }
-            }
-        });
-
-        $('.seq' + exp + ':last').css('overflow-x','scroll');
-        $('.seq' + exp + ':last').scroll(function() {
-            $('.seq' + exp).scrollLeft($(this).scrollLeft());
-        });
-
-        $('#freq' + exp).find('td:last-child').map(function() {
-            var percCell = $(this).text();
-            if (!isNaN(percCell)) {
-                var perc = parseFloat(percCell);
-                $(this).text(perc.toFixed(2) + '%');
-            } 
-        });
+        fillAlleles(exp, rowDetails);
+        fillOligos(exp, rowDetails);
     });
 
     return;
+}
+
+function fillAlleles(exp, rowDetails) {
+    var columns = rowDetails.data.headers;
+    columns = columns.filter(function(col) { return col != "Reference_Sequence" });
+    
+    var table = document.getElementById('freq' + exp);
+    var tHead = table.createTHead();
+    var headerRow = tHead.insertRow(0);
+    for (var i = 0; i < columns.length; i++) {
+        var hCell = headerRow.insertCell(i);
+        $(hCell).text(columns[i]);
+    }
+
+    var rowData = rowDetails.data.rows;
+    var tBody = table.createTBody();
+    rowData.forEach(function(rData) {
+        var row = tBody.insertRow(-1);
+        for (var i = 0; i < columns.length; i++) {
+            var cell = row.insertCell(i);
+            if (columns[i] == 'Aligned_Sequence') {
+                $(cell).html('<div class="seq' + exp + ' sequence">' + highlightBases(rData[columns[i]], rowDetails.crisprs, rData.Reference_Sequence) + '</div>');
+            } else {
+                $(cell).text(rData[columns[i]]);
+            }
+        }
+    });
+
+    $('.seq' + exp + ':last').css('overflow-x','scroll');
+    $('.seq' + exp + ':last').scroll(function() {
+        $('.seq' + exp).scrollLeft($(this).scrollLeft());
+    });
+
+    $('#freq' + exp).find('td:last-child').map(function() {
+        var percCell = $(this).text();
+        if (!isNaN(percCell)) {
+            var perc = parseFloat(percCell);
+            $(this).text(perc.toFixed(2) + '%');
+        } 
+    });
+}
+
+function fillOligos(exp, rowDetails) {
+    var oligos = rowDetails.oligos;
+    var rowKeys = ['chr_start', 'chr_end', 'chr_strand', 'chr_name', 'assembly'];
+    oligos.forEach(function(oligo) {
+        var loci = oligo.locus;
+        console.log(oligo.type.toLowerCase + exp);
+        var oligoTable = document.getElementById(oligo.type.toLowerCase() + exp);
+
+        rowKeys.forEach(function(key) { 
+            var row = oligoTable.insertRow(-1);
+            var titleCell = row.insertCell(0);
+            var valueCell = row.insertCell(1);
+
+            var title = key.split("_")
+                .map( (s) => s.charAt(0).toUpperCase() + s.substring(1) )
+                .join(' ');
+            titleCell.innerText = title;
+            valueCell.innerText = loci[key];
+        });
+
+        var row = oligoTable.insertRow(-1);
+        var titleCell = row.insertCell(0);
+        var valueCell = row.insertCell(1);
+
+        titleCell.innerText = "Sequence";
+        valueCell.innerText = oligo.seq;
+    });
 }
 
 function setRingDimensions() {
@@ -368,5 +425,6 @@ function donutText(exp) {
     console.log(wellName);
     d3.select("#" + exp + " > .svgTool > g.node").append("svg:text").attr("class","nodeText").attr("dx","-1em").attr("dy","0.4em").text(wellName);
 }
+
 
 </script>

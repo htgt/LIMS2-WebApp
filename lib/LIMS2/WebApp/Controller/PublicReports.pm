@@ -841,6 +841,7 @@ sub _stash_pipeline_ii_genotyping_info {
         $alleles_data->{$key} = $table;
         $alleles_data->{$key}->{read_quant} = $exp->{read_counts};
         $alleles_data->{$key}->{frameshift} = $exp->{frameshift};
+        $alleles_data->{$key}->{oligos} = $exp->{oligos};
     }
 
     my $json = JSON->new->allow_nonref;

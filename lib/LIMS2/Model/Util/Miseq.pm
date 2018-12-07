@@ -708,6 +708,7 @@ $DB::single=1;
             classification      => $qc->{miseq_well_exp_classification},
             frameshift          => $qc->{miseq_well_exp_frameshift},
             alleles_freq        => $alleles_table_data,
+            amplicon            => $design_rs->amplicon,
         };
 use Data::Dumper;
 print Dumper $exp_details;
