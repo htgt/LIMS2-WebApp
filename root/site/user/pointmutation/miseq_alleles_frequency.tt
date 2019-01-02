@@ -1,0 +1,77 @@
+<style>
+
+.sequence {
+    width: 400px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+}
+
+.base- {
+    background-color: #661010; /* Red */
+    color: white;
+}
+
+.target {
+    background-color: #0A606D; /* Blue-Grey */
+    color: white;
+}
+
+.possibleTarget {
+    background-color: #E59E18; /* Orange */
+    color: white;
+}
+
+.insertion {
+    background-color: #26C485; /* Green */
+    color: black;
+}
+
+</style>
+
+<script type="text/javascript" charset="utf-8">
+
+function highlightBases(seq, crisprData, ref) {
+    var formattedSequence = "";
+    var start = seq.indexOf(crisprData.crispr);
+    var accuracy = 0;
+
+    if (start == -1) {
+        accuracy = 1;
+        start = ref.indexOf(crisprData.crispr);
+        if (start == -1 || start > crisprData.position + 5 || start < crisprData.position - 5) {
+            console.log('No match');
+            start = crisprData.position;
+        }
+    }
+
+    for (var base = 0; base < seq.length; base++) {
+        var letter = seq[base];
+
+        var front = "";
+        var back = "";
+        if (base == start) {
+            if (accuracy == 0) {
+                front = '<span class="target">';
+            } else {
+                front = '<span class="possibleTarget">';
+            }
+        }
+
+        if (base == start + crisprData.crispr.length - 1) {
+            back = "</span>";
+        }
+        var format;
+        if (ref[base] == '-'){
+            format = front + '<span class="base' + letter + ' baseSwitch insertion">' + letter + '</span>' + back;
+        }
+        else {
+            format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
+        }
+        formattedSequence += format;
+    }
+
+    return formattedSequence;
+}
+
+</script>

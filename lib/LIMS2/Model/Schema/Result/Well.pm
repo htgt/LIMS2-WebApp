@@ -1278,20 +1278,17 @@ sub first_ep_pick {
 }
 ## use critic
 
-#maybe think of a better name for this
-#it just means it must be ep_pick or later
-sub is_epd_or_later {
-    my $self = shift;
+#Check if well is currently of type X, if not - ascend
+sub is_plate_type_or_later {
+    my ($self, $plate_type) = @_;
 
-    #EPD is ok with us
-    return $self if $self->plate_type eq 'EP_PICK';
+    return $self if $self->plate_type eq $plate_type;
 
     my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
     while ( my $ancestor = $ancestors->next ) {
-        return $ancestor if $ancestor->plate_type eq 'EP_PICK';
+        return $ancestor if $ancestor->plate_type eq $plate_type;
     }
 
-    #We didn't find any ep picks further up so its not
     return;
 }
 
@@ -1829,7 +1826,8 @@ sub genotyping_info {
     require LIMS2::Exception;
 
     #get the epd well if one exists (could be ourself)
-    my $epd = $self->is_epd_or_later;
+    my $epd = is_plate_type_or_later($self, 'EP_PICK');
+
 
     LIMS2::Exception->throw( "Provided well must be an epd well or later" )
         unless $epd;

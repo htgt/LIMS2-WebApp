@@ -8,6 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+use LIMS2::Model::Util::Miseq qw( miseq_genotyping_info );
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 use feature 'switch';
@@ -18,6 +19,7 @@ use File::Slurp;
 use LIMS2::Report qw/get_raw_spreadsheet/;
 use JSON qw( decode_json encode_json );
 use File::stat;
+use POSIX 'strftime';
 use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller'; }
@@ -192,7 +194,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         }
     }
 
-    if ( $client_host =~ /internal.sanger.ac.uk/ ) {
+    if ( $client_host =~ /internal/ ) {
         $is_internal = 1;
     }
 
@@ -258,12 +260,13 @@ sub _view_cached_top_level_report {
     my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
-    my $file_stats = stat($cached_file_name) or die "$cached_file_name not found: $!";
+    my $file_stats = stat $cached_file_name or die "$cached_file_name not found: $!";
 
     my $json_data = decode_json(<$json_handle>);
     close $json_handle;
 
-    $json_data->{date} = localtime $file_stats->mtime;
+    my $date_format = strftime '%d %B %Y', localtime $file_stats->mtime;
+    $json_data->{date} = $date_format;
 
     return $json_data;
 
@@ -464,7 +467,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
 
         if ($disp_stage eq 'Genes') {
 
-            $on_date = localtime time;
+            $on_date = strftime '%d %B %Y', localtime time;
 
             if (! $c->request->params->{type}) {
                 $c->request->params->{type} = 'simple';
@@ -701,13 +704,17 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
         try {
             $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
-            # $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
         } catch {
             $c->stash( error_msg => "Barcode doesn't exist" );
         };
 
         if ($well) {
-            $self->_stash_well_genotyping_info( $c, $well );
+            if ($well->design->type->id =~ /^miseq.*/) {
+                $c->stash->{pipeline} = 2;
+                $self->_stash_pipeline_ii_genotyping_info( $c, $well );
+            } else {
+                $self->_stash_well_genotyping_info( $c, $well );
+            }
         } else {
             $c->go( 'well_genotyping_info_search' );
             return;
@@ -760,7 +767,7 @@ sub _stash_well_genotyping_info {
         #needs to be given a method for finding genes
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
         my $data = $well->genotyping_info( $gene_finder );
-        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+        if ( my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
             $data->{ms_qc_data} = $ms_qc_data;
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
@@ -819,6 +826,28 @@ sub _stash_well_genotyping_info {
         #get string representation if its a lims2::exception
         $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
+
+    return;
+}
+
+sub _stash_pipeline_ii_genotyping_info {
+    my ( $self, $c, $well ) = @_;
+
+    my $data = miseq_genotyping_info($c, $well);
+    my $alleles_data;
+    foreach my $exp (@{ $data->{experiments} }) {
+        my $table = $exp->{alleles_freq};
+        my $key = $exp->{qc_origin_plate} . '_' . $exp->{qc_origin_well};
+        $alleles_data->{$key} = $table;
+        $alleles_data->{$key}->{read_quant} = $exp->{read_counts};
+        $alleles_data->{$key}->{frameshift} = $exp->{frameshift};
+        $alleles_data->{$key}->{oligos} = $exp->{oligos};
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $alleles_json = $json->encode($alleles_data);
+
+    $c->stash( data => $data, tables => $alleles_json );
 
     return;
 }

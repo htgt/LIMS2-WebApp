@@ -73,31 +73,23 @@ sub point_mutation_summary_GET {
     my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
     my $experiment = $c->request->param( 'exp' );
-    my $limit = $c->request->param( 'limit' );
+    my $threshold = $c->request->param( 'limit' );
+    my $percentage_bool = $c->request->param( 'perc' );
 
-    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
+    my $result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
 
-    unless ($sum_dir) {
+    if ($result->{error}) {
         $c->response->status( 404 );
         $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
         return;
     }
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
-    if ($limit) {
-        $res->{data} = join("\n", @lines[0..$limit]);
-    } else {
-        $res->{data} = join("\n", @lines);
-    }
-    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
+    my $alleles = {
+        data => join('\n', @{ $result }),
+    };
+    $alleles->{crispr} = crispr_seq($c, $miseq, $experiment);
 
     my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($res);
+    my $body = $json->encode($alleles);
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
@@ -242,6 +234,27 @@ sub miseq_preset_names_GET {
     return $self->status_ok($c, entity => \@results);
 }
 
+
+
+#Quads had to to be introduced in a way to preserve data in the view.
+#Messy to deal with in the back end
+sub flatten_wells {
+    my ($fp, $wells) = @_;
+
+    my $fp_data = $wells->{$fp}->{wells};
+
+    my $new_structure;
+    foreach my $quad (keys %{$fp_data}) {
+        if (ref $fp_data->{$quad} eq 'HASH') {
+            foreach my $well (sort keys %{$fp_data->{$quad}}) {
+                $new_structure->{$well} = $fp_data->{$quad}->{$well};
+            }
+        }
+    }
+
+    return $new_structure;
+}
+
 sub crispr_seq {
     my ( $c, $miseq, $req ) = @_;
 
@@ -278,25 +291,5 @@ sub crispr_seq {
 
     return $res;
 }
-
-#Quads had to to be introduced in a way to preserve data in the view.
-#Messy to deal with in the back end
-sub flatten_wells {
-    my ($fp, $wells) = @_;
-
-    my $fp_data = $wells->{$fp}->{wells};
-
-    my $new_structure;
-    foreach my $quad (keys %{$fp_data}) {
-        if (ref $fp_data->{$quad} eq 'HASH') {
-            foreach my $well (sort keys %{$fp_data->{$quad}}) {
-                $new_structure->{$well} = $fp_data->{$quad}->{$well};
-            }
-        }
-    }
-
-    return $new_structure;
-}
-
 
 1;

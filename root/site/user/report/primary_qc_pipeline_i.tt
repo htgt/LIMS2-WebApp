@@ -1,0 +1,35 @@
+<button type="button" class="btn btn-info" data-toggle="button" id="epd_accepted_show_toggle" data="show">Show Non Accepted Wells</button>
+<table class="table table-striped" id="epd_well_table">
+    <thead>
+        <th>Well name</td>
+        <th>Plate</td>
+        <th>Well</th>
+        <th>Created on</th>
+        <th>Electroporation Well</th>
+        <th>Accepted?</th>
+        <th>Call</th>
+        <th>Het?</th>
+        <th>Allele Genbank File</th>
+    </thead>
+    <tbody>
+        [% FOREACH well IN sorted_wells.ep_pick %]
+            <tr>
+                <td>[% well.well_id_string %]</td>
+                <td><a href="[% c.uri_for( '/user/view_plate', { id => well.plate_id } ) %]">[% well.plate_name %]</a></td>
+                <td>[% well.well_name %]</td>
+                <td>[% well.created_at %]</td>
+                <td>[% well.ep_well %]</td>
+                <td class="accepted">[% well.is_accepted %]</td>
+                <td>
+                    [% IF well.crispr_es_qc_well_id %]
+                        <a href="#" class="crispr_qc_accepted" data-qc_well_id="[% well.crispr_es_qc_well_id %]">
+                    [% END %]
+                    [% well.damage_type %]
+                    [% IF well.crispr_qc_data %]</a>[% END %]
+                </td>
+                <td>[% well.is_het %]</td>
+                <td><a href="[% c.uri_for( '/public_reports/well_eng_seq', well.well_id ) %]"><i class="icon-file"></i></a></td>
+            </tr>
+        [%- END %]
+    </tbody>
+</table>

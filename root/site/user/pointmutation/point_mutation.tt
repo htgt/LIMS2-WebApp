@@ -6,8 +6,8 @@
 .d3-tip {
     line-height: 1;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.8); //Black, 80% opacity
-    color: #FFFFFF; //White
+    background: rgba(0, 0, 0, 0.8); /*Black, 80% opacity*/
+    color: #FFFFFF; /*White*/
     border-radius: 2px;
     text-align: center;
 }
@@ -19,7 +19,7 @@
     font-size: 10px;
     width: 100%;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.8); //Black, 80% opacity
+    color: rgba(0, 0, 0, 0.8); /*Black, 80% opacity*/
     content: "\25BC";
     position: absolute;
     text-align: center;
@@ -152,6 +152,8 @@ body {
     [% END %]
 </div>
 
+[% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
+
 <script type="text/javascript" charset="utf-8">
 
 var data = '[% wells %]';
@@ -177,35 +179,6 @@ var frameshiftJSON = "";
 var allExps = [];
 var prevExp = "";
 
-function jsonify(raw) {
-    return JSON.parse(raw.replace(/&quot;/g,'"'));
-}
-
-//One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
-var tau = 2 * Math.PI;
-
-var width = window.innerWidth / 20,
-    height = window.innerHeight / 13,
-    radius = (Math.min(width, height) / 2) - 1,
-    arcWidth = Math.min(width, height) / 7,
-    fsRadius = radius - arcWidth;
-
-var pie = d3.pie()
-    .sort(null)
-    .value(function(d) { return d.population; });
-
-
-var arc = d3.arc()
-    .innerRadius(fsRadius)
-    .outerRadius(radius)
-    .startAngle(0);
-
-//frameshift arcs
-var fsArc = d3.arc()
-    .innerRadius(fsRadius - (arcWidth - 2))
-    .outerRadius(fsRadius)
-    .startAngle(0);
-
 //targeting efficiency arcs
 var teArc = d3.arc()
     .innerRadius(fsRadius + 8)
@@ -219,68 +192,6 @@ var tip = d3.tip()
         return tooltip($(this))
     });
 
-var initDonut = d3.pie()([0,0]);
-
-function createRings() {
-    var svg = d3.selectAll("td")
-        .append("svg:svg")
-        .attr("width", '100%')
-        .attr("height", height)
-        .attr("class","svgTool")
-        .attr("onclick","wellArc(this)")
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide)
-        .append("svg:g")
-        .attr("class","node")
-        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
-
-    svg.call(tip);
-
-    //Base ring
-    d3.selectAll("g.node")
-        .append("path")
-        .attr("class","wellPath")
-        .datum({endAngle: tau})
-        .style("fill","#887BF7") //Purple
-        .attr("d",arc);
-
-    var wt = d3.selectAll("g.node")
-        .append("path")
-        .datum(initDonut[0])
-        .style("fill","#66C2A5") //Green
-        .attr("d", arc)
-        .attr("class","donut wild");
-
-    var nhej = d3.selectAll("g.node")
-        .append("path")
-        .datum(initDonut[1])
-        .style("fill","#FFAA00") //Orange
-        .attr("d", arc)
-        .attr("class", "donut nhej");
-
-    var hdr = d3.selectAll("g.node")
-        .append("path")
-        .datum(initDonut[1])
-        .style("fill","#D9E354") //Yellow
-        .attr("d", arc)
-        .attr("class", "donut hdr");
-
-    var mixed = d3.selectAll("g.node")
-        .append("path")
-        .datum(initDonut[1])
-        .style("fill","#73667A") //Blue-grey
-        .attr("d", arc)
-        .attr("class", "donut mix");
-
-    var frameshift = d3.selectAll("g.node")
-        .append("path")
-        .datum(initDonut[1])
-        .style("fill","#103877") //Dark Blue
-        .attr("d", fsArc)
-        .attr("class", "frame");
-
-    d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.6em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
-}
 
 //Targeting efficiency container
 var teSvg = d3.select("#targetingEfficiency")
@@ -315,7 +226,9 @@ var targetText = d3.selectAll("g.teNode")
     .attr("id","teText");
 
 $(document).ready(function() {
+    createSVG();
     createRings();
+    createTextNodes();
     //frameshifts();
     windowDims();
     $('[data-toggle="tooltip"]').tooltip();
@@ -354,6 +267,75 @@ $('#geneSelect').change(function() {
     clearButtonVisibility();
     highlight_init();
 });
+
+$('#quadSelect').change(function(){
+    var quad = $('#quadSelect').val();
+    if (quad == 'All') {
+        buildOverview();
+    } else {
+        buildQuadrant(quad);
+    }
+});
+
+$('#filterReads').change(function() {
+    highlightSelection();
+});
+
+$('#pageFocus').on('click','rect.quad' , function() {
+    buildQuadrant(this.id);
+    $('#quadSelect').val(this.id);
+});
+
+$('#quadBack').on('click', function() {
+    buildOverview();
+    $('#quadSelect').val('All');
+});
+
+$('#crisprSelect').on('click', function() {
+    if ($('#crisprSelect').val() != 'All') {
+        expSelect(); 
+        highlight_init();
+    } else {
+        allExpOptions();    
+    }
+});
+
+$('#expSelect').on('click', function() {
+    clearButtonVisibility();
+    highlight_init();
+});
+
+$(window).resize(function() {
+    highlightSelection('All');
+    resize();
+    highlightSelection();
+});
+
+function jsonify(raw) {
+    return JSON.parse(raw.replace(/&quot;/g,'"'));
+}
+
+function createSVG() {
+    var svg = d3.selectAll("td")
+        .append("svg:svg")
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("class","svgTool")
+        .attr("onclick","wellArc(this)")
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .append("svg:g")
+        .attr("class","node")
+        .attr("transform", function(d){ return "translate(" + width / 2 + "," + height / 2 + ")"});
+
+    svg.call(tip);
+
+    return;
+}
+
+function createTextNodes() {
+    d3.selectAll("g.node").append("svg:text").attr("class","nodeText").attr("dx","-0.6em").attr("dy","0.4em").text(function(){ return twoDigits($(this).parents()[2].id) });
+}
 
 function crisprStartUp() {
     if ($('#geneSelect').val() == 'All') {
@@ -404,20 +386,6 @@ function expSelect(){
     $('#expSelect').val(crisprExps[0]);
 }
 
-$('#crisprSelect').on('click', function() {
-    if ($('#crisprSelect').val() != 'All') {
-        expSelect(); 
-        highlight_init();
-    } else {
-        allExpOptions();    
-    }
-});
-
-$('#expSelect').on('click', function() {
-    clearButtonVisibility();
-    highlight_init();
-});
-
 function highlight_init() {
     if ($('#pageFocus').find('.quad').length != 0) {
         highlightQuad();
@@ -425,29 +393,6 @@ function highlight_init() {
         highlightSelection();
     }
 }
-
-$('#quadSelect').change(function(){
-    var quad = $('#quadSelect').val();
-    if (quad == 'All') {
-        buildOverview();
-    } else {
-        buildQuadrant(quad);
-    }
-});
-
-$('#filterReads').change(function() {
-    highlightSelection();
-});
-
-$('#pageFocus').on('click','rect.quad' , function() {
-    buildQuadrant(this.id);
-    $('#quadSelect').val(this.id);
-});
-
-$('#quadBack').on('click', function() {
-    buildOverview();
-    $('#quadSelect').val('All');
-});
 
 function clearSelection() {
     $("#expSelect").children('option').show().prop('disabled', false);
@@ -463,12 +408,6 @@ function clearSelection() {
         highlightSelection();
     }
 }
-
-$(window).resize(function() {
-    highlightSelection('All');
-    resize();
-    highlightSelection();
-});
 
 function buildQuadrant(quad) {
     var construct;
@@ -490,7 +429,9 @@ function buildQuadrant(quad) {
     }
     //Not ideal but unable to transfer js var into tt
     $('#pageFocus').html(construct);
+    createSVG();
     createRings();
+    createTextNodes();
     buildExps();
     prevExp = "";
     clearHighlight();
@@ -614,7 +555,6 @@ function buildArcs(node, type, expName) {
     d3.select(arc[0]).classed(expName, true);
 }
 
-
 function highlightSelection(selection) {
     clearHighlight();
     console.log("fired");
@@ -662,7 +602,6 @@ function highlightQuad(selection) {
     prevExp = selection;
 }
 
-
 function buildDonut(exp) {
     var wells = json.summary;
     
@@ -693,7 +632,6 @@ function buildDonut(exp) {
     for (var nodeIt = 0; nodeIt < frameNodes.length; nodeIt++) {
         d3.select(frameNodes[nodeIt]).transition().duration(500).attrTween("d", arcTween(tau, fsArc));
     }
-    //var missingDataNodes = d3.selectAll('.' + exp).filter(".miss").transition().duration(500).attrTween("d", arcTween(1 * tau));
 }
 
 function clearHighlight() {
@@ -707,16 +645,6 @@ function clearHighlight() {
     d3.select('.targeting').transition().duration(250).attrTween("d", arcTween(0, teArc));
     d3.selectAll('.scan').transition().duration(500).attr('r',0);
     d3.selectAll(".svgTool").attr("title", function(){ return tooltip($(this)) });
-}
-
-function arcTween(newAngle, specArc) {
-    return function(d) {
-        var interpolate = d3.interpolate(d.endAngle, newAngle);
-        return function(t) {
-            d.endAngle = interpolate(t);
-            return specArc(d);
-        };
-    };
 }
 
 function totalReads(well) {
