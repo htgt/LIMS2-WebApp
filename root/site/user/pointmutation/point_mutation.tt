@@ -684,7 +684,11 @@ function tooltip(node) {
     var dataPoint = json.summary[oligoIndex];
     var response = "";
     var focusExp = document.getElementById('expSelect').value;
-
+    if (focusExp == "All"){
+        response = 'Oligo Index: ' + oligoIndex + '<br>' + 
+            'Genes: ' + dataPoint.gene.sort().toString() + '<br>';    
+        return response;
+    }
     if (dataPoint.experiments.some(function(e){ return e == focusExp })) {
         response = `
             Illumina Index: ` + oligoIndex + `<br>
@@ -694,14 +698,9 @@ function tooltip(node) {
             WT: ` + dataPoint.percentages[focusExp].wt + ` reads<br>
             HDR: ` + dataPoint.percentages[focusExp].hdr + ` reads<br>
             Mixed: <span class="ttData">` + dataPoint.percentages[focusExp].mix + `</span> reads<br>
-            Classification: ` + dataPoint.details[focusExp].class;
-    } else if (focusExp != 'All'){
-        response = 'Oligo Index: ' + oligoIndex + '<br>';
+            Classification: ` + dataPoint.details[focusExp].class || "";
     } else { 
-        response = `
-            Oligo Index: ` + oligoIndex + `<br>
-            Genes: ` + dataPoint.gene.sort().toString() + `<br>
-            Status: ` + dataPoint.details[focusExp].status;
+        response = 'Oligo Index: ' + oligoIndex;
     }
     return response;
 }

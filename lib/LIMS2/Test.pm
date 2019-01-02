@@ -301,7 +301,10 @@ sub load_static_files {
             Pipeline
             MiseqClassification
             MiseqStatus
+            LabHead
+            Programme
         )
+
     );
 
     for my $table (@reference_tables) {
