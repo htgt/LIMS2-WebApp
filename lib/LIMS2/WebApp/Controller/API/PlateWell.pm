@@ -677,25 +677,27 @@ sub wells_parent_plate_GET {
     $c->assert_user_roles('read');
     my $term = $c->request->param('plate');
 
+    my $mapping;
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
 
-    unless ($plate_rs) {
+    if ($plate_rs) {
+        my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
+        foreach my $well (@wells) {
+            foreach my $plate_well_rs (@{ $well->parent_plates }) {
+                my $plate = $plate_well_rs->{plate};
+                unless ($mapping->{$plate->name}) {
+                    $mapping->{$plate->name}->{type} = $plate->type->id;
+                }
+                push @{ $mapping->{$plate->name}->{wells} }, $well->name;
+            }
+        }
+    } else {
         return $self->status_bad_request(
             $c,
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-    my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
-    my $mapping;
-    foreach my $well (@wells) {
-        foreach my $plate_well_rs (@{ $well->parent_plates }) {
-            my $plate = $plate_well_rs->{plate};
-            unless ($mapping->{$plate->name}) {
-                $mapping->{$plate->name}->{type} = $plate->type->id;
-            }
-            push @{ $mapping->{$plate->name}->{wells} }, $well->name;
-        }
-    }
+
 
     my $json = JSON->new->allow_nonref;
     my $json_parents = $json->encode($mapping);
@@ -718,7 +720,7 @@ sub sibling_miseq_plate_GET {
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
 
-    unless ($plate_rs) {
+    if ($plate_rs == undef) {
         return $self->status_bad_request(
             $c,
             message => "Bad Request: Can not find Plate: " . $term,
