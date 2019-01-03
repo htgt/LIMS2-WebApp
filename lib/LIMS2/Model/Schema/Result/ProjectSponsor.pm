@@ -144,6 +144,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 lab_head_4
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::LabHead>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "lab_head_4",
+  "LIMS2::Model::Schema::Result::LabHead",
+  { id => "lab_head_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 programme
 
 Type: belongs_to
@@ -204,6 +224,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 programme_4
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Programme>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "programme_4",
+  "LIMS2::Model::Schema::Result::Programme",
+  { id => "programme_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
+
 =head2 project
 
 Type: belongs_to
@@ -235,8 +275,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-04 08:52:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9gZNnVoCxLyC+IUe/QtUQg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-21 11:31:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ajyHPbwUI8/gBpdax99JLg
 
 __PACKAGE__->set_primary_key( qw/sponsor_id project_id/);
 

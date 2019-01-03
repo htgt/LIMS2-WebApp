@@ -14,6 +14,9 @@ use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
 use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
+use List::Util qw(min max);
+
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -161,6 +164,36 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         0 => 96,
         1 => 384,
     };
+    my $var; 
+    my $indels;
+    my $counter = 0;
+    while ( my $exp = $exps[0][$counter]->{id} ) {
+        my $miseq_well_exp = get_data($c->model('Golgi'), $miseq, $index, $exp)->{miseq_well_experiment};
+        my @indel = map { $_->as_hash } $c->model('Golgi')->schema->resultset('IndelHistogram')->search({'miseq_well_experiment_id' => $miseq_well_exp->{id}});
+        my $sum = 0;
+        while (@indel) {
+            my $row = shift @indel;
+            $indels->{$exp}->{$row->{indel_size}} = $row->{frequency};
+            $sum += $row->{frequency};
+
+        }
+        $indels->{$exp}->{'0'} = $miseq_well_exp->{total_reads} - $sum;
+        $counter++;
+
+        my $min = min keys %{$indels->{$exp}};
+        my $max = max keys %{$indels->{$exp}};
+        for (my $i=$min -1; $i <= $max + 1; $i++) {
+            unless (exists $indels->{$exp}->{$i}) {
+                $indels->{$exp}->{$i}=0;
+            }
+            my $temp = {
+                indel       =>  $i,
+                frequency   =>  $indels->{$exp}->{$i}
+            };
+
+            push @{$var->{$exp}}, $temp;
+        }
+    }
 
     $c->stash(
         miseq           => $miseq,
@@ -171,8 +204,8 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         status          => \@status,
         classifications => \@classifications,
         max_wells       => $well_limit->{$miseq_plate->{384}},
+        indel_stats     => encode_json($var),
     );
-
     return;
 }
 
@@ -233,30 +266,6 @@ sub get_experiments {
 
     return $ov;
 }
-
-#sub get_experiments {
-#    my ( $c, $miseq, $opt, $range) = @_;
-#   
-#    my $ov;
-#    my $model = $c->model('Golgi');
-#    my $converter = wells_generator(1);
-#    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq });
-#    return unless @miseq_exp_rs;
-#    foreach my $miseq_exp (@miseq_exp_rs) {
-        #my @range_ar = sort { $a <=> $b } (map { $converter->{$_->as_hash->{well_name}} } $model->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} }));
-#        return unless @range_ar;
-#        my $range = $range_ar[0] . '-' . $range_ar[-1];
-#        if ($opt eq 'range'){
-#            $ov->{$miseq_exp->{name}} = $range;
-#        }
-#        else{
-#            my @genes;
-#            push @genes, $miseq_exp->{gene};
-#            $ov->{$miseq_exp->{name}} = \@genes;
-#        }
-#    }
-#    return $ov;
-#}
 
 
 sub read_columns {
@@ -422,6 +431,8 @@ sub get_well_exp_graphs {
 
     return \@exps;
 }
+
+
 __PACKAGE__->meta->make_immutable;
 
 1;

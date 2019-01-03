@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
             migrate_frequencies
             get_crispr
             migrate_histogram
+            migrate_crispresso_subs
         )
     ],
 };
@@ -45,6 +46,27 @@ sub header_hash {
         return;
     }
     return 1;
+}
+
+sub migrate_crispresso_subs {
+    my ( $model, $jobout, $data ) = @_;
+    my $job = get_crispr($jobout);
+    my $row = {
+            id  =>   $data->{miseq_well_experiment}->{id},                    
+            crispr  =>  $job ->{crispr},
+            date_stamp  =>  $job->{date}
+        };
+    $model->schema->txn_do(
+        sub {
+            try {
+                $model->create_crispr_submission($row);
+            }
+            catch {
+                warn "Error creating cripr submission entry";
+                $model->schema->txn_rollback;
+            };
+        }
+    );
 }
 
 sub migrate_frequencies {
@@ -494,8 +516,11 @@ sub get_data_from_file {
 
 
         $hash = {
-            miseq_experiment      => $miseq_experiment_hash,
-            miseq_well_experiment => $miseq_well_experiment_hash,
+            plate                   =>  $plate_hash,
+            miseq_plate             =>  $miseq_plate_hash,
+            well                    =>  $well_hash,
+            miseq_experiment        =>  $miseq_experiment_hash,
+            miseq_well_experiment   =>  $miseq_well_experiment_hash,
         };
     }
     catch{

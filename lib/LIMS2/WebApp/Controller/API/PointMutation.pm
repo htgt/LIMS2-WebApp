@@ -15,40 +15,6 @@ use LIMS2::Model::Util::ImportCrispressoQC  qw( get_data );
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 
-sub point_mutation_image : Path( '/api/point_mutation_img' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub point_mutation_image_GET {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles('read');
-
-    my $miseq = $c->request->param('miseq');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'exp');
-    my $file_name = $c->request->param( 'name' );
-
-    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
-
-    unless($miseq_well_experiment_hash->{id}){
-        $c->response->status( 404 );
-        $c->response->body( "Database entry for filename: " . $file_name . " can not be found.");
-        return;
-    }
-
-    my $raw_string = get_raw_image($c, $miseq_well_experiment_hash->{id});
-    my $body = encode_base64( $raw_string );
-
-    $c->response->status( 200 );
-    $c->response->content_type( 'image/png' );
-    $c->response->content_encoding( 'base64' );
-    $c->response->header( 'Content-Disposition' => 'attachment; filename='
-            . 'S' . $oligo_index . '_exp' . $experiment
-    );
-    $c->response->body( $body );
-    return;
-}
-
 
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -82,97 +48,6 @@ sub point_mutation_summary_GET {
 }
 
 
-sub point_mutation_image_old : Path( '/api/point_mutation_img_old' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub point_mutation_image_old_GET {
-    my ( $self, $c ) = @_;
-
-    my %whitelist = (
-        '1b.Indel_size_distribution_percentage.png' => 1,
-        '2.Unmodified_NHEJ_pie_chart.png'           => 1,
-    );
-
-    $c->assert_user_roles('read');
-
-    my $miseq = $c->request->param('miseq');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'exp');
-    my $file_name = $c->request->param( 'name' );
-
-    #Sanitise inputs since it's a broad search
-    unless (exists($whitelist{$file_name})) {
-        $c->response->status( 406 );
-        $c->response->body( "File name: " . $file_name . " is not acceptable. This query has been terminated.");
-        return;
-    }
-
-    my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
-
-    unless ($graph_dir) {
-        $c->response->status( 404 );
-        $c->response->body( "File name: " . $file_name . " can not be found.");
-        return;
-    }
-
-    open my $fh, '<', $graph_dir or die "$!";
-    my $raw_string = do{ local $/ = undef; <$fh>; };
-    close $fh;
-
-    my $body = encode_base64( $raw_string );
-
-    $c->response->status( 200 );
-    $c->response->content_type( 'image/png' );
-    $c->response->content_encoding( 'base64' );
-    $c->response->header( 'Content-Disposition' => 'attachment; filename='
-            . 'S' . $oligo_index . '_exp' . $experiment
-    );
-    $c->response->body( $body );
-
-    return;
-}
-
-sub point_mutation_summary_old : Path( '/api/point_mutation_summary_old' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub point_mutation_summary_old_GET {
-    my ( $self, $c ) = @_;
-    $c->assert_user_roles('read');
-    my $miseq = $c->request->param('miseq');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'exp' );
-    my $limit = $c->request->param( 'limit' );
-
-    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
-
-    unless ($sum_dir) {
-        $c->response->status( 404 );
-        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-        return;
-    }
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
-    if ($limit) {
-        $res->{data} = join("\n", @lines[0..$limit]);
-    } else {
-        $res->{data} = join("\n", @lines);
-    }
-    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
-
-    my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($res);
-
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $body );
-
-    return;
-}
 
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -418,5 +293,102 @@ sub get_raw_image{
     }
     return $indel_graph_hash->{indel_size_distribution_graph};
 }
+
+
+#The above methods are not used anymore. They were used to handle data from the local files. They were replaced after database migration. 
+#The new methods now operate using data stored in the database.
+
+sub point_mutation_image_old : Path( '/api/point_mutation_img_old' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub point_mutation_image_old_GET {
+    my ( $self, $c ) = @_;
+
+    my %whitelist = (
+        '1b.Indel_size_distribution_percentage.png' => 1,
+        '2.Unmodified_NHEJ_pie_chart.png'           => 1,
+    );
+
+    $c->assert_user_roles('read');
+
+    my $miseq = $c->request->param('miseq');
+    my $oligo_index = $c->request->param( 'oligo' );
+    my $experiment = $c->request->param( 'exp');
+    my $file_name = $c->request->param( 'name' );
+
+    #Sanitise inputs since it's a broad search
+    unless (exists($whitelist{$file_name})) {
+        $c->response->status( 406 );
+        $c->response->body( "File name: " . $file_name . " is not acceptable. This query has been terminated.");
+        return;
+    }
+
+    my $graph_dir = find_file($miseq, $oligo_index, $experiment, $file_name);
+
+    unless ($graph_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "File name: " . $file_name . " can not be found.");
+        return;
+    }
+
+    open my $fh, '<', $graph_dir or die "$!";
+    my $raw_string = do{ local $/ = undef; <$fh>; };
+    close $fh;
+
+    my $body = encode_base64( $raw_string );
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'image/png' );
+    $c->response->content_encoding( 'base64' );
+    $c->response->header( 'Content-Disposition' => 'attachment; filename='
+            . 'S' . $oligo_index . '_exp' . $experiment
+    );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub point_mutation_summary_old : Path( '/api/point_mutation_summary_old' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub point_mutation_summary_old_GET {
+    my ( $self, $c ) = @_;
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $oligo_index = $c->request->param( 'oligo' );
+    my $experiment = $c->request->param( 'exp' );
+    my $limit = $c->request->param( 'limit' );
+
+    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
+
+    unless ($sum_dir) {
+        $c->response->status( 404 );
+        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
+        return;
+    }
+
+    my $fh;
+    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
+    my @lines = read_file_lines($fh);
+    close $fh;
+
+    my $res;
+    if ($limit) {
+        $res->{data} = join("\n", @lines[0..$limit]);
+    } else {
+        $res->{data} = join("\n", @lines);
+    }
+    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
+
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($res);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
 
 1;

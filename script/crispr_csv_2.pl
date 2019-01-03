@@ -19,7 +19,7 @@ open (my $th, '<:encoding(UTF-8)', 'files_paths.txt') or die 'Cannot open files_
 
 my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
 open my $ch, '>', 'criprs_2.csv' or die 'Could not create example file';
-$csv->print( $ch, [qw/Experiment Well Crispr Aligned_Sequence Number_Of_Reads Percentage Date/] );
+$csv->print( $ch, [qw/Experiment MiseqPlate Well Crispr Aligned_Sequence Number_Of_Reads Percentage Date/] );
 close($ch);
 
 while (my $file = <$th>){ #foreach file from the list of file directories
@@ -32,7 +32,6 @@ while (my $file = <$th>){ #foreach file from the list of file directories
         print Dumper "SKIPPED FILE: $file";
         next;
     }
-    
     my $rs = $model->schema->resultset('MiseqAllelesFrequency')->search({ miseq_well_experiment_id => $data->{miseq_well_experiment}->{id} });
     my @rows = $rs->all;
 
@@ -51,6 +50,7 @@ while (my $file = <$th>){ #foreach file from the list of file directories
         my $job = get_crispr($jobout);
         my @array = (
                 $data->{miseq_experiment}->{name},
+                $data->{miseq_plate}->{name},
                 $data->{miseq_well_experiment}->{well_name},
                 $job->{crispr},
                 $frequency{aligned_sequence},

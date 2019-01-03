@@ -16,6 +16,30 @@ requires qw( schema check_params throw retrieve log trace );
 
 
 
+sub pspec_create_crispr_submission{
+    return {
+        id                              => { validate => 'existing_miseq_well_exp'          },
+        crispr                          => { validate => 'non_empty_string', optional => 1  },
+        date_stamp                      => { validate => 'non_empty_string', optional => 1  },
+    };
+}
+
+sub create_crispr_submission{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_crispr_submission);
+
+    $self->schema->resultset('CrispressoSubmission')->create(
+           { slice_def(
+                   $validated_params,
+                   qw(id crispr date_stamp)
+               )
+           }
+       );
+    $self->log->info('Created crispresso submission entry');
+    return;
+
+}
 
 
 sub pspec_create_indel_distribution_graph{

@@ -159,6 +159,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 crispresso_submission
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::CrispressoSubmission>
+
+=cut
+
+__PACKAGE__->might_have(
+  "crispresso_submission",
+  "LIMS2::Model::Schema::Result::CrispressoSubmission",
+  { "foreign.id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 indel_distribution_graph
 
 Type: might_have
@@ -250,8 +265,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-05 09:21:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QmsZvQPLie5pG1yFGww8mw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-21 11:35:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g+miOzmNw2NVhZp5H3oiaw
 
 sub as_hash{
     my $self = shift;

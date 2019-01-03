@@ -34,3 +34,9 @@ CREATE TABLE indel_histogram (
     frequency integer
 );
 
+CREATE TABLE crispresso_submissions (
+    id integer PRIMARY KEY NOT NULL REFERENCES miseq_well_experiment(id),
+    crispr text,
+    date_stamp text
+);
+
