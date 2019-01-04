@@ -56,6 +56,7 @@ sub process_types : Tests(5) {
         vector_cloning
         crispr_sep
         ep_pipeline_ii
+        miseq_no_template
     );
 
     my @model_process_types = sort map { $_->id } @{ model->list_process_types };
