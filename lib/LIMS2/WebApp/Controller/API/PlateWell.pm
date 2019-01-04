@@ -744,16 +744,17 @@ sub sibling_miseq_plate_GET {
     my $term = $c->request->param('plate');
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
-
-    if ($plate_rs == undef) {
+    
+    my $class_mapping;
+    if ($plate_rs) {
+        my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
+        $class_mapping = damage_classifications(@results);
+    } else {
         return $self->status_bad_request(
             $c,
             message => "Bad Request: Can not find Plate: " . $term,
         );
     }
-
-    my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
-    my $class_mapping = damage_classifications(@results);
 
     my $json = JSON->new->allow_nonref;
     my $json_parents = $json->encode($class_mapping);

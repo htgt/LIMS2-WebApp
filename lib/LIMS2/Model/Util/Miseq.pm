@@ -202,9 +202,9 @@ sub damage_classifications {
 
     my $class_mapping;
     foreach my $result (@query_results) {
-        if ($result->{miseq_classification} ne 'Not Called' && $result->{miseq_classification} ne 'Mixed') {
+        if ($result->{miseq_well_exp_classification} ne 'Not Called' && $result->{miseq_well_exp_classification} ne 'Mixed') {
             my $class_details = {
-                classification  => $result->{miseq_classification},
+                classification  => $result->{miseq_well_exp_classification},
                 experiment_id   => $result->{experiment_id},
                 miseq_exp_name  => $result->{miseq_experiment_name},
                 miseq_plate_name => $result->{miseq_plate_name},
