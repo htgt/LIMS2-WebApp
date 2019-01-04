@@ -32,7 +32,7 @@
             <input type="text" autocomplete="on" class="form-control" onChange="reset_wells()" name="gene_id_assembly_ii" id="gene_id_assembly_ii" value=[% gene_id_assembly_ii %]>
           </div>
         </div>
-  
+
         <div class="col-md-12 control-group">
           <label class="control-label col-md-4" style="color:#cc0000;">Cell Line</label>
           <div class="col-md-6">
@@ -163,9 +163,23 @@
       <div class="panel-body">
 
         <div class="col-md-12 control-group">
-          <label class="control-label col-md-2">Crispr Identifier</label>
+          <label class="control-label col-md-2">Crispr</label>
           <div class="col-md-3">
             <input type="text" class="form-control" id="crispr_id_assembly_ii" name="crispr_id_assembly_ii" placeholder="Crispr ID" value=[% crispr_id_assembly_ii %]>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-2">Crispr Pair</label>
+          <div class="col-md-3">
+            <input type="text" class="form-control" id="crispr_pair_id_assembly_ii" name="crispr_pair_id_assembly_ii" placeholder="Crispr Pair ID" value=[% crispr_pair_id_assembly_ii %]>
+          </div>
+        </div>
+
+        <div class="col-md-12 control-group">
+          <label class="control-label col-md-2">Crispr Group</label>
+          <div class="col-md-3">
+            <input type="text" class="form-control" id="crispr_group_id_assembly_ii" name="crispr_group_id_assembly_ii" placeholder="Crispr Group ID" value=[% crispr_group_id_assembly_ii %]>
           </div>
         </div>
 

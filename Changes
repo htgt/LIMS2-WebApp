@@ -1,3 +1,17 @@
+0.517     2019-01-04 12:23:37 Europe/London
+    PIQ Creation Interface, Miseq creation Update, Genotyping clone pII
+0.516     2018-11-30 10:57:03 Europe/London
+    
+    Made the miseqs list scrollable
+0.515     2018-11-01 16:45:04 Europe/London
+
+    Show crisprs in EPII plate report
+0.514     2018-10-31 16:46:14 Europe/London
+
+    T7 status and EPII plate crispr input changes
+0.513     2018-10-23 16:19:28 Europe/London
+
+    Front page and sub report for pipeline II
 0.512     2018-09-05 15:30:44 Europe/London
     Miseq backfill
 0.511     2018-08-28 16:04:57 Europe/London

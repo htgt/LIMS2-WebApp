@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Well::VERSION = '0.512';
+    $LIMS2::Model::Plugin::Well::VERSION = '0.517';
 }
 ## use critic
 
@@ -1510,6 +1510,33 @@ sub delete_well_lab_number {
 
     $lab_number->delete;
     $self->log->debug( 'Delete successful. Lab Number deleted for well  ' . $lab_number->well->as_string );
+
+    return;
+}
+
+sub update_well_t7_info {
+    my ( $self, $user, $params ) = @_;
+
+    my $db_hash;
+    my $user_rs = $self->schema->resultset( 'User' )->find({ name => $user }, { columns => [ qw/id/ ] });
+    $db_hash->{created_by_id} = $user_rs->get_column('id');
+
+    my $well_t7_rs = $self->schema->resultset( 'WellT7' )->find({ well_id => $params->{well_id} });
+
+    if ( $params->{t7_type} eq 't7_score' ) {
+        $db_hash->{t7_score} = $params->{t7_value};
+    } elsif ( $params->{t7_type} eq 't7_status' ) {
+        $db_hash->{t7_status} = $params->{t7_value};
+    }
+
+    if ($well_t7_rs) {
+        $well_t7_rs->update($db_hash);
+    } else {
+        $db_hash->{well_id} = $params->{well_id};
+        $self->schema->resultset( 'WellT7' )->create($db_hash);
+    }
+
+    $self->log->debug( 'Successful T7 update for well ID ' . $params->{well_id} );
 
     return;
 }

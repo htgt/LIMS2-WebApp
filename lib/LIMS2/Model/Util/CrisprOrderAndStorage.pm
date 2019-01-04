@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CrisprOrderAndStorage;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CrisprOrderAndStorage::VERSION = '0.512';
+    $LIMS2::Model::Util::CrisprOrderAndStorage::VERSION = '0.517';
 }
 ## use critic
 

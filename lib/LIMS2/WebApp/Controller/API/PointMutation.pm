@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.512';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.517';
 }
 ## use critic
 
@@ -34,9 +34,9 @@ sub point_mutation_image_GET {
     $c->assert_user_roles('read');
 
     my $miseq = $c->request->param('miseq');
-    my $oligo_index = $c->request->param( 'oligo' );
-    my $experiment = $c->request->param( 'exp');
-    my $file_name = $c->request->param( 'name' );
+    my $oligo_index = $c->request->param('oligo');
+    my $experiment = $c->request->param('exp');
+    my $file_name = $c->request->param('name');
 
     #Sanitise inputs since it's a broad search
     unless (exists($whitelist{$file_name})) {
@@ -79,31 +79,23 @@ sub point_mutation_summary_GET {
     my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
     my $experiment = $c->request->param( 'exp' );
-    my $limit = $c->request->param( 'limit' );
+    my $threshold = $c->request->param( 'limit' );
+    my $percentage_bool = $c->request->param( 'perc' );
 
-    my $sum_dir = find_file($miseq, $oligo_index, $experiment, 'Alleles_frequency_table.txt');
+    my $result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
 
-    unless ($sum_dir) {
+    if ($result->{error}) {
         $c->response->status( 404 );
         $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
         return;
     }
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
-    if ($limit) {
-        $res->{data} = join("\n", @lines[0..$limit]);
-    } else {
-        $res->{data} = join("\n", @lines);
-    }
-    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
+    my $alleles = {
+        data => join('\n', @{ $result }),
+    };
+    $alleles->{crispr} = crispr_seq($c, $miseq, $experiment);
 
     my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($res);
+    my $body = $json->encode($alleles);
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
@@ -139,13 +131,16 @@ sub miseq_parent_plate_type : Path( '/api/miseq_parent_plate_type' ) : Args(0) :
 
 sub miseq_parent_plate_type_GET {
     my ( $self, $c ) = @_;
+
     $c->assert_user_roles( 'read' );
+
     my $name = $c->request->param('name');
     my @plates = $c->model('Golgi')->schema->resultset('Plate')->search(
         { name => $name, type_id => { in => [qw/FP MISEQ PIQ/] } },
         { columns => [qw/type_id/] },
     );
-    if( @plates == 1 ) {
+
+    if ( @plates == 1 ) {
         $c->stash->{json_data} = {
             name => $name,
             type => $plates[0]->type_id,
@@ -154,7 +149,9 @@ sub miseq_parent_plate_type_GET {
     else {
         $c->stash->{json_data} = { error => "No valid plate found named '$name'" };
     }
+
     $c->forward('View::JSON');
+
     return;
 }
 
@@ -163,16 +160,8 @@ sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
 
 sub miseq_plate_POST {
     my ( $self, $c ) = @_;
-    $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
-    if($protocol eq 'HTTPS'){
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
-    $c->require_ssl;
+    $c->assert_user_roles('edit');
 
     my $json = $c->request->param('json');
     my $data = decode_json $json;
@@ -228,6 +217,7 @@ sub miseq_exp_parent_GET {
     catch {
         $c->log->error($_);
     };
+
     return $self->status_ok($c, entity => \@results);
 }
 
@@ -248,6 +238,27 @@ sub miseq_preset_names_GET {
     };
 
     return $self->status_ok($c, entity => \@results);
+}
+
+
+
+#Quads had to to be introduced in a way to preserve data in the view.
+#Messy to deal with in the back end
+sub flatten_wells {
+    my ($fp, $wells) = @_;
+
+    my $fp_data = $wells->{$fp}->{wells};
+
+    my $new_structure;
+    foreach my $quad (keys %{$fp_data}) {
+        if (ref $fp_data->{$quad} eq 'HASH') {
+            foreach my $well (sort keys %{$fp_data->{$quad}}) {
+                $new_structure->{$well} = $fp_data->{$quad}->{$well};
+            }
+        }
+    }
+
+    return $new_structure;
 }
 
 sub crispr_seq {
@@ -286,25 +297,5 @@ sub crispr_seq {
 
     return $res;
 }
-
-#Quads had to to be introduced in a way to preserve data in the view.
-#Messy to deal with in the back end
-sub flatten_wells {
-    my ($fp, $wells) = @_;
-
-    my $fp_data = $wells->{$fp}->{wells};
-
-    my $new_structure;
-    foreach my $quad (keys %{$fp_data}) {
-        if (ref $fp_data->{$quad} eq 'HASH') {
-            foreach my $well (sort keys %{$fp_data->{$quad}}) {
-                $new_structure->{$well} = $fp_data->{$quad}->{$well};
-            }
-        }
-    }
-
-    return $new_structure;
-}
-
 
 1;

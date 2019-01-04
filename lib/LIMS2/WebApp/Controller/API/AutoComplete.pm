@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.512';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.517';
 }
 ## use critic
 
@@ -288,20 +288,21 @@ sub miseq_gene_symbols_GET {
     return $self->status_ok($c, entity => \@results);
 }
 
-sub miseq_plates :Path( '/api/autocomplete/miseq_plates' ) :Args(0) :ActionClass('REST') {
+sub plates_by_type :Path( '/api/autocomplete/plates_by_type' ) :Args(0) :ActionClass('REST') {
 }
 
-sub miseq_plates_GET {
+sub plates_by_type_GET {
     my ( $self, $c ) = @_;
 
     $c->assert_user_roles('read');
 
     my $term = lc($c->request->param('term'));
+    my $type = uc($c->request->param('type'));
 
     my @results = sort { $a cmp $b } map { $_->name } $c->model('Golgi')->schema->resultset('Plate')->search(
         {
             'LOWER(name)'   => { 'LIKE' => '%' . $term . '%' },
-            type_id         => 'MISEQ',
+            type_id         => $type,
         }
     );
 

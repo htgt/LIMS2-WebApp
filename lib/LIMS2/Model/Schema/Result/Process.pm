@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Process::VERSION = '0.512';
+    $LIMS2::Model::Schema::Result::Process::VERSION = '0.517';
 }
 ## use critic
 
@@ -188,6 +188,36 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 process_crispr_group
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprGroup>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_crispr_group",
+  "LIMS2::Model::Schema::Result::ProcessCrisprGroup",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 process_crispr_pair
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprPair>
+
+=cut
+
+__PACKAGE__->might_have(
+  "process_crispr_pair",
+  "LIMS2::Model::Schema::Result::ProcessCrisprPair",
+  { "foreign.process_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 process_crispr_tracker_rna
 
 Type: might_have
@@ -359,8 +389,8 @@ Composing rels: L</process_output_wells> -> well
 __PACKAGE__->many_to_many("output_wells", "process_output_wells", "well");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-02-19 09:56:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aE6sXqpDur7JmYLbqHs0xQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eKSXLb+t16e4OnufGBtXrw
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

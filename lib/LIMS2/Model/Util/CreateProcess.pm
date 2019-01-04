@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreateProcess;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreateProcess::VERSION = '0.512';
+    $LIMS2::Model::Util::CreateProcess::VERSION = '0.517';
 }
 ## use critic
 
@@ -984,10 +984,12 @@ sub _create_process_aux_data_create_di {
 
 sub pspec__create_process_aux_data_ep_pipeline_ii {
     return {
-        design_id => { validate => 'existing_design_id' },
-        crispr_id => { validate => 'existing_crispr_id', optional => 1 },
-        cell_line => { validate => 'existing_cell_line_id' },
-        nuclease     => { validate => 'existing_nuclease_name' },
+        design_id       => { validate => 'existing_design_id' },
+        crispr_id       => { validate => 'existing_crispr_id', optional => 1 },
+        crispr_pair_id  => { validate => 'existing_crispr_pair_id', optional => 1 },
+        crispr_group_id => { validate => 'existing_crispr_group_id', optional => 1 },
+        cell_line       => { validate => 'existing_cell_line_id' },
+        nuclease        => { validate => 'existing_nuclease_name' },
         guided_type     => { validate => 'existing_guided_type_name' }
     };
 }
@@ -998,7 +1000,19 @@ sub _create_process_aux_data_ep_pipeline_ii {
     my $validated_params = $model->check_params( $params, pspec__create_process_aux_data_ep_pipeline_ii() );
 
     $process->create_related( process_design => { design_id => $validated_params->{design_id} } );
-    $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
+
+    if ($validated_params->{crispr_id}) {
+        $process->create_related( process_crispr => { crispr_id => $validated_params->{crispr_id} } );
+    }
+
+    if ($validated_params->{crispr_pair_id}) {
+        $process->create_related( process_crispr_pair => { crispr_pair_id => $validated_params->{crispr_pair_id} } );
+    }
+
+    if ($validated_params->{crispr_group_id}) {
+        $process->create_related( process_crispr_group => { crispr_group_id => $validated_params->{crispr_group_id} } );
+    }
+
     $process->create_related( process_cell_line => { cell_line_id => $params->{cell_line} } );
     $process->create_related( process_nuclease => { nuclease_id => _nuclease_id_for( $model, $validated_params->{nuclease} ) } );
     $process->create_related( process_guided_type => { guided_type_id => _guided_type_id_for( $model, $validated_params->{guided_type} ) } );

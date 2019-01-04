@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqExperiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqExperiment::VERSION = '0.512';
+    $LIMS2::Model::Schema::Result::MiseqExperiment::VERSION = '0.517';
 }
 ## use critic
 
@@ -263,7 +263,6 @@ sub as_hash {
         gene        => $self->gene,
         nhej_count  => $self->mutation_reads,
         read_count  => $self->total_reads,
-        old_miseq_id => $self->old_miseq_id, #TODO delete after migration
     );
 
     return \%h;
