@@ -744,7 +744,7 @@ sub sibling_miseq_plate_GET {
     my $term = $c->request->param('plate');
 
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
-    
+
     my $class_mapping;
     if ($plate_rs) {
         my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
