@@ -1,0 +1,267 @@
+[% META title="Clone Genotyping"; META tab_name = "Cells" %]
+
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/static/css/traceviewer.css' ) %]">
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.navigate.min.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/jquery.flot.traceviewer.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
+
+<script language="javascript" type="text/javascript">
+  $(document).ready(function() {
+
+      $(".traces").click(function(e) {
+          e.preventDefault();
+
+          //the code for this is inside jquery.flot.traceviewer.js
+          var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+      });
+  });
+
+  function toggle_id(id) {
+    if ($(id).attr('style') == "display:none") {
+      $(id).attr("style", "display:block");
+    }
+    else {
+      $(id).attr("style", "display:none");
+    }
+  }
+</script>
+
+<style type="text/css">
+.alignment {
+    font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+    font-size: 11px;
+    display: block;
+    font-weight: bold
+}
+</style>
+
+<h3>Crispr Information ([% IF crispr_data.size == 1 %]1 crispr[% ELSE %][% crispr_data.size %] crisprs[% END %])</h3>
+[% FOR crispr IN crispr_data %]
+  <table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Crispr ID</th>
+      <td>[% crispr.id %]</td>
+    </tr>
+    <tr>
+      <th>CRISPR Well</th>
+      <td>[% crispr.crispr_well %]</td>
+    </tr>
+    <tr>
+      <th>Sequence</th>
+      <td><div class="alignment">[% crispr.grna %] [% crispr.pam %]</div></td>
+    </tr>
+    <tr>
+      <th>Locus</th>
+      <td>[% crispr.locus.chr_name %]:[% crispr.locus.chr_start %]-[% crispr.locus.chr_end %]</td>
+    </tr>
+    <tr>
+      <th>PAM Right</th>
+      <td>[% crispr.pam_right %]</td>
+    </tr>
+  </table>
+[% END %]
+
+<h3>Targeted Allele</h3>
+<table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Design ID</th>
+        <td>[% data.design_id %]</td>
+    </tr>
+    <tr>
+      <th>Genbank Files</th>
+      <td>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'allele' } ) %]"><i class="glyphicon glyphicon-file"></i> Allele</a> <br>
+          <a href="[% c.uri_for( '/public_reports/well_eng_seq', data.well_id, { stage => 'vector' } ) %]"><i class="glyphicon glyphicon-file"></i> Vector</a>
+      </td>
+    </tr>
+    <tr>
+      <th>Targeting Vector</th>
+      <td>[% data.targeting_vector %]</td>
+    </tr>
+    <tr>
+      <th>Vector Cassette</th>
+      <td>[% data.vector_cassette %]</td>
+    </tr>
+    <tr>
+      <th>EPD Plate Name</th>
+      <td>[% data.epd_plate_name %]</td>
+    </tr>
+    <tr>
+      <th>EPD Accepted</th>
+      <td>[% data.accepted ? 'Yes' : 'No' %]</td>
+    </tr>
+    [% FOR key IN data.primers.design_primers.keys.sort %]
+      [% FOR primer IN data.primers.design_primers.$key %]
+    <tr>
+      <th>[% primer.name %]</th>
+      <td><div class="alignment">[% primer.seq %]</div></td>
+    </tr>
+      [% END %]
+    [% END %]
+</table>
+
+<h3>NHEJ Allele</h3>
+<table id="genotyping_table2" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>QC Type</th>
+      <td>[% data.qc_type %]</td>
+    </tr>
+    <tr>
+      <th>QC Source</th>
+      <td>Plate: [% data.qc_plate_name %]<br>Well: [% data.qc_well_name %]</td>
+    </tr>
+    <tr>
+      <th>Allele Type</th>
+      <td>[% data.qc_data.damage_type %]</td>
+    </tr>
+    <tr>
+      <th>QC damage data</th>
+      <td>
+        [% IF data.qc_data.alignment.forward_full %]
+            <div class="forward_full" style="display:none">[% data.qc_data.alignment.forward_full %]</div>
+        [% END %]
+        [% IF data.qc_data.alignment.reverse_full %]
+            <div class="reverse_full" style="display:none">[% data.qc_data.alignment.reverse_full %]</div>
+        [% END %]
+        <div class="alignment">
+          <div class="alignment_reference">
+            <span>
+                [% data.qc_data.alignment.ref_start %]<span style="color:#FF0000">[% data.qc_data.alignment.crispr_seq %]</span>[% data.qc_data.alignment.ref_end %]
+            </span><br/>
+          </div>
+          <div class="alignment_inner">
+            <span style="display: block">
+               <span class="seq seq_a">
+                  [% IF data.qc_data.alignment.no_forward_read %]
+                    No Read
+                  [% ELSIF data.qc_data.alignment.no_forward_alignment %]
+                    No alignment to target region
+                  [% ELSE %]
+                    [% data.qc_data.alignment.forward %]
+                  [% END %]
+               </span>(F)
+            </span>
+            <span style="display: block">
+                <span class="seq seq_b">
+                  [% IF data.qc_data.alignment.no_reverse_read %]
+                    No Read
+                  [% ELSIF data.qc_data.alignment.no_reverse_alignment %]
+                    No alignment to target region
+                  [% ELSE %]
+                    [% data.qc_data.alignment.reverse %]
+                  [% END %]
+                </span>(R)
+            </span>
+          </div>
+        </div>
+        [% IF data.qc_data.fwd_read AND data.qc_data.rev_read %]
+            <a class="btn btn-info traces" href="#" data-fwd="[% data.qc_data.fwd_read.split("\n").first.substr(1) %]" data-rev="[% data.qc_data.rev_read.split("\n").first.substr(1) %]" >View Traces</a>
+        [% END %]
+      </td>
+    </tr>
+    <tr>
+      <th>Variant Size</th>
+      <td>[% data.qc_data.variant_size %]</td>
+    </tr>
+    [% FOR key IN data.primers.crispr_primers.keys.sort %]
+      [% FOR primer IN data.primers.crispr_primers.$key %]
+    <tr>
+      <th>[% primer.name %]</th>
+      <td>
+        <div class="alignment">[% primer.seq %]</div>
+        <span class="validation-state-cell" data-validated="[% primer.is_validated %]" data-rejected="[% primer.is_rejected %]"></span>
+      </td>
+    </tr>
+      [% END %]
+    [% END %]
+
+    [% IF c.user %]
+    <tr>
+      <th>QC Run</th>
+      <td>
+        <a href="[% c.uri_for( '/user/crisprqc/es_qc_run', data.qc_run_id ) %]" target="_blank" class="btn btn-info">View QC Run</a>
+      </td>
+    </tr>
+    [% END %]
+
+    <tr>
+      <th>Forward Read</th>
+      <td>
+        <a onclick="toggle_id(fwd_read);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <pre id="fwd_read" style='display:none'>[% data.fwd_read %]</pre>
+      </td>
+    </tr>
+    <tr>
+      <th>Reverse Read</th>
+      <td>
+        <a onclick="toggle_id(rev_read);" target="_blank" class="btn btn-info">Show / Hide</a>
+        <pre id="rev_read" style='display:none'>[% data.rev_read %]</pre>
+      </td>
+    </tr>
+
+    <tr>
+      <th>VEP Output</th>
+      <td>
+        [% IF data.qc_data.has_vep_file %]
+          <a onclick="toggle_id(vep_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+          <pre id="vep_output" style='display:none'>[% data.qc_data.vep_output %]</pre>
+        [% ELSE %]
+          Not available
+        [% END %]
+      </td>
+    </tr>
+    <tr>
+      <th>VCF</th>
+      <td>
+        [% IF data.vcf_file %]
+          <a onclick="toggle_id(vcf_output);" target="_blank" class="btn btn-info">Show / Hide</a>
+          <pre id="vcf_output" style='display:none'>[% data.vcf_file %]</pre>
+        [% ELSE %]
+          Not available
+        [% END %]
+      </td>
+    </tr>
+</table>
+
+<div class="well">
+  <h3>
+    Primer Information
+  </h3>
+  <p>
+    GFF, GFR - PCR primers located outside the homology arms of the (gibson) design<br/>
+    SPF, SPR - PCR primers located a short distance either side of the location expected to be damaged by CRISPR/Cas9 targeting<br/>
+    SFF, SFR - Sequencing primers located "inside" SPF and SPR. These are used to check crispr-based damage in the PCR fragment between SPF and SPR<br/>
+  </p>
+</div>
+
+<div class="col-md-6">
+  <a href="[% c.uri_for( '/public_reports/well_genotyping_info_search' ) %]" class="btn btn-primary">
+  <i class="glyphicon glyphicon-hand-left"></i> Back to search </a>
+</div>
+
+<br/><p></p><br/>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js' ) %]"></script>
+<script type="text/javascript">
+  var valid_label = '<span class="label label-success validation-status pull-left">Validated</span>';
+  var not_valid_label = '<span class="label label-default validation-status pull-left">Not Validated</span>';
+  var rejected_label = '<span class="label label-important pull-left">Rejected</span>';
+
+  $(document).ready(function() {
+    $(".validation-state-cell").each(function(){
+      if($(this).data('rejected')){
+        $(this).append(rejected_label);
+      }
+      else{
+        if($(this).data('validated')){
+          $(this).append(valid_label);
+        }
+        else{
+          $(this).append(not_valid_label);
+        }
+      }
+    });
+  })
+</script>

@@ -82,9 +82,10 @@ $(".well").submit(function(e) {
 
 $("#miseqName").autocomplete({
     source: function(request, response) {
-        $.getJSON("[% c.uri_for( '/api/autocomplete/miseq_plates/' ) %]",
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plates_by_type/' ) %]",
         {
             term : $('#miseqName').val(),
+            type : 'MISEQ',
         }, response);
     },
     minLength: 2,

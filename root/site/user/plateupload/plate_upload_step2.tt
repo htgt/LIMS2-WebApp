@@ -3,7 +3,12 @@
 <div class="page-header">
   <h1>Upload Plate <small> Step 2</small></h1>
 </div>
-
+[% IF process_type == "dist_qc" AND c.session.selected_pipeline == "pipeline_II" %]
+    <div class="alert alert-info">
+        <strong><a href="[% c.uri_for( '/user/create_piq_plate' ) %]">Visual PIQ interface</a></strong> 
+        A new PIQ interface has been added <a href="[% c.uri_for( '/user/create_piq_plate' ) %]">here.</a>
+    </div>
+[% END %]
 <div class="grid">
     <div class="col-md-6 col-md-offset-3">
         <form method="POST" id="plate_create" action="[% c.uri_for( '/user/plate_upload_step2' ) %]" class="form well"  enctype="multipart/form-data" >

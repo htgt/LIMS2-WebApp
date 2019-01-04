@@ -30,3 +30,4 @@ vector_cloning,Create Pre-Intermediate
 group_crispr_assembly,Group crispr assembly
 crispr_sep,Crispr second electroporation
 ep_pipeline_ii,Create EP plate for pipeline II
+miseq_no_template,NHEJ miseq process

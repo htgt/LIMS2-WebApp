@@ -344,8 +344,8 @@ sub get_efficiencies {
         $efficiencies->{$exp_rs->name} = $exp;
         $efficiencies->{all}->{nhej} += $exp_rs->mutation_reads;
         $efficiencies->{all}->{total} += $exp_rs->total_reads;
-        $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->mutation_reads;
-        $efficiencies->{$exp_rs->gene}->{total} += $exp_rs->total_reads;
+        $efficiencies->{$exp_rs->name}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{$exp_rs->name}->{total} += $exp_rs->total_reads;
     }
 
     return $efficiencies;
