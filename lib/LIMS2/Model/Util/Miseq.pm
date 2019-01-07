@@ -526,7 +526,7 @@ sub read_alleles_frequency_file {
 
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
-        return { error => 'No path available' };
+        return [{ error => 'No path available' }];
     }
 
     my $fh;

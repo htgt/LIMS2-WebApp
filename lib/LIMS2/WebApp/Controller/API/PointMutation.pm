@@ -10,7 +10,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 
-use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines );
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines read_alleles_frequency_file );
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -69,6 +69,7 @@ sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : A
 
 sub point_mutation_summary_GET {
     my ( $self, $c ) = @_;
+
     $c->assert_user_roles('read');
     my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
@@ -76,18 +77,18 @@ sub point_mutation_summary_GET {
     my $threshold = $c->request->param( 'limit' );
     my $percentage_bool = $c->request->param( 'perc' );
 
-    my $result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+    my @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
 
-    if ($result->{error}) {
+    if (ref($result[0]) eq "HASH") {
         $c->response->status( 404 );
         $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
         return;
     }
+
     my $alleles = {
-        data => join('\n', @{ $result }),
+        data => join("\n", @result),
     };
     $alleles->{crispr} = crispr_seq($c, $miseq, $experiment);
-
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($alleles);
 
