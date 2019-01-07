@@ -36,48 +36,58 @@ while (@lines) {#foreach file from the list of file directories
 
     my $path_to_quant = $file;
     $path_to_quant =~ s/Alleles_frequency_table/Quantification_of_editing_frequency/g;
-    try{
-
-        my %reads = migrate_quant_file( $model, $path_to_quant, $data->{miseq_well_experiment} );
-
-        if ($sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads}) {
-            $sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads} += $reads{total_reads};
-        }
-        else{
-            $sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads} = $reads{total_reads};
-        }
-
-        if ($sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads}) {
-            $sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads} += $reads{nhej_reads};
-        }
-        else{
-            $sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads} = $reads{nhej_reads};
-        }
-    }
-    catch{
-        warn "Failed to migrate quant_file: $file";
-    };
+    
 
     #Check if there is a graph entry for examined miseq_well_exp_id ad if not update database
-    my $check_rs = $model->schema->resultset('IndelDistributionGraph')->search( { id => $data->{miseq_well_experiment}->{id} } );
+    my $id = $data->{miseq_well_experiment}->{id};
+    my $check_rs = $model->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $id} );
     if ( $check_rs->count >= 1 ) {
-        print("Indel graph existing already for given path: $file \n");
+        print("Frequencies are already loaded for miseq well experiment with id: $id \n File name: $file \n");
         next;
     }
     else {
-        my $path_to_images = $file;
-        $path_to_images =~ s/Alleles_frequency_table.txt/1b.Indel_size_distribution_percentage.png/g;
-        try {
-            migrate_images( $model, $path_to_images, $data->{miseq_well_experiment} );
-            print "Successfully migrated images \n";
-        } catch {
-            print "Failed to migrate_images: $file";
+        try{
+            my %reads = migrate_quant_file( $model, $path_to_quant, $data->{miseq_well_experiment} );
+            if ($sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads}) {
+                $sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads} += $reads{total_reads};
+            }
+            else {
+                $sum_reads->{$data->{miseq_experiment}->{id}}->{total_reads} = $reads{total_reads};
+            }
+
+            if ($sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads}) {
+                $sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads} += $reads{nhej_reads};
+            }
+            else{
+                $sum_reads->{$data->{miseq_experiment}->{id}}->{nhej_reads} = $reads{nhej_reads};
+            }
+        }
+        catch {
+            warn "Failed to migrate quant_file: $file";
         };
+        
         try{
             migrate_frequencies( $model, $file, $data->{miseq_well_experiment} );
             print "Successfully migrated frequencies \n";
         } catch {
             print "Failed to migrate_frequencies: $file";
+        };
+
+        try {
+            my $path_to_histogram = $file;
+            $path_to_histogram =~ s/Alleles_frequency_table/indel_histogram/g;
+            migrate_histogram( $model, $path_to_histogram, $data->{miseq_well_experiment}, $file );
+        } catch {
+            print "Failed to migrate histogram: $file";
+        };
+
+        try {
+            my $jobout = $file;
+            $jobout =~ s/CRISPR\S*txt/job.out/g;
+            next unless (-e $jobout);
+            migrate_crispresso_subs($model, $jobout, $data);
+        } catch {
+            print "Failed to migrate crispresso submission at: $file";
         };
     }
 }

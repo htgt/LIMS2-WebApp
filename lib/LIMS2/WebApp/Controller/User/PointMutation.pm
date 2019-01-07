@@ -148,7 +148,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
         update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
-        @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
+        @exps = get_well_exps($c, $miseq, $regex, $miseq_plate_id, $well_id);
     } catch {
         $c->log->debug("No well found.");
     };
@@ -377,6 +377,29 @@ sub get_efficiencies {
     return $efficiencies;
 }
 
+
+
+sub get_well_exps {
+    my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
+    my @exps;
+    my $miseq_well_exp_rs =  $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ well_id => $well_id });
+    my $next_miseq_well_exp;
+    while ($next_miseq_well_exp = $miseq_well_exp_rs->next){
+        $next_miseq_well_exp = $next_miseq_well_exp->as_hash;
+        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->{miseq_exp_id} })->as_hash;
+        my $ref = { 'status'    => $next_miseq_well_exp->{status},
+                    'gene'      => $miseq_exp->{gene},
+                    'class'     => $next_miseq_well_exp->{classification},
+                    'id'        => $miseq_exp->{name},
+                };
+        push (@exps, $ref);
+    }
+    @exps = sort { $a->{id} cmp $b->{id} } @exps;
+
+    return \@exps;
+}
+
+#THE BELLOW SUB WAS REPLACED BY get_well_exps WHEN THE DATA WAS MIGRATED FROM THE FILE SYSTEM TO THE DATABASE.
 sub get_well_exp_graphs_old {
     my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
 
@@ -406,27 +429,6 @@ sub get_well_exp_graphs_old {
         }
     }
 
-    @exps = sort { $a->{id} cmp $b->{id} } @exps;
-
-    return \@exps;
-}
-
-
-sub get_well_exp_graphs {
-    my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
-    my @exps;
-    my $miseq_well_exp_rs =  $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ well_id => $well_id });
-    my $next_miseq_well_exp;
-    while ($next_miseq_well_exp = $miseq_well_exp_rs->next){
-        $next_miseq_well_exp = $next_miseq_well_exp->as_hash;
-        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->{miseq_exp_id} })->as_hash;
-        my $ref = { 'status'    => $next_miseq_well_exp->{status},
-                    'gene'      => $miseq_exp->{gene},
-                    'class'     => $next_miseq_well_exp->{classification},
-                    'id'        => $miseq_exp->{name},
-                };
-        push (@exps, $ref);
-    }
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
 
     return \@exps;

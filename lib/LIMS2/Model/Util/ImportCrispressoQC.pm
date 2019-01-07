@@ -183,7 +183,8 @@ sub migrate_histogram {
 
 
 
-
+#THIS SUB IS USED TO LOAD THE IMAGE FILES INTO THE DATABASE AS BYTEA FORMAT
+#IT IS NOT USED AT THE MOMENT BECAUSE THE IMAGES WERE REPLACED BY REAL TIME PLOTTING
 sub migrate_images {
     my ( $model, $image_path, $miseq_well_experiment_hash ) = @_;
 
@@ -613,9 +614,7 @@ Migration
 
 =head1 DESCRIPTION
 
-This script reads MiSeq Crispresso format files and loads data from them into the LIMS2 database. E<10> E<8>
-It takes as input a txt file that holds a list of paths to the alleles frequency table txt files. E<10> E<8>
-Based on that path, the script finds the corresponding quantification and image files.
+This library holds subs relavant to reading MiSeq Crispresso format files and loading their data into the LIMS2 database. E<10> E<8>
 
 =head1 METHODS
 
@@ -624,8 +623,19 @@ Based on that path, the script finds the corresponding quantification and image 
 
 =item C<extract_data_from_path> 
 
-Takes an alleles frequency table txt file path as parameter. E<10> E<8>
+Takes a file path as parameter. E<10> E<8>
+Returns a hash reference holding the miseq run name, well name, and experiment name.
+
+=item C<get_data_from_file> 
+
+Takes the model and the file path. E<10> E<8>
 Returns a reference to miseq experiment hash and  miseq well experiment hash.
+
+=item C<get_data> 
+
+Takes the model, the miseq run name, the well name and the experiment name. E<10> E<8>
+Returns a reference to miseq experiment hash and  miseq well experiment hash.
+
 
 =item C<get_miseq_well_experiment> 
 
@@ -685,16 +695,7 @@ NOTE: Does not check for duplicate entries, so it will have to be updated in the
 =head1 INPUT FORMAT
 
 =head2 Paths file
-
-The script requires a .txt file, that holds all the paths to the alleles frequency tables files that need to be examined. E<10> E<8>
-A different script within the same directory called "extracting_paths.pl" can be used to get the .txt that holds those paths.E<10> E<8>
-Using that path it is able to locate the rest of the files needed. (quantification txt and Indel distribution graph png)
-Example of the format of said .txt: E<10> E<8>
-" E<10> E<8>
-/warehouse/team229_wh01/lims2_managed_miseq_data/./Miseq_001/S10_expDDX3X_G/CRISPResso_on_Homo-sapiens_S10_L001_R1_001_Homo-sapiens_S10_L001_R2_001/Alleles_frequency_table.txt E<10> E<8>
-/warehouse/team229_wh01/lims2_managed_miseq_data/./Miseq_001/S10_expKMT2A_A/CRISPResso_on_Homo-sapiens_S10_L001_R1_001_Homo-sapiens_S10_L001_R2_001/Alleles_frequency_table.txt E<10> E<8>
-"
-
+Most subs require a path string as a parameter. That path refers to the local file system.Specificaly the files examineda can be one of the follwowing:
 =head2 Quantification Files
 
 Requires a .txt file. E<10> E<8>

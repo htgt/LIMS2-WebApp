@@ -142,86 +142,6 @@ sub well_builder {
     return @well_names;
 }
 
-sub generate_summary_data_old {
-    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
-
-    my $wells;
-    my @well_conversion = wells_generator();
-
-    my $blank = {
-        class           => 'Not Called',
-        status          => 'Plated',
-        frameshifted    => 0,
-    };
-    my $exp_ref;
-    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
-    foreach my $miseq_exp (@miseq_exp_rs) {
-        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-        foreach my $well (@well_exps) {
-            $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
-                class       => $well->{classification} ? $well->{classification} : $blank->{class},
-                status      => $well->{status} ? $well->{status} : $blank->{status},
-                frameshift  => $well->{frameshifted} ? $well->{frameshifted} : $blank->{frameshifted},
-            };
-       }
-    }
-
-    for (my $index = 1; $index < 385; $index++) {
-        #Could use wells but then we'd lose the ability to drag and drop files into miseq.
-        #Staying till standalone miseq work begins
-        my $well_name = $well_conversion[$index - 1];
-
-        my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
-        my @files = find_child_dir($miseq, $regex);
-        my @exps;
-        foreach my $file (@files) {
-            #Get all experiments on this well
-            my @matches = ($file =~ /S$index\_exp([A-Za-z0-9_]+)/g);
-            foreach my $match (@matches) {
-                push (@exps, $match);
-            }
-        }
-
-        @exps = sort @exps;
-        my @selection;
-        my $percentages;
-        my @found_exps;
-        my $details;
-        foreach my $exp (@exps) {
-            foreach my $gene ($overview->{$exp}) {
-                push (@selection, $gene);
-            }
-
-            my $quant = find_file($miseq, $index, $exp, "Quantification_of_editing_frequency.txt");
-            if ($quant) {
-                my $fh;
-                open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
-                my @lines = read_file_lines($fh);
-                close $fh;
-
-                $percentages->{$exp}->{wt} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
-                $percentages->{$exp}->{nhej} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
-                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
-                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
-
-                push(@found_exps, $exp); #In case of missing data
-            }
-
-            $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
-        }
-        #Genes, Barcodes and Status are randomly generated at the moment
-        $wells->{sprintf("%02d", $index)} = {
-            gene        => \@selection,
-            experiments => \@found_exps,
-            #barcode    => [$ug->create_str(), $ug->create_str()],
-            percentages => $percentages,
-            details     => $details,
-        };
-    }
-
-    return $wells;
-}
-
 sub find_file {
     my ($miseq, $index, $exp, $file) = @_;
     my $base = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp;
@@ -351,6 +271,91 @@ sub generate_summary_data {
         wells       => $wells
     };
 }
+
+
+#THIS SUB IS NOT USED ANYMORE. IT WAS REPLACED AFTER THE DATA WAS MIGRATED FROM THE LOCAL FILES TO THE DATABASE.
+sub generate_summary_data_old {
+    my ($c, $miseq, $plate_id, $miseq_id, $overview) = @_;
+
+    my $wells;
+    my @well_conversion = wells_generator();
+
+    my $blank = {
+        class           => 'Not Called',
+        status          => 'Plated',
+        frameshifted    => 0,
+    };
+    my $exp_ref;
+    my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
+    foreach my $miseq_exp (@miseq_exp_rs) {
+        my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        foreach my $well (@well_exps) {
+            $exp_ref->{$well->{well_name}}->{$miseq_exp->{name}} = {
+                class       => $well->{classification} ? $well->{classification} : $blank->{class},
+                status      => $well->{status} ? $well->{status} : $blank->{status},
+                frameshift  => $well->{frameshifted} ? $well->{frameshifted} : $blank->{frameshifted},
+            };
+       }
+    }
+
+    for (my $index = 1; $index < 385; $index++) {
+        #Could use wells but then we'd lose the ability to drag and drop files into miseq.
+        #Staying till standalone miseq work begins
+        my $well_name = $well_conversion[$index - 1];
+
+        my $regex = "S" . $index . "_exp[A-Za-z0-9_]+";
+        my @files = find_child_dir($miseq, $regex);
+        my @exps;
+        foreach my $file (@files) {
+            #Get all experiments on this well
+            my @matches = ($file =~ /S$index\_exp([A-Za-z0-9_]+)/g);
+            foreach my $match (@matches) {
+                push (@exps, $match);
+            }
+        }
+
+        @exps = sort @exps;
+        my @selection;
+        my $percentages;
+        my @found_exps;
+        my $details;
+        foreach my $exp (@exps) {
+            foreach my $gene ($overview->{$exp}) {
+                push (@selection, $gene);
+            }
+
+            my $quant = find_file($miseq, $index, $exp, "Quantification_of_editing_frequency.txt");
+            if ($quant) {
+                my $fh;
+                open ($fh, '<:encoding(UTF-8)', $quant) or die "$!";
+                my @lines = read_file_lines($fh);
+                close $fh;
+
+                $percentages->{$exp}->{wt} = ($lines[1] =~ qr/^,- Unmodified:(\d+)/)[0];
+                $percentages->{$exp}->{nhej} = ($lines[2] =~ qr/^,- NHEJ:(\d+)/)[0];
+                $percentages->{$exp}->{hdr} = ($lines[3] =~ qr/^,- HDR:(\d+)/)[0];
+                $percentages->{$exp}->{mix} = ($lines[4] =~ qr/^,- Mixed HDR-NHEJ:(\d+)/)[0];
+
+                push(@found_exps, $exp); #In case of missing data
+            }
+
+            $details->{$exp} = $exp_ref->{$well_name}->{$exp} ? $exp_ref->{$well_name}->{$exp} : $blank;
+        }
+        #Genes, Barcodes and Status are randomly generated at the moment
+        $wells->{sprintf("%02d", $index)} = {
+            gene        => \@selection,
+            experiments => \@found_exps,
+            #barcode    => [$ug->create_str(), $ug->create_str()],
+            percentages => $percentages,
+            details     => $details,
+        };
+    }
+
+    return $wells;
+}
+
+
+
 1;
 
 __END__
