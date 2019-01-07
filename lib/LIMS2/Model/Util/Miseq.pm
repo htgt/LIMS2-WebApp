@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Miseq::VERSION = '0.517';
+    $LIMS2::Model::Util::Miseq::VERSION = '0.518';
 }
 ## use critic
 
@@ -532,7 +532,7 @@ sub read_alleles_frequency_file {
 
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
-        return { error => 'No path available' };
+        return [{ error => 'No path available' }];
     }
 
     my $fh;
