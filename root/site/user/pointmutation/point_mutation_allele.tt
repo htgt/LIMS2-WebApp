@@ -104,10 +104,10 @@ input:checked + .slider:before {
 </style>
 
 <div class="page-header row">
-    <div class="col-md-5">
+    <div class="col-md-6">
         <h2>Mutation Alleles - [% miseq %]: [% oligo_index %]</h2>
     </div>    
-    <div class="col-md-2 col-md-offset-1">
+    <div class="col-md-2">
         <div id="keyContainer">
             <h5>Colour Key: </h5>
             <svg width="450" height="40">
@@ -277,7 +277,6 @@ input:checked + .slider:before {
 var exps = [];
 
 $(document).ready(function() {
-    $('.download').hide();
     $('#keyContainer').hide();
     $('.genes').each(function() {
         $($(this).attr('class').split(/\s+/)).each(function() {
@@ -303,9 +302,14 @@ $(document).ready(function() {
 });
 
 $('.allele').click(function() {
-    $(this).find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
+    var allelesToggle = $(this).find('i');
+    allelesToggle.toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     var value = $(this).val();
-    $('#dl' + value).toggle();
+    if (allelesToggle.hasClass('glyphicon-chevron-down')) {
+        $('#dl' + value).hide();
+    } else {
+        $('#dl' + value).show();
+    }
 });
 
 $('.download').click(function() {
