@@ -11,13 +11,6 @@ CREATE TABLE miseq_alleles_frequency (
     n_reads integer NOT NULL DEFAULT 0 
 );
 
-
-
-CREATE TABLE indel_distribution_graph (
-    id integer PRIMARY KEY NOT NULL REFERENCES miseq_well_experiment(id),
-    indel_size_distribution_graph BYTEA
-);
-
 AlTER TABLE miseq_well_experiment
     ADD COLUMN total_reads integer,
     ADD COLUMN hdr_reads integer,
