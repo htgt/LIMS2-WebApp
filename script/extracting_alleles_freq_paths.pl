@@ -18,3 +18,17 @@ foreach my $file ( @files ){
     print $fh $file;
 }
 close($fh);
+
+=head1 NAME
+
+extracting_alleles_freq_paths.pls - 
+
+=head1 SYNOPSIS
+
+Grabs the local path of each alleles frequency txt file from the file system and saves it in a .txt file.
+
+=head1 DESCRIPTION
+
+This script is used to produce the files_path.txt file required for many of the database migration scripts.
+It grabs the paths to each of the miseq alleles frequency table txt files. 
+Those paths are very helpful since they hold information regarding the ids of miseq, well and experiment for each allele.

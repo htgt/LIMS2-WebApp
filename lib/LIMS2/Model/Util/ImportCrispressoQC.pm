@@ -52,21 +52,33 @@ sub migrate_crispresso_subs {
     my ( $model, $jobout, $data ) = @_;
     my $job = get_crispr($jobout);
     my $row = {
-            id  =>   $data->{miseq_well_experiment}->{id},                    
+            id  =>   $data->{miseq_well_experiment}->{id},
             crispr  =>  $job ->{crispr},
             date_stamp  =>  $job->{date}
         };
-    $model->schema->txn_do(
-        sub {
-            try {
-                $model->create_crispr_submission($row);
-            }
-            catch {
-                warn "Error creating cripr submission entry";
-                $model->schema->txn_rollback;
-            };
+    
+    my $check_rs = $model->schema->resultset('CrispressoSubmission')->search( { id => $data->{miseq_well_experiment}->{id} } );
+    if ( $check_rs->count >= 1 ) {
+        print("Skipped. Job submission has already been loaded. \n");
+        for (sort keys %$row) {
+            print "$_ => $row->{$_}\n";
         }
-    );
+        print "\n";
+    }
+    else {
+        $model->schema->txn_do(
+            sub {
+                try {
+                    $model->create_crispr_submission($row);
+                }
+                catch {
+                    warn "Error creating cripr submission entry";
+                    $model->schema->txn_rollback;
+                };
+            }
+        );
+    }
+    return 1;
 }
 
 sub migrate_frequencies {
@@ -126,9 +138,9 @@ sub migrate_frequencies {
 
 sub migrate_histogram {
     my ( $model, $path, $miseq_well_exp, $alleles_path ) = @_;
-    
+
     my %histogram;
-    
+
     if (-e $path) {
         open( my $file_to_read, "<", "$path" ) or die "Cannot open histogram file";
         chomp(my @lines = <$file_to_read>);
@@ -159,31 +171,36 @@ sub migrate_histogram {
             }
         }
     }
-    foreach my $key (keys %histogram) {
-        my $row = {
-            miseq_well_experiment_id    =>  $miseq_well_exp->{id},
-            indel_size                  =>  $key,
-            frequency                   =>  $histogram{$key},
-        };
-
-        $model->schema->txn_do(
-            sub {
-                try {
-                    $model->create_indel_histogram($row);
+    my $check_rs = $model->schema->resultset('IndelHistogram')->search( { miseq_well_experiment_id => $miseq_well_exp->{id} } );
+    if ( $check_rs->count >= 1 ) {
+        print("Skipped. Indel histogram already has data loaded for miseq well experiment: $miseq_well_exp->{id}. \n");
+    }
+    else {
+        foreach my $key (keys %histogram) {
+            my $row = {
+                miseq_well_experiment_id    =>  $miseq_well_exp->{id},
+                indel_size                  =>  $key,
+                frequency                   =>  $histogram{$key},
+            };
+            $model->schema->txn_do(
+                sub {
+                    try {
+                        $model->create_indel_histogram($row);
+                    }
+                    catch {
+                        warn "Error creating indel histogram entry";
+                        $model->schema->txn_rollback;
+                    };
                 }
-                catch {
-                    warn "Error creating indel histogram entry";
-                    $model->schema->txn_rollback;
-                };
-            }
-        );
+            );
+        }
     }
     return 1;
 }
 
 
 
-#THIS SUB IS USED TO LOAD THE IMAGE FILES INTO THE DATABASE AS BYTEA FORMAT
+#THIS SUB LOADS THE IMAGE FILES INTO THE DATABASE AS BYTEA FORMAT
 #IT IS NOT USED AT THE MOMENT BECAUSE THE IMAGES WERE REPLACED BY REAL TIME PLOTTING
 sub migrate_images {
     my ( $model, $image_path, $miseq_well_experiment_hash ) = @_;

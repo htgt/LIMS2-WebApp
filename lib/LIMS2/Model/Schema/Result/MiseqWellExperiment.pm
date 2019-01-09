@@ -174,21 +174,6 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 indel_distribution_graph
-
-Type: might_have
-
-Related object: L<LIMS2::Model::Schema::Result::IndelDistributionGraph>
-
-=cut
-
-__PACKAGE__->might_have(
-  "indel_distribution_graph",
-  "LIMS2::Model::Schema::Result::IndelDistributionGraph",
-  { "foreign.id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 indel_histograms
 
 Type: has_many
@@ -265,8 +250,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-21 11:35:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g+miOzmNw2NVhZp5H3oiaw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-08 14:32:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qfym6RsQkZH4AeaFvdOP0g
 
 sub as_hash{
     my $self = shift;

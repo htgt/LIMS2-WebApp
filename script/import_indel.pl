@@ -25,6 +25,19 @@ while (@lines){ #foreach file from the list of file directories
 
     my $path_to_histogram = $file;
     $path_to_histogram =~ s/Alleles_frequency_table/indel_histogram/g;
-    
+
     migrate_histogram( $model, $path_to_histogram, $data->{miseq_well_experiment}, $file );
 }
+
+=head1 NAME
+
+import_indel.pl - imports the indel histograms in the database
+
+=head1 SYNOPSIS
+
+This script grabs a txt file holding all the paths to the histogram files (or alleles frequency tables),
+and saves all the relevant information in the database.
+
+=head1 DESCRIPTION
+
+The information loaded in the database through this script, is used to plot the indel distribution graphs.

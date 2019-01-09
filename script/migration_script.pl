@@ -84,5 +84,21 @@ foreach my $miseq_exp_id (keys %$sum_reads){
         total_reads     =>  $sum_reads->{$miseq_exp_id}->{total_reads},
     };
     update_miseq_exp($model, $params);
-    print "Successfully updated Miseq experiments";
 }
+print "Successfully updated Miseq experiments";
+
+=head1 NAME
+
+migration_script.pl - script to migrate data from local file system into the database
+
+=head1 SYNOPSIS
+
+Requires a txt file names files_paths.txt to be present in the directory the script was ran from. Foreach of the
+paths provided, this script loads the database with 10 alleles frequency entries, updates miseq miseq experiments 
+and miseq well experiments.
+
+=head1 DESCRIPTION
+
+This script is run to update the database with new crispresso submission data. Uses the local file system to extract
+information and then updates the database. 
+It is advised to run through the use of "migration.sh" script.

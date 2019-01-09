@@ -91,39 +91,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 project_sponsors_3s
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_sponsors_3s",
-  "LIMS2::Model::Schema::Result::ProjectSponsor",
-  { "foreign.lab_head_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 project_sponsors_4s
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_sponsors_4s",
-  "LIMS2::Model::Schema::Result::ProjectSponsor",
-  { "foreign.lab_head_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-21 11:31:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L9WtkfDzTji3cjMb+KqeXw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-08 14:32:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yeJ9iRmPjBWL34/QmQrxWw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

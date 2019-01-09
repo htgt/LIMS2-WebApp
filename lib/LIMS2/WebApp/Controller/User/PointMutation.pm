@@ -164,7 +164,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         0 => 96,
         1 => 384,
     };
-    my $var; 
+    my $var;
     my $indels;
     my $counter = 0;
     while ( my $exp = $exps[0][$counter]->{id} ) {
