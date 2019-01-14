@@ -301,6 +301,7 @@ input:checked + .slider:before {
             </div>
         </div>
         <div id='[% experiment.id %]'></div>
+        <p id='response[% experiment.id %]'></p>
         <br>
     [% END %]
 [% END %]
@@ -506,6 +507,10 @@ function createTable(exp, result) {
         rowObjs.push(rowObj);
     }
     
+    if (rowObjs[0].Phred_Quality == undefined) {
+        $('#response' + exp).text('No Phred33 Quality Data found.');
+    }
+
     rowQualityData[exp] = rowObjs;
     
     var tableID = "table" + exp;
