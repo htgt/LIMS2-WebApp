@@ -22,24 +22,14 @@ body {
     margin-left: 0 auto;
 }
 
-.baseA.baseSwitch {
-    background-color: #63aa5a;
-    color: white;
-}
-
-.baseC.baseSwitch {
-    background-color: #e4ed6d;
+.lowQS.baseSwitch {
+    background-color: #FF9E00; /* Orange */
     color: black;
 }
 
-.baseT.baseSwitch {
-    background-color: #45719b;
+.medQS.baseSwitch {
+    background-color: #2B89C4; /* Blue */
     color: white;
-}
-
-.baseG.baseSwitch {
-    background-color: #e88d1e;
-    color: black;
 }
 
  /* The switch - the box around the slider */
@@ -79,11 +69,11 @@ body {
 }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: #2196F3; /* blue */
 }
 
 input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px #2196F3; /* blue */
 }
 
 input:checked + .slider:before {
@@ -101,36 +91,28 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
+.greyout {
+    opacity: 0.6;
+}
+
 </style>
 
 <div class="page-header row">
     <div class="col-md-6">
         <h2>Mutation Alleles - [% miseq %]: [% oligo_index %]</h2>
     </div>    
-    <div class="col-md-2">
-        <div id="keyContainer">
-            <h5>Colour Key: </h5>
-            <svg width="450" height="40">
-                <g class="legend" transform="translate(0)">
-                    <rect width="18" height="18" style="fill: #0a606d; stroke: #0a606d;"></rect>
-                    <text x="22" y="14">Crispr Match</text>
-                </g>
-                <g class="legend" transform="translate(0,20)">
-                    <rect width="18" height="18" style="fill: #e59e18; stroke: #e59e18;"></rect>
-                    <text x="22" y="14">Possible Crispr Location</text>
-                </g>
-            </svg>
+    <div class="col-md-6">
+        <div class="col-md-5">
+            <label id="phredLabel" class="lb-colour">Phred33 Quality</label>
         </div>
-    </div> 
-    <div class="col-md-4">
-        <div class="col-md-7">
-            <label class="lb-colour">Highlight Crispr: </label>
-        </div>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <label class="switch">
                 <input type="checkbox" id="styles" checked>
                 <div class="slider round"></div>
             </label>    
+        </div>
+        <div class="col-md-5">
+            <label id="crisprLabel" class="lb-colour">Crispr Damage</label>
         </div>
     </div>
 </div>
@@ -187,13 +169,6 @@ input:checked + .slider:before {
                     <td>[% oligo_index %]</td>
                     <td></td>
                 </tr>
-<!--- Taken out until requested
-                <tr>
-                    <td>Barcode</td>
-                    <td id="barcode"></td>
-                    <td></td>
-                </tr>
---->
             </table>
         </div>
     </div>
@@ -255,15 +230,74 @@ input:checked + .slider:before {
         </div>
         <div class='genes [% experiment.id %]'></div>
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <button class="allele btn btn-primary" onclick="displayIndels([% experiment.id %])" value="[% experiment.id %]">
                     Allele Frequency - [% experiment.id %]  <i class="glyphicon glyphicon-chevron-down"></i>
                 </button>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <h4 id="crisprHeader[% experiment.id %]" class="crisprHeaders" style="display: inline">Crispr: <span id="crisprSeq[% experiment.id %]" class="sequence">Null</span></h4>
+            </div>
+            <div class="col-md-2">
                 <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
                     Download CSV <i class="glyphicon glyphicon-download-alt"></i>
                 </button>
+            </div>
+            <div class="btn-group dropup col-md-2">
+                <button id="ck[% experiment.id %]" class="colourKey btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Colour Key <i class="glyphicon glyphicon-plus"></i>
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <svg class="crisprKey" width="300" height="60">
+                        <g class="legend" transform="translate(0)">
+                            <rect width="18" height="18" style="fill: #0A606D; stroke: #0A606D;"></rect><!-- Blue --->
+                            <text x="22" y="14">Crispr Region</text>
+                        </g>
+                        <g class="legend" transform="translate(0,20)">
+                            <rect width="18" height="18" style="fill: #FF9E00; stroke: #FF9E00;"></rect><!-- Orange --->
+                            <text x="22" y="14">Inferred Crispr</text>
+                        </g>
+                        <g class="legend" transform="translate(150,0)">
+                            <rect width="18" height="18" style="fill: #26C485; stroke: #26C465;"></rect><!-- Green --->
+                            <text x="4" y="15" class="insertion">N</text>
+                            <text x="22" y="14">Insertion</text>
+                        </g>
+                        <g class="legend" transform="translate(150,20)">
+                            <rect width="18" height="18" style="fill: #661010; stroke: #661010;"></rect><!-- Red --->
+                            <text x="6" y="14" class="base-" style="fill: white" font-size="20">-</text>
+                            <text x="22" y="14">Deletion</text>
+                        </g>
+                        <g class="legend" transform="translate(150,40)">
+                            <rect width="18" height="18" style="fill: #F61067; stroke: #F61067;"></rect><!-- Pink --->
+                            <text x="4" y="12" class="mutation" style="fill: white">N</text>
+                            <text x="22" y="14">Mutation</text>
+                        </g>
+                    </svg>
+                    <svg class="qualityKey" width="170" height="100">
+                        <g class="legend" transform="translate(0,0)">
+                            <rect width="18" height="18" style="fill: #FF9E00; stroke: #FF9E00;"></rect><!-- Orange --->
+                            <text x="22" y="14">Phred33 Quality <= 10</text>
+                        </g>
+                        <g class="legend" transform="translate(0,20)">
+                            <rect width="18" height="18" style="fill: #2B89C4; stroke: #2B89C4;"></rect><!-- Blue --->
+                            <text x="22" y="14">Phred33 Quality <= 20</text>
+                        </g>
+                        <g class="legend" transform="translate(0,40)">
+                            <rect width="18" height="18" style="fill: #661010; stroke: #661010;"></rect><!-- Red --->
+                            <text x="6" y="14" class="base-" style="fill: white" font-size="20">-</text>
+                            <text x="22" y="14">Deletion</text>
+                        </g>
+                        <g class="legend" transform="translate(0,60)">
+                            <text x="4" y="15" class="insertion baseSwitch">N</text>
+                            <text x="22" y="14">Insertion</text>
+                        </g>
+                        <g class="legend" transform="translate(0,80)">
+                            <text x="4" y="12" class="mutation baseSwitch">N</text>
+                            <text x="22" y="14">Mutation</text>
+                        </g>
+                    </svg>
+                </ul>
             </div>
         </div>
         <div id='[% experiment.id %]'></div>
@@ -275,9 +309,11 @@ input:checked + .slider:before {
 
 <script type="text/javascript" charset="utf-8">
 var exps = [];
+var rowQualityData = {};
 
 $(document).ready(function() {
-    $('#keyContainer').hide();
+    $('.crisprHeaders').hide();
+    toggleModeOpacity();
     $('.genes').each(function() {
         $($(this).attr('class').split(/\s+/)).each(function() {
             var exp = this.toString();
@@ -297,6 +333,8 @@ $(document).ready(function() {
         displayIndels(document.getElementById(expSel));
         $('.allele').find('i').toggleClass('glyphicon-chevron-down').toggleClass('glyphicon-chevron-up');
     } else {
+        $('.colourKey').hide();
+        $('.download').hide();
         document.title = '[% oligo_index %]:All - [% miseq %]';
     }
 });
@@ -307,8 +345,10 @@ $('.allele').click(function() {
     var value = $(this).val();
     if (allelesToggle.hasClass('glyphicon-chevron-down')) {
         $('#dl' + value).hide();
+        $('#ck' + value).hide();
     } else {
         $('#dl' + value).show();
+        $('#ck' + value).show();
     }
 });
 
@@ -319,8 +359,23 @@ $('.download').click(function() {
 
 $('#styles').change(function() {
     $('span').toggleClass('baseSwitch');
-    $('#keyContainer').toggle();
+    toggleModeOpacity();    
 });
+
+function toggleModeOpacity() {
+    var opac = "greyout";
+    if ($('#styles').prop("checked") == true) {
+        $('#phredLabel').addClass(opac);
+        $('#crisprLabel').removeClass(opac);
+        $('.crisprKey').show();
+        $('.qualityKey').hide();
+    } else {
+        $('#phredLabel').removeClass(opac);
+        $('#crisprLabel').addClass(opac);
+        $('.crisprKey').hide();
+        $('.qualityKey').show();
+    }
+}
 
 function displayIndels(exp) {
     var expTable = document.getElementById("table" + exp.id);
@@ -432,39 +487,55 @@ function getTargets(letter) {
 
 function createTable(exp, result) {
     result = JSON.parse(result);
+
+    $('#crisprSeq' + exp).text(result.crispr.crispr);
+    $('#crisprHeader' + exp).show();
+    
     var rows = result.data.split("\n");
+    var headers = rows.shift().split(",");
+    var displayHeaders = ['Aligned_Sequence','NHEJ','UNMODIFIED','HDR','n_deleted','n_inserted','n_mutated','#Reads','%Reads'];
+
+    var rowObjs = [];
+    for (var rowCount = 0; rowCount < rows.length; rowCount++) {
+        if (rows[rowCount] == "") {
+            continue;
+        }
+
+        var rowData = rows[rowCount].split(",");
+        var rowObj = headers.reduce((obj, key, index) => ({...obj, [key]: rowData[index]}), {});
+        rowObjs.push(rowObj);
+    }
+    
+    rowQualityData[exp] = rowObjs;
     
     var tableID = "table" + exp;
     $('#' + exp).append('<table id="' + tableID + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
     var header = table.createTHead();
     var headerRow = header.insertRow(0);
-    var headers = rows.shift().split(",");
 
-    for (var count = 0; count < headers.length; count++) {
+    for (var count = 0; count < displayHeaders.length; count++) {
         var headerCell = document.createElement("TH");
-        headerCell.innerHTML = headers[count];
+        headerCell.innerHTML = displayHeaders[count];
         headerRow.appendChild(headerCell);
     }
 
     var body = table.createTBody();
 
-    for (var rowCount = 0; rowCount < rows.length; rowCount++) {
-        if (rows[rowCount] == "") {
-            continue;
-        }
+    for (var rowCount = 0; rowCount < rowObjs.length; rowCount++) {
         var bodyRow = body.insertRow(-1);
-        var rowData = rows[rowCount].split(",");
-        for (var cellCount = 0; cellCount < rowData.length; cellCount++) {
+        var rowData = rowObjs[rowCount];
+        for (var cellCount = 0; cellCount < displayHeaders.length; cellCount++) {
             var bodyCell = bodyRow.insertCell(-1);
-            if (cellCount == 0) {
-                var highlight = highlightBases(rowData[cellCount], result.crispr, rowData[cellCount + 1]); 
+            var columnName = displayHeaders[cellCount];
+            if (columnName == 'Aligned_Sequence') {
+                var highlight = highlightBases(rowData.Aligned_Sequence, result.crispr, rowData.Reference_Sequence, rowData.Phred_Quality);
                 bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
             } else {
-                if ($.isNumeric(rowData[cellCount])) {
-                    rowData[cellCount] = Math.round(rowData[cellCount] * 100) / 100;
+                if ($.isNumeric(rowData[columnName])) {
+                    rowData[columnName] = Math.round(rowData[columnName] * 100) / 100;
                 }
-                bodyCell.innerHTML = rowData[cellCount];
+                bodyCell.innerHTML = rowData[columnName];
             }
         }
 
