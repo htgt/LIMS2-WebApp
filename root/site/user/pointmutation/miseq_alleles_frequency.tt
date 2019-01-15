@@ -7,34 +7,57 @@
     overflow-x: hidden;
 }
 
-.base- {
-    background-color: #661010; /* Red */
-    color: white;
-}
-
-.target {
+.target :not(.baseSwitch) {
     background-color: #0A606D; /* Blue-Grey */
     color: white;
 }
 
-.possibleTarget {
-    background-color: #E59E18; /* Orange */
+.possibleTarget :not(.baseSwitch) {
+    background-color: #FF9E00; /* Orange */
+    color: black;
+}
+
+.base- {
+    background-color: #661010 !important; /* Red */
+    color: white !important;
+}
+
+.insertion:not(.baseSwitch) {
+    background-color: #26C485 !important; /* Green */
+    color: black;
+}
+
+.mutation:not(.baseSwitch) {
+    background-color: #F61067 !important; /* Pink */
     color: white;
 }
 
-.insertion {
-    background-color: #26C485; /* Green */
-    color: black;
+.insertion, .mutation {
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.mutation {
+    text-decoration: underline;
 }
 
 </style>
 
 <script type="text/javascript" charset="utf-8">
 
-function highlightBases(seq, crisprData, ref) {
+function highlightBases(seq, crisprData, ref, quality) {
     var formattedSequence = "";
     var start = seq.indexOf(crisprData.crispr);
+    if (start == -1) {
+        start = seq.indexOf(crisprData.rev_crispr);
+    }
     var accuracy = 0;
+    var mutations = {
+        A: ['C','G'],
+        C: ['A','T'],
+        T: ['C','G'],
+        G: ['A','T']
+    };
 
     if (start == -1) {
         accuracy = 1;
@@ -45,11 +68,12 @@ function highlightBases(seq, crisprData, ref) {
         }
     }
 
+    var deletionOffset = 0;
+    var insertionOffset = 0;
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
 
         var front = "";
-        var back = "";
         if (base == start) {
             if (accuracy == 0) {
                 front = '<span class="target">';
@@ -58,20 +82,52 @@ function highlightBases(seq, crisprData, ref) {
             }
         }
 
-        if (base == start + crisprData.crispr.length - 1) {
+        var classStr = 'baseSwitch ';
+
+        if (ref[base] == '-') {
+            classStr += 'insertion ';
+            insertionOffset++;
+        } else {
+            if (mutations[ref[base]].indexOf(letter) != -1) {
+                classStr += 'mutation ';
+            }
+        }
+
+        if (letter == '-') {
+            classStr += 'base- ';
+            deletionOffset++;
+        } else {
+            if (quality) {
+                classStr += qualityConversion(quality[base - deletionOffset]);
+            }
+        }
+
+        var back = "";
+        if (base == start + crisprData.crispr.length + insertionOffset - 1) {
             back = "</span>";
         }
-        var format;
-        if (ref[base] == '-'){
-            format = front + '<span class="base' + letter + ' baseSwitch insertion">' + letter + '</span>' + back;
-        }
-        else {
-            format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
-        }
+
+        var format = front + '<span class="' + classStr + '">' + letter + '</span>' + back;
         formattedSequence += format;
     }
 
     return formattedSequence;
+}
+
+function qualityConversion(qualityLetter) {
+    var score = qualityLetter.charCodeAt() - 33;
+    var classRank = '';
+    switch (true) {
+        case (score <= 10):
+            classRank = 'lowQS';
+            break;
+        case (score <= 20):
+            classRank = 'medQS';
+            break;
+        default:
+            break;
+    }
+    return classRank;
 }
 
 </script>
