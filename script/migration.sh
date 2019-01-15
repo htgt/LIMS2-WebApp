@@ -12,4 +12,4 @@ echo Finished importing indels.
 echo Import_criprs script in progress...
 perl ./script/import_crisprs.pl
 echo Finished importing the crisprs submission details.
-rm ./files_path.txt
+rm ./files_paths.txt

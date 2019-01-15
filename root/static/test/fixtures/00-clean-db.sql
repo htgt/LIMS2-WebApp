@@ -112,6 +112,7 @@ hdr_template,
 process_crispr_pair,
 process_crispr_group,
 well_t7,
-indel_distribution_graph,
-miseq_alleles_frequency
+miseq_alleles_frequency,
+indel_histogram,
+crispresso_submissions
  CASCADE;

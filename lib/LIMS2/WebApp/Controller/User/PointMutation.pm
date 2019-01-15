@@ -104,7 +104,6 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my $designs = encode_json({summary => $gene_crisprs});
     my $designs_reverse = encode_json({summary => $revgc});
 
-
     $c->stash(
         wells => $json,
         experiments => \@exps,
@@ -177,34 +176,40 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
             $sum += $row->{frequency};
 
         }
-        $indels->{$exp}->{'0'} = $miseq_well_exp->{total_reads} - $sum;
-        $counter++;
 
-        my $min = min keys %{$indels->{$exp}};
-        my $max = max keys %{$indels->{$exp}};
-        for (my $i=$min -1; $i <= $max + 1; $i++) {
-            unless (exists $indels->{$exp}->{$i}) {
-                $indels->{$exp}->{$i}=0;
+
+        if ($miseq_well_exp->{total_reads}) {
+            $indels->{$exp}->{'0'} = $miseq_well_exp->{total_reads} - $sum;
+            
+            my $min = min keys %{$indels->{$exp}};
+            my $max = max keys %{$indels->{$exp}};
+        
+            for (my $i=$min -1; $i <= $max + 1; $i++) {
+                unless (exists $indels->{$exp}->{$i}) {
+                    $indels->{$exp}->{$i}=0;
+                }
+                my $temp = {
+                    indel       =>  $i,
+                    frequency   =>  $indels->{$exp}->{$i}
+                };
+
+                push @{$var->{$exp}}, $temp;
             }
-            my $temp = {
-                indel       =>  $i,
-                frequency   =>  $indels->{$exp}->{$i}
-            };
 
-            push @{$var->{$exp}}, $temp;
         }
+        $counter++;
     }
-
+    if ($var) {
+        $c->stash(indel_stats => encode_json($var));
+    }
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
         experiments     => @exps,
         well_name       => $well_name,
-        indel           => '1b.Indel_size_distribution_percentage.png',
         status          => \@status,
         classifications => \@classifications,
         max_wells       => $well_limit->{$miseq_plate->{384}},
-        indel_stats     => encode_json($var),
     );
     return;
 }
@@ -395,7 +400,6 @@ sub get_well_exps {
         push (@exps, $ref);
     }
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
-
     return \@exps;
 }
 

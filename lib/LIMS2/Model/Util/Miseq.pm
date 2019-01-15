@@ -208,15 +208,14 @@ sub _wanted {
 sub generate_summary_data {
     my ($c, $plate_id, $miseq_id) = @_;
 
-
     my $overview;
     my $ranges;
     my $wells;
     my $index;
     my $converter = wells_generator(1);
     my @miseq_exp_rs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
-
     foreach my $miseq_exp (@miseq_exp_rs) {
+
         my $exp_name = $miseq_exp->{name};
         my @well_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @indexes;
@@ -224,9 +223,10 @@ sub generate_summary_data {
         foreach my $well_exp (@well_exps) {
             my $percentages;
             my $details;
-
             $index = $converter->{$well_exp->{well_name}};
+            
             push (@indexes, $index);
+
             $details->{class}       = $well_exp->{classification};
             $details->{status}      = $well_exp->{status};
             $details->{frameshift}  = $well_exp->{frameshifted};
@@ -251,8 +251,8 @@ sub generate_summary_data {
             $wells->{sprintf("%02d", $index)}->{details}->{$exp_name} = $details;
             push ( @{$wells->{sprintf("%02d", $index)}->{gene}}, $miseq_exp->{gene});
             push ( @{$wells->{sprintf("%02d", $index)}->{experiments}}, $exp_name);
-
         }
+
         if ( !@indexes ) {
             warn "\n Empty experiment: $exp_name \n";
             next;
@@ -264,6 +264,16 @@ sub generate_summary_data {
         my @gene;
         push @gene, $miseq_exp->{gene};
         $overview->{$miseq_exp->{name}} = \@gene;
+    }
+
+    for (my $index = 1; $index < 385; $index++) {
+        unless ($wells->{sprintf("%02d", $index)}){
+            $wells->{sprintf("%02d", $index)}->{percentages} = undef;
+            $wells->{sprintf("%02d", $index)}->{details} = undef;
+
+            $wells->{sprintf("%02d", $index)}->{gene} = [];
+            $wells->{sprintf("%02d", $index)}->{experiments} = [];
+            }
     }
     return {
         ranges      => $ranges,
