@@ -1,7 +1,7 @@
 package LIMS2::Report::AlleleDump;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::AlleleDump::VERSION = '0.519';
+    $LIMS2::Report::AlleleDump::VERSION = '0.520';
 }
 ## use critic
 

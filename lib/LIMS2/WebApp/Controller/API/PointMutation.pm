@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.519';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.520';
 }
 ## use critic
 
@@ -94,7 +94,7 @@ sub point_mutation_summary_GET {
     my $alleles = {
         data => join("\n", @result),
     };
-    $alleles->{crispr} = crispr_seq($c, $miseq, $experiment);
+    $alleles->{crispr} = crispr_seq($c, $miseq, $oligo_index, $experiment);
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($alleles);
 
@@ -263,40 +263,37 @@ sub flatten_wells {
 }
 
 sub crispr_seq {
-    my ( $c, $miseq, $req ) = @_;
+    my ( $c, $miseq, $index, $exp ) = @_;
 
-    my $sum_dir = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
+    my $job_out = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp .'/job.out';
+
     my $fh;
-
-    my $csv = Text::CSV->new ({
-        binary    => 1,
-    });
-
-    my @lines;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    while (my $row = $csv->getline($fh)) {
-        push (@lines, $row);
-    }
+    open ($fh, '<:encoding(UTF-8)', $job_out) or die "$!";
+    my @lines = <$fh>;
+    my $job_input = $lines[1];
     close $fh;
-    shift @lines;
 
-    my $res;
-    foreach my $exp (@lines) {
-        if (@$exp[0] eq $req) {
-            my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
-            if ($index == -1) {
-                try {
-                    $index = index(@$exp[4], revcom(@$exp[2])->seq);
-                } catch {
-                    $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-                };
-            }
-            $res->{crispr} = @$exp[2];
-            $res->{position} = $index;
-        }
+    my ($amplicon,$crispr) = $job_input =~ /^.*\-a\ ([ACTGactg]+).*\-g\ ([ACTGactg]+)[\ >].*$/g;
+    $amplicon = uc $amplicon;
+    $crispr = uc $crispr;
+    my $rev_crispr = revcom($crispr)->seq;
+
+    my $pos = index($amplicon, $crispr);
+    if ($pos == -1) {
+        try {
+            $pos = index($amplicon, $rev_crispr);
+        } catch {
+            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+        };
     }
 
-    return $res;
+    my $result = {
+        crispr      => $crispr,
+        rev_crispr  => $rev_crispr,
+        position    => $pos,
+    };
+
+    return $result;
 }
 
 1;
