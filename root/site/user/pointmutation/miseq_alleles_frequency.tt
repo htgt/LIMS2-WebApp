@@ -53,11 +53,11 @@ function highlightBases(seq, crisprData, ref, quality) {
     }
     var accuracy = 0;
     var mutations = {
-        A: ['C','G'],
-        C: ['A','T'],
-        T: ['C','G'],
-        G: ['A','T']
-    };
+        A: ['C','G','T'],
+        C: ['A','G','T'],
+        T: ['A','C','G'],
+        G: ['A','C','T']
+    }; //Ignore - and Ns
 
     if (start == -1) {
         accuracy = 1;
