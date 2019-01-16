@@ -17,7 +17,6 @@ use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_da
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
 use List::Util qw(min max);
 
-
 BEGIN {extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -61,6 +60,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my @genes = sort keys %$gene_keys;
     my @gene_prefixs = sort keys %$gene_prefix_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
+
     my $crispr;
     my $gene_crisprs;
     my $revgc;
@@ -221,7 +221,6 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search(
         { },
         {
-            rows => 15,
             order_by => {-desc => 'id'}
         }
     );
@@ -272,24 +271,37 @@ sub get_experiments {
     return $ov;
 }
 
-
 sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
 
     my $overview;
-
-    while ( my $row = $csv->getline($fh)) {
-        next if $. < 2;
-        if ($opt eq 'range') {
-            my $range = $row->[5];
-            $overview->{$row->[0]} = $range;
-        } else {
-            my @genes;
-            push @genes, $row->[1];
-            $overview->{$row->[0]} = \@genes;
-        }
+    my @col = $csv->column_names($csv->getline($fh));
+    if ($col[5] =~  m/^min/gmi){
+        my @heads = qw(experiment gene crispr strand amplicon min_index max_index nhej total hdr);
+        $csv->column_names(\@heads);
+    }
+    else {
+        my @heads = qw(experiment gene crispr strand amplicon range nhej total hdr);
+        $csv->column_names(\@heads);
     }
 
+    while (my $row = $csv->getline_hr($fh)) {
+        next if $. < 2;
+        if ($opt eq 'Range') {
+            my $range;
+            if ($row->{min_index} && $row->{max_index}){
+                $range = $row->{min_index}."-".$row->{max_index};
+            }
+            else {
+               $range = $row->{range};
+            }
+            $overview->{$row->{experiment}} = $range;
+        } else {
+            my @genes;
+            push @genes, $row->{gene};
+            $overview->{$row->{experiment}} = \@genes;
+        }
+    }
     return $overview;
 }
 
@@ -359,14 +371,12 @@ sub update_tracking {
 
 sub get_efficiencies {
     my ($c, $miseq_id) = @_;
-
     my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
 
     my $efficiencies = {
         nhej => 0,
         total => 0,
     };
-
     while (my $exp_rs = $experiments->next) {
         my $exp = {
             nhej    => $exp_rs->nhej_reads,

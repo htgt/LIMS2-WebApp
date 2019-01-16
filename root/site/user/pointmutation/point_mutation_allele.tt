@@ -115,33 +115,6 @@ body {
     color: black;
 }
 
-.base- {
-    background-color: #661010;
-    color: white;
-}
-
-.insertion {
-    background-color: #26c485;
-    color: black;
-}
-
-.target {
-    background-color: #0a606d;
-    color: white;
-}
-
-.possibleTarget {
-    background-color: #e59e18;
-    color: white;
-}
-
-.sequence {
-    width: 400px;
-    white-space: nowrap;
-    font-family: "Lucida Console", Monaco, monospace;
-    overflow-x: hidden;
-}
-
  /* The switch - the box around the slider */
 .switch {
     position: relative;
@@ -376,6 +349,7 @@ input:checked + .slider:before {
     [% END %]
 [% END %]
 
+[% INCLUDE 'user/pointmutation/miseq_alleles_frequency.tt' %]
 
 <script type="text/javascript" charset="utf-8">
 var exps = [];
@@ -740,48 +714,6 @@ function createTable(exp, result) {
 
     //Crispresso update added a column not required by the lab. Hiding it temporarily.
     // $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
-}
-
-function highlightBases(seq, crispr, reference) {
-    var formattedSequence = "";
-    var start = seq.indexOf(crispr.crispr);
-    var accuracy = 0;
-    if (start == -1) {
-        accuracy = 1;
-        start = seq.indexOf(crispr.crispr.substring(0,5));
-        if (start == -1 || start > crispr.position + 5 || start < crispr.position - 5) {
-            console.log('No match');
-            start = crispr.position;
-        }
-    }
-
-    for (var base = 0; base < seq.length; base++) {
-        var letter = seq[base];
-
-        var front = "";
-        var back = "";
-        if (base == start) {
-            if (accuracy == 0) {
-                front = '<span class="target">';
-            } else {
-                front = '<span class="possibleTarget">';
-            }
-        }
-
-        if (base == start + crispr.crispr.length - 1) {
-            back = "</span>";
-        }
-        var format;
-        if (reference[base] == '-'){
-            format = front + '<span class="base' + letter + ' baseSwitch insertion">' + letter + '</span>' + back;
-        }
-        else {
-            format = front + '<span class="base' + letter + ' baseSwitch">' + letter + '</span>' + back;
-        }
-        formattedSequence += format;
-    }
-
-    return formattedSequence;
 }
 
 function showAll() {

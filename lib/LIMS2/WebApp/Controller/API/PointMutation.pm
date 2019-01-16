@@ -12,6 +12,8 @@ use Try::Tiny;
 use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines convert_index_to_well_name );
 use List::Util 'max';
 use LIMS2::Model::Util::ImportCrispressoQC  qw( get_data );
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines read_alleles_frequency_file );
+
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 
@@ -21,25 +23,24 @@ sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : A
 
 sub point_mutation_summary_GET {
     my ( $self, $c ) = @_;
+
     $c->assert_user_roles('read');
     my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
     my $experiment = $c->request->param( 'exp' );
     my $limit = $c->request->param( 'limit' );
-
     my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};;
+    
     unless($miseq_well_experiment_hash->{id}){
         $c->response->status( 404 );
         $c->response->body( "Database entry for miseq well experiment id: " . $miseq_well_experiment_hash->{id} . " can not be found for $miseq, $oligo_index and $experiment");
         return;
     }
-
     my $res->{data} = get_frequency_data($c, $miseq_well_experiment_hash);
-
     $res->{crispr} = crispr_seq($c, $miseq, $experiment);
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($res);
-
+    
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
@@ -76,13 +77,16 @@ sub miseq_parent_plate_type : Path( '/api/miseq_parent_plate_type' ) : Args(0) :
 
 sub miseq_parent_plate_type_GET {
     my ( $self, $c ) = @_;
+
     $c->assert_user_roles( 'read' );
+
     my $name = $c->request->param('name');
     my @plates = $c->model('Golgi')->schema->resultset('Plate')->search(
         { name => $name, type_id => { in => [qw/FP MISEQ PIQ/] } },
         { columns => [qw/type_id/] },
     );
-    if( @plates == 1 ) {
+
+    if ( @plates == 1 ) {
         $c->stash->{json_data} = {
             name => $name,
             type => $plates[0]->type_id,
@@ -91,7 +95,9 @@ sub miseq_parent_plate_type_GET {
     else {
         $c->stash->{json_data} = { error => "No valid plate found named '$name'" };
     }
+
     $c->forward('View::JSON');
+
     return;
 }
 
@@ -100,16 +106,8 @@ sub miseq_plate : Path( '/api/miseq_plate' ) : Args(0) : ActionClass( 'REST' ) {
 
 sub miseq_plate_POST {
     my ( $self, $c ) = @_;
-    $c->assert_user_roles('edit');
-    my $protocol = $c->req->headers->header('X-FORWARDED-PROTO') // '';
 
-    if($protocol eq 'HTTPS'){
-        my $base = $c->req->base;
-        $base =~ s/^http:/https:/;
-        $c->req->base(URI->new($base));
-        $c->req->secure(1);
-    }
-    $c->require_ssl;
+    $c->assert_user_roles('edit');
 
     my $json = $c->request->param('json');
     my $data = decode_json $json;
@@ -165,6 +163,7 @@ sub miseq_exp_parent_GET {
     catch {
         $c->log->error($_);
     };
+
     return $self->status_ok($c, entity => \@results);
 }
 
@@ -185,6 +184,27 @@ sub miseq_preset_names_GET {
     };
 
     return $self->status_ok($c, entity => \@results);
+}
+
+
+
+#Quads had to to be introduced in a way to preserve data in the view.
+#Messy to deal with in the back end
+sub flatten_wells {
+    my ($fp, $wells) = @_;
+
+    my $fp_data = $wells->{$fp}->{wells};
+
+    my $new_structure;
+    foreach my $quad (keys %{$fp_data}) {
+        if (ref $fp_data->{$quad} eq 'HASH') {
+            foreach my $well (sort keys %{$fp_data->{$quad}}) {
+                $new_structure->{$well} = $fp_data->{$quad}->{$well};
+            }
+        }
+    }
+
+    return $new_structure;
 }
 
 sub crispr_seq {
@@ -275,6 +295,8 @@ sub get_frequency_data{
     my $data = join("\n", @lines[0..$limit]);
     return $data;
 }
+#The bellow methods are not used anymore. They were used to handle data from the local files. They were replaced after database migration. 
+#The new methods now operate using data stored in the database.
 
 sub get_raw_image{
     my ($c, $miseq_well_experiment_id) = @_;
@@ -295,8 +317,6 @@ sub get_raw_image{
 }
 
 
-#The above methods are not used anymore. They were used to handle data from the local files. They were replaced after database migration. 
-#The new methods now operate using data stored in the database.
 
 sub point_mutation_image_old : Path( '/api/point_mutation_img_old' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -389,6 +409,5 @@ sub point_mutation_summary_old_GET {
 
     return;
 }
-
 
 1;

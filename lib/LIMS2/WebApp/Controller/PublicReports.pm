@@ -8,7 +8,9 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
+use LIMS2::Model::Util::Miseq qw( miseq_genotyping_info );
 use LIMS2::Model::Util::SponsorReportII;
+
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
 #use experimental qw(switch);
@@ -975,13 +977,17 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
         try {
             $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode } );
-            # $self->_stash_well_genotyping_info( $c, { barcode => $barcode } );
         } catch {
             $c->stash( error_msg => "Barcode doesn't exist" );
         };
 
         if ($well) {
-            $self->_stash_well_genotyping_info( $c, $well );
+            if ($well->design->type->id =~ /^miseq.*/) {
+                $c->stash->{pipeline} = 2;
+                $self->_stash_pipeline_ii_genotyping_info( $c, $well );
+            } else {
+                $self->_stash_well_genotyping_info( $c, $well );
+            }
         } else {
             $c->go( 'well_genotyping_info_search' );
             return;
@@ -1034,7 +1040,7 @@ sub _stash_well_genotyping_info {
         #needs to be given a method for finding genes
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
         my $data = $well->genotyping_info( $gene_finder );
-        if(my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
+        if ( my $ms_qc_data = $well->ms_qc_data($gene_finder) ){
             $data->{ms_qc_data} = $ms_qc_data;
         }
         $data->{child_barcodes} = $well->distributable_child_barcodes;
@@ -1093,6 +1099,28 @@ sub _stash_well_genotyping_info {
         #get string representation if its a lims2::exception
         $c->stash( error_msg => ref $_ && $_->can('as_string') ? $_->as_string : $_ );
     };
+
+    return;
+}
+
+sub _stash_pipeline_ii_genotyping_info {
+    my ( $self, $c, $well ) = @_;
+
+    my $data = miseq_genotyping_info($c, $well);
+    my $alleles_data;
+    foreach my $exp (@{ $data->{experiments} }) {
+        my $table = $exp->{alleles_freq};
+        my $key = $exp->{qc_origin_plate} . '_' . $exp->{qc_origin_well};
+        $alleles_data->{$key} = $table;
+        $alleles_data->{$key}->{read_quant} = $exp->{read_counts};
+        $alleles_data->{$key}->{frameshift} = $exp->{frameshift};
+        $alleles_data->{$key}->{oligos} = $exp->{oligos};
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $alleles_json = $json->encode($alleles_data);
+
+    $c->stash( data => $data, tables => $alleles_json );
 
     return;
 }

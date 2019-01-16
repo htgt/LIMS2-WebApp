@@ -387,14 +387,14 @@ sub plate_upload_step2 :Path( '/user/plate_upload_step2' ) :Args(0) {
         return $c->res->redirect('/user/plate_upload_step1');
     }
 
-   if ($process_type eq 'ep_pipeline_ii') {
+    if ($process_type eq 'ep_pipeline_ii') {
      return $c->res->redirect( $c->uri_for('/user/plate_upload_ep_pipeline_ii') );
-   }
+    }
 
-   if ($process_type eq 'miseq_oligo' ||  $process_type eq 'miseq_vector' ||
+    if ($process_type eq 'miseq_oligo' ||  $process_type eq 'miseq_vector' ||
        $process_type eq 'miseq_no_template'){
        return $c->res->redirect('/user/create_miseq_plate');
-   }
+    }
 
     my $cell_lines = $c->model('Golgi')->schema->resultset('DnaTemplate')->search();
     my @lines;
@@ -484,6 +484,15 @@ sub process_plate_upload_form :Private {
     );
 
     return $plate ? $plate : undef;
+}
+
+sub create_piq_plate :Path( '/user/create_piq_plate' ) :Args(0) {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+    #Submission handled via API
+
+    return;
 }
 
 =head1 AUTHOR
