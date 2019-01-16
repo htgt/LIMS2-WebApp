@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.520';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.521';
 }
 ## use critic
 
@@ -265,7 +265,7 @@ sub flatten_wells {
 sub crispr_seq {
     my ( $c, $miseq, $index, $exp ) = @_;
 
-    my $job_out = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp .'/job.out';
+    my $job_out = find_file($miseq, $index, $exp, 'CRISPResso_RUNNING_LOG.txt');
 
     my $fh;
     open ($fh, '<:encoding(UTF-8)', $job_out) or die "$!";
@@ -273,7 +273,7 @@ sub crispr_seq {
     my $job_input = $lines[1];
     close $fh;
 
-    my ($amplicon,$crispr) = $job_input =~ /^.*\-a\ ([ACTGactg]+).*\-g\ ([ACTGactg]+)[\ >].*$/g;
+    my ($amplicon,$crispr) = $job_input =~ /^.*\-a\ ([ACTGactg]+).*\-g\ ([ACTGactg]+).*$/g;
     $amplicon = uc $amplicon;
     $crispr = uc $crispr;
     my $rev_crispr = revcom($crispr)->seq;

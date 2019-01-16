@@ -1,7 +1,7 @@
 package LIMS2::Report::SEPPICKPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::SEPPICKPlate::VERSION = '0.520';
+    $LIMS2::Report::SEPPICKPlate::VERSION = '0.521';
 }
 ## use critic
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Miseq::VERSION = '0.520';
+    $LIMS2::Model::Util::Miseq::VERSION = '0.521';
 }
 ## use critic
 
