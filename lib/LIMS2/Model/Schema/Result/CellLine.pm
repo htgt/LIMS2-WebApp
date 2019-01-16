@@ -51,6 +51,17 @@ __PACKAGE__->table("cell_lines");
   default_value: (empty string)
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 origin_well
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -63,6 +74,10 @@ __PACKAGE__->add_columns(
   },
   "name",
   { data_type => "text", default_value => "", is_nullable => 0 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
+  "origin_well",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -78,6 +93,26 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 origin_well
+
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Well>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "origin_well",
+  "LIMS2::Model::Schema::Result::Well",
+  { id => "origin_well" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
+);
 
 =head2 process_cell_lines
 
@@ -110,8 +145,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2f9ld501hKKzBD32Hf6hBA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-16 15:17:59
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DM/GMTA3WPQ3ev8UaGOVMQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

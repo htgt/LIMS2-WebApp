@@ -34,10 +34,44 @@
     <th>Species</th>
     <td>[% project.species_id %]</td>
   </tr>
-  <tr>
+  <tr  data-toggle="collapse" data-target="#cellLineInfo" class="clickable">
     <th>Cell line</th>
     <td>[% project.cell_line %]</td>
   </tr>
+  [% IF cell_line_info %]
+    <tr>
+        <td colspan="3">
+            <div id="cellLineInfo" class="collapse">
+                <table class="table">
+                    <tr>
+                        <th class="col-md-2">
+                            Barcode
+                        </th>
+                        <td>
+                            [% cell_line_info.barcode %]
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Clone name
+                        </th>
+                        <td>
+                            [% cell_line_info.plate_name %]_[% cell_line_info.well_name %]
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            Description
+                        </th>
+                        <td>
+                            [% cell_line_info.description %]
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+  [% END %]
   <tr>
     <th>Strategy</th>
     <td>[% project.strategy %]</td>
