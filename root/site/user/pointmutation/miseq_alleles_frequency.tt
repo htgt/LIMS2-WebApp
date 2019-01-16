@@ -47,29 +47,37 @@
 
 function highlightBases(seq, crisprData, ref, quality) {
     var formattedSequence = "";
-    var start = seq.indexOf(crisprData.crispr);
-    if (start == -1) {
-        start = seq.indexOf(crisprData.rev_crispr);
+    var start = -1;
+    var accuracy = -1;
+    if (crisprData.crispr != "") {
+        start = seq.indexOf(crisprData.crispr);
+        if (start == -1) {
+            start = seq.indexOf(crisprData.rev_crispr);
+        }
+
+        if (start == -1) {
+            start = ref.indexOf(crisprData.crispr);
+            if (start == -1 || start > crisprData.position + 5 || start < crisprData.position - 5) {
+                console.log('No match');
+                start = crisprData.position;
+            }
+        } else {
+            accuracy = 0;
+        }
+    } else {
+        console.log("No crispr found");
+        console.log(crisprData);
     }
-    var accuracy = 0;
+    
     var mutations = {
         A: ['C','G','T'],
         C: ['A','G','T'],
         T: ['A','C','G'],
         G: ['A','C','T']
     }; //Ignore - and Ns
-
-    if (start == -1) {
-        accuracy = 1;
-        start = ref.indexOf(crisprData.crispr);
-        if (start == -1 || start > crisprData.position + 5 || start < crisprData.position - 5) {
-            console.log('No match');
-            start = crisprData.position;
-        }
-    }
-
     var deletionOffset = 0;
     var insertionOffset = 0;
+
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
 
