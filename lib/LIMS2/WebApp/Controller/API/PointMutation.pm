@@ -9,10 +9,9 @@ use MIME::Base64;
 use Bio::Perl;
 use POSIX;
 use Try::Tiny;
-use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines convert_index_to_well_name );
 use List::Util 'max';
-use LIMS2::Model::Util::ImportCrispressoQC  qw( get_data );
-use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines read_alleles_frequency_file );
+use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
+use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines read_alleles_frequency_file convert_index_to_well_name);
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -28,27 +27,31 @@ sub point_mutation_summary_GET {
     my $miseq = $c->request->param('miseq');
     my $oligo_index = $c->request->param( 'oligo' );
     my $experiment = $c->request->param( 'exp' );
-    my $limit = $c->request->param( 'limit' );
-    my $miseq_well_experiment_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};;
+    my $threshold = $c->request->param( 'limit' );
+    my $percentage_bool = $c->request->param( 'perc' );
+    my $miseq_well_exp_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
     
-    unless($miseq_well_experiment_hash->{id}){
+    my @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+
+    if (ref($result[0]) eq "HASH") {
         $c->response->status( 404 );
-        $c->response->body( "Database entry for miseq well experiment id: " . $miseq_well_experiment_hash->{id} . " can not be found for $miseq, $oligo_index and $experiment");
+        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
         return;
     }
-    my $res->{data} = get_frequency_data($c, $miseq_well_experiment_hash);
-    $res->{crispr} = crispr_seq($c, $miseq, $experiment);
+
+    my $alleles = {
+        data => join("\n", @result),
+    };
+    $alleles->{crispr} = crispr_seq($c, $miseq, $oligo_index, $experiment);
     my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($res);
-    
+    my $body = $json->encode($alleles);
+
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
 
     return;
 }
-
-
 
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -207,42 +210,41 @@ sub flatten_wells {
     return $new_structure;
 }
 
+
 sub crispr_seq {
-    my ( $c, $miseq, $req ) = @_;
+    my ( $c, $miseq, $index, $exp ) = @_;
 
-    my $sum_dir = $ENV{LIMS2_RNA_SEQ} . $miseq . '/summary.csv';
+    my $job_out = find_file($miseq, $index, $exp, 'CRISPResso_RUNNING_LOG.txt');
+
     my $fh;
-
-    my $csv = Text::CSV->new ({
-        binary    => 1,
-    });
-
-    my @lines;
-    open ($fh, '<:encoding(UTF-8)', $sum_dir) or die "$!";
-    while (my $row = $csv->getline($fh)) {
-        push (@lines, $row);
-    }
+    open ($fh, '<:encoding(UTF-8)', $job_out) or die "$!";
+    my @lines = <$fh>;
+    my $job_input = $lines[1];
     close $fh;
-    shift @lines;
 
-    my $res;
-    foreach my $exp (@lines) {
-        if (@$exp[0] eq $req) {
-            my $index = index(@$exp[4], @$exp[2]); #Pos of Crispr in Amplicon string
-            if ($index == -1) {
-                try {
-                    $index = index(@$exp[4], revcom(@$exp[2])->seq);
-                } catch {
-                    $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-                };
-            }
-            $res->{crispr} = @$exp[2];
-            $res->{position} = $index;
-        }
+    my ($amplicon,$crispr) = $job_input =~ /^.*\-a\ ([ACTGactg]+).*\-g\ ([ACTGactg]+).*$/g;
+    $amplicon = uc $amplicon;
+    $crispr = uc $crispr;
+    my $rev_crispr = revcom($crispr)->seq;
+
+    my $pos = index($amplicon, $crispr);
+    if ($pos == -1) {
+        try {
+            $pos = index($amplicon, $rev_crispr);
+        } catch {
+            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+        };
     }
 
-    return $res;
+    my $result = {
+        crispr      => $crispr,
+        rev_crispr  => $rev_crispr,
+        position    => $pos,
+    };
+
+    return $result;
 }
+
 
 #Quads had to to be introduced in a way to preserve data in the view.
 #Messy to deal with in the back end

@@ -687,6 +687,43 @@ sub read_alleles_frequency_file {
     return @lines;
 }
 
+
+#The method beloow works, but does not have refference sequences. Therefore, for the time it is not used.
+sub read_alleles_frequency_file_db {
+    my ($c, $miseq_well_experiment_hash, $threshold, $percentage_bool) = @_;
+    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( 
+         { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} }
+    );
+    my $alleles_count = $frequency_rs->count;
+    my @lines;
+    push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
+    my $hash;
+    if ($alleles_count > 0) {
+        while ($hash = $frequency_rs->next){
+            $hash = $hash->as_hash;
+            my $sum = $hash->{n_reads};
+            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
+            push @lines,
+                $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
+                $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
+                $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
+                $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                $percentage;
+        }
+    }
+    else{
+        print "No alleles frequency data found in the database.";
+    }
+    
+    my $res;
+    if ($percentage_bool) {
+        @lines = _find_read_quantification_gt_threshold($threshold, @lines);
+    } elsif ($threshold != 0) {
+        @lines = @lines[0..$threshold];
+    }
+    return @lines;
+}
+
 sub _find_read_quantification_gt_threshold {
     my ($threshold, @lines) = @_;
 
