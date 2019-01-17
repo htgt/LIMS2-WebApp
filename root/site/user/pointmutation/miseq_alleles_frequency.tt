@@ -56,7 +56,9 @@ function highlightBases(seq, crisprData, ref, quality) {
         }
 
         if (start == -1) {
-            start = ref.indexOf(crisprData.crispr);
+            if (ref) {
+                start = ref.indexOf(crisprData.crispr);
+            }
             if (start == -1 || start > crisprData.position + 5 || start < crisprData.position - 5) {
                 console.log('No match');
                 start = crisprData.position;
@@ -91,13 +93,14 @@ function highlightBases(seq, crisprData, ref, quality) {
         }
 
         var classStr = 'baseSwitch ';
-
-        if (ref[base] == '-') {
-            classStr += 'insertion ';
-            insertionOffset++;
-        } else {
-            if (mutations[ref[base]].indexOf(letter) != -1) {
-                classStr += 'mutation ';
+        if (ref) {
+            if (ref[base] == '-') {
+                classStr += 'insertion ';
+                insertionOffset++;
+            } else {
+                if (mutations[ref[base]].indexOf(letter) != -1) {
+                    classStr += 'mutation ';
+                }
             }
         }
 
