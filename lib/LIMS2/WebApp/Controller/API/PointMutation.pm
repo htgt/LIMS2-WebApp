@@ -30,7 +30,7 @@ sub point_mutation_summary_GET {
     my $threshold = $c->request->param( 'limit' );
     my $percentage_bool = $c->request->param( 'perc' );
     my $miseq_well_exp_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
-    
+
     my @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
 
     if (ref($result[0]) eq "HASH") {
@@ -191,24 +191,6 @@ sub miseq_preset_names_GET {
 
 
 
-#Quads had to to be introduced in a way to preserve data in the view.
-#Messy to deal with in the back end
-sub flatten_wells {
-    my ($fp, $wells) = @_;
-
-    my $fp_data = $wells->{$fp}->{wells};
-
-    my $new_structure;
-    foreach my $quad (keys %{$fp_data}) {
-        if (ref $fp_data->{$quad} eq 'HASH') {
-            foreach my $well (sort keys %{$fp_data->{$quad}}) {
-                $new_structure->{$well} = $fp_data->{$quad}->{$well};
-            }
-        }
-    }
-
-    return $new_structure;
-}
 
 
 sub crispr_seq {
@@ -244,7 +226,6 @@ sub crispr_seq {
 
     return $result;
 }
-
 
 #Quads had to to be introduced in a way to preserve data in the view.
 #Messy to deal with in the back end
