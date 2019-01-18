@@ -126,19 +126,22 @@ function highlightBases(seq, crisprData, ref, quality) {
 }
 
 function qualityConversion(qualityLetter) {
-    var score = qualityLetter.charCodeAt() - 33;
-    var classRank = '';
-    switch (true) {
-        case (score <= 10):
-            classRank = 'lowQS';
-            break;
-        case (score <= 20):
-            classRank = 'medQS';
-            break;
-        default:
-            break;
+    if (qualityLetter) {
+        var score = qualityLetter.charCodeAt() - 33;
+        var classRank = '';
+        switch (true) {
+            case (score <= 10):
+                classRank = 'lowQS';
+                break;
+            case (score <= 20):
+                classRank = 'medQS';
+                break;
+            default:
+                break;
+        }
+        return classRank;
     }
-    return classRank;
+    return;
 }
 
 </script>
