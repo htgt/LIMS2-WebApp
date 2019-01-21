@@ -514,20 +514,23 @@ function buildExps() {
 
     for (var i = 0; i < nodes.length; i++) {
         var wellData = wells[twoDigits(nodes[i].id)];
-
+        if (wellData === undefined) {
+            continue;
+        }
         for (var expInt = 0; expInt < wellData.experiments.length; expInt++) {
             var node = nodes[i];
             var expName = wellData.experiments[expInt];
             var expDetails = wellData.details[expName];
-
-            /* 
+            /*
             if (wellData.percentages[expName].miss != null) {
                 var missArc = $(node).find('.miss');
                 d3.select(missArc[0]).classed(expName, true);
             } else {
                 Place below code here
             }
+            
             */
+
             if (expDetails.status == 'Scanned-Out' || expDetails.status == 'Empty') {
                 console.log("Adding status circle");
                 d3.select(nodes[i].childNodes[0]).append("circle")
@@ -702,7 +705,8 @@ function tooltip(node) {
     } else { 
         response = 'Oligo Index: ' + oligoIndex;
     }
-    return response;
+return response;
+
 }
 
 </script>

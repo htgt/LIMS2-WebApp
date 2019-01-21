@@ -1,3 +1,3 @@
-id,old_miseq_id,name,gene,mutation_reads,total_reads,miseq_id,experiment_id,parent_plate_id
+id,old_miseq_id,name,gene,nhej_reads,total_reads,miseq_id,experiment_id,parent_plate_id
 1,,GPR35_Test,GPR35,205977,627842,42,42,
 2,,BRCA1_Test,BRCA1,7,10,42,42,
