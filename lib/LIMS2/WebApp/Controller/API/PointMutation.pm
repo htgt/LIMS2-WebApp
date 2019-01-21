@@ -258,14 +258,14 @@ sub get_frequency_data{
     $limit = $cou if ($limit > $cou);
     if ($limit > 0){
         for my $i (1..$limit){
-            my $hash = $frequency_rs->next->as_hash;
-            my $sum = $hash->{n_reads};
+            my $freq_hash = $frequency_rs->next->as_hash;
+            my $sum = $freq_hash->{n_reads};
             my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
             push @lines,
-                $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
-                $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
-                $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
-                $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
+                $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
+                $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
+                $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
                 $percentage;
         }
     }
