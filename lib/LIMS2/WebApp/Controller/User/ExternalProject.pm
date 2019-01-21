@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::ExternalProject;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.521';
+    $LIMS2::WebApp::Controller::User::ExternalProject::VERSION = '0.522';
 }
 ## use critic
 

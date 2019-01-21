@@ -1,7 +1,7 @@
 package LIMS2::ReportGenerator::Plate::SimpleColumns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::ReportGenerator::Plate::SimpleColumns::VERSION = '0.521';
+    $LIMS2::ReportGenerator::Plate::SimpleColumns::VERSION = '0.522';
 }
 ## use critic
 
