@@ -724,13 +724,19 @@ function createTable(exp, result) {
     var headers = rows.shift().split(",");
     var displayHeaders = ['Aligned_Sequence','NHEJ','UNMODIFIED','HDR','n_deleted','n_inserted','n_mutated','#Reads','%Reads'];
 
+    var quoteQualityRegex = /([ACTG,-]+,)([\x21-\x49]+)(,(True|False).*)/gm;
+    var splitIgnoreQuoted = /("[^"]*")|[^,]+/g;
+    //Phred Qualities use , as a value. Quote the quality string then split the row
+
     var rowObjs = [];
     for (var rowCount = 0; rowCount < rows.length; rowCount++) {
         if (rows[rowCount] == "") {
             continue;
         }
+        var rowStr = rows[rowCount];
+        var rowResult = rowStr.replace(quoteQualityRegex, `$1"$2"$3`);
+        var rowData = rowResult.match(splitIgnoreQuoted);
 
-        var rowData = rows[rowCount].split(",");
         var rowObj = headers.reduce((obj, key, index) => ({...obj, [key]: rowData[index]}), {});
         rowObjs.push(rowObj);
     }
