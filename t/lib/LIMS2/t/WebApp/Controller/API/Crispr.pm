@@ -2,6 +2,7 @@ package LIMS2::t::WebApp::Controller::API::Crispr;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::API::Crispr;
+use LIMS2::t::WebApp::Controller::API qw( construct_post );
 
 use LIMS2::Test;
 use File::Temp ':seekable';
@@ -9,6 +10,8 @@ use JSON;
 use YAML;
 use HTTP::Request;
 use Data::Dumper;
+
+
 
 use strict;
 
@@ -151,21 +154,6 @@ sub crisprs_to_load{
 END
     return $crisprs;
 }
-
-sub construct_post
-{
-    my $url = shift;
-    my $data = shift;
- 
-    my $req = HTTP::Request->new( "POST" => $url );
-    $req->content_type( 'application/json' );
-    $req->content_length(
-        do { use bytes; length( $data ) }
-    );
-    $req->content( $data );
-    return $req;
-}
-
 
 =head1 AUTHOR
 

@@ -1,14 +1,14 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.508';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.523';
 }
 ## use critic
 
 
 use strict;
 use warnings FATAL => 'all';
-
+use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Path::Class;
@@ -19,7 +19,9 @@ use Text::CSV;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir );
+use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
+use List::Util qw(min max);
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -40,21 +42,23 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
 
     my $miseq = $c->req->param('miseq');
     my $selection = $c->req->param('experiment');
-
     my $plate_id = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq })->id;
     my $miseq_plate = $c->model('Golgi')->schema->resultset('MiseqPlate')->find({ plate_id => $plate_id })->as_hash;
+    my $summary_data = generate_summary_data($c, $plate_id, $miseq_plate->{id});
+
 
     if ($miseq_plate->{'384'} == 1 ) {
-        my $quadrants = experiment_384_distribution($c, $miseq, $plate_id, $miseq_plate->{id});
+        my $quadrants = experiment_384_distribution($c, $summary_data->{ranges});
         $c->stash->{quadrants} = encode_json({ summary => $quadrants });
     }
 
-    my $overview = get_experiments($c, $miseq, 'genes');
+    my $overview = $summary_data->{overview};
     my $ov_json = encode_json ({ summary => $overview });
 
-    my $json = encode_json ({ summary => generate_summary_data($c, $miseq, $plate_id, $miseq_plate->{id}, $overview) });
+    my $json = encode_json ({ summary => $summary_data->{wells}});
 
     my ($gene_keys, $gene_prefix_keys) = get_genes($c, $overview);
+
 
     my $revov = encode_json({ summary => $gene_keys });
     my $prefix = encode_json({summary => $gene_prefix_keys});
@@ -62,6 +66,7 @@ sub point_mutation : Path('/user/point_mutation') : Args(0) {
     my @genes = sort keys %$gene_keys;
     my @gene_prefixs = sort keys %$gene_prefix_keys;
     my $efficiencies = encode_json ({ summary => get_efficiencies($c, $miseq_plate->{id}) });
+
     my $crispr;
     my $gene_crisprs;
     my $revgc;
@@ -148,7 +153,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
         update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
-        @exps = get_well_exp_graphs($c, $miseq, $regex, $miseq_plate_id, $well_id);
+        @exps = get_well_exps($c, $miseq, $regex, $miseq_plate_id, $well_id);
     } catch {
         $c->log->debug("No well found.");
     };
@@ -164,18 +169,48 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         0 => 96,
         1 => 384,
     };
+    my $exp_hash;
+    my $indels;
+    my $counter = 0;
+    while ( my $exp = $exps[0][$counter]->{id} ) {
+        my $miseq_well_exp = get_data($c->model('Golgi'), $miseq, $index, $exp)->{miseq_well_experiment};
+        my @indel = map { $_->as_hash } $c->model('Golgi')->schema->resultset('IndelHistogram')->search({'miseq_well_experiment_id' => $miseq_well_exp->{id}});
+        my $sum = 0;
+        while (@indel) {
+            my $row = shift @indel;
+            $indels->{$exp}->{$row->{indel_size}} = $row->{frequency};
+            $sum += $row->{frequency};
+        }
+        if ($miseq_well_exp->{total_reads}) {
+            $indels->{$exp}->{'0'} = $miseq_well_exp->{total_reads} - $sum;
+            my $min = min keys %{$indels->{$exp}};
+            my $max = max keys %{$indels->{$exp}};
+            for (my $i=$min -1; $i <= $max + 1; $i++) {
+                unless (exists $indels->{$exp}->{$i}) {
+                    $indels->{$exp}->{$i}=0;
+                }
+                my $indel_freq = {
+                    indel       =>  $i,
+                    frequency   =>  $indels->{$exp}->{$i}
+                };
 
+                push @{$exp_hash->{$exp}}, $indel_freq;
+            }
+        }
+        $counter++;
+    }
+    if ($exp_hash) {
+        $c->stash(indel_stats => encode_json($exp_hash));
+    }
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
         experiments     => @exps,
         well_name       => $well_name,
-        indel           => '1b.Indel_size_distribution_percentage.png',
         status          => \@status,
         classifications => \@classifications,
         max_wells       => $well_limit->{$miseq_plate->{384}},
     );
-
     return;
 }
 
@@ -186,7 +221,6 @@ sub browse_point_mutation : Path('/user/browse_point_mutation') : Args(0) {
     my @miseqs = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqPlate')->search(
         { },
         {
-            rows => 15,
             order_by => {-desc => 'id'}
         }
     );
@@ -205,11 +239,8 @@ sub create_miseq_plate : Path('/user/create_miseq_plate') : Args(0) {
 }
 
 sub experiment_384_distribution {
-    my ( $c, $miseq ) = @_;
-
-    my $range_summary = get_experiments($c, $miseq, 'range');
+    my ( $c, $range_summary ) = @_;
     my $quadrants;
-
     foreach my $exp (keys %$range_summary) {
         my $value = $range_summary->{$exp};
 
@@ -244,19 +275,33 @@ sub read_columns {
     my ( $c, $csv, $fh, $opt ) = @_;
 
     my $overview;
-
-    while ( my $row = $csv->getline($fh)) {
-        next if $. < 2;
-        if ($opt eq 'range') {
-            my $range = $row->[5];
-            $overview->{$row->[0]} = $range;
-        } else {
-            my @genes;
-            push @genes, $row->[1];
-            $overview->{$row->[0]} = \@genes;
-        }
+    my @col = $csv->column_names($csv->getline($fh));
+    if ($col[5] =~  m/^min/gmi){
+        my @heads = qw(experiment gene crispr strand amplicon min_index max_index nhej total hdr);
+        $csv->column_names(\@heads);
+    }
+    else {
+        my @heads = qw(experiment gene crispr strand amplicon range nhej total hdr);
+        $csv->column_names(\@heads);
     }
 
+    while (my $row = $csv->getline_hr($fh)) {
+        next if $. < 2;
+        if ($opt eq 'Range') {
+            my $range;
+            if ($row->{min_index} && $row->{max_index}){
+                $range = $row->{min_index}."-".$row->{max_index};
+            }
+            else {
+               $range = $row->{range};
+            }
+            $overview->{$row->{experiment}} = $range;
+        } else {
+            my @genes;
+            push @genes, $row->{gene};
+            $overview->{$row->{experiment}} = \@genes;
+        }
+    }
     return $overview;
 }
 
@@ -326,30 +371,50 @@ sub update_tracking {
 
 sub get_efficiencies {
     my ($c, $miseq_id) = @_;
-
     my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $miseq_id });
 
     my $efficiencies = {
         nhej => 0,
         total => 0,
     };
-
     while (my $exp_rs = $experiments->next) {
         my $exp = {
-            nhej    => $exp_rs->mutation_reads,
+            nhej    => $exp_rs->nhej_reads,
             total   => $exp_rs->total_reads,
         };
         $efficiencies->{$exp_rs->name} = $exp;
-        $efficiencies->{all}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{all}->{nhej} += $exp_rs->nhej_reads;
         $efficiencies->{all}->{total} += $exp_rs->total_reads;
-        $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->mutation_reads;
+        $efficiencies->{$exp_rs->gene}->{nhej} += $exp_rs->nhej_reads;
         $efficiencies->{$exp_rs->gene}->{total} += $exp_rs->total_reads;
     }
 
     return $efficiencies;
 }
 
-sub get_well_exp_graphs {
+
+
+sub get_well_exps {
+    my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
+    my @exps;
+    my $miseq_well_exp_rs =  $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ well_id => $well_id });
+    my $next_miseq_well_exp;
+    while ($next_miseq_well_exp = $miseq_well_exp_rs->next){
+        $next_miseq_well_exp = $next_miseq_well_exp->as_hash;
+        my $miseq_exp =  $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ id => $next_miseq_well_exp->{miseq_exp_id} })->as_hash;
+        my $ref = { 'status'    => $next_miseq_well_exp->{status},
+                    'gene'      => $miseq_exp->{gene},
+                    'class'     => $next_miseq_well_exp->{classification},
+                    'id'        => $miseq_exp->{name},
+                };
+        push (@exps, $ref);
+    }
+    @exps = sort { $a->{id} cmp $b->{id} } @exps;
+    return \@exps;
+}
+
+#THE BELLOW SUB WAS REPLACED BY get_well_exps WHEN THE DATA WAS MIGRATED FROM THE FILE SYSTEM TO THE DATABASE.
+sub get_well_exp_graphs_old {
     my ($c, $miseq, $regex, $miseq_id, $well_id) = @_;
 
     my @exps;
@@ -377,10 +442,11 @@ sub get_well_exp_graphs {
             push (@exps, $rs);
         }
     }
-
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
+
     return \@exps;
 }
+
 
 __PACKAGE__->meta->make_immutable;
 

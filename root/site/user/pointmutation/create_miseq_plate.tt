@@ -1,19 +1,8 @@
 <meta http-equiv="Content-Language" content="en">
 <style>
-.freezerPlate {
-    margin-left: 12px;
-}
 
-body {
-    padding-bottom: 70px;
-}
-
-h4 {
-    display:inline;
-}
 </style>
 
-<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
 [% INCLUDE 'plate_grid_view.tt' rows = 8 columns = 12 letters_on = "row" row_pixel = 50 column_pixel = 50 %]
 <div id="response" class="alert"></div>
 <div class="page-header">
@@ -86,7 +75,7 @@ h4 {
                 <option value="-">Parent Plate</option>
             </select>
         </div>
-        <div class="col-md-4" id="fpQuadDiv">
+        <div class="col-md-3" id="fpQuadDiv">
             <h4>Plate:</h4>
             <select id="fpQuad" class="btn btn-default">
                 <option value="A_1" selected="selected">1-96 (A01-H12)</option>
@@ -94,6 +83,10 @@ h4 {
                 <option value="I_1">193-288 (I1-P12)</option>
                 <option value="I_13">289-384 (I13-P24)</option>
             </select>           
+        </div>
+        <div class="col-md-3">
+            <h4>Direction: </h4>
+            <button id="directionSwitch" class="btn btn-primary"><i id="directionIcon" class="glyphicon glyphicon-arrow-down"></i></button>
         </div>
         <div id="firstSplit" class="col-md-12"></div>
             <div class="row col-md-12">
@@ -155,44 +148,9 @@ h4 {
     </div>
 </div>
 
-<script type="text/javascript">
+[% INCLUDE 'user/plateupload/rearray_interface.tt' %]
 
-var parentPlates = [];
-var startWell = "";
-var miseqData = {};
-var quadLabels = {
-    A_1 : 'first',
-    A_13 : 'second',
-    I_1 : 'third',
-    I_13 : 'fourth'
-};
-
-var grey = '#93979e';
-var green = '#03c03c';
-var yellow = '#fdfd96';
-
-var freezeGrid = d3.select("#firstSplit")
-    .append("svg")
-    .attr("width","610px")
-    .attr("height","410px");
-
-var miseqGrid = d3.select("#secondSplit")
-    .append("svg")
-    .attr("width","610px")
-    .attr("height","410px");
-
-
-$(document).ready(function() {
-    setupPlate(miseqGrid, "miWell", 'A', 1);
-    setupPlate(freezeGrid, "fpWell", 'A', 1);
-    addWellNames();
-    if ($('#freezeName').val() == '-') {
-        d3.selectAll('.fpWell').style('fill', grey);
-    }
-    $('#quadDiv').hide();
-    $('#fpQuadDiv').hide();
-    return;
-});
+<script>
 
 $(function () {
     var isMouseDown = false;
@@ -215,318 +173,98 @@ $(function () {
             console.log("Up.");
             isMouseDown = false;
             $('.selecting').toggleClass('selecting selected');
-            d3.selectAll('.selected').style('fill', green);
+            d3.selectAll('.selected').style('fill', colourHash['green']);
             var key = $('#freezeName').val();
             if (key != '-') {
                 console.log('Triggered - body up');
                 var label = quadLabels[$('#quad').val()];
-                if (miseqData[key] == null) {
-                    miseqData[key] = {
+                if (relationalData[key] == null) {
+                    relationalData[key] = {
                         wells : { },
                         process : $('#process').val(),
                     }
-                }
-                var plateDetails = miseqData[key];
+                } 
+                var plateDetails = relationalData[key];
                 plateDetails.process = $('#process').val(); //In case of change
                 plateDetails.wells[label] = { };
 
                 $('.miWell.selected').map(function() { return trackWells(key, label, this); });
-                $('.fpWell.selected').map(function() { return checkTile(this); } )
+                $('.fpWell.selected').map(function() { return checkTile(); } )
             }
         }
     });
 });
 
-$('#freezeName').change(function() {
-    changePlateSelection();
-});
-
-$('#largeBox').change(function() {
-    $('#quadDiv').toggle();
-});
-
-$('#process').change(function() {
-    var fp = $('#freezeName').val(); 
-    if (fp != '-') {
-        miseqData[fp].process = $('#process').val();
-    }
-});
-
-$('#fpQuad').change(function() {
-    var quad = $('#fpQuad').val();
-    changeQuad(quad, 'firstSplit', 'fpWell');
-});
-
-$('#quad').change(function() {
-    var quad = $('#quad').val();
-    changeQuad(quad, 'secondSplit', 'miWell');
-});
-
-
-
-$("#parentPlate").autocomplete({
-    source: function(request, response) {
-        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
-        {
-            term : $('#parentPlate').val(),
-            type : 'FP,MISEQ,PIQ',
-        }, response);
-    },
-    minLength: 2,
-});
-
-$('#addPlate').click(function() {
-    $.ajax({
-        dataType: 'json',
-        url: '[% c.uri_for('/api/miseq_parent_plate_type') %]',
-        data: { name: $('#parentPlate').val().trim() },
-    }).done(function(data){
-        if(data.type){
-            $('#parentCollection').show();
-            if (parentPlates.indexOf(data.name) == -1) {
-                addTableRow(data);
-                addOption(data);
-            }
-        }
-        else if (data.error) {
-            alert(data.error);
-        }
-    });
-});
-
-$('#plateVisual').on('click','rect.fpWell' , function() {
-    if (startWell != '' && !$(startWell).hasClass('selected')) {
-        d3.select(startWell).style('fill','white');
-    }
-
-    if ($('#freezeName').val() != '-') {
-        startWell = this;
-        d3.select(startWell).style('fill', yellow);
-    }
-});
-
-function validateWells(fp, result) {
-    var resJson = JSON.parse(result);
-    var wells = resJson[fp];
-    test = resJson;
-
-    if (wells.length > 96) {
-        $('#fpQuadDiv').show();
-    } else {
-        $('#fpQuadDiv').hide();
-    }
-
-    for (var index = 0; index < wells.length; index++) {
-        var well = wells[index];
-        var rect = $('#' + well).children('rect')[0];
-        $(rect).addClass('valid');
-    }
-
-    var invalidWells = $('.fpWell').not('.valid');
-    d3.selectAll(invalidWells).style('fill', grey);
-    d3.selectAll(invalidWells).classed('invalid',true);
-    d3.selectAll('.valid').classed('valid',false);
+function trackWells(key, section, well) {
+    var freezer = relationalData[key].wells[section];
+    freezer[$(well).parent()[0].id] = well.value;
+    relationalData[key].wells[section] = freezer;
 }
 
-function changePlateSelection() {
-    d3.selectAll('.invalid').classed('invalid',false);
-    var name = $('#freezeName').val(); 
-    d3.selectAll('.selected').classed('selected',false);
-    if (name == '-') {
-        d3.selectAll('.fpWell').style('fill', grey);
-    } else {
-        d3.selectAll('.fpWell').style("fill","white");
+function submit() {
+    var plateName = $('#modalName').val();
+    var largePlate = $('#largeBox:checked').val() || 0;
+    var container = {
+        name            : plateName,
+        large           : largePlate,
+        data            : relationalData
+    };
+    var data = JSON.stringify(container);
+    if (plateName != '') {
+        $('#response').attr('class','alert');
         $.ajax({
-            url: '[% c.uri_for('/api/freezer_wells/') %]',
-            type: "GET",
-            contentType: 'application/json; charset=utf-8',
+            url: '[% c.uri_for('/api/miseq_plate/') %]',
+            type: 'POST',
+            dataType: 'JSON',
             data: {
-                name: name, 
+                json: data
             },
-            success: function(result){
-                validateWells(name, result);
+            success: function(result) {
+                $('#response').addClass('alert-success');
+                $('#response').text('Created MiSeq Plate: ' + result.name + ' with id: ' + result.id);
+                closeModal();
             },
-            error: function() {
-                console.log("Failed to retrieve data");
+            error: function(err) {
+                $('#response').addClass('alert-danger');
+                $('#response').text('Failed to create MiSeq plate: ' + err.responseJSON.error);
+                closeModal();
             }
         });
     }
-    d3.selectAll('.miWell').style("fill","white");
+}
+
+function clearPlate() {
+    var rects = $('rect').not('.invalid');
     $('.miWell').map(function() { resetMiseqText(this); });
-    if (name in miseqData) {
-        showPlateHistory(name);
-    }
+    d3.selectAll(rects).style('fill', 'white');
+    d3.selectAll(rects).classed('selected', false);
+    var name = $('#freezeName').val();
+    relationalData[name] = {};
 }
 
-function showPlateHistory(fpName) {
-    var gene = miseqData[fpName];
-    var miWells = Object.keys(gene);
-    for (var mi = 0; mi < miWells.length; mi++) {
-        var miID = wellHistory(miWells[mi],1);
-        var fpID = wellHistory(gene[miWells[mi]],0);
-        tracking(miID, fpID);
-    }
-}
 
-function wellHistory(well,plate) {
-    var cont = $('g#' + well)[plate];
-    var rect = $(cont).children('rect')[0];
 
-    d3.select(rect).style('fill', green);
-    d3.select(rect).classed('selected',true);
+function findFpWells() {
+    var parentChildMapping = {};
 
-    return rect.id.split('_')[1];
-}
-
-function highlighter(target, start) {
-    if (target.nodeName != 'rect') {
-        target = $(target).siblings('rect')[0];
-    }
-    var index;
-    try {
-        index = target.id;
-    } catch(err) {
+    var plateDetails = relationalData[$('#freezeName').val()];
+    if (plateDetails === undefined) {
         return;
     }
+    var quadrantLabel = quadLabels[$('#quad').val()];
+    var quadrantWellData = plateDetails.wells[quadrantLabel];
 
-    var originIndex = startWell.id.split('_')[1];
-    index = index.split('_')[1];
-    start = start || index;
-    
-    d3.selectAll('rect').classed('selecting',false);
-    
-    var diff = +originIndex - +start;
-    originID = +start + +diff;
-
-    for (var inc = start; inc <= index; inc++) {
-        originID = selectionHighlighting(inc, originID);
-        originID++;
-    }
-    
-    d3.selectAll('rect').filter(function() { return !$(this).hasClass("selecting") && !$(this).hasClass("selected") && !$(this).hasClass("invalid"); }).style('fill','white');
-    d3.selectAll('.selecting').style('fill', yellow);
-
-    d3.select(target).style('fill', yellow);
-    var empties = $('.miWell').not('.selected').not('.selecting');
-    var textEmpties = empties.siblings('text');
-    textEmpties.text(function() { return $(this).parent()[0].id; });
-
-    return index;
-}
-
-function selectionHighlighting(inc, originID) {
-    if (!document.getElementById('fpWell_' + originID)) {
-        return;
-    }
-    if ($('#fpWell_' + originID).hasClass('invalid')) {
-        return selectionHighlighting(inc, originID + 1);
+    for (var childWell in quadrantWellData) {
+        parentChildMapping[quadrantWellData[childWell]] = childWell; //Parent => Child
     }
 
-    d3.select('#miWell_' + inc).classed('selecting',true);
-    d3.select('#fpWell_' + originID).classed('selecting',true);
-
-    d3.select('#miWell_' + inc).classed('selected',false);
-    d3.select('#fpWell_' + originID).classed('selected',false);
-
-    tracking(inc, originID);
-
-    return originID;
-}
-
-function tracking(miWellID, fpWellID) {
-    var originWell = document.getElementById('fpWell_' + fpWellID);
-    var newWell = $('#miWell_' + miWellID);
-    var originID = originWell.parentNode.id;
-    var textNode = newWell.siblings('text')[0];
-
-    newWell.val(originID);
-
-    var d3TextObj = d3.select(textNode);
-    d3TextObj.text(originID);
-
-    var arrow = d3TextObj.append('tspan')
-        .attr('dx', '-1.1em')
-        .attr('dy', '0.9em');
-    arrow.html('&#8595');
-
-    var destination = d3TextObj.append('tspan')
-        .attr('dx', '-1.20em')
-        .attr('dy', '1em');
-    destination.text(newWell.parents()[0].id);
-}
-
-function trackWells(key, section, well) {
-    var freezer = miseqData[key].wells[section];
-    freezer[$(well).parent()[0].id] = well.value;
-    miseqData[key].wells[section] = freezer;
-}
-
-function resetMiseqText(well) {
-    var wellID = well.parentNode.id;
-    var textNode = $(well).siblings('text')[0];
-    $(textNode).text(wellID);
-    return;
-}
-
-function updatePlateName(dir) {
-    if (dir == 0) {
-        $('#miseqName').text($('#plateName').val());
-        $('#modalName').val($('#plateName').val());
-    } else {
-        $('#miseqName').text($('#modalName').val());
-        $('#plateName').val($('#modalName').val());
-    }
-}
-
-function addTableRow(data) {
-    parentPlates.push(data.name);
-
-    var table = document.getElementById('parentCollection');
-    var row = table.insertRow(-1);
-
-    var nameCell = row.insertCell(0);
-    var typeCell = row.insertCell(1);
-    var detailCell = row.insertCell(2);
-    var clearCell = row.insertCell(3);
-
-    nameCell.innerText = data.name;
-    typeCell.innerText = data.type;
-    detailCell.innerText = "Place-holder";
-    clearCell.innerHTML = '<button class="btn btn-danger" onclick="clearRow(this);"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
-
-    return;
-}
-
-function clearRow(button) {
-    var row = $(button).closest('tr');
-    var name = row[0].cells[0].textContent;
-    delete miseqData[name];
-    $('#freezeName option[value="' + name + '"]').remove();
-    row.remove();
-    changePlateSelection();
-
-    var index = parentPlates.indexOf(name);
-    if (index > -1) {
-        array.splice(index, 1);
-    } 
-}
-
-function addOption(data) {
-    var select = document.getElementById('freezeName');
-    var option = document.createElement('option');
-    option.text = option.value = data.name;
-    option.tag = data.type;
-    select.add(option,-1);
-    if ($('#freezeName').val() == '-') {
-        select.options[option.index].selected = true;
-        changePlateSelection();
-    }
+    return parentChildMapping;
 }
 
 function populateModal(){
     $('#modalName').val($('#plateName').val());
     $('#accordion').html("");
-    var freezerPlates = Object.keys(miseqData);
+    var freezerPlates = Object.keys(relationalData);
 
     var panelOpening = '<div class="panel panel-default">';
     var panelClosing = '</div>';
@@ -541,8 +279,8 @@ function populateModal(){
     
     for (var key = 0; key < freezerPlates.length; key++) {
         var fpName = freezerPlates[key];
-        var fpDetails = miseqData[fpName].wells;
-        var process = miseqData[fpName].process;
+        var fpDetails = relationalData[fpName].wells;
+        var process = relationalData[fpName].process;
 
         var wellParagraph = "";
 
@@ -578,72 +316,35 @@ function populateModal(){
     }
 }
 
-function checkTile(well) {
-    var wellName = well.parentNode.id;
-    var fpLabel = quadLabels[$('#fpQuad').val()];
-    if (Object.values(miseqData[$('#freezeName').val()].wells[fpLabel]).indexOf(wellName) == -1) {
-        d3.select(well).style('fill','white');
+function showPlateHistory(parentName) {
+    var parentDetails = relationalData[parentName];
+    var quadrantLabel = quadLabels[$('#quad').val()];
+    var quadrantWells = parentDetails.wells[quadrantLabel];
+    var miWells = Object.keys(quadrantWells);
+    console.log(miWells);
+    wellHistory(0);
+    wellHistory(1);
+    for (var mi = 0; mi < miWells.length; mi++) {
+        var fpID = $('#firstSplit #' + quadrantWells[miWells[mi]] + ' .square')[0].id.split('_')[1];
+        var miID = $('#secondSplit #' + miWells[mi] + ' .square')[0].id.split('_')[1];
+        tracking(miID, fpID);
     }
 }
 
-function clearPlate() {
-    var rects = $('rect').not('.invalid');
-    $('.miWell').map(function() { resetMiseqText(this); });
-    d3.selectAll(rects).style('fill', 'white');
-    d3.selectAll(rects).classed('selected', false);
-    var name = $('#freezeName').val();
-    miseqData[name] = {};
-    console.log("triggered");
-}
-
-function submit() {
-    var plateName = $('#modalName').val();
-    var largePlate = $('#largeBox:checked').val() || 0;
-    var container = {
-        name            : plateName,
-        large           : largePlate,
-        data            : miseqData
-    };
-    var data = JSON.stringify(container);
-    if (plateName != '') {
-        $('#response').attr('class','alert');
-        $.ajax({
-            url: '[% c.uri_for('/api/miseq_plate/') %]',
-            type: 'POST',
-            dataType: 'JSON',
-            data: {
-                json: data
-            },
-            success: function(result) {
-                $('#response').addClass('alert-success');
-                $('#response').text('Created MiSeq Plate: ' + result.name + ' with id: ' + result.id);
-                closeModal();
-            },
-            error: function(err) {
-                $('#response').addClass('alert-danger');
-                $('#response').text('Failed to create MiSeq plate: ' + err.responseJSON.error);
-                closeModal();
-            }
-        });
+function wellHistory(plate) {
+    var fpRelations = findFpWells(relationalData);
+    if (fpRelations === undefined) {
+        return;
     }
-}
+    var fpWells = Object.keys(fpRelations);
+    $('.square').removeClassesExcept('square fpWell miWell');
 
-function closeModal() {
-    $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling
-    $("html, body").animate({
-        scrollTop: 0
-    }, 600);
-}
+    fpWells.forEach(function(fp) {
+        d3.select('#firstSplit #' + fp + ' rect').classed('selected', true);
+        d3.select('#secondSplit #' + fpRelations[fp] + ' rect').classed('selected', true);
+    });
+    d3.selectAll('.selected').style('fill', colourHash['green']);
 
-function changeQuad(selectVal, splitID, gridClass) {
-    var quadDef = selectVal.split('_');
-    $('#' + splitID).html('');
-    grid = d3.select("#" + splitID)
-        .append("svg")
-        .attr("width","610px")
-        .attr("height","410px");
-    setupPlate(grid, gridClass, quadDef[0], quadDef[1]);
-    addWellNames();
+    return;
 }
-
 </script>

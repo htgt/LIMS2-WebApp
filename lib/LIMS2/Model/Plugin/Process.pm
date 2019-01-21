@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Process;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Process::VERSION = '0.508';
+    $LIMS2::Model::Plugin::Process::VERSION = '0.523';
 }
 ## use critic
 
@@ -126,6 +126,7 @@ sub delete_process {
     my @related_resultsets = qw(  process_backbone process_bacs process_cassette process_design
                                   process_input_wells process_output_wells process_recombinases
                                   process_cell_line process_crispr process_nuclease
+                                  process_crispr_pair process_crispr_group
                                   process_global_arm_shortening_design
                                   process_crispr_tracker_rna
                                   process_parameters process_guided_type
@@ -173,6 +174,27 @@ sub get_process_plate_types {
     my $validated_params = $self->check_params( $params, $self->pspec_get_process_plate_types );
 
     return process_plate_types( $self, $validated_params->{process_type} );
+}
+
+sub pspec_append_process {
+    return {
+        type         => { validate => 'existing_process_type' },
+        input_wells  => { optional => 1 },
+        output_wells => { optional => 1 },
+    };
+}
+
+sub append_process {
+    my ( $self, $params ) = @_;
+
+    my $validated_params = $self->check_params($params, $self->pspec_append_process);
+    my @output_wells = $validated_params->{output_wells};
+    my @well_rs;
+    foreach my $output (@output_wells) {
+        push @well_rs, $self->model('Golgi')->schema->resultset('Well')->find({ id => $output });
+    }
+
+    return;
 }
 
 1;

@@ -1,7 +1,7 @@
 package LIMS2::AlleleRequest;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::AlleleRequest::VERSION = '0.508';
+    $LIMS2::AlleleRequest::VERSION = '0.523';
 }
 ## use critic
 

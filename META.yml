@@ -135,6 +135,7 @@ requires:
   LIMS2::Util::TraceServer: 0
   LIMS2::Util::WGE: 0
   LWP::UserAgent: 0
+  List::Compare::Functional: 0
   List::MoreUtils: 0
   List::Util: 0
   Log::Log4perl: 0
@@ -161,6 +162,7 @@ requires:
   Perl6::Slurp: 0
   Pod::Usage: 0
   Readonly: 0
+  SQL::Abstract: 0
   Scalar::Util: 0
   Selenium::Firefox: 0
   Spreadsheet::XLSX: 0
@@ -198,4 +200,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.508
+version: 0.523

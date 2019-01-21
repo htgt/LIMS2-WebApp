@@ -71,6 +71,8 @@ sub manage_projects_tests : Test(22) {
         targeting_type => 'single_targeted',
         sponsor => 'Core',
         cell_line_id => 10, # BOBSC-T6/8_B1
+        programme => 'Other',
+        lab_head => 'Other',
     );
     $mech->click_button( name => 'create_project');
     $mech->content_contains('New project created');

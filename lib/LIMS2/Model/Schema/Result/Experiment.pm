@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Experiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.508';
+    $LIMS2::Model::Schema::Result::Experiment::VERSION = '0.523';
 }
 ## use critic
 
@@ -145,6 +145,20 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<experiments_assigned_trivial_key>
+
+=over 4
+
+=item * L</assigned_trivial>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("experiments_assigned_trivial_key", ["assigned_trivial"]);
+
 =head1 RELATIONS
 
 =head2 crispr
@@ -227,6 +241,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 miseq_experiments
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqExperiment>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_experiments",
+  "LIMS2::Model::Schema::Result::MiseqExperiment",
+  { "foreign.experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 project_experiments
 
 Type: has_many
@@ -263,8 +292,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-04-13 16:36:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TNpeqj/Yy9aR/nYp6SNCUQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j6HiANndPVnIQd1PckT/jQ
 
 __PACKAGE__->has_one(
   'trivial',
@@ -274,7 +303,7 @@ __PACKAGE__->has_one(
 );
 with qw( LIMS2::Model::Util::Trivial );
 
-sub as_hash{
+sub as_hash {
     my $self = shift;
 
     return {
@@ -288,43 +317,43 @@ sub as_hash{
     };
 }
 
-sub as_hash_with_detail{
+sub as_hash_with_detail {
     my $self = shift;
 
     my $info = $self->as_hash;
 
     $info->{gene_id} = $self->gene_id;
 
-    if(my $design = $self->design){
+    if (my $design = $self->design) {
         my @design_primers = map { $_->as_hash } $design->genotyping_primers;
         $info->{design_genotyping_primers} = \@design_primers;
     }
 
     my @crisprs;
     my @crispr_entities;
-    if(my $crispr = $self->crispr){
+    if (my $crispr = $self->crispr) {
         push @crisprs, $crispr;
         push @crispr_entities, $crispr;
     }
-    if(my $pair = $self->crispr_pair){
+    if (my $pair = $self->crispr_pair) {
         push @crisprs, $pair->left_crispr, $pair->right_crispr;
         push @crispr_entities, $pair;
     }
-    if(my $group = $self->crispr_group){
+    if (my $group = $self->crispr_group) {
         push @crisprs, $group->crisprs;
         push @crispr_entities, $group;
     }
 
-    if(@crisprs){
+    if (@crisprs) {
         my @crispr_info;
-        foreach my $crispr (@crisprs){
+        foreach my $crispr (@crisprs) {
             my $crispr_detail =  {
                 id        => $crispr->id,
                 seq       => $crispr->seq,
                 pam_right => !defined $crispr->pam_right ? '' : $crispr->pam_right == 1 ? 'true' : 'false',
             };
 
-            if(my $locus = $crispr->current_locus){
+            if (my $locus = $crispr->current_locus) {
                 $crispr_detail->{chr_name}  = $locus->chr->name;
                 $crispr_detail->{chr_start} = $locus->chr_start;
                 $crispr_detail->{chr_end}   = $locus->chr_end;
@@ -335,7 +364,7 @@ sub as_hash_with_detail{
         $info->{crisprs} = \@crispr_info;
     }
 
-    if(@crispr_entities){
+    if (@crispr_entities) {
         my @primers;
         foreach my $entity (@crispr_entities){
             foreach my $primer ($entity->crispr_primers){
@@ -348,37 +377,37 @@ sub as_hash_with_detail{
 }
 
 # Grab the first design or crispr entity we find so we can get chromosome info etc from it
-sub _related_entity{
+sub _related_entity {
     my $self = shift;
     my ($related_entity) = grep { $_ } ( $self->crispr, $self->crispr_pair, $self->crispr_group, $self->design );
     return $related_entity;
 }
 
-sub species_id{
+sub species_id {
     my $self = shift;
     return $self->_related_entity->species_id;
 }
 
-sub chr_name{
+sub chr_name {
     my $self = shift;
     return $self->_related_entity->chr_name;
 }
 
-sub crispr_description{
+sub crispr_description {
     my $self = shift;
 
     my $description = "";
-    if(my $crispr = $self->crispr){
+    if (my $crispr = $self->crispr) {
         my $location = $self->_chr_location($crispr);
         $description.= "Single crispr ".$crispr->id." ($location)\n";
     }
 
-    if(my $pair = $self->crispr_pair){
+    if (my $pair = $self->crispr_pair) {
         my $location = $self->_chr_location($pair);
         $description.= "Crispr pair ".$pair->id." ($location)\n";
     }
 
-    if(my $group = $self->crispr_group){
+    if (my $group = $self->crispr_group) {
         my $location = $self->_chr_location($group);
         my $count = scalar $group->crisprs;
         $description.="Crispr group ".$group->id
@@ -388,18 +417,18 @@ sub crispr_description{
     return $description;
 }
 
-sub crisprs{
+sub crisprs {
     my $self = shift;
     my @crisprs;
-    if($self->crispr){
+    if ($self->crispr) {
         push @crisprs, $self->crispr;
     }
 
-    if($self->crispr_pair){
+    if ($self->crispr_pair) {
         push @crisprs, ($self->crispr_pair->left_crispr, $self->crispr_pair->right_crispr);
     }
 
-    if($self->crispr_group){
+    if ($self->crispr_group) {
         push @crisprs, $self->crispr_group->crisprs;
     }
     return @crisprs;
@@ -407,25 +436,32 @@ sub crisprs{
 
 # In practice experiments seem to have only 1 of crispr, pair or group
 # but this is an assumption and is not restricted by the schema
-sub crispr_entity{
+sub crispr_entity {
     my $self = shift;
-    if($self->crispr){
+    if ($self->crispr) {
         return $self->crispr;
     }
 
-    if($self->crispr_pair){
+    if ($self->crispr_pair) {
         return $self->crispr_pair;
     }
 
-    if($self->crispr_group){
+    if ($self->crispr_group) {
         return $self->crispr_group;
     }
     return;
 }
-sub _chr_location{
+
+sub _chr_location {
     my ($self, $entity) = @_;
     my $location = "chr".$entity->chr_name.":".$entity->start."-".$entity->end;
     return $location;
+}
+
+sub miseq_experiment {
+    my $self = shift;
+
+    return $self->miseq_experiments;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
