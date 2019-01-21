@@ -95,11 +95,6 @@ sub cre_bac_recom_backbone {
         'pTARBAC1(RP24) with HPRT3-9 without PUC Linker' );
 }
 
-sub binary {
-    my $self = shift;
-    return $self;
-}
-
 sub plate_name {
     return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }

@@ -56,7 +56,7 @@ sub migrate_crispresso_subs {
             crispr  =>  $job ->{crispr},
             date_stamp  =>  $job->{date}
         };
-    
+
     my $check_rs = $model->schema->resultset('CrispressoSubmission')->search( { id => $data->{miseq_well_experiment}->{id} } );
     if ( $check_rs->count >= 1 ) {
         print("Skipped. Job submission has already been loaded. \n");

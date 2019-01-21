@@ -26,7 +26,6 @@ use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
 use JSON;
 use File::Find;
-use Data::Dumper;
 use Const::Fast;
 use List::Util qw( sum );
 use List::MoreUtils qw( uniq );
@@ -534,7 +533,7 @@ sub generate_summary_data {
             my $percentages;
             my $details;
             $index = $converter->{$well_exp->{well_name}};
-            
+
             push (@indexes, $index);
 
             $details->{class}       = $well_exp->{classification};
@@ -576,13 +575,13 @@ sub generate_summary_data {
         $overview->{$miseq_exp->{name}} = \@gene;
     }
 
-    for (my $index = 1; $index < 385; $index++) {
-        unless ($wells->{sprintf("%02d", $index)}){
-            $wells->{sprintf("%02d", $index)}->{percentages} = undef;
-            $wells->{sprintf("%02d", $index)}->{details} = undef;
+    for (my $i = 1; $i < 385; $i++) {
+        unless ($wells->{sprintf("%02d", $i)}){
+            $wells->{sprintf("%02d", $i)}->{percentages} = undef;
+            $wells->{sprintf("%02d", $i)}->{details} = undef;
 
-            $wells->{sprintf("%02d", $index)}->{gene} = [];
-            $wells->{sprintf("%02d", $index)}->{experiments} = [];
+            $wells->{sprintf("%02d", $i)}->{gene} = [];
+            $wells->{sprintf("%02d", $i)}->{experiments} = [];
             }
     }
     return {
@@ -691,7 +690,7 @@ sub read_alleles_frequency_file {
 #The method beloow works, but does not have refference sequences. Therefore, for the time it is not used.
 sub read_alleles_frequency_file_db {
     my ($c, $miseq_well_experiment_hash, $threshold, $percentage_bool) = @_;
-    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( 
+    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search(
          { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} }
     );
     my $alleles_count = $frequency_rs->count;
@@ -714,7 +713,7 @@ sub read_alleles_frequency_file_db {
     else{
         print "No alleles frequency data found in the database.";
     }
-    
+
     my $res;
     if ($percentage_bool) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);

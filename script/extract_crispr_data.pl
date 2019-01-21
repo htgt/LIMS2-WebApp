@@ -20,7 +20,7 @@ chop(my @lines = <$th>);
 close($th);
 
 my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
-open my $ch, '>', 'criprs.csv' or die 'Could not create example file';
+open my $ch, '>', 'crisprs.csv' or die 'Could not create example file';
 $csv->print( $ch, [qw/Experiment MiseqPlate Well Crispr Aligned_Sequence Number_Of_Reads Percentage Date/] );
 close($ch);
 
@@ -61,7 +61,7 @@ while (@lines){ #foreach file from the list of file directories
                 $job->{date}
         );
 
-        open my $fh, '>>', 'criprs.csv' or die 'Could not open crispr file';
+        open my $fh, '>>', 'crisprs.csv' or die 'Could not open crispr file';
         $csv->print($fh, \@array);
         print Dumper "WROTE FILE: $file";
         close($fh);

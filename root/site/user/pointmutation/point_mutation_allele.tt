@@ -403,16 +403,15 @@ $(document).ready(function() {
         });
     });
     console.log(exps);
-
-for (var expIndex = 0; expIndex < exps.length; expIndex++) {
     var indels = '[% indel_stats %]';
     indels = jsonify(indels);
-    var selection = exps[expIndex];
-    JSON.stringify(selection);
-    var data = indels[selection];
 
-    buildImages(selection,data);
-}
+    for (var expIndex = 0; expIndex < exps.length; expIndex++) {
+        var selection = exps[expIndex];
+        JSON.stringify(selection);
+        var data = indels[selection];
+        buildImages(selection,data);
+    }
     
     var expSel = '[% selection %]';
     if (expSel) {
@@ -484,13 +483,6 @@ function displayIndels(exp) {
 function toggleTable(table) {
     var expTable = document.getElementById(table);
     expTable.style.display = (expTable.style.display == "table") ? "none" : "table";
-}
-
-function mysortfunction(a,b) {
-  a = a.replace(/"/g,'');
-  b = b.replace(/"/g,'');
-
-  return (a - b);
 }
 
 function buildImages(selection, data) {
@@ -790,9 +782,6 @@ function createTable(exp, result) {
     if ($('#styles').prop("checked") == true) {
         $('.seq' + exp).find('span').toggleClass('baseSwitch');
     }
-
-    //Crispresso update added a column not required by the lab. Hiding it temporarily.
-    // $('#' + tableID + ' td:nth-child(2), th:nth-child(2)').hide();
 }
 
 function showAll() {

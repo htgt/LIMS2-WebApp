@@ -10,13 +10,8 @@ use Moose;
 use Text::CSV;
 use LIMS2::Model::Util::Miseq qw( miseq_well_processes convert_index_to_well_name );
 use List::Compare::Functional qw( get_intersection );
-use LIMS2::Model::Util::ImportCrispressoQC qw( 
-                                                get_data_from_file 
-                                                migrate_quant_file 
-                                                update_miseq_exp 
-                                                migrate_images 
-                                                migrate_frequencies
-                                            );
+use LIMS2::Model::Util::ImportCrispressoQC qw( get_data_from_file migrate_quant_file update_miseq_exp migrate_images migrate_frequencies );
+
 
 #ENTRY
 my $model = LIMS2::Model->new( { user => 'tasks' } );

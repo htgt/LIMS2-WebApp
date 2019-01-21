@@ -163,7 +163,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
         0 => 96,
         1 => 384,
     };
-    my $var;
+    my $exp_hash;
     my $indels;
     my $counter = 0;
     while ( my $exp = $exps[0][$counter]->{id} ) {
@@ -174,33 +174,27 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
             my $row = shift @indel;
             $indels->{$exp}->{$row->{indel_size}} = $row->{frequency};
             $sum += $row->{frequency};
-
         }
-
-
         if ($miseq_well_exp->{total_reads}) {
             $indels->{$exp}->{'0'} = $miseq_well_exp->{total_reads} - $sum;
-            
             my $min = min keys %{$indels->{$exp}};
             my $max = max keys %{$indels->{$exp}};
-        
             for (my $i=$min -1; $i <= $max + 1; $i++) {
                 unless (exists $indels->{$exp}->{$i}) {
                     $indels->{$exp}->{$i}=0;
                 }
-                my $temp = {
+                my $indel_freq = {
                     indel       =>  $i,
                     frequency   =>  $indels->{$exp}->{$i}
                 };
 
-                push @{$var->{$exp}}, $temp;
+                push @{$exp_hash->{$exp}}, $indel_freq;
             }
-
         }
         $counter++;
     }
-    if ($var) {
-        $c->stash(indel_stats => encode_json($var));
+    if ($exp_hash) {
+        $c->stash(indel_stats => encode_json($exp_hash));
     }
     $c->stash(
         miseq           => $miseq,
@@ -442,7 +436,6 @@ sub get_well_exp_graphs_old {
             push (@exps, $rs);
         }
     }
-
     @exps = sort { $a->{id} cmp $b->{id} } @exps;
 
     return \@exps;

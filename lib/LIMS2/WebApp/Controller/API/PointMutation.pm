@@ -257,18 +257,18 @@ sub get_frequency_data{
     push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
     $limit = $cou if ($limit > $cou);
     if ($limit > 0){
-            for my $i (1..$limit){
-                my $hash = $frequency_rs->next->as_hash;
-                my $sum = $hash->{n_reads};
-                my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
-                push @lines,
-                    $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
-                    $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
-                    $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
-                    $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
-                    $percentage;
-                }
-            }
+        for my $i (1..$limit){
+            my $hash = $frequency_rs->next->as_hash;
+            my $sum = $hash->{n_reads};
+            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
+            push @lines,
+                $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
+                $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
+                $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
+                $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                $percentage;
+        }
+    }
     elsif($frequency_rs->count < 1){
         print "No results";
     }
