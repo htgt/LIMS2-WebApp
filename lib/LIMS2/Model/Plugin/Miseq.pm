@@ -160,6 +160,9 @@ sub pspec_create_miseq_well_experiment {
         frameshifted    => { validate => 'boolean', optional => 1 },
         status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'},
         total_reads     => { validate => 'integer', optional => 1},
+        nhej_reads      => { validate => 'integer', optional => 1},
+        hdr_reads       => { validate => 'integer', optional => 1},
+        mixed_reads     => { validate => 'integer', optional => 1},
     };
 }
 
@@ -172,7 +175,7 @@ sub create_miseq_well_experiment {
     my $miseq = $self->schema->resultset('MiseqWellExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( well_id miseq_exp_id classification frameshifted status total_reads)
+                qw( well_id miseq_exp_id classification frameshifted status total_reads nhej_reads hdr_reads mixed_reads)
             )
         }
     );
