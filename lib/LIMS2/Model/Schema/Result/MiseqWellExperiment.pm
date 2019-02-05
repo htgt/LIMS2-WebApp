@@ -268,7 +268,6 @@ sub as_hash{
         hdr_reads           => $self->hdr_reads,
         mixed_reads         => $self->mixed_reads,
     );
-
     return \%h;
 }
 
