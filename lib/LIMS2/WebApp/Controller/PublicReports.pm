@@ -252,10 +252,11 @@ sub _view_cached_top_level_report {
         if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\d+.\d+.\d+.\d+:\d+\//) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
     my $file_stats = stat($cached_file_name) or die "$cached_file_name not found: $!";
@@ -339,10 +340,11 @@ sub _view_cached_csv {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\d+.\d+.\d+.\d+:\d+\//) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -650,13 +652,14 @@ sub _view_cached_lines {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /https?:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\d+.\d+.\d+.\d+:\d+\//) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
     my $suffix = '.html';
     if ($simple) {$suffix = '_simple.html'}
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
 
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )
