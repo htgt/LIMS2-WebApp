@@ -121,7 +121,6 @@ requires:
   Image::PNG: 0
   Iterator::Simple: 0
   JSON: 0
-  LIMS2::Context: 0
   LIMS2::Exception: 0
   LIMS2::Exception::Database: 0
   LIMS2::Exception::Implementation: 0
@@ -206,4 +205,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.524
+version: 0.525
