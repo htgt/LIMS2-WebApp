@@ -1,24 +1,134 @@
 package LIMS2::Model::Plugin::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Miseq::VERSION = '0.515';
+    $LIMS2::Model::Plugin::Miseq::VERSION = '0.524';
 }
 ## use critic
 
 
 use strict;
 use warnings FATAL => 'all';
-
 use Moose::Role;
-
 use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;
 use Try::Tiny;
 use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use LIMS2::Model::Util::Miseq qw( miseq_well_processes );
+use Data::Dumper;
 
 requires qw( schema check_params throw retrieve log trace );
+
+
+
+
+sub pspec_create_crispr_submission{
+    return {
+        id                              => { validate => 'existing_miseq_well_exp'          },
+        crispr                          => { validate => 'non_empty_string', optional => 1  },
+        date_stamp                      => { validate => 'non_empty_string', optional => 1  },
+    };
+}
+
+sub create_crispr_submission{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_crispr_submission);
+
+    $self->schema->resultset('CrispressoSubmission')->create(
+           { slice_def(
+                   $validated_params,
+                   qw(id crispr date_stamp)
+               )
+           }
+       );
+    $self->log->info('Created crispresso submission entry');
+    return;
+
+}
+
+
+sub pspec_create_indel_distribution_graph{
+    return {
+        id                              => { validate => 'existing_miseq_well_exp'          },
+        indel_size_distribution_graph   => { validate => 'non_empty_string', optional => 1  }
+    };
+}
+
+sub create_indel_distribution_graph{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_indel_distribution_graph);
+
+    $self->schema->resultset('IndelDistributionGraph')->create(
+           { slice_def(
+                   $validated_params,
+                   qw( id indel_size_distribution_graph )
+               )
+           }
+       );
+    $self->log->info('Created Indel Distribution Graph for miseq well experiment ');
+    return;
+
+}
+
+
+sub pspec_create_miseq_alleles_frequency{
+    return  {
+            miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'        },
+            aligned_sequence          =>  { validate => 'non_empty_string'               },
+            nhej                      =>  { validate => 'boolean_string'                 },
+            unmodified                =>  { validate => 'boolean_string'                 },
+            hdr                       =>  { validate => 'boolean_string'                 },
+            n_deleted                 =>  { validate => 'integer'                        },
+            n_inserted                =>  { validate => 'integer'                        },
+            n_mutated                 =>  { validate => 'integer'                        },
+            n_reads                   =>  { validate => 'integer'                        }
+        };
+}
+
+
+sub create_miseq_alleles_frequency{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_create_miseq_alleles_frequency);
+
+    my $miseq_frequency = $self->schema->resultset('MiseqAllelesFrequency')->create(
+           { slice_def(
+                   $validated_params,
+                   qw( miseq_well_experiment_id aligned_sequence nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
+               )
+           }
+       );
+    $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
+    return $miseq_frequency;
+}
+
+
+sub pspec_create_indel_histogram{
+    return  {
+        miseq_well_experiment_id    => { validate => 'existing_miseq_well_exp'  },
+        indel_size                  => { validate => 'integer'                  },
+        frequency                   => { validate => 'integer'                  }
+    };
+}
+
+
+sub create_indel_histogram{
+    my ($self, $params) = @_;
+    my $validated_params = $self->check_params($params, pspec_create_indel_histogram);
+
+    my $entry = $self->schema->resultset('IndelHistogram')->create(
+            { slice_def(
+                    $validated_params,
+                    qw( miseq_well_experiment_id indel_size frequency )
+                )
+            }
+        );
+    $self->log->info('Created indel entry with id= ' . $entry->id);
+    return 1;
+}
+
 
 sub pspec_create_miseq_plate {
     return {
@@ -29,11 +139,11 @@ sub pspec_create_miseq_plate {
 }
 # input will be in the format a user trying to create a plate will use
 # we need to convert this into a format expected by create_well
+
 sub create_miseq_plate {
     my ($self, $params) = @_;
 
     my $validated_params = $self->check_params($params, pspec_create_miseq_plate);
-
     my $miseq = $self->schema->resultset('MiseqPlate')->create(
         {   slice_def(
                 $validated_params,
@@ -47,6 +157,7 @@ sub create_miseq_plate {
     return $miseq;
 }
 
+
 sub pspec_create_miseq_well_experiment {
     return {
         well_id         => { validate => 'existing_well_id' },
@@ -54,6 +165,7 @@ sub pspec_create_miseq_well_experiment {
         classification  => { validate => 'existing_miseq_classification' },
         frameshifted    => { validate => 'boolean', optional => 1 },
         status          => { validate => 'existing_miseq_status', optional => 1, default => 'Plated'},
+        total_reads     => { validate => 'integer', optional => 1},
     };
 }
 
@@ -61,29 +173,34 @@ sub pspec_create_miseq_well_experiment {
 # we need to convert this into a format expected by create_well
 sub create_miseq_well_experiment {
     my ($self, $params) = @_;
-
     my $validated_params = $self->check_params($params, pspec_create_miseq_well_experiment);
 
     my $miseq = $self->schema->resultset('MiseqWellExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( well_id miseq_exp_id classification frameshifted status )
+                qw( well_id miseq_exp_id classification frameshifted status total_reads)
             )
         }
     );
-
-    return;
+    return $miseq;
 }
+
 
 sub pspec_update_miseq_well_experiment {
     return {
-        id              => { validate => 'existing_miseq_well_exp' },
-        miseq_exp_id    => { validate => 'existing_miseq_experiment', optional => 1 },
-        classification  => { validate => 'existing_miseq_classification', optional => 1 },
-        frameshifted    => { validate => 'boolean', optional => 1 },
-        status          => { validate => 'existing_miseq_status', optional => 1 }
+        id                              => { validate => 'existing_miseq_well_exp' },
+        miseq_exp_id                    => { validate => 'existing_miseq_experiment', optional => 1 },
+        classification                  => { validate => 'existing_miseq_classification', optional => 1 },
+        frameshifted                    => { validate => 'boolean', optional => 1 },
+        status                          => { validate => 'existing_miseq_status', optional => 1 },
+        well_id                         => { validate => 'existing_well_id', optional => 1 },
+        nhej_reads                      => { validate => 'integer', optional => 1 },
+        total_reads                     => { validate => 'integer', optional => 1 },
+        hdr_reads                       => { validate => 'integer', optional => 1 },
+        mixed_reads                     => { validate => 'integer', optional => 1 },
     };
 }
+
 
 sub update_miseq_well_experiment {
     my ($self, $params) = @_;
@@ -96,27 +213,36 @@ sub update_miseq_well_experiment {
     my $well = $self->retrieve( MiseqWellExperiment => \%search );
     my $hash_well = $well->as_hash;
     my $class;
-    $class->{classification} = $validated_params->{classification} ? $validated_params->{classification} : $hash_well->{classification};
-    $class->{miseq_exp_id} = $validated_params->{miseq_exp_id} ? $validated_params->{miseq_exp_id} : $hash_well->{miseq_exp_id};
-    $class->{frameshifted} = $validated_params->{frameshifted} ? $validated_params->{frameshifted} : $hash_well->{frameshifted};
-    $class->{status} = $validated_params->{status} ? $validated_params->{status} : $hash_well->{status};
-
-    my $update = $well->update($class);
+    $class->{id} = check_undef($validated_params->{id}, $hash_well->{id});
+    $class->{classification} =check_undef( $validated_params->{classification}, $hash_well->{classification});
+    $class->{miseq_exp_id} = check_undef($validated_params->{miseq_exp_id}, $hash_well->{miseq_exp_id});
+    $class->{frameshifted} = check_undef($validated_params->{frameshifted}, $hash_well->{frameshifted});
+    $class->{status} = check_undef($validated_params->{status}, $hash_well->{status});
+    $class->{total_reads} = check_undef($validated_params->{total_reads}, $hash_well->{total_reads});
+    $class->{nhej_reads} = check_undef($validated_params->{nhej_reads}, $hash_well->{nhej_reads});
+    $class->{hdr_reads} = check_undef($validated_params->{hdr_reads}, $hash_well->{hdr_reads});
+    $class->{mixed_reads} = check_undef($validated_params->{mixed_reads}, $hash_well->{mixed_reads});
+    $well->update($class);
 
     return;
 }
+
+
+
+
 
 sub pspec_create_miseq_experiment {
     return {
         miseq_id        => { validate => 'existing_miseq_plate' },
         name            => { validate => 'non_empty_string' },
         gene            => { validate => 'non_empty_string' },
+        nhej_reads      => { validate => 'integer' },
         parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
         experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
-        mutation_reads  => { validate => 'integer' },
         total_reads     => { validate => 'integer' },
     };
 }
+
 
 # input will be in the format a user trying to create a plate will use
 # we need to convert this into a format expected by create_well
@@ -128,7 +254,7 @@ sub create_miseq_experiment {
     my $miseq = $self->schema->resultset('MiseqExperiment')->create(
         {   slice_def(
                 $validated_params,
-                qw( miseq_id name experiment_id parent_plate_id gene mutation_reads total_reads )
+                qw( miseq_id name experiment_id parent_plate_id gene nhej_reads total_reads )
             )
         }
     );
@@ -136,15 +262,19 @@ sub create_miseq_experiment {
     return;
 }
 
+
+
+
+
 sub pspec_update_miseq_experiment {
     return {
         id              => { validate => 'existing_miseq_experiment' },
         miseq_id        => { validate => 'existing_miseq_plate', optional => 1 },
         name            => { validate => 'non_empty_string', optional => 1 },
         gene            => { validate => 'non_empty_string', optional => 1 },
+        nhej_reads      => { validate => 'integer', optional => 1 },
         experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
         parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
-        mutation_reads  => { validate => 'integer', optional => 1 },
         total_reads     => { validate => 'integer', optional => 1 },
     };
 }
@@ -153,25 +283,28 @@ sub update_miseq_experiment {
     my ($self, $params) = @_;
 
     my $validated_params = $self->check_params($params, pspec_update_miseq_experiment);
-
     my %search;
     $search{'me.id'} = $validated_params->{id};
-
     my $exp = $self->retrieve( MiseqExperiment => \%search );
     my $hash_well = $exp->as_hash;
     my $class;
-    $class->{miseq_id} = $validated_params->{miseq_id} || $hash_well->{miseq_id};
-    $class->{name} = $validated_params->{name} || $hash_well->{name};
-    $class->{gene} = $validated_params->{gene} || $hash_well->{gene};
+    $class->{miseq_id} =  check_undef( $validated_params->{miseq_id}, $hash_well->{miseq_id} );
+    $class->{name} =  check_undef( $validated_params->{name}, $hash_well->{name} );
+    $class->{gene} =  check_undef( $validated_params->{gene}, $hash_well->{gene} );
+    $class->{nhej_reads} = check_undef( $validated_params->{nhej_reads}, $hash_well->{nhej_count} );
+    $class->{total_reads} = check_undef( $validated_params->{total_reads}, $hash_well->{read_count} );
+
     $class->{experiment_id} = $validated_params->{experiment_id} || $hash_well->{experiment_id};
     $class->{parent_plate_id} = $validated_params->{parent_plate_id} || $hash_well->{parent_plate_id};
-    $class->{mutation_reads} = $validated_params->{mutation_reads} || $hash_well->{nhej_count};
-    $class->{total_reads} = $validated_params->{total_reads} || $hash_well->{read_count};
     $class->{old_miseq_id} = $hash_well->{old_miseq_id};
+
     my $update = $exp->update($class);
 
-    return;
+    return $update;
 }
+
+
+
 
 sub pspec_miseq_plate_creation_json {
     return {
@@ -183,6 +316,7 @@ sub pspec_miseq_plate_creation_json {
         species         => { validate => 'existing_species' },
     };
 }
+
 
 sub miseq_plate_creation_json {
     my ($self, $params) = @_;
@@ -211,6 +345,11 @@ sub miseq_plate_creation_json {
     return $miseq_plate;
 }
 
+
+
+
+
+
 sub pspec_create_primer_preset {
     return {
         name                => { validate => 'alphanumeric_string' },
@@ -221,6 +360,7 @@ sub pspec_create_primer_preset {
         primers             => { validate => 'primer_set' },
     };
 }
+
 
 sub create_primer_preset {
     my ($self, $params) = @_;
@@ -297,6 +437,12 @@ sub create_primer_preset {
     return $design_preset;
 }
 
+
+
+
+
+
+
 sub pspec_edit_primer_preset {
     return {
         id                  => { validate => 'existing_preset_id' },
@@ -337,12 +483,19 @@ sub edit_primer_preset {
     return $preset_update;
 }
 
+
+
+
+
+
+
 sub pspec_update_hdr_template {
     return {
         id  => { validate => 'existing_design_id', rename => 'design_id' },
         seq => { validate => 'dna_seq', rename => 'template' },
     };
 }
+
 
 sub update_hdr_template {
     my ($self, $params) = @_;
@@ -364,6 +517,12 @@ sub update_hdr_template {
 
     return $hdr_rc;
 }
+
+
+
+
+
+
 
 sub find_primer_params {
     my ($self, $id) = @_;
@@ -417,5 +576,19 @@ sub primer_param {
 
     return $validated->{primers}->{$section}->{widths}->{$param} || $reference->{primers}->{$section}->{widths}->{$param};
 }
+
+sub check_undef{
+    my ($updated, $existing) = @_;
+    if (defined $updated){
+           return $updated;
+    }
+    else{
+        if(defined $existing){
+            return $existing;
+        }
+    }
+    return "0";
+}
+
 
 1;

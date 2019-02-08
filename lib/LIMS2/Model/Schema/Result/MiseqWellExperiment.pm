@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqWellExperiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqWellExperiment::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::MiseqWellExperiment::VERSION = '0.524';
 }
 ## use critic
 
@@ -81,6 +81,26 @@ __PACKAGE__->table("miseq_well_experiment");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 total_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 hdr_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 mixed_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 nhej_reads
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -101,6 +121,14 @@ __PACKAGE__->add_columns(
   { data_type => "boolean", default_value => \"false", is_nullable => 1 },
   "status",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "total_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "hdr_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "mixed_reads",
+  { data_type => "integer", is_nullable => 1 },
+  "nhej_reads",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -135,6 +163,51 @@ __PACKAGE__->belongs_to(
     on_delete     => "CASCADE",
     on_update     => "CASCADE",
   },
+);
+
+=head2 crispresso_submission
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::CrispressoSubmission>
+
+=cut
+
+__PACKAGE__->might_have(
+  "crispresso_submission",
+  "LIMS2::Model::Schema::Result::CrispressoSubmission",
+  { "foreign.id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 indel_histograms
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::IndelHistogram>
+
+=cut
+
+__PACKAGE__->has_many(
+  "indel_histograms",
+  "LIMS2::Model::Schema::Result::IndelHistogram",
+  { "foreign.miseq_well_experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 miseq_alleles_frequencies
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::MiseqAllelesFrequency>
+
+=cut
+
+__PACKAGE__->has_many(
+  "miseq_alleles_frequencies",
+  "LIMS2::Model::Schema::Result::MiseqAllelesFrequency",
+  { "foreign.miseq_well_experiment_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 miseq_exp
@@ -183,10 +256,10 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-14 16:12:28
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r2SH7Oo75nCsoGyqDd2qlg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-11 09:54:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1TEF+W3Ae/dm9IUkDWIX/w
 
-sub as_hash {
+sub as_hash{
     my $self = shift;
 
     my %h = (
@@ -197,6 +270,10 @@ sub as_hash {
         frameshifted        => $self->frameshifted,
         well_name           => $self->well->name,
         status              => $self->status->id,
+        total_reads         => $self->total_reads,
+        nhej_reads          => $self->nhej_reads,
+        hdr_reads           => $self->hdr_reads,
+        mixed_reads         => $self->mixed_reads,
     );
 
     return \%h;

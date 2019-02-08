@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.515';
+    $LIMS2::Test::VERSION = '0.524';
 }
 ## use critic
 
@@ -305,7 +305,12 @@ sub load_static_files {
             GuidedType
             TrivialOffset
             Pipeline
-            )
+            MiseqClassification
+            MiseqStatus
+            LabHead
+            Programme
+        )
+
     );
 
     for my $table (@reference_tables) {
@@ -376,6 +381,11 @@ sub load_dynamic_files {
             TrivialOffset
             MiseqDesignPreset
             MiseqPrimerPreset
+            indel_histogram
+            crispresso_submissions
+            MiseqPlate
+            MiseqExperiment
+            MiseqWellExperiment
         )
     );
 
