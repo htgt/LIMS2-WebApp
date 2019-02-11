@@ -419,7 +419,7 @@ sub save_json_report {
         default  { die 'Error finding path for cached sponsor report'; }
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
     print $json_fh $json_data;
