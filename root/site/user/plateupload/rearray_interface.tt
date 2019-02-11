@@ -1,0 +1,586 @@
+<style>
+
+.freezerPlate {
+    margin-left: 12px;
+}
+
+body {
+    padding-bottom: 70px;
+}
+
+h4 {
+    display:inline;
+}
+
+.colourKeySquare {
+    width: 20px;
+    height: 20px;
+}
+
+.wellText {
+    pointer-events: none;
+}
+
+.d3-tip {
+    line-height: 1;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8); /*Black, 80% Opacity*/
+    color: #FFFFFF; /*White*/
+    border-radius: 2px;
+    text-align: center;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8); /*Black, 80% Opacity*/
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+</style>
+
+<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
+
+<script>
+
+$.fn.extend({
+    hasClasses: function (selectors) {
+        for (var i in selectors) {
+            if ($(this).hasClass(selectors[i])) {
+                return true;
+            }
+        }
+        return false;
+    },
+    removeClassesExcept: function(classes) {
+        classes = classes.replace(/ /g, '|');
+        var regex = new RegExp('\\b(?:' + classes + ')\\b\\s*','g');
+        this.removeClass( function() { 
+            return $(this).attr('class').replace(regex, ''); 
+        });
+        return this;    
+    }
+});
+
+var parentPlates = [];
+var startWell = "";
+var relationalData = {};
+var quadLabels = {
+    A_1 : 'first',
+    A_13 : 'second',
+    I_1 : 'third',
+    I_13 : 'fourth'
+};
+
+var colourHash = {
+    orange:     '#FF9D17',
+    blue:       '#2EB4E6',
+    maroon:     '#C32148',
+    yellow:     '#FBE870',
+    flamingo:   '#FC74FD',
+    green:      '#3AA655',
+    carnation:  '#EBB0D7',
+    brown:      '#AF593E',
+    lime:       '#CCFF00',
+    silver:     '#C9C0BB',
+    ultramarine:'#0066FF',
+    sunset:     '#FFB97B',
+    blueGreen:  '#0D98BA',
+    redViolet:  '#C0448F',
+    redOrange:  '#FF5349',
+    apple:      '#9DE093',
+    blueViolet: '#7366BD',
+    violet:     '#835953',
+    shamrock:   '#33CC99', 
+    violetRed:  '#F75394',
+    midnight:   '#702670',
+    sky:        '#76D7EA',
+    apricot:    '#FDD9B5',
+    venetian:   '#FA5B3D',
+    grey:       '#95918C'
+};
+
+var colourArr = Object.keys(colourHash);
+var greyIndex = colourArr.indexOf('grey'); //Used to show empty wells in FP plates
+if (greyIndex > -1) {
+    colourArr.splice(greyIndex, 1);
+}
+var selectedColour = 'yellow';
+var assignedColours = {};
+
+var freezeGrid = d3.select("#firstSplit")
+    .append("svg")
+    .attr("width", "610px")
+    .attr("height", "410px");
+
+var miseqGrid = d3.select("#secondSplit")
+    .append("svg")
+    .attr("width", "610px")
+    .attr("height", "410px");
+
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+        return tooltip($(this))
+    });
+
+$(document).ready(function() {
+    setupPlate(miseqGrid, "miWell", 'A', 1);
+    setupPlate(freezeGrid, "fpWell", 'A', 1);
+    addWellNames();
+    if ($('#freezeName').val() == '-') {
+        d3.selectAll('.fpWell').style('fill', colourHash['grey']);
+    }
+    $('#quadDiv').hide();
+    $('#fpQuadDiv').hide();
+    return;
+});
+
+$('#freezeName').change(function() {
+    changePlateSelection();
+});
+
+$('#largeBox').change(function() {
+    $('#quadDiv').toggle();
+});
+
+$('#process').change(function() {
+    var fp = $('#freezeName').val(); 
+    if (fp != '-') {
+        relationalData[fp].process = $('#process').val();
+    }
+});
+
+$('#fpQuad').change(function() {
+    var quad = $('#fpQuad').val();
+    changeQuad(quad, 'firstSplit', 'fpWell');
+});
+
+$('#quad').change(function() {
+    var quad = $('#quad').val();
+    changeQuad(quad, 'secondSplit', 'miWell');
+});
+
+$("#parentPlate").autocomplete({
+    source: function(request, response) {
+        $.getJSON("[% c.uri_for( '/api/autocomplete/plate_names/' ) %]",
+        {
+            term : $('#parentPlate').val(),
+            type : function() {
+                var parentTypes = 'FP,MISEQ,PIQ';
+                if ( $('.page-header').text().match(/PIQ/) ) {
+                    parentTypes = 'FP,PIQ';
+                }
+                return parentTypes;
+            },
+        }, response);
+    },
+    minLength: 2,
+});
+
+$('#addPlate').click(function() {
+    $.ajax({
+        dataType: 'JSON',
+        url: '[% c.uri_for('/api/miseq_parent_plate_type') %]',
+        data: { name: $('#parentPlate').val().trim() },
+    }).done(function(data){
+        if(data.type){
+            if ( $('.page-header').text().match(/PIQ/) ) {
+                data.colour = 1;
+            }
+            $('#parentCollection').show();
+            if (parentPlates.indexOf(data.name) == -1) {
+                addTableRow(data);
+                addOption(data);
+            }
+        }
+        else if (data.error) {
+            alert(data.error);
+        }
+    });
+});
+
+$('#plateVisual').on('click','rect.fpWell' , function() {
+    if (startWell != '' && !( $(startWell).hasClass(selectedColour) || $(startWell).hasClass('selected') )) {
+        d3.select(startWell).style('fill', 'white');
+    }
+
+    if ($('#freezeName').val() != '-') {
+        startWell = this;
+        d3.select(startWell).style('fill', colourHash[selectedColour])
+    }
+});
+
+$('#directionSwitch').on('click', function() {
+    $(this).find('i').toggleClass('glyphicon-arrow-down').toggleClass('glyphicon-arrow-right');
+});
+
+function validateWells(fp, result) {
+    var resJson = JSON.parse(result);
+    var wells = resJson[fp];
+    test = resJson;
+
+    if (wells.length > 96) {
+        $('#fpQuadDiv').show();
+    } else {
+        $('#fpQuadDiv').hide();
+    }
+
+    for (var index = 0; index < wells.length; index++) {
+        var well = wells[index];
+        var rect = $('#' + well).children('rect')[0];
+        $(rect).addClass('valid');
+    }
+
+    var invalidWells = $('.fpWell').not('.valid');
+    d3.selectAll(invalidWells).style('fill', colourHash['grey']);
+    d3.selectAll(invalidWells).classed('invalid',true);
+    d3.selectAll('.valid').classed('valid',false);
+}
+
+function changePlateSelection() {
+    d3.selectAll('.invalid').classed('invalid',false);
+    var name = $('#freezeName').val();
+    d3.selectAll('.selected').classed('selected',false); 
+    selectedColour = assignedColours[name] || 'yellow';
+    if (name == '-') {
+        d3.selectAll('.fpWell').style('fill', colourHash['grey']);
+    } else {
+        d3.selectAll('.fpWell').style("fill", "white");
+        $.ajax({
+            url: '[% c.uri_for('/api/freezer_wells/') %]',
+            type: "GET",
+            contentType: 'application/json; charset=utf-8',
+            data: {
+                name: name, 
+            },
+            success: function(result){
+                validateWells(name, result);
+            },
+            error: function() {
+                console.log("Failed to retrieve data");
+            }
+        });
+    }
+    
+    if ( $('.page-header').text().match(/PIQ/) ) {
+        displayClassifications(parentMiseqClassifications[name]);
+    } else {
+        clearMiseqPlate();
+    }
+
+    if (name in relationalData) {
+        showPlateHistory(name);
+    } else {
+        wellHistory(0);
+    }
+}
+
+function clearMiseqPlate() {
+    d3.selectAll('.miWell').style("fill", "white");
+    $('.miWell').map(function() { resetMiseqText(this); });
+}
+
+function highlighter(target, start) {
+    if (target.nodeName != 'rect') {
+        target = $(target).siblings('rect')[0];
+    }
+    var index;
+    try {
+        index = target.id;
+    } catch(err) {
+        return;
+    }
+
+    var originIndex = startWell.id.split('_')[1];
+    index = parseInt(index.split('_')[1]);
+    start = parseInt((start === null) ? index: start);
+    
+    d3.selectAll('rect').classed('selecting', false);
+
+    if ($('#directionIcon').hasClass('glyphicon-arrow-right')) {    
+        scanRight(originIndex, start, index);
+    } else {
+        scanDown(originIndex, start, index);
+    }
+   
+    var miseqHandlingClasses = [ "selecting", "selected", "invalid" ];
+    d3.selectAll('rect').filter(function() { 
+        return !$(this).hasClasses(miseqHandlingClasses) && !$(this).hasClasses(colourArr); 
+    }).style('fill', 'white');
+    d3.selectAll('.selecting').style('fill', colourHash[selectedColour]);
+
+    d3.select(target).style('fill', colourHash[selectedColour]);
+    cleanUpSelection(miseqHandlingClasses);
+
+    return index;
+}
+
+function scanRight(originIndex, start, index) {
+    var diff = +originIndex - +start;
+    originID = +start + +diff;
+
+    for (var inc = start; inc <= index; inc++) {
+        originID = selectionHighlighting(inc, originID);
+        originID++;
+    }
+
+    return;
+}
+
+function scanDown(originIndex, start, index) {
+    console.log("Origin: " + originIndex + " start: " + start + " Index: " + index);
+    var childWellIDs = [];
+    var ancestorWellIDs = [];
+
+    if (isNaN(start)) {
+        childWellIDs.push(index);
+        ancestorWellIDs.push(originIndex);
+    }
+    else {
+        var startCoords = getAxisPositions(start);
+        var originCoords = getAxisPositions(originIndex);
+        var targetCoords = getAxisPositions(index);
+        
+        var wellMovementLength = ( targetCoords.column - startCoords.column ) * 8 - ( startCoords.row - targetCoords.row );
+
+        console.log(wellMovementLength);
+        
+        var child = startCoords;
+        var ancestor = originCoords;
+
+        for (var inc = 0; inc <= wellMovementLength; inc++) {
+            var currentChildID = calculateVerticalID(child);
+            var currentAncestorID = calculateVerticalID(ancestor);
+
+            childWellIDs.push(currentChildID);
+            ancestorWellIDs.push(currentAncestorID);
+            
+            child = incrementVerticalPositions(child);
+            ancestor = incrementVerticalPositions(ancestor);
+        }
+    }
+   
+
+    console.log(childWellIDs);
+    console.log(ancestorWellIDs);
+    for (var inc = 0; inc < childWellIDs.length; inc++) {
+        selectionHighlighting(childWellIDs[inc], ancestorWellIDs[inc]);
+    }
+}
+
+function calculateVerticalID(positions) {
+    return (positions.row * 12)  + positions.column;
+}
+
+function incrementVerticalPositions(positions) {
+    positions.row = positions.row + 1;
+
+    if (positions.row > 7) {
+        positions.column = positions.column + 1;
+        positions.row = 0;
+    }
+
+    return positions;
+}
+
+function getAxisPositions(value) {
+    var quot = Math.floor(value / 12); // row length = 12
+    var mod = value % 12;
+
+    return {
+        row: quot,
+        column: mod
+    };
+}
+
+function selectionHighlighting(inc, originID) {
+    if (!document.getElementById('fpWell_' + originID)) {
+        return;
+    }
+    if ($('#fpWell_' + originID).hasClass('invalid')) {
+        return;
+    }
+
+    d3.select('#miWell_' + inc).classed('selecting',true);
+    d3.select('#fpWell_' + originID).classed('selecting',true);
+
+    d3.select('#miWell_' + inc).classed('selected',false);
+    d3.select('#fpWell_' + originID).classed('selected',false);
+    
+    tracking(inc, originID);
+    
+    return originID;
+}
+
+function tracking(miWellID, fpWellID) {
+    var originWell = document.getElementById('fpWell_' + fpWellID);
+    var newWell = $('#miWell_' + miWellID);
+    var originID = originWell.parentNode.id;
+    var textNode = newWell.siblings('text')[0];
+
+    newWell.val(originID);
+
+    var d3TextObj = d3.select(textNode);
+    d3TextObj.text(originID);
+
+    var arrow = d3TextObj.append('tspan')
+        .attr('dx', '-1.1em')
+        .attr('dy', '0.9em');
+    arrow.html('&#8595');
+
+    var destination = d3TextObj.append('tspan')
+        .attr('dx', '-1.20em')
+        .attr('dy', '1em');
+    destination.text(newWell.parents()[0].id);
+
+    return;
+}
+
+
+function cleanUpSelection(miseqHandlingClasses) {
+    var handlingString = '.' + miseqHandlingClasses.join(', .');
+    var colourString = '.' + colourArr.join(', .');
+    var classString = handlingString + ', ' + colourString;
+    var empties = $('.miWell').not(classString);
+    var textEmpties = empties.siblings('text');
+    textEmpties.text(function() { return $(this).parent()[0].id; });
+
+    colourArr.map(function(colour) { d3.selectAll('.' + colour + ':not(.selecting)').style('fill', colourHash[colour])});
+    return;
+}
+
+function resetMiseqText(well) {
+    var wellID = well.parentNode.id;
+    var textNode = $(well).siblings('text')[0];
+    $(textNode).text(wellID);
+
+    return;
+}
+
+function updatePlateName(dir) {
+    if (dir == 0) {
+        $('#miseqName').text($('#plateName').val());
+        $('#modalName').val($('#plateName').val());
+    } else {
+        $('#miseqName').text($('#modalName').val());
+        $('#plateName').val($('#modalName').val());
+    }
+}
+
+function addTableRow(data) {
+    parentPlates.push(data.name);
+
+    var table = document.getElementById('parentCollection');
+    var row = table.insertRow(-1);
+
+    var nameCell = row.insertCell(0);
+    var typeCell = row.insertCell(1);
+    var detailCell = row.insertCell(2);
+    var clearCell = row.insertCell(3);
+
+    nameCell.innerText = data.name;
+    typeCell.innerText = data.type;
+
+    if (data.colour) {
+        var takenColourKeys = Object.keys(assignedColours);
+        var colourCount = Object.keys(assignedColours).length;
+
+        var nextColour;
+        var assignedColourValues = Object.values(assignedColours);
+        var assignedCheck = colourArr.filter( function(i) { return !this.has(i); }, new Set(assignedColourValues) );
+        if (assignedCheck) {
+            nextColour = assignedCheck.shift();
+        } else {
+            nextColour = "grey";
+        }
+
+        assignedColours[data.name] = nextColour;
+        detailCell.innerHTML = '<div class="colourKeySquare" style="background-color:' + colourHash[nextColour] + '"></div>';
+    } else {
+        detailCell.innerText = "Place-holder";
+    }
+    clearCell.innerHTML = '<button class="btn btn-danger" onclick="clearRow(this);"><i class="glyphicon glyphicon-remove"></i> Clear</button>'
+    if ( $('.page-header').text().match(/PIQ/) ) {
+        fetchInheritedMiseqInfo(data.name);
+    }
+    return;
+}
+
+function clearRow(button) {
+    var row = $(button).closest('tr');
+    var name = row[0].cells[0].textContent;
+    delete relationalData[name];
+    $('#freezeName option[value="' + name + '"]').remove();
+    row.remove();
+    changePlateSelection();
+
+    var index = parentPlates.indexOf(name);
+    if (index > -1) {
+        parentPlates.splice(index, 1);
+    }
+    if (assignedColours[name]) {
+        delete assignedColours[name];
+    }
+}
+
+function addOption(data) {
+    var select = document.getElementById('freezeName');
+    var option = document.createElement('option');
+    option.text = option.value = data.name;
+    option.tag = data.type;
+    select.add(option,-1);
+    if ($('#freezeName').val() == '-') {
+        select.options[option.index].selected = true;
+        changePlateSelection();
+    }
+}
+
+function closeModal() {
+    $('#confirmationModal').modal('hide'); //Closing via data-dismiss will disrupt the page scrolling
+    $("html, body").animate({
+        scrollTop: 0
+    }, 600);
+}
+
+function changeQuad(selectVal, splitID, gridClass) {
+    var quadDef = selectVal.split('_');
+    $('#' + splitID).html('');
+    grid = d3.select("#" + splitID)
+        .append("svg")
+        .attr("width", "610px")
+        .attr("height", "410px");
+    setupPlate(grid, gridClass, quadDef[0], quadDef[1]);
+    addWellNames();
+}
+
+function checkTile() {
+    var currentFpMapping = findFpWells(relationalData);
+
+    $('.fpWell.' + selectedColour).map(function(index, well) { 
+        var wellName = well.parentNode.id;
+        if (!(wellName in currentFpMapping)) {
+            d3.select(well).style('fill', 'white');
+        }
+        return;
+    });
+
+    return;
+}
+
+</script>

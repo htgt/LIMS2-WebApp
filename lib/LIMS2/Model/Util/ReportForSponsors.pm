@@ -7,7 +7,6 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick ep_pick_is_het);
 use LIMS2::Model::Util::DesignTargets qw( design_target_report_for_genes );
 use LIMS2::Model::Constants qw( %DEFAULT_SPECIES_BUILD );
-use LIMS2::Model::Util::GenesForSponsor;
 
 use List::Util qw(sum);
 use List::MoreUtils qw( uniq );
@@ -17,6 +16,7 @@ use DateTime;
 use Readonly;
 use Try::Tiny;                              # Exception handling
 use JSON qw( encode_json );
+use POSIX 'strftime';
 use Data::Dumper;
 
 # Uncomment this to add time since last log entry to log output
@@ -75,12 +75,6 @@ has targeting_type => (
     required   => 1,
 );
 
-has sponsor_genes_instance => (
-    is         => 'ro',
-    isa        => 'LIMS2::Model::Util::GenesForSponsor',
-    lazy_build => 1
-);
-
 #----------------------------------------------------------
 # For Front Page Summary Report
 #----------------------------------------------------------
@@ -94,19 +88,21 @@ has sponsors => (
 sub _build_sponsors {
     my $self = shift;
 
-    # select sponsors for the selected species that have projects
-    my $sponsor_ids_rs = $self->select_sponsors_with_projects( );
+    my @sponsors;
 
-    my @sponsor_ids;
+    ## Pipeline I sponsors
+    my $sponsor_rs = $self->select_sponsors_with_projects( );
 
-    foreach my $sponsor ( @$sponsor_ids_rs ) {
+    foreach my $sponsor ( @$sponsor_rs ) {
         my $sponsor_id = $sponsor->{ sponsor_id };
         DEBUG "Sponsor id found = ".$sponsor_id;
 
-        $sponsor_id eq 'All' ? unshift( @sponsor_ids, $sponsor_id ) : push( @sponsor_ids, $sponsor_id );
+        if ($sponsor_id ne 'Test') {
+            $sponsor_id eq 'All' ? unshift( @sponsors, $sponsor_id ) : push( @sponsors, $sponsor_id );
+        }
     }
 
-    return \@sponsor_ids;
+    return \@sponsors;
 }
 
 has sponsor_data => (
@@ -115,21 +111,11 @@ has sponsor_data => (
     lazy_build => 1,
 );
 
-
-sub _build_sponsor_genes_instance {
-    my $self = shift;
-
-    my $sponsor_genes_instance = LIMS2::Model::Util::GenesForSponsor->new({
-            model => $self->model,
-            targeting_type => $self->targeting_type,
-            species_id => $self->species
-        });
-    return $sponsor_genes_instance;
-}
-
 sub _build_sponsor_data {
     my $self = shift;
     my %sponsor_data;
+
+    ## Pipeline I
     my @sponsor_ids = @{ $self->sponsors };
 
     foreach my $sponsor_id ( @sponsor_ids ) {
@@ -145,14 +131,19 @@ sub _build_sponsor_column_data {
 
     DEBUG 'Building column data for sponsor id = '.$sponsor_id.', targeting type = '.$self->targeting_type.' and species = '.$self->species;
 
-    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
+    # select how many genes this sponsor is targeting
+    my $sponsor_gene_counts = $self->select_sponsor_genes( $sponsor_id );
 
-    my $number_genes = scalar @{$sponsor_gene_counts->{genes}};
+    # NB sponsor may have both single and double targeted projects
+    foreach my $sponsor_genes ( @$sponsor_gene_counts ) {
 
-    DEBUG "number genes = ".$number_genes;
+        my $number_genes = $sponsor_genes->{ genes };
 
-    if ( $number_genes > 0 ) {
-        $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
+        DEBUG "number genes = ".$number_genes;
+
+        if ( $number_genes > 0 ) {
+            $self->_build_column_data( $sponsor_id, $sponsor_data, $number_genes );
+        }
     }
 
     return;
@@ -359,7 +350,7 @@ sub select_sponsor_genes {
 
 # Generate front page report matrix
 sub generate_top_level_report_for_sponsors {
-    my ( $self, $uri ) = @_;
+    my ( $self ) = @_;
 
     DEBUG 'Generating report for '.$self->targeting_type.' projects for species '.$self->species;
 
@@ -367,7 +358,6 @@ sub generate_top_level_report_for_sponsors {
     my $columns   = $self->build_columns;
     my $data      = $self->sponsor_data;
     my $title     = $self->build_page_title;
-    my $title_ii  = $self->build_page_title('II');
 
     my $rows;
     if ( $self->targeting_type eq 'single_targeted' ) {
@@ -386,27 +376,22 @@ sub generate_top_level_report_for_sponsors {
     my %return_params = (
         'report_id'      => $report_id,
         'title'          => $title,
-        'title_ii'       => $title_ii,
         'columns'        => $columns,
         'rows'           => $rows,
         'data'           => $data,
     );
-
-    my $json_data = encode_json(\%return_params);
-    $self->save_json_report($uri, $json_data, $self->species);
 
     return \%return_params;
 }
 
 sub build_page_title {
     my $self = shift;
-    my $strategy = shift || 'I';
 
     # TODO: This date should relate to a timestamp indicating when summaries data was
     # last generated rather than just system date.
-    my $dt = localtime time;
+    my $dt = strftime '%d %B %Y', localtime time;
 
-    return 'Pipeline ' . $strategy . ' Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
+    return 'Pipeline I Summary Report ('.$self->species.', '.$self->targeting_type.' projects) on ' . $dt;
 };
 
 # columns relate to project sponsors
@@ -414,18 +399,7 @@ sub build_columns {
     my $self = shift;
 
     my $sponsor_columns;
-    push @{$sponsor_columns->{pipeline_ii}}, 'Stage';
-    push @{$sponsor_columns->{pipeline_i}}, 'Stage';
-
-    my @pipeline_ii_sponsors = @{$self->sponsor_genes_instance->pipeline_ii_sponsors};
-
-    foreach my $sponsor (@{$self->sponsors}) {
-        if (grep {$_ eq $sponsor} @pipeline_ii_sponsors) {
-            push @{$sponsor_columns->{pipeline_ii}}, $sponsor;
-        } else {
-            push @{$sponsor_columns->{pipeline_i}}, $sponsor;
-        }
-    }
+    push @{$sponsor_columns->{pipeline_i}}, ('Stage', @{$self->sponsors} );
 
     return $sponsor_columns;
 };
@@ -442,7 +416,7 @@ sub save_json_report {
         if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\d+.\d+.\d+.\d+:\d+\//) { $cache_server = 'localhost/'; }
+        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -900,13 +874,17 @@ sub genes {
         return mgp_recovery_genes( $self, $sponsor_id, $query_type );
     }
 
+    my $sql_query = $self->create_sql_sel_targeted_genes( $sponsor_id, $self->targeting_type, $self->species );
+
+    my $sql_results = $self->run_select_query( $sql_query );
+
     # fetch gene symbols and return modified results set for display
     my @genes_for_display;
 
-    my $sponsor_gene_counts = $self->sponsor_genes_instance->get_sponsor_genes($sponsor_id);
-
-
-    my @gene_list = @{$sponsor_gene_counts->{genes}};
+    my @gene_list;
+    foreach my $gene_row ( @$sql_results ) {
+         unshift( @gene_list,  $gene_row->{ 'gene_id' });
+    }
 
     # Store list of designs to get crispr summary info for later
     my $designs_for_gene = {};
@@ -1364,18 +1342,6 @@ sub genes {
             $b->{ 'crispr_wells' }             <=> $a->{ 'crispr_wells' }
             # $a->{ 'gene_symbol' }            cmp $b->{ 'gene_symbol' }
         } @genes_for_display;
-
-    my @container;
-    my @pipeline_ii_sponsors = @{$self->sponsor_genes_instance->pipeline_ii_sponsors};
-
-    if ( grep {$_ eq $sponsor_id} @pipeline_ii_sponsors ) {
-       foreach my $elem (@sorted_genes_for_display) {
-           if ($elem->{accepted_crispr_vector} == 0) {
-              push @container, $elem;
-           }
-       }
-       return \@container;
-    }
 
     return \@sorted_genes_for_display;
 }
@@ -2517,6 +2483,7 @@ FROM project_sponsors ps, projects pr
 WHERE ps.project_id = pr.id
 AND pr.species_id = '$species_id'
 AND pr.targeting_type = '$targeting_type'
+AND pr.strategy_id = 'Pipeline I'
 ORDER BY ps.sponsor_id
 SQL_END
 
@@ -2534,6 +2501,7 @@ WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
+AND p.strategy_id = 'Pipeline I'
 GROUP BY ps.sponsor_id
 SQL_END
 
@@ -2551,6 +2519,7 @@ WHERE ps.sponsor_id = '$sponsor_id'
 AND ps.project_id = p.id
 AND p.targeting_type = '$targeting_type'
 AND p.species_id = '$species_id'
+AND p.strategy_id = 'Pipeline I'
 ORDER BY p.gene_id
 SQL_END
 
@@ -5852,3 +5821,4 @@ return $sql_query
 }
 
 1;
+

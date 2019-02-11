@@ -151,9 +151,24 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 process_crispr_groups
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-22 11:13:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:k1J27j84/wlQQfgZqNcH4w
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProcessCrisprGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+  "process_crispr_groups",
+  "LIMS2::Model::Schema::Result::ProcessCrisprGroup",
+  { "foreign.crispr_group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CTUUQ9opEzxYGyAdZJDkag
 #
 =head2 crisprs
 

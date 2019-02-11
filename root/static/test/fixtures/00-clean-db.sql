@@ -108,7 +108,11 @@ guided_types,
 trivial_offset,
 miseq_primer_presets,
 miseq_design_presets,
-hdr_template
+hdr_template,
+process_crispr_pair,
+process_crispr_group,
+well_t7,
+miseq_alleles_frequency,
+indel_histogram,
+crispresso_submissions
  CASCADE;
-
-

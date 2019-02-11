@@ -1,0 +1,147 @@
+<style>
+
+.sequence {
+    width: 400px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: hidden;
+}
+
+.target :not(.baseSwitch) {
+    background-color: #0A606D; /* Blue-Grey */
+    color: white;
+}
+
+.possibleTarget :not(.baseSwitch) {
+    background-color: #FF9E00; /* Orange */
+    color: black;
+}
+
+.base- {
+    background-color: #661010 !important; /* Red */
+    color: white !important;
+}
+
+.insertion:not(.baseSwitch) {
+    background-color: #26C485 !important; /* Green */
+    color: black;
+}
+
+.mutation:not(.baseSwitch) {
+    background-color: #F61067 !important; /* Pink */
+    color: white;
+}
+
+.insertion, .mutation {
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.mutation {
+    text-decoration: underline;
+}
+
+</style>
+
+<script type="text/javascript" charset="utf-8">
+
+function highlightBases(seq, crisprData, ref, quality) {
+    var formattedSequence = "";
+    var start = -1;
+    var accuracy = -1;
+    if (crisprData.crispr != "") {
+        start = seq.indexOf(crisprData.crispr);
+        if (start == -1) {
+            start = seq.indexOf(crisprData.rev_crispr);
+        }
+
+        if (start == -1) {
+            if (ref) {
+                start = ref.indexOf(crisprData.crispr);
+            }
+            if (start == -1 || start > crisprData.position + 5 || start < crisprData.position - 5) {
+                console.log('No match');
+                start = crisprData.position;
+            }
+        } else {
+            accuracy = 0;
+        }
+    } else {
+        console.log("No crispr found");
+        console.log(crisprData);
+    }
+    
+    var mutations = {
+        A: ['C','G','T'],
+        C: ['A','G','T'],
+        T: ['A','C','G'],
+        G: ['A','C','T']
+    }; //Ignore - and Ns
+    var deletionOffset = 0;
+    var insertionOffset = 0;
+
+    for (var base = 0; base < seq.length; base++) {
+        var letter = seq[base];
+
+        var front = "";
+        if (base == start) {
+            if (accuracy == 0) {
+                front = '<span class="target">';
+            } else {
+                front = '<span class="possibleTarget">';
+            }
+        }
+
+        var classStr = 'baseSwitch ';
+        if (ref) {
+            if (ref[base] == '-') {
+                classStr += 'insertion ';
+                insertionOffset++;
+            } else {
+                if (mutations[ref[base]].indexOf(letter) != -1) {
+                    classStr += 'mutation ';
+                }
+            }
+        }
+
+        if (letter == '-') {
+            classStr += 'base- ';
+            deletionOffset++;
+        } else {
+            if (quality) {
+                classStr += qualityConversion(quality[base - deletionOffset]);
+            }
+        }
+
+        var back = "";
+        if (base == start + crisprData.crispr.length + insertionOffset - 1) {
+            back = "</span>";
+        }
+
+        var format = front + '<span class="' + classStr + '">' + letter + '</span>' + back;
+        formattedSequence += format;
+    }
+
+    return formattedSequence;
+}
+
+function qualityConversion(qualityLetter) {
+    if (qualityLetter) {
+        var score = qualityLetter.charCodeAt() - 33;
+        var classRank = '';
+        switch (true) {
+            case (score <= 10):
+                classRank = 'lowQS';
+                break;
+            case (score <= 20):
+                classRank = 'medQS';
+                break;
+            default:
+                break;
+        }
+        return classRank;
+    }
+    return;
+}
+
+</script>

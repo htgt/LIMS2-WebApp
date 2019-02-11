@@ -2,8 +2,16 @@ package LIMS2::WebApp::Controller::API::PlateWell;
 use Moose;
 use namespace::autoclean;
 use Try::Tiny;
+use LIMS2::Model::Util::Miseq qw( 
+    query_miseq_details
+    wells_generator
+    damage_classifications
+);
+use LIMS2::Model::Util::BarcodeActions qw( create_barcoded_plate attach_distru_barcodes_to_piq );
+use JSON;
+use POSIX;
 
-BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+BEGIN { extends 'LIMS2::Catalyst::Controller::REST'; }
 
 =head1 NAME
 
@@ -167,6 +175,31 @@ sub well_accepted_override_PUT {
     return $self->status_ok(
         $c,
         entity => $override
+    );
+}
+
+sub save_well_t7_changes :Path('/api/well/save_well_t7_change') :Args(0) :ActionClass('REST') {
+}
+
+sub save_well_t7_changes_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles( 'edit' );
+
+    my $t7_type = $c->request->param('t7_type');
+    my $well_id = $c->request->param('well_id');
+    my $t7_value = $c->request->param('t7_value');
+
+    my $update_well_t7 = $c->model('Golgi')->txn_do(
+        sub {
+            shift->update_well_t7_info( $c->user->name, $c->request->params );
+        }
+    );
+
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/well/save_well_t7_change'),
+        entity   => $update_well_t7
     );
 }
 
@@ -602,6 +635,135 @@ sub well_genotyping_crispr_qc_GET {
 
     return $error ? $self->status_bad_request( $c, message => $error )
                   : $self->status_ok( $c, entity => $data );
+}
+
+sub create_piq_plate :Path('/api/create_piq_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub create_piq_plate_GET {
+    my ( $self, $c ) = @_;
+
+    return;
+}
+
+sub create_piq_plate_POST {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('edit');
+
+    my $json = $c->request->param('relations');
+    my $data = decode_json $json;
+
+    $data->{created_by} = $c->user->name;
+    $data->{species} = $c->session->{selected_species};
+    $data->{created_at} = strftime("%Y-%m-%dT%H:%M:%S", localtime(time));
+    $data->{type} = 'PIQ';
+    $data->{wells} = _transform_wells($data->{wells});
+    my $barcodes = $data->{barcodes};
+    delete $data->{barcodes};
+
+    my $plate = $c->model('Golgi')->create_plate($data);
+
+    if ($barcodes) {
+        my $test = attach_distru_barcodes_to_piq($c->model('Golgi'), $plate, $barcodes, 'frozen_back');
+        print $test;
+    }
+    return $self->status_created(
+        $c,
+        location => $c->uri_for( '/api/plate', { id => $plate->id } ),
+        entity   => $plate
+    );
+}
+
+sub _transform_wells {
+    my ( $wells_hash ) = @_;
+
+    my @wells_arr;
+    foreach my $well (keys %{ $wells_hash }) {
+        my $well_relation = {
+            well_name       => $well,
+            process_type    => 'dist_qc',
+            parent_well     => $wells_hash->{$well}->{parent_well},
+            parent_plate    => $wells_hash->{$well}->{parent_plate},
+        };
+
+        push (@wells_arr, $well_relation);
+    }
+
+    return \@wells_arr;
+}
+
+sub wells_parent_plate :Path('/api/wells_parent_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub wells_parent_plate_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $term = $c->request->param('plate');
+
+    my $mapping;
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
+
+    if ($plate_rs) {
+        my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
+        foreach my $well (@wells) {
+            foreach my $plate_well_rs (@{ $well->parent_plates }) {
+                my $plate = $plate_well_rs->{plate};
+                unless ($mapping->{$plate->name}) {
+                    $mapping->{$plate->name}->{type} = $plate->type->id;
+                }
+                push @{ $mapping->{$plate->name}->{wells} }, $well->name;
+            }
+        }
+    } else {
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not find Plate: " . $term,
+        );
+    }
+
+
+    my $json = JSON->new->allow_nonref;
+    my $json_parents = $json->encode($mapping);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_parents );
+
+    return;
+}
+
+sub sibling_miseq_plate :Path('/api/sibling_miseq_plate') :Args(0) :ActionClass('REST') {
+}
+
+sub sibling_miseq_plate_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $term = $c->request->param('plate');
+
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $term });
+
+    my $class_mapping;
+    if ($plate_rs) {
+        my @results = query_miseq_details($c->model('Golgi'), $plate_rs->id);
+        $class_mapping = damage_classifications(@results);
+    } else {
+        return $self->status_bad_request(
+            $c,
+            message => "Bad Request: Can not find Plate: " . $term,
+        );
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $json_parents = $json->encode($class_mapping);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $json_parents );
+
+    return;
 }
 
 =head1 AUTHOR
