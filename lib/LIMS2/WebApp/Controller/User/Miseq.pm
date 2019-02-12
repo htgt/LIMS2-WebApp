@@ -58,7 +58,7 @@ sub sequencing : Path('/user/miseq/sequencing') : Args(0) {
     my ( $self, $c ) = @_;
     my $bs    = LIMS2::Model::Util::BaseSpace->new;
     my @plates =
-      $c->model->schema->resultset('Plate')
+      $c->model('Golgi')->schema->resultset('Plate')
       ->search( { type_id => 'MISEQ' }, { columns => [qw/id name/] }, );
     try {
         $c->stash->{plates} = [ sort { $b->id <=> $a->id } @plates ];
