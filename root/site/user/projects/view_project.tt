@@ -38,25 +38,36 @@
         <th>Cell line</th>
         <td>[% project.cell_line %]</td>
     </tr>
-    [% IF cell_line_info %]
+    [% IF cell_line_info.internal %]
         <tr>
             <td colspan="3">
                 <div id="cellLineInfo" class="collapse">
+                    <h4>Cell Line Internal Information</h4>
                     <table class="table">
                         <tr>
                             <th class="col-md-2">
-                                Barcode
+                                Internal Identifier
                             </th>
                             <td>
-                                [% cell_line_info.barcode %]
+                                [% project.cell_line %]_[% cell_line_info.internal.uniq_tag %]
                             </td>
                         </tr>
+                        [% IF cell_line_info.internal.origin_well.barcode %]
+                            <tr>
+                                <th>
+                                    Parent Well Barcode
+                                </th>
+                                <td>
+                                    [% cell_line_info.internal.origin_well.barcode %]
+                                </td>
+                            </tr>
+                        [% END %]
                         <tr>
                             <th>
                                 Clone name
                             </th>
                             <td>
-                                [% cell_line_info.plate_name %]_[% cell_line_info.well_name %]
+                                [% cell_line_info.internal.origin_well.plate_name %]_[% cell_line_info.internal.origin_well.well_name %]
                             </td>
                         </tr>
                         <tr>
@@ -67,6 +78,23 @@
                                 [% cell_line_info.description %]
                             </td>
                         </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    [% END %]
+    [% IF cell_line_info.external %]
+        <tr>
+            <td colspan="3">
+                <div id="cellLineInfo" class="collapse">
+                    <h4>Cell Line External Sources</h4>
+                    <table class="table">
+                        [% FOREACH external_source IN cell_line_info.external %]
+                            <tr>
+                                <th>[% external_source.repo %]</th>
+                                <td class="[% external_source.repo %]">[% external_source.ext_name %]</td>
+                            </tr>
+                        [% END %]
                     </table>
                 </div>
             </td>
@@ -316,157 +344,159 @@ No experiments for this project
 <script type="text/javascript">
 
 $( document ).ready(function() {
+    document.title = 'Project: [% project.id %]';
+    $("#update_sponsors_form").collapse('hide');
 
-  document.title = 'Project: [% project.id %]';
-  $("#update_sponsors_form").collapse('hide');
-
-  $(".delete_experiment_btn").click(function(e){
-    var exp_id = $(this).data("exp-id");
-    $("#delete_exp_id_value").val(exp_id);
-    $("#delete_exp_id_display").text(exp_id);
-  });
-
-  $("#recovery_comment_btn").click(function(e){
-    e.preventDefault();
-    $.ajax({
-      type: "GET",
-      contentType: "application/json",
-      url: "[% c.uri_for('/api/project_recovery_comment') %]",
-      data: { 'id': [% project.id %], 'recovery_comment': $("#recovery_comment_value").val() }
-    }).done(function(data){
-      alert("Recovery comment updated");
-    }).fail(function(data){
-      alert("Could not update recovery comment");
+    $(".delete_experiment_btn").click(function(e){
+        var exp_id = $(this).data("exp-id");
+        $("#delete_exp_id_value").val(exp_id);
+        $("#delete_exp_id_display").text(exp_id);
     });
-  });
 
-  $("#recovery_class_btn").click(function(e){
-    e.preventDefault();
-    $.ajax({
-      type: "GET",
-      contentType: "application/json",
-      url: "[% c.uri_for('/api/project_recovery_class') %]",
-      data: { 'id': [% project.id %], 'recovery_class': $("#recovery_class_value").val() }
-    }).done(function(data){
-      alert("Recovery class updated");
-    }).fail(function(data){
-      alert("Could not update recovery class");
-    });
-  });
-
-[% IF c.user.is_sanger %]
-  var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
-
-  // Search for any tracker issues linked to this project
-  $.ajax({
-    type: "GET",
-    contentType: 'application/json',
-    url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]"
-  }).done(function(data) {
-    $("#tracker_spinner").remove();
-    $.each(data, function(i,issue){
-      console.log(issue);
-      console.log(issue.id)
-      $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
-      $("#conclude_effort_modal_form").append("<input type='hidden' name='redmine_issue_id' value='" + issue.id + "'></input>");
-    });
-    $("#conclude_effort_button").show();
-  }).fail(function(){
-    $("#tracker_spinner").remove();
-    $("#tracker_issues").append("tracker query failed");
-  });
-
-  var exp_spinner_html = '<img class="tracker_exp_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
-
-  // Search for tracker issues for this project for each experiment
-  $(".tracker_exp_issues").each(function(i, item){
-    console.log($(item).data('expId') );
-    $.ajax({
-      type: "GET",
-      contentType: 'application/json',
-      url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]",
-      data: { experiment_id:$(item).data('expId') }
-    }).done(function(data) {
-      $(item).children( $(".tracker_exp_spinner") ).remove();
-      $.each(data, function(i,issue){
-        console.log(issue);
-        console.log(issue.id)
-        var issue_text = "#" + issue.id;
-
-        if(issue.status.name == "Active"){
-          issue_text += " - " + issue.custom_fields[ 'Current activity (HUMAN)' ];
-        }
-        else{
-          issue_text += " - " + issue.status.name;
-        }
-
-        $(item).append("<a href='"+ issue.url + "' target='_blank'>" + issue_text + "</a> ");
-      });
-
-      if(data.length == 0){
-        var btn_id = 'create_issue_' + $(item).data('expId');
-        $(item).append("<button class='btn btn-default' id='" + btn_id + "'>Create Tracker Issue</button>");
-        $("#" + btn_id).click( function(){
-          var exp_td = $(this).parent( $(".tracker_exp_issues") );
-          this.remove();
-          exp_td.append(exp_spinner_html);
-
-          $.ajax({
-            type: "POST",
-            url: "[% c.uri_for('/api/redmine_issue') %]",
-            dataType: 'json',
+    $("#recovery_comment_btn").click(function(e){
+        e.preventDefault();
+        $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "[% c.uri_for('/api/project_recovery_comment') %]",
             data: {
-              gene_symbol   : "[% gene_symbol %]",
-              gene_id       : "[% project.gene_id %]",
-              project_id    : "[% project.id %]",
-              experiment_id : $(item).data('expId'),
-              sponsors      : "[% project.sponsors %]",
-              cell_line     : "[% project.cell_line %]",
-              priority      : "[% project.priority %]"
+                'id': [% project.id %],
+                'recovery_comment': $("#recovery_comment_value").val()
             }
-          }).done(function(data){
-            console.log(data);
-            exp_td.children( $(".tracker_exp_spinner") ).remove();
-            var issue_link_html = "<a href='"+ data.url + "' target='_blank'>#" + data.id + "</a> ";
-            exp_td.append(issue_link_html);
-            // append to project level list of issues too
-            $("#tracker_issues").append(issue_link_html);
-
-          }).fail(function(){
-            exp_td.children( $(".tracker_exp_spinner") ).remove();
-            exp_td.append("tracker issue creation failed");
-          })
+        }).done(function(data){
+            alert("Recovery comment updated");
+        }).fail(function(data){
+            alert("Could not update recovery comment");
         });
-      }
-
     });
-  });
 
-[% END %]
+    $("#recovery_class_btn").click(function(e){
+        e.preventDefault();
+        $.ajax({
+            type: "GET",
+            contentType: "application/json",
+            url: "[% c.uri_for('/api/project_recovery_class') %]",
+            data: {
+                'id': [% project.id %],
+                'recovery_class': $("#recovery_class_value").val()
+            }
+        }).done(function(data){
+            alert("Recovery class updated");
+        }).fail(function(data){
+            alert("Could not update recovery class");
+        });
+    });
 
+    [% IF c.user.is_sanger %]
+        var spinner_html = '<img id="tracker_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+        // Search for any tracker issues linked to this project
+        $.ajax({
+            type: "GET",
+            contentType: 'application/json',
+            url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]"
+        }).done(function(data) {
+            $("#tracker_spinner").remove();
+            $.each(data, function(i,issue){
+                console.log(issue);
+                console.log(issue.id)
+                $("#tracker_issues").append("<a href='"+ issue.url + "' target='_blank'>#" + issue.id + "</a> ");
+                $("#conclude_effort_modal_form").append("<input type='hidden' name='redmine_issue_id' value='" + issue.id + "'></input>");
+            });
+            $("#conclude_effort_button").show();
+        }).fail(function(){
+            $("#tracker_spinner").remove();
+            $("#tracker_issues").append("tracker query failed");
+        });
+
+        var exp_spinner_html = '<img class="tracker_exp_spinner" src="[% c.uri_for( "/static/images/spinner-circle-small.gif" ) %]"/>';
+
+        // Search for tracker issues for this project for each experiment
+        $(".tracker_exp_issues").each(function(i, item){
+            console.log($(item).data('expId') );
+            $.ajax({
+                type: "GET",
+                contentType: 'application/json',
+                url: "[% c.uri_for('/api/redmine_issues', { project_id => project.id }) %]",
+                data: { experiment_id:$(item).data('expId') }
+            }).done(function(data) {
+                $(item).children( $(".tracker_exp_spinner") ).remove();
+                $.each(data, function(i,issue){
+                    console.log(issue);
+                    console.log(issue.id)
+                    var issue_text = "#" + issue.id;
+
+                    if(issue.status.name == "Active"){
+                        issue_text += " - " + issue.custom_fields[ 'Current activity (HUMAN)' ];
+                    }
+                    else{
+                        issue_text += " - " + issue.status.name;
+                    }
+
+                    $(item).append("<a href='"+ issue.url + "' target='_blank'>" + issue_text + "</a> ");
+                });
+
+                if(data.length == 0){
+                    var btn_id = 'create_issue_' + $(item).data('expId');
+                    $(item).append("<button class='btn btn-default' id='" + btn_id + "'>Create Tracker Issue</button>");
+                    $("#" + btn_id).click( function(){
+                        var exp_td = $(this).parent( $(".tracker_exp_issues") );
+                        this.remove();
+                        exp_td.append(exp_spinner_html);
+
+                        $.ajax({
+                            type: "POST",
+                            url: "[% c.uri_for('/api/redmine_issue') %]",
+                            dataType: 'json',
+                            data: {
+                                gene_symbol   : "[% gene_symbol %]",
+                                gene_id       : "[% project.gene_id %]",
+                                project_id    : "[% project.id %]",
+                                experiment_id : $(item).data('expId'),
+                                sponsors      : "[% project.sponsors %]",
+                                cell_line     : "[% project.cell_line %]",
+                                priority      : "[% project.priority %]"
+                            }
+                        }).done(function(data){
+                            console.log(data);
+                            exp_td.children( $(".tracker_exp_spinner") ).remove();
+                            var issue_link_html = "<a href='"+ data.url + "' target='_blank'>#" + data.id + "</a> ";
+                            exp_td.append(issue_link_html);
+                            // append to project level list of issues too
+                            $("#tracker_issues").append(issue_link_html);
+                        }).fail(function(){
+                            exp_td.children( $(".tracker_exp_spinner") ).remove();
+                            exp_td.append("tracker issue creation failed");
+                        })
+                    });
+                }
+
+            });
+        });
+    [% END %]
 });
 
 
 var designs = [
 [% FOREACH id IN design_suggest %]
-  "[% id %]",
+    "[% id %]",
 [% END %]
 ];
 
 var groups = [
 [% FOREACH id IN group_suggest %]
-  "[% id %]",
+    "[% id %]",
 [% END %]
 ];
 
 $("input[name='design_id']").autocomplete({
-  source: designs,
-  minLength: 0,
+    source: designs,
+    minLength: 0,
 });
 
 $("input[name='crispr_group_id']").autocomplete({
-  source: groups,
-  minLength: 0,
+    source: groups,
+    minLength: 0,
 });
 
 function addRequester() {
@@ -516,4 +546,10 @@ function validateEmail(email) {
     var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
     return re.test(email);
 }
+
+function linkExternalSources(cellData) {
+
+
+}
+
 </script>

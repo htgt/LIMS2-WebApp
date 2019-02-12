@@ -56,5 +56,5 @@ BEGIN
     RETURN NEW;
 END $cell_line_identifier$;
 
-CREATE TRIGGER cell_line_identifier BEFORE INSERT OR UPDATE ON cell_line_internal
+CREATE TRIGGER cell_line_identifier BEFORE INSERT ON cell_line_internal
     FOR EACH ROW EXECUTE PROCEDURE cell_line_identifier();

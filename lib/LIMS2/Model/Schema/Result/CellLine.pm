@@ -149,7 +149,28 @@ __PACKAGE__->has_many(
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cJ9GlivcilCXLIK8XTBEOQ
+use Try::Tiny;
 
+sub tracking {
+    my $self = shift;
+
+    my $tracking_details = {
+        description => $self->description,
+    };
+
+    try {
+        $tracking_details->{internal} = $self->cell_line_internal->as_hash;
+    };
+        
+    try {
+        my $external_tracking = $self->cell_line_externals;
+        while (my $ext = $external_tracking->next) {
+            push (@{ $tracking_details->{external} }, $ext->as_hash);
+        }
+    };
+
+    return $tracking_details;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

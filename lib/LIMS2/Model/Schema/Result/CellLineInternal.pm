@@ -158,6 +158,18 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3Dc8+CRQf/J91uV4s2HbWg
 
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        id          => $self->id,
+        line_id     => $self->cell_line_id,
+        origin_well => $self->origin_well->as_hash,
+        uniq_tag    => $self->unique_identifier,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

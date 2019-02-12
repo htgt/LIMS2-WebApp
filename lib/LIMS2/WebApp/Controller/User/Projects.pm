@@ -175,7 +175,6 @@ sub view_project :Path('/user/view_project'){
     my $project = $c->model('Golgi')->retrieve_project_by_id({
             id => $proj_id,
         });
-$DB::single=1;
     my $gene_info = try{ $c->model('Golgi')->find_gene( {
         search_term => $project->gene_id,
         species => $project->species_id
@@ -287,15 +286,10 @@ $DB::single=1;
 
     my @project_experiments = $c->model('Golgi')->find_project_experiments($proj_id);
 
-    my $cell_line = $project->cell_line;
-    if ($cell_line->origin_well) {
-        my $cell_line_details = {
-            well_name       => $cell_line->origin_well->name,
-            plate_name      => $cell_line->origin_well->plate->name,
-            barcode         => $cell_line->origin_well->barcode,
-            description     => $cell_line->description,
-        };
-        $c->stash->{cell_line_info} = $cell_line_details;
+    my $cell_line_expanded = $project->cell_line->tracking;
+    if ($cell_line_expanded) {
+$DB::single=1;
+        $c->stash->{cell_line_info} = $cell_line_expanded;
     }
 
     $c->stash->{project_sponsors} = { map { $_ => 1 } $project->sponsor_ids };
