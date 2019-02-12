@@ -190,7 +190,7 @@
 
             [% IF c.check_user_roles( 'edit' ) && c.session.selected_pipeline == "pipeline_II" %]
             <li>
-              <a href="[% c.uri_for( '/user/miseq/import' ) %]">Import MiSEQ sequencing</a>
+              <a href="[% c.uri_for( '/user/miseq/sequencing' ) %]">Import MiSEQ sequencing</a>
             </li>
             <li>
               <a href="[% c.uri_for( '/user/create_miseq_plate' ) %]">Create MiSEQ Plate</a>
