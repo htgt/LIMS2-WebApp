@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Miseq::VERSION = '0.526';
+    $LIMS2::WebApp::Controller::User::Miseq::VERSION = '0.527';
 }
 ## use critic
 
@@ -64,7 +64,7 @@ sub sequencing : Path('/user/miseq/sequencing') : Args(0) {
     my ( $self, $c ) = @_;
     my $bs    = LIMS2::Model::Util::BaseSpace->new;
     my @plates =
-      $c->model->schema->resultset('Plate')
+      $c->model('Golgi')->schema->resultset('Plate')
       ->search( { type_id => 'MISEQ' }, { columns => [qw/id name/] }, );
     try {
         $c->stash->{plates} = [ sort { $b->id <=> $a->id } @plates ];
