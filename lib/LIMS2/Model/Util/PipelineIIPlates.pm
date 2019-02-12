@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PipelineIIPlates;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PipelineIIPlates::VERSION = '0.525';
+    $LIMS2::Model::Util::PipelineIIPlates::VERSION = '0.526';
 }
 ## use critic
 

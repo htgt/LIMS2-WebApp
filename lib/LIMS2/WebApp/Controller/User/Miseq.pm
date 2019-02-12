@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::Miseq::VERSION = '0.525';
+    $LIMS2::WebApp::Controller::User::Miseq::VERSION = '0.526';
 }
 ## use critic
 
@@ -60,7 +60,7 @@ sub submit : Path('/user/miseq/submit') : Args(0) {
     return;
 }
 
-sub import_miseq : Path('/user/miseq/import') : Args(0) {
+sub sequencing : Path('/user/miseq/sequencing') : Args(0) {
     my ( $self, $c ) = @_;
     my $bs    = LIMS2::Model::Util::BaseSpace->new;
     my @plates =

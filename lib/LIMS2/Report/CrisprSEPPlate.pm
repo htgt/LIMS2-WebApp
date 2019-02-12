@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprSEPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprSEPPlate::VERSION = '0.525';
+    $LIMS2::Report::CrisprSEPPlate::VERSION = '0.526';
 }
 ## use critic
 

@@ -552,7 +552,7 @@ root/site/user/genoverse/genoverse_gene_view.tt
 root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
-root/site/user/miseq/import.tt
+root/site/user/miseq/sequencing.tt
 root/site/user/miseq/submit.tt
 root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt

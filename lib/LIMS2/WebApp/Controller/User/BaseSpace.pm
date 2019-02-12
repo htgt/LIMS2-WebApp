@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BaseSpace;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BaseSpace::VERSION = '0.525';
+    $LIMS2::WebApp::Controller::User::BaseSpace::VERSION = '0.526';
 }
 ## use critic
 
