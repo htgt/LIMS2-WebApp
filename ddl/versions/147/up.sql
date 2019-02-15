@@ -8,7 +8,8 @@ CREATE TABLE cell_line_external (
     id serial PRIMARY KEY NOT NULL,
     cell_line_id INTEGER NOT NULL REFERENCES cell_lines(id),
     remote_identifier text NOT NULL,
-    repository text NOT NULL REFERENCES cell_line_repositories(id)
+    repository text NOT NULL REFERENCES cell_line_repositories(id),
+    url text NOT NULL
 );
 
 CREATE TABLE cell_line_internal (

@@ -30,7 +30,8 @@ audit_txid INTEGER NOT NULL,
 id integer,
 cell_line_id integer,
 remote_identifier text,
-repository text
+repository text,
+url text
 );
 CREATE OR REPLACE FUNCTION public.process_cell_line_external_audit()
 RETURNS TRIGGER AS $cell_line_external_audit$

@@ -38,10 +38,20 @@
         <th>Cell line</th>
         <td>[% project.cell_line %]</td>
     </tr>
-    [% IF cell_line_info.internal %]
-        <tr>
-            <td colspan="3">
-                <div id="cellLineInfo" class="collapse">
+    <tr>
+        <td colspan="3">
+            <div id="cellLineInfo" class="collapse">
+                <table class="table">
+                    <tr>
+                        <th class="col-md-2">
+                            Description:
+                        </th>
+                        <td>
+                            [% cell_line_info.description %]
+                        </td>
+                    </tr>
+                </table>
+                [% IF cell_line_info.internal %]
                     <h4>Cell Line Internal Information</h4>
                     <table class="table">
                         <tr>
@@ -70,36 +80,22 @@
                                 [% cell_line_info.internal.origin_well.plate_name %]_[% cell_line_info.internal.origin_well.well_name %]
                             </td>
                         </tr>
-                        <tr>
-                            <th>
-                                Description
-                            </th>
-                            <td>
-                                [% cell_line_info.description %]
-                            </td>
-                        </tr>
                     </table>
-                </div>
-            </td>
-        </tr>
-    [% END %]
-    [% IF cell_line_info.external %]
-        <tr>
-            <td colspan="3">
-                <div id="cellLineInfo" class="collapse">
+                [% END %]
+                [% IF cell_line_info.external %]
                     <h4>Cell Line External Sources</h4>
                     <table class="table">
                         [% FOREACH external_source IN cell_line_info.external %]
                             <tr>
-                                <th>[% external_source.repo %]</th>
+                                <th class="col-md-2">[% external_source.repo %]</th>
                                 <td class="[% external_source.repo %]">[% external_source.ext_name %]</td>
                             </tr>
                         [% END %]
                     </table>
-                </div>
-            </td>
-        </tr>
-    [% END %]
+                [% END %]
+            </div>
+        </td>
+    </tr>
     <tr>
         <th>Strategy</th>
         <td>[% project.strategy %]</td>
@@ -346,6 +342,12 @@ No experiments for this project
 $( document ).ready(function() {
     document.title = 'Project: [% project.id %]';
     $("#update_sponsors_form").collapse('hide');
+    var cellLineData = "[% cell_line_info %]";
+    if (cellLineData) {
+        console.log(cellLineData);
+        cellLineData = jsonify(cellLineData);
+        linkExternalSources(cellLineData);
+    }
 
     $(".delete_experiment_btn").click(function(e){
         var exp_id = $(this).data("exp-id");
@@ -476,6 +478,9 @@ $( document ).ready(function() {
     [% END %]
 });
 
+function jsonify(raw) {
+    return JSON.parse(raw.replace(/&quot;/g,'"'));
+}
 
 var designs = [
 [% FOREACH id IN design_suggest %]
@@ -532,10 +537,10 @@ $('body').on("keyup", "input.newReq", function() {
     if (entry.length > 4 ) {
         if (validateEmail(entry)) {
             $('#createReq').prop('disabled', false);
-            $('#newRequest').css('background-color', '#ccebc5');
+            $('#newRequest').css('background-color', '#CCEBC5'); //Light-Green
         } else {
             $('#createReq').prop('disabled', true);
-            $('#newRequest').css('background-color', '#fbb4ae');
+            $('#newRequest').css('background-color', '#FBB4AE'); //Pink-Peach
         }
     } else {
         $('#newRequest').css('background-color', 'transparent');
@@ -548,7 +553,7 @@ function validateEmail(email) {
 }
 
 function linkExternalSources(cellData) {
-
+    console.log(cellData);
 
 }
 

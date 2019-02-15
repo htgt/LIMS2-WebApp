@@ -62,6 +62,11 @@ __PACKAGE__->table("cell_line_external");
   is_foreign_key: 1
   is_nullable: 0
 
+=head2 url
+
+  data_type: 'text'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -78,6 +83,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 0 },
   "repository",
   { data_type => "text", is_foreign_key => 1, is_nullable => 0 },
+  "url",
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -125,8 +132,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hKv0G+LjskU8Q/50wOyFIw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-02-15 08:32:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cJLYm8kfGCA2NVvHJ5QgyQ
 
 sub as_hash {
     my $self = shift;
@@ -136,6 +143,7 @@ sub as_hash {
         line_id     => $self->cell_line_id,
         ext_name    => $self->remote_identifier,
         repo        => $self->repository->id,
+        url         => $self->url,
     );
 
     return \%h;
