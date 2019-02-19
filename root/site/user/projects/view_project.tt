@@ -34,9 +34,12 @@
         <th>Species</th>
         <td>[% project.species_id %]</td>
     </tr>
-    <tr  data-toggle="collapse" data-target="#cellLineInfo" class="clickable">
+    <tr id="cellLineToggle" data-toggle="collapse" data-target="#cellLineInfo" class="clickable">
         <th>Cell line</th>
-        <td>[% project.cell_line %]</td>
+        <td>
+            [% project.cell_line %]
+            <i class="glyphicon glyphicon-plus" style="float: right;"></i>
+        </td>
     </tr>
     <tr>
         <td colspan="3">
@@ -47,7 +50,11 @@
                             Description:
                         </th>
                         <td>
-                            [% cell_line_info.description %]
+                            [% IF cell_line_info.description %]
+                                [% cell_line_info.description %]
+                            [% ELSE %]
+                                No Cell Line description found.
+                            [% END %]
                         </td>
                     </tr>
                 </table>
@@ -88,7 +95,13 @@
                         [% FOREACH external_source IN cell_line_info.external %]
                             <tr>
                                 <th class="col-md-2">[% external_source.repo %]</th>
-                                <td class="[% external_source.repo %]">[% external_source.ext_name %]</td>
+                                <td>
+                                    [% IF external_source.url %]
+                                        <a href="[% external_source.url %]" target="_blank">[% external_source.ext_name %]</a>
+                                    [% ELSE %]
+                                        [% external_source.ext_name %]
+                                    [% END %]
+                                </td>
                             </tr>
                         [% END %]
                     </table>
@@ -341,13 +354,8 @@ No experiments for this project
 
 $( document ).ready(function() {
     document.title = 'Project: [% project.id %]';
+
     $("#update_sponsors_form").collapse('hide');
-    var cellLineData = "[% cell_line_info %]";
-    if (cellLineData) {
-        console.log(cellLineData);
-        cellLineData = jsonify(cellLineData);
-        linkExternalSources(cellLineData);
-    }
 
     $(".delete_experiment_btn").click(function(e){
         var exp_id = $(this).data("exp-id");
@@ -478,10 +486,6 @@ $( document ).ready(function() {
     [% END %]
 });
 
-function jsonify(raw) {
-    return JSON.parse(raw.replace(/&quot;/g,'"'));
-}
-
 var designs = [
 [% FOREACH id IN design_suggest %]
     "[% id %]",
@@ -502,6 +506,10 @@ $("input[name='design_id']").autocomplete({
 $("input[name='crispr_group_id']").autocomplete({
     source: groups,
     minLength: 0,
+});
+
+$('#cellLineToggle').click(function() {
+    $(this).find('i:first').toggleClass('glyphicon-plus glyphicon-minus');
 });
 
 function addRequester() {
@@ -550,11 +558,6 @@ $('body').on("keyup", "input.newReq", function() {
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
     return re.test(email);
-}
-
-function linkExternalSources(cellData) {
-    console.log(cellData);
-
 }
 
 </script>

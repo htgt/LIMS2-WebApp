@@ -161,7 +161,7 @@ sub tracking {
     try {
         $tracking_details->{internal} = $self->cell_line_internal->as_hash;
     };
-        
+
     try {
         my $external_tracking = $self->cell_line_externals;
         while (my $ext = $external_tracking->next) {

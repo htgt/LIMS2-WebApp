@@ -288,7 +288,6 @@ sub view_project :Path('/user/view_project'){
 
     my $cell_line_expanded = $project->cell_line->tracking;
     if ($cell_line_expanded) {
-$DB::single=1;
         $c->stash->{cell_line_info} = $cell_line_expanded;
     }
 

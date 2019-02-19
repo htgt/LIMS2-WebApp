@@ -137,7 +137,7 @@ __PACKAGE__->belongs_to(
 
 sub as_hash {
     my $self = shift;
-    
+
     my %h = (
         id          => $self->id,
         line_id     => $self->cell_line_id,
