@@ -76,9 +76,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 project_sponsors_2s
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-27 10:56:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:StIFD1Io++4g0Q2/5V3w9g
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
+
+=cut
+
+__PACKAGE__->has_many(
+  "project_sponsors_2s",
+  "LIMS2::Model::Schema::Result::ProjectSponsor",
+  { "foreign.lab_head_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-11 09:54:52
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tq3CeyVHXQVY6VQ6bhlzcQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

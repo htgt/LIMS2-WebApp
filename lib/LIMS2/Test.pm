@@ -375,6 +375,8 @@ sub load_dynamic_files {
             TrivialOffset
             MiseqDesignPreset
             MiseqPrimerPreset
+            indel_histogram
+            crispresso_submissions
             MiseqPlate
             MiseqExperiment
             MiseqWellExperiment

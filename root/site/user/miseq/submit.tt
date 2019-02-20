@@ -1,0 +1,27 @@
+[% META title = "Importing MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+<link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
+[% IF job_id %]
+    <h1>Importing MiSEQ sequencing...</h1>
+    <div id="plates">
+    [% USE String %]
+    [% FOREACH plate IN plates %]<div class="well-plate">
+        [% FOREACH row IN plate %]<div class="well-row">
+            [% FOREACH well IN row %]
+                [% title = String.new(well.name).append(':') %]
+                [% FOREACH exp IN well.exps %]
+                    [% title = title.append("\n\t").append(exp.Experiment) %]
+                [% END %]
+                <div class="well-well [% IF well.barcode %]well-well-active[% END %]"
+                    title="[% title.text %]"></div>
+            [% END %]</div>
+        [% END %]</div>
+    [% END %]
+    </div>
+    Job ID: [% job_id %]
+
+    [% IF farm_job %]
+    <br/>Farm job: [% farm_job %]
+
+    <h2>Your import is in progress.</h2>
+    [% END %]
+[% END %]
