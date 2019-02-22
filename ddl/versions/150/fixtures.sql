@@ -1,0 +1,16 @@
+INSERT INTO schema_versions(id) VALUES(150);
+INSERT INTO miseq_classification (id) VALUES ('K/O Hom - 1 Allele');
+INSERT INTO miseq_classification (id) VALUES ('K/O Hom - 2 Allele');
+INSERT INTO miseq_classification (id) VALUES ('K/O Het');
+INSERT INTO miseq_classification (id) VALUES ('HDR Hom - 1 Allele');
+INSERT INTO miseq_classification (id) VALUES ('HDR Hom - 2 Allele');
+INSERT INTO miseq_classification (id) VALUES ('HDR Het');
+UPDATE miseq_well_experiment SET classification = 'K/O Hom - 1 Allele' WHERE classification = 'Hom - 1 Allele';
+UPDATE miseq_well_experiment SET classification = 'K/O Hom - 2 Allele' WHERE classification = 'Hom - 2 Allele';
+UPDATE miseq_well_experiment SET classification = 'K/O Het' WHERE classification = 'Het';
+UPDATE miseq_project_well_exp SET classification = 'K/O Hom - 1 Allele' WHERE classification = 'Hom - 1 Allele';
+UPDATE miseq_project_well_exp SET classification = 'K/O Hom - 2 Allele' WHERE classification = 'Hom - 2 Allele';
+UPDATE miseq_project_well_exp SET classification = 'K/O Het' WHERE classification = 'Het';
+DELETE FROM miseq_classification WHERE id = 'Hom - 1 Allele';
+DELETE FROM miseq_classification WHERE id = 'Hom - 2 Allele';
+DELETE FROM miseq_classification WHERE id = 'Het';
