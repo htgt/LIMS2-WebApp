@@ -224,6 +224,21 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 cell_line_internals
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CellLineInternal>
+
+=cut
+
+__PACKAGE__->has_many(
+  "cell_line_internals",
+  "LIMS2::Model::Schema::Result::CellLineInternal",
+  { "foreign.origin_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 created_by
 
 Type: belongs_to
@@ -625,8 +640,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mlqUNAvEp6//qLOCJGjhlg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3rFes5mKRnAPEsZgE1MMbA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

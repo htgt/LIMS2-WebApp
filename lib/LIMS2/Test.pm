@@ -303,6 +303,7 @@ sub load_static_files {
             MiseqStatus
             LabHead
             Programme
+            CellLineRepository
         )
 
     );
@@ -380,6 +381,8 @@ sub load_dynamic_files {
             MiseqPlate
             MiseqExperiment
             MiseqWellExperiment
+            CellLineExternal
+            CellLineInternal
         )
     );
 

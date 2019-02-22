@@ -31,6 +31,7 @@ use List::Util qw( sum );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
+use Try::Tiny;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -768,7 +769,6 @@ sub read_quant_file {
 sub miseq_genotyping_info {
     my ($c, $well) = @_;
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
-
 
     my $experiments = {
         well_id             => $well->id,

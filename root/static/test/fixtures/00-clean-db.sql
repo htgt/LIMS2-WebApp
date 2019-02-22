@@ -114,5 +114,7 @@ process_crispr_group,
 well_t7,
 miseq_alleles_frequency,
 indel_histogram,
-crispresso_submissions
+crispresso_submissions,
+cell_line_external,
+cell_line_internal
  CASCADE;
