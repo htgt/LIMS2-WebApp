@@ -255,7 +255,6 @@ __PACKAGE__->belongs_to(
 
 sub as_hash{
     my $self = shift;
-
     my %h = (
         id                  => $self->id,
         well_id             => $self->well_id,
@@ -269,7 +268,6 @@ sub as_hash{
         hdr_reads           => $self->hdr_reads,
         mixed_reads         => $self->mixed_reads,
     );
-
     return \%h;
 }
 

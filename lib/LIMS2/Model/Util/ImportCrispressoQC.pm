@@ -21,6 +21,7 @@ use Sub::Exporter -setup => {
             get_crispr
             migrate_histogram
             migrate_crispresso_subs
+            header_hash
         )
     ],
 };
@@ -53,8 +54,8 @@ sub migrate_crispresso_subs {
     my $job = get_crispr($jobout);
     my $row = {
             id  =>   $data->{miseq_well_experiment}->{id},
-            crispr  =>  $job ->{crispr},
-            date_stamp  =>  $job->{date}
+            crispr  =>  $job->{crispr},
+            date_stamp  =>  $job->{date_stamp}
         };
 
     my $check_rs = $model->schema->resultset('CrispressoSubmission')->search( { id => $data->{miseq_well_experiment}->{id} } );
@@ -91,8 +92,7 @@ sub migrate_frequencies {
 
     my $header = shift(@lines);    #grab the header line that holds the titles of the columns
 
-    my @expected_titles
-        = ( 'aligned_sequence', 'nhej', 'unmodified', 'hdr', 'n_deleted', 'n_inserted', 'n_mutated', '#reads' );
+    my @expected_titles = ( 'aligned_sequence', 'nhej', 'unmodified', 'hdr', 'n_deleted', 'n_inserted', 'n_mutated', '#reads' );
     my %head = header_hash( $header, @expected_titles );
     if (%head) {
         while (@lines) {
@@ -509,7 +509,6 @@ sub get_data_from_file {
     my $miseq_experiment_hash;
     my $miseq_well_experiment_hash;
     my $hash;
-
     try{
 
         #First get the plate hash
@@ -613,7 +612,7 @@ sub get_crispr{
         last if $crispr and $date;
     }
     my $hash = {
-        date => $date,
+        date_stamp => $date,
         crispr => $crispr
     };
     return $hash;
