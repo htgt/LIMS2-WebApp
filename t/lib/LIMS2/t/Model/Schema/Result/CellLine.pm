@@ -87,8 +87,9 @@ sub all_tests : Test(8) {
     my $connect_entry = 'LIMS2_DB';
     my $rs            = 'CellLine';
     my %record        = (
-        'id'   => 9999,
-        'name' => 'Alien'
+        'id'            => 9999,
+        'name'          => 'Vogon',
+        'description'   => 'On no account should you allow a Vogon to read poetry at you.'
     );
 
     note("Accessing the schema");
