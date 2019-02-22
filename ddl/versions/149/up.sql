@@ -26,7 +26,7 @@ RETURNS TEXT
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    _chars text = 'ABCDEFGHIJKLMNPQRSTUVWXYZ';
+    _chars text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     _modVal int;
     _divVal int;
     _charsLen int = length(_chars);
@@ -52,7 +52,7 @@ DECLARE
     _nextVal int = nextval('cell_line_seq');
     _identifier text;
 BEGIN
-    SELECT LPAD(alphanumeric::text, 2, 'A') FROM alphanumeric(_nextVal, '') INTO _identifier;
+    SELECT RPAD(alphanumeric::text, 2, 'A') FROM alphanumeric(_nextVal, '') INTO _identifier;
     NEW.unique_identifier := _identifier;
     RETURN NEW;
 END $cell_line_identifier$;
