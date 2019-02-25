@@ -1004,7 +1004,7 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
                     ." of the plate.");
             }
         }
-$DB::single=1;
+
         if ($well) {
             _pipeline_geno_check($self, $c, $well);
         } else {
