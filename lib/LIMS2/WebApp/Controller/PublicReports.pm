@@ -982,12 +982,7 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
         };
 
         if ($well) {
-            if ($well->design->type->id =~ /^miseq.*/) {
-                $c->stash->{pipeline} = 2;
-                $self->_stash_pipeline_ii_genotyping_info( $c, $well );
-            } else {
-                $self->_stash_well_genotyping_info( $c, $well );
-            }
+            _pipeline_geno_check($self, $c, $well);
         } else {
             $c->go( 'well_genotyping_info_search' );
             return;
@@ -1003,31 +998,45 @@ sub well_genotyping_info :Path( '/public_reports/well_genotyping_info' ) :Args()
 
         unless($well){
             try{ $well = $c->model('Golgi')->retrieve_well_from_old_plate_version( { plate_name => $plate_name, well_name => $well_name } ) };
-            if($well){
+            if ($well){
                 $c->stash->{info_msg} = ("Well ".$well->name." was not found on the current version of plate ".
                     $well->plate->name.". Reporting info for this well on version ".$well->plate->version
                     ." of the plate.");
             }
         }
-
+$DB::single=1;
         if ($well) {
-            $self->_stash_well_genotyping_info( $c, $well );
+            _pipeline_geno_check($self, $c, $well);
         } else {
             try {
                 my $plate_id = $c->model('Golgi')->retrieve_plate({ name => $plate_name })->id;
                 my $barcode_id = $c->model('Golgi')->schema->resultset('BarcodeEvent')->find({ old_plate_id => $plate_id, old_well_name => $well_name, new_well_name => undef } )->barcode->barcode;
                 $well = $c->model('Golgi')->retrieve_well( { barcode => $barcode_id } );
+                if ($well) {
+                    _pipeline_geno_check($self, $c, $well);
+                }
             } catch {
                 $c->stash( error_msg => "Well doesn't exist" );
             };
         }
 
-        if ($well) {
-            $self->_stash_well_genotyping_info( $c, $well );
-        } else {
+        unless ($well) {
             $c->go( 'well_genotyping_info_search' );
             return;
         }
+    }
+
+    return;
+}
+
+sub _pipeline_geno_check {
+    my ($self, $c, $well) = @_;
+
+    if ($well->design->type->id =~ /^miseq.*/) {
+        $c->stash->{pipeline} = 2;
+        $self->_stash_pipeline_ii_genotyping_info( $c, $well );
+    } else {
+        $self->_stash_well_genotyping_info( $c, $well );
     }
 
     return;
