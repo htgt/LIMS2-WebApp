@@ -249,7 +249,7 @@
             </div>
             <div id="collapse[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="panel-collapse collapse">
                 <table id="freq[% exp.qc_origin_plate %]_[% exp.qc_origin_well %]" class="table table-striped table-bordered"></table>
-            <div>
+            </div>
         </div>
     </div>
 [% END %]
