@@ -1,3 +1,5 @@
+source /opt/sci/global/scripts/bash_utils.sh
+
 export L2I_STRING=LIMS2-Information
 export L2W_STRING=LIMS2-Warning
 export L2E_STRING=LIMS2-Error
