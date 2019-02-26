@@ -1,13 +1,9 @@
 {{$NEXT}}
-
+    Miseq Database Migration
 0.527     2019-02-12 14:29:31 Europe/London
-
     Fix release issue
-
 0.526     2019-02-12 10:43:00 Europe/London
-
     Automate import of miseq sequencing data
-    
 0.525     2019-02-08 16:04:54 Europe/London
     Fixing release issue
 0.524     2019-02-08 14:37:51 Europe/London
