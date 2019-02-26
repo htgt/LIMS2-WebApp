@@ -13,8 +13,11 @@ build_requires:
   LIMS2::t::js::User::QC::ViewTraces: 0
   Smart::Comments: 0
   Test::Class: 0
+  Test::Exception: 0
+  Test::MockModule: 0
   Test::More: 0.88
   Test::Most: 0
+  Text::ParseWords: 0
   bytes: 0
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 4.300014, CPAN::Meta::Converter version 2.120921'
@@ -88,6 +91,7 @@ requires:
   File::Find: 0
   File::Path: 0
   File::Slurp: 0
+  File::Spec::Functions: 0
   File::Temp: 0
   File::Which: 0
   File::stat: 0
@@ -174,6 +178,7 @@ requires:
   Text::CSV: 0
   Text::CSV_XS: 0
   Text::Iconv: 0
+  Tie::IxHash: 0
   Time::HiRes: 0
   Try::Tiny: 0
   TryCatch: 0
@@ -200,4 +205,4 @@ requires:
   strict: 0
   utf8: 0
   warnings: 0
-version: 0.523
+version: 0.528

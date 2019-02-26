@@ -73,6 +73,9 @@ lib/LIMS2/Model/Schema/Result/CachedReport.pm
 lib/LIMS2/Model/Schema/Result/Cassette.pm
 lib/LIMS2/Model/Schema/Result/CassetteFunction.pm
 lib/LIMS2/Model/Schema/Result/CellLine.pm
+lib/LIMS2/Model/Schema/Result/CellLineExternal.pm
+lib/LIMS2/Model/Schema/Result/CellLineInternal.pm
+lib/LIMS2/Model/Schema/Result/CellLineRepository.pm
 lib/LIMS2/Model/Schema/Result/Chromosome.pm
 lib/LIMS2/Model/Schema/Result/ColonyCountType.pm
 lib/LIMS2/Model/Schema/Result/Crispr.pm
@@ -245,6 +248,10 @@ lib/LIMS2/Model/Util/AlleleDetermination.pm
 lib/LIMS2/Model/Util/AnnouncementAdmin.pm
 lib/LIMS2/Model/Util/BacsForDesign.pm
 lib/LIMS2/Model/Util/BarcodeActions.pm
+lib/LIMS2/Model/Util/BaseSpace.pm
+lib/LIMS2/Model/Util/BaseSpace/File.pm
+lib/LIMS2/Model/Util/BaseSpace/Project.pm
+lib/LIMS2/Model/Util/BaseSpace/Sample.pm
 lib/LIMS2/Model/Util/CGAP.pm
 lib/LIMS2/Model/Util/ComputeAcceptedStatus.pm
 lib/LIMS2/Model/Util/CreKiESDistribution.pm
@@ -272,6 +279,7 @@ lib/LIMS2/Model/Util/ImportCrispressoQC.pm
 lib/LIMS2/Model/Util/ImportSequencing.pm
 lib/LIMS2/Model/Util/LegacyCreKnockInProjectReport.pm
 lib/LIMS2/Model/Util/Miseq.pm
+lib/LIMS2/Model/Util/MiseqImport.pm
 lib/LIMS2/Model/Util/MutationSignatures.pm
 lib/LIMS2/Model/Util/OligoSelection.pm
 lib/LIMS2/Model/Util/PgUserRole.pm
@@ -371,6 +379,7 @@ lib/LIMS2/WebApp/Controller/PublicReports.pm
 lib/LIMS2/WebApp/Controller/Root.pm
 lib/LIMS2/WebApp/Controller/User.pm
 lib/LIMS2/WebApp/Controller/User/Barcodes.pm
+lib/LIMS2/WebApp/Controller/User/BaseSpace.pm
 lib/LIMS2/WebApp/Controller/User/BatchDesign.pm
 lib/LIMS2/WebApp/Controller/User/BrowseDesigns.pm
 lib/LIMS2/WebApp/Controller/User/BrowsePlates.pm
@@ -389,6 +398,8 @@ lib/LIMS2/WebApp/Controller/User/Experiments.pm
 lib/LIMS2/WebApp/Controller/User/ExternalProject.pm
 lib/LIMS2/WebApp/Controller/User/Genoverse.pm
 lib/LIMS2/WebApp/Controller/User/Graph.pm
+lib/LIMS2/WebApp/Controller/User/Miseq.pm
+lib/LIMS2/WebApp/Controller/User/MiseqSpreadsheet.pm
 lib/LIMS2/WebApp/Controller/User/PlateCopy.pm
 lib/LIMS2/WebApp/Controller/User/PlateEdit.pm
 lib/LIMS2/WebApp/Controller/User/PlateUpload.pm
@@ -544,6 +555,8 @@ root/site/user/genoverse/genoverse_gene_view.tt
 root/site/user/genoverse/genoverse_primer_view.tt
 root/site/user/graph/index.tt
 root/site/user/index.tt
+root/site/user/miseq/sequencing.tt
+root/site/user/miseq/submit.tt
 root/site/user/platecopy/plate_copy_wait.tt
 root/site/user/platecopy/plate_from_copy.tt
 root/site/user/plateupload/create_piq_plate.tt
@@ -635,6 +648,7 @@ root/static/css/ep_pipeline_ii_plate.css
 root/static/css/jquery.qtip.min.css
 root/static/css/lims2.css
 root/static/css/lims2_extjs.css
+root/static/css/platewells.css
 root/static/css/traceviewer.css
 root/static/extjs/bootstrap.js
 root/static/extjs/ext-all-debug-w-comments.js
@@ -3130,6 +3144,7 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_EngSeqParams.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GenomeBrowser.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_ImportSequencing.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_MiseqImport.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_PgUserRole.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_PrimerFinder.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_QCResults.t
@@ -3366,6 +3381,7 @@ t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
 t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm
 t/lib/LIMS2/t/Model/Util/ImportSequencing.pm
+t/lib/LIMS2/t/Model/Util/MiseqImport.pm
 t/lib/LIMS2/t/Model/Util/OligoSelection.pm
 t/lib/LIMS2/t/Model/Util/PgUserRole.pm
 t/lib/LIMS2/t/Model/Util/PrimerFinder.pm

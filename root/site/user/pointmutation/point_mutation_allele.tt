@@ -286,22 +286,6 @@ input:checked + .slider:before {
                     </select>
                 </form>
             </div>
-            <div class="col-md-2">
-                <label class="lb-md">Status: </label>
-            </div>
-            <div class="col-md-2">
-                <form action="#" method="POST" name="status[% experiment.id %]" id="status[% experiment.id %]">
-                    <select class="form-control" align="center" id="statusSelect" name="status[% experiment.id %]" onchange="this.form.submit();">
-                    [% FOR state IN status %]
-                        [% IF state == experiment.status %]
-                            <option value="[% state %]" selected="selected">[% state %]</option>
-                        [% ELSE %]
-                            <option value="[% state %]">[% state %]</option>
-                        [% END %]
-                    [% END %]
-                    </select>
-                </form>
-            </div>
         </div>
         <div class='genes [% experiment.id %]'></div>
         <div class="bars" id="bars[% experiment.id %]"></div>

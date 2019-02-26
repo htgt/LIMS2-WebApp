@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqWellExperiment;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqWellExperiment::VERSION = '0.523';
+    $LIMS2::Model::Schema::Result::MiseqWellExperiment::VERSION = '0.528';
 }
 ## use critic
 
@@ -261,7 +261,6 @@ __PACKAGE__->belongs_to(
 
 sub as_hash{
     my $self = shift;
-
     my %h = (
         id                  => $self->id,
         well_id             => $self->well_id,
@@ -275,7 +274,6 @@ sub as_hash{
         hdr_reads           => $self->hdr_reads,
         mixed_reads         => $self->mixed_reads,
     );
-
     return \%h;
 }
 
