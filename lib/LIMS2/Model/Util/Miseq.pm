@@ -549,8 +549,8 @@ sub generate_summary_data {
             if (defined $total and defined $nhej and defined $hdr and defined $mixed) {
                 $wt = $total - $nhej - $hdr - $mixed;
             } else {
-                warn "\nCorrupt data for experiment: $exp_name \n";
-                last;
+                warn "\nCorrupt data for experiment: $exp_name, in well index: $index \n";
+                next;
             }
             $percentages->{wt}   = qq/$wt/;
             $percentages->{nhej} = qq/$nhej/;
