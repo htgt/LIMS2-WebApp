@@ -115,12 +115,14 @@ function create_design(data){
 var queue = [ [% FOREACH design IN designs %] {
         index: [% loop.index %],
         wge_id: [% design.wge_id %],
+        type: "[% design.design_type %]",
         symbol: "[% design.symbol %]",
         crispr_seq: "[% design.crispr_seq %]",
         exf: "[% design.exf %]",
         exr: "[% design.exr %]",
         inf: "[% design.inf %]",
         inr: "[% design.inr %]",
+        hdr: "[% design.hdr %]"
     }, [% END %]
 ];
 /* JS array supports stack & queue functions, but using it as a queue is slow.

@@ -15,11 +15,13 @@ Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 1000;
 Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 3000;
 Readonly::Hash my %RULES                   => (
     NUMERIC  => qr/^\d+$ /xms,
+    TYPE     => qr/^miseq\S*/xms,
     GENE     => qr/^\w+ /xms,
     SEQUENCE => qr/^[ACTG]+$ /xms,
 );
 Readonly::Hash my %COLUMNS => (
     NUMERIC  => [qw/WGE_ID/],
+    TYPE     => [qw/Design_Type/],
     GENE     => [qw/CRISPR_ID/],
     SEQUENCE => [
         'CRISPR Sequence',
@@ -30,7 +32,7 @@ Readonly::Hash my %COLUMNS => (
     ],
 );
 Readonly::Array my @REQUIRED_COLUMNS => @{ $COLUMNS{NUMERIC} },
-  @{ $COLUMNS{GENE} }, @{ $COLUMNS{SEQUENCE} };
+  @{ $COLUMNS{TYPE} }, @{ $COLUMNS{GENE} }, @{ $COLUMNS{SEQUENCE} };
 
 sub _validate_columns {
     my $header_ref = shift;
@@ -105,18 +107,21 @@ sub _read_line {
     my $row = shift;
     my ($symbol) = $row->{CRISPR_ID} =~ m/^(\w+)/xms;
     return {
-        wge_id     => $row->{WGE_ID},
-        symbol     => $symbol,
-        crispr_seq => $row->{'CRISPR Sequence'},
-        exf        => $row->{'PCR forward'},
-        exr        => $row->{'PCR reverse'},
-        inf        => $row->{'MiSEQ forward'},
-        inr        => $row->{'MiSEQ reverse'},
+        wge_id      => $row->{WGE_ID},
+        design_type => $row->{Design_Type},
+        symbol      => $symbol,
+        crispr_seq  => $row->{'CRISPR Sequence'},
+        exf         => $row->{'PCR forward'},
+        exr         => $row->{'PCR reverse'},
+        inf         => $row->{'MiSEQ forward'},
+        inr         => $row->{'MiSEQ reverse'},
+        hdr         => $row->{'HDR template'},
     };
 }
 
 sub _read_file {
     my ( $c, $fh ) = @_;
+$DB::single=1;
     my $csv     = Text::CSV->new;
     my $headers = $csv->getline($fh);
     $csv->column_names( @{$headers} );
@@ -129,6 +134,7 @@ sub _read_file {
     while ( my $row = $csv->getline_hr($fh) ) {
         if ( my $error =
             _validate_values( $row, 'NUMERIC', $COLUMNS{NUMERIC}, $rownum )
+            // _validate_values( $row, 'TYPE',     $COLUMNS{TYPE},     $rownum )
             // _validate_values( $row, 'GENE',     $COLUMNS{GENE},     $rownum )
             // _validate_values( $row, 'SEQUENCE', $COLUMNS{SEQUENCE}, $rownum )
           )
@@ -280,11 +286,12 @@ sub _build_design {
     {
         return { error => $error };
     }
+$DB::single=1;
     my $response = {};
     my $data     = {
         species    => $request->{species},
         created_by => $request->{user},
-        type       => 'miseq',
+        type       => $request->{design_type},
     };
     try {
         my $gene = $model->find_gene(
@@ -326,6 +333,10 @@ sub _build_design {
             target_end       => $crispr->{locus}->{chr_end},
         );
 
+        if ( $request->{hdr} ) {
+            $data->{hdr_template} = $request->{hdr};
+        }
+
         if ( my $error = _validate_primers($primers) ) {
             $response->{error} = $error;
         }
@@ -366,10 +377,13 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     $c->response->header( 'Content-Disposition' => 'attachment; filename=example.csv' );
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
+$DB::single=1;
+    my @columns = @REQUIRED_COLUMNS;
+    push (@columns, 'HDR_template');
     open my $fh, '>', \$output or croak 'Could not create example file';
-    $csv->print( $fh, \@REQUIRED_COLUMNS );
-    $csv->print( $fh, [qw/1174490822 ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
-    $csv->print( $fh, [qw/904034556 AHDC1_3 TGCCCCACACCGGTCGGAGA AGGCTCGTAGAGGGGATG GTGCAGCTCTCCTGACTAC GATGTCAATCAGCTGCACCA TTGCCAAGGGGGACGAC/] );
+    $csv->print( $fh, \@columns );
+    $csv->print( $fh, [qw/1174490822 miseq-hdr ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
+    $csv->print( $fh, [qw/904034556 miseq-nhej AHDC1_3 TGCCCCACACCGGTCGGAGA AGGCTCGTAGAGGGGATG GTGCAGCTCTCCTGACTAC GATGTCAATCAGCTGCACCA TTGCCAAGGGGGACGAC/] );
     close $fh or croak 'Could not close example file';
     $c->response->body( $output );
     return;
@@ -378,11 +392,12 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
 sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
     my ( $self, $c ) = @_;
     my $request = {
-        context    => $c,
-        wge_id     => $c->request->param('wge_id'),
-        symbol     => $c->request->param('symbol'),
-        crispr_seq => $c->request->param('crispr_seq'),
-        primers    => {
+        context     => $c,
+        wge_id      => $c->request->param('wge_id'),
+        design_type => $c->request->param('type'),
+        symbol      => $c->request->param('symbol'),
+        crispr_seq  => $c->request->param('crispr_seq'),
+        primers     => {
             exf => { seq => $c->request->param('exf') },
             exr => { seq => $c->request->param('exr') },
             inf => { seq => $c->request->param('inf') },
@@ -391,7 +406,11 @@ sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
         species => $c->session->{selected_species},
         user    => $c->user->name
     };
+    if ( $c->request->param('hdr') ){
+        $request->{hdr} = $c->request->param('hdr');
+    }
     my $model = $c->model('Golgi');
+$DB::single=1;
     $c->stash->{json_data} = _build_design( $request, $model );
     $c->forward('View::JSON');
     return;
@@ -407,6 +426,7 @@ sub miseq_submit : Path('/user/batchdesign/miseq_submit' ) : Args(0) {
         return;
     }
     my $designs = _extract_data( $c, $datafile );
+$DB::single=1;
     $c->stash->{designs} = $designs;
     return;
 }
