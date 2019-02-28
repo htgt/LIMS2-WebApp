@@ -728,15 +728,18 @@ sub _find_read_quantification_gt_threshold {
     my ($threshold, @lines) = @_;
 
     my @relevant_reads;
-    my $count = 1;
+    my $count = 0;
     my $read_perc = 100;
 
-    push @relevant_reads, $lines[0];
     while ($read_perc > $threshold) {
         push @relevant_reads, $lines[$count];
         $count++;
-        my @cells = split /,/, $lines[$count];
-        $read_perc = $cells[-1];
+        if ($lines[$count]) {
+            my @cells = split /,/, $lines[$count];
+            $read_perc = $cells[-1];
+        } else {
+            $read_perc = 0;
+        }
     }
 
     return @relevant_reads;
