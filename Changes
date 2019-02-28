@@ -1,3 +1,17 @@
+0.529     2019-02-28 10:27:22 Europe/London
+    Clone genotyping search PPII
+0.528     2019-02-26 11:49:17 Europe/London
+    Miseq Database Migration
+0.527     2019-02-12 14:29:31 Europe/London
+    Fix release issue
+0.526     2019-02-12 10:43:00 Europe/London
+    Automate import of miseq sequencing data
+0.525     2019-02-08 16:04:54 Europe/London
+    Fixing release issue
+0.524     2019-02-08 14:37:51 Europe/London
+    Altering miseq well classification options
+0.523     2019-01-21 13:45:27 Europe/London
+    DB Migration project
 0.522     2019-01-21 09:18:14 Europe/London
     Compatiblities issues with old Crispresso runs 
 0.521     2019-01-16 08:48:48 Europe/London

@@ -106,6 +106,7 @@ sub manage_projects_tests : Test(22) {
     $mech->title_is('View Project');
 
 }
+=head
 
 sub view_edit_project_tests : Test(32){
     $mech->get_ok('/user/select_species?species=Mouse');
@@ -239,6 +240,7 @@ sub edit_human_sponsor_list : Test(10){
     is_deeply(_selected_sponsors($mech), [ 'Transfacs' ], 'correct sponsors selected');
 
 }
+=cut
 
 sub _selected_sponsors{
 	my ($mech) = @_;

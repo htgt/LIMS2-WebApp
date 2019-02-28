@@ -1,7 +1,7 @@
 package LIMS2::Test;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Test::VERSION = '0.522';
+    $LIMS2::Test::VERSION = '0.529';
 }
 ## use critic
 
@@ -309,6 +309,10 @@ sub load_static_files {
             MiseqStatus
             LabHead
             Programme
+            CellLineRepository
+            MiseqAllelesFrequency
+            IndelHistogram
+            CrispressoSubmission
         )
 
     );
@@ -384,7 +388,9 @@ sub load_dynamic_files {
             MiseqPlate
             MiseqExperiment
             MiseqWellExperiment
-        )
+            CellLineExternal
+            CellLineInternal
+            )
     );
 
     for my $table ( @reference_tables ) {

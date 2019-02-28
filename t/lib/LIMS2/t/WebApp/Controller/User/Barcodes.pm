@@ -106,6 +106,7 @@ sub mutation_signatures_workflow_test : Test(16){
 
 }
 
+=head
 sub piq_expand_freeze_back_csv_upload  : Test(4) {
 
     my $mech = LIMS2::Test::mech();
@@ -313,5 +314,5 @@ sub all_tests  : Test(45) {
 
 
 }
-
+=cut
 1;

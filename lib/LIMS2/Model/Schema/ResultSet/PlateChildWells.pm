@@ -1,7 +1,7 @@
 package LIMS2::Model::Schema::ResultSet::PlateChildWells;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::ResultSet::PlateChildWells::VERSION = '0.522';
+    $LIMS2::Model::Schema::ResultSet::PlateChildWells::VERSION = '0.529';
 }
 ## use critic
 

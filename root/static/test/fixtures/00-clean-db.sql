@@ -111,7 +111,10 @@ miseq_design_presets,
 hdr_template,
 process_crispr_pair,
 process_crispr_group,
-well_t7
+well_t7,
+miseq_alleles_frequency,
+indel_histogram,
+crispresso_submissions,
+cell_line_external,
+cell_line_internal
  CASCADE;
-
-
