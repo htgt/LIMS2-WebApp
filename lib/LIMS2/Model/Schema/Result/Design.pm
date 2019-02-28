@@ -688,12 +688,12 @@ sub _fetch_region_coords {
 sub hdr_template {
     my $self = shift;
 
+    my $template;
     try {
-        my $template = $self->hdr_templates->first->template;
-        return $template;
+        $template = $self->hdr_templates->first->template;
     };
 
-    return;
+    return $template;
 }
 
 __PACKAGE__->meta->make_immutable;
