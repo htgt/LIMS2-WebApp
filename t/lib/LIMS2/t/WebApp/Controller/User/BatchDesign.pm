@@ -22,7 +22,7 @@ sub validate_columns : Test(3) {
     }
 }
 
-sub validate_values : Test(9) {
+sub validate_values : Test(11) {
     my $data = {
         i => 12345,
         j => -13,
@@ -31,6 +31,7 @@ sub validate_values : Test(9) {
         symbol => 'PTENP1-202',
         seq => 'ACTGCTGA',
         missing_seq => 'NGG',
+        type => 'fusion',
     };
     note('all checked values ok');
     ok not BatchDesign::_validate_values( $data, 'NUMERIC', [qw/i k/] );
@@ -41,6 +42,8 @@ sub validate_values : Test(9) {
     {
         ok my $error = BatchDesign::_validate_values( $data, 'NUMERIC', [qw/i j k/] ); 
         is($error, q/'-13' is not a valid value for j/);
+        ok $error = BatchDesign::_validate_values( $data, 'TYPE', [qw/type/] ); 
+        is($error, q/'fusion' is not a valid value for type/);
         ok $error = BatchDesign::_validate_values( $data, 'GENE', [qw/j symbol/] ); 
         is($error, q/'-13' is not a valid value for j/);
         ok $error = BatchDesign::_validate_values( $data, 'SEQUENCE', 
