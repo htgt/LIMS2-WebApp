@@ -22,11 +22,10 @@ function scrollable(hdrClass) {
     $(hdrClass + ':first').scroll(function() {
         $(hdrClass).scrollLeft($(this).scrollLeft());
     });
-    console.log(hdrClass);
 }
 
-function hdrHighlight(template, caret) {
-    var refSeq = $('#refSeq').sequenceText();
+function hdrHighlight(reference, template, caret) {
+    var refSeq = $(reference).sequenceText();
     var templateSeq = $(template).sequenceText();
 
     var refHigh = "";
@@ -50,7 +49,7 @@ function hdrHighlight(template, caret) {
             spanOpen = false;
         }
     });
-    $('#refSeq').html(refHigh);
+    $(reference).html(refHigh);
     return templateHigh;
 }
 

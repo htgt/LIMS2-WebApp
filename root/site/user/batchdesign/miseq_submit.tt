@@ -47,8 +47,10 @@
                     <th class="leadingRow" rowspan="2">[% design.wge_id %]</th>
                 [% END %]
                 <td>[% design.symbol %]</td>
-                <td>[% design.design_type %]
-                <td class="crispr-id"></td>
+                <td>[% design.design_type %]</td>
+                <td>
+                    <a class="crispr-id"></a>
+                </td>
                 <td>
                     <span class="oligo crispr">CRISPR</span>
                     <span class="oligo exf">EXF</span>
@@ -70,8 +72,10 @@
                     <span class="location inf"></span>
                     <span class="location inr"></span>
                 </td>
-                <td class="design"></td>
-                <td class="status"eq
+                <td>
+                    <a class="design"></a>
+                </td>
+                <td class="status">
                     <span class="glyphicon glyphicon-time"></span>
                     <span class="status-fail"></span>
                 </td>
@@ -125,9 +129,13 @@ function create_design(data){
         row.find('.status > .glyphicon').addClass('glyphicon-remove');
         row.find('.status > .status-fail').html(xhr.responseText);
     }).done(function(data){
-        console.log(data);
         if (data.crispr) {
-            row.find('.crispr-id').html(data.crispr);
+            var crisprURL = '[% c.uri_for('/user/crispr/') %]';
+            crisprURL = crisprURL + data.crispr + '/view';
+            row.find('.crispr-id')
+                .html(data.crispr)
+                .attr('href',crisprURL)
+                .attr('target','_blank');
         }
         if (data.locations) {
             row.find('.location.crispr').html(data.locations.crispr);
@@ -138,17 +146,26 @@ function create_design(data){
         }
         if (data.amplicon) {
             $(rowEntry + '_amp > .amplicon').text(data.amplicon);
-            $('.hdr.seq_' + id).show();
             scrollable('.seq_' + id);
 
+            if ( $('.hdr.seq_' + id).length ) {
+                $('.hdr.seq_' + id).show();
+                hdrHighlightSeq = hdrHighlight('.amplicon.seq_' + id,'.hdr.seq_' + id);
+                $('.hdr.seq_' + id).html(hdrHighlightSeq);
+            }
         }
         if (data.error) {
             row.find('.status > .glyphicon').addClass('glyphicon-remove');
             row.find('.status > .status-fail').html(data.error);
         }
         else {
+            var designURL = '[% c.uri_for('/user/view_design/') %]';
+            designURL = designURL + '?design_id=' + data.design.id;
+            row.find('.design')
+                .html(data.design.id)
+                .attr('href',designURL)
+                .attr('target','_blank');
             row.find('.status > .glyphicon').addClass('glyphicon-ok');
-            row.find('.design').html(data.design.id);
         }
         workers--;
         submit_design();
