@@ -9,8 +9,8 @@ use strict;
 sub validate_columns : Test(3) {
     note('all columns included');
     {
-        my @columns = ('WGE_ID', 'CRISPR_ID', 'CRISPR Sequence', 'PCR forward',
-            'PCR reverse', 'MiSEQ forward', 'MiSEQ reverse');
+        my @columns = ('WGE_ID', 'Design_Type', 'CRISPR_ID', 'CRISPR Sequence', 'PCR forward',
+            'PCR reverse', 'MiSEQ forward', 'MiSEQ reverse', 'HDR template');
         ok not BatchDesign::_validate_columns(\@columns);
     }
     note('Some columns missing');
@@ -18,7 +18,7 @@ sub validate_columns : Test(3) {
         my @columns = ('WGE_ID', 'CRISPR Sequence', 'PCR forward',
             'PCR reverse', 'MiSEQ reverse');
         ok my $error = BatchDesign::_validate_columns(\@columns);
-        is($error, 'Missing required columns: CRISPR_ID, MiSEQ forward');
+        is($error, 'Missing required columns: Design_Type, CRISPR_ID, MiSEQ forward');
     }
 }
 
