@@ -388,10 +388,8 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
 
     my @columns = @REQUIRED_COLUMNS;
     push (@columns, 'HDR template');
-    open my $fh, '>', \$output or croak 'Could not create example file';
-    $csv->print( $fh, \@columns );
-    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
-    $csv->print( $fh, [qw/
+
+    my @hdr_example_row = qw/
         904034556
         miseq-hdr
         AHDC1_3
@@ -401,8 +399,14 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
         GATGTCAATCAGCTGCACCA
         TTGCCAAGGGGGACGAC
         ATGGTCGCAGGTTCACCCGCCCGTTGTCCCAGCAGCGTCGGGAGCTGCGGCCGTCTCCGACCGGTGTGGGGCAGCGGGCCTGTGAGACAGGACGGGCTGCCCGTGGGGGCAGCGGGT         
-    /] );
+    /;
+
+    open my $fh, '>', \$output or croak 'Could not create example file';
+    $csv->print( $fh, \@columns );
+    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
+    $csv->print( $fh, \@hdr_example_row );
     close $fh or croak 'Could not close example file';
+
     $c->response->body( $output );
     return;
 }
