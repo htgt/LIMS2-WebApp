@@ -60,20 +60,14 @@
     Reset
 </button>
 
-<script type="text/javascript" charset="utf-8">
+[% INCLUDE 'user/browsedesigns/hdr_amplicon_widget.tt' %]
 
-jQuery.fn.extend({
-    sequenceText: function() {
-        var regWhitespace = /[^ACTGactg]+/g;
-        var text = $(this).text() || $(this).val();
-        return text.replace(regWhitespace, '').toUpperCase();
-    }
-});
+<script type="text/javascript" charset="utf-8">
 
 $(document).ready(function() {
     $('#saveTemplate').hide().prop('disabled', true);
     $('#resetTemplate').hide().prop('disabled', true);
-    scrollable();
+    scrollable('.hdrSeq');
     var hdrSeqSpanned = hdrHighlight('#templateSeq');
     $('#templateSeq').html(hdrSeqSpanned)
 });

@@ -4,7 +4,7 @@ use namespace::autoclean;
 use Bio::Perl qw/revcom/;
 use Carp;
 use JSON;
-use LIMS2::Model::Util::PrimerFinder qw/locate_primers/;
+use LIMS2::Model::Util::PrimerFinder qw/locate_primers fetch_amplicon_seq/;
 use List::MoreUtils qw/uniq/;
 use Readonly;
 use Text::CSV;
@@ -121,7 +121,7 @@ sub _read_line {
 
 sub _read_file {
     my ( $c, $fh ) = @_;
-$DB::single=1;
+
     my $csv     = Text::CSV->new;
     my $headers = $csv->getline($fh);
     $csv->column_names( @{$headers} );
@@ -286,7 +286,7 @@ sub _build_design {
     {
         return { error => $error };
     }
-$DB::single=1;
+
     my $response = {};
     my $data     = {
         species    => $request->{species},
@@ -333,6 +333,8 @@ $DB::single=1;
             target_end       => $crispr->{locus}->{chr_end},
         );
 
+
+
         if ( $request->{hdr} ) {
             $data->{hdr_template} = $request->{hdr};
         }
@@ -341,6 +343,11 @@ $DB::single=1;
             $response->{error} = $error;
         }
         else {
+            $response->{amplicon} = fetch_amplicon_seq(
+                $request->{species},
+                $strand,
+                $primers
+            );
             $response->{locations} = {
                 crispr => format_location( $crispr->{locus} ),
                 exf    => format_location( $primers->{exf}->{loci} ),
@@ -355,6 +362,7 @@ $DB::single=1;
                 }
             );
             $response->{design} = $design->{_column_data};
+
         }
     }
     catch {
@@ -377,7 +385,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     $c->response->header( 'Content-Disposition' => 'attachment; filename=example.csv' );
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
-$DB::single=1;
+
     my @columns = @REQUIRED_COLUMNS;
     push (@columns, 'HDR_template');
     open my $fh, '>', \$output or croak 'Could not create example file';
@@ -410,7 +418,7 @@ sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
         $request->{hdr} = $c->request->param('hdr');
     }
     my $model = $c->model('Golgi');
-$DB::single=1;
+
     $c->stash->{json_data} = _build_design( $request, $model );
     $c->forward('View::JSON');
     return;
@@ -426,7 +434,7 @@ sub miseq_submit : Path('/user/batchdesign/miseq_submit' ) : Args(0) {
         return;
     }
     my $designs = _extract_data( $c, $datafile );
-$DB::single=1;
+
     $c->stash->{designs} = $designs;
     return;
 }

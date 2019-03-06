@@ -667,6 +667,8 @@ sub generate_summary_data_old {
 sub read_alleles_frequency_file {
     my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
 
+    $threshold = $threshold ? $threshold : 0;
+
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
         return [{ error => 'No path available' }];
