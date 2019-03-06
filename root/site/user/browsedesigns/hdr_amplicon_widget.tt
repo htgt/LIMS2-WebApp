@@ -49,7 +49,9 @@ function hdrHighlight(reference, template, caret) {
             spanOpen = false;
         }
     });
+
     $(reference).html(refHigh);
+
     return templateHigh;
 }
 

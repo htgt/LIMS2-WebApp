@@ -1,10 +1,5 @@
 <style>
 
-.highlight {
-    background-color: green;
-    color: white;
-}
-
 #caret {
     animation: blink-animation 1s step-start 0s infinite;
     -webkit-animation: blink-animation 1s step-start 0s infinite;
@@ -68,7 +63,7 @@ $(document).ready(function() {
     $('#saveTemplate').hide().prop('disabled', true);
     $('#resetTemplate').hide().prop('disabled', true);
     scrollable('.hdrSeq');
-    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    var hdrSeqSpanned = hdrHighlight('#refSeq','#templateSeq');
     $('#templateSeq').html(hdrSeqSpanned)
 });
 
@@ -103,7 +98,7 @@ $('#saveTemplate').click(function() {
     $('#templateSeq').show();
 
     $('#templateSeq').text(hdr);
-    var hdrSeqSpanned = hdrHighlight('#templateSeq');
+    var hdrSeqSpanned = hdrHighlight('#refSeq','#templateSeq');
     $('#templateSeq').html(hdrSeqSpanned)
     
     $('#saveTemplate').hide().prop('disabled', true);
@@ -113,12 +108,12 @@ $('#saveTemplate').click(function() {
 
 $('#resetTemplate').click(function(evt) {
     $('#templateInput').val($('#templateSeq').sequenceText()).focus();
-    hdrHighlight('#templateInput');
+    hdrHighlight('#refSeq','#templateInput');
     evt.target.setSelectionRange(0, 0);
 });
 
 $(document).on("change keydown keyup keypress paste input click", '#templateInput', function(evt) {
-    hdrHighlight('#templateInput', evt.target.selectionStart);
+    hdrHighlight('#refSeq','#templateInput', evt.target.selectionStart);
 });
 
 function nucleotides(event) {
@@ -130,42 +125,6 @@ function nucleotides(event) {
         return pattern.test(value);
     }
     return 1;
-}
-
-function scrollable() {
-    $('.hdrSeq:first').css('overflow-x','scroll');
-    $('.hdrSeq:first').scroll(function() {
-        $('.hdrSeq').scrollLeft($(this).scrollLeft());
-    });
-}
-
-function hdrHighlight(template, caret) {
-    var refSeq = $('#refSeq').sequenceText();
-    var templateSeq = $(template).sequenceText();
-
-    var refHigh = "";
-    var templateHigh = "";
-    var spanOpen = false;
-    templateSeq.split("").forEach(function(value, index) {
-        if (index == caret) {
-            refHigh += '<span id="caret">|</span>';
-        }
-        if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
-            refHigh += !spanOpen ? "<span class='highlight'>" : "";
-            templateHigh += !spanOpen ? "<span class='highlight'>" : "";
-            refHigh += refSeq.charAt(index);
-            templateHigh += value;
-            spanOpen = true;
-        } else {
-            refHigh += spanOpen ? "</span>" : "";
-            templateHigh += spanOpen ? "</span>" : "";
-            refHigh += refSeq.charAt(index);
-            templateHigh += value;  
-            spanOpen = false;
-        }
-    });
-    $('#refSeq').html(refHigh);
-    return templateHigh;
 }
 
 function saveHDR(hdrSeq) {
