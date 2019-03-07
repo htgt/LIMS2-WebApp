@@ -98,6 +98,11 @@ __PACKAGE__->table("miseq_alleles_frequency");
   default_value: 0
   is_nullable: 0
 
+=head2 quality_score
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -126,6 +131,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "n_reads",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "quality_score",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -163,8 +170,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y+i+ywHGjqv4A/BFnhPGPA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-06 15:03:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NIBz415880gHeM4WigHJcg
 sub as_hash {
     my $self = shift;
 
@@ -172,6 +179,7 @@ sub as_hash {
         id                          => $self->id,
         miseq_well_experiment_id    => $self->miseq_well_experiment_id,
         aligned_sequence            => $self->aligned_sequence,
+        quality_score               => $self->quality_score,
         nhej                        => $self->nhej,
         unmodified                  => $self->unmodified,
         hdr                         => $self->hdr,

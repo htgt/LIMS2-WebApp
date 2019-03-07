@@ -30,21 +30,29 @@ sub point_mutation_summary_GET {
     my $threshold = $c->request->param( 'limit' );
     my $percentage_bool = $c->request->param( 'perc' );
     my $miseq_well_exp_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
+    my @result;
+    my $alleles = get_frequency_data($c, $miseq_well_exp_hash);
+    
+    #@result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+    #    if (ref($result[0]) eq "HASH") {
+    #        $c->response->status( 404 );
+    #        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
+    #        return;
+    #    }
+    #    my $alleles = {
+    #        data => join("\n", @result),
+    #    };
 
-    my @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
-
-    if (ref($result[0]) eq "HASH") {
-        $c->response->status( 404 );
-        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-        return;
-    }
-
-    my $alleles = {
-        data => join("\n", @result),
-    };
+$DB::single=1; 
+    
     $alleles->{crispr} = crispr_seq($c, $miseq, $oligo_index, $experiment);
+$DB::single=1; 
+
     my $json = JSON->new->allow_nonref;
+$DB::single=1; 
+
     my $body = $json->encode($alleles);
+$DB::single=1; 
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
@@ -249,24 +257,45 @@ sub flatten_wells {
 
 sub get_frequency_data{
     my ($c, $miseq_well_experiment_hash) = @_;
-
     my $limit = $c->request->param('limit');
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
     my $cou = $frequency_rs->count;
     my @lines;
-    push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
+    my $freq_hash;
     $limit = $cou if ($limit > $cou);
     if ($limit > 0){
+        my $freq_hash = $frequency_rs->next->as_hash;
+        if (exists $freq_hash->{quality_score}){
+            unshift @lines ,'Aligned Sequence,Phred_Quality,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';        
+        }
+        else {
+            unshift @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';                    
+        }
+
         for my $i (1..$limit){
-            my $freq_hash = $frequency_rs->next->as_hash;
-            my $sum = $freq_hash->{n_reads};
-            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
-            push @lines,
-                $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
-                $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
-                $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
-                $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
-                $percentage;
+            my $percentage = $freq_hash->{n_reads}/$miseq_well_experiment_hash->{total_reads}*100.0;
+            
+            if (exists $freq_hash->{quality_score}){
+                push @lines,
+                    $freq_hash->{aligned_sequence}      .",".   $freq_hash->{quality_score}                 .",".
+                    $freq_hash->{nhej}                  .",".   $freq_hash->{unmodified}                    .",".   
+                    $freq_hash->{hdr}                   .",".   $freq_hash->{n_deleted}                     .",".   
+                    $freq_hash->{n_inserted}            .",".   $freq_hash->{n_mutated}                     .",".   
+                    $freq_hash->{n_reads}               .",".   $percentage;
+
+            }
+            else {
+                push @lines,
+                    $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
+                    $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
+                    $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
+                    $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
+                    $percentage;
+                }
+
+                if (my $next = $frequency_rs->next) {
+                    $freq_hash = $next->as_hash;                
+                }
         }
     }
     elsif($frequency_rs->count < 1){

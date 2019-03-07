@@ -71,7 +71,7 @@ sub pspec_create_miseq_alleles_frequency{
     return  {
             miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'                       },
             aligned_sequence          =>  { validate => 'non_empty_string'                              },
-            phred_quality             =>  { validate => 'non_empty_string', optional => 1, default => 0 },
+            quality_score             =>  { optional => 1,                                              },
             nhej                      =>  { validate => 'boolean_string'                                },
             unmodified                =>  { validate => 'boolean_string'                                },
             hdr                       =>  { validate => 'boolean_string'                                },
@@ -85,17 +85,15 @@ sub pspec_create_miseq_alleles_frequency{
 
 sub create_miseq_alleles_frequency{
     my ($self, $params) = @_;
-
     my $validated_params = $self->check_params($params, pspec_create_miseq_alleles_frequency);
-
     my $miseq_frequency = $self->schema->resultset('MiseqAllelesFrequency')->create(
            { slice_def(
                    $validated_params,
-                   qw( miseq_well_experiment_id aligned_sequence phred_quality nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
+                   qw( miseq_well_experiment_id aligned_sequence quality_score nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
                )
            }
        );
-       #$self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
+       $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
     return $miseq_frequency;
 }
 
