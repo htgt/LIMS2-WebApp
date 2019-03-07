@@ -41,7 +41,7 @@
     <tbody>
         [% FOREACH design IN designs %]
             <tr id="row_[% loop.index %]">
-                [% IF design.hdr %]
+                [% IF design.design_type == 'miseq-hdr' || design.hdr %]
                     <th class="leadingRow" rowspan="3">[% design.wge_id %]</th>
                 [% ELSE %]
                     <th class="leadingRow" rowspan="2">[% design.wge_id %]</th>
@@ -88,13 +88,31 @@
                     <span class="sequence window amplicon seq_[% loop.index %]"></span>
                 </td>
             </tr>
-            [% IF design.hdr %]
+            [% IF design.hdr && design.design_type == 'miseq-hdr'%]
                 <tr>
                     <td>
                         HDR Template
                     </td>
                     <td colspan="7">
                         <span class="sequence window hdr seq_[% loop.index %]">[% design.hdr %]</span>
+                    </td>
+                </tr>
+            [% ELSIF design.design_type == 'miseq-hdr' %]
+                <tr>
+                    <td>
+                        HDR Template
+                    </td>
+                    <td colspan="7">
+                        <span>No HDR Template Sequence supplied. Please manually edit the HDR in the view design page.</span>
+                    </td>
+                </tr>
+            [% ELSIF design.hdr %]
+                <tr>
+                    <td>
+                        HDR Template
+                    </td>
+                    <td colspan="7">
+                        <span> HDR Template Sequence incorrectly supplied for NHEJ design. Template will be ignored.</span>
                     </td>
                 </tr>
             [% END %]
