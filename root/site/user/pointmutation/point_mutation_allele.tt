@@ -8,9 +8,6 @@
     overflow-x: scroll;
 }
 
-.bar {
-}
-
 .axis {
     font: 15px sans-serif;
     
@@ -569,7 +566,7 @@ function buildImages(selection, data) {
       .attr("height", function(d) { return height - y(d.frequency/total_reads*100); })
       .style("fill", function(d) {
             if (d.indel == 0) {
-                return "#8C2626";
+                return "#8C2626"; /* Red */ 
             }
             else {
                 return "steelblue";
@@ -580,7 +577,7 @@ function buildImages(selection, data) {
      .on("mouseout.color", function(d) {
        d3.select(this).style("fill", function(d) {
            if (d.indel == 0) {
-                return "#8C2626";
+                return "#8C2626"; //Red
            }
            else {
                 return "steelblue";
