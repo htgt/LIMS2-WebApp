@@ -34,7 +34,7 @@ sub point_mutation_summary_GET {
     my $alleles = {
         data => get_frequency_data($c, $miseq_well_exp_hash)
     };
-    
+
     unless ($alleles) {
         @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
         if (ref($result[0]) eq "HASH") {
@@ -255,74 +255,86 @@ sub get_frequency_data{
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
     my $cou = $frequency_rs->count;
     my @lines;
+    my @test;
     my $freq_hash;
     $limit = $cou if ($limit > $cou);
     if ($limit > 0){
-        my $freq_hash = $frequency_rs->next->as_hash;
+        $freq_hash = $frequency_rs->next->as_hash;
         if ($freq_hash->{reference_sequence}){
             if ($freq_hash->{quality_score}){
-                unshift @lines ,'Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';        
+                unshift @lines ,'Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
             }
             else {
-                unshift @lines ,'Aligned_Sequence,Reference_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';                    
+                unshift @lines ,'Aligned_Sequence,Reference_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
             }
         }
         else {
-             if ($freq_hash->{quality_score}){
-                unshift @lines ,'Aligned_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';        
-            }
-            else {
-                unshift @lines ,'Aligned_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';                    
-            }
+                unshift @lines ,'Aligned_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
         }
+        my @headers = split(',', @lines[0]);
+$DB::single=1;        
         for my $i (1..$limit){
             my $percentage = $freq_hash->{n_reads}/$miseq_well_experiment_hash->{total_reads}*100.0;
-            $DB::single=1;
+            my $line;
+$DB::single=1;
+            my $newstring = join(',', map($freq_hash->{_}, @headers));
+            while (my $header = shift @headers) {
+                if ($line){
+                    $line = $line.$freq_hash->{$headers};
+                }
+                else {
+                    $line = $freq_hash->{$headers};
+                }
+            }
+            $line = $line.$percentage;
+            push @test, $line;
+
             if ($freq_hash->{reference_sequence}) {
-                if ($freq_hash->{quality_score}){
+                if ($freq_hash->{quality_score}) {
                     push @lines,
-                        $freq_hash->{aligned_sequence}      .",".   $freq_hash->{reference_sequence}            .",".
-                        $freq_hash->{quality_score}         .",".   $freq_hash->{nhej}                          .",".   
-                        $freq_hash->{unmodified}            .",".   $freq_hash->{hdr}                           .",".   
-                        $freq_hash->{n_deleted}             .",".   $freq_hash->{n_inserted}                    .",".   
-                        $freq_hash->{n_mutated}             .",".   $freq_hash->{n_reads}                       .",".   
+                        $freq_hash->{aligned_sequence}  .",".   $freq_hash->{reference_sequence}        .",".
+                        $freq_hash->{quality_score}     .",".   $freq_hash->{nhej}                      .",".
+                        $freq_hash->{unmodified}        .",".   $freq_hash->{hdr}                       .",".
+                        $freq_hash->{n_deleted}         .",".   $freq_hash->{n_inserted}                .",".
+                        $freq_hash->{n_mutated}         .",".   $freq_hash->{n_reads}                   .",".
                         $percentage;
                 }
                 else {
                     push @lines,
-                        $freq_hash->{aligned_sequence}   .",".   $freq_hash->{reference_sequence}               .",".
-                        $freq_hash->{nhej}               .",".   $freq_hash->{unmodified}                       .",".   
-                        $freq_hash->{hdr}                .",".   $freq_hash->{n_deleted}                        .",".   
-                        $freq_hash->{n_inserted}         .",".   $freq_hash->{n_mutated}                        .",".   
-                        $freq_hash->{n_reads}            .",".   $percentage;
+                        $freq_hash->{aligned_sequence}  .",".   $freq_hash->{reference_sequence}        .",".
+                        $freq_hash->{nhej}              .",".   $freq_hash->{unmodified}                .",".
+                        $freq_hash->{hdr}               .",".   $freq_hash->{n_deleted}                 .",".
+                        $freq_hash->{n_inserted}        .",".   $freq_hash->{n_mutated}                 .",".
+                        $freq_hash->{n_reads}           .",".   $percentage;
                 }
             }
             else {
              if ($freq_hash->{quality_score}){
                     push @lines,
-                        $freq_hash->{aligned_sequence}      .",".   $freq_hash->{quality_score}                 .",".
-                        $freq_hash->{nhej}                  .",".   $freq_hash->{unmodified}                    .",".   
-                        $freq_hash->{hdr}                   .",".   $freq_hash->{n_deleted}                     .",".   
-                        $freq_hash->{n_inserted}            .",".   $freq_hash->{n_mutated}                     .",".   
-                        $freq_hash->{n_reads}               .",".   $percentage;
+                        $freq_hash->{aligned_sequence}  .",".   $freq_hash->{quality_score}             .",".
+                        $freq_hash->{nhej}              .",".   $freq_hash->{unmodified}                .",".
+                        $freq_hash->{hdr}               .",".   $freq_hash->{n_deleted}                 .",".
+                        $freq_hash->{n_inserted}        .",".   $freq_hash->{n_mutated}                 .",".
+                        $freq_hash->{n_reads}           .",".   $percentage;
                 }
                 else {
                     push @lines,
-                        $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
-                        $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
-                        $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
-                        $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
+                        $freq_hash->{aligned_sequence}  .",".   $freq_hash->{nhej}                      .",".
+                        $freq_hash->{unmodified}        .",".   $freq_hash->{hdr}                       .",".
+                        $freq_hash->{n_deleted}         .",".   $freq_hash->{n_inserted}                .",".
+                        $freq_hash->{n_mutated}         .",".   $freq_hash->{n_reads}                   .",".
                         $percentage;
                 }
-
+$DB::single=1;
             }
             if (my $next = $frequency_rs->next) {
-                    $freq_hash = $next->as_hash;                
+                    $freq_hash = $next->as_hash;
             }
             else {
                 last;
             }
         }
+$DB::single=1;        
     }
     elsif($frequency_rs->count < 1){
         print "No results";
