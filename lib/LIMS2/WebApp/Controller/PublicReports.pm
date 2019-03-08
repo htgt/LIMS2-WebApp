@@ -1117,9 +1117,10 @@ sub _stash_pipeline_ii_genotyping_info {
 
     my $data = miseq_genotyping_info($c, $well);
     my $alleles_data;
+
     foreach my $exp (@{ $data->{experiments} }) {
         my $table = $exp->{alleles_freq};
-        my $key = $exp->{qc_origin_plate} . '_' . $exp->{qc_origin_well};
+        my $key = $exp->{qc_origin_plate} . '_' . $exp->{qc_origin_well} . '_' . $exp->{experiment_name};
         $alleles_data->{$key} = $table;
         $alleles_data->{$key}->{read_quant} = $exp->{read_counts};
         $alleles_data->{$key}->{frameshift} = $exp->{frameshift};
