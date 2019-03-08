@@ -566,7 +566,7 @@ function buildImages(selection, data) {
       .attr("height", function(d) { return height - y(d.frequency/total_reads*100); })
       .style("fill", function(d) {
             if (d.indel == 0) {
-                return "#8C2626"; /* Red */ 
+                return "#8C2626"; //Red
             }
             else {
                 return "steelblue";
