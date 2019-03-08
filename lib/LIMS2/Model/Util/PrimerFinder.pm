@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerFinder;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.529';
+    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.530';
 }
 ## use critic
 
@@ -12,8 +12,9 @@ use Carp;
 use Data::UUID;
 use DesignCreate::Util::BWA;
 use Path::Class;
+use WebAppCommon::Util::EnsEMBL;
 use base qw/Exporter/;
-our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit/;
+our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq/;
 
 sub generate_bwa_query_file {
     my $primers = shift;
@@ -178,6 +179,29 @@ sub locate_primers {
         $primers->{$oligo}->{loci} = $locus;
     }
     return $primers;
+}
+
+sub fetch_amplicon_seq {
+    my ( $species, $strand, $primers ) = @_;
+
+    my $ensembl = WebAppCommon::Util::EnsEMBL->new( species => $species );
+
+    my $left_prime = $primers->{inf}->{loci};
+    my $right_prime = $primers->{inr}->{loci};
+    if ( $strand == -1 ) {
+        $left_prime = $primers->{inr}->{loci};
+        $right_prime = $primers->{inf}->{loci};
+    }
+
+    my $amplicon = $ensembl->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $left_prime->{chr_name},
+        $left_prime->{chr_end},
+        $right_prime->{chr_start} + 1,
+        $left_prime->{chr_strand},
+    );
+
+    return $amplicon->seq;
 }
 
 1;

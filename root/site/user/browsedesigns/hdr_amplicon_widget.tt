@@ -1,0 +1,58 @@
+<style>
+
+.highlight {
+    background-color: green;
+    color: white;
+}
+
+</style>
+
+<script type="text/javascript" charset="utf-8">
+
+jQuery.fn.extend({
+    sequenceText: function() {
+        var regWhitespace = /[^ACTGactg]+/g;
+        var text = $(this).text() || $(this).val();
+        return text.replace(regWhitespace, '').toUpperCase();
+    }
+});
+
+function scrollable(hdrClass) {
+    $(hdrClass + ':first').css('overflow-x','scroll');
+    $(hdrClass + ':first').scroll(function() {
+        $(hdrClass).scrollLeft($(this).scrollLeft());
+    });
+}
+
+function hdrHighlight(reference, template, caret) {
+    var refSeq = $(reference).sequenceText();
+    var templateSeq = $(template).sequenceText();
+
+    var refHigh = "";
+    var templateHigh = "";
+    var spanOpen = false;
+    templateSeq.split("").forEach(function(value, index) {
+        if (index == caret) {
+            refHigh += '<span id="caret">|</span>';
+        }
+        if (value.toUpperCase() != refSeq.charAt(index).toUpperCase()) {
+            refHigh += !spanOpen ? "<span class='highlight'>" : "";
+            templateHigh += !spanOpen ? "<span class='highlight'>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;
+            spanOpen = true;
+        } else {
+            refHigh += spanOpen ? "</span>" : "";
+            templateHigh += spanOpen ? "</span>" : "";
+            refHigh += refSeq.charAt(index);
+            templateHigh += value;  
+            spanOpen = false;
+        }
+    });
+
+    $(reference).html(refHigh);
+
+    return templateHigh;
+}
+
+</script>

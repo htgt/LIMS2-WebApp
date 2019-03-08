@@ -1,7 +1,7 @@
 package LIMS2::Report::MISEQPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::MISEQPlate::VERSION = '0.529';
+    $LIMS2::Report::MISEQPlate::VERSION = '0.530';
 }
 ## use critic
 

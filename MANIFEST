@@ -485,6 +485,7 @@ root/site/user/barcodes/well_barcode_history.tt
 root/site/user/barcodes/well_checkout.tt
 root/site/user/batchdesign/miseq_submit.tt
 root/site/user/browsedesigns/design_ucsc_blat.tt
+root/site/user/browsedesigns/hdr_amplicon_widget.tt
 root/site/user/browsedesigns/index.tt
 root/site/user/browsedesigns/list_designs.tt
 root/site/user/browsedesigns/list_designs_compact.tt

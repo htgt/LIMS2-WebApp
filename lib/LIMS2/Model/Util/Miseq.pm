@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Miseq::VERSION = '0.529';
+    $LIMS2::Model::Util::Miseq::VERSION = '0.530';
 }
 ## use critic
 
@@ -673,6 +673,8 @@ sub generate_summary_data_old {
 sub read_alleles_frequency_file {
     my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
 
+    $threshold = $threshold ? $threshold : 0;
+
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
         return [{ error => 'No path available' }];
@@ -734,15 +736,18 @@ sub _find_read_quantification_gt_threshold {
     my ($threshold, @lines) = @_;
 
     my @relevant_reads;
-    my $count = 1;
+    my $count = 0;
     my $read_perc = 100;
 
-    push @relevant_reads, $lines[0];
     while ($read_perc > $threshold) {
         push @relevant_reads, $lines[$count];
         $count++;
-        my @cells = split /,/, $lines[$count];
-        $read_perc = $cells[-1];
+        if ($lines[$count]) {
+            my @cells = split /,/, $lines[$count];
+            $read_perc = $cells[-1];
+        } else {
+            $read_perc = 0;
+        }
     }
 
     return @relevant_reads;
