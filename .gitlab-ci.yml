@@ -1,7 +1,7 @@
 job:
   image: ja16/lims2:lims2_xenial_unit_test
   before_script:
-  - docker login -u $USER -p "$PASS" $REGISTRY
+  - echo 'before'
   script:
   - source bin/lims2_setup.sh
   - lims2 test
