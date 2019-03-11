@@ -3,7 +3,6 @@ job:
   before_script:
   - echo 'before'
   script:
-  - source /opt/sci/global/scripts/bash_utils.sh
   - cd /home/ubuntu/git_checkout/LIMS2-WebApp/
   - source bin/lims2_setup.sh
   - lims2 test
