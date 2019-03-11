@@ -1,11 +1,11 @@
 job:
-  image: ja16/lims2:lims2_xenial_unit_test
+  image: ja16/lims2:lims2_xenial_tests_image
   before_script:
   - echo 'before'
   script:
   - ls -l /opt/sci/global/scripts/bash_utils.sh
-  - source bin/lims2_setup.sh
-  - lims2 test
+  - source bin/lims2_setup.sh || echo 'error'
+  - lims2 test || echo 'error'
   - export REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf
   - export LIMS2_WEBAPP_CONFIG=/opt/sci/global/conf/lims2/webapp.conf
   - export PERL5LIB=/opt/sci/global/software/lims2/lib/
