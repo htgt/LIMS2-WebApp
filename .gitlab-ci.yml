@@ -1,9 +1,8 @@
 job:
   image: ja16/lims2:lims2_xenial_unit_test
   before_script:
-  - echo 'before'
+  - docker login -u $USER -p "$PASS" $REGISTRY
   script:
-  - cd /home/ubuntu/git_checkout/LIMS2-WebApp/
   - source bin/lims2_setup.sh
   - lims2 test
   - export REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf
