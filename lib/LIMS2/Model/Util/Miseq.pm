@@ -773,8 +773,8 @@ sub read_quant_file {
 
 sub miseq_genotyping_info {
     my ($c, $well) = @_;
-    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
-
+    my @related_qc = grep { $_->{origin_well_id} eq $well->id } query_miseq_details($c->model('Golgi'), $well->plate_id);
+$DB::single=1;
     my $experiments = {
         well_id             => $well->id,
         barcode             => $well->barcode,
