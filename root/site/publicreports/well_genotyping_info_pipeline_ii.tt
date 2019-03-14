@@ -95,6 +95,10 @@
                             <th>[% exp.design_id %]</th>
                         </tr>
                         <tr>
+                            <td>Design Type</td>
+                            <td>[% exp.design_type %]</td>
+                        </tr>
+                        <tr>
                             <td>Gene ID</td>
                             <td>[% exp.gene_id %]</td>
                         </tr>
@@ -313,6 +317,8 @@ function fillAlleles(exp, rowDetails) {
             }
         }
     });
+
+    $('span').removeClass('baseSwitch');
 
     $('.seq' + exp + ':last').css('overflow-x','scroll');
     $('.seq' + exp + ':last').scroll(function() {
