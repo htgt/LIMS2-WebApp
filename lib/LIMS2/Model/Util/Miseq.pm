@@ -111,8 +111,9 @@ sub query_miseq_details {
         start_well_name
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
-    my @epii = uniq map { $_->{exp_id} } grep { $_->{type_id} eq 'EP_PIPELINE_II'} @ancestor_results;
-    my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II'} @ancestor_results;
+    my @epii_results = grep { $_->{type_id} eq 'EP_PIPELINE_II' && $_->{exp_id} } @ancestor_results;
+    my @epii = uniq map { $_->{exp_id} } @epii_results;
+    my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II' } @ancestor_results;
 
     my $parent_mapping;
     map { push( @{ $parent_mapping->{ $_->{well_id} } },  $_->{start_well_name} ) } @ancestor_results;
@@ -773,7 +774,9 @@ sub read_quant_file {
 
 sub miseq_genotyping_info {
     my ($c, $well) = @_;
+
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
+    @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
 
     my $experiments = {
         well_id             => $well->id,
@@ -788,6 +791,12 @@ sub miseq_genotyping_info {
     my @overview_gene_ids;
     my @overview_design_ids;
     foreach my $qc (@related_qc) {
+        #check that result is from 2nd QC
+        my $qc_parent_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{ancestor_well_id} });
+        if ($qc_parent_well->plate->type->id ne 'PIQ') {
+            next;
+        }
+
         my $exp_rs = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $qc->{experiment_id} });
         my $design_rs = $exp_rs->design;
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
@@ -819,6 +828,7 @@ sub miseq_genotyping_info {
             gene                => _handle_singular(@gene_symbols),
             gene_id             => _handle_singular(@gene_ids),
             design_id           => $design_rs->id,
+            design_type         => $design_rs->type->id,
             crisprs             => join (',', @crisprs),
             qc_origin_plate     => $qc_origin_well->plate_name,
             qc_origin_well      => $qc_origin_well->name,
