@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BaseSpace;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BaseSpace::VERSION = '0.530';
+    $LIMS2::Model::Util::BaseSpace::VERSION = '0.531';
 }
 ## use critic
 
@@ -35,6 +35,7 @@ sub get {
     my $url = sprintf( '%s/%s?access_token=%s&limit=%d&offset=%d',
         $self->{api}, $request, $self->{token}, $self->{limit}, $offset );
     my $response = $self->{agent}->get($url);
+    croak $response->message if $response->code >= 400;
     my $data     = decode_json( $response->content );
     if ( not $data->{Response} ) {
         croak $data->{ResponseStatus}->{Message};

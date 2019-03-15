@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::WellData;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.530';
+    $LIMS2::WebApp::Controller::User::WellData::VERSION = '0.531';
 }
 ## use critic
 

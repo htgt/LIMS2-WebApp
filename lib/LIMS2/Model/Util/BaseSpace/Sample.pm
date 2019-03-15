@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BaseSpace::Sample;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::BaseSpace::Sample::VERSION = '0.530';
+    $LIMS2::Model::Util::BaseSpace::Sample::VERSION = '0.531';
 }
 ## use critic
 
