@@ -29,6 +29,7 @@ sub get {
     my $url = sprintf( '%s/%s?access_token=%s&limit=%d&offset=%d',
         $self->{api}, $request, $self->{token}, $self->{limit}, $offset );
     my $response = $self->{agent}->get($url);
+    croak $response->message if $response->code >= 400;
     my $data     = decode_json( $response->content );
     if ( not $data->{Response} ) {
         croak $data->{ResponseStatus}->{Message};
