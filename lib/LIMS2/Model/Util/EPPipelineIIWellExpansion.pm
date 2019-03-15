@@ -31,8 +31,10 @@ sub create_well_expansion {
     my $letter_id = 'A';
     while ($child_well_number > 0) {
         my $plate_wells = min(96, $child_well_number);
+        #creates plates with a maximum of 96 wells
         if (create_96_well_plates($model, $letter_id, $plate_wells, $validated_params)) {
             $child_well_number -= $plate_wells;
+            #only reduces number of wells left if plate created
         }
         $letter_id++;
     }

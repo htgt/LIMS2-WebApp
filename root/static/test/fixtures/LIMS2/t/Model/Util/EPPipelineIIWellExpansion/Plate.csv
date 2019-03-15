@@ -1,3 +1,4 @@
 id,name,description,type_id,created_by_id,species_id
 21,HUPEP0026,plate,EP_PIPELINE_II,15,Human
+22,HUPEP0003,plate,EP_PIPELINE_II,15,Human
 
