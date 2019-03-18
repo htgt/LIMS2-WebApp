@@ -1,4 +1,4 @@
-INSERT INTO schema_versions(id) VALUES(151);
+INSERT INTO schema_versions(version) VALUES(151);
 
 update miseq_experiment set parent_plate_id = 13142 where name like 'HUEDQ0501%';
 update miseq_experiment set parent_plate_id = 13141 where name like 'HUEDQ0502%';
