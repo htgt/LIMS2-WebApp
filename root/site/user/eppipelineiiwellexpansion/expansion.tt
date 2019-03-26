@@ -1,0 +1,6 @@
+Freeze plates created:
+<ul>
+[% FOREACH plate IN plate_list %]
+    <li>[% plate %]</li>
+[% END %]
+</ul>
