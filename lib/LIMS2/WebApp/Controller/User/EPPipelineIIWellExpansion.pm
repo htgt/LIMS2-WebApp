@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::User::EPPipelineIIWellExpansion;
 use Moose;
 use namespace::autoclean;
 use Carp;
-use Data::Dumper;
+use Try::Tiny;
 use LIMS2::Model::Util::EPPipelineIIWellExpansion qw(create_well_expansion);
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -16,9 +16,13 @@ sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
         species           => $c->session->{selected_species},
         created_by        => $c->user->name,
     };
-    my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
-
+    try {
+        my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
     $c->stash->{plate_list} = $freeze_plates_created;
+    }
+    catch {
+        $c->stash->{error_msg} = "$_";
+    };
     return;
 }
 

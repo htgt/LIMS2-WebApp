@@ -15,7 +15,7 @@ use LIMS2::Test model => { classname => __PACKAGE__ };
 
 ## no critic
 
-sub a_test_create_well_expansion : Test(17) {
+sub create_well_expansion_test_a : Test(17) {
     my $plate = 'HUPEP0003';
     ok my $ep_plate = model->schema->resultset('Plate')->find( { name => $plate } ), "plate $plate exists in database";
     create_well_expansion( model,
@@ -50,7 +50,7 @@ sub a_test_create_well_expansion : Test(17) {
     return;
 }
 
-sub b_test_create_well_expansion : Test(13) {
+sub create_well_expansion_test_b : Test(15) {
     my $plate = 'HUPEP0026';
     ok my $ep_plate = model->schema->resultset('Plate')->find( { name => $plate } ), "plate $plate exists in database";
     my $epd_params = {
@@ -101,7 +101,60 @@ sub b_test_create_well_expansion : Test(13) {
 
         #all other plates have 96 wells
     }
+
+    #check plate creation stops where it should
+    ok !model->schema->resultset('Plate')->find( { name => "HUPEPD0026E1" } ),
+        'plate HUPEPD0026E1 does not exist in database';
+    ok !model->schema->resultset('Plate')->find( { name => "HUPFP0026E1" } ),
+        'plate HUPFP0026E1 does not exist in database';
     return;
+}
+
+sub check_negative_input_num : Test(2) {
+    create_well_expansion( model,
+        {   plate_name        => 'HUPEP0026',
+            parent_well       => 'A01',
+            child_well_number => -50,
+            species           => 'Human',
+            created_by        => 'beth',
+        }
+    );
+    ok !model->schema->resultset('Plate')->find( { name => "HUPEPD0026E1" } ),
+        'plate HUPEPD0026E1 does not exist in database';
+    ok !model->schema->resultset('Plate')->find( { name => "HUPFP0026E1" } ),
+        'plate HUPFP0026E1 does not exist in database';
+    return;
+}
+
+sub check_param_validation : Test(6) {
+
+    sub parameter_test {
+        my $plate_name = shift;
+        my $well_name  = shift;
+        my $number     = shift;
+        my $err_msg    = shift;
+        my $error      = shift;
+        throws_ok {
+            create_well_expansion( model,
+                {   plate_name        => $plate_name,
+                    parent_well       => $well_name,
+                    child_well_number => $number,
+                    species           => 'Human',
+                    created_by        => 'beth',
+                }
+            );
+        }
+        "/$err_msg/", "throws correct error for $error";
+    }
+
+    my %wrong_plates
+        = ( 'wrong plate type', 'Miseq_060', 'non existent plate', 'HUPEP0005', 'wrong plate name', 'HUP123' );
+    foreach my $error ( keys %wrong_plates ) {
+        parameter_test( $wrong_plates{$error}, 'A01', 100, 'plate_name, is invalid', $error );
+    }
+    parameter_test( 'HUPEP0003', 'B01', 100, 'parent_well, is invalid',       'invalid parent well name' );
+    parameter_test( 'HUPEP0003', 'A01', '',  'child_well_number, is missing', 'no number given' );
+    parameter_test( 'HUPEP0003', 'A01', 1.5, 'child_well_number, is invalid', 'non integer given' );
 }
 
 ## use critic

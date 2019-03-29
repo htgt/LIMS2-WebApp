@@ -16,8 +16,8 @@ use Sub::Exporter -setup => {
 
 sub pspec_create_well_expansion {
     return {
-        plate_name        => { validate => 'existing_plate_name' },
-        parent_well       => { validate => 'well_name' },
+        plate_name        => { validate => 'ep_plate' },
+        parent_well       => { validate => 'ep_well' },
         child_well_number => { validate => 'integer' },
         species           => { validate => 'existing_species' },
         created_by        => { validate => 'existing_user' },

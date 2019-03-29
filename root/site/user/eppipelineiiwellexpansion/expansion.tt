@@ -1,6 +1,11 @@
-Freeze plates created:
-<ul>
-[% FOREACH plate IN plate_list %]
-    <li>[% plate %]</li>
+[% META title = "EP Pipeline II Well Expansion"; META tab_name = "Expansion" -%]
+
+[% IF plate_list %]
+    Freeze plates created:
+    <ul>
+    [% FOREACH plate IN plate_list %]
+        <li>[% plate %]</li>
+    [% END %]
+    </ul>
 [% END %]
-</ul>
+

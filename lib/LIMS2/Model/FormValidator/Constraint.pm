@@ -470,6 +470,23 @@ sub existing_preset_id {
     return shift->in_resultset( 'MiseqDesignPreset', 'id' );
 }
 
+
+sub ep_plate {
+    my $self = shift;
+    my $exists = $self->existing_plate_name;
+    my $correct_name = $self->regexp_matches(qr/^HUPEP\d+$/); 
+    return sub {
+        my $value = shift;
+        return $exists->($value) && $self->model->schema->resultset('Plate')->find( { name => $value } )->type_id eq 'EP_PIPELINE_II' && $correct_name->($value);
+    };
+}
+
+
+sub ep_well {
+    return shift->regexp_matches(qr/^A0?\d+$/);
+}
+
+
 __PACKAGE__->meta->make_immutable;
 
 1;
