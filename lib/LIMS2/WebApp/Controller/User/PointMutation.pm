@@ -13,7 +13,15 @@ use Text::CSV;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::Miseq qw(
+    convert_index_to_well_name
+    generate_summary_data
+    find_folder
+    find_file
+    find_child_dir
+    wells_generator
+    miseq_genotyping_info
+);
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
 use List::Util qw(min max);
 
@@ -147,6 +155,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
         update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
+$DB::single=1;
         @exps = get_well_exps($c, $miseq, $regex, $miseq_plate_id, $well_id);
     } catch {
         $c->log->debug("No well found.");
