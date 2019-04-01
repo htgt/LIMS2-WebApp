@@ -35,11 +35,13 @@ sub create_well_expansion {
 
         #creates plates with a maximum of 96 wells
         my $plate_creator = create_96_well_plates( $model, $letter_id, $plate_wells, $validated_params );
+
+        #create_96_well_plates returns false if plate with current letter id already exists
         if ($plate_creator) {
             $child_well_number -= $plate_wells;
             push @freeze_plates_created, $plate_creator;
 
-            #only reduces number of wells left if plate created
+            #only reduces number of wells left if plate is created
         }
         $letter_id++;
     }
@@ -47,10 +49,7 @@ sub create_well_expansion {
 }
 
 sub create_96_well_plates {
-    my $model             = shift;
-    my $letter_id         = shift;
-    my $plate_well_number = shift;
-    my $validated_params  = shift;
+    my ( $model, $letter_id, $plate_well_number, $validated_params ) = @_;
     my ($plate_index) = $validated_params->{plate_name}  =~ /^HUPEP(\d+)$/;
     my ($well_index)  = $validated_params->{parent_well} =~ /^A0?(\d+)$/;
     my @all_well_names = well_builder( { mod => 0, letters => [ 'A' .. 'H' ] } );
