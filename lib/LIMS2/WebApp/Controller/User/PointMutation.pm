@@ -155,7 +155,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     try {
         $well_id = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate->{id}, name => $well_name })->id;
         update_tracking($self, $c, $miseq_plate_id, $plate->{id}, $well_id);
-$DB::single=1;
         @exps = get_well_exps($c, $miseq, $regex, $miseq_plate_id, $well_id);
     } catch {
         $c->log->debug("No well found.");

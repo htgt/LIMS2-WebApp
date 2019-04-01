@@ -778,7 +778,6 @@ sub qc_relations {
 
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
 
-$DB::single=1;
     @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
     my $relations;
     foreach my $qc (@related_qc) {
