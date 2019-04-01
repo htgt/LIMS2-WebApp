@@ -13,7 +13,15 @@ use Text::CSV;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::Miseq qw(
+    convert_index_to_well_name
+    generate_summary_data
+    find_folder
+    find_file
+    find_child_dir
+    wells_generator
+    miseq_genotyping_info
+);
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
 use List::Util qw(min max);
 
