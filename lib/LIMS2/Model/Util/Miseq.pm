@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
         qw(
               miseq_well_processes
               wells_generator
+              well_builder
               convert_index_to_well_name
               generate_summary_data
               find_folder
