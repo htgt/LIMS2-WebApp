@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::BaseSpace::Project;
 use strict;
 use warnings FATAL => 'all';
-use LIMS2::Model::Util::BaseSpace::Sample; 
+use LIMS2::Model::Util::BaseSpace::Sample;
 
 sub id {
     my $self = shift;
@@ -20,14 +20,14 @@ sub created {
 
 sub samples {
     my $self = shift;
-    my $id = $self->id;
+    my $id   = $self->id;
     return
-        map { LIMS2::Model::Util::BaseSpace::Sample->new($self->{api}, $_) }
-        $self->{api}->get_all("projects/$id/samples");
+      map { LIMS2::Model::Util::BaseSpace::Sample->new( $self->{api}, $_ ) }
+      $self->{api}->get_all("projects/$id/samples");
 }
 
 sub files {
-    my $self = shift;
+    my $self  = shift;
     my @files = ();
     foreach my $sample ( $self->samples ) {
         push @files, $sample->files;
@@ -37,10 +37,7 @@ sub files {
 
 sub new {
     my ( $class, $api, $data ) = @_;
-    return bless {
-        %{$data},
-        api  => $api,
-    }, $class;
+    return bless { %{$data}, api => $api, }, $class;
 }
 
 1;

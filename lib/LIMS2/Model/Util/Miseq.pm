@@ -31,6 +31,7 @@ use List::Util qw( sum );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
+use Try::Tiny;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -110,8 +111,9 @@ sub query_miseq_details {
         start_well_name
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
-    my @epii = uniq map { $_->{exp_id} } grep { $_->{type_id} eq 'EP_PIPELINE_II'} @ancestor_results;
-    my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II'} @ancestor_results;
+    my @epii_results = grep { $_->{type_id} eq 'EP_PIPELINE_II' && $_->{exp_id} } @ancestor_results;
+    my @epii = uniq map { $_->{exp_id} } @epii_results;
+    my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II' } @ancestor_results;
 
     my $parent_mapping;
     map { push( @{ $parent_mapping->{ $_->{well_id} } },  $_->{start_well_name} ) } @ancestor_results;
@@ -548,8 +550,8 @@ sub generate_summary_data {
             if (defined $total and defined $nhej and defined $hdr and defined $mixed) {
                 $wt = $total - $nhej - $hdr - $mixed;
             } else {
-                warn "\nCorrupt data for experiment: $exp_name \n";
-                last;
+                warn "\nCorrupt data for experiment: $exp_name, in well index: $index \n";
+                next;
             }
             $percentages->{wt}   = qq/$wt/;
             $percentages->{nhej} = qq/$nhej/;
@@ -666,6 +668,8 @@ sub generate_summary_data_old {
 sub read_alleles_frequency_file {
     my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
 
+    $threshold = $threshold ? $threshold : 0;
+
     my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
     if (!defined $path) {
         return [{ error => 'No path available' }];
@@ -727,15 +731,18 @@ sub _find_read_quantification_gt_threshold {
     my ($threshold, @lines) = @_;
 
     my @relevant_reads;
-    my $count = 1;
+    my $count = 0;
     my $read_perc = 100;
 
-    push @relevant_reads, $lines[0];
     while ($read_perc > $threshold) {
         push @relevant_reads, $lines[$count];
         $count++;
-        my @cells = split /,/, $lines[$count];
-        $read_perc = $cells[-1];
+        if ($lines[$count]) {
+            my @cells = split /,/, $lines[$count];
+            $read_perc = $cells[-1];
+        } else {
+            $read_perc = 0;
+        }
     }
 
     return @relevant_reads;
@@ -767,8 +774,9 @@ sub read_quant_file {
 
 sub miseq_genotyping_info {
     my ($c, $well) = @_;
-    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
 
+    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
+    @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
 
     my $experiments = {
         well_id             => $well->id,
@@ -783,6 +791,12 @@ sub miseq_genotyping_info {
     my @overview_gene_ids;
     my @overview_design_ids;
     foreach my $qc (@related_qc) {
+        #check that result is from 2nd QC
+        my $qc_parent_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{ancestor_well_id} });
+        if ($qc_parent_well->plate->type->id ne 'PIQ') {
+            next;
+        }
+
         my $exp_rs = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $qc->{experiment_id} });
         my $design_rs = $exp_rs->design;
         my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
@@ -814,6 +828,7 @@ sub miseq_genotyping_info {
             gene                => _handle_singular(@gene_symbols),
             gene_id             => _handle_singular(@gene_ids),
             design_id           => $design_rs->id,
+            design_type         => $design_rs->type->id,
             crisprs             => join (',', @crisprs),
             qc_origin_plate     => $qc_origin_well->plate_name,
             qc_origin_well      => $qc_origin_well->name,

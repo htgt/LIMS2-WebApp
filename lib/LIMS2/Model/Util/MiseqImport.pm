@@ -221,10 +221,6 @@ sub _submit_crispresso {
     );
 }
 
-sub _mkdir {
-    return mkdir $_;
-}
-
 sub process {
     my ( $self, %params ) = @_;
 

@@ -29,6 +29,7 @@ my $mech = LIMS2::Test::mech();
 
 sub all_tests  : Test(27)
 {
+    $DB::single=1;
     note ('Testing Create PIQ REST API');
     create_piq_post();
 
@@ -124,22 +125,26 @@ sub wells_parent_plate_get {
 }
 
 sub sibling_miseq_plate_get {
+$DB::single=1;
     note ('Successful PIQ sibling');
     $mech->get_ok('/api/sibling_miseq_plate/?plate=Sibling_PIQ', {'content-type' => 'text/plain'} );
     ok my $json = decode_json($mech->content), 'Response is JSON';
-    is ($json->{C01}[0]->{classification}, 'Het', 'Sibling is C01 and Het'); 
+
+    is ($json->{C01}[0]->{classification}, 'K/O Het', 'Sibling is C01 and Het'); 
 
     note ('Successful self search');
     $mech->get_ok('/api/sibling_miseq_plate/?plate=Sibling_Miseq', {'content-type' => 'text/plain'} );
     ok $json = decode_json($mech->content), 'Response is JSON';
-    is ($json->{A01}[0]->{classification}, 'Het', 'Miseq well is A01 and Het'); 
+    is ($json->{A01}[0]->{classification}, 'K/O Het', 'Miseq well is A01 and Het'); 
     is ($json->{D06}[0]->{classification}, 'Wild Type', 'Miseq well is D06 and WT'); 
 
     note ('Successful Parent FP');
+    
     $mech->get_ok('/api/sibling_miseq_plate/?plate=Parent_FP', {'content-type' => 'text/plain'} );
     ok $json = decode_json($mech->content), 'Response is JSON';
-    is ($json->{B10}[0]->{classification}, 'Het', 'Miseq well is A01 and Het'); 
-    is ($json->{F11}[0]->{classification}, 'Wild Type', 'Miseq well is D06 and WT');
+    is ($json->{B10}[0]->{classification}, 'K/O Het', 'Miseq well is A01 and Het'); 
+$DB::single=1;
+    is ($json->{F12}[0]->{classification}, 'Wild Type', 'Miseq well is D06 and WT');
 
 
     note ('No relation to Miseq data');

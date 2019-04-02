@@ -28,8 +28,8 @@ sub get_oligo_seq {
 
 sub get_well_map {
     my ( $model, $eps ) = @_;
-    my @miseqs  = map { @{ $_->{miseqs} } } values %{$eps};
-    my %wells   = map { $_ => 1 } @miseqs, keys %{$eps};
+    my @miseqs = map { @{ $_->{miseqs} } } values %{$eps};
+    my %wells = map { $_ => 1 } @miseqs, keys %{$eps};
     my $indices = wells_generator(1);
     return map {
         $_->id => {
@@ -78,8 +78,8 @@ sub single {
 
 sub get_eps_for_plate {
     my ( $model, $plate ) = @_;
-    my $eps    = get_eps_to_miseqs_map( $model, $plate );
-    my %wells  = get_well_map( $model, $eps );
+    my $eps = get_eps_to_miseqs_map( $model, $plate );
+    my %wells = get_well_map( $model, $eps );
     my %plates = get_plate_map( $model, \%wells );
 
     my @data = $model->schema->resultset('ProcessOutputWell')->search(
@@ -95,7 +95,10 @@ sub get_eps_for_plate {
                             process_design => {
                                 design => [
                                     qw/genes hdr_templates/,
-                                    { oligos => { loci => [qw/assembly chr/] }, },
+                                    {
+                                        oligos =>
+                                          { loci => [qw/assembly chr/] },
+                                    },
                                 ]
                             }
                         },
@@ -123,19 +126,20 @@ sub get_eps_for_plate {
         );
         my $gene = $model->retrieve_gene(
             {
-                species     => 'Human',
-                search_term => single( map { $_->gene_id } $design->genes->all ),
+                species => 'Human',
+                search_term =>
+                  single( map { $_->gene_id } $design->genes->all ),
             }
         );
         my @miseqs = map { $wells{$_}->{index} + 1 } @{ $store->{miseqs} };
         my %values = (
             name =>
               join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name} ),
-            crispr    => $row->process->process_crispr->crispr->seq,
-            amplicon  => $amplicon,
-            strand    => q/+/,
-            gene      => $gene->{gene_symbol},
-            hdr       => single( map { $_->template } $design->hdr_templates->all ),
+            crispr   => $row->process->process_crispr->crispr->seq,
+            amplicon => $amplicon,
+            strand   => q/+/,
+            gene     => $gene->{gene_symbol},
+            hdr => single( map { $_->template } $design->hdr_templates->all ),
             min_index => min(@miseqs),
             max_index => max(@miseqs),
         );
@@ -151,21 +155,23 @@ sub download : Path('/user/miseqspreadsheet/download' ) : Args(0) {
     my ( $self, $c ) = @_;
     my $plate_id = $c->request->param('plate');
     $c->log->debug("Getting eps for plate $plate_id");
-    my $eps = get_eps_for_plate($c->model('Golgi'), $plate_id ); 
+    my $eps = get_eps_for_plate( $c->model('Golgi'), $plate_id );
     $c->response->status(200);
     $c->response->content_type('text/csv');
-    $c->response->header('Content-Disposition' =>
-        "attachment; filename=plate_$plate_id.csv" );
+    $c->response->header(
+        'Content-Disposition' => "attachment; filename=plate_$plate_id.csv" );
     my @columns = qw/name gene crispr strand amplicon min_index max_index hdr/;
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     my $output;
     open my $fh, '>', \$output or croak 'Could not create file for download';
-    $csv->print( $fh, [qw/Experiment Gene Crispr Strand Amplicon min_index max_index HDR/] );
+    $csv->print( $fh,
+        [qw/Experiment Gene Crispr Strand Amplicon min_index max_index HDR/] );
+
     foreach my $ep ( sort keys %{$eps} ) {
         $csv->print( $fh, [ map { $eps->{$ep}->{$_} } @columns ] );
     }
     close $fh or croak 'Could not close file for download';
-    $c->response->body( $output );
+    $c->response->body($output);
     return;
 }
 
