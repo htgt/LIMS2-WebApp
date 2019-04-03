@@ -34,7 +34,6 @@
 
 .insertion, .mutation {
     font-weight: bold;
-    font-size: 110%;
 }
 
 .mutation {
@@ -49,6 +48,7 @@ function highlightBases(seq, crisprData, ref, quality) {
     var formattedSequence = "";
     var start = -1;
     var accuracy = -1;
+
     if (crisprData.crispr != "") {
         start = seq.indexOf(crisprData.crispr);
         if (start == -1) {

@@ -17,6 +17,7 @@ my $dbname_option = 0;
 my $uri_option = 0;
 my $host_option = 0;
 my $port_option = 0;
+my $list_option = 0;
 my $help_option = 0;
 
 GetOptions(
@@ -24,6 +25,7 @@ GetOptions(
     'uri'           => \$uri_option,
     'host'          => \$host_option,
     'port'          => \$port_option,
+    'list'          => \$list_option,
     'help|?'        => \$help_option,
 )
 or die usage_message();
@@ -89,12 +91,14 @@ sub list_db_names {
     my @config_keys = sort keys %$config;
     foreach my $key ( @config_keys ) {
         my $msg = $key;
-        if ( $key eq $current_db ) {
+        if ( ( $key eq $current_db ) and ( not $list_option ) ) {
             $msg .= ' (*)';
         }
         print $msg . "\n";
     }
-    print "\n(*) Currently selected database\n";
+    if ( not $list_option ) {
+        print "\n(*) Currently selected database\n";
+    }
     return;
 }
 

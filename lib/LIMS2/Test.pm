@@ -303,6 +303,10 @@ sub load_static_files {
             MiseqStatus
             LabHead
             Programme
+            CellLineRepository
+            MiseqAllelesFrequency
+            IndelHistogram
+            CrispressoSubmission
         )
 
     );
@@ -375,12 +379,12 @@ sub load_dynamic_files {
             TrivialOffset
             MiseqDesignPreset
             MiseqPrimerPreset
-            indel_histogram
-            crispresso_submissions
             MiseqPlate
             MiseqExperiment
             MiseqWellExperiment
-        )
+            CellLineExternal
+            CellLineInternal
+            )
     );
 
     for my $table ( @reference_tables ) {

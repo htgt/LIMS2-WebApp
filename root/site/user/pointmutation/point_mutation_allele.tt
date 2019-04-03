@@ -8,15 +8,6 @@
     overflow-x: scroll;
 }
 
-.bar {
-  fill: steelblue;
-}
-
-
-.bar:hover {
-  fill: orange;
-}
-
 .axis {
     font: 15px sans-serif;
     
@@ -286,22 +277,6 @@ input:checked + .slider:before {
                     </select>
                 </form>
             </div>
-            <div class="col-md-2">
-                <label class="lb-md">Status: </label>
-            </div>
-            <div class="col-md-2">
-                <form action="#" method="POST" name="status[% experiment.id %]" id="status[% experiment.id %]">
-                    <select class="form-control" align="center" id="statusSelect" name="status[% experiment.id %]" onchange="this.form.submit();">
-                    [% FOR state IN status %]
-                        [% IF state == experiment.status %]
-                            <option value="[% state %]" selected="selected">[% state %]</option>
-                        [% ELSE %]
-                            <option value="[% state %]">[% state %]</option>
-                        [% END %]
-                    [% END %]
-                    </select>
-                </form>
-            </div>
         </div>
         <div class='genes [% experiment.id %]'></div>
         <div class="bars" id="bars[% experiment.id %]"></div>
@@ -508,16 +483,11 @@ function buildImages(selection, data) {
         ticksArray.push(min);
     
         var quart = Math.floor((data.length-1)/4);
-        ticksArray.push(data[quart].indel);
-    
+        ticksArray.push(data[quart].indel); 
         ticksArray.push(data[quart*2].indel);
-
         ticksArray.push("0");
-
         ticksArray.push(data[quart*3].indel);
-
         ticksArray.push(max);    
-
     }
 
     for (var i = 0; i < data.length; i++) {
@@ -549,8 +519,9 @@ function buildImages(selection, data) {
          
 
     x.domain(data.map(function(d) { return d.indel; }));
-    y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
-    
+    y.domain([0, d3.max(data, function(d) { return d.frequency/total_reads*100; })]);
+    y.nice(10);
+
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
@@ -591,11 +562,30 @@ function buildImages(selection, data) {
       .attr("class", "bar")
       .attr("x", function(d) { return x(d.indel); })
       .attr("width", x.bandwidth())
-      .attr("y", function(d) { return y(d.frequency); })
-      .attr("height", function(d) { return height - y(d.frequency); })
-      .on("mouseover",  tip.show)
-      .on("mouseout", tip.hide);
-
+      .attr("y", function(d) { return y(d.frequency/total_reads*100); })
+      .attr("height", function(d) { return height - y(d.frequency/total_reads*100); })
+      .style("fill", function(d) {
+            if (d.indel == 0) {
+                return "#8C2626"; //Red
+            }
+            else {
+                return "steelblue";
+            }
+        })
+     .on("mouseover.color", function(d) {
+       d3.select(this).style('fill', 'orange');})
+     .on("mouseout.color", function(d) {
+       d3.select(this).style("fill", function(d) {
+           if (d.indel == 0) {
+                return "#8C2626"; //Red
+           }
+           else {
+                return "steelblue";
+           }
+        })
+       })
+     .on("mouseover.tip",  tip.show)
+     .on("mouseout.tip", tip.hide);     
 
     svg.append("text")
       .attr("class", "axisLabels")
@@ -604,8 +594,7 @@ function buildImages(selection, data) {
                            (height + margin.top + 20) + ")")
       .style("text-anchor", "middle")
       .text("Indel Size");
-
-
+      
     svg.append("text")
       .attr("class", "axisLabels")
       .attr("transform", "rotate(-90)")
@@ -613,7 +602,7 @@ function buildImages(selection, data) {
       .attr("x",0 - (height / 2))
       .attr("dy", "1em")
       .style("text-anchor", "middle")
-      .text("Frequency");      
+      .text("Read Frequency %");      
 
     function type(d) {
         d.frequency = +d.frequency;

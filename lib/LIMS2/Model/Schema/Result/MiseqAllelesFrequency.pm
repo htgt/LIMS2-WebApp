@@ -163,9 +163,10 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y+i+ywHGjqv4A/BFnhPGPA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-28 09:21:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oJN6zRym1XOvWWiq/9uBA
 sub as_hash {
+    require Try::Tiny;
     my $self = shift;
 
     my %h = (
@@ -180,6 +181,16 @@ sub as_hash {
         n_mutated                   => $self->n_mutated, #TODO delete after migration
         n_reads                     => $self->n_reads,
     );
+    try {
+        my $ref = $self->reference_sequence;
+        if ($ref) {
+            $h{reference_sequence} = $ref;
+        }
+    };
+
+    try {
+        $h{quality_score} = $self->quality_score;
+    };
 
     return \%h;
 }

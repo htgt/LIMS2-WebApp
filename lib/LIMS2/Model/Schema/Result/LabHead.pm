@@ -76,24 +76,9 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 project_sponsors_2s
 
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::ProjectSponsor>
-
-=cut
-
-__PACKAGE__->has_many(
-  "project_sponsors_2s",
-  "LIMS2::Model::Schema::Result::ProjectSponsor",
-  { "foreign.lab_head_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-11 09:54:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Tq3CeyVHXQVY6VQ6bhlzcQ
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-06 15:03:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MLcpUE09kJfp9ciolNDGyA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

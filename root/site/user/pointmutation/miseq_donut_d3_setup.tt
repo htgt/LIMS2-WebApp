@@ -88,7 +88,6 @@ function createRings() {
 function arcTween(newAngle, specArc) {
     return function(d) {
         var interpolate = d3.interpolate(d.endAngle, newAngle);
-        console.log(interpolate);
         return function(t) {
             d.endAngle = interpolate(t);
             return specArc(d);

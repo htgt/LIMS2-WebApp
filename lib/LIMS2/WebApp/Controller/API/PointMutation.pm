@@ -30,22 +30,25 @@ sub point_mutation_summary_GET {
     my $threshold = $c->request->param( 'limit' );
     my $percentage_bool = $c->request->param( 'perc' );
     my $miseq_well_exp_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
-
-    my @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
-
-    if (ref($result[0]) eq "HASH") {
-        $c->response->status( 404 );
-        $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-        return;
-    }
-
+    my @result;
     my $alleles = {
-        data => join("\n", @result),
+        data => get_frequency_data($c, $miseq_well_exp_hash)
     };
+
+    unless ($alleles) {
+        @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+        if (ref($result[0]) eq "HASH") {
+            $c->response->status( 404 );
+            $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
+            return;
+        }
+        $alleles = {
+            data => join("\n", @result),
+        };
+    }
     $alleles->{crispr} = crispr_seq($c, $miseq, $oligo_index, $experiment);
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($alleles);
-
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
@@ -195,7 +198,6 @@ sub miseq_preset_names_GET {
 
 sub crispr_seq {
     my ( $c, $miseq, $index, $exp ) = @_;
-
     my $job_out = find_file($miseq, $index, $exp, 'CRISPResso_RUNNING_LOG.txt');
 
     my $fh;
@@ -249,24 +251,39 @@ sub flatten_wells {
 
 sub get_frequency_data{
     my ($c, $miseq_well_experiment_hash) = @_;
-
     my $limit = $c->request->param('limit');
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
     my $cou = $frequency_rs->count;
     my @lines;
-    push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
+    my @headers;
+    my $freq_hash;
     $limit = $cou if ($limit > $cou);
     if ($limit > 0){
+        $freq_hash = $frequency_rs->next->as_hash;
+        if ($freq_hash->{reference_sequence}){
+            if ($freq_hash->{quality_score}){
+                unshift @lines ,'Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
+                @headers = ("aligned_sequence","reference_sequence","quality_score","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
+            }
+            else {
+                unshift @lines ,'Aligned_Sequence,Reference_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
+                @headers = ("aligned_sequence","reference_sequence","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
+            }
+        }
+        else {
+                unshift @lines ,'Aligned_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
+                @headers = ("aligned_sequence","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
+        }
         for my $i (1..$limit){
-            my $freq_hash = $frequency_rs->next->as_hash;
-            my $sum = $freq_hash->{n_reads};
-            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
-            push @lines,
-                $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
-                $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
-                $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
-                $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
-                $percentage;
+            my $percentage = $freq_hash->{n_reads}/$miseq_well_experiment_hash->{total_reads}*100.0;
+            my $line = join(',', map{$freq_hash->{$_}} @headers).','.$percentage;
+            push @lines, $line;
+            if (my $next = $frequency_rs->next) {
+                    $freq_hash = $next->as_hash;
+            }
+            else {
+                last;
+            }
         }
     }
     elsif($frequency_rs->count < 1){

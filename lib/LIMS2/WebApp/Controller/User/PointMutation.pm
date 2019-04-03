@@ -13,7 +13,15 @@ use Text::CSV;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::Miseq qw(
+    convert_index_to_well_name
+    generate_summary_data
+    find_folder
+    find_file
+    find_child_dir
+    wells_generator
+    miseq_genotyping_info
+);
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
 use List::Util qw(min max);
 
@@ -166,7 +174,9 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     my $exp_hash;
     my $indels;
     my $counter = 0;
-    while ( my $exp = $exps[0][$counter]->{id} ) {
+
+    while ( $exps[0][$counter] ) {
+        my $exp = $exps[0][$counter]->{id};
         my $miseq_well_exp = get_data($c->model('Golgi'), $miseq, $index, $exp)->{miseq_well_experiment};
         my @indel = map { $_->as_hash } $c->model('Golgi')->schema->resultset('IndelHistogram')->search({'miseq_well_experiment_id' => $miseq_well_exp->{id}});
         my $sum = 0;

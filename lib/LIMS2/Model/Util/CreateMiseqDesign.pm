@@ -83,7 +83,6 @@ sub generate_miseq_design {
         },
     };
     my $hit_data = locate_primers($requirements->{species}, $crispr_details, $result->{oligos}, $design_params->{genomic_threshold});
-    $hit_data = primer_strands($hit_data);
     my @oligos = format_oligos($hit_data);
     $crispr_details->{primer_loci} = $hit_data;
     my $json_params = package_parameters($c, $design_params, $result, $search_range->{dead}, $crispr_details, $requirements->{name});
@@ -210,9 +209,6 @@ sub find_appropriate_primers {
     return $crispr_primers->{left}->{'left_' . $closest->{primer}}, $crispr_primers->{right}->{'right_' . $closest->{primer}};
 }
 
-
-
-
 sub package_parameters {
     my ($c, $design_params, $result_data, $offset, $crispr_details, $user_name) = @_;
     my $primer_loci = $crispr_details->{primer_loci};
@@ -269,47 +265,26 @@ sub package_parameters {
     return $json_params;
 }
 
-sub primer_strands {
-    my $oligo_hits = shift;
-
-    my $strand = 1;
-    if ($oligo_hits->{exf}->{loci}->{chr_start} > $oligo_hits->{exr}->{loci}->{chr_start}) {
-        $strand = -1;
-    }
-
-    foreach my $primer (keys %$oligo_hits) {
-        $oligo_hits->{$primer}->{loci}->{chr_strand} = $strand;
-        $oligo_hits->{$primer}->{loci}->{assembly} = 'GRCh38';
-    }
-
-    return $oligo_hits;
-}
-
 sub format_oligos {
     my $primers = shift;
 
-    my @oligos;
-    my $rev_oligo = {
-        1   => {
-            inf => 1,
-            inr => -1,
-            exf => 1,
-            exr => -1,
-        },
-        -1  => {
-            inf => 1,
-            inr => -1,
-            exf => -1,
-            exr => 1,
-        }
-    };
+    my $orientation = 1;
+    if ($primers->{exf}->{loci}->{chr_start} > $primers->{exr}->{loci}->{chr_start}) {
+        $orientation = -1;
+    }
 
+    my @oligos;
     foreach my $primer (keys %$primers) {
         my $primer_data = $primers->{$primer};
+
+        $primer_data->{loci}->{chr_strand} = $orientation; #Loci strand is misleading, it's orientation of the design, not primer specific.
+        $primer_data->{loci}->{assembly} = 'GRCh38';
+
         my $seq = $primer_data->{seq};
-        if ($primer_data->{loci}->{chr_strand} == -1) {
+        if ($primer_data->{location}->{_strand} == -1) {
             $seq = revcom($seq)->seq; #Store on forward strand
         }
+
         my $oligo = {
             loci    => [ $primer_data->{loci} ],
             seq     => uc $seq,
