@@ -2,7 +2,13 @@ package LIMS2::t::WebApp::Controller::API;
 use base qw(Test::Class);
 use Test::Most;
 use LIMS2::WebApp::Controller::API;
-
+use Sub::Exporter -setup => {
+    exports => [
+        qw(
+            construct_post
+        )
+    ]
+};
 use strict;
 
 ## no critic
@@ -85,6 +91,22 @@ Code to execute all tests
 sub all_tests  : Test(1)
 {
     ok(1, "Test of LIMS2::WebApp::Controller::API");
+}
+
+sub construct_post
+{
+    my $url = shift;
+    my $data = shift;
+ 
+    my $req = HTTP::Request->new( "POST" => $url );
+    $req->content_type( 'application/json' );
+    if ($data) {
+        $req->content_length(
+            do { use bytes; length( $data ) }
+        );
+        $req->content( $data );
+    }
+    return $req;
 }
 
 =head1 AUTHOR

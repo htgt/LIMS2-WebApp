@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::ProjectSponsor;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::ProjectSponsor::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::ProjectSponsor::VERSION = '0.532';
 }
 ## use critic
 
@@ -161,8 +161,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-27 10:56:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DrInmwXP8r0vwY852qUSKw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-06 15:03:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rm5nEHsiwJ9/CKkMC8nvCA
 
 __PACKAGE__->set_primary_key( qw/sponsor_id project_id/);
 

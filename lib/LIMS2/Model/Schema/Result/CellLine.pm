@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::CellLine;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::CellLine::VERSION = '0.532';
 }
 ## use critic
 
@@ -57,6 +57,11 @@ __PACKAGE__->table("cell_lines");
   default_value: (empty string)
   is_nullable: 0
 
+=head2 description
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,6 +74,8 @@ __PACKAGE__->add_columns(
   },
   "name",
   { data_type => "text", default_value => "", is_nullable => 0 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -84,6 +91,36 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 cell_line_externals
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CellLineExternal>
+
+=cut
+
+__PACKAGE__->has_many(
+  "cell_line_externals",
+  "LIMS2::Model::Schema::Result::CellLineExternal",
+  { "foreign.cell_line_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 cell_line_internal
+
+Type: might_have
+
+Related object: L<LIMS2::Model::Schema::Result::CellLineInternal>
+
+=cut
+
+__PACKAGE__->might_have(
+  "cell_line_internal",
+  "LIMS2::Model::Schema::Result::CellLineInternal",
+  { "foreign.cell_line_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 process_cell_lines
 
@@ -116,9 +153,30 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-09-29 10:47:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2f9ld501hKKzBD32Hf6hBA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cJ9GlivcilCXLIK8XTBEOQ
+use Try::Tiny;
 
+sub tracking {
+    my $self = shift;
+
+    my $tracking_details = {
+        description => $self->description,
+    };
+
+    try {
+        $tracking_details->{internal} = $self->cell_line_internal->as_hash;
+    };
+
+    try {
+        my $external_tracking = $self->cell_line_externals;
+        while (my $ext = $external_tracking->next) {
+            push (@{ $tracking_details->{external} }, $ext->as_hash);
+        }
+    };
+
+    return $tracking_details;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

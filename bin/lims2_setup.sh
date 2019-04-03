@@ -59,6 +59,33 @@ case $1 in
 esac
 }
 
+#!/bin/bash
+function _lims2_completions {
+    COMPREPLY=()
+    local curr=${COMP_WORDS[COMP_CWORD]}
+    if [[ $COMP_CWORD -eq 1 ]]; then
+        COMPREPLY=($(compgen -W "help show webapp debug setdb local test replicate devel wge pg9.3 psql audit regenerate_schema" -- "$curr"))
+    elif [[ $COMP_CWORD -eq 2 ]]; then
+        case ${COMP_WORDS[1]} in
+            setdb)
+                local dbs=($($LIMS2_MIGRATION_ROOT/bin/list_db_names.pl --list))
+                local ILS=" "
+                local options="${dbs[@]}"
+                COMPREPLY=($(compgen -W "$options" -- "$curr"))
+                ;;
+            replicate)
+                COMPREPLY=($(compgen -W "test local staging" -- "$curr"))
+                ;;
+            wge)
+                COMPREPLY=($(compgen -W "live devel" -- "$curr"))
+                ;;
+            *)
+                ;;
+        esac
+    fi
+} &&
+complete -F _lims2_completions lims2
+
 function check_and_set {
     if [[ ! -f $2 ]] ; then
         printf "$L2W_STRING: $2 does not exist but you are setting $1 to its location\n"
@@ -282,6 +309,7 @@ LIMS2 useful environment variables:
 \$BWA_REF_GENOME_HUMAN_FA      : $BWA_REF_GENOME_HUMAN_FA
 \$BWA_REF_GENOME_MOUSE_FA      : $BWA_REF_GENOME_MOUSE_FA
 \$LIMS2_RNA_SEQ                : $LIMS2_RNA_SEQ
+\$LIMS2_PRIMER3_MISEQ_PCR_CONFIG : $LIMS2_PRIMER3_MISEQ_PCR_CONFIG  
 
 \$LIMS2_ERRBIT_CONFIG          : $LIMS2_ERRBIT_CONFIG
 \$LIMS2_FCGI_CONFIG            : $LIMS2_FCGI_CONFIG

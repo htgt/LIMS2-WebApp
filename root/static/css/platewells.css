@@ -1,0 +1,28 @@
+#plates {
+    display: flex;
+    flex-wrap: wrap;
+}
+.well-plate {
+    margin: auto;
+    margin-bottom: 5px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+}
+.well-row {
+    margin: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+.well-well {
+    margin: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 1px solid black;
+    background: lightgrey;
+}
+.well-well-active {
+    background: green;
+}

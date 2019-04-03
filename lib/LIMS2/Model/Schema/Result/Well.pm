@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.532';
 }
 ## use critic
 
@@ -228,6 +228,21 @@ __PACKAGE__->belongs_to(
     on_delete     => "CASCADE",
     on_update     => "CASCADE",
   },
+);
+
+=head2 cell_line_internals
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::CellLineInternal>
+
+=cut
+
+__PACKAGE__->has_many(
+  "cell_line_internals",
+  "LIMS2::Model::Schema::Result::CellLineInternal",
+  { "foreign.origin_well_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 created_by
@@ -631,8 +646,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mlqUNAvEp6//qLOCJGjhlg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:47
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3rFes5mKRnAPEsZgE1MMbA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -1299,21 +1314,18 @@ sub first_ep_pick {
 }
 ## use critic
 
-#maybe think of a better name for this
-#it just means it must be ep_pick or later
-sub is_epd_or_later {
-  my $self = shift;
+#Check if well is currently of type X, if not - ascend
+sub is_plate_type_or_later {
+    my ($self, $plate_type) = @_;
 
-  #epd is ok with us
-  return $self if $self->plate_type eq 'EP_PICK';
+    return $self if $self->plate_type eq $plate_type;
 
-  my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
-  while ( my $ancestor = $ancestors->next ) {
-    return $ancestor if $ancestor->plate_type eq 'EP_PICK';
-  }
+    my $ancestors = $self->ancestors->depth_first_traversal( $self, 'in' );
+    while ( my $ancestor = $ancestors->next ) {
+        return $ancestor if $ancestor->plate_type eq $plate_type;
+    }
 
-  #we didn't find any ep picks further up so its not
-  return;
+    return;
 }
 
 # return the first parent well that has crispr es QC linked to it
@@ -1364,7 +1376,7 @@ sub get_input_wells_as_string {
 sub get_output_wells_as_string {
     my $well = shift;
 
-  my $children;
+    my $children;
 
     foreach my $process ($well->child_processes){
         foreach my $output ($process->output_wells){
@@ -1648,7 +1660,6 @@ Note: only works for assembly well or later at the moment
 use Time::HiRes qw(gettimeofday tv_interval);
 sub experiments {
     my $self = shift;
-
     my $assembly = $self->parent_assembly_well;
     unless($assembly){
         die "No assembly well parent found for $self. Cannot identify related experiments";
@@ -1669,6 +1680,20 @@ sub experiments {
         $search->{ $crispr_entity->id_column_name } = $crispr_entity->id;
     }
     if($design){
+        $search->{design_id} = $design->id;
+    }
+
+    return $self->result_source->schema->resultset('Experiment')->search($search)->all;
+}
+
+sub experiments_pipelineII {
+    my $self = shift;
+
+    my $design = $self->design;
+
+    my $search = { deleted => 0};
+
+    if ($design) {
         $search->{design_id} = $design->id;
     }
 
@@ -1832,92 +1857,93 @@ sub input_process_parameters_skip_versioned_plates{
 #see code in WellData for an example
 # NOTE this will return the QC data for the first parent well with crispr QC attached
 sub genotyping_info {
-  my ( $self, $gene_finder, $only_qc_data ) = @_;
+    my ( $self, $gene_finder, $only_qc_data ) = @_;
 
-  require LIMS2::Exception;
+    require LIMS2::Exception;
 
-  #get the epd well if one exists (could be ourself)
-  my $epd = $self->is_epd_or_later;
+    #get the epd well if one exists (could be ourself)
+    my $epd = is_plate_type_or_later($self, 'EP_PICK');
 
-  LIMS2::Exception->throw( "Provided well must be an epd well or later" )
-      unless $epd;
 
-  LIMS2::Exception->throw( "EPD well is not accepted" )
-     unless $epd->accepted;
+    LIMS2::Exception->throw( "Provided well must be an epd well or later" )
+        unless $epd;
 
-  my $parent_qc_well = $self->first_parent_with_crispr_qc;
+    LIMS2::Exception->throw( "EPD well is not accepted" )
+        unless $epd->accepted;
 
-  DEBUG "First parent with crispr QC is $parent_qc_well";
+    my $parent_qc_well = $self->first_parent_with_crispr_qc;
 
-  my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
-  LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
-     unless $accepted_qc_well;
+    DEBUG "First parent with crispr QC is $parent_qc_well";
 
-  if ( $only_qc_data ) {
-    DEBUG "Formatting QC data";
-    my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
-    DEBUG "Formatting QC data DONE";
-    return $data;
-  }
-  my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
+    my $accepted_qc_well = $parent_qc_well->accepted_crispr_es_qc_well;
+    LIMS2::Exception->throw( "No accepted Crispr ES QC wells found" )
+        unless $accepted_qc_well;
 
-  # Add some extra info about which well the reported QC comes from
-  $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
-  $qc_info->{qc_well_name} = $parent_qc_well->name;
-  $qc_info->{qc_plate_type} = $parent_qc_well->plate_type;
-  if($qc_info->{qc_plate_type} eq 'EP_PICK'){
-      $qc_info->{qc_type} = 'Primary QC';
-  }
-  elsif($qc_info->{qc_plate_type} eq 'PIQ'){
-      $qc_info->{qc_type} = 'Secondary QC';
-  }
+    if ( $only_qc_data ) {
+        DEBUG "Formatting QC data";
+        my $data = $accepted_qc_well->format_well_data( $gene_finder, { truncate => 1 } );
+        DEBUG "Formatting QC data DONE";
+        return $data;
+    }
+    my $qc_info = _qc_info($accepted_qc_well,$gene_finder);
 
-  # store primers in a hash of primer name -> seq
-  my %primers;
-  for my $primer ( $accepted_qc_well->get_crispr_primers ) {
-    #val is hash with name + seq
-    my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
+    # Add some extra info about which well the reported QC comes from
+    $qc_info->{qc_plate_name} = $parent_qc_well->last_known_plate->name;
+    $qc_info->{qc_well_name} = $parent_qc_well->name;
+    $qc_info->{qc_plate_type} = $parent_qc_well->plate_type;
+    if($qc_info->{qc_plate_type} eq 'EP_PICK'){
+        $qc_info->{qc_type} = 'Primary QC';
+    }
+    elsif($qc_info->{qc_plate_type} eq 'PIQ'){
+        $qc_info->{qc_type} = 'Secondary QC';
+    }
 
-    push @{ $primers{crispr_primers}{$key} }, $val;
-  }
+    # store primers in a hash of primer name -> seq
+    my %primers;
+    for my $primer ( $accepted_qc_well->get_crispr_primers ) {
+        #val is hash with name + seq
+        my ( $key, $val ) = _group_primers( $primer->primer_name->primer_name, $primer->primer_seq );
 
-  my $vector_well = $self->final_vector;
-  my $design = $vector_well->design;
+        push @{ $primers{crispr_primers}{$key} }, $val;
+    }
 
-  #find primers related to the design
-  my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
-    { design_id => $design->id },
-    { order_by => { -asc => 'me.id'} }
-  );
+    my $vector_well = $self->final_vector;
+    my $design = $vector_well->design;
 
-  for my $primer ( @design_primers ) {
-    my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
+    #find primers related to the design
+    my @design_primers = $self->result_source->schema->resultset('GenotypingPrimer')->search(
+        { design_id => $design->id },
+        { order_by => { -asc => 'me.id'} }
+    );
 
-    push @{ $primers{design_primers}{$key} }, $val;
-  }
+    for my $primer ( @design_primers ) {
+        my ( $key, $val ) = _group_primers( $primer->genotyping_primer_type_id, $primer->seq );
 
-  my @gene_ids = $design->gene_ids;
+        push @{ $primers{design_primers}{$key} }, $val;
+    }
 
-  #get gene symbol from the solr
-  my @genes = $design->gene_symbols($gene_finder);
+    my @gene_ids = $design->gene_ids;
 
-  return {
-      %$qc_info,
-      gene             => @genes == 1 ? $genes[0] : [ @genes ],
-      gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
-      design_id        => $design->id,
-      well_id          => $self->id,
-      barcode          => $self->barcode,
-      well_name        => $self->name,
-      plate_name       => $self->plate_name,
-      epd_plate_name   => $epd->plate_name,
-      accepted         => $epd->accepted,
-      targeting_vector => $vector_well->plate_name,
-      vector_cassette  => $vector_well->cassette->name,
-      primers          => \%primers,
-      species          => $design->species_id,
-      cell_line        => $self->first_cell_line->name,
-  };
+    #get gene symbol from the solr
+    my @genes = $design->gene_symbols($gene_finder);
+
+    return {
+        %$qc_info,
+        gene             => @genes == 1 ? $genes[0] : [ @genes ],
+        gene_id          => @gene_ids == 1 ? $gene_ids[0] : [ @gene_ids ],
+        design_id        => $design->id,
+        well_id          => $self->id,
+        barcode          => $self->barcode,
+        well_name        => $self->name,
+        plate_name       => $self->plate_name,
+        epd_plate_name   => $epd->plate_name,
+        accepted         => $epd->accepted,
+        targeting_vector => $vector_well->plate_name,
+        vector_cassette  => $vector_well->cassette->name,
+        primers          => \%primers,
+        species          => $design->species_id,
+        cell_line        => $self->first_cell_line->name,
+    };
 }
 
 # Get QC results for related MS_QC plates (mutation signatures workflow)
@@ -2009,14 +2035,14 @@ sub _qc_info{
 }
 
 sub _group_primers {
-  my ( $name, $seq ) = @_;
+    my ( $name, $seq ) = @_;
 
-  #split SF1 into qw(S F 1) so we can group properly
-  my @fields = split //, $name;
+    #split SF1 into qw(S F 1) so we can group properly
+    my @fields = split //, $name;
 
-  my $key = $fields[0] . $fields[-1];
+    my $key = $fields[0] . $fields[-1];
 
-  return $key, { name => $name, seq => $seq };
+    return $key, { name => $name, seq => $seq };
 }
 
 sub egel_pass_string {
@@ -2151,5 +2177,14 @@ sub most_recent_barcode_event{
 
     return $event;
 }
+
+sub parent_plates {
+    my ( $self ) = @_;
+
+    my @parent_wells = $self->parent_wells;
+
+    return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
+}
+
 __PACKAGE__->meta->make_immutable;
 1;

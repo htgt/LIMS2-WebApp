@@ -1,0 +1,98 @@
+<script type="text/javascript" charset="utf-8">
+
+//One tau equals a full circle. 37% becomes 0.37 * tau so that 37% of the donut will be arced
+var tau = 2 * Math.PI;
+
+var width = window.innerWidth / 20,
+    height = window.innerHeight / 13,
+    radius = (Math.min(width, height) / 2) - 1,
+    arcWidth = Math.min(width, height) / 7,
+    fsRadius = radius - arcWidth;
+
+var pie = d3.pie()
+    .sort(null)
+    .value(function(d) { return d.population; });
+
+
+var arc = d3.arc()
+    .innerRadius(fsRadius)
+    .outerRadius(radius)
+    .startAngle(0);
+
+//frameshift arcs
+var fsArc = d3.arc()
+    .innerRadius(fsRadius - (arcWidth - 2))
+    .outerRadius(fsRadius)
+    .startAngle(0);
+
+var initDonut = d3.pie()([0,0]);
+
+function rebuildArcs() {
+    arc = d3.arc()
+        .innerRadius(fsRadius)
+        .outerRadius(radius)
+        .startAngle(0);
+    fsArc = d3.arc()
+        .innerRadius(fsRadius - (arcWidth - 2))
+        .outerRadius(fsRadius)
+        .startAngle(0);
+}
+
+function createRings() {
+    //Base rings
+    d3.selectAll("g.node")
+        .append("path")
+        .attr("class","wellPath")
+        .datum({endAngle: tau})
+        .style("fill","#887BF7") //Purple
+        .attr("d",arc);
+
+    var wt = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[0])
+        .style("fill","#66C2A5") //Green
+        .attr("d", arc)
+        .attr("class","donut wild");
+
+    var nhej = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#FFAA00") //Orange
+        .attr("d", arc)
+        .attr("class", "donut nhej");
+
+    var hdr = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#D9E354") //Yellow
+        .attr("d", arc)
+        .attr("class", "donut hdr");
+
+    var mixed = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#73667A") //Blue-grey
+        .attr("d", arc)
+        .attr("class", "donut mix");
+
+    var frameshift = d3.selectAll("g.node")
+        .append("path")
+        .datum(initDonut[1])
+        .style("fill","#103877") //Dark Blue
+        .attr("d", fsArc)
+        .attr("class", "frame");
+
+    return;
+}
+
+function arcTween(newAngle, specArc) {
+    return function(d) {
+        var interpolate = d3.interpolate(d.endAngle, newAngle);
+        return function(t) {
+            d.endAngle = interpolate(t);
+            return specArc(d);
+        };
+    };
+}
+
+</script>

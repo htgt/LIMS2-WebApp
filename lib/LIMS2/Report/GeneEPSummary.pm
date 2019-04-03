@@ -1,7 +1,7 @@
 package LIMS2::Report::GeneEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::GeneEPSummary::VERSION = '0.515';
+    $LIMS2::Report::GeneEPSummary::VERSION = '0.532';
 }
 ## use critic
 

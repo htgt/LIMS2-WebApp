@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::WellBarcode;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.515';
+    $LIMS2::Model::Plugin::WellBarcode::VERSION = '0.532';
 }
 ## use critic
 
@@ -68,11 +68,11 @@ sub create_well_barcode {
     # Optionally create event with comment about new well barcode
     if($validated_params->{user}){
         $self->create_well_barcode_event({
-            barcode     => $well_barcode->barcode,
-            new_state   => $well_barcode->barcode_state->id,
-            new_well_id => $well_barcode->well_id,
-            user        => $validated_params->{user},
-            comment     => $validated_params->{comment},
+            barcode         => $well_barcode->barcode,
+            new_state       => $well_barcode->barcode_state->id,
+            new_well_name   => $well_barcode->well_name,
+            user            => $validated_params->{user},
+            comment         => $validated_params->{comment},
         });
     }
 
@@ -134,7 +134,7 @@ sub update_well_barcode {
                 }
                 else{
                     $self->throw( InvalidState => "Cannot move barcode ".$validated_params->{barcode}
-                                                ." to $existing because there is already a well here with no barcode" );
+                                               ." to $existing because there is already a well here with no barcode" );
                 }
             }
             else{

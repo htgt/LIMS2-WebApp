@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Programme;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Programme::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::Programme::VERSION = '0.532';
 }
 ## use critic
 
@@ -93,8 +93,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-27 10:56:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:M7MXbLYf2NG10vr6THOBpw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-06 15:03:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UpYJUcjagMrn8o/MHmsdkw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

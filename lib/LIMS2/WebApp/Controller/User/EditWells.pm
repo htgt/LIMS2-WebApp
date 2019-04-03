@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::EditWells;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::EditWells::VERSION = '0.515';
+    $LIMS2::WebApp::Controller::User::EditWells::VERSION = '0.532';
 }
 ## use critic
 

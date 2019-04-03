@@ -18,14 +18,19 @@
         display: block;
         font-family: monospace;
     }
+    .sequence.window {
+        width: 900px;
+        overflow-x: hidden;
+    }
 </style>
 
 <h1>Batch import MiSEQ Designs</h1>
-<table class="table table-striped">
+<table class="table">
     <thead>
         <tr>
             <th>WGE ID</th>
             <th>Gene</th>
+            <th>Design Type</th>
             <th>CRISPR</th>
             <th>Oligos</th>
             <th>Sequence</th>
@@ -35,45 +40,98 @@
     </thead>
     <tbody>
         [% FOREACH design IN designs %]
-        <tr id="row_[% loop.index %]">
-            <td>[% design.wge_id %]</td>
-            <td>[% design.symbol %]</td>
-            <td class="crispr-id"></td>
-            <td>
-                <span class="oligo crispr">CRISPR</span>
-                <span class="oligo exf">EXF</span>
-                <span class="oligo exr">EXR</span>
-                <span class="oligo inf">INF</span>
-                <span class="oligo inr">INR</span>
-            </td>
-            <td>
-                <span class="sequence crispr">[% design.crispr_seq %]</span>
-                <span class="sequence primer exf">[% design.exf %]</span>
-                <span class="sequence primer exr">[% design.exr %]</span>
-                <span class="sequence primer inf">[% design.inf %]</span>
-                <span class="sequence primer inr">[% design.inr %]</span>
-            </td>
-            <td>
-                <span class="location crispr"></span>
-                <span class="location exf"></span>
-                <span class="location exr"></span>
-                <span class="location inf"></span>
-                <span class="location inr"></span>
-            </td>
-            <td class="design"></td>
-            <td class="status">
-                <span class="glyphicon glyphicon-time"></span>
-                <span class="status-fail"></span>
-            </td>
-        </tr>
+            <tr id="row_[% loop.index %]">
+                [% IF design.design_type == 'miseq-hdr' || design.hdr %]
+                    <th class="leadingRow" rowspan="3">[% design.wge_id %]</th>
+                [% ELSE %]
+                    <th class="leadingRow" rowspan="2">[% design.wge_id %]</th>
+                [% END %]
+                <td>[% design.symbol %]</td>
+                <td>[% design.design_type %]</td>
+                <td>
+                    <a class="crispr-id"></a>
+                </td>
+                <td>
+                    <span class="oligo crispr">CRISPR</span>
+                    <span class="oligo exf">EXF</span>
+                    <span class="oligo exr">EXR</span>
+                    <span class="oligo inf">INF</span>
+                    <span class="oligo inr">INR</span>
+                </td>
+                <td>
+                    <span class="sequence crispr">[% design.crispr_seq %]</span>
+                    <span class="sequence primer exf">[% design.exf %]</span>
+                    <span class="sequence primer exr">[% design.exr %]</span>
+                    <span class="sequence primer inf">[% design.inf %]</span>
+                    <span class="sequence primer inr">[% design.inr %]</span>
+                </td>
+                <td>
+                    <span class="location crispr"></span>
+                    <span class="location exf"></span>
+                    <span class="location exr"></span>
+                    <span class="location inf"></span>
+                    <span class="location inr"></span>
+                </td>
+                <td>
+                    <a class="design"></a>
+                </td>
+                <td class="status">
+                    <span class="glyphicon glyphicon-time"></span>
+                    <span class="status-fail"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Amplicon
+                </td>
+                <td id="row_[% loop.index %]_amp" colspan="7">
+                    <span class="sequence window amplicon seq_[% loop.index %]"></span>
+                </td>
+            </tr>
+            [% IF design.hdr && design.design_type == 'miseq-hdr'%]
+                <tr>
+                    <td>
+                        HDR Template
+                    </td>
+                    <td colspan="7">
+                        <span class="sequence window hdr seq_[% loop.index %]">[% design.hdr %]</span>
+                    </td>
+                </tr>
+            [% ELSIF design.design_type == 'miseq-hdr' %]
+                <tr>
+                    <td>
+                        HDR Template
+                    </td>
+                    <td colspan="7">
+                        <span>No HDR Template Sequence supplied. Please manually edit the HDR in the view design page.</span>
+                    </td>
+                </tr>
+            [% ELSIF design.hdr %]
+                <tr>
+                    <td>
+                        HDR Template
+                    </td>
+                    <td colspan="7">
+                        <span> HDR Template Sequence incorrectly supplied for NHEJ design. Template will be ignored.</span>
+                    </td>
+                </tr>
+            [% END %]
         [% END %]
     </tbody>
 </table>
 
+[% INCLUDE 'user/browsedesigns/hdr_amplicon_widget.tt' %]
+
 <script type="text/javascript">
 
+$(document).ready(function() {
+    $('.hdr').hide();
+});
+
 function create_design(data){
-    var row = $('#row_' + data.index);
+    var id = data.index;
+    var rowEntry = '#row_' + id;
+    var row = $(rowEntry);
     $.ajax({
         dataType: 'json',
         url: '[% c.uri_for('/user/batchdesign/miseq_create') %]',
@@ -89,23 +147,43 @@ function create_design(data){
         row.find('.status > .glyphicon').addClass('glyphicon-remove');
         row.find('.status > .status-fail').html(xhr.responseText);
     }).done(function(data){
-        if(data.crispr){
-            row.find('.crispr-id').html(data.crispr);
+        if (data.crispr) {
+            var crisprURL = '[% c.uri_for('/user/crispr/') %]';
+            crisprURL = crisprURL + data.crispr + '/view';
+            row.find('.crispr-id')
+                .html(data.crispr)
+                .attr('href',crisprURL)
+                .attr('target','_blank');
         }
-        if(data.locations){
+        if (data.locations) {
             row.find('.location.crispr').html(data.locations.crispr);
             row.find('.location.exf').html(data.locations.exf);
             row.find('.location.exr').html(data.locations.exr);
             row.find('.location.inf').html(data.locations.inf);
             row.find('.location.inr').html(data.locations.inr);
         }
-        if(data.error){
+        if (data.amplicon) {
+            $(rowEntry + '_amp > .amplicon').text(data.amplicon);
+            scrollable('.seq_' + id);
+
+            if ( $('.hdr.seq_' + id).length ) {
+                $('.hdr.seq_' + id).show();
+                hdrHighlightSeq = hdrHighlight('.amplicon.seq_' + id,'.hdr.seq_' + id);
+                $('.hdr.seq_' + id).html(hdrHighlightSeq);
+            }
+        }
+        if (data.error) {
             row.find('.status > .glyphicon').addClass('glyphicon-remove');
             row.find('.status > .status-fail').html(data.error);
         }
-        else{
+        else {
+            var designURL = '[% c.uri_for('/user/view_design/') %]';
+            designURL = designURL + '?design_id=' + data.design.id;
+            row.find('.design')
+                .html(data.design.id)
+                .attr('href',designURL)
+                .attr('target','_blank');
             row.find('.status > .glyphicon').addClass('glyphicon-ok');
-            row.find('.design').html(data.design.id);
         }
         workers--;
         submit_design();
@@ -115,12 +193,14 @@ function create_design(data){
 var queue = [ [% FOREACH design IN designs %] {
         index: [% loop.index %],
         wge_id: [% design.wge_id %],
+        type: "[% design.design_type %]",
         symbol: "[% design.symbol %]",
         crispr_seq: "[% design.crispr_seq %]",
         exf: "[% design.exf %]",
         exr: "[% design.exr %]",
         inf: "[% design.inf %]",
         inr: "[% design.inr %]",
+        hdr: "[% design.hdr %]"
     }, [% END %]
 ];
 /* JS array supports stack & queue functions, but using it as a queue is slow.

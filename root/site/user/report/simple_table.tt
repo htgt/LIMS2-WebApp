@@ -63,7 +63,16 @@
       [% classes.push('virtual_plate') %]
       [% END %]
       <td[% IF classes.size > 0 %] class="[% classes.join(' ') %]"[% END %]>
+    [% IF columns.item(loop.index) == 'Freeze Plate' %]
+        <form action="[% c.uri_for('/user/epII/expansion') %]" method="post">
+        Colonies picked: <input type="number" name="child_well_number"><br>
+        <input type="hidden" name="well_name" value="[% val %]">
+        <input type="hidden" name="plate_name">
+        <input type="submit" value="Create">
+        </form>
+        [% ELSE %]
         [% plate_id %][% linkify( val ) | none %]
+        [% END %]
       </td>
       [%- END %]
     </tr>
@@ -186,6 +195,7 @@
     if ( plateNameRegex.test(title) ) {
       title.match(plateNameRegex);
       document.title = plateNameRegex.exec(title)[1];
+      $('input[name=plate_name]').val(document.title); 
     }
   });
 

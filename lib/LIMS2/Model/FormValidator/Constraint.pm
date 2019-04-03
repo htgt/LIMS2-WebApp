@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.515';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.532';
 }
 ## use critic
 
@@ -25,9 +25,7 @@ use namespace::autoclean;
 
 extends 'WebAppCommon::FormValidator::Constraint';
 
-has '+model' => (
-    isa => 'LIMS2::Model',
-);
+has '+model' => ( isa => 'LIMS2::Model', );
 
 sub eng_seq_of_type {
     my ( $self, $type ) = @_;
@@ -59,16 +57,16 @@ sub confidence_float {
     my $self = shift;
     return sub {
         my $val = shift;
-        return $val =~ qr/^[<>]?\s*\d+(\.\d+)?$/ ;
-    }
+        return $val =~ qr/^[<>]?\s*\d+(\.\d+)?$/;
+        }
 }
 
 sub copy_float {
     my $self = shift;
     return sub {
         my $val = shift;
-        return $val =~ qr/^\d+(\.\d+)?$/ ;
-    }
+        return $val =~ qr/^\d+(\.\d+)?$/;
+        }
 }
 
 sub signed_float {
@@ -104,7 +102,7 @@ sub cre_bac_recom_backbone {
 sub plate_name {
     return shift->regexp_matches(qr/^[A-Za-z0-9_\(\)]+$/);
 }
-;
+
 sub well_name {
     return shift->regexp_matches(qr/^[A-P](0[1-9]|1[0-9]|2[0-4])$/);
 }
@@ -134,7 +132,7 @@ sub existing_bac_library {
 }
 
 sub existing_cell_line {
-	return shift->in_resultset( 'CellLine', 'name' );
+    return shift->in_resultset( 'CellLine', 'name' );
 }
 
 sub existing_plate_type {
@@ -146,7 +144,7 @@ sub existing_process_type {
 }
 
 sub existing_recombinase {
-    return shift->in_resultset( 'Recombinase', 'id');
+    return shift->in_resultset( 'Recombinase', 'id' );
 }
 
 sub existing_recombineering_result_type {
@@ -154,24 +152,23 @@ sub existing_recombineering_result_type {
 }
 
 sub existing_colony_type {
-    return shift->in_resultset ( 'ColonyCountType', 'id')
+    return shift->in_resultset( 'ColonyCountType', 'id' );
 }
 
 sub existing_primer_band_type {
-    return shift->in_resultset ( 'PrimerBandType', 'id')
+    return shift->in_resultset( 'PrimerBandType', 'id' );
 }
 
 sub existing_pipeline {
     return shift->in_resultset( 'Pipeline', 'id' );
 }
 
-
 sub recombineering_result {
     return shift->in_set( 'pass', 'fail', 'weak' );
 }
 
 sub dna_quality {
-    return shift->in_set( qw( L M ML S U ) );
+    return shift->in_set(qw( L M ML S U ));
 }
 
 sub existing_genotyping_result_type {
@@ -223,19 +220,19 @@ sub existing_qc_eng_seq_id {
 }
 
 sub existing_intermediate_cassette {
-    return shift->eng_seq_of_type( 'intermediate-cassette' );
+    return shift->eng_seq_of_type('intermediate-cassette');
 }
 
 sub existing_intermediate_backbone {
-    return shift->eng_seq_of_type( 'intermediate-backbone' );
+    return shift->eng_seq_of_type('intermediate-backbone');
 }
 
 sub existing_final_cassette {
-    return shift->eng_seq_of_type( 'final-cassette' );
+    return shift->eng_seq_of_type('final-cassette');
 }
 
 sub existing_final_backbone {
-    return shift->eng_seq_of_type( 'final-backbone' );
+    return shift->eng_seq_of_type('final-backbone');
 }
 
 sub existing_crispr_damage_type {
@@ -250,7 +247,6 @@ sub existing_crispr_es_qc_seq_project {
     return shift->existing_row( 'CrisprEsQcRuns', 'sequencing_project' );
 }
 
-
 # intermediate backbones can be in a final vector, so need a list of all backbone types
 # which eng-seq-builder can not provide using the eng_seq_of_type method
 sub existing_backbone {
@@ -263,15 +259,15 @@ sub existing_cassette {
 }
 
 sub existing_nuclease {
-    return shift->existing_row( 'Nuclease', 'name');
+    return shift->existing_row( 'Nuclease', 'name' );
 }
 
 sub existing_crispr_tracker_rna {
-    return shift->existing_row( 'CrisprTrackerRna', 'name');
+    return shift->existing_row( 'CrisprTrackerRna', 'name' );
 }
 
 sub existing_crispr_primer_type {
-	return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
+    return shift->in_resultset( 'CrisprPrimerType', 'primer_name' );
 }
 
 sub qc_seq_read_id {
@@ -322,13 +318,15 @@ sub existing_crispr_plate_appends_type {
     return shift->in_resultset( 'CrisprPlateAppendsType', 'id' );
 }
 
-sub assembly_qc_type{
-    return shift->in_enum_column('WellAssemblyQc','qc_type');
+sub assembly_qc_type {
+    return shift->in_enum_column( 'WellAssemblyQc', 'qc_type' );
+
     #return shift->in_set('CRISPR_LEFT_QC','CRISPR_RIGHT_QC','VECTOR_QC');
 }
 
-sub assembly_qc_value{
-    return shift->in_enum_column('WellAssemblyQc','value');
+sub assembly_qc_value {
+    return shift->in_enum_column( 'WellAssemblyQc', 'value' );
+
     #return shift->in_set('Good','Bad','Wrong');
 }
 
@@ -344,7 +342,7 @@ sub primer_array {
     my $self = shift;
     return sub {
         ref $_[0] eq 'ARRAY';
-    }
+        }
 }
 
 sub psql_date {
@@ -361,11 +359,11 @@ sub psql_date {
 
 =cut
 
-sub in_enum_column{
-    my ($self,$resultset_name,$column_name) = @_;
+sub in_enum_column {
+    my ( $self, $resultset_name, $column_name ) = @_;
     my $col_info = $self->model->schema->resultset($resultset_name)->result_source->column_info($column_name);
-    my $list = $col_info->{extra}->{list};
-    return $self->in_set(@{ $list });
+    my $list     = $col_info->{extra}->{list};
+    return $self->in_set( @{$list} );
 }
 
 sub existing_miseq_status {
@@ -393,12 +391,13 @@ sub existing_miseq_classification {
 }
 
 sub email {
-    my $leading = qr{ [^<>()\[\]\.,;:\s@\"]+ }xms;  # Capture [example]@sanger.ac.uk - Match any char not present in the list
+    my $leading
+        = qr{ [^<>()\[\]\.,;:\s@\"]+ }xms;    # Capture [example]@sanger.ac.uk - Match any char not present in the list
     my $following = qr{ (\.[^<>()\[\]\.,;:\s@\"]+)* }xms;   # Match any char not present in the list
-    my $option = qr{ (\".+\") }xms; # Or 'john'
-    my $domain = qr{ ([^<>()[\]\.,;:\s@\"]+\.)+ }xms;   # Capture example@[sanger].ac.uk. Match any char not present
-    my $suffix = qr{ [^<>()[\]\.,;:\s@\"]{2,} }xms; # match not present two or more times example@sanger.[ac.uk]
-    my $complete = qr{ ^(($leading$following)|$option)@($domain$suffix)$ }xms; #Full e-mail
+    my $option    = qr{ (\".+\") }xms;                      # Or 'john'
+    my $domain    = qr{ ([^<>()[\]\.,;:\s@\"]+\.)+ }xms;    # Capture example@[sanger].ac.uk. Match any char not present
+    my $suffix    = qr{ [^<>()[\]\.,;:\s@\"]{2,} }xms;      # match not present two or more times example@sanger.[ac.uk]
+    my $complete = qr{ ^(($leading$following)|$option)@($domain$suffix)$ }xms;    #Full e-mail
 
     return shift->regexp_matches($complete);
 }
@@ -410,70 +409,88 @@ sub existing_requester {
 sub config_min_max {
     my $self = shift;
     return sub {
-        my $conf = shift;
+        my $conf   = shift;
         my $result = 1;
         my $params = {
             max => 1,
             min => 1,
             opt => 1,
         };
-        foreach my $requirement (keys %{$conf}) {
+        foreach my $requirement ( keys %{$conf} ) {
             my $bool = $params->{$requirement} || 0;
-            if ($bool == 0) {
+            if ( $bool == 0 ) {
                 $result = 0;
             }
         }
         return $result;
-    }
+        }
 }
+
 sub primer_set {
     my $self = shift;
     return sub {
         my $result = 1;
-        my $check = {
-            pcr     => 1,
-            miseq   => 1,
+        my $check  = {
+            pcr   => 1,
+            miseq => 1,
         };
 
         my $primers = $self->{primers};
-        foreach my $primer (keys %$primers) {
+        foreach my $primer ( keys %$primers ) {
             $result = $check->{$primer} || 0;
         }
 
-        my $pcr = primer_params($primers->{pcr}->{widths});
-        my $miseq = primer_params($primers->{miseq}->{widths});
+        my $pcr   = primer_params( $primers->{pcr}->{widths} );
+        my $miseq = primer_params( $primers->{miseq}->{widths} );
 
-        if ($pcr == 0 || $miseq == 0) {
-            $result = 0
+        if ( $pcr == 0 || $miseq == 0 ) {
+            $result = 0;
         }
 
         return $result;
-    }
+        }
 }
 
 sub primer_params {
     my $self = shift;
     return sub {
-        my $conf = shift;
+        my $conf   = shift;
         my $result = 1;
         my $params = {
-            increment       => 1,
-            offset_width    => 1,
-            search_width    => 1,
+            increment    => 1,
+            offset_width => 1,
+            search_width => 1,
         };
 
-        foreach my $requirement (keys %{$conf}) {
-            if (!$params->{$requirement}) {
+        foreach my $requirement ( keys %{$conf} ) {
+            if ( !$params->{$requirement} ) {
                 $result = 0;
             }
         }
 
         return $result;
-    }
+        }
 }
 
 sub existing_preset_id {
     return shift->in_resultset( 'MiseqDesignPreset', 'id' );
+}
+
+sub ep_plate {
+    my $self         = shift;
+    my $exists       = $self->existing_plate_name;
+    my $correct_name = $self->regexp_matches(qr/^HUPEP\d+$/);
+    return sub {
+        my $value = shift;
+        return
+               $exists->($value)
+            && $self->model->schema->resultset('Plate')->find( { name => $value } )->type_id eq 'EP_PIPELINE_II'
+            && $correct_name->($value);
+    };
+}
+
+sub ep_well {
+    return shift->regexp_matches(qr/^A0?\d+$/);
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,7 @@
 package LIMS2::Report::EPPipelineIIPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.515';
+    $LIMS2::Report::EPPipelineIIPlate::VERSION = '0.532';
 }
 ## use critic
 
@@ -46,6 +46,7 @@ sub _build_wells_data {
             project_id      => $well_info->{project_id},
             created_by      => $well_info->{created_by},
             well_id         => $well_info->{well_id},
+            well_name       => $well->name,
         };
         push @wells_data, $temp;
     }
@@ -67,7 +68,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Crispr Pair ID', 'Crispr Group ID', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By', 'Well ID'
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Crispr Pair ID', 'Crispr Group ID', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By', 'Well ID', 'Freeze Plate',
     ];
 };
 
@@ -98,7 +99,8 @@ override iterator => sub {
             $well_data->{guided_type},
             $well_data->{project_id},
             $well_data->{created_by},
-            $well_data->{well_id}
+            $well_data->{well_id},
+            $well_data->{well_name},
         );
 
         $well_data = shift @wells_data;

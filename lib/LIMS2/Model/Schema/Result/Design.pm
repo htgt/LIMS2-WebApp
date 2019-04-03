@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.515';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.532';
 }
 ## use critic
 
@@ -694,12 +694,12 @@ sub _fetch_region_coords {
 sub hdr_template {
     my $self = shift;
 
+    my $template;
     try {
-        my $template = $self->hdr_templates->first->template;
-        return $template;
+        $template = $self->hdr_templates->first->template;
     };
 
-    return;
+    return $template;
 }
 
 __PACKAGE__->meta->make_immutable;
