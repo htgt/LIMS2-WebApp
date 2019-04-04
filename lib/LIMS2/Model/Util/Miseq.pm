@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
         qw(
               miseq_well_processes
               wells_generator
+              well_builder
               convert_index_to_well_name
               generate_summary_data
               find_folder
@@ -18,6 +19,7 @@ use Sub::Exporter -setup => {
               damage_classifications
               miseq_genotyping_info
               read_alleles_frequency_file
+              qc_relations
           )
     ]
 };
@@ -769,6 +771,19 @@ sub read_quant_file {
         return $data;
     }
 
+    return;
+}
+
+sub qc_relations {
+    my ($c, $well) = @_;
+
+    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
+
+    @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
+    my $relations;
+    foreach my $qc (@related_qc) {
+        push (@{$relations->{$qc->{experiment_id}}->{$qc->{miseq_plate_name}}}, $qc);
+    }
     return;
 }
 
