@@ -702,21 +702,22 @@ sub read_alleles_frequency_file_db {
     my $alleles_count = $frequency_rs->count;
     my @lines;
     push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
-    my $hash;
     if ($alleles_count > 0) {
-        while ($hash = $frequency_rs->next){
-            $hash = $hash->as_hash;
-            my $sum = $hash->{n_reads};
-            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
+        while (my $freq_rs = $frequency_rs->next){
+            my $freq_hash = $freq_rs->as_hash;
+            $freq_hash->{reference_sequence} = $freq_rs->reference_sequence;
+            $freq_hash->{quality_score} = $freq_rs->quality_score;
+            my $sum = $freq_hash->{n_reads};
+            my $percentage = $sum / $miseq_well_experiment_hash->{total_reads} * 100.0;
             push @lines,
-                $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
-                $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
-                $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
-                $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
+                $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
+                $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
+                $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
                 $percentage;
         }
     }
-    else{
+    else {
         print "No alleles frequency data found in the database.";
     }
 

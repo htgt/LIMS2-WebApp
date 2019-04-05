@@ -165,8 +165,10 @@ __PACKAGE__->belongs_to(
 
 # Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-28 09:21:37
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oJN6zRym1XOvWWiq/9uBA
+
+use Try::Tiny;
+
 sub as_hash {
-    require Try::Tiny;
     my $self = shift;
 
     my %h = (
@@ -181,19 +183,32 @@ sub as_hash {
         n_mutated                   => $self->n_mutated, #TODO delete after migration
         n_reads                     => $self->n_reads,
     );
-    try {
-        my $ref = $self->reference_sequence;
-        if ($ref) {
-            $h{reference_sequence} = $ref;
-        }
-    };
-
-    try {
-        $h{quality_score} = $self->quality_score;
-    };
 
     return \%h;
 }
+
+sub reference_sequence {
+    my $self = shift;
+
+    my $ref;
+    try {
+        $ref = $self->reference_sequence;
+    };
+
+    return $ref;
+}
+
+sub quality_score {
+    my $self = shift;
+
+    my $quality;
+    try {
+        $quality = $self->quality_score;
+    };
+
+    return $quality;
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
