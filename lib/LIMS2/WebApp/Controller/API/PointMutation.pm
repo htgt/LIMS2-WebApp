@@ -162,7 +162,8 @@ sub miseq_exp_parent_GET {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
             },
             {
-                order_by  => { -desc => 'id' }
+                join => { 'miseq' => 'plate' },
+                order_by  => [ { -desc => 'plate.name' }, { -asc => 'name' } ],
             }
         );
     }

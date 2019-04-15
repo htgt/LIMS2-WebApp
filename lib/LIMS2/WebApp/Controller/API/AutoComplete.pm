@@ -272,7 +272,7 @@ sub miseq_gene_symbols_GET {
         @results = uniq sort map { (split(/_/, $_->gene))[0] } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
-            }
+            },
         );
     }
     catch {
