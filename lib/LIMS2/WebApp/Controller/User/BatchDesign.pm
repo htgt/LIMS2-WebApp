@@ -362,7 +362,9 @@ sub _build_design {
                 }
             );
             $response->{design} = $design->{_column_data};
-
+            if ($design->{user_response}) {
+                $response->{design}->{user_response} = $design->{user_response};
+            }
         }
     }
     catch {
