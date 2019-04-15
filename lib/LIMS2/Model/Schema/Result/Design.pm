@@ -653,7 +653,7 @@ sub gene_symbols {
 
     my @ids = $self->gene_ids;
     my @symbols = map { $_->{gene_symbol} }
-                  values %{ $gene_finder->( $self->species_id, \@ids ) };
+        values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
 }
 

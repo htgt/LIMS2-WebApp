@@ -487,6 +487,18 @@ sub ep_well {
     return shift->regexp_matches(qr/^A0?\d+$/);
 }
 
+sub sequencing_result {
+    return shift->regexp_matches(qr/^[ACTG-]+$/);
+}
+
+sub phred_string {
+    return shift->regexp_matches(qr/^[\x21-\x49]+$/);
+}
+
+sub existing_miseq_alleles_frequency {
+    return shift->in_resultset( 'MiseqAllelesFrequency', 'id' );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

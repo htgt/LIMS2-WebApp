@@ -13,9 +13,6 @@ use Data::Dumper;
 
 requires qw( schema check_params throw retrieve log trace );
 
-
-
-
 sub pspec_create_crispr_submission{
     return {
         id                              => { validate => 'existing_miseq_well_exp'          },
@@ -41,7 +38,6 @@ sub create_crispr_submission{
 
 }
 
-
 sub pspec_create_indel_distribution_graph{
     return {
         id                              => { validate => 'existing_miseq_well_exp'          },
@@ -66,40 +62,87 @@ sub create_indel_distribution_graph{
 
 }
 
-
 sub pspec_create_miseq_alleles_frequency{
     return  {
-            miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'                       },
-            aligned_sequence          =>  { validate => 'non_empty_string'                              },
-            quality_score             =>  { optional => 1                                               },
-            reference_sequence        =>  { optional => 1                                               },
-            nhej                      =>  { validate => 'boolean_string'                                },
-            unmodified                =>  { validate => 'boolean_string'                                },
-            hdr                       =>  { validate => 'boolean_string'                                },
-            n_deleted                 =>  { validate => 'integer'                                       },
-            n_inserted                =>  { validate => 'integer'                                       },
-            n_mutated                 =>  { validate => 'integer'                                       },
-            n_reads                   =>  { validate => 'integer'                                       }
-        };
+        miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'                       },
+        aligned_sequence          =>  { validate => 'sequencing_result'                             },
+        quality_score             =>  { validate => 'phred_string', optional => 1                   },
+        reference_sequence        =>  { validate => 'sequencing_result', optional => 1              },
+        nhej                      =>  { validate => 'boolean_string'                                },
+        unmodified                =>  { validate => 'boolean_string'                                },
+        hdr                       =>  { validate => 'boolean_string'                                },
+        n_deleted                 =>  { validate => 'integer'                                       },
+        n_inserted                =>  { validate => 'integer'                                       },
+        n_mutated                 =>  { validate => 'integer'                                       },
+        n_reads                   =>  { validate => 'integer'                                       }
+    };
 }
 
-
-sub create_miseq_alleles_frequency{
+sub create_miseq_alleles_frequency {
     my ($self, $params) = @_;
     my $validated_params = $self->check_params($params, pspec_create_miseq_alleles_frequency);
-    my $miseq_frequency = $self->schema->resultset('MiseqAllelesFrequency')->create(
-           { slice_def(
-                   $validated_params,
-                   qw( miseq_well_experiment_id aligned_sequence reference_sequence quality_score nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
-               )
-           }
-       );
-       $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
+    my $miseq_frequency = $self->schema->resultset('MiseqAllelesFrequency')->create({
+        slice_def (
+            $validated_params,
+            qw( miseq_well_experiment_id aligned_sequence reference_sequence quality_score nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
+        )
+    });
+
+    $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
+
     return $miseq_frequency;
 }
 
+sub pspec_update_miseq_alleles_frequency {
+    return {
+        id                          => { validate => 'existing_miseq_alleles_frequency' },
+        miseq_well_experiment_id    => { validate => 'existing_miseq_well_exp', optional => 1 },
+        aligned_sequence            => { validate => 'sequencing_result', optional => 1 },
+        nhej                        => { validate => 'boolean_string', optional => 1 },
+        unmodified                  => { validate => 'boolean_string', optional => 1 },
+        hdr                         => { validate => 'boolean_string', optional => 1 },
+        n_deleted                   => { validate => 'integer' },
+        n_inserted                  => { validate => 'integer' },
+        n_mutated                   => { validate => 'integer' },
+        n_reads                     => { validate => 'integer' },
+        reference_sequence          => { validate => 'sequencing_result', optional => 1 },
+        quality_score               => { validate => 'phred_string', optional => 1 },
+    };
+}
 
-sub pspec_create_indel_histogram{
+sub update_miseq_alleles_frequency {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_update_miseq_alleles_frequency);
+
+    my %search;
+    $search{'me.id'} = $validated_params->{id};
+
+    my $freq = $self->retrieve( MiseqAllelesFrequency => \%search );
+    
+    my $hash_freq = $freq->as_hash;
+    my $allele;
+    $allele->{id} = check_undef($validated_params->{id}, $hash_freq->{id});
+    $allele->{aligned_sequence} = check_undef( $validated_params->{aligned_sequence}, $hash_freq->{aligned_sequence});
+    $allele->{miseq_well_experiment_id} = check_undef($validated_params->{miseq_well_experiment_id}, $hash_freq->{miseq_well_experiment_id});
+    $allele->{nhej} = check_undef($validated_params->{nhej}, $hash_freq->{nhej});
+    $allele->{unmodified} = check_undef($validated_params->{unmodified}, $hash_freq->{unmodified});
+    $allele->{hdr} = check_undef($validated_params->{hdr}, $hash_freq->{hdr});
+    $allele->{n_deleted} = check_undef($validated_params->{n_deleted}, $hash_freq->{n_deleted});
+    $allele->{n_inserted} = check_undef($validated_params->{n_inserted}, $hash_freq->{n_inserted});
+    $allele->{n_mutated} = check_undef($validated_params->{n_mutated}, $hash_freq->{n_mutated});
+    $allele->{n_reads} = check_undef($validated_params->{n_reads}, $hash_freq->{n_reads});
+    $allele->{reference_sequence} = check_undef($validated_params->{reference_sequence}, $hash_freq->{reference_sequence});
+    $allele->{quality_score} = check_undef($validated_params->{quality_score}, $hash_freq->{quality_score});
+
+    $freq->update($allele);
+
+    $self->log->info('Updated Miseq allele frequency: ' . $allele->{id});
+
+    return $freq;
+}
+
+sub pspec_create_indel_histogram {
     return  {
         miseq_well_experiment_id    => { validate => 'existing_miseq_well_exp'  },
         indel_size                  => { validate => 'integer'                  },
@@ -107,8 +150,7 @@ sub pspec_create_indel_histogram{
     };
 }
 
-
-sub create_indel_histogram{
+sub create_indel_histogram {
     my ($self, $params) = @_;
     my $validated_params = $self->check_params($params, pspec_create_indel_histogram);
 
@@ -151,7 +193,6 @@ sub create_miseq_plate {
     return $miseq;
 }
 
-
 sub pspec_create_miseq_well_experiment {
     return {
         well_id         => { validate => 'existing_well_id' },
@@ -182,7 +223,6 @@ sub create_miseq_well_experiment {
     return $miseq;
 }
 
-
 sub pspec_update_miseq_well_experiment {
     return {
         id                              => { validate => 'existing_miseq_well_exp' },
@@ -197,7 +237,6 @@ sub pspec_update_miseq_well_experiment {
         mixed_reads                     => { validate => 'integer', optional => 1 },
     };
 }
-
 
 sub update_miseq_well_experiment {
     my ($self, $params) = @_;
@@ -224,10 +263,6 @@ sub update_miseq_well_experiment {
     return;
 }
 
-
-
-
-
 sub pspec_create_miseq_experiment {
     return {
         miseq_id        => { validate => 'existing_miseq_plate' },
@@ -239,7 +274,6 @@ sub pspec_create_miseq_experiment {
         total_reads     => { validate => 'integer' },
     };
 }
-
 
 # input will be in the format a user trying to create a plate will use
 # we need to convert this into a format expected by create_well
@@ -258,10 +292,6 @@ sub create_miseq_experiment {
 
     return;
 }
-
-
-
-
 
 sub pspec_update_miseq_experiment {
     return {
@@ -300,9 +330,6 @@ sub update_miseq_experiment {
     return $update;
 }
 
-
-
-
 sub pspec_miseq_plate_creation_json {
     return {
         name            => { validate => 'plate_name' },
@@ -313,7 +340,6 @@ sub pspec_miseq_plate_creation_json {
         species         => { validate => 'existing_species' },
     };
 }
-
 
 sub miseq_plate_creation_json {
     my ($self, $params) = @_;
@@ -342,11 +368,6 @@ sub miseq_plate_creation_json {
     return $miseq_plate;
 }
 
-
-
-
-
-
 sub pspec_create_primer_preset {
     return {
         name                => { validate => 'alphanumeric_string' },
@@ -357,7 +378,6 @@ sub pspec_create_primer_preset {
         primers             => { validate => 'primer_set' },
     };
 }
-
 
 sub create_primer_preset {
     my ($self, $params) = @_;
@@ -434,12 +454,6 @@ sub create_primer_preset {
     return $design_preset;
 }
 
-
-
-
-
-
-
 sub pspec_edit_primer_preset {
     return {
         id                  => { validate => 'existing_preset_id' },
@@ -480,19 +494,12 @@ sub edit_primer_preset {
     return $preset_update;
 }
 
-
-
-
-
-
-
 sub pspec_update_hdr_template {
     return {
         id  => { validate => 'existing_design_id', rename => 'design_id' },
         seq => { validate => 'dna_seq', rename => 'template' },
     };
 }
-
 
 sub update_hdr_template {
     my ($self, $params) = @_;
@@ -514,12 +521,6 @@ sub update_hdr_template {
 
     return $hdr_rc;
 }
-
-
-
-
-
-
 
 sub find_primer_params {
     my ($self, $id) = @_;

@@ -705,6 +705,7 @@ function getTargets(letter) {
 
 function createTable(exp, result) {
     result = JSON.parse(result);
+console.log(result);
 
     $('#crisprSeq' + exp).text(result.crispr.crispr);
     $('#crisprHeader' + exp).show();
