@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.531';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.533';
 }
 ## use critic
 
@@ -19,7 +19,15 @@ use Text::CSV;
 use Try::Tiny;
 use List::MoreUtils qw(uniq);
 use POSIX qw/floor/;
-use LIMS2::Model::Util::Miseq qw( convert_index_to_well_name generate_summary_data find_folder find_file find_child_dir wells_generator);
+use LIMS2::Model::Util::Miseq qw(
+    convert_index_to_well_name
+    generate_summary_data
+    find_folder
+    find_file
+    find_child_dir
+    wells_generator
+    miseq_genotyping_info
+);
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
 use List::Util qw(min max);
 

@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::Miseq::VERSION = '0.531';
+    $LIMS2::Model::Plugin::Miseq::VERSION = '0.533';
 }
 ## use critic
 
@@ -42,7 +42,7 @@ sub create_crispr_submission{
                )
            }
        );
-    $self->log->info('Created crispresso submission entry');
+       #$self->log->info('Created crispresso submission entry');
     return;
 
 }
@@ -67,7 +67,7 @@ sub create_indel_distribution_graph{
                )
            }
        );
-    $self->log->info('Created Indel Distribution Graph for miseq well experiment ');
+       #$self->log->info('Created Indel Distribution Graph for miseq well experiment ');
     return;
 
 }
@@ -75,32 +75,32 @@ sub create_indel_distribution_graph{
 
 sub pspec_create_miseq_alleles_frequency{
     return  {
-            miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'        },
-            aligned_sequence          =>  { validate => 'non_empty_string'               },
-            nhej                      =>  { validate => 'boolean_string'                 },
-            unmodified                =>  { validate => 'boolean_string'                 },
-            hdr                       =>  { validate => 'boolean_string'                 },
-            n_deleted                 =>  { validate => 'integer'                        },
-            n_inserted                =>  { validate => 'integer'                        },
-            n_mutated                 =>  { validate => 'integer'                        },
-            n_reads                   =>  { validate => 'integer'                        }
+            miseq_well_experiment_id  =>  { validate => 'existing_miseq_well_exp'                       },
+            aligned_sequence          =>  { validate => 'non_empty_string'                              },
+            quality_score             =>  { optional => 1                                               },
+            reference_sequence        =>  { optional => 1                                               },
+            nhej                      =>  { validate => 'boolean_string'                                },
+            unmodified                =>  { validate => 'boolean_string'                                },
+            hdr                       =>  { validate => 'boolean_string'                                },
+            n_deleted                 =>  { validate => 'integer'                                       },
+            n_inserted                =>  { validate => 'integer'                                       },
+            n_mutated                 =>  { validate => 'integer'                                       },
+            n_reads                   =>  { validate => 'integer'                                       }
         };
 }
 
 
 sub create_miseq_alleles_frequency{
     my ($self, $params) = @_;
-
     my $validated_params = $self->check_params($params, pspec_create_miseq_alleles_frequency);
-
     my $miseq_frequency = $self->schema->resultset('MiseqAllelesFrequency')->create(
            { slice_def(
                    $validated_params,
-                   qw( miseq_well_experiment_id aligned_sequence nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
+                   qw( miseq_well_experiment_id aligned_sequence reference_sequence quality_score nhej unmodified hdr n_deleted n_inserted n_mutated n_reads)
                )
            }
        );
-    $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
+       $self->log->info('Created Miseq allele frequency: ' . $miseq_frequency->id);
     return $miseq_frequency;
 }
 

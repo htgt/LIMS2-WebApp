@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Miseq::VERSION = '0.531';
+    $LIMS2::Model::Util::Miseq::VERSION = '0.533';
 }
 ## use critic
 
@@ -13,6 +13,7 @@ use Sub::Exporter -setup => {
         qw(
               miseq_well_processes
               wells_generator
+              well_builder
               convert_index_to_well_name
               generate_summary_data
               find_folder
@@ -24,6 +25,7 @@ use Sub::Exporter -setup => {
               damage_classifications
               miseq_genotyping_info
               read_alleles_frequency_file
+              qc_relations
           )
     ]
 };
@@ -706,21 +708,22 @@ sub read_alleles_frequency_file_db {
     my $alleles_count = $frequency_rs->count;
     my @lines;
     push @lines ,'Aligned Sequence,NHEJ,Unmodified,HDR,Deleted,Inserted,Mutated,Reads,%Reads';
-    my $hash;
     if ($alleles_count > 0) {
-        while ($hash = $frequency_rs->next){
-            $hash = $hash->as_hash;
-            my $sum = $hash->{n_reads};
-            my $percentage = $sum/$miseq_well_experiment_hash->{total_reads}*100.0;
+        while (my $freq_rs = $frequency_rs->next){
+            my $freq_hash = $freq_rs->as_hash;
+            $freq_hash->{reference_sequence} = $freq_rs->reference_sequence;
+            $freq_hash->{quality_score} = $freq_rs->quality_score;
+            my $sum = $freq_hash->{n_reads};
+            my $percentage = $sum / $miseq_well_experiment_hash->{total_reads} * 100.0;
             push @lines,
-                $hash->{aligned_sequence}   .",".   $hash->{nhej}                       .",".
-                $hash->{unmodified}         .",".   $hash->{hdr}                        .",".
-                $hash->{n_deleted}          .",".   $hash->{n_inserted}                 .",".
-                $hash->{n_mutated}          .",".   $hash->{n_reads}                    .",".
+                $freq_hash->{aligned_sequence}   .",".   $freq_hash->{nhej}                       .",".
+                $freq_hash->{unmodified}         .",".   $freq_hash->{hdr}                        .",".
+                $freq_hash->{n_deleted}          .",".   $freq_hash->{n_inserted}                 .",".
+                $freq_hash->{n_mutated}          .",".   $freq_hash->{n_reads}                    .",".
                 $percentage;
         }
     }
-    else{
+    else {
         print "No alleles frequency data found in the database.";
     }
 
@@ -775,6 +778,19 @@ sub read_quant_file {
         return $data;
     }
 
+    return;
+}
+
+sub qc_relations {
+    my ($c, $well) = @_;
+
+    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
+
+    @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
+    my $relations;
+    foreach my $qc (@related_qc) {
+        push (@{$relations->{$qc->{experiment_id}}->{$qc->{miseq_plate_name}}}, $qc);
+    }
     return;
 }
 

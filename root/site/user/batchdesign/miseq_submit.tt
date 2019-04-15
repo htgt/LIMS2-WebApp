@@ -147,6 +147,7 @@ function create_design(data){
         row.find('.status > .glyphicon').addClass('glyphicon-remove');
         row.find('.status > .status-fail').html(xhr.responseText);
     }).done(function(data){
+        console.log(data);
         if (data.crispr) {
             var crisprURL = '[% c.uri_for('/user/crispr/') %]';
             crisprURL = crisprURL + data.crispr + '/view';
@@ -172,6 +173,7 @@ function create_design(data){
                 $('.hdr.seq_' + id).html(hdrHighlightSeq);
             }
         }
+
         if (data.error) {
             row.find('.status > .glyphicon').addClass('glyphicon-remove');
             row.find('.status > .status-fail').html(data.error);
@@ -183,8 +185,14 @@ function create_design(data){
                 .html(data.design.id)
                 .attr('href',designURL)
                 .attr('target','_blank');
-            row.find('.status > .glyphicon').addClass('glyphicon-ok');
+            
+            if (data.design.user_response) {
+                row.find('.status > .status-fail').html("Design already exists.");
+            } else {
+                row.find('.status > .glyphicon').addClass('glyphicon-ok');
+            }
         }
+
         workers--;
         submit_design();
     });

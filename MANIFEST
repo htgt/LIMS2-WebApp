@@ -269,6 +269,7 @@ lib/LIMS2/Model/Util/DesignInfo.pm
 lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EPPipelineIIPlate.pm
+lib/LIMS2/Model/Util/EPPipelineIIWellExpansion.pm
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
@@ -392,6 +393,7 @@ lib/LIMS2/WebApp/Controller/User/CrisprLocateInStorage.pm
 lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
+lib/LIMS2/WebApp/Controller/User/EPPipelineIIWellExpansion.pm
 lib/LIMS2/WebApp/Controller/User/EditWells.pm
 lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
 lib/LIMS2/WebApp/Controller/User/Experiments.pm
@@ -543,6 +545,7 @@ root/site/user/editwells/add_well.tt
 root/site/user/editwells/move_well.tt
 root/site/user/engseqs/generate_sequence_file.tt
 root/site/user/engseqs/pick_gene_generate_sequence_file.tt
+root/site/user/eppipelineiiwellexpansion/expansion.tt
 root/site/user/error.tt
 root/site/user/experiments/view_experiment.tt
 root/site/user/externalproject/browse_sequencing_projects.tt
@@ -2692,6 +2695,9 @@ root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Plate.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Process.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/User.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIPlate/Well.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIWellExpansion/Plate.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIWellExpansion/User.csv
+root/static/test/fixtures/LIMS2/t/Model/Util/EPPipelineIIWellExpansion/Well.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/BacClone.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/BacCloneLocus.csv
 root/static/test/fixtures/LIMS2/t/Model/Util/EngSeqParams/Crispr.csv
@@ -3141,6 +3147,7 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignInfo.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignTargets.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DrawPlateGraph.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIPlate.t
+t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIWellExpansion.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EngSeqParams.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GenomeBrowser.t
@@ -3378,6 +3385,7 @@ t/lib/LIMS2/t/Model/Util/DesignInfo.pm
 t/lib/LIMS2/t/Model/Util/DesignTargets.pm
 t/lib/LIMS2/t/Model/Util/DrawPlateGraph.pm
 t/lib/LIMS2/t/Model/Util/EPPipelineIIPlate.pm
+t/lib/LIMS2/t/Model/Util/EPPipelineIIWellExpansion.pm
 t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
 t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm

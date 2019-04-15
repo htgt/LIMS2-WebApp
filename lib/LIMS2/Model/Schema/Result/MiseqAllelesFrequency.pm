@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqAllelesFrequency;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqAllelesFrequency::VERSION = '0.531';
+    $LIMS2::Model::Schema::Result::MiseqAllelesFrequency::VERSION = '0.533';
 }
 ## use critic
 
@@ -169,8 +169,11 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-08-07 13:44:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y+i+ywHGjqv4A/BFnhPGPA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-28 09:21:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oJN6zRym1XOvWWiq/9uBA
+
+use Try::Tiny;
+
 sub as_hash {
     my $self = shift;
 
@@ -189,6 +192,29 @@ sub as_hash {
 
     return \%h;
 }
+
+sub reference_sequence {
+    my $self = shift;
+
+    my $ref;
+    try {
+        $ref = $self->reference_sequence;
+    };
+
+    return $ref;
+}
+
+sub quality_score {
+    my $self = shift;
+
+    my $quality;
+    try {
+        $quality = $self->quality_score;
+    };
+
+    return $quality;
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

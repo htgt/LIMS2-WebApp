@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::CreateDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.531';
+    $LIMS2::WebApp::Controller::User::CreateDesign::VERSION = '0.533';
 }
 ## use critic
 
@@ -561,7 +561,7 @@ sub create_miseq_design : Path( '/user/create_miseq_design' ){
                     $crispr_ids = {
                         lims    => $lims2_id,
                         wge     => $wge_id,
-                        status  => 'Success',
+                        status  => $results->{design}->{user_response} || 'Success',
                         gene    => join (', ', @hgnc),
                         design  => $results->{design}->id,
                     };
