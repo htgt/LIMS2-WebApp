@@ -278,9 +278,9 @@ function lims2_devel {
 }
 
 function lims2_pg9.3 {
-    check_and_set PSQL_EXE /opt/sci/global/software/postgres/9.3.4/bin/psql
-    check_and_set PG_DUMP_EXE /opt/sci/global/software/postgres/9.3.4/bin/pg_dump
-    check_and_set PG_RESTORE_EXE /opt/sci/global/software/postgres/9.3.4/bin/pg_restore
+    check_and_set PSQL_EXE /usr/bin/psql
+    check_and_set PG_DUMP_EXE /usr/bin/pg_dump
+    check_and_set PG_RESTORE_EXE /usr/bin/pg_restore
     use pg9.3
 }
 
