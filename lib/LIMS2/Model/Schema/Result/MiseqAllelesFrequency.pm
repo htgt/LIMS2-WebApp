@@ -199,7 +199,7 @@ sub as_hash {
     );
 
     $h{reference_sequence} = $self->reference;
-    $h{quality_score} = $self->reference;
+    $h{quality_score} = $self->quality;
 
     return \%h;
 }
