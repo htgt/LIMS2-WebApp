@@ -1,5 +1,5 @@
 job:
-  image: ja16/lims2:lims2_xenial_tests_image
+  image: ja16/lims2:xenial_unittests
   before_script:
   - echo 'before'
   script:
