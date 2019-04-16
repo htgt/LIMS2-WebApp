@@ -1,9 +1,11 @@
 INSERT INTO schema_versions (version) VALUES (152);
-INSERT INTO miseq_classification (id) VALUES ('K/O Hom');
-INSERT INTO miseq_classification (id) VALUES ('K/O Hom Compound');
-INSERT INTO miseq_classification (id) VALUES ('HDR Hom');
-INSERT INTO miseq_classification (id) VALUES ('HDR K/O');
-INSERT INTO miseq_classification (id) VALUES ('WT');
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hom', 5);
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hom Compound', 6);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR Hom', 8);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR K/O', 10);
+INSERT INTO miseq_classification (id, ordering) VALUES ('WT', 4);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR Hemizygous', 11);
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hemizygous', 12);
 UPDATE miseq_well_experiment SET classification = 'K/O Hom' WHERE classification = 'K/O Hom - 1 Allele';
 UPDATE miseq_well_experiment SET classification = 'K/O Hom Compound' WHERE classification = 'K/O Hom - 2 Allele';
 UPDATE miseq_well_experiment SET classification = 'HDR Hom' WHERE classification = 'HDR Hom - 2 Allele';
@@ -22,12 +24,7 @@ DELETE FROM miseq_classification WHERE id = 'Wild Type';
 UPDATE miseq_classification SET ordering = 1 WHERE id = 'Not Called';
 UPDATE miseq_classification SET ordering = 2 WHERE id = 'Failed';
 UPDATE miseq_classification SET ordering = 3 WHERE id = 'Mixed';
-UPDATE miseq_classification SET ordering = 4 WHERE id = 'WT';
-UPDATE miseq_classification SET ordering = 5 WHERE id = 'K/O Hom';
-UPDATE miseq_classification SET ordering = 6 WHERE id = 'K/O Hom Compound';
 UPDATE miseq_classification SET ordering = 7 WHERE id = 'K/O Het';
-UPDATE miseq_classification SET ordering = 8 WHERE id = 'HDR Hom';
 UPDATE miseq_classification SET ordering = 9 WHERE id = 'HDR Het';
-UPDATE miseq_classification SET ordering = 10 WHERE id = 'HDR K/O';
 
 

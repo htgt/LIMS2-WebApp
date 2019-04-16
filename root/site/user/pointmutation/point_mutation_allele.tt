@@ -293,6 +293,8 @@ input:checked + .slider:before {
                     <dt>HDR Hom</dt> <dd>Desired change (e.g. SNP) made on both alleles</dd>
                     <dt>HDR Het</dt> <dd>Desired change (e.g. SNP) made on one allele, no damage on second allele</dd>
                     <dt>HDR K/O</dt> <dd>Desired change (e.g. SNP) on one allele, frame-shifting in/del on the other</dd>
+                    <dt>HDR Hemizygous</dt> <dd>Desired change (e.g. SNP) on the only allele present (gene resides on X chromosome)</dd>
+                    <dt>K/O Hemizygous</dt> <dd>Frameshift damage on the only allele present (gene resides on X chromosome)</dd>
                 </dl>
             </div>
         </div>
