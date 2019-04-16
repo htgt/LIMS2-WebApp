@@ -15,7 +15,7 @@ job:
   - export LIMS2_TEMP=/opt/t87/local/tmp
   - export LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml
   - dzil build --in .build/lims2
-  - "prove -lv t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t"
+  - "prove -lv .build/lims2/t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t"
   after_script:
   - echo 'end'
 
