@@ -1,4 +1,4 @@
-INSERT INTO schema_versions(id) VALUES(150);
+INSERT INTO schema_versions(version) VALUES(150);
 INSERT INTO miseq_classification (id) VALUES ('K/O Hom - 1 Allele');
 INSERT INTO miseq_classification (id) VALUES ('K/O Hom - 2 Allele');
 INSERT INTO miseq_classification (id) VALUES ('K/O Het');
