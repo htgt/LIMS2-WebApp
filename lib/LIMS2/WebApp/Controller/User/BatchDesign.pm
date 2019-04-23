@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BatchDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.532';
+    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.534';
 }
 ## use critic
 
@@ -368,7 +368,9 @@ sub _build_design {
                 }
             );
             $response->{design} = $design->{_column_data};
-
+            if ($design->{user_response}) {
+                $response->{design}->{user_response} = $design->{user_response};
+            }
         }
     }
     catch {

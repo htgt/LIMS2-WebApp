@@ -238,7 +238,23 @@ $(document).ready(function() {
             console.log(err);
         }
     });
+
+    $('.tableStatus').map(function() {
+        hyperlinkExistingDesigns(this);
+    });
 });
+
+function hyperlinkExistingDesigns(status) {
+    var statusText = $(status).text();
+    var reg = /[A-z-_]+\ design with those oligos already exists:\ (\d+)/;
+    var statusHTML = statusText.replace(reg, function(response, design) {
+        var lastIndex = response.lastIndexOf(" ");
+        response = response.substring(0, lastIndex);
+        return response + " <a href='" + "[% c.uri_for( '/user/view_design/' ) %]" + encodeURI('?design_id=' + design) + "' target='_blank'>" + design + "</a>";
+    });
+    $(status).html(statusHTML);
+    return;
+}
 
 $('#clearTextArea').on('keyup', function() {
     if (this.value.length) {

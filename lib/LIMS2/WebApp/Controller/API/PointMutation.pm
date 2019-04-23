@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.532';
+    $LIMS2::WebApp::Controller::API::PointMutation::VERSION = '0.534';
 }
 ## use critic
 
@@ -168,7 +168,8 @@ sub miseq_exp_parent_GET {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
             },
             {
-                order_by  => { -desc => 'id' }
+                join => { 'miseq' => 'plate' },
+                order_by  => [ { -desc => 'plate.name' }, { -asc => 'name' } ],
             }
         );
     }

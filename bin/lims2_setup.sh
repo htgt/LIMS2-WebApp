@@ -263,8 +263,8 @@ function lims2_devel {
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
     export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-90/modules
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-variation-90/modules
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-95/modules
+    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-variation-95/modules
     export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates

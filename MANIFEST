@@ -37,7 +37,6 @@ lib/LIMS2/Model/Constants.pm
 lib/LIMS2/Model/DBConnect.pm
 lib/LIMS2/Model/FormValidator.pm
 lib/LIMS2/Model/FormValidator/Constraint.pm
-lib/LIMS2/Model/FormValidator/Constraint.pm.bak
 lib/LIMS2/Model/Plugin/Assembly.pm
 lib/LIMS2/Model/Plugin/AssemblyWellQc.pm
 lib/LIMS2/Model/Plugin/BAC.pm
@@ -271,7 +270,6 @@ lib/LIMS2/Model/Util/DesignTargets.pm
 lib/LIMS2/Model/Util/DrawPlateGraph.pm
 lib/LIMS2/Model/Util/EPPipelineIIPlate.pm
 lib/LIMS2/Model/Util/EPPipelineIIWellExpansion.pm
-lib/LIMS2/Model/Util/EPPipelineIIWellExpansion.pm.bak
 lib/LIMS2/Model/Util/EngSeqParams.pm
 lib/LIMS2/Model/Util/GFFGenerator.pm
 lib/LIMS2/Model/Util/GeneSearch.pm
@@ -396,7 +394,6 @@ lib/LIMS2/WebApp/Controller/User/CrisprQC.pm
 lib/LIMS2/WebApp/Controller/User/Crisprs.pm
 lib/LIMS2/WebApp/Controller/User/DesignTargets.pm
 lib/LIMS2/WebApp/Controller/User/EPPipelineIIWellExpansion.pm
-lib/LIMS2/WebApp/Controller/User/EPPipelineIIWellExpansion.pm.bak
 lib/LIMS2/WebApp/Controller/User/EditWells.pm
 lib/LIMS2/WebApp/Controller/User/EngSeqs.pm
 lib/LIMS2/WebApp/Controller/User/Experiments.pm
@@ -3151,7 +3148,6 @@ t/LIMS2/Model/Util/10_LIMS2_Model_Util_DesignTargets.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_DrawPlateGraph.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIPlate.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIWellExpansion.t
-t/LIMS2/Model/Util/10_LIMS2_Model_Util_EPPipelineIIWellExpansion.t.bak
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_EngSeqParams.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GeneSearch.t
 t/LIMS2/Model/Util/10_LIMS2_Model_Util_GenomeBrowser.t
@@ -3390,7 +3386,6 @@ t/lib/LIMS2/t/Model/Util/DesignTargets.pm
 t/lib/LIMS2/t/Model/Util/DrawPlateGraph.pm
 t/lib/LIMS2/t/Model/Util/EPPipelineIIPlate.pm
 t/lib/LIMS2/t/Model/Util/EPPipelineIIWellExpansion.pm
-t/lib/LIMS2/t/Model/Util/EPPipelineIIWellExpansion.pm.bak
 t/lib/LIMS2/t/Model/Util/EngSeqParams.pm
 t/lib/LIMS2/t/Model/Util/GeneSearch.pm
 t/lib/LIMS2/t/Model/Util/GenomeBrowser.pm

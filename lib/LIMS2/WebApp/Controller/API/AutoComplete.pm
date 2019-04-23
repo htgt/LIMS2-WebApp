@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::AutoComplete;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.532';
+    $LIMS2::WebApp::Controller::API::AutoComplete::VERSION = '0.534';
 }
 ## use critic
 
@@ -278,7 +278,7 @@ sub miseq_gene_symbols_GET {
         @results = uniq sort map { (split(/_/, $_->gene))[0] } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
             {
                 'LOWER(gene)' => { 'LIKE' => '%' . $term . '%' },
-            }
+            },
         );
     }
     catch {

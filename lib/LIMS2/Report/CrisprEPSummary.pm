@@ -1,7 +1,7 @@
 package LIMS2::Report::CrisprEPSummary;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CrisprEPSummary::VERSION = '0.532';
+    $LIMS2::Report::CrisprEPSummary::VERSION = '0.534';
 }
 ## use critic
 
