@@ -40,7 +40,7 @@ sub _build_wells_data {
             project_id      => $well_info->{project_id},
             created_by      => $well_info->{created_by},
             well_id         => $well_info->{well_id},
-            well_name       => $well->name,
+            default_cols_picked      => 0
         };
         push @wells_data, $temp;
     }
@@ -94,7 +94,7 @@ override iterator => sub {
             $well_data->{project_id},
             $well_data->{created_by},
             $well_data->{well_id},
-            $well_data->{well_name},
+            $well_data->{default_cols_picked},
         );
 
         $well_data = shift @wells_data;

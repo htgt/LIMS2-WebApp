@@ -90,7 +90,6 @@
                 "row id" = 1
                 "id" = 1
                 "well id" = 1
-                "freeze plate" = 1
                 } %]
 
 
@@ -153,6 +152,17 @@
                 ]
             });
 
+            var coloniesPicked = Ext.create('Ext.data.Store', {
+                fields: ['num'],
+                data: [
+                {"num":"0"},
+                {"num":"96"},
+                {"num":"192"},
+                {"num":"288"},
+                {"num":"384"}
+                ]
+            });
+
             var override_t7_score = Ext.create( 'Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: t7_percent,
@@ -181,6 +191,19 @@
                 }
             });
 
+
+            var freezePlateMenu = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: coloniesPicked,
+                displayField: 'num',
+                fieldLabel: 'Colonies picked:',
+                forceSelection: false,
+                maskRe: /[0-9]/,
+                //stripCharsRe: /[\D]/
+            });
+
+
+
             var columns = [
                 [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
@@ -202,6 +225,17 @@
                         editor: override_t7_status,
                         locked: true,
                         width: 55
+                    }
+                    [%- ELSIF col.match('Freeze Plate') %]
+                    {
+                        header: "Freeze<br>Plate",
+                        dataIndex: 'Freeze Plate',
+                        editor: freezePlateMenu, 
+                        locked: true,
+                        width: 175,
+                        renderer: function(val) {
+                            return "Colonies picked: " + val;
+                        }
                     }
                     [%- ELSE %]
                 {
@@ -563,6 +597,7 @@
                     data += "\n";
                 });
 
+
                 // window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
 
                 var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
@@ -574,8 +609,34 @@
                 document.body.removeChild(downloadLink);
 
             };
+            Ext.create( 'Ext.Button', {
+                renderTo: document.body,
+                text: 'Create',
+                listeners: {
+                    click: function () {
+                        var record = grid.getSelectionModel().getSelection()[0];
+                        var title = '[% title %]';
+                        var plateNameRegex = /[^\s]+$/;
+                        var plateNameMatch = plateNameRegex.exec(title);
+                        store.each(function(record) {
+                            var entry = record.data;
+                            var coloniesPicked = record.data['Freeze Plate'];
+                            //console.log(coloniesPicked);
+                            if (isNaN(coloniesPicked)) {
+                                console.log('error message');
+                            };
+                            if (coloniesPicked > 0) {
+                                parseInt(coloniesPicked);
+                                console.log(coloniesPicked);
+                                //$.post( "[% c.uri_for('/user/epII/expansion') %]", {well_name:"A"+record.data['Cell Number'], plate_name:plateNameMatch[0], child_well_number:coloniesPicked}, function(data){record.commit()})
+                            };
+                        });
+                    }
+                } 
+            });
 
     });
+            
 
 </script>
 
