@@ -1,7 +1,7 @@
 package LIMS2::Report::FPPlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::FPPlate::VERSION = '0.534';
+    $LIMS2::Report::FPPlate::VERSION = '0.535';
 }
 ## use critic
 

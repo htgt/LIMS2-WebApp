@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.534';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.535';
 }
 ## use critic
 
@@ -167,7 +167,7 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     };
 
     my @status = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqStatus')->all;
-    my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->all;
+    my @classifications = map { $_->id } $c->model('Golgi')->schema->resultset('MiseqClassification')->search(undef, { order_by => { -asc => 'ordering' } });
 
     if ($exp_sel) {
         $c->stash->{selection} = $exp_sel;

@@ -1,7 +1,7 @@
 package LIMS2::Report::CreKiESDistributionGenes;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Report::CreKiESDistributionGenes::VERSION = '0.534';
+    $LIMS2::Report::CreKiESDistributionGenes::VERSION = '0.535';
 }
 ## use critic
 
