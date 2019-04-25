@@ -199,7 +199,6 @@
                 fieldLabel: 'Colonies picked:',
                 forceSelection: false,
                 maskRe: /[0-9]/,
-                //stripCharsRe: /[\D]/
             });
 
 
@@ -491,7 +490,13 @@
                 store: store,
                 columnLines: true,
                 columns: columns,
-                title: plateName,
+                header: {
+                    title: plateName,
+                    items: [{
+                        xtype: 'button',
+                        text: 'Create',
+                    }]
+                },
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
@@ -528,6 +533,7 @@
                     },
 
                     ],
+                
             });
 
             var tooltips = [{
@@ -621,7 +627,6 @@
                         store.each(function(record) {
                             var entry = record.data;
                             var coloniesPicked = record.data['Freeze Plate'];
-                            //console.log(coloniesPicked);
                             if (isNaN(coloniesPicked)) {
                                 console.log('error message');
                             };
