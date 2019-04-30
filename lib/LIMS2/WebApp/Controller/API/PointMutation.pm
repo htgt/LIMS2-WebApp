@@ -267,7 +267,7 @@ sub get_frequency_data {
     $limit = $freq_count if ($limit > $freq_count);
     if ($limit > 0){
         $freq_hash = $frequency_rs->next->as_hash;
-        
+
         if ($freq_hash->{reference_sequence}) {
             if ($freq_hash->{quality_score}) {
                 unshift @lines ,'Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
@@ -282,6 +282,7 @@ sub get_frequency_data {
                 unshift @lines ,'Aligned_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
                 @headers = ("aligned_sequence","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
         }
+
         for my $i (1..$limit) {
             my $percentage = $freq_hash->{n_reads} / $miseq_well_experiment_hash->{total_reads} * 100.0;
             my $line = join(',', map { $freq_hash->{$_} } @headers) . ',' . $percentage;

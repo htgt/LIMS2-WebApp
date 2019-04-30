@@ -499,6 +499,10 @@ sub existing_miseq_alleles_frequency {
     return shift->in_resultset( 'MiseqAllelesFrequency', 'id' );
 }
 
+sub existing_indel_histogram {
+    return shift->in_resultset( 'IndelHistogram', 'id' );
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

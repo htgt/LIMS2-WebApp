@@ -38,6 +38,37 @@ sub create_crispr_submission{
 
 }
 
+sub pspec_update_crispr_submission{
+    return {
+        id                              => { validate => 'existing_miseq_well_exp'          },
+        crispr                          => { validate => 'non_empty_string', optional => 1  },
+        date_stamp                      => { validate => 'non_empty_string', optional => 1  },
+    };
+}
+
+sub update_crispr_submission{
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_update_crispr_submission);
+
+    my %search;
+    $search{'me.id'} = $validated_params->{id};
+
+    my $sub_rs = $self->retrieve( CrispressoSubmission => \%search );
+
+    my $sub_hash = $sub_rs->as_hash;
+    my $crispr_sub;
+    $crispr_sub->{id} = check_undef($validated_params->{id}, $sub_hash->{id});
+    $crispr_sub->{crispr} = check_undef( $validated_params->{crispr}, $sub_hash->{crispr});
+    $crispr_sub->{date_stamp} = check_undef($validated_params->{date_stamp}, $sub_hash->{date_stamp});
+
+    $sub_rs->update($crispr_sub);
+
+    $self->log->info('Updated Crispresso Submission: ' . $sub_rs->id);
+
+    return $sub_rs;
+}
+
 sub pspec_create_indel_distribution_graph{
     return {
         id                              => { validate => 'existing_miseq_well_exp'          },
@@ -119,7 +150,7 @@ sub update_miseq_alleles_frequency {
     $search{'me.id'} = $validated_params->{id};
 
     my $freq = $self->retrieve( MiseqAllelesFrequency => \%search );
-    
+
     my $hash_freq = $freq->as_hash;
     my $allele;
     $allele->{id} = check_undef($validated_params->{id}, $hash_freq->{id});
@@ -152,19 +183,52 @@ sub pspec_create_indel_histogram {
 
 sub create_indel_histogram {
     my ($self, $params) = @_;
+
     my $validated_params = $self->check_params($params, pspec_create_indel_histogram);
 
-    my $entry = $self->schema->resultset('IndelHistogram')->create(
-            { slice_def(
-                    $validated_params,
-                    qw( miseq_well_experiment_id indel_size frequency )
-                )
-            }
-        );
-    $self->log->info('Created indel entry with id= ' . $entry->id);
-    return 1;
+    my $entry = $self->schema->resultset('IndelHistogram')->create({
+        slice_def(
+            $validated_params,
+            qw( miseq_well_experiment_id indel_size frequency )
+        )
+    });
+
+    $self->log->info('Created indel entry: ' . $entry->id);
+
+    return $entry;
 }
 
+sub pspec_update_indel_histogram {
+    return  {
+        id                          => { validate => 'existing_indel_histogram'                 },
+        miseq_well_experiment_id    => { validate => 'existing_miseq_well_exp', optional => 1   },
+        indel_size                  => { validate => 'integer', optional => 1                   },
+        frequency                   => { validate => 'integer'                                  }
+    };
+}
+
+sub update_indel_histogram {
+    my ($self, $params) = @_;
+
+    my $validated_params = $self->check_params($params, pspec_update_indel_histogram);
+
+    my %search;
+    $search{'me.id'} = $validated_params->{id};
+
+    my $histo = $self->retrieve( IndelHistogram => \%search );
+    my $histo_hash = $histo->as_hash;
+
+    my $histo_record;
+    $histo_record->{id} = check_undef($validated_params->{id}, $histo_hash->{id});
+    $histo_record->{miseq_well_experiment_id} = check_undef( $validated_params->{miseq_well_experiment_id}, $histo_hash->{well_exp_id});
+    $histo_record->{indel_size} = check_undef($validated_params->{indel_size}, $histo_hash->{indel_size});
+    $histo_record->{frequency} = check_undef($validated_params->{frequency}, $histo_hash->{frequency});
+
+    $histo->update($histo_record);
+    $self->log->info('Updating indel entry: ' . $histo->id);
+
+    return $histo;
+}
 
 sub pspec_create_miseq_plate {
     return {
