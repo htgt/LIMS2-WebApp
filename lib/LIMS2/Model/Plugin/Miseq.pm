@@ -15,9 +15,8 @@ requires qw( schema check_params throw retrieve log trace );
 
 sub pspec_create_crispr_submission{
     return {
-        id                              => { validate => 'existing_miseq_well_exp'          },
-        crispr                          => { validate => 'non_empty_string', optional => 1  },
-        date_stamp                      => { validate => 'non_empty_string', optional => 1  },
+        miseq_well_exp_id   => { validate => 'existing_miseq_well_exp'          },
+        crispr              => { validate => 'non_empty_string', optional => 1  },
     };
 }
 
@@ -29,7 +28,7 @@ sub create_crispr_submission{
     $self->schema->resultset('CrispressoSubmission')->create(
            { slice_def(
                    $validated_params,
-                   qw(id crispr date_stamp)
+                   qw(miseq_well_exp_id crispr)
                )
            }
        );
@@ -40,9 +39,8 @@ sub create_crispr_submission{
 
 sub pspec_update_crispr_submission{
     return {
-        id                              => { validate => 'existing_miseq_well_exp'          },
-        crispr                          => { validate => 'non_empty_string', optional => 1  },
-        date_stamp                      => { validate => 'non_empty_string', optional => 1  },
+        miseq_well_exp_id   => { validate => 'existing_miseq_well_exp'          },
+        crispr              => { validate => 'non_empty_string', optional => 1  },
     };
 }
 
@@ -52,15 +50,15 @@ sub update_crispr_submission{
     my $validated_params = $self->check_params($params, pspec_update_crispr_submission);
 
     my %search;
-    $search{'me.id'} = $validated_params->{id};
+    $search{'me.miseq_well_exp_id'} = $validated_params->{miseq_well_exp_id};
 
     my $sub_rs = $self->retrieve( CrispressoSubmission => \%search );
 
     my $sub_hash = $sub_rs->as_hash;
     my $crispr_sub;
-    $crispr_sub->{id} = check_undef($validated_params->{id}, $sub_hash->{id});
+    $crispr_sub->{miseq_well_exp_id} = check_undef($validated_params->{miseq_well_exp_id}, $sub_hash->{miseq_well_exp_id});
     $crispr_sub->{crispr} = check_undef( $validated_params->{crispr}, $sub_hash->{crispr});
-    $crispr_sub->{date_stamp} = check_undef($validated_params->{date_stamp}, $sub_hash->{date_stamp});
+    $crispr_sub->{date_stamp} = gmtime();
 
     $sub_rs->update($crispr_sub);
 
