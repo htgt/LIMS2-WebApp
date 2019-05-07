@@ -38,7 +38,7 @@ __PACKAGE__->table("crispresso_submissions");
 
 =head1 ACCESSORS
 
-=head2 id
+=head2 miseq_well_exp_id
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -51,35 +51,42 @@ __PACKAGE__->table("crispresso_submissions");
 
 =head2 date_stamp
 
-  data_type: 'text'
-  is_nullable: 1
+  data_type: 'timestamp'
+  default_value: current_timestamp
+  is_nullable: 0
+  original: {default_value => \"now()"}
 
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
+  "miseq_well_exp_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "crispr",
   { data_type => "text", is_nullable => 1 },
   "date_stamp",
-  { data_type => "text", is_nullable => 1 },
+  {
+    data_type     => "timestamp",
+    default_value => \"current_timestamp",
+    is_nullable   => 0,
+    original      => { default_value => \"now()" },
+  },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</id>
+=item * L</miseq_well_exp_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("miseq_well_exp_id");
 
 =head1 RELATIONS
 
-=head2 id
+=head2 miseq_well_exp
 
 Type: belongs_to
 
@@ -88,16 +95,27 @@ Related object: L<LIMS2::Model::Schema::Result::MiseqWellExperiment>
 =cut
 
 __PACKAGE__->belongs_to(
-  "id",
+  "miseq_well_exp",
   "LIMS2::Model::Schema::Result::MiseqWellExperiment",
-  { id => "id" },
+  { id => "miseq_well_exp_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-21 11:35:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EogBhGJQ2oPntfYa4LAmcg
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-30 10:16:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gzmDvAuMHoAztad8pUCC2w
 
+sub as_hash {
+    my $self = shift;
+
+    my %h = (
+        miseq_well_exp_id   => $self->miseq_well_exp_id,
+        crispr              => $self->crispr,
+        date_stamp          => $self->date_stamp->iso8601,
+    );
+
+    return \%h;
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

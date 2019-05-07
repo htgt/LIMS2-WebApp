@@ -45,6 +45,11 @@
 <script type="text/javascript" charset="utf-8">
 
 function highlightBases(seq, crisprData, ref, quality) {
+    console.log('~~~~~~~~~~~');
+    console.log(seq);
+    console.log(ref);
+
+
     var formattedSequence = "";
     var start = -1;
     var accuracy = -1;

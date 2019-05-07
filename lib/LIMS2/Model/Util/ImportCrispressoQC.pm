@@ -587,7 +587,7 @@ sub get_data{
     return $hash;
 }
 
-sub get_crispr{
+sub get_crispr {
     my $file = shift;
 
     open( my $jobout_fh, '<:encoding(UTF-8)', $file ) or die "Failed to open file at $file";
@@ -595,7 +595,6 @@ sub get_crispr{
     close $jobout_fh;
 
     my $crispr;
-    my $date;
 
     while (@lines) {
     my $line = shift @lines;
@@ -604,17 +603,10 @@ sub get_crispr{
                 $crispr = $1;
             }
         }
-        if (!$date) {
-            if ($line =~ m/Started\ at\ (.+$)/xgms) {
-                $date = $1;
-            }
-        }
-        last if $crispr and $date;
+        last if $crispr;
     }
-    my $hash = {
-        date_stamp => $date,
-        crispr => $crispr
-    };
+    my $hash->{crispr} = $crispr;
+
     return $hash;
 }
 
