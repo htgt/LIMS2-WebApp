@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.535     2019-04-24 08:45:03 Europe/London
+
+    fixed broken deployment
+
 0.534     2019-04-23 15:49:51 Europe/London
 
     Miseq classification changes and help button
