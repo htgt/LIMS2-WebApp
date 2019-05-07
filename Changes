@@ -1,3 +1,13 @@
+0.536     2019-05-07 10:32:23 Europe/London
+    Fixed Miseq Alleles db ref data
+0.535     2019-04-24 08:45:03 Europe/London
+
+    fixed broken deployment
+
+0.534     2019-04-23 15:49:51 Europe/London
+
+    Miseq classification changes and help button
+
 0.533     2019-04-15 12:32:16 Europe/London
     Duplicate designs block
 0.532     2019-04-03 14:31:49 Europe/London

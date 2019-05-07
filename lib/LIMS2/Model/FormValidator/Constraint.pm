@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.533';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.536';
 }
 ## use critic
 
@@ -491,6 +491,22 @@ sub ep_plate {
 
 sub ep_well {
     return shift->regexp_matches(qr/^A0?\d+$/);
+}
+
+sub sequencing_result {
+    return shift->regexp_matches(qr/^[ACTG-]+$/);
+}
+
+sub phred_string {
+    return shift->regexp_matches(qr/^[\x21-\x49]+$/);
+}
+
+sub existing_miseq_alleles_frequency {
+    return shift->in_resultset( 'MiseqAllelesFrequency', 'id' );
+}
+
+sub existing_indel_histogram {
+    return shift->in_resultset( 'IndelHistogram', 'id' );
 }
 
 __PACKAGE__->meta->make_immutable;

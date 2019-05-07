@@ -100,7 +100,6 @@ lib/LIMS2/Model/Schema/Result/CrisprStorage.pm
 lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/CrispressoSubmission.pm
-lib/LIMS2/Model/Schema/Result/CrispressoSumnission.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAppendAlias.pm

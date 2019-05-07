@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::CreatePlate;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::CreatePlate::VERSION = '0.533';
+    $LIMS2::Model::Util::CreatePlate::VERSION = '0.536';
 }
 ## use critic
 

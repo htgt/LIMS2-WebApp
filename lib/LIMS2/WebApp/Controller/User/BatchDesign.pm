@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BatchDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.533';
+    $LIMS2::WebApp::Controller::User::BatchDesign::VERSION = '0.536';
 }
 ## use critic
 

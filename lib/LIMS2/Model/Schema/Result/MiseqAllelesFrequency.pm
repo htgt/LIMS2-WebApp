@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqAllelesFrequency;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqAllelesFrequency::VERSION = '0.533';
+    $LIMS2::Model::Schema::Result::MiseqAllelesFrequency::VERSION = '0.536';
 }
 ## use critic
 
@@ -104,6 +104,16 @@ __PACKAGE__->table("miseq_alleles_frequency");
   default_value: 0
   is_nullable: 0
 
+=head2 reference_sequence
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 quality_score
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -132,6 +142,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "n_reads",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "reference_sequence",
+  { data_type => "text", is_nullable => 1 },
+  "quality_score",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -169,8 +183,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-28 09:21:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oJN6zRym1XOvWWiq/9uBA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-08 10:48:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TdseI3cUjSTQQL3WJedYw
 
 use Try::Tiny;
 
@@ -190,10 +204,13 @@ sub as_hash {
         n_reads                     => $self->n_reads,
     );
 
+    $h{reference_sequence} = $self->reference;
+    $h{quality_score} = $self->quality;
+
     return \%h;
 }
 
-sub reference_sequence {
+sub reference {
     my $self = shift;
 
     my $ref;
@@ -204,7 +221,7 @@ sub reference_sequence {
     return $ref;
 }
 
-sub quality_score {
+sub quality {
     my $self = shift;
 
     my $quality;
