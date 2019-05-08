@@ -1,3 +1,13 @@
+<style type="text/css">
+.plate_links {
+    height: 4em;
+    overflow-y: auto;
+    overflow-x: hidden;
+    list-style-type: none; 
+    padding-left: 0;
+}
+</style>
+
 <script type="text/javascript" charset="utf-8">
 
     var grid;
@@ -84,6 +94,7 @@
                 "design id" = 1
                 "gene id" = 1
                 "gene symbol" = 1
+                "existing fps" = 1
                 } %]
             [% hidden = {
                 "gene id" = 1
@@ -196,7 +207,6 @@
                 queryMode: 'local',
                 store: coloniesPicked,
                 displayField: 'num',
-                fieldLabel: 'Colonies picked:',
                 forceSelection: false,
                 maskRe: /[0-9]/,
             });
@@ -227,11 +237,60 @@
                     }
                     [%- ELSIF col.match('Freeze Plate') %]
                     {
-                        header: "Freeze<br>Plate",
+                        header: "Freeze Plate",
                         dataIndex: 'Freeze Plate',
+                        items: [{
+                            xtype: 'button',
+                            text: 'Create',
+                            width: 50,
+                            listeners: {
+                                click: function () {
+                                    var title = '[% title %]';
+                                    var plateNameRegex = /[^\s]+$/;
+                                    var plateNameMatch = plateNameRegex.exec(title);
+                                    var invalidInput = false;
+                                    var errorCells = [];
+                                    var requests = [];
+                                    //var loopCount = 0;
+                                    //var postCount = 0;
+                                    store.each(function(record) {
+                                        var coloniesPicked = record.get('Freeze Plate');
+                                        if (isNaN(coloniesPicked)) {
+                                            invalidInput = true; 
+                                            errorCells.push(record.get('Cell Number'));
+                                        }
+                                    });
+                                    if (invalidInput) {
+                                        console.log('invalid input in ' + errorCells);
+                                        return;
+                                    }
+                                    store.each(function(record) {
+                                        var coloniesPicked = record.get('Freeze Plate');
+                                        var cellNumber = record.get('Cell Number');
+                                        if (coloniesPicked > 0) {
+                                            parseInt(coloniesPicked);
+                                            requests.push($.post( "[% c.uri_for('/user/epII/expansion') %]", 
+                                            {
+                                                well_name:"A" + cellNumber, 
+                                                plate_name:plateNameMatch[0],
+                                                child_well_number:coloniesPicked
+                                            }, 
+                                            function(platesCreated) {
+                                                for (plate in platesCreated) {
+                                                    $("#" + cellNumber).prepend("<li><b>" + platesCreated[plate] + "</b></li>");
+                                                }
+                                            }));
+                                        }
+                                    });
+                                    $.when.apply($, requests).done(function(){
+                                        alert('all done!');
+                                    });
+                                }
+                            } 
+                        }],
                         editor: freezePlateMenu, 
                         locked: true,
-                        width: 175,
+                        width: 100,
                         renderer: function(val) {
                             return "Colonies picked: " + val;
                         }
@@ -255,6 +314,23 @@
                     renderer: lims2_action_combo,
                     [%- ELSE %]
                     sortable: true,
+                    [%- END %]
+                    [%- IF col.match('Existing FPs') %]
+                        header: "Existing Freeze<br>Plates",
+                        width: 125,
+                        renderer: function(val, metData, record) {
+                            var cellNumber = record.get('Cell Number');
+                            var plateData = val.split(",");
+                            var plateLinks = [];
+                            for (var item in plateData) {
+                                if (item % 2 == 0) {
+                                    var plateName = plateData[item];
+                                } else {
+                                    plateLinks.push("<li>" + "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_plate') %]" + "?id=" + plateData[item] + "\">" + plateName + "</a></li>"); 
+                                }
+                            }
+                            return "<ul class= 'plate_links' id=" + cellNumber + ">" + plateLinks.join("") + "</ul>";
+                        },
                     [%- END %]
                     [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                         renderer: function(val) {
@@ -488,15 +564,9 @@
                 [% END %]
                 height: 750,
                 store: store,
+                title: plateName,
                 columnLines: true,
                 columns: columns,
-                header: {
-                    title: plateName,
-                    items: [{
-                        xtype: 'button',
-                        text: 'Create',
-                    }]
-                },
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
@@ -615,30 +685,6 @@
                 document.body.removeChild(downloadLink);
 
             };
-            Ext.create( 'Ext.Button', {
-                renderTo: document.body,
-                text: 'Create',
-                listeners: {
-                    click: function () {
-                        var record = grid.getSelectionModel().getSelection()[0];
-                        var title = '[% title %]';
-                        var plateNameRegex = /[^\s]+$/;
-                        var plateNameMatch = plateNameRegex.exec(title);
-                        store.each(function(record) {
-                            var entry = record.data;
-                            var coloniesPicked = record.data['Freeze Plate'];
-                            if (isNaN(coloniesPicked)) {
-                                console.log('error message');
-                            };
-                            if (coloniesPicked > 0) {
-                                parseInt(coloniesPicked);
-                                console.log(coloniesPicked);
-                                //$.post( "[% c.uri_for('/user/epII/expansion') %]", {well_name:"A"+record.data['Cell Number'], plate_name:plateNameMatch[0], child_well_number:coloniesPicked}, function(data){record.commit()})
-                            };
-                        });
-                    }
-                } 
-            });
 
     });
             
