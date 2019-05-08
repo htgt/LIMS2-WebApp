@@ -506,10 +506,14 @@ sub oligos_sorted{
 
 sub _sort_oligos {
     my $self = shift;
+
+    my @oligo_hashes = grep { $_->{type} ne 'HDR' } 
+        map { $_->as_hash } $self->oligos;
+
     my @oligos = map { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
             map { [ $_, $_->{locus} ? $_->{locus}{chr_start} : -1 ] }
-                map { $_->as_hash } $self->oligos;
+                @oligo_hashes;
 
     return \@oligos;
 }
@@ -661,7 +665,7 @@ sub amplicon {
     my $self = shift;
 
     my @oligos = @{$self->oligos_sorted};
-
+$DB::single=1;
     #[Left external, Left internal, Right Internal, Right External] 
     my $amplicon = _fetch_region_coords($self, $oligos[1], $oligos[2]);
 
@@ -685,16 +689,27 @@ sub _fetch_region_coords {
     return $amplicon->seq;
 }
 
-sub hdr_template {
+sub hdr_details {
     my $self = shift;
-
+$DB::single=1;
     my $template;
     try {
         $template = $self->hdr_templates->first->template;
     };
 
-    return $template;
+    my $hdr_oligo = $self->search_related('oligos', { design_oligo_type_id => 'HDR'})->first;
+    if ($hdr_oligo) {
+        $hdr_oligo = $hdr_oligo->as_hash;
+    }
+
+    my $details = {
+        template    => $template,
+        oligo       => $hdr_oligo,
+    };
+
+    return $details;
 }
+
 
 __PACKAGE__->meta->make_immutable;
 1;

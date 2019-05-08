@@ -19,6 +19,7 @@
 
 </style>
 
+
 <h2>HDR Template</h2>
 <table class="table table-striped" style="width: 1125px;">
     <tr>
@@ -35,8 +36,8 @@
     <tr>
         <td>
             <div id="templateSeq" class="hdrSeq">
-                [% IF hdr_template %]
-                    [% hdr_template %]
+                [% IF hdr_details.template %]
+                    [% hdr_details.template %]
                 [% ELSE %]
                     [% amplicon %]
                 [% END %]
@@ -46,7 +47,7 @@
 </table>
 
 <button id="editTemplate" class="btn btn-primary">
-    Edit
+    Edit <i class="glyphicon glyphicon-pencil"></i>
 </button>
 <button id="saveTemplate" class="btn btn-primary">
     Save
@@ -56,6 +57,33 @@
 </button>
 
 [% INCLUDE 'user/browsedesigns/hdr_amplicon_widget.tt' %]
+
+[% IF hdr_details.oligo %]
+    <h2>HDR Oligo</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Sequence</th>
+                <th>Chromosome</th>
+                <th>Strand</th>
+                <th>Start</th>
+                <th>End</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    [% hdr_details.oligo.seq %]
+                </td>
+                <td>[% hdr_details.oligo.locus.chr_name   %]</td>
+                <td>[% hdr_details.oligo.locus.chr_strand %]</td>
+                <td>[% hdr_details.oligo.locus.chr_start  %]</td>
+                <td>[% hdr_details.oligo.locus.chr_end    %]</td>
+
+            </tr>
+        </tbody>
+    </table>
+[% END %]
 
 <script type="text/javascript" charset="utf-8">
 
