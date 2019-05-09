@@ -265,21 +265,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 hdr_templates
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::HdrTemplate>
-
-=cut
-
-__PACKAGE__->has_many(
-  "hdr_templates",
-  "LIMS2::Model::Schema::Result::HdrTemplate",
-  { "foreign.design_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 nonsense_design_crispr
 
 Type: belongs_to
@@ -396,8 +381,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-03 13:49:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gTgbTVIPyxlnr3tZBKgQjw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-05-09 08:40:34
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tLOyJIxB/X5Y9AXvX6UpiA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
