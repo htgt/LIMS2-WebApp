@@ -357,6 +357,26 @@ sub find_process_of_type{
     return;
 }
 
+# Similar to find_process_of_type but in the other direction
+sub find_descendant_of_type{
+    my ($self, $start_well, $type ) = @_;
+
+    TRACE( "find_descendant_of_type searching for type $type" );
+
+    my $it = $self->breadth_first_traversal( $start_well, 'out' );
+
+    while( my $well = $it->next ) {
+        TRACE( "find_process_of_type examining $well" );
+        for my $process ( $self->output_processes( $well ) ) {
+            if ( $process->type_id eq $type ) {
+                TRACE( "Found $type at $well (process ".$process->id.")" );
+                return $process;
+            }
+        }
+    }
+    return;
+}
+
 sub process_data_for {
     my ( $well ) = shift;
 

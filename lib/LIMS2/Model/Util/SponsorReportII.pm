@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose;
 use POSIX 'strftime';
+use List::Util qw/first/;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
@@ -472,6 +473,26 @@ sub get_ipsc_colonies_picked {
     per experiment and total per project
 =cut
 
+sub find_secondary_qc {
+    my ( $self, @mwes ) = @_;
+    my %data = ();
+    foreach my $mwe ( @mwes ) {
+        my @qc =
+            map { { $_->id => $_->classification->id } }
+            map { $_->miseq_well_experiments }
+            map { $_->output_wells }
+            map { $_->descendants->find_descendant_of_type($_, 'miseq_no_template') }
+            map { $_->output_wells }
+            map { $_->descendants->find_descendant_of_type($_, 'dist_qc') }
+            map { $_->input_wells }
+            $mwe->well->ancestors->find_process_of_type($mwe->well, 'miseq_no_template');
+        if ( scalar(@qc) ) {
+            $data{$mwe->well_id} = \@qc;
+        }
+    }
+    return \%data;
+}
+
 sub get_genotyping_data {
     my ($self, @exps) = @_;
 
@@ -496,6 +517,9 @@ sub get_genotyping_data {
 
                 $genotyping->{$original_exp_id}->{primary}->{total_number_of_clones} = scalar @miseq_exps_and_wells;
                 $genotyping->{total}->{total_number_of_clones} += scalar @miseq_exps_and_wells;
+                
+                my $secondary_qc = $self->find_secondary_qc(@miseq_exps_and_wells);
+                print Dumper($secondary_qc);
 
                 foreach my $miseq_well (@miseq_exps_and_wells) {
                     my $class = lc $miseq_well->classification->id;
@@ -504,7 +528,8 @@ sub get_genotyping_data {
                         when(/wild type/) {
                             $genotyping->{$original_exp_id}->{primary}->{wt}++;
                             $genotyping->{total}->{primary}->{wt}++;
-                            if ($status eq 'Scanned-Out') {
+                            #if ($status eq 'Scanned-Out') {
+                            if ( exists $secondary_qc->{$miseq_well->id} ) {
                                 $genotyping->{$original_exp_id}->{secondary}->{wt}++;
                                 $genotyping->{total}->{secondary}->{wt}++;
                             }
@@ -512,7 +537,8 @@ sub get_genotyping_data {
                         when(/mixed/) {
                             $genotyping->{$original_exp_id}->{primary}->{het}++;
                             $genotyping->{total}->{primary}->{het}++;
-                            if ($status eq 'Scanned-Out') {
+                            #if ($status eq 'Scanned-Out') {
+                            if ( exists $secondary_qc->{$miseq_well->id} ) {
                                 $genotyping->{$original_exp_id}->{secondary}->{het}++;
                                 $genotyping->{total}->{secondary}->{het}++;
                             }
@@ -520,7 +546,8 @@ sub get_genotyping_data {
                         when(/hom/) {
                             $genotyping->{$original_exp_id}->{primary}->{hom}++;
                             $genotyping->{total}->{primary}->{hom}++;
-                            if ($status eq 'Scanned-Out') {
+                            #if ($status eq 'Scanned-Out') {
+                            if ( exists $secondary_qc->{$miseq_well->id} ) {
                                 $genotyping->{$original_exp_id}->{secondary}->{hom}++;
                                 $genotyping->{total}->{secondary}->{hom}++;
                             }
