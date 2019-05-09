@@ -115,7 +115,7 @@ sub _read_line {
         exr         => $row->{'PCR reverse'},
         inf         => $row->{'MiSEQ forward'},
         inr         => $row->{'MiSEQ reverse'},
-        hdr         => $row->{'HDR template'},
+        hdr         => $row->{'HDR oligo'},
     };
 }
 
@@ -335,8 +335,9 @@ sub _build_design {
 
 
 
+$DB::single=1;
         if ( $request->{hdr} ) {
-            $data->{hdr_template} = $request->{hdr};
+            $data->{hdr_oligo} = $request->{hdr};
         }
 
         if ( my $error = _validate_primers($primers) ) {
@@ -389,7 +390,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     my $output;
 
     my @columns = @REQUIRED_COLUMNS;
-    push (@columns, 'HDR template');
+    push (@columns, 'HDR oligo');
 
     my @hdr_example_row = qw/
         904034556
@@ -400,7 +401,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
         GTGCAGCTCTCCTGACTAC
         GATGTCAATCAGCTGCACCA
         TTGCCAAGGGGGACGAC
-        ATGGTCGCAGGTTCACCCGCCCGTTGTCCCAGCAGCGTCGGGAGCTGCGGCCGTCTCCGACCGGTGTGGGGCAGCGGGCCTGTGAGACAGGACGGGCTGCCCGTGGGGGCAGCGGGT         
+        AGGTTCACCCGCCCGTTGTCCCAGCAGCGTCGGGAGCTGCTGCCGTCTACGACCGGTGTGGGGCAGCGGGCCTGTGAGACAGGACGGGCTGCCCGTGGGG         
     /;
 
     open my $fh, '>', \$output or croak 'Could not create example file';
@@ -431,10 +432,9 @@ sub miseq_create : Path('/user/batchdesign/miseq_create' ) : Args(0) {
         user    => $c->user->name
     };
     if ( $c->request->param('hdr') ){
-        $request->{hdr} = $c->request->param('hdr');
+        $request->{primers}->{hdr} = { seq => $c->request->param('hdr') };
     }
     my $model = $c->model('Golgi');
-
     $c->stash->{json_data} = _build_design( $request, $model );
     $c->forward('View::JSON');
     return;

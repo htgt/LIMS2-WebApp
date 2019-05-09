@@ -148,6 +148,7 @@ sub loci_builder {
 sub locate_primers {
     my ( $species, $target_crispr, $primers, $genomic_threshold ) = @_;
     my $data = shift;
+$DB::single=1;
     my ( $fasta, $dir ) = generate_bwa_query_file($primers);
     my $bwa = DesignCreate::Util::BWA->new(
         query_file        => $fasta,
@@ -155,7 +156,7 @@ sub locate_primers {
         species           => $species,
         three_prime_check => 0,
         num_bwa_threads   => 2,
-        num_mismatches    => 0,
+        num_mismatches    => 2,
     );
 
     if ( $genomic_threshold ) {
