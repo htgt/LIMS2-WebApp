@@ -250,19 +250,27 @@ sub flatten_wells {
 }
 
 
-sub get_frequency_data{
+sub get_frequency_data {
     my ($c, $miseq_well_experiment_hash) = @_;
+
     my $limit = $c->request->param('limit');
-    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search( { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} });
-    my $cou = $frequency_rs->count;
+
+    my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search({
+        miseq_well_experiment_id => $miseq_well_experiment_hash->{id},
+    }, {
+        order_by => { -desc => 'n_reads' }
+    });
+    my $freq_count = $frequency_rs->count;
+
     my @lines;
     my @headers;
     my $freq_hash;
-    $limit = $cou if ($limit > $cou);
+    $limit = $freq_count if ($limit > $freq_count);
     if ($limit > 0){
         $freq_hash = $frequency_rs->next->as_hash;
-        if ($freq_hash->{reference_sequence}){
-            if ($freq_hash->{quality_score}){
+
+        if ($freq_hash->{reference_sequence}) {
+            if ($freq_hash->{quality_score}) {
                 unshift @lines ,'Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
                 @headers = ("aligned_sequence","reference_sequence","quality_score","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
             }
@@ -275,10 +283,12 @@ sub get_frequency_data{
                 unshift @lines ,'Aligned_Sequence,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads';
                 @headers = ("aligned_sequence","nhej","unmodified","hdr","n_deleted","n_inserted","n_mutated","n_reads");
         }
-        for my $i (1..$limit){
-            my $percentage = $freq_hash->{n_reads}/$miseq_well_experiment_hash->{total_reads}*100.0;
-            my $line = join(',', map{$freq_hash->{$_}} @headers).','.$percentage;
+
+        for my $i (1..$limit) {
+            my $percentage = $freq_hash->{n_reads} / $miseq_well_experiment_hash->{total_reads} * 100.0;
+            my $line = join(',', map { $freq_hash->{$_} } @headers) . ',' . $percentage;
             push @lines, $line;
+
             if (my $next = $frequency_rs->next) {
                     $freq_hash = $next->as_hash;
             }
@@ -287,13 +297,15 @@ sub get_frequency_data{
             }
         }
     }
-    elsif($frequency_rs->count < 1){
+    elsif ($frequency_rs->count < 1) {
         print "No results";
     }
-    else{
+    else {
         print "Bug with alleles frequency rs";
     }
-    my $data = join("\n", @lines[0..$limit]);
+
+    my $data = join ("\n", @lines[0..$limit]);
+
     return $data;
 }
 #The bellow methods are not used anymore. They were used to handle data from the local files. They were replaced after database migration. 
