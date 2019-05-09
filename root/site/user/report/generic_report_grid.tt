@@ -249,42 +249,51 @@
                                     var plateNameRegex = /[^\s]+$/;
                                     var plateNameMatch = plateNameRegex.exec(title);
                                     var invalidInput = false;
+                                    var createPlates = false;
                                     var errorCells = [];
                                     var requests = [];
-                                    //var loopCount = 0;
-                                    //var postCount = 0;
-                                    store.each(function(record) {
-                                        var coloniesPicked = record.get('Freeze Plate');
-                                        if (isNaN(coloniesPicked)) {
-                                            invalidInput = true; 
-                                            errorCells.push(record.get('Cell Number'));
-                                        }
-                                    });
-                                    if (invalidInput) {
-                                        console.log('invalid input in ' + errorCells);
-                                        return;
-                                    }
+                                    var wellNames = [];
+                                    var childWellNumbers = [];
                                     store.each(function(record) {
                                         var coloniesPicked = record.get('Freeze Plate');
                                         var cellNumber = record.get('Cell Number');
-                                        if (coloniesPicked > 0) {
+                                        if (isNaN(coloniesPicked)) {
+                                            invalidInput = true; 
+                                            errorCells.push(cellNumber);
+                                        } else if (coloniesPicked > 0) {
+                                            createPlates = true;
                                             parseInt(coloniesPicked);
-                                            requests.push($.post( "[% c.uri_for('/user/epII/expansion') %]", 
-                                            {
-                                                well_name:"A" + cellNumber, 
-                                                plate_name:plateNameMatch[0],
-                                                child_well_number:coloniesPicked
-                                            }, 
-                                            function(platesCreated) {
-                                                for (plate in platesCreated) {
-                                                    $("#" + cellNumber).prepend("<li><b>" + platesCreated[plate] + "</b></li>");
-                                                }
-                                            }));
+                                            wellNames.push("A" + cellNumber);
+                                            childWellNumbers.push(coloniesPicked);
                                         }
+                                            
                                     });
-                                    $.when.apply($, requests).done(function(){
-                                        alert('all done!');
-                                    });
+                                    if (invalidInput) {
+                                        $("#response_alert").removeClass("alert-success").removeClass("alert-info").addClass("alert-danger");
+                                        message = "Invalid input in cell(s) " + errorCells;
+                                        $("#response_alert").html(message);
+                                    } else if (createPlates) {
+                                        console.log(wellNames);
+                                        console.log(childWellNumbers);
+                                        $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
+                                        message = 'Creating freeze plate(s)...';
+                                        $("#response_alert").html(message);
+                                        $.post( "[% c.uri_for('/user/epII/expansion') %]", 
+                                        {
+                                            well_names:wellNames, 
+                                            plate_name:plateNameMatch[0],
+                                            child_well_numbers:childWellNumbers
+                                        }, 
+                                        function(platesCreated) {
+                                            console.log(platesCreated['plates']);
+                                            $("#response_alert").removeClass("alert-danger").removeClass("alert-info").addClass("alert-success");
+                                            message = "Freeze plate(s) created: " + platesCreated['plates'];
+                                            $("#response_alert").html(message);
+                                            //for (plate in platesCreated) {
+                                            //    $("#" + cellNumber).prepend("<li><b>" + plate + "</b></li>");
+                                            //}
+                                        })
+                                    }
                                 }
                             } 
                         }],
@@ -690,4 +699,3 @@
             
 
 </script>
-

@@ -4,28 +4,41 @@ use namespace::autoclean;
 use Carp;
 use Try::Tiny;
 use LIMS2::Model::Util::EPPipelineIIWellExpansion qw(create_well_expansion);
-#use JSON;
-#use POSIX;
 BEGIN { extends 'Catalyst::Controller' }
-
+use Data::Dumper;
 
 sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
     my ( $self, $c ) = @_;
+    $c->log->info(Dumper($c->request->parameters));
 
-    my $parameters = {
-        plate_name        => $c->request->param('plate_name'),
-        parent_well       => $c->request->param('well_name'),
-        child_well_number => $c->request->param('child_well_number'),
-        species           => $c->session->{selected_species},
-        created_by        => $c->user->name,
-    };
-    try {
-        my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
-    $c->stash->{json_data} = $freeze_plates_created;
+    my @parent_wells = @{$c->request->parameters->{'well_names[]'}};
+    my @child_well_numbers = @{$c->request->parameters->{'child_well_numbers[]'}};
+    my $parent_well;
+    my $child_well_number;
+    my @new_plates;
+    my @errors;
+
+    for my $index (0 .. $#parent_wells) {
+        $parent_well = $parent_wells[$index];
+        $child_well_number = $child_well_numbers[$index];
+
+        my $parameters = {
+            plate_name        => $c->request->parameters->{'plate_name'},
+            parent_well       => $parent_well,
+            child_well_number => $child_well_number,
+            species           => $c->session->{selected_species},
+            created_by        => $c->user->name,
+        };
+        try {
+            my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
+        foreach my $freeze_plate (@$freeze_plates_created) {
+            push @new_plates, $freeze_plate;
+        }}
+        catch {
+            push @errors, $_;
+        };
     }
-    catch {
-        $c->stash->{json_data} = {error => $_};
-    };
+    $c->stash->{json_data} = {plates => \@new_plates, errors => \@errors};
     $c->forward('View::JSON');
     return;
 }
@@ -33,40 +46,3 @@ sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
 __PACKAGE__->meta->make_immutable;
 
 1;
-
-=pod
-
-sub expansion : Path('/user/epII/expansion') : Args(0) : ActionClass('REST') {
-}
-
-sub expansion_POST {
-    my ($self, $c) = @_;
-    
-    $c->assert_user_roles('edit');
-
-    my $plate_name = $c->request->param('plate_name');
-    my $parent_well = $c->request->param('well_name');
-    my $child_well_number = $c->request->param('child_well_number');
-
-    my $parameters = {
-        plate_name        => $c->request->param('plate_name'),
-        parent_well       => $c->request->param('well_name'),
-        child_well_number => $c->request->param('child_well_number'),
-        species           => $c->session->{selected_species},
-        created_by        => $c->user->name,
-    };
-
-    try {
-        my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
-    $c->stash->{plate_list} = $freeze_plates_created;
-    }
-    catch {
-        $c->stash->{error_msg} = "$_";
-    };
-    return $freeze_plates_created;
-}
-
-__PACKAGE__->meta->make_immutable;
-
-1;
-=cut
