@@ -1,54 +1,43 @@
 [%- META title = "Summary Report II" %]
 
-[% IF sponsor_id %]
-  <SCRIPT LANGUAGE = JavaScript >
-  document.title = "[%- sponsor_id %]";
-  </SCRIPT>
-[% ELSE %]
-  <SCRIPT LANGUAGE = JavaScript >
-  document.title = "Total - Pipeline II";
-  </SCRIPT>
-[% END %]
-
-
 <style type="text/css">
 
 a:hover {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 table.table-bordered {
-  border: 1.5px solid black;
+    border: 1.5px solid black;
 }
 
 table.table-bordered > thead > tr > th{
-  border: 1.5px solid black;
+    border: 1.5px solid black;
 }
 
 table.table-bordered > tbody > tr > td{
-  border: 1.5px solid black;
+    border: 1.5px solid black;
 }
 
 #stripes {
-  background: repeating-linear-gradient(
-  45deg,
-  #CCCCCC,
-  #CCCCCC 10px,
-  #EEEEEE 10px,
-  #EEEEEE 20px
-);
+    background: repeating-linear-gradient(
+        45deg,
+        #CCCCCC,
+        #CCCCCC 10px,
+        #EEEEEE 10px,
+        #EEEEEE 20px
+    );
 }
 
 #loading {
-   width: 100%;
-   height: 100%;
-   top: 0;
-   left: 0;
-   position: fixed;
-   opacity: 0.7;
-   background-color: #fff;
-   z-index: 99;
-   text-align: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    opacity: 0.7;
+    background-color: #FFFFFF;
+    z-index: 99;
+    text-align: center;
 }
 
 </style>
@@ -56,36 +45,67 @@ table.table-bordered > tbody > tr > td{
 <div id="loading"></div>
 
 <span style="float:right">
-  <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');"><b>Expand All</b></a>
-[% IF sponsor_id %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", {csv => '1', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes",{xlsx => '1',pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+    <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');">
+        <b>Expand All</b>
+    </a>
+<!---    [% IF sponsor_id %]--->
+    [% USE dl_uri = url("/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", pipeline='pipeline_ii', lab_head=lab_head, programme=programme) %]
+    
+    <a id='csv_download' type='button' class='btn btn-primary btn-sm downloadBtn' href="[% dl_uri(csv='1') %]">
+        <!--- href="[% c.uri_for( dl_uri, {csv => '1', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"> --->
+        <i class="glyphicon glyphicon-download-alt"></i>
+        <b> Download CSV</b>
+    </a>
+    <a id='xlsx_download' type='button' class='btn btn-primary btn-sm downloadBtn'
+        href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes",
+            {xlsx => '1',pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]">
+        <i class="glyphicon glyphicon-download-alt"></i>
+        <b> Download XLSX</b>
+    </a>
 
-  [% IF c.user %]
-    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme }) %]" id='[% unit.sponsor_id %]'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
-  [% END %]
-[% ELSE %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes", {csv => '1', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes",{xlsx => '1',pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
-
-  [% IF c.user %]
-    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]" id='total'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
-  [% END %]
-[% END %]
+    [% IF c.user %]
+        <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm downloadBtn' id='[% unit.sponsor_id %]'
+            href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", 
+                { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme }) %]">
+            <i class="glyphicon glyphicon-refresh"></i>
+            <b> Regenerate report</b>
+        </a>
+    [% END %]
+<!---
+    [% ELSE %]
+        <a id='csv_download' type='button' class='btn btn-primary btn-sm'
+            href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes", 
+                {csv => '1', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]">
+            <i class="glyphicon glyphicon-download-alt"></i>
+            <b> Download CSV</b>
+        </a>
+        <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
+            href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes",
+                {xlsx => '1',pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]">
+            <i class="glyphicon glyphicon-download-alt"></i>
+            <b> Download XLSX</b>
+        </a>
+        [% IF c.user %]
+            <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' id='total'
+                href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes", 
+                    { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]">
+                <i class="glyphicon glyphicon-refresh"></i>
+                <b> Regenerate report</b>
+            </a>
+        [% END %]
+    [% END %]
+--->
 </span>
 
 <div class="page-header">
   <h2>Sponsor Progress Sub-Report on [% date %]</h2>
 </div>
+
 <p>
 [% IF sponsor_id %]
-  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
+    <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
 [% ELSE %]
-  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for <b>all</b> sponsors</b></big>
+    <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for <b>all</b> sponsors</b></big>
 [% END %]
 </p>
 
@@ -130,63 +150,63 @@ table.table-bordered > tbody > tr > td{
         <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         [% ELSE %]
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         [% END %]
 
         [% IF elem.experiment_ep_ii_info.has_plates %]
         <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         [% ELSE %]
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
+        <td><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
         [% END %]
 
         [% IF elem.exp_ipscs_colonies_picked.total %]
           <td style="background-color:#B0E502;">[% elem.exp_ipscs_colonies_picked.total %] colonies picked</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.total_number_of_clones %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.total_number_of_clones %] Miseq clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.primary.wt %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.wt %] WT clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.primary.het %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.het %] Het clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.primary.hom %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.hom %] Hom clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.secondary.wt %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.wt %] WT clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.secondary.het %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.het %] Het clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         [% IF elem.genotyping.total.secondary.hom %]
           <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.hom %] Hom clones</td>
         [% ELSE %]
-          <td style="background-color:#FF4444"></td>
+          <td></td>
         [% END %]
 
         <td style="background-color:#B3ECFF;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
@@ -279,6 +299,21 @@ table.table-bordered > tbody > tr > td{
 </table>
 
 <script type="text/javascript">
+
+var sponsor = "[% sponsor_id %]";
+
+$(document).ready(function() {
+    var title = "Total - Pipeline II";
+    if (sponsor) {
+        title = sponsor;
+    }
+    document.title = title;
+});
+
+
+
+
+
 
 window.onload = function() {
   document.getElementById('loading').style.display = "none";
