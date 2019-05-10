@@ -13,6 +13,7 @@ use Readonly;
 use feature 'switch';
 use Time::HiRes 'time';
 use Data::Dumper;
+use LIMS2::Model::Util::Miseq qw( find_miseq_data_from_experiment );
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -494,14 +495,27 @@ sub find_secondary_qc {
 }
 
 sub get_genotyping_data {
-    my ($self, @exps) = @_;
+    my ($self, $c, @exps) = @_;
 
     my $genotyping;
-
+$DB::single=1;
+    my @res;
     foreach my $exp_rec (@exps) {
+        my @results = find_miseq_data_from_experiment($c, $exp_rec->{id});
+        push @res, @results;
+
+
+
+
+
+
+
+
+
+
+
         my @miseq_exps_and_wells;
         my $original_exp_id = $exp_rec->{id};
-
         ## Get the miseq experiment id using an experiment id
         my @miseq_exp_rs = $self->model->schema->resultset('MiseqExperiment')->search({
             experiment_id => $original_exp_id,
@@ -557,7 +571,7 @@ sub get_genotyping_data {
             }
         }
     }
-
+$DB::single=1;
     return $genotyping;
 }
 
@@ -567,7 +581,7 @@ sub get_genotyping_data {
 =cut
 
 sub generate_sub_report {
-    my ($self, $sponsor_id, $lab_head, $programme) = @_;
+    my ($self, $c, $sponsor_id, $lab_head, $programme) = @_;
 
     my $report;
     my @data;
@@ -612,7 +626,7 @@ sub generate_sub_report {
         $row_data->{exp_ipscs_colonies_picked} = &{$launch_report_subs->{ 'ipscs_colonies_picked' }}($self, $exps_ep_ii_plate_names->{exps});
 
         ## primary and secondary genotyping
-        $row_data->{genotyping} = &{$launch_report_subs->{ 'genotyping' }}($self, @proj_exps);
+        $row_data->{genotyping} = &{$launch_report_subs->{ 'genotyping' }}($self, $c, @proj_exps);
 
         push @data, $row_data;
     }

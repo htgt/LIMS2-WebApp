@@ -99,6 +99,7 @@ EOT
 #Find classifications which share a common ancestor (Usually FP) with our supplied plate (i.e. PIQ)
 
 
+
 sub query_miseq_details {
     my ($self, $plate_id) = @_;
 
@@ -221,6 +222,39 @@ sub damage_classifications {
     return $class_mapping;
 }
 
+const my $QUERY_TREE => <<'EOT';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
+     FROM processes pr
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     WHERE pr_out.well_id in (
+        select w.id
+        from process_design pd
+        inner join process_crispr pc on pc.process_id=pd.process_id
+        inner join process_output_well pow on pow.process_id=pd.process_id
+        inner join wells w on w.id=pow.well_id
+        inner join plates p on p.id=w.plate_id
+        inner join experiments exp on exp.design_id=pd.design_id and exp.crispr_id=pc.crispr_id
+        where exp.id = 2138
+     )
+     UNION
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
+     FROM processes pr
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT DISTINCT output_well_id, op.type_id, start_well_id, sw.name AS start_well_name, mwe.classification, me.name, me.parent_plate_id, me.experiment_id
+FROM well_hierarchy wh
+INNER JOIN wells ow ON ow.id=output_well_id
+INNER JOIN plates op ON ow.plate_id=op.id
+INNER JOIN wells sw ON sw.id=start_well_id
+inner join miseq_well_experiment mwe on mwe.well_id=output_well_id
+inner join miseq_experiment me on mwe.miseq_exp_id=me.id
+WHERE op.type_id IN ('MISEQ') AND mwe.classification NOT IN ('Not Called','Mixed');
+EOT
+
 const my $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID => <<'EOT';
 SELECT me.name, mwe.classification, mwell.name, mplate.name, fpwell.name, fp.name
 FROM miseq_experiment me
@@ -234,9 +268,10 @@ INNER JOIN plates fp ON fpwell.plate_id=fp.id AND me.parent_plate_id=fp.id
 WHERE experiment_id = ? AND mwe.classification != 'Not Called' AND mwe.classification != 'Mixed';
 EOT
 
+#Find all Classified Miseq well experiments related to an experiment ID
 sub find_miseq_data_from_experiment {
     my ($c, $experiment_id) = @_;
-
+$DB::single=1;
     my @results = @{ _find_miseq_data_by_exp($c->model('Golgi'), $experiment_id) };
 
     my @headers = qw(
