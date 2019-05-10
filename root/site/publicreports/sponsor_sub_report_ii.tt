@@ -48,23 +48,21 @@ table.table-bordered > tbody > tr > td{
     <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');">
         <b>Expand All</b>
     </a>
-    [% USE dl_uri = url( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", pipeline='pipeline_ii', lab_head=lab_head, programme=programme ) %]
-    [% IF sponsor_id %]
-        [% dl_uri(total="1") %]
-    [% END %]
+
+    [% USE dl_uri = url( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", pipeline='pipeline_ii', lab_head=lab_head ) %]
     
-    <a id='csv_download' type='button' class='btn btn-primary btn-sm downloadBtn' href="[% dl_uri(csv='1') %]">
+    <a id='csv_download' type='button' class='btn btn-primary btn-sm' href="[% dl_uri(csv='1') %]">
         <i class="glyphicon glyphicon-download-alt"></i>
         <b> Download CSV</b>
     </a>
-    <a id='xlsx_download' type='button' class='btn btn-primary btn-sm downloadBtn' href="[% dl_uri(xlsx='1') %]">
+    <a id='xlsx_download' type='button' class='btn btn-primary btn-sm' href="[% dl_uri(xlsx='1') %]">
         <i class="glyphicon glyphicon-download-alt"></i>
         <b> Download XLSX</b>
     </a>
 
     [% IF c.user %]
         <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm downloadBtn' id='[% unit.sponsor_id %]'
-            href=[% dl_uri(species=$species, cache_param_ii='without_cache', type='full') %]
+            href=[% dl_uri(species=species, cache_param_ii='without_cache', type='full') %]
             <i class="glyphicon glyphicon-refresh"></i>
             <b> Regenerate report</b>
         </a>
