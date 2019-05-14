@@ -222,7 +222,7 @@ sub damage_classifications {
     return $class_mapping;
 }
 
-const my $QUERY_TREE => <<'EOT';
+const my $QUERY_MISEQ_TREE_BY_EXPERIMENT_ID => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
      SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
      FROM processes pr
@@ -236,7 +236,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
         inner join wells w on w.id=pow.well_id
         inner join plates p on p.id=w.plate_id
         inner join experiments exp on exp.design_id=pd.design_id and exp.crispr_id=pc.crispr_id
-        where exp.id = 2138
+        where exp.id = ?
      )
      UNION
      SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
@@ -245,15 +245,53 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
 )
-SELECT DISTINCT output_well_id, op.type_id, start_well_id, sw.name AS start_well_name, mwe.classification, me.name, me.parent_plate_id, me.experiment_id
+SELECT DISTINCT output_well_id, op.type_id, start_well_id, sw.name AS start_well_name, mwe.classification, me.name, me.parent_plate_id, pplate.type, me.experiment_id
 FROM well_hierarchy wh
 INNER JOIN wells ow ON ow.id=output_well_id
 INNER JOIN plates op ON ow.plate_id=op.id
 INNER JOIN wells sw ON sw.id=start_well_id
 inner join miseq_well_experiment mwe on mwe.well_id=output_well_id
 inner join miseq_experiment me on mwe.miseq_exp_id=me.id
+inner join plates pplate ON me.parent_plate_id=pplate.id
 WHERE op.type_id IN ('MISEQ') AND mwe.classification NOT IN ('Not Called','Mixed');
 EOT
+
+sub query_miseq_tree_from_experiment {
+    my ($c, $experiment_id) = @_;
+$DB::single=1;
+    my @results = @{ _find_miseq_data_by_exp($c->model('Golgi'), $experiment_id) };
+
+    my @headers = qw(
+        miseq_experiment_name
+        classification
+        miseq_well_name
+        miseq_plate_name
+        parent_well_name
+        parent_plate_name
+    );
+    my @miseq_relations;
+    foreach my $miseq_well_relation (@results) {
+        my %mapping;
+        @mapping{@headers} = @{ $miseq_well_relation };
+        push @miseq_relations, \%mapping;
+    }
+
+    return @miseq_relations;
+}
+
+sub _query_miseq_tree_by_exp {
+    my ($self, $experiment_id) = @_;
+
+    my $query = $QUERY_MISEQ_TREE_BY_EXPERIMENT_ID;
+    return $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached( $query );
+            $sth->execute( $experiment_id );
+            $sth->fetchall_arrayref;
+        }
+    );
+}
 
 const my $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID => <<'EOT';
 SELECT me.name, mwe.classification, mwell.name, mplate.name, fpwell.name, fp.name
