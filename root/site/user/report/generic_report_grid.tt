@@ -241,8 +241,8 @@
                         dataIndex: 'Freeze Plate',
                         items: [{
                             xtype: 'button',
-                            text: 'Create',
-                            width: 50,
+                            text: 'Create all',
+                            width: 60,
                             listeners: {
                                 click: function () {
                                     var title = '[% title %]';
@@ -257,24 +257,20 @@
                                     store.each(function(record) {
                                         var coloniesPicked = record.get('Freeze Plate');
                                         var cellNumber = record.get('Cell Number');
-                                        if (isNaN(coloniesPicked)) {
+                                        if (!Number.isInteger(Number(coloniesPicked))) {
                                             invalidInput = true; 
                                             errorCells.push(cellNumber);
                                         } else if (coloniesPicked > 0) {
                                             createPlates = true;
-                                            parseInt(coloniesPicked);
                                             wellNames.push("A" + cellNumber);
                                             childWellNumbers.push(coloniesPicked);
                                         }
-                                            
                                     });
                                     if (invalidInput) {
                                         $("#response_alert").removeClass("alert-success").removeClass("alert-info").addClass("alert-danger");
                                         message = "Invalid input in cell(s) " + errorCells;
                                         $("#response_alert").html(message);
                                     } else if (createPlates) {
-                                        console.log(wellNames);
-                                        console.log(childWellNumbers);
                                         $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
                                         message = 'Creating freeze plate(s)...';
                                         $("#response_alert").html(message);
@@ -284,14 +280,20 @@
                                             plate_name:plateNameMatch[0],
                                             child_well_numbers:childWellNumbers
                                         }, 
-                                        function(platesCreated) {
-                                            console.log(platesCreated['plates']);
-                                            $("#response_alert").removeClass("alert-danger").removeClass("alert-info").addClass("alert-success");
-                                            message = "Freeze plate(s) created: " + platesCreated['plates'];
-                                            $("#response_alert").html(message);
-                                            //for (plate in platesCreated) {
-                                            //    $("#" + cellNumber).prepend("<li><b>" + plate + "</b></li>");
-                                            //}
+                                        function(result) {
+                                            if (result['plates'].length > 0) {
+                                                console.log(result['plates']);
+                                                $("#response_alert").removeClass("alert-info").addClass("alert-success");
+                                                message = "Freeze plate(s) created: " + result['plates'];
+                                                $("#response_alert").html(message);
+                                            }
+                                            if (result['errors'].length > 0) {
+                                                console.log(result['errors']);
+                                                $("#response_alert").removeClass("alert-info").addClass("alert-danger");
+                                                message = result['errors'];
+                                                $("#response_alert").html(message);
+                                            }
+                                                
                                         })
                                     }
                                 }
@@ -628,7 +630,7 @@
                 var cols    = grid.columns;
                 var store   = grid.store;
                 var data    = '';
-
+                    
                 var that = this;
                 Ext.Array.each(cols, function(col, index) {
                     if (col.hidden != true) {

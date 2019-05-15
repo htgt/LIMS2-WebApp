@@ -5,22 +5,28 @@ use Carp;
 use Try::Tiny;
 use LIMS2::Model::Util::EPPipelineIIWellExpansion qw(create_well_expansion);
 BEGIN { extends 'Catalyst::Controller' }
-use Data::Dumper;
 
 sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
     my ( $self, $c ) = @_;
-    $c->log->info(Dumper($c->request->parameters));
 
-    my @parent_wells = @{$c->request->parameters->{'well_names[]'}};
-    my @child_well_numbers = @{$c->request->parameters->{'child_well_numbers[]'}};
+    my @parent_well_list;
+    my @child_well_num_list;
     my $parent_well;
     my $child_well_number;
     my @new_plates;
     my @errors;
 
-    for my $index (0 .. $#parent_wells) {
-        $parent_well = $parent_wells[$index];
-        $child_well_number = $child_well_numbers[$index];
+    if (ref($c->request->parameters->{'well_names[]'}) eq "ARRAY") {
+        @parent_well_list = @{$c->request->parameters->{'well_names[]'}};
+        @child_well_num_list = @{$c->request->parameters->{'child_well_numbers[]'}};
+    }
+    else {
+        @parent_well_list = $c->request->parameters->{'well_names[]'};
+        @child_well_num_list = $c->request->parameters->{'child_well_numbers[]'};
+    }
+    foreach my $index (0 .. $#parent_well_list) {
+        $parent_well = $parent_well_list[$index];
+        $child_well_number = $child_well_num_list[$index];
 
         my $parameters = {
             plate_name        => $c->request->parameters->{'plate_name'},
@@ -35,7 +41,7 @@ sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
             push @new_plates, $freeze_plate;
         }}
         catch {
-            push @errors, $_;
+            push @errors, "$_";
         };
     }
     $c->stash->{json_data} = {plates => \@new_plates, errors => \@errors};
