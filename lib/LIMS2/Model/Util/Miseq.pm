@@ -20,6 +20,7 @@ use Sub::Exporter -setup => {
               miseq_genotyping_info
               read_alleles_frequency_file
               qc_relations
+              query_miseq_tree_from_experiment
           )
     ]
 };
@@ -245,29 +246,32 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
 )
-SELECT DISTINCT output_well_id, op.type_id, start_well_id, sw.name AS start_well_name, mwe.classification, me.name, me.parent_plate_id, pplate.type, me.experiment_id
+SELECT DISTINCT output_well_id, input_well_id, inp.type_id, start_well_id, mwe.classification, me.name, me.experiment_id
 FROM well_hierarchy wh
 INNER JOIN wells ow ON ow.id=output_well_id
 INNER JOIN plates op ON ow.plate_id=op.id
+INNER JOIN wells inw ON inw.id=input_well_id
+INNER JOIN plates inp ON inp.id=inw.plate_id
 INNER JOIN wells sw ON sw.id=start_well_id
 inner join miseq_well_experiment mwe on mwe.well_id=output_well_id
 inner join miseq_experiment me on mwe.miseq_exp_id=me.id
-inner join plates pplate ON me.parent_plate_id=pplate.id
-WHERE op.type_id IN ('MISEQ') AND mwe.classification NOT IN ('Not Called','Mixed');
+WHERE op.type_id = 'MISEQ' AND mwe.classification NOT IN ('Not Called','Mixed')
+AND me.experiment_id = ?
 EOT
 
 sub query_miseq_tree_from_experiment {
     my ($c, $experiment_id) = @_;
-$DB::single=1;
-    my @results = @{ _find_miseq_data_by_exp($c->model('Golgi'), $experiment_id) };
+
+    my @results = @{ _query_miseq_tree_by_exp($c->model('Golgi'), $experiment_id) };
 
     my @headers = qw(
-        miseq_experiment_name
+        miseq_well_id
+        parent_well_id
+        parent_plate_type
+        origin_well_id
         classification
-        miseq_well_name
-        miseq_plate_name
-        parent_well_name
-        parent_plate_name
+        miseq_experiment_name
+        experiment_id
     );
     my @miseq_relations;
     foreach my $miseq_well_relation (@results) {
@@ -287,7 +291,7 @@ sub _query_miseq_tree_by_exp {
         sub {
             my ( $storage, $dbh ) = @_;
             my $sth = $dbh->prepare_cached( $query );
-            $sth->execute( $experiment_id );
+            $sth->execute( $experiment_id, $experiment_id );
             $sth->fetchall_arrayref;
         }
     );
@@ -309,7 +313,7 @@ EOT
 #Find all Classified Miseq well experiments related to an experiment ID
 sub find_miseq_data_from_experiment {
     my ($c, $experiment_id) = @_;
-$DB::single=1;
+
     my @results = @{ _find_miseq_data_by_exp($c->model('Golgi'), $experiment_id) };
 
     my @headers = qw(

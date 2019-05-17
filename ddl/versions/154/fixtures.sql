@@ -1,0 +1,14 @@
+update miseq_experiment set experiment_id = 2429 where name LIKE '%ARID1A_2%';
+update miseq_experiment set experiment_id = 2176 where id = 802;
+update miseq_experiment set experiment_id = 2144 where name LIKE '%HDAC8%';
+update miseq_experiment set experiment_id = 2366 where name LIKE '%ZMYND11%';
+update miseq_experiment set experiment_id = 2064 where name LIKE '%AHR%';
+update miseq_experiment set experiment_id = 2364 where name LIKE '%BCL11A1_1%';
+update miseq_experiment set experiment_id = 2023 where id = 541;
+update miseq_experiment set experiment_id = 2361 where name like '%DDX3X_1%';
+update miseq_experiment set experiment_id = 2406 where id = 1133;
+update miseq_experiment set experiment_id = 2130 where id = 375;
+update miseq_experiment set experiment_id = 2209 where gene like '%WARS2%' and experiment_id is null;
+update miseq_experiment set experiment_id = 2074 where id = 179;
+update miseq_experiment set experiment_id = 2075 where id = 583;
+update miseq_experiment set experiment_id = 2004 where gene like '%CHD4%' and experiment_id is null;

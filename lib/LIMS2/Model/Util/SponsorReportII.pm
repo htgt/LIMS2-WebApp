@@ -13,7 +13,7 @@ use Readonly;
 use feature 'switch';
 use Time::HiRes 'time';
 use Data::Dumper;
-use LIMS2::Model::Util::Miseq qw( find_miseq_data_from_experiment );
+use LIMS2::Model::Util::Miseq qw( query_miseq_tree_from_experiment );
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -498,80 +498,37 @@ sub get_genotyping_data {
     my ($self, $c, @exps) = @_;
 
     my $genotyping;
-$DB::single=1;
-    my @res;
     foreach my $exp_rec (@exps) {
-        my @results = find_miseq_data_from_experiment($c, $exp_rec->{id});
-        push @res, @results;
+        my $exp_id = $exp_rec->{id};
+        my @results = query_miseq_tree_from_experiment($c, $exp_id);
 
+        my $miseq_well_exp_count = $self->model->schema->resultset('MiseqWellExperiment')->search({
+            'miseq_exp.experiment_id' => $exp_id,
+            'parent_plate.type_id' => 'FP'
+        }, {
+            prefetch => {'miseq_exp' => 'parent_plate' } 
+        })->count;
 
+        $genotyping->{$exp_id}->{primary}->{total_number_of_clones} = $miseq_well_exp_count; #WRONG. Not all miseq exps will be primary.
+        $genotyping->{total}->{total_number_of_clones} += $miseq_well_exp_count;
 
+        my $stage_type = {
+            FP  => 'primary',
+            PIQ => 'secondary',
+        };
+        my $class_regex = qr/^.*(Hom|Het|WT).*$/;
+        foreach my $result_row (@results) {
+$DB::single=1;
+            my $classification = $result_row->{classification};
+            my ($call) = $classification =~ $class_regex;
+            $call = lc $call;
 
-
-
-
-
-
-
-
-        my @miseq_exps_and_wells;
-        my $original_exp_id = $exp_rec->{id};
-        ## Get the miseq experiment id using an experiment id
-        my @miseq_exp_rs = $self->model->schema->resultset('MiseqExperiment')->search({
-            experiment_id => $original_exp_id,
-            });
-
-        my @miseq_exp_ids = map { $_->id } @miseq_exp_rs;
-
-        if ( @miseq_exp_ids ) {
-            foreach my $exp_id (@miseq_exp_ids) {
-                @miseq_exps_and_wells = $self->model->schema->resultset('MiseqWellExperiment')->search({
-                    miseq_exp_id => $exp_id,
-                    });
-
-                $genotyping->{$original_exp_id}->{primary}->{total_number_of_clones} = scalar @miseq_exps_and_wells;
-                $genotyping->{total}->{total_number_of_clones} += scalar @miseq_exps_and_wells;
-                
-                my $secondary_qc = $self->find_secondary_qc(@miseq_exps_and_wells);
-                print Dumper($secondary_qc);
-
-                foreach my $miseq_well (@miseq_exps_and_wells) {
-                    my $class = lc $miseq_well->classification->id;
-                    my $status = $miseq_well->status;
-                    given ($class) {
-                        when(/wild type/) {
-                            $genotyping->{$original_exp_id}->{primary}->{wt}++;
-                            $genotyping->{total}->{primary}->{wt}++;
-                            #if ($status eq 'Scanned-Out') {
-                            if ( exists $secondary_qc->{$miseq_well->id} ) {
-                                $genotyping->{$original_exp_id}->{secondary}->{wt}++;
-                                $genotyping->{total}->{secondary}->{wt}++;
-                            }
-                        }
-                        when(/mixed/) {
-                            $genotyping->{$original_exp_id}->{primary}->{het}++;
-                            $genotyping->{total}->{primary}->{het}++;
-                            #if ($status eq 'Scanned-Out') {
-                            if ( exists $secondary_qc->{$miseq_well->id} ) {
-                                $genotyping->{$original_exp_id}->{secondary}->{het}++;
-                                $genotyping->{total}->{secondary}->{het}++;
-                            }
-                        }
-                        when(/hom/) {
-                            $genotyping->{$original_exp_id}->{primary}->{hom}++;
-                            $genotyping->{total}->{primary}->{hom}++;
-                            #if ($status eq 'Scanned-Out') {
-                            if ( exists $secondary_qc->{$miseq_well->id} ) {
-                                $genotyping->{$original_exp_id}->{secondary}->{hom}++;
-                                $genotyping->{total}->{secondary}->{hom}++;
-                            }
-                        }
-                    }
-                }
-            }
+            my $qc_stage = $stage_type->{ $result_row->{parent_plate_type} };
+                    
+            $genotyping->{$exp_id}->{$qc_stage}->{$call}++;
+            $genotyping->{total}->{$qc_stage}->{$call}++;
         }
     }
-$DB::single=1;
     return $genotyping;
 }
 
@@ -638,7 +595,7 @@ sub generate_sub_report {
 
     my @sorted_data =  sort { $a->{gene_symbol} cmp $b->{gene_symbol} } @data;
     $report->{data} = \@sorted_data;
-
+$DB::single=1;
     return $report;
 
 }
