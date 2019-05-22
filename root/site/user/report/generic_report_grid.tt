@@ -251,7 +251,6 @@
                                     var invalidInput = false;
                                     var createPlates = false;
                                     var errorCells = [];
-                                    var requests = [];
                                     var wellNames = [];
                                     var childWellNumbers = [];
                                     store.each(function(record) {
@@ -282,13 +281,11 @@
                                         }, 
                                         function(result) {
                                             if (result['plates'].length > 0) {
-                                                console.log(result['plates']);
                                                 $("#response_alert").removeClass("alert-info").addClass("alert-success");
                                                 message = "Freeze plate(s) created: " + result['plates'];
                                                 $("#response_alert").html(message);
                                             }
                                             if (result['errors'].length > 0) {
-                                                console.log(result['errors']);
                                                 $("#response_alert").removeClass("alert-info").addClass("alert-danger");
                                                 message = result['errors'];
                                                 $("#response_alert").html(message);
