@@ -1,8 +1,5 @@
 <style type="text/css">
 .plate_links {
-    height: 4em;
-    overflow-y: auto;
-    overflow-x: hidden;
     list-style-type: none; 
     padding-left: 0;
 }
@@ -281,12 +278,12 @@
                                         }, 
                                         function(result) {
                                             if (result['plates'].length > 0) {
-                                                $("#response_alert").removeClass("alert-info").addClass("alert-success");
+                                                $("#response_alert").removeClass("alert-info").removeClass("alert-danger").addClass("alert-success");
                                                 message = "Freeze plate(s) created: " + result['plates'];
                                                 $("#response_alert").html(message);
                                             }
                                             if (result['errors'].length > 0) {
-                                                $("#response_alert").removeClass("alert-info").addClass("alert-danger");
+                                                $("#response_alert").removeClass("alert-info").removeClass("alert-success").addClass("alert-danger");
                                                 message = result['errors'];
                                                 $("#response_alert").html(message);
                                             }
@@ -325,19 +322,20 @@
                     [%- END %]
                     [%- IF col.match('Existing FPs') %]
                         header: "Existing Freeze<br>Plates",
-                        width: 125,
+                        width: 100,
                         renderer: function(val, metData, record) {
-                            var cellNumber = record.get('Cell Number');
-                            var plateData = val.split(",");
+                            var existingFpData = val.split(",");
+                            //existingFpData contains a list with the name then id of each existing freeze plate 
                             var plateLinks = [];
-                            for (var item in plateData) {
-                                if (item % 2 == 0) {
-                                    var plateName = plateData[item];
+                            for (var index in existingFpData) {
+                                if (index % 2 == 0) {
+                                    var plateName = existingFpData[index];
                                 } else {
-                                    plateLinks.push("<li>" + "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_plate') %]" + "?id=" + plateData[item] + "\">" + plateName + "</a></li>"); 
+                                    var plateId = existingFpData[index];
+                                    plateLinks.push("<li>" + "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_plate') %]" + "?id=" + plateId + "\">" + plateName + "</a></li>"); 
                                 }
                             }
-                            return "<ul class= 'plate_links' id=" + cellNumber + ">" + plateLinks.join("") + "</ul>";
+                            return "<ul class= 'plate_links'>" + plateLinks.join("") + "</ul>";
                         },
                     [%- END %]
                     [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
@@ -611,7 +609,6 @@
                     },
 
                     ],
-                
             });
 
             var tooltips = [{
@@ -681,7 +678,6 @@
                     data += "\n";
                 });
 
-
                 // window.location = 'data:text/csv;charset=utf8,' + encodeURIComponent(data);
 
                 var uri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
@@ -695,6 +691,5 @@
             };
 
     });
-            
 
 </script>

@@ -77,16 +77,17 @@
         [% SET fp_class = "createfp" _ datum.0 %]
         <div class="[% fp_class %]">
         Colonies picked: <input type="number" value="96" class="child_wells"><br>
-        <input type="hidden" value="A[% datum.0 %]" class="well_names">
+        <input type="hidden" value="A[% datum.0 %]" class="well_name">
         <input type="submit" value="Create" onclick="createFP('[% fp_class %]')">
         </div>
     [% ELSIF columns.item(loop.index) == 'Existing FPs' %]
-        [% SET plate_data = datum.item(loop.index).split(',') %]
-        [% FOREACH item IN plate_data %]
+        [% SET existing_fp_data = datum.item(loop.index).split(',') %]
+        [% FOREACH item IN existing_fp_data %]
         [% IF loop.index % 2 == 0 %] 
         [% SET fp_name = item %]
         [% ELSE %]
-        <div><ul class="plate_links"><li><a target="_blank" href="[% c.uri_for('/user/view_plate') %]?id=[% item %]">[% fp_name %]</a></li></ul></div>
+        [% SET fp_id = item %]
+        <div><ul class="plate_links"><li><a target="_blank" href="[% c.uri_for('/user/view_plate') %]?id=[% fp_id %]">[% fp_name %]</a></li></ul></div>
         [% END %]
         [% END %]
         [% ELSE %]
@@ -105,34 +106,34 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
 <script type="text/javascript">
 
-
     function createFP (fpClass) {
-        $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
-        message = "Creating freeze plate(s)...";
-        $("#response_alert").html(message);
-        var wellName = $("." + fpClass + " > .well_names")[0].value; 
-        var childWellNumbers = $("." + fpClass + " > .child_wells")[0].value; 
         var plateName = document.title;
-        $.post( "[% c.uri_for('/user/epII/expansion') %]",
-            {
-                "well_names[]":wellName,
-                plate_name:plateName,
-                "child_well_numbers[]":childWellNumbers
-            },
-            function(result) { 
-                if (result['plates'].length > 0) {
-                    $("#response_alert").removeClass("alert-info").addClass("alert-success");
-                    message = "Freeze plate(s) created: " + result['plates'];
-                    $("#response_alert").html(message);
-                }
-                if (result['errors'].length > 0) {
-                    $("#response_alert").removeClass("alert-info").addClass("alert-danger");
-                    message = result['errors'];
-                    $("#response_alert").html(message);
-                }
-            })
+        var wellName = $("." + fpClass + " > .well_name")[0].value; 
+        var childWellNumber = $("." + fpClass + " > .child_wells")[0].value; 
+        if (childWellNumber > 0) {
+            $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
+            message = "Creating freeze plate(s)...";
+            $("#response_alert").html(message);
+            $.post( "[% c.uri_for('/user/epII/expansion') %]",
+                {
+                    "well_names[]":wellName,
+                    plate_name:plateName,
+                    "child_well_numbers[]":childWellNumber
+                },
+                function(result) { 
+                    if (result['plates'].length > 0) {
+                        $("#response_alert").removeClass("alert-info").removeClass("alert-danger").addClass("alert-success");
+                        message = "Freeze plate(s) created: " + result['plates'];
+                        $("#response_alert").html(message);
+                    }
+                    if (result['errors'].length > 0) {
+                        $("#response_alert").removeClass("alert-info").removeClass("alert-success").addClass("alert-danger");
+                        message = result['errors'];
+                        $("#response_alert").html(message);
+                    }
+                })
+        }
     }
-
 
   $(document).ready(function() {
     // Add functionality to comboboxes
