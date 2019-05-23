@@ -199,7 +199,6 @@
                 }
             });
 
-
             var freezePlateMenu = Ext.create( 'Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: coloniesPicked,
@@ -207,8 +206,6 @@
                 forceSelection: false,
                 maskRe: /[0-9]/,
             });
-
-
 
             var columns = [
                 [% first_column = 1 %]
