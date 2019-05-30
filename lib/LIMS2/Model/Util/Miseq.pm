@@ -229,15 +229,15 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
      FROM processes pr
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
-     WHERE pr_out.well_id in (
-        select w.id
-        from process_design pd
-        inner join process_crispr pc on pc.process_id=pd.process_id
-        inner join process_output_well pow on pow.process_id=pd.process_id
-        inner join wells w on w.id=pow.well_id
-        inner join plates p on p.id=w.plate_id
-        inner join experiments exp on exp.design_id=pd.design_id and exp.crispr_id=pc.crispr_id
-        where exp.id = ?
+     WHERE pr_out.well_id IN (
+        SELECT w.id
+        FROM process_design pd
+        INNER JOIN process_crispr pc ON pc.process_id=pd.process_id
+        INNER JOIN process_output_well pow ON pow.process_id=pd.process_id
+        INNER JOIN wells w ON w.id=pow.well_id
+        INNER JOIN plates p ON p.id=w.plate_id
+        INNER JOIN experiments exp ON exp.design_id=pd.design_id AND exp.crispr_id=pc.crispr_id
+        WHERE exp.id = ?
      )
      UNION
      SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
@@ -253,8 +253,8 @@ INNER JOIN plates op ON ow.plate_id=op.id
 INNER JOIN wells inw ON inw.id=input_well_id
 INNER JOIN plates inp ON inp.id=inw.plate_id
 INNER JOIN wells sw ON sw.id=start_well_id
-inner join miseq_well_experiment mwe on mwe.well_id=output_well_id
-inner join miseq_experiment me on mwe.miseq_exp_id=me.id
+INNER JOIN miseq_well_experiment mwe ON mwe.well_id=output_well_id
+INNER JOIN miseq_experiment me ON mwe.miseq_exp_id=me.id
 WHERE op.type_id = 'MISEQ' AND mwe.classification NOT IN ('Not Called','Mixed')
 AND me.experiment_id = ?
 EOT
