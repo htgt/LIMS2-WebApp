@@ -111,7 +111,6 @@ while (my $exp_rs = $miseq_experiments_rs->next) {
                     miseq_exp_id => $exp->{id}
                 };
             }
-            #print Dumper { $exp->{name} => $par_well->{plate_name} };
         }
     }
 
