@@ -474,26 +474,6 @@ sub get_ipsc_colonies_picked {
     per experiment and total per project
 =cut
 
-sub find_secondary_qc {
-    my ( $self, @mwes ) = @_;
-    my %data = ();
-    foreach my $mwe ( @mwes ) {
-        my @qc =
-            map { { $_->id => $_->classification->id } }
-            map { $_->miseq_well_experiments }
-            map { $_->output_wells }
-            map { $_->descendants->find_descendant_of_type($_, 'miseq_no_template') }
-            map { $_->output_wells }
-            map { $_->descendants->find_descendant_of_type($_, 'dist_qc') }
-            map { $_->input_wells }
-            $mwe->well->ancestors->find_process_of_type($mwe->well, 'miseq_no_template');
-        if ( scalar(@qc) ) {
-            $data{$mwe->well_id} = \@qc;
-        }
-    }
-    return \%data;
-}
-
 sub get_genotyping_data {
     my ($self, $c, @exps) = @_;
 
@@ -506,7 +486,7 @@ sub get_genotyping_data {
             'miseq_exp.experiment_id' => $exp_id,
             'parent_plate.type_id' => 'FP'
         }, {
-            prefetch => {'miseq_exp' => 'parent_plate' } 
+            prefetch => {'miseq_exp' => 'parent_plate' }
         })->count;
 
         $genotyping->{$exp_id}->{primary}->{total_number_of_clones} = $miseq_well_exp_count; #WRONG. Not all miseq exps will be primary.
@@ -518,13 +498,12 @@ sub get_genotyping_data {
         };
         my $class_regex = qr/^.*(Hom|Het|WT).*$/;
         foreach my $result_row (@results) {
-$DB::single=1;
             my $classification = $result_row->{classification};
             my ($call) = $classification =~ $class_regex;
             $call = lc $call;
 
             my $qc_stage = $stage_type->{ $result_row->{parent_plate_type} };
-                    
+
             $genotyping->{$exp_id}->{$qc_stage}->{$call}++;
             $genotyping->{total}->{$qc_stage}->{$call}++;
         }
@@ -595,14 +574,14 @@ sub generate_sub_report {
 
     my @sorted_data =  sort { $a->{gene_symbol} cmp $b->{gene_symbol} } @data;
     $report->{data} = \@sorted_data;
-$DB::single=1;
-    return $report;
 
+    return $report;
 }
 
 
 sub generate_total_sub_report {
     my $self = shift;
+    my $c = shift;
 
     my @total_data;
     my $total_sub_report;
@@ -613,7 +592,7 @@ sub generate_total_sub_report {
         my $curr_lab_head = $unit->{lab_head_id};
         my $curr_programme = $unit->{programme_id};
 
-        my $current_sub_report = $self->generate_sub_report($curr_sponsor, $curr_lab_head, $curr_programme);
+        my $current_sub_report = $self->generate_sub_report($c, $curr_sponsor, $curr_lab_head, $curr_programme);
 
         push @total_data, @{$current_sub_report->{data}};
     }

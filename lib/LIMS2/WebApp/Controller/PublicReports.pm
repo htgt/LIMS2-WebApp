@@ -695,7 +695,7 @@ sub pipeline_ii_workflow {
 
         } else {
 
-            my $total_sub_report = $pipeline_ii_report->generate_total_sub_report();
+            my $total_sub_report = $pipeline_ii_report->generate_total_sub_report($c);
 
             my $template = 'publicreports/sponsor_sub_report_ii.tt';
 
