@@ -90,7 +90,6 @@ while (my $exp_rs = $miseq_experiments_rs->next) {
         }
     }
     if ($ignore == 0) {
-$DB::single=1;
         my $mwe = $lims2_model->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $exp->{id} })->first;
         unless ($mwe) {
             next;
