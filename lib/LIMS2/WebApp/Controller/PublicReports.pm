@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::PublicReports;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.536';
+    $LIMS2::WebApp::Controller::PublicReports::VERSION = '0.537';
 }
 ## use critic
 
@@ -555,7 +555,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
                 'targeting_type' => $targeting_type,
             });
 
-        my $report_params = $sponsor_report->generate_sub_report($sponsor_id, $stage);
+        my $report_params = $sponsor_report->generate_sub_report($c, $sponsor_id, $stage);
          # Fetch details from returned report parameters
         my $report_id = $report_params->{ 'report_id' };
         my $disp_target_type = $report_params->{ 'disp_target_type' };
@@ -701,7 +701,7 @@ sub pipeline_ii_workflow {
 
         } else {
 
-            my $total_sub_report = $pipeline_ii_report->generate_total_sub_report();
+            my $total_sub_report = $pipeline_ii_report->generate_total_sub_report($c);
 
             my $template = 'publicreports/sponsor_sub_report_ii.tt';
 
@@ -758,7 +758,7 @@ sub pipeline_ii_workflow {
 
     } else {
 
-        my $sub_report = $pipeline_ii_report->generate_sub_report($sponsor_id, $lab_head, $programme);
+        my $sub_report = $pipeline_ii_report->generate_sub_report($c, $sponsor_id, $lab_head, $programme);
         my $template = 'publicreports/sponsor_sub_report_ii.tt';
 
         $c->stash(

@@ -2537,6 +2537,7 @@ root/static/jquery/js/jquery-ui-1.12.0.custom.min.js
 root/static/jquery/js/jquery.bootgrid.min.js
 root/static/jquery/js/jquery.bxslider.min.js
 root/static/jquery/js/jquery.dataTables.min.js
+root/static/jquery/js/jquery.floatThead.min.js
 root/static/js/angularplasmid.complete.min.js
 root/static/js/cookie.jquery.json
 root/static/js/crispr-es-qc-well-update.js

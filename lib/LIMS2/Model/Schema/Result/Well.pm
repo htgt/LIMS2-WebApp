@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Well;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Well::VERSION = '0.536';
+    $LIMS2::Model::Schema::Result::Well::VERSION = '0.537';
 }
 ## use critic
 
@@ -2183,7 +2183,9 @@ sub parent_plates {
 
     my @parent_wells = $self->parent_wells;
 
-    return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
+    my @plate_wells = map { { plate => $_->plate, well => $_ } } @parent_wells;
+
+    return @plate_wells;
 }
 
 __PACKAGE__->meta->make_immutable;
