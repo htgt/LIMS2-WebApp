@@ -208,7 +208,6 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
     if ($exp_hash) {
         $c->stash(indel_stats => encode_json($exp_hash));
     }
-$DB::single=1;
     $c->stash(
         miseq           => $miseq,
         oligo_index     => $index,
