@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.536     2019-05-07 10:32:23 Europe/London
+    Fixed Miseq Alleles db ref data
 0.535     2019-04-24 08:45:03 Europe/London
 
     fixed broken deployment
