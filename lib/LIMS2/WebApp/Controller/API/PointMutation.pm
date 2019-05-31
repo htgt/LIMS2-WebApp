@@ -29,7 +29,12 @@ sub point_mutation_summary_GET {
     my $experiment = $c->request->param( 'exp' );
     my $threshold = $c->request->param( 'limit' );
     my $percentage_bool = $c->request->param( 'perc' );
-    my $miseq_well_exp_hash = get_data($c->model('Golgi'), $miseq, $oligo_index, $experiment)->{miseq_well_experiment};
+    my $well_name = convert_index_to_well_name($oligo_index);
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+$DB::single=1;
+    my $well_rs = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate_rs->id, name => $well_name });
+    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
+    my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ miseq_exp_id => $miseq_exp->{id}, well_id => $well_rs->id })->as_hash;
     my @result;
     my $alleles = {
         data => get_frequency_data($c, $miseq_well_exp_hash)
