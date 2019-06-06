@@ -30,156 +30,6 @@ span0 {
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/crispr-qc.js' ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
 
-<script type="text/javascript">
-
-$(document).ready(function() {
-    if ('[% info.defined %]') {
-        document.title = 'Gene: [% info.gene_symbol %]';
-    }
-    // add labels to assembly qc verification using js to ensure they look the same
-    // across different pages
-    $(".assembly_qc_verified").each(function(){
-      var value = $(this).text();
-      addQCVerifiedLabel($(this),value);
-    });
-
-    $(".crispr_qc_accepted").each(function () {
-        var display_qc_link = $(this);
-        $(this).click(function(e) {
-            e.preventDefault();
-            if(display_qc_link.attr('data-toggle')){
-              // we've already got the alignment html so nothing to do
-              console.log('already have alignment popover');
-              display_qc_link.popover('toggle');
-            }
-            else{
-              // add a spinner while we wait
-              display_qc_link.before("<img class='spinner' src='[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]'/>");
-              // Fetch alignment html
-              var qc_well_id = $(this).data('qc_well_id');
-              var url = "[% c.uri_for('/user/crisprqc/well_alignment/') %]" + qc_well_id;
-              $.get(url)
-              .done(function(data){
-                  display_qc_link.parent().find(".spinner").remove();
-                  display_qc_link.attr("data-toggle","popover");
-                  display_qc_link.after('<div style="display:none">' + data + '</div>');
-                  var inner = display_qc_link.parent().find(".alignment_inner");
-                  // crispr-qc.js method to colour the alignments
-                  colour_alignment_pair(inner);
-                  display_qc_link.popover({
-                      content: display_qc_link.parent().find(".alignment"),
-                      container: 'body',
-                      html: true,
-                      placement: 'left'
-                  });
-                  // tried display_qc_link.popover('show') but this caused incorrect toggle
-                  // on next click
-                  display_qc_link.click();
-              })
-              .fail(function(data){
-                  console.log("failed to get alignment from " + url);
-                  display_qc_link.parent().find(".spinner").remove();
-                  display_qc_link.attr("data-toggle","popover");
-                  display_qc_link.popover({
-                      content: "Failed to get alignment for QC well ID: " + qc_well_id,
-                      container: 'body',
-                      html: true,
-                      placement: 'left'
-                  });
-                  display_qc_link.click();
-              });
-            }
-        });
-    });
-
-    $("#crispr_qc_expand").click(function(e){
-        console.log('clicked to expand crispr qc');
-        if($(this).data('populated') == 0){
-            console.log('fetching all qc details');
-            $(this).data('populated',1);
-            var all_requests = [];
-            $(".qc_result").each(function(){
-                var result_td = $(this);
-                var qc_well_id = $(this).data('qc_well_id');
-                var url = "[% c.uri_for('/user/crisprqc/qc_well_details/') %]" + qc_well_id;
-                var request = $.get(url)
-                .done(function(data){
-                    result_td.after(data);
-                    result_td.parent().find(".seq_spinner").remove();
-                    var inner = result_td.parent().find(".alignment_inner");
-                    // crispr-qc.js method to colour the alignments
-                    colour_alignment_pair(inner);
-                    // disable view traces button for now. We'll make it active
-                    // after all alignments have loaded.
-                    result_td.parent().find(".traces").addClass('disabled');
-                })
-                .fail(function(data){
-                    result_td.parent().find(".seq_spinner").html(
-                      "Could not get QC details for QC well ID: " + qc_well_id
-                    );
-                    console.log("failed to get qc details from " + url);
-                });
-
-                all_requests.push(request);
-            });
-
-            $.when.apply(null,all_requests).always(function(){
-                // Activate the trace button after all alignment api requests are complete
-                // NB: activating it immediately means that if user clicks it takes ages
-                // for trace to appear as request is stuck in queue behind alignment requests
-                console.log("Activating view traces buttons");
-                $(".traces").click(function(e) {
-                    e.preventDefault();
-                    //the code for this is inside jquery.flot.traceviewer.js
-                    var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
-                });
-                $(".traces").removeClass('disabled');
-            });
-        }
-    });
-
-  show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
-  $("#epd_accepted_show_toggle").click(function(){
-    var show_or_hide = $(this).attr('data');
-    toggle_btn( $(this), show_or_hide )
-    show_or_hide_non_accepted_rows( $( '#epd_well_table' ), show_or_hide );
-  });
-
-  show_or_hide_non_accepted_rows( $( '#piq_well_table' ), 'hide' );
-  $("#piq_accepted_show_toggle").click(function(){
-    var show_or_hide = $(this).attr('data');
-    toggle_btn( $(this), show_or_hide )
-    show_or_hide_non_accepted_rows( $( '#piq_well_table' ), show_or_hide );
-  });
-
-});
-
-function show_or_hide_non_accepted_rows(table, show_or_hide) {
-    table.children('tbody').children('tr').each(function() {
-        var accepted_value = $(this).find('.accepted').text().trim();
-        if ( accepted_value == 'no' ) {
-            if ( show_or_hide == 'hide' ) {
-                $(this).hide();
-            }
-            else {
-                $(this).show();
-            }
-        }
-    });
-}
-
-function toggle_btn(btn, show_or_hide) {
-    if ( show_or_hide == 'show' ) {
-        btn.text( 'Hide Non Accepted Wells' );
-        btn.attr('data', 'hide')
-    }
-    else {
-        btn.text( 'Show Non Accepted Wells' );
-        btn.attr('data', 'show')
-    }
-}
-
-</script>
 
 <div class="page-header">
   <h1>[% template.title %]</h1>
@@ -258,6 +108,78 @@ function toggle_btn(btn, show_or_hide) {
     </div>
   </div>
 [%- END %]
+
+
+
+
+
+[% INCLUDE 'user/pointmutation/miseq_alleles_frequency.tt' %]
+[% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
+
+[% IF pipeline_ii_qc.secondary_qc %]
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3>
+                <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapseSecondaryQCpII">
+                    Secondary MiSEQ QC
+                </a>
+            </h3>
+        </div>
+        <div id="collapseSecondaryQCpII" class="panel-body collapse">
+            <div class="panel-body">
+                [% FOREACH exp IN pipeline_ii_qc.secondary_qc %]
+                    <h3>[% exp.uniq_id %]</h3>
+                    [% INCLUDE 'publicreports/miseq_genotyping_row.tt' %]
+                [% END %]
+            </div>
+        </div>
+    </div>
+[%- END %]
+
+[% IF pipeline_ii_qc.primary_qc %]
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3>
+                <a class="panel-toggle" data-toggle="collapse" data-parent="#gene_report_accordion" href="#collapsePrimaryQCpII">
+                    Primary MiSEQ QC
+                </a>
+            </h3>
+        </div>
+        <div id="collapsePrimaryQCpII" class="panel-body collapse">
+            <div class="panel-body">
+                [% FOREACH exp IN pipeline_ii_qc.primary_qc %]
+                    <h3>[% exp.uniq_id %]</h3>
+                    [% INCLUDE 'publicreports/miseq_genotyping_row.tt' %]
+                [% END %]
+            </div>
+        </div>
+    </div>
+[%- END %]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!--CRISPR QC-->
 [%- IF crispr_qc %]
@@ -1212,6 +1134,130 @@ function toggle_btn(btn, show_or_hide) {
 [%- END %]
 
 <script type="text/javascript">
+
+$(document).ready(function() {
+    fillTables();
+    if ('[% info.defined %]') {
+        document.title = 'Gene: [% info.gene_symbol %]';
+    }
+    // add labels to assembly qc verification using js to ensure they look the same
+    // across different pages
+    $(".assembly_qc_verified").each(function(){
+      var value = $(this).text();
+      addQCVerifiedLabel($(this),value);
+    });
+
+    $(".crispr_qc_accepted").each(function () {
+        var display_qc_link = $(this);
+        $(this).click(function(e) {
+            e.preventDefault();
+            if(display_qc_link.attr('data-toggle')){
+              // we've already got the alignment html so nothing to do
+              console.log('already have alignment popover');
+              display_qc_link.popover('toggle');
+            }
+            else{
+              // add a spinner while we wait
+              display_qc_link.before("<img class='spinner' src='[% c.uri_for( '/static/images/spinner-circle-small.gif' ) %]'/>");
+              // Fetch alignment html
+              var qc_well_id = $(this).data('qc_well_id');
+              var url = "[% c.uri_for('/user/crisprqc/well_alignment/') %]" + qc_well_id;
+              $.get(url)
+              .done(function(data){
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.after('<div style="display:none">' + data + '</div>');
+                  var inner = display_qc_link.parent().find(".alignment_inner");
+                  // crispr-qc.js method to colour the alignments
+                  colour_alignment_pair(inner);
+                  display_qc_link.popover({
+                      content: display_qc_link.parent().find(".alignment"),
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  // tried display_qc_link.popover('show') but this caused incorrect toggle
+                  // on next click
+                  display_qc_link.click();
+              })
+              .fail(function(data){
+                  console.log("failed to get alignment from " + url);
+                  display_qc_link.parent().find(".spinner").remove();
+                  display_qc_link.attr("data-toggle","popover");
+                  display_qc_link.popover({
+                      content: "Failed to get alignment for QC well ID: " + qc_well_id,
+                      container: 'body',
+                      html: true,
+                      placement: 'left'
+                  });
+                  display_qc_link.click();
+              });
+            }
+        });
+    });
+
+    $("#crispr_qc_expand").click(function(e){
+        console.log('clicked to expand crispr qc');
+        if($(this).data('populated') == 0){
+            console.log('fetching all qc details');
+            $(this).data('populated',1);
+            var all_requests = [];
+            $(".qc_result").each(function(){
+                var result_td = $(this);
+                var qc_well_id = $(this).data('qc_well_id');
+                var url = "[% c.uri_for('/user/crisprqc/qc_well_details/') %]" + qc_well_id;
+                var request = $.get(url)
+                .done(function(data){
+                    result_td.after(data);
+                    result_td.parent().find(".seq_spinner").remove();
+                    var inner = result_td.parent().find(".alignment_inner");
+                    // crispr-qc.js method to colour the alignments
+                    colour_alignment_pair(inner);
+                    // disable view traces button for now. We'll make it active
+                    // after all alignments have loaded.
+                    result_td.parent().find(".traces").addClass('disabled');
+                })
+                .fail(function(data){
+                    result_td.parent().find(".seq_spinner").html(
+                      "Could not get QC details for QC well ID: " + qc_well_id
+                    );
+                    console.log("failed to get qc details from " + url);
+                });
+
+                all_requests.push(request);
+            });
+
+            $.when.apply(null,all_requests).always(function(){
+                // Activate the trace button after all alignment api requests are complete
+                // NB: activating it immediately means that if user clicks it takes ages
+                // for trace to appear as request is stuck in queue behind alignment requests
+                console.log("Activating view traces buttons");
+                $(".traces").click(function(e) {
+                    e.preventDefault();
+                    //the code for this is inside jquery.flot.traceviewer.js
+                    var tv = new TraceViewer( "[% c.uri_for('/public_api/trace_data') %]", $(this) );
+                });
+                $(".traces").removeClass('disabled');
+            });
+        }
+    });
+
+  show_or_hide_non_accepted_rows( $( '#epd_well_table' ), 'hide' );
+  $("#epd_accepted_show_toggle").click(function(){
+    var show_or_hide = $(this).attr('data');
+    toggle_btn( $(this), show_or_hide )
+    show_or_hide_non_accepted_rows( $( '#epd_well_table' ), show_or_hide );
+  });
+
+  show_or_hide_non_accepted_rows( $( '#piq_well_table' ), 'hide' );
+  $("#piq_accepted_show_toggle").click(function(){
+    var show_or_hide = $(this).attr('data');
+    toggle_btn( $(this), show_or_hide )
+    show_or_hide_non_accepted_rows( $( '#piq_well_table' ), show_or_hide );
+  });
+
+});
+
 $("#gene_id_input").autocomplete({
   source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
   minLength: 2,
@@ -1275,4 +1321,55 @@ function highlightSearch(state) {
         }
     }
 }
+
+function show_or_hide_non_accepted_rows(table, show_or_hide) {
+    table.children('tbody').children('tr').each(function() {
+        var accepted_value = $(this).find('.accepted').text().trim();
+        if ( accepted_value == 'no' ) {
+            if ( show_or_hide == 'hide' ) {
+                $(this).hide();
+            }
+            else {
+                $(this).show();
+            }
+        }
+    });
+}
+
+function toggle_btn(btn, show_or_hide) {
+    if ( show_or_hide == 'show' ) {
+        btn.text( 'Hide Non Accepted Wells' );
+        btn.attr('data', 'hide')
+    }
+    else {
+        btn.text( 'Show Non Accepted Wells' );
+        btn.attr('data', 'show')
+    }
+}
+
+
+var data = '[% pipeline_ii_qc_json %]';
+data = jsonify(data);
+
+function jsonify(raw) {
+    return JSON.parse(raw.replace(/&quot;/g,'"'));
+}
+
+function fillTables() {
+    var qc_types = Object.keys(data);
+
+    qc_types.forEach(function(qc) {
+        var expNames = Object.keys(data[qc]);
+    
+        expNames.forEach(function(exp) {
+            var rowDetails = data[qc][exp];
+            fillAlleles(exp, rowDetails);
+        });
+    });
+
+    return;
+}
+
+
 </script>
+

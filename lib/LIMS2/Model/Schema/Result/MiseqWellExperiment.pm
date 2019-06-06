@@ -283,6 +283,23 @@ sub status {
     return shift->status->id;
 }
 
+sub alleles_frequencies {
+    my $self = shift;
+    my $threshold_percentage = shift;
+    
+    my $read_threshold = 0;
+    if ($threshold_percentage) {
+        $read_threshold = ( $self->total_reads / 100 ) * $threshold_percentage;
+    }
+
+    my @sorted_freqs = sort { $b->{n_reads} <=> $a->{n_reads} }
+        grep { $_->{n_reads} > $read_threshold }
+        map { $_->as_hash }
+        $self->miseq_alleles_frequencies;
+
+    return @sorted_freqs;
+}
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;
 1;

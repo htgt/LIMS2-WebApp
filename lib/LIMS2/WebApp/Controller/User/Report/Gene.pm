@@ -5,9 +5,11 @@ use namespace::autoclean;
 use Date::Calc qw(Delta_Days);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::CrisprESQCView qw( crispr_damage_type_for_ep_pick ep_pick_is_het );
+use LIMS2::Model::Util::Miseq qw( query_miseq_tree_from_experiment );
 use List::MoreUtils qw( uniq );
 use Data::Dumper;
 use LIMS2::Model;
+use JSON;
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -210,6 +212,38 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
     }
     my $crispr_ids_str = join ",", @all_crispr_vecs;
 
+    if ($c->session->{selected_pipeline} eq 'pipeline_II') {
+        my $qc_results_pii;
+        my $qc_stage = {
+            FP  => 'primary_qc',
+            PIQ => 'secondary_qc',
+        };
+        my @experiment_ids = map { $_->{id} } @{ $experiments };
+        foreach my $exp_id (@experiment_ids) {
+            my @exp_dets = query_miseq_tree_from_experiment($c, $exp_id);
+            foreach my $exp_det (@exp_dets) {
+                my $well_exp_rs = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $exp_det->{miseq_well_exp_id} });
+                my $well_exp = $well_exp_rs->as_hash;
+                my $alleles_data = _adapt_allele_reads($well_exp->{total_reads}, $well_exp_rs);
+
+                my $key = $well_exp_rs->well->plate->name . '_' . $well_exp_rs->well->name . ' : ' . $exp_det->{miseq_experiment_name};
+                my $classed_results = {
+                    data            => $alleles_data,
+                    read_counts     => _calculate_read_percentages($well_exp),
+                    classification  => $well_exp->{classification},
+                    frameshift      => $well_exp->{frameshifted},
+                    uniq_id         => $key,
+                };
+
+                push @{ $qc_results_pii->{$qc_stage->{ $exp_det->{parent_plate_type} }} }, $classed_results;
+            }
+        }
+        my $json = JSON->new->allow_nonref;
+        my $qc_results_json = $json->encode($qc_results_pii);
+
+        $c->stash( 'pipeline_ii_qc' => $qc_results_pii, 'pipeline_ii_qc_json'  => $qc_results_json );
+    }
+
     $c->stash(
         'info'                 => $gene_info,
         'designs'              => \%designs_hash,
@@ -220,10 +254,74 @@ sub index :Path( '/user/report/gene' ) :Args(0) {
         'sponsor'              => $sponsor,
         'crispr_qc'            => $crispr_qc,
         'experiments'          => $experiments,
+
     );
 
     return;
 }
+
+sub _adapt_allele_reads {
+    my ($total_reads, $well_exp_rs) = @_;
+
+    my @rows;
+    my @reads = $well_exp_rs->alleles_frequencies(1);
+    my $factor = 100 / $total_reads;
+    my @headers = qw( Aligned_Sequence Reference_Sequence NHEJ UNMODIFIED HDR n_deleted n_inserted n_mutated );
+    foreach my $read_hash (@reads) {
+        my $row;
+        foreach my $header (@headers) {
+            $row->{$header} = $read_hash->{lc $header};
+        }
+        $row->{'#Reads'} = $read_hash->{n_reads};
+        $row->{'%Reads'} = sprintf "%.2f", ($read_hash->{n_reads} * $factor);
+        push (@rows, $row);
+    }
+    
+    push (@headers, '#Reads', '%Reads'); 
+    my $data = {
+        headers => \@headers,
+        rows    => \@rows,
+    };
+
+    return $data;
+}
+
+sub _calculate_read_percentages {
+    my $well_exp = shift;
+
+    my $class_assignment = {
+        hdr     => 'hdr_reads',
+        nhej    => 'nhej_reads',
+        mix     => 'mixed_reads',
+    };
+
+    my $reads;
+    my $edited_reads = 0;
+    my $total_reads = $well_exp->{total_reads};
+    my $percentile = 100 / $total_reads;
+    foreach my $class (keys %{$class_assignment}) {
+        my $edited_read_count = $well_exp->{ $class_assignment->{$class} };
+        $reads->{$class} = _read_calculation($edited_read_count, $percentile);
+        $edited_reads += $edited_read_count;
+    }
+    my $wt_count = $total_reads - $edited_reads;
+
+    $reads->{wt} = _read_calculation($wt_count, $percentile);
+
+    return $reads;
+}
+
+sub _read_calculation {
+    my ($count, $percentile) = @_;
+ 
+    my $read_totals = {
+        count   => $count,
+        perc    => sprintf "%.2f", ($count * $percentile),
+    };
+
+    return $read_totals;
+}
+
 
 sub _get_project_experiments {
     my ( $self, $projects ) = @_;

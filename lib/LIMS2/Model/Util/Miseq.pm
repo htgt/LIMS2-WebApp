@@ -246,7 +246,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_w
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
 )
-SELECT DISTINCT output_well_id, input_well_id, inp.type_id, start_well_id, mwe.classification, me.name, me.experiment_id
+SELECT DISTINCT output_well_id, input_well_id, inp.type_id, start_well_id, mwe.id, mwe.classification, me.name, me.experiment_id
 FROM well_hierarchy wh
 INNER JOIN wells ow ON ow.id=output_well_id
 INNER JOIN plates op ON ow.plate_id=op.id
@@ -269,6 +269,7 @@ sub query_miseq_tree_from_experiment {
         parent_well_id
         parent_plate_type
         origin_well_id
+        miseq_well_exp_id
         classification
         miseq_experiment_name
         experiment_id
@@ -347,71 +348,6 @@ sub _find_miseq_data_by_exp {
         }
     );
 }
-
-=head
-sub find_miseq_data_from_experiment {
-    my ($c, $experiment_id) = @_;
-    my $rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
-    {
-
-        experiment_id   => $experiment_id,
-        'miseq_well_experiments.classification'  => { '!=' => 'Not Called' },
-        'miseq_well_experiments.classification'  => { '!=' => 'Mixed' },
-        'plate_2.id' => { -ident => 'parent_plate_id' },
-    },
-    {
-        join => {
-            'miseq_well_experiments' => [{
-                'well' => [
-                    'plate',
-                    {
-                        'process_output_wells' => {
-                            'process' => {
-                                'process_input_wells' => {
-                                    'well' => 'plate',
-                                }
-                            }
-                        }
-                    }
-                ],
-            }],
-        },
-        prefetch => 'parent_plate',
-    });
-    
-
-    my @miseq_experiments;
-    while (my $miseq_exp = $rs->next) {
-        my $result = {
-            parent_plate    => $miseq_exp->parent_plate->as_hash,
-            #clones          => map { clone_information($_) } @{ $miseq_exp->miseq_well_experiments },
-        };
-        while (my $me = $miseq_exp->miseq_well_experiments->next) {
-            clone_information($me);
-        }
-        print Dumper $miseq_exp->parent_plate->name;
-        push (@miseq_experiments, $result);
-    }
-
-    return \@miseq_experiments;
-}
-
-sub clone_information {
-    my ($well_exp) = @_;
-    my $pows = $well_exp->well->process_output_wells;
-
-    while (my $pow = $pows->next) {
-        my $piws = $pow->process->process_input_wells;
-        while (my $piw = $piws->next) {
-            my $dets = $well_exp->as_hash;
-            $dets->{clone} = $piw->well->plate->name . '_' . $piw->well->name;
-            print Dumper $dets;
-        }
-    }
-
-    return;
-}
-=cut
 
 sub miseq_well_processes {
     my ($c, $params) = @_;

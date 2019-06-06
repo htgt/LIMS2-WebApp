@@ -1129,7 +1129,7 @@ sub _stash_pipeline_ii_genotyping_info {
 
     my $json = JSON->new->allow_nonref;
     my $alleles_json = $json->encode($alleles_data);
-
+$DB::single=1;
     $c->stash( data => $data, tables => $alleles_json );
 
     return;
