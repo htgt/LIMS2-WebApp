@@ -58,6 +58,11 @@
         [% ELSE %] 
           <th>[% col %]</th>
         [% END %]
+        [% IF col == 'Well ID' %]
+          [% SET well_id_index = loop.index %]
+        [% ELSIF col == 'Cell Number' %]
+          [% SET cell_num_index = loop.index %]
+        [% END %]
       [%- END %]
     </tr>
   </thead>
@@ -74,12 +79,12 @@
         [% END %]
         <td[% IF classes.size > 0 %] class="[% classes.join(' ') %]"[% END %]>
         [% IF columns.item(loop.index) == 'Freeze Plate' %]
-          [% SET child_well_id = "child_wells_" _ datum.0 %]
-          [% SET well_name = "A" _ datum.0 %]
+          [% SET child_well_id = "child_wells_" _ datum.$cell_num_index %]
+          [% SET well_name = "A" _ datum.$cell_num_index %]
           Colonies picked: <input type="number" value="96" id="[% child_well_id %]"><br>
           <input type="submit" value="Create" onclick="createFP('[% child_well_id %]', '[% well_name %]')">
         [% ELSIF columns.item(loop.index) == 'Existing FPs' %]
-          [% SET existing_fp_data = datum.item(loop.index).split(',') %]
+          [% SET existing_fp_data = val.split(',') %]
           [% FOR item IN existing_fp_data %]
             [% IF loop.index % 2 == 0 %] 
               [% SET fp_name = item %]
@@ -89,9 +94,9 @@
             [% END %]
           [% END %]
         [% ELSIF columns.item(loop.index) == 'T7 Status' %]
-          [% SET t7_status = datum.item(loop.index) %]
-          [% SET t7_status_id = "t7_status_" _ datum.0 %]
-          [% SET well_id = datum.16 %]
+          [% SET t7_status = val %]
+          [% SET well_id = datum.$well_id_index %]
+          [% SET t7_status_id = "t7_status_" _ datum.$cell_num_index %]
           <select id="[% t7_status_id %]" onchange="T7Change('[% t7_status_id %]', '[% well_id %]', 't7_status')">
           <option value="" selected disabled hidden>[% t7_status %]</option>
           <option value="-">-</option>
@@ -99,9 +104,9 @@
           <option value="fail">fail</option>
           </select>
         [% ELSIF columns.item(loop.index) == 'T7 Score' %]
-          [% SET t7_score = datum.item(loop.index) %]
-          [% SET t7_score_id = "t7_score_" _ datum.0 %]
-          [% SET well_id = datum.16 %]
+          [% SET t7_score = val %]
+          [% SET well_id = datum.$well_id_index %]
+          [% SET t7_score_id = "t7_score_" _ datum.$cell_num_index %]
           <select id="[% t7_score_id %]" onchange="T7Change('[% t7_score_id %]', '[% well_id %]', 't7_score')">
           <option value="" selected disabled hidden>[% t7_score %]</option>
           <option value="0">0</option>
