@@ -42,7 +42,7 @@ sub _build_wells_data {
             created_by      => $well_info->{created_by},
             well_id         => $well_info->{well_id},
             existing_fps => join(',', uniq((map {$_->plate_name, $_->plate_id} $well->descendants_of_type('FP')))),
-            default_cols_picked      => 0, 
+            default_cols_picked => 0,
         };
         push @wells_data, $temp;
     }
