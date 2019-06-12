@@ -416,7 +416,7 @@ sub save_json_report {
         if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 

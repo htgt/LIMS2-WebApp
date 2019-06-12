@@ -300,7 +300,7 @@ sub _view_cached_top_level_report {
         when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        when (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         default  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -415,7 +415,7 @@ sub save_json_report {
         when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        when (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         default  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -463,7 +463,7 @@ sub _view_cached_csv {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -927,7 +927,7 @@ sub _view_cached_lines {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /https?:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        elsif (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 

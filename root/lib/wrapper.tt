@@ -113,7 +113,7 @@
           <br />
           <a href="http://www.sanger.ac.uk/legal/">Terms and conditions</a> | <a href="http://www.sanger.ac.uk/legal/cookiespolicy.html">Cookies policy</a>.
           </p>
-          <img style="right:15px;bottom:15px;position:absolute;height:50px" alt="SangerLogo" src="[% c.uri_for( '/static/images/sanger_logo.png' ) %]">
+          <img style="right:15px;bottom:15px;position:absolute;height:50px" alt="SangerLogo" src="[% c.uri_for( '/static/images/sanger_logo.jpg' ) %]">
         </div>
       </div>
     </div>
