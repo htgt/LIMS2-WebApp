@@ -3,6 +3,7 @@ package LIMS2::Report::EPPipelineIIPlate;
 use Moose;
 use namespace::autoclean;
 use TryCatch;
+use List::MoreUtils qw(uniq);
 
 extends qw( LIMS2::ReportGenerator::Plate::SingleTargeted );
 
@@ -40,7 +41,8 @@ sub _build_wells_data {
             project_id      => $well_info->{project_id},
             created_by      => $well_info->{created_by},
             well_id         => $well_info->{well_id},
-            well_name       => $well->name,
+            existing_fps => join(',', uniq((map {$_->plate_name, $_->plate_id} $well->descendants_of_type('FP')))),
+            default_cols_picked      => 0, 
         };
         push @wells_data, $temp;
     }
@@ -62,7 +64,7 @@ override _build_columns => sub {
     my $self = shift;
 
     return [
-        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Crispr Pair ID', 'Crispr Group ID', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By', 'Well ID', 'Freeze Plate',
+        'Cell Number', 'Experiment', 'Experiment ID', 'Design ID', 'Crispr ID', 'Crispr Location', 'Crispr Pair ID', 'Crispr Group ID', 'T7 Score', 'T7 Status', 'Gene ID', 'Cell Line', 'Protein Type', 'Guided Type', 'Project ID', 'Created By', 'Well ID', 'Existing FPs', 'Freeze Plate'
     ];
 };
 
@@ -94,7 +96,8 @@ override iterator => sub {
             $well_data->{project_id},
             $well_data->{created_by},
             $well_data->{well_id},
-            $well_data->{well_name},
+            $well_data->{existing_fps},
+            $well_data->{default_cols_picked},
         );
 
         $well_data = shift @wells_data;

@@ -1,3 +1,10 @@
+<style type="text/css">
+.plate_links {
+    list-style-type: none; 
+    padding-left: 0;
+}
+</style>
+
 <script type="text/javascript" charset="utf-8">
 
     var grid;
@@ -84,13 +91,13 @@
                 "design id" = 1
                 "gene id" = 1
                 "gene symbol" = 1
+                "existing fps" = 1
                 } %]
             [% hidden = {
                 "gene id" = 1
                 "row id" = 1
                 "id" = 1
                 "well id" = 1
-                "freeze plate" = 1
                 } %]
 
 
@@ -153,6 +160,17 @@
                 ]
             });
 
+            var coloniesPicked = Ext.create('Ext.data.Store', {
+                fields: ['num'],
+                data: [
+                {"num":"0"},
+                {"num":"96"},
+                {"num":"192"},
+                {"num":"288"},
+                {"num":"384"}
+                ]
+            });
+
             var override_t7_score = Ext.create( 'Ext.form.ComboBox', {
                 queryMode: 'local',
                 store: t7_percent,
@@ -181,6 +199,14 @@
                 }
             });
 
+            var freezePlateMenu = Ext.create( 'Ext.form.ComboBox', {
+                queryMode: 'local',
+                store: coloniesPicked,
+                displayField: 'num',
+                forceSelection: false,
+                maskRe: /[0-9]/,
+            });
+
             var columns = [
                 [% first_column = 1 %]
                 [%- FOREACH col IN columns %]
@@ -203,6 +229,74 @@
                         locked: true,
                         width: 55
                     }
+                    [%- ELSIF col.match('Freeze Plate') %]
+                    {
+                        header: "Freeze Plate",
+                        dataIndex: 'Freeze Plate',
+                        items: [{
+                            xtype: 'button',
+                            text: 'Create all',
+                            width: 60,
+                            listeners: {
+                                click: function () {
+                                    var title = '[% title %]';
+                                    var plateNameRegex = /[^\s]+$/;
+                                    var plateNameMatch = plateNameRegex.exec(title);
+                                    var invalidInput = false;
+                                    var createPlates = false;
+                                    var errorCells = [];
+                                    var wellNames = [];
+                                    var childWellNumbers = [];
+                                    store.each(function(record) {
+                                        var coloniesPicked = record.get('Freeze Plate');
+                                        var cellNumber = record.get('Cell Number');
+                                        if (!Number.isInteger(Number(coloniesPicked))) {
+                                            invalidInput = true; 
+                                            errorCells.push(cellNumber);
+                                        } else if (coloniesPicked > 0) {
+                                            createPlates = true;
+                                            wellNames.push("A" + cellNumber);
+                                            childWellNumbers.push(coloniesPicked);
+                                        }
+                                    });
+                                    if (invalidInput) {
+                                        $("#response_alert").removeClass("alert-success").removeClass("alert-info").addClass("alert-danger");
+                                        message = "Invalid input in cell(s) " + errorCells;
+                                        $("#response_alert").html(message);
+                                    } else if (createPlates) {
+                                        $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
+                                        message = 'Creating freeze plate(s)...';
+                                        $("#response_alert").html(message);
+                                        $.post( "[% c.uri_for('/user/epII/expansion') %]", 
+                                        {
+                                            well_names:wellNames, 
+                                            plate_name:plateNameMatch[0],
+                                            child_well_numbers:childWellNumbers
+                                        }, 
+                                        function(result) {
+                                            if (result['plates'].length > 0) {
+                                                $("#response_alert").removeClass("alert-info").removeClass("alert-danger").addClass("alert-success");
+                                                message = "Freeze plate(s) created: " + result['plates'];
+                                                $("#response_alert").html(message);
+                                            }
+                                            if (result['errors'].length > 0) {
+                                                $("#response_alert").removeClass("alert-info").removeClass("alert-success").addClass("alert-danger");
+                                                message = result['errors'];
+                                                $("#response_alert").html(message);
+                                            }
+                                                
+                                        })
+                                    }
+                                }
+                            } 
+                        }],
+                        editor: freezePlateMenu, 
+                        locked: true,
+                        width: 100,
+                        renderer: function(val) {
+                            return "Colonies picked: " + val;
+                        }
+                    }
                     [%- ELSE %]
                 {
 
@@ -222,6 +316,24 @@
                     renderer: lims2_action_combo,
                     [%- ELSE %]
                     sortable: true,
+                    [%- END %]
+                    [%- IF col.match('Existing FPs') %]
+                        header: "Existing Freeze<br>Plates",
+                        width: 100,
+                        renderer: function(val, metData, record) {
+                            var existingFpData = val.split(",");
+                            //existingFpData contains a list with the name then id of each existing freeze plate 
+                            var plateLinks = [];
+                            for (var index in existingFpData) {
+                                if (index % 2 == 0) {
+                                    var plateName = existingFpData[index];
+                                } else {
+                                    var plateId = existingFpData[index];
+                                    plateLinks.push("<li>" + "<a target=\"_blank\" href=\"[% c.uri_for('/user/view_plate') %]" + "?id=" + plateId + "\">" + plateName + "</a></li>"); 
+                                }
+                            }
+                            return "<ul class= 'plate_links'>" + plateLinks.join("") + "</ul>";
+                        },
                     [%- END %]
                     [%- IF col.match( '[Dd]esign[_\- ][Ii][Dd]' ) %]
                         renderer: function(val) {
@@ -455,9 +567,9 @@
                 [% END %]
                 height: 750,
                 store: store,
+                title: plateName,
                 columnLines: true,
                 columns: columns,
-                title: plateName,
                 invalidateScrollerOnRefresh: false,
                 renderTo: 'my_results',
                 viewConfig: {
@@ -509,7 +621,7 @@
                 var cols    = grid.columns;
                 var store   = grid.store;
                 var data    = '';
-
+                    
                 var that = this;
                 Ext.Array.each(cols, function(col, index) {
                     if (col.hidden != true) {
@@ -578,4 +690,3 @@
     });
 
 </script>
-
