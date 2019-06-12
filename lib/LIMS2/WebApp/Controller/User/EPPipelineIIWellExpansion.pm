@@ -37,10 +37,10 @@ sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
         };
         try {
             my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
-        foreach my $freeze_plate (@$freeze_plates_created) {
-            push @new_plates, $freeze_plate;
-        }}
-        catch {
+            foreach my $freeze_plate (@$freeze_plates_created) {
+                push @new_plates, $freeze_plate;
+            }
+        } catch {
             push @errors, "$_";
         };
     }
