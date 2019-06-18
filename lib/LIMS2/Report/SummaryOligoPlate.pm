@@ -7,6 +7,7 @@ use Moose;
 use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq all );
+use SQL::Abstract;
 use Try::Tiny;
 
 extends qw( LIMS2::ReportGenerator );
@@ -138,8 +139,10 @@ sub build_plate_based_data {
 sub get_row_plate_by_plate {
     my ($self, $design_list, $plate_name) = @_;
 
-
-    my $search_condition = join(',', @{$design_list} );
+    my ( $where, @bind ) = SQL::Abstract->new->where({
+        design_plate_name => $plate_name,
+        design_id => { -in => $design_list },
+    });
 
     my $sql =  <<"SQL_END";
 SELECT design_gene_id, design_id,
@@ -150,12 +153,12 @@ concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
 concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
-FROM summaries where design_plate_name = '$plate_name' AND design_id IN ($search_condition) ORDER BY design_gene_id;
+FROM summaries $where ORDER BY design_gene_id;
 SQL_END
 
 
     # run the query
-    my $results = $self->run_select_query( $sql );
+    my $results = $self->run_select_query( $sql, @bind );
 
     my ($gene_count, $gene_design_count, $pcr_count, $gene_final_count, $gene_final_pass_count, $gene_dna_pass_count, $gene_ep_count, $gene_ep_pick_count, $gene_ep_pick_pass_count) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
     my ($gene_crispr_count, $gene_crispr_vector_count, $gene_crispr_dna_count, $gene_crispr_dna_accepted_count, $gene_crispr_pair_accepted_count, $gene_crispr_group_accepted_count) = (0, 0, 0, 0, 0, 0);
@@ -445,7 +448,10 @@ sub build_well_based_data {
 sub get_row_well_by_well {
     my ($self, $design_list, $plate_name, $well_name) = @_;
 
-    my $search_condition = join(',', @{$design_list} );
+    my ( $where, @bind ) = SQL::Abstract->new->where({
+        design_plate_name => $plate_name,
+        design_id => { -in => $design_list },
+    });
 
     my $sql =  <<"SQL_END";
 SELECT
@@ -457,11 +463,11 @@ concat(dna_plate_name, '_', dna_well_name, dna_well_accepted) AS DNA,
 concat(ep_plate_name, '_', ep_well_name) AS EP,
 concat(crispr_ep_plate_name, '_', crispr_ep_well_name) AS CRISPR_EP,
 concat(ep_pick_plate_name, '_', ep_pick_well_name, ep_pick_well_accepted) AS EP_PICK
-FROM summaries where design_plate_name = '$plate_name' AND design_well_name = '$well_name' AND design_id IN ($search_condition);
+FROM summaries $where;
 SQL_END
 
     # run the query
-    my $results = $self->run_select_query( $sql );
+    my $results = $self->run_select_query( $sql, @bind );
 
     # get the plates into arrays
     my (@gene_ids, @int, @gene_symbols, @design, @final_info, @dna_info, @ep, @ep_pick_info, @design_ids);
@@ -618,13 +624,13 @@ sub get_well_counts {
 
 # Generic method to run select SQL
 sub run_select_query {
-   my ( $self, $sql_query ) = @_;
+   my ( $self, $sql_query, @bind ) = @_;
 
    my $sql_result = $self->model->schema->storage->dbh_do(
       sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare( $sql_query );
-         $sth->execute or die "Unable to execute query: $dbh->errstr\n";
+         $sth->execute(@bind) or die "Unable to execute query: $dbh->errstr\n";
          $sth->fetchall_arrayref({
 
          });
