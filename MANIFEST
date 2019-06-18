@@ -100,7 +100,6 @@ lib/LIMS2/Model/Schema/Result/CrisprStorage.pm
 lib/LIMS2/Model/Schema/Result/CrisprTrackerRna.pm
 lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/CrispressoSubmission.pm
-lib/LIMS2/Model/Schema/Result/CrispressoSumnission.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
 lib/LIMS2/Model/Schema/Result/DesignAppendAlias.pm
@@ -545,7 +544,6 @@ root/site/user/editwells/add_well.tt
 root/site/user/editwells/move_well.tt
 root/site/user/engseqs/generate_sequence_file.tt
 root/site/user/engseqs/pick_gene_generate_sequence_file.tt
-root/site/user/eppipelineiiwellexpansion/expansion.tt
 root/site/user/error.tt
 root/site/user/experiments/view_experiment.tt
 root/site/user/externalproject/browse_sequencing_projects.tt
@@ -2538,6 +2536,7 @@ root/static/jquery/js/jquery-ui-1.12.0.custom.min.js
 root/static/jquery/js/jquery.bootgrid.min.js
 root/static/jquery/js/jquery.bxslider.min.js
 root/static/jquery/js/jquery.dataTables.min.js
+root/static/jquery/js/jquery.floatThead.min.js
 root/static/js/angularplasmid.complete.min.js
 root/static/js/cookie.jquery.json
 root/static/js/crispr-es-qc-well-update.js

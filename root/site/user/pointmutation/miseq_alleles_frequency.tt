@@ -83,10 +83,16 @@ function highlightBases(seq, crisprData, ref, quality) {
     for (var base = 0; base < seq.length; base++) {
         var letter = seq[base];
 
+        var crisprLoc = start;
+        if (accuracy == -1) {
+            crisprLoc += insertionOffset;
+        }
+
         var front = "";
-        if (base == start) {
+        if (base == crisprLoc) {
             if (accuracy == 0) {
                 front = '<span class="target">';
+                insertionOffset = 0;
             } else {
                 front = '<span class="possibleTarget">';
             }

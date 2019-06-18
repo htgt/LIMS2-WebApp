@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::PointMutation;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.535';
+    $LIMS2::WebApp::Controller::User::PointMutation::VERSION = '0.538';
 }
 ## use critic
 
@@ -183,7 +183,9 @@ sub point_mutation_allele : Path('/user/point_mutation_allele') : Args(0) {
 
     while ( $exps[0][$counter] ) {
         my $exp = $exps[0][$counter]->{id};
-        my $miseq_well_exp = get_data($c->model('Golgi'), $miseq, $index, $exp)->{miseq_well_experiment};
+        my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $exp, miseq_id => $miseq_plate_id })->as_hash;
+        my $miseq_well_exp = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ miseq_exp_id => $miseq_exp->{id}, well_id => $well_id })->as_hash;
+
         my @indel = map { $_->as_hash } $c->model('Golgi')->schema->resultset('IndelHistogram')->search({'miseq_well_experiment_id' => $miseq_well_exp->{id}});
         my $sum = 0;
         while (@indel) {

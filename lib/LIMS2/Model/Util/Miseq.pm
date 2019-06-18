@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::Miseq;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::Miseq::VERSION = '0.535';
+    $LIMS2::Model::Util::Miseq::VERSION = '0.538';
 }
 ## use critic
 
@@ -26,6 +26,7 @@ use Sub::Exporter -setup => {
               miseq_genotyping_info
               read_alleles_frequency_file
               qc_relations
+              query_miseq_tree_from_experiment
           )
     ]
 };
@@ -103,6 +104,7 @@ EOT
 
 #Following on from the ancestory query, we place the potential parent wells (FP, PIQ) into this query to search for Miseq offspring 
 #Find classifications which share a common ancestor (Usually FP) with our supplied plate (i.e. PIQ)
+
 
 
 sub query_miseq_details {
@@ -227,6 +229,80 @@ sub damage_classifications {
     return $class_mapping;
 }
 
+const my $QUERY_MISEQ_TREE_BY_EXPERIMENT_ID => <<'EOT';
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
+     FROM processes pr
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     WHERE pr_out.well_id IN (
+        SELECT w.id
+        FROM process_design pd
+        INNER JOIN process_crispr pc ON pc.process_id=pd.process_id
+        INNER JOIN process_output_well pow ON pow.process_id=pd.process_id
+        INNER JOIN wells w ON w.id=pow.well_id
+        INNER JOIN plates p ON p.id=w.plate_id
+        INNER JOIN experiments exp ON exp.design_id=pd.design_id AND exp.crispr_id=pc.crispr_id
+        WHERE exp.id = ?
+     )
+     UNION
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
+     FROM processes pr
+     JOIN process_output_well pr_out ON pr_out.process_id = pr.id
+     LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
+     JOIN well_hierarchy ON well_hierarchy.output_well_id = pr_in.well_id
+)
+SELECT DISTINCT output_well_id, input_well_id, inp.type_id, start_well_id, mwe.classification, me.name, me.experiment_id
+FROM well_hierarchy wh
+INNER JOIN wells ow ON ow.id=output_well_id
+INNER JOIN plates op ON ow.plate_id=op.id
+INNER JOIN wells inw ON inw.id=input_well_id
+INNER JOIN plates inp ON inp.id=inw.plate_id
+INNER JOIN wells sw ON sw.id=start_well_id
+INNER JOIN miseq_well_experiment mwe ON mwe.well_id=output_well_id
+INNER JOIN miseq_experiment me ON mwe.miseq_exp_id=me.id
+WHERE op.type_id = 'MISEQ' AND mwe.classification NOT IN ('Not Called','Mixed')
+AND me.experiment_id = ?
+EOT
+
+sub query_miseq_tree_from_experiment {
+    my ($c, $experiment_id) = @_;
+
+    my @results = @{ _query_miseq_tree_by_exp($c->model('Golgi'), $experiment_id) };
+
+    my @headers = qw(
+        miseq_well_id
+        parent_well_id
+        parent_plate_type
+        origin_well_id
+        classification
+        miseq_experiment_name
+        experiment_id
+    );
+    my @miseq_relations;
+    foreach my $miseq_well_relation (@results) {
+        my %mapping;
+        @mapping{@headers} = @{ $miseq_well_relation };
+        push @miseq_relations, \%mapping;
+    }
+
+    return @miseq_relations;
+}
+
+sub _query_miseq_tree_by_exp {
+    my ($self, $experiment_id) = @_;
+
+    my $query = $QUERY_MISEQ_TREE_BY_EXPERIMENT_ID;
+    return $self->schema->storage->dbh_do(
+        sub {
+            my ( $storage, $dbh ) = @_;
+            my $sth = $dbh->prepare_cached( $query );
+            $sth->execute( $experiment_id, $experiment_id );
+            $sth->fetchall_arrayref;
+        }
+    );
+}
+
 const my $QUERY_MISEQ_DATA_BY_EXPERIMENT_ID => <<'EOT';
 SELECT me.name, mwe.classification, mwell.name, mplate.name, fpwell.name, fp.name
 FROM miseq_experiment me
@@ -240,6 +316,7 @@ INNER JOIN plates fp ON fpwell.plate_id=fp.id AND me.parent_plate_id=fp.id
 WHERE experiment_id = ? AND mwe.classification != 'Not Called' AND mwe.classification != 'Mixed';
 EOT
 
+#Find all Classified Miseq well experiments related to an experiment ID
 sub find_miseq_data_from_experiment {
     my ($c, $experiment_id) = @_;
 

@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.535';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.538';
 }
 ## use critic
 
@@ -659,7 +659,7 @@ sub gene_symbols {
 
     my @ids = $self->gene_ids;
     my @symbols = map { $_->{gene_symbol} }
-                  values %{ $gene_finder->( $self->species_id, \@ids ) };
+        values %{ $gene_finder->( $self->species_id, \@ids ) };
     return @symbols;
 }
 

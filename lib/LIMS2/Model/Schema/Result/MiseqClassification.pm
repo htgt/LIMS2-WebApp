@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::MiseqClassification;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::MiseqClassification::VERSION = '0.535';
+    $LIMS2::Model::Schema::Result::MiseqClassification::VERSION = '0.538';
 }
 ## use critic
 
@@ -49,9 +49,19 @@ __PACKAGE__->table("miseq_classification");
   data_type: 'text'
   is_nullable: 0
 
+=head2 ordering
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
-__PACKAGE__->add_columns("id", { data_type => "text", is_nullable => 0 });
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "text", is_nullable => 0 },
+  "ordering",
+  { data_type => "integer", is_nullable => 1 },
+);
 
 =head1 PRIMARY KEY
 
@@ -98,8 +108,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-05-22 12:34:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:paMDFfSXdrkwOwJGMveP9A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-30 10:12:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4UlDzjuLe2vS69aB8GlJhA
 
 sub as_string {
     return shift->id;
