@@ -10,6 +10,7 @@ use LIMS2::Model::Util qw( sanitize_like_expr );
 use LIMS2::Model::Util::AlleleDetermination qw( determine_allele_types_for_genotyping_results );
 use List::MoreUtils qw( uniq );
 use Log::Log4perl qw( :easy );
+use SQL::Abstract;
 use namespace::autoclean;
 use Data::Dumper;
 
@@ -488,11 +489,11 @@ sub fast_delete_gqc_data {
 # The next two methods are used by the caller to return a plate of data or a set of well data
 
 sub get_genotyping_qc_plate_data {
-    my $self = shift;
-    my $plate_name = shift;
-    my $species = shift;
-    my $sql_query = $self->sql_plate_qc_query( $plate_name );
-    my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    my ( $self, $plate_name, $species ) = @_;
+    my $sql_query = $self->sql_plate_qc_query;
+    my @gqc_data = $self->get_genotyping_qc_browser_data(
+        $sql_query, $species, [ $plate_name ]
+    );
     # append the allele determination and workflow information for each well
     my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
     my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
@@ -500,12 +501,11 @@ sub get_genotyping_qc_plate_data {
 }
 
 sub get_genotyping_qc_well_data {
-    my $self = shift;
-    my $well_list = shift;
-    my $plate_name = shift;
-    my $species = shift;
-    my $sql_query = $self->sql_well_qc_query( $well_list );
-    my @gqc_data = $self->get_genotyping_qc_browser_data( $sql_query, $species );
+    my ( $self, $well_list, $plate_name, $species ) = @_;
+    my ( $sql_query, $wells_bind ) = $self->sql_well_qc_query( $well_list );
+    my @gqc_data = $self->get_genotyping_qc_browser_data(
+        $sql_query, $species, $wells_bind
+    );
     # append the allele determination and workflow information for each well
     my $AD = LIMS2::Model::Util::AlleleDetermination->new( 'model' => $self, 'species' => $species );
     my $gqc_data_with_allele_types = $AD->determine_allele_types_for_genotyping_results_array( \@gqc_data );
@@ -513,16 +513,12 @@ sub get_genotyping_qc_well_data {
 }
 
 sub get_genotyping_qc_browser_data {
-    my $self = shift;
-    my $sql_query = shift;
-    my $species = shift;
-
-# SQL query requires plate id as input
+    my ( $self, $sql, $species, $parameters ) = @_;
 my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
-         my $sth = $dbh->prepare_cached( $sql_query );
-         $sth->execute( );
+         my $sth = $dbh->prepare_cached( $sql );
+         $sth->execute( @{ $parameters } );
          $sth->fetchall_arrayref({
              'Well ID' => 1,
              'plate' => 1,
@@ -706,7 +702,6 @@ sub create_design_data_cache {
 
 sub sql_plate_qc_query {
     my $self = shift;
-    my $plate_name = shift;
 
     return <<"SQL_END";
 with wd as (
@@ -726,7 +721,7 @@ with wd as (
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
-        where p.name = '$plate_name'
+        where p.name = ?
         and w.plate_id = p.id
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
@@ -768,13 +763,15 @@ SQL_END
 }
 
 sub sql_well_qc_query {
-    my $self = shift;
-    my $well_list = shift;
-    # create a comma separated list for SQL
+    my ( $self, $well_list ) = @_;
 
-    $well_list = join q{,}, @{$well_list};
+    my $sqlgen = SQL::Abstract->new;
+    my ( $plates_wells_where, @wells_bind ) = $sqlgen->where({
+        'w.id' => { -in => $well_list },
+        'w.plate_id' => { -ident => 'p.id' }
+    });
 
-    return <<"SQL_END";
+    my $sql = <<"SQL_END";
 with wd as (
     select p.id "Plate ID"
     , p.name "plate"
@@ -792,8 +789,7 @@ with wd as (
     from plates p, wells w
         left join well_genotyping_results wgt
         on wgt.well_id = w.id
-        where w.id IN ($well_list)
-        and w.plate_id = p.id
+        $plates_wells_where
     order by w.name, wgt.genotyping_result_type_id )
 select wd."Plate ID", wd."plate", wd."plate_type", wd."Well ID", wd."well", wd.genotyping_result_type_id, wd.call,
     wd."Accepted",wd."Barcode",
@@ -830,6 +826,7 @@ left outer
         on wd."Well ID" = well_lab_number.well_id
 order by wd."Well ID"
 SQL_END
+    return $sql, \@wells_bind;
 }
 
 sub convert_bool {

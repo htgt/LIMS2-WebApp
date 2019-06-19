@@ -451,8 +451,11 @@ fetch list of Cre Knockin genes from LIMS2 projects table
 sub _fetch_lims2_cre_knockin_projects {
     my ( $self, $cre_ki_genes ) = @_;
 
-    my $sql_query_lims2_cre_projects    = $self->_sql_select_lims2_cre_project_genes();
-    my $sql_result_lims2_cre_genes      = $self->_run_select_query( $sql_query_lims2_cre_projects );
+    my $sql_result_lims2_cre_genes   = $self->_run_select_query(
+        $self->_sql_select_lims2_cre_project_genes,
+        'Cre Knockin',
+        $self->species,
+    );
 
     foreach my $cre_proj_row ( @{ $sql_result_lims2_cre_genes } ) {
         my $mgi_gene_id = $cre_proj_row->{ 'mgi_gene_id' };
@@ -476,8 +479,11 @@ select information from LIMS2 summaries table
 sub _add_lims2_data {
     my ( $self, $cre_ki_genes ) = @_;
 
-    my $sql_query_lims2_summary_data =  $self->_sql_select_lims2_summaries_data();
-    my $sql_result_lims2_summary_data = $self->_run_select_query( $sql_query_lims2_summary_data );
+    my $sql_result_lims2_summary_data = $self->_run_select_query(
+        $self->_sql_select_lims2_summaries_data,
+        'Cre Knockin',
+        $self->species,
+    );
 
     # transfer information from the flat sql result into the main genes hash
     foreach my $row ( @{ $sql_result_lims2_summary_data } ) {
@@ -1850,13 +1856,13 @@ generic method to run a sql query
 
 =cut
 sub _run_select_query {
-   my ( $self, $sql_query ) = @_;
+   my ( $self, $sql_query, @bind ) = @_;
 
    my $sql_result = $self->model->schema->storage->dbh_do(
       sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare( $sql_query );
-         $sth->execute or die "Unable to execute query: $dbh->errstr\n";
+         $sth->execute( @bind ) or die "Unable to execute query: $dbh->errstr\n";
          $sth->fetchall_arrayref({
 
          });
@@ -1874,15 +1880,12 @@ creates the sql query for selecting LIMS2 Cre Ki projects
 sub _sql_select_lims2_cre_project_genes {
     my ( $self ) = @_;
 
-    my $species = $self->species;
-    my $sponsor_id = 'Cre Knockin';
-
 my $sql_query =  <<"SQL_END";
 SELECT projects.gene_id AS mgi_gene_id, projects.id AS lims2_project_db_id
 FROM projects, project_sponsors ps
-WHERE ps.sponsor_id = '$sponsor_id'
+WHERE ps.sponsor_id = ?
 AND ps.project_id = projects.id
-AND projects.species_id = '$species'
+AND projects.species_id = ?
 ORDER BY projects.gene_id
 SQL_END
 
@@ -1896,9 +1899,6 @@ creates the sql query for selecting LIMS2 Cre Ki gene data
 =cut
 sub _sql_select_lims2_summaries_data {
     my ( $self ) = @_;
-
-    my $species_id = $self->species;
-    my $sponsor_id = 'Cre Knockin';
 
 my $sql_query =  <<"SQL_END";
 WITH cre_project_requests AS (
@@ -1920,9 +1920,9 @@ FROM projects p
 INNER JOIN targeting_profile_alleles pa ON pa.targeting_profile_id = p.targeting_profile_id
 INNER JOIN cassette_function cf ON cf.id = pa.cassette_function
 JOIN project_sponsors ps
-WHERE ps.sponsor_id   = '$sponsor_id'
+WHERE ps.sponsor_id   = ?
 AND p.targeting_type = 'single_targeted'
-AND p.species_id     = '$species_id'
+AND p.species_id     = ?
 )
 SELECT pr.project_id
 , pr.htgt_project_id
