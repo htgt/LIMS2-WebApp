@@ -10,6 +10,7 @@ bin/combine_projects_with_different_sponsors.pl
 bin/draw_plate_relations.pl
 bin/export_human_fixture_csv.sql
 bin/final_vector_report.pl
+bin/lims2_completions.sh
 bin/lims2_create_users.pl
 bin/lims2_dzil.sh
 bin/lims2_launch_test_app.sh
@@ -157,6 +158,7 @@ lib/LIMS2/Model/Schema/Result/PlateType.pm
 lib/LIMS2/Model/Schema/Result/PrimerBandType.pm
 lib/LIMS2/Model/Schema/Result/Priority.pm
 lib/LIMS2/Model/Schema/Result/Process.pm
+lib/LIMS2/Model/Schema/Result/Process.pm.bak
 lib/LIMS2/Model/Schema/Result/ProcessBac.pm
 lib/LIMS2/Model/Schema/Result/ProcessBackbone.pm
 lib/LIMS2/Model/Schema/Result/ProcessCassette.pm
@@ -294,6 +296,7 @@ lib/LIMS2/Model/Util/RankQCResults.pm
 lib/LIMS2/Model/Util/RedmineAPI.pm
 lib/LIMS2/Model/Util/RefdataUpload.pm
 lib/LIMS2/Model/Util/ReportForSponsors.pm
+lib/LIMS2/Model/Util/ReportForSponsors.pm.bak
 lib/LIMS2/Model/Util/SequencingProject.pm
 lib/LIMS2/Model/Util/SponsorReportII.pm
 lib/LIMS2/Model/Util/Trivial.pm
@@ -3480,3 +3483,4 @@ t/lib/LIMS2/t/WebApp/Pageset.pm
 t/lib/LIMS2/t/WebApp/Script/FastCGI.pm
 t/lib/LIMS2/t/WebApp/View/HTML.pm
 t/release-no-smart-comments.t
+test.pl

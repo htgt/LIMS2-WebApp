@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenesForSponsor;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenesForSponsor::VERSION = '0.538';
+    $LIMS2::Model::Util::GenesForSponsor::VERSION = '0.539';
 }
 ## use critic
 
@@ -65,15 +65,16 @@ sub _build_genes_and_sponsors {
     my $sql_query =  <<"SQL_END";
 SELECT p.gene_id, ps.sponsor_id, p.strategy_id FROM projects p, project_sponsors ps
 WHERE ps.project_id = p.id
-AND p.species_id = '$species_id'
-AND p.targeting_type = '$targeting_type'
+AND p.species_id = ?
+AND p.targeting_type = ?
 SQL_END
 
    my $sql_result = $self->model->schema->storage->dbh_do(
       sub {
          my ( $storage, $dbh ) = @_;
          my $sth = $dbh->prepare( $sql_query );
-         $sth->execute or die "Unable to execute query: $dbh->errstr\n";
+         $sth->execute($species_id, $targeting_type)
+             or die "Unable to execute query: $dbh->errstr\n";
          $sth->fetchall_arrayref({
 
          });
