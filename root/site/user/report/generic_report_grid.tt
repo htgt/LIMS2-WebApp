@@ -276,11 +276,10 @@
                                         function(result) {
                                             if (result['plates'].length > 0) {
                                                 for (newFp in result['plates']) {
-                                                    var cellNumMatch = result['plates'][newFp].match(/\d+$/)[0];
-                                                    if (cellNumMatch < 10) {
-                                                        var cellNumber = "0" + cellNumMatch;
-                                                    } else {
-                                                        var cellNumber = cellNumMatch;
+                                                    var cellNumber = result['plates'][newFp].match(/\d+$/)[0];
+                                                    if (cellNumber < 10) {
+                                                        cellNumber = "0" + cellNumber;
+                                                        //0 isn't included in plate name
                                                     }
                                                     var existingFpId = "existing_fp_" + cellNumber;
                                                     var existingFpList = document.getElementById(existingFpId);
