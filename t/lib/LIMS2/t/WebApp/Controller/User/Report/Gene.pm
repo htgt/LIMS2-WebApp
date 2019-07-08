@@ -4,6 +4,7 @@ use Test::Most;
 use LIMS2::WebApp::Controller::User::Report::Gene;
 use LIMS2::SummaryGeneration::SummariesWellDescend;
 use LIMS2::Test;
+use experimental qw(switch);
 
 use strict;
 
@@ -196,7 +197,8 @@ sub all_tests  : Tests() {
               <td>SFP0001_H08</td>
               <td><a', 'Checked SFP');
 
-    $mech->content_like(qr'graph_type=descendants&well_name=G04&plate_name=56', 'checked production graph');
+    my @items = ('graph_type=descendants', 'well_name=G04', 'plate_name=56');
+    $mech->content ~~ \@items, 'checked production graph';
 }
 
 =head1 AUTHOR

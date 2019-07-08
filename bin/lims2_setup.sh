@@ -1,8 +1,10 @@
+source /opt/sci/global/scripts/bash_utils.sh
+
 export L2I_STRING=LIMS2-Information
 export L2W_STRING=LIMS2-Warning
 export L2E_STRING=LIMS2-Error
 export LIMS2_DEBUG_DEFINITION="perl -d"
-export LIMS2_TEMP=/opt/t87/local/tmp
+export LIMS2_TEMP=/opt/sci/local/tmp
 export LIMS2_RNA_SEQ=/warehouse/team229_wh01/lims2_managed_miseq_data/
 
 #TODO: check that we are in the correct directory
@@ -52,6 +54,9 @@ case $1 in
         ;;
     regenerate_schema)
         lims2_regenerate_schema
+        ;;
+    fcgi)
+        lims2_fcgi $2
         ;;
     *)
         printf "Usage: lims2 sub-command [option]\n"
@@ -261,10 +266,10 @@ function lims2_devel {
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/WebApp-Common/lib
     export PERL5LIB=$PERL5LIB:$LIMS2_SHARED/Design-Creation/lib
     export PERL5LIB="$PERL5LIB:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl/modules:/software/pubseq/PerlModules/Ensembl/www_75_1/ensembl-compara/modules"
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-core-95/modules
-    export PERL5LIB=$PERL5LIB:/opt/t87/global/software/ensembl/ensembl-variation-95/modules
+    export PERL5LIB=$PERL5LIB:/opt/sci/global/software/perl/lib/perl5
+    export PERL5LIB=$PERL5LIB:/opt/sci/global/software/perl/lib/perl5/x86_64-linux-gnu-thread-multi
+    export PERL5LIB=$PERL5LIB:/opt/sci/global/software/ensembl/ensembl-core-90/modules
+    export PERL5LIB=$PERL5LIB:/opt/sci/global/software/ensembl/ensembl-variation-90/modules
     export PERL5LIB=$PERL5LIB:/software/oracle-ic-11.2/lib/perl5/5.10.1/x86_64-linux-thread-multi
     export SHARED_WEBAPP_STATIC_DIR=$LIMS2_SHARED/WebApp-Common/shared_static
     export SHARED_WEBAPP_TT_DIR=$LIMS2_SHARED/WebApp-Common/shared_templates
@@ -273,10 +278,19 @@ function lims2_devel {
 }
 
 function lims2_pg9.3 {
-    check_and_set PSQL_EXE /opt/t87/global/software/postgres/9.3.4/bin/psql
-    check_and_set PG_DUMP_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_dump
-    check_and_set PG_RESTORE_EXE /opt/t87/global/software/postgres/9.3.4/bin/pg_restore
+    check_and_set PSQL_EXE /usr/bin/psql
+    check_and_set PG_DUMP_EXE /usr/bin/pg_dump
+    check_and_set PG_RESTORE_EXE /usr/bin/pg_restore
     use pg9.3
+}
+
+function lims2_fcgi ()
+{
+    if [[ "$1" ]]; then
+        $LIMS2_DEV_ROOT/bin/fcgi-manager.pl --config "${LIMS2_FCGI_CONFIG}" "$1" lims2
+    else
+        printf "$L2E: must supply start|stop|restart to lims2 fcgi command\n";
+    fi
 }
 
 function lims2_show {
@@ -370,6 +384,8 @@ Commands avaiable:
     audit        - generate audit.up in the current directory for the selected database
     regenerate_schema
                  - generate new schema files for the currently selected database
+    fcgi <start|stop>
+                 - start/stop the server as a FastCGI process
     help         - displays this help message
 Files:
 ~/.lims2_local     - sourced near the end of the setup phase for you own mods
@@ -386,3 +402,13 @@ fi
 if [[ !"$PGUSER" ]]; then
     export PGUSER=lims2
 fi
+
+export REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf
+export LIMS2_WEBAPP_CONFIG=/opt/sci/global/conf/lims2/webapp.conf
+export PERL5LIB=/opt/sci/global/software/lims2/lib/
+export SHARED_WEBAPP_TT_DIR=/opt/sci/global/software/lims2/lib/WebAppCommon/shared_templates
+export LIMS2_ENSEMBL_USER=anonymous
+export LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
+export LIMS2_TEMP=/opt/t87/local/tmp
+export LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml
+

@@ -74,7 +74,7 @@ END_DIE
 sub get_db_names {
     if (exists $ENV{'LIMS2_DBCONNECT_CONFIG'} ) {
         return LoadFile($ENV{'LIMS2_DBCONNECT_CONFIG'})
-            or die "Unable to process file to get list of database names\n" ;
+            || die "Unable to process file to get list of database names\n" ;
     }
     else {
         print STDERR "You need to set LIMS2_DBCONNECT_CONFIG - have you run the correct setup script?\n";
