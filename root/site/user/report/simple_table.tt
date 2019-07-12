@@ -82,7 +82,7 @@
           [% SET child_well_id = "child_wells_" _ datum.$cell_num_index %]
           [% SET well_name = "A" _ datum.$cell_num_index %]
           Colonies picked: <input type="number" value="96" id="[% child_well_id %]"><br>
-          <input type="submit" value="Create" onclick="createFP('[% child_well_id %]', '[% well_name %]', '[% existing_fp_id %]')">
+          <input type="submit" class="createButton" value="Create" onclick="createFP('[% child_well_id %]', '[% well_name %]', '[% existing_fp_id %]')">
         [% ELSIF columns.item(loop.index) == 'Existing FPs' %]
           [% SET existing_fp_id = "existing_fp_" _ datum.$cell_num_index %]
           [% SET existing_fp_data = val.split(',') %]
@@ -144,6 +144,7 @@
         var plateName = document.title;
         var childWellNumber = document.getElementById(childWellId).value; 
         if (childWellNumber > 0) {
+            $(".createButton").attr("disabled", "disabled").css("opacity", 0.5);
             $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
             message = "Creating freeze plate(s)...";
             $("#response_alert").html(message);
@@ -170,6 +171,7 @@
                         message = result['errors'];
                         $("#response_alert").html(message);
                     }
+                    $(".createButton").removeAttr("disabled").css("opacity", 1);
                 }
             );
         }
