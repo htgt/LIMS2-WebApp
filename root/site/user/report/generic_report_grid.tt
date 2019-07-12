@@ -235,6 +235,7 @@
                         dataIndex: 'Freeze Plate',
                         items: [{
                             xtype: 'button',
+                            id: 'createButton',
                             text: 'Create all',
                             width: 60,
                             listeners: {
@@ -264,6 +265,7 @@
                                         message = "Invalid input in cell(s) " + errorCells;
                                         $("#response_alert").html(message);
                                     } else if (createPlates) {
+                                        Ext.getCmp('createButton').setDisabled(true).setText('Creating...');
                                         $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
                                         message = 'Creating freeze plate(s)...';
                                         $("#response_alert").html(message);
@@ -296,7 +298,7 @@
                                                 message = result['errors'];
                                                 $("#response_alert").html(message);
                                             }
-                                                
+                                            Ext.getCmp('createButton').setDisabled(false).setText('Create all');
                                         })
                                     }
                                 }
