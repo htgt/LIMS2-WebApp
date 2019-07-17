@@ -1,7 +1,7 @@
 package LIMS2::Model::Plugin::ProcessTree;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.538';
+    $LIMS2::Model::Plugin::ProcessTree::VERSION = '0.540';
 }
 ## use critic
 
@@ -11,6 +11,7 @@ use LIMS2::Model;
 use feature qw/ say /;
 use strict;
 use warnings;
+use SQL::Abstract;
 use Log::Log4perl qw( :easy );
 
 =pod
@@ -179,9 +180,11 @@ sub query_ancestors_by_well_id_list {
     my $self = shift;
     my $well_array_ref = shift;
 
-    my $well_list = join q{,}, @{$well_array_ref};
+    my ( $wells_where, @wells_bind ) = SQL::Abstract->new->where({
+        'pr_out.well_id' => { -in => $well_array_ref },
+    });
 
-    return << "QUERY_END";
+    my $sql = << "QUERY_END";
 -- Ancestors by well_id
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
@@ -189,9 +192,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-        WHERE pr_out.well_id IN (
-        $well_list
-     )
+     $wells_where
      UNION ALL
 -- Recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
@@ -204,6 +205,7 @@ SELECT distinct w.path
 FROM well_hierarchy w, process_design pd
 WHERE w.process_id = pd.process_id
 QUERY_END
+    return $sql, \@wells_bind;
 }
 
 sub pspec_paths_for_well_id_depth_first {
@@ -337,9 +339,11 @@ sub query_ancestors_by_well_list {
     my $self = shift;
     my $well_array_ref = shift;
 
-    my $well_list = join q{,}, @{$well_array_ref};
+    my ( $wells_where, @wells_bind ) = SQL::Abstract->new->where({
+        'pr_out.well_id' => { -in => $well_array_ref },
+    });
 
-    return << "QUERY_END";
+    my $sql = << "QUERY_END";
 -- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
@@ -347,9 +351,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     WHERE pr_out.well_id IN (
-        $well_list
-     )
+     $wells_where
      UNION ALL
 -- Recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
@@ -364,6 +366,7 @@ WHERE w.process_id = pd.process_id
 AND pd.design_id = gd.design_id
 GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
+    return $sql, \@wells_bind;
 }
 
 # TODO will not work with short arm designs
@@ -372,12 +375,12 @@ sub get_design_data_for_well_id_list {
     my $wells = shift;
 
 
-    my $sql_query = $self->query_ancestors_by_well_list( $wells );
+    my ( $sql, $bind ) = $self->query_ancestors_by_well_list( $wells );
     my $sql_result = $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
-         my $sth = $dbh->prepare_cached( $sql_query );
-         $sth->execute();
+         my $sth = $dbh->prepare_cached( $sql );
+         $sth->execute( @{ $bind } );
          $sth->fetchall_arrayref();
         }
     );
@@ -403,9 +406,11 @@ sub query_short_arm_ancestors_by_well_list {
     my $self = shift;
     my $well_array_ref = shift;
 
-    my $well_list = join q{,}, @{$well_array_ref};
+    my ( $wells_where, @wells_bind ) = SQL::Abstract->new->where({
+        'pr_out.well_id' => { -in => $well_array_ref },
+    });
 
-    return << "QUERY_END";
+    my $sql = << "QUERY_END";
 -- Ancestors by well list
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) AS (
 -- Non-recursive term
@@ -413,9 +418,7 @@ WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, path) A
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     WHERE pr_out.well_id IN (
-        $well_list
-     )
+     $wells_where
      UNION ALL
 -- Recursive term
      SELECT pr.id, pr_in.well_id, pr_out.well_id, path || pr_out.well_id
@@ -430,6 +433,7 @@ WHERE w.process_id = pd.process_id
 AND pd.design_id = gd.design_id
 GROUP BY w.output_well_id, pd.design_id,"original_well", gd.gene_id;
 QUERY_END
+    return $sql, \@wells_bind;
 }
 
 # This will only bring back short arm designs
@@ -438,12 +442,12 @@ sub get_short_arm_design_data_for_well_id_list {
     my $wells = shift;
 
 
-    my $sql_query = $self->query_short_arm_ancestors_by_well_list( $wells );
+    my ( $sql, $bind ) = $self->query_short_arm_ancestors_by_well_list( $wells );
     my $sql_result = $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
-         my $sth = $dbh->prepare_cached( $sql_query );
-         $sth->execute();
+         my $sth = $dbh->prepare_cached( $sql );
+         $sth->execute( @{ $bind } );
          $sth->fetchall_arrayref();
         }
     );
@@ -470,12 +474,12 @@ sub get_ancestors_for_well_id_list {
     my $self = shift;
     my $wells = shift;
 
-    my $sql_query = $self->query_ancestors_by_well_id_list( $wells );
+    my ( $sql, $bind ) = $self->query_ancestors_by_well_id_list( $wells );
     my $sql_result =  $self->schema->storage->dbh_do(
     sub {
          my ( $storage, $dbh ) = @_;
-         my $sth = $dbh->prepare_cached( $sql_query );
-         $sth->execute();
+         my $sth = $dbh->prepare_cached( $sql );
+         $sth->execute( @{ $bind } );
          $sth->fetchall_arrayref();
         }
     );
