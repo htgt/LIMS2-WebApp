@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+0.540     2019-07-17 12:29:37 Europe/London
+
+    Create well expansion improvements
+    Skip unit tests failing due to WGE
+
 0.539     2019-06-19 15:15:44 Europe/London
 
     Security enhancements
