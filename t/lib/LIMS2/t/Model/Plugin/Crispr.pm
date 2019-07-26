@@ -29,8 +29,7 @@ sub all_tests : Test(48) {
     my $crispr;
     {
 
-        ok $crispr = model->create_crispr( $create_crispr_data->{valid_crispr} ),
-            'can create new crispr';
+        ok $crispr = model->create_crispr( $create_crispr_data->{valid_crispr} ), 'can create new crispr';
         is $crispr->crispr_loci_type_id, 'Exonic',           '.. crispr type is correct';
         is $crispr->seq,                 'ATCGGCACACAGAGAG', '.. crispr seq is correct';
 
@@ -41,22 +40,20 @@ sub all_tests : Test(48) {
         ok my $off_targets = $crispr->off_targets, 'can retreive off targets from crispr';
         is $off_targets->count, 1, '.. we have 1 off targets';
         ok my $off_target = $off_targets->first, 'can grab off target';
-        is $off_target->crispr_id,    $crispr->id, '.. has correct crispr id';
+        is $off_target->crispr_id, $crispr->id, '.. has correct crispr id';
         is $off_target->off_target_crispr_id, 200, '.. has correct crispr off target id';
-        is $off_target->mismatches,             3, '.. has correct mismatch number';
+        is $off_target->mismatches,           3,   '.. has correct mismatch number';
 
         is $crispr->off_target_summaries->count, 1, 'We have only one off target summary';
         my $off_target_summary = $crispr->off_target_summaries->first;
-        is $off_target_summary->algorithm, 'strict', '.. correct algorithm';
-        is $off_target_summary->outlier,   0,        '.. correct outlier';
-        is $off_target_summary->summary, '{Exons: 5, Introns:10, Intergenic: 15}',
-            '.. correct summary';
+        is $off_target_summary->algorithm, 'strict',                                 '.. correct algorithm';
+        is $off_target_summary->outlier,   0,                                        '.. correct outlier';
+        is $off_target_summary->summary,   '{Exons: 5, Introns:10, Intergenic: 15}', '.. correct summary';
 
         throws_ok {
             model->create_crispr( $create_crispr_data->{species_assembly_mismatch} );
         }
-        qr/Assembly GRCm38 does not belong to species Human/,
-            'throws error when species and assembly do not match';
+        qr/Assembly GRCm38 does not belong to species Human/, 'throws error when species and assembly do not match';
 
         ok $off_target->delete, 'delete off target record';
     }
@@ -65,14 +62,12 @@ sub all_tests : Test(48) {
     {
 
         # with same off target algorithm
-        ok my $duplicate_crispr = model->create_crispr(
-            $create_crispr_data->{duplicate_crispr_same_off_target_algorithm}
-            ),
+        ok my $duplicate_crispr
+            = model->create_crispr( $create_crispr_data->{duplicate_crispr_same_off_target_algorithm} ),
             'can create dupliate crispr';
         is $duplicate_crispr->id, $crispr->id, 'we have the same crispr';
 
-        is $duplicate_crispr->off_target_summaries->count, 1,
-            'We still only have one off target summary';
+        is $duplicate_crispr->off_target_summaries->count, 1, 'We still only have one off target summary';
         my $off_target_summary = $duplicate_crispr->off_target_summaries->first;
         is $off_target_summary->algorithm, 'strict', '.. correct algorithm';
         is $off_target_summary->outlier,   1,        '.. correct outlier';
@@ -81,14 +76,12 @@ sub all_tests : Test(48) {
     note('Create dupliate crispr with different off target algorithm data');
     {
 
-        ok my $duplicate_crispr = model->create_crispr(
-            $create_crispr_data->{duplicate_crispr_different_off_target_algorithm}
-            ),
+        ok my $duplicate_crispr
+            = model->create_crispr( $create_crispr_data->{duplicate_crispr_different_off_target_algorithm} ),
             'can create dupliate crispr';
         is $duplicate_crispr->id, $crispr->id, 'we have the same crispr';
 
-        is $duplicate_crispr->off_target_summaries->count, 2,
-            'We have two off target summaries now';
+        is $duplicate_crispr->off_target_summaries->count, 2, 'We have two off target summaries now';
         ok my $easy_off_target_summary
             = $duplicate_crispr->off_target_summaries->find( { algorithm => 'easy' } ),
             'can find off target summary for easy algorithm';
@@ -98,8 +91,7 @@ sub all_tests : Test(48) {
 
     note('Testing retrival of crispr');
     {
-        ok my $crispr = model->retrieve_crispr( { id => $crispr->id } ),
-            'retrieve newly created crispr';
+        ok my $crispr = model->retrieve_crispr( { id => $crispr->id } ), 'retrieve newly created crispr';
         isa_ok $crispr, 'LIMS2::Model::Schema::Result::Crispr';
         ok my $crispr_2 = model->retrieve_crispr_collection( { crispr_id => $crispr->id } ),
             'can retrieve_crispr_collection (single crispr)';
@@ -119,12 +111,10 @@ sub all_tests : Test(48) {
         my $crispr_locus_data = $create_crispr_data->{valid_crispr_locus};
         $crispr_locus_data->{crispr_id} = $crispr->id;
 
-        ok my $crispr_locus = model->create_crispr_locus($crispr_locus_data),
-            'can create new crispr locus';
+        ok my $crispr_locus = model->create_crispr_locus($crispr_locus_data), 'can create new crispr locus';
 
         is $crispr_locus->assembly_id, 'NCBIM37', '.. assembly is correct';
     }
-
 
     note('Test finding crispr by sequence and locus');
     my $find_crispr_data = test_data('find_crispr_by_seq.yaml');
@@ -147,14 +137,12 @@ sub all_tests : Test(48) {
         $duplicate_crispr_data->{species_id}          = 'Mouse';
         $duplicate_crispr_data->{crispr_loci_type_id} = 'Exonic';
         $duplicate_crispr_data->{off_target_outlier}  = 0;
-        ok $crispr = model->_create_crispr($duplicate_crispr_data),
-            'can create new duplicate crispr';
+        ok $crispr = model->_create_crispr($duplicate_crispr_data), 'can create new duplicate crispr';
 
         throws_ok {
             model->find_crispr_by_seq_and_locus($valid_crispr_data);
         }
-        qr/Found multiple crispr sites/,
-            'throws correct error when multiple crispr sites with same sequence and locus';
+        qr/Found multiple crispr sites/, 'throws correct error when multiple crispr sites with same sequence and locus';
     }
 
     note('Test deletion of crispr');
@@ -192,12 +180,12 @@ sub create_crispr_off_target : Tests(12) {
     ok my $off_targets = $crispr->off_targets, 'can retreive off targets from crispr';
     is $off_targets->count, 1, '.. we have 1 off targets';
     ok my $off_target = $off_targets->first, 'can grab off target';
-    is $off_target->crispr_id,    $crispr->id, '.. has correct crispr id';
+    is $off_target->crispr_id, $crispr->id, '.. has correct crispr id';
     is $off_target->off_target_crispr_id, 200, '.. has correct crispr off target id';
-    is $off_target->mismatches,             2, '.. has correct mismatch number';
+    is $off_target->mismatches,           2,   '.. has correct mismatch number';
 
     throws_ok {
-        model->create_crispr( $create_crispr_ot_data->{valid_crispr_and_off_target} ),
+        model->create_crispr( $create_crispr_ot_data->{valid_crispr_and_off_target} ),;
     }
     qr/Crispr \d+ has off targets stored in database/, 'can not update off targets of pre existing crispr';
 
@@ -206,56 +194,55 @@ sub create_crispr_off_target : Tests(12) {
         ot_crispr_id => 113,
         mismatches   => 1,
     );
-    ok $off_target = model->create_crispr_off_target( \%new_off_target_data, $crispr ),
-        'can create new off target';
+    ok $off_target = model->create_crispr_off_target( \%new_off_target_data, $crispr ), 'can create new off target';
     is $off_target->off_target_crispr_id, 113, 'new off target record has correct ot crispr id';
 
     throws_ok {
-         model->create_crispr_off_target( \%new_off_target_data, $crispr )
+        model->create_crispr_off_target( \%new_off_target_data, $crispr );
     }
     qr/Crispr already has off target/, 'does not allow duplication of crispr off targets';
 
     $new_off_target_data{ot_crispr_id} = $crispr->id;
     throws_ok {
-         model->create_crispr_off_target( \%new_off_target_data, $crispr )
+        model->create_crispr_off_target( \%new_off_target_data, $crispr );
     }
     qr/Crispr can not be its own off target/, 'does not allow crispr to be its own off target';
 }
 
 sub crispr_importer : Test(8) {
-    my $species = 'Human';
-    my $assembly
-        = model->schema->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } )
-        ->assembly_id;
+SKIP: {
+        skip 'WGE inaccessible from deployment environment', 8 if ( $ENV{'SKIP_WGE_IMPORT_TESTS'} );
+        my $species = 'Human';
+        my $assembly
+            = model->schema->resultset('SpeciesDefaultAssembly')->find( { species_id => $species } )->assembly_id;
 
-    ok my @crisprs = model->import_wge_crisprs( [245377753], $species, $assembly ),
-        'can import crispr';
+        ok my @crisprs = model->import_wge_crisprs( [245377753], $species, $assembly ), 'can import crispr';
 
-    throws_ok {
-        model->import_wge_crisprs( [245377753], 'Mouse', 'GRCm38' );
+        throws_ok {
+            model->import_wge_crisprs( [245377753], 'Mouse', 'GRCm38' );
+        }
+        'LIMS2::Exception', 'species mismatch throws error';
+
+        throws_ok {
+            model->import_wge_crisprs( ['zz'], $species, $assembly );
+        }
+        'LIMS2::Exception', 'invalid crispr creates error';
+
+        ok my @pairs = model->import_wge_pairs( ['245377753_245377762'], $species, $assembly ),
+            'can import crispr pair';
+
+        #make sure crisprs with the same id dont get imported twice
+        use Data::Dumper;
+        is $crisprs[0]->{lims2_id}, $pairs[0]->{left_id}, 'Same imported crispr has correct id';
+        ok my $pair = model->retrieve_crispr_collection( { crispr_pair_id => $pairs[0]->{lims2_id} } ),
+            'can retrieve_crispr_collection (pair)';
+        isa_ok $pair, 'LIMS2::Model::Schema::Result::CrisprPair';
+
+        throws_ok {
+            ok model->import_wge_pairs( ['245377753_245377762'], 'Mouse', 'GRCm38' );
+        }
+        'LIMS2::Exception', 'species mismatch throws error';
     }
-    'LIMS2::Exception', 'species mismatch throws error';
-
-    throws_ok {
-        model->import_wge_crisprs( ['zz'], $species, $assembly );
-    }
-    'LIMS2::Exception', 'invalid crispr creates error';
-
-    ok my @pairs = model->import_wge_pairs( ['245377753_245377762'], $species, $assembly ),
-        'can import crispr pair';
-
-    #make sure crisprs with the same id dont get imported twice
-    use Data::Dumper;
-    is $crisprs[0]->{lims2_id}, $pairs[0]->{left_id}, 'Same imported crispr has correct id';
-    ok my $pair = model->retrieve_crispr_collection( { crispr_pair_id => $pairs[0]->{lims2_id} } ),
-        'can retrieve_crispr_collection (pair)';
-    isa_ok $pair, 'LIMS2::Model::Schema::Result::CrisprPair';
-
-    throws_ok {
-        ok model->import_wge_pairs( ['245377753_245377762'], 'Mouse', 'GRCm38' );
-    }
-    'LIMS2::Exception', 'species mismatch throws error';
-
 }
 
 =head1 AUTHOR
