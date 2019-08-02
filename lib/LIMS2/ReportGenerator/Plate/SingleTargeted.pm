@@ -44,7 +44,7 @@ Quicker method to grab data when using PlateReport custom resultset.
 =cut
 sub base_data_quick {
     my ( $self, $data, $args ) = @_;
-
+$DB::single=1;
     my @base_data = (
         $data->{well_name},
         $data->{design_id},

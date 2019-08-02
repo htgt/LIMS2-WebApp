@@ -1040,7 +1040,7 @@ sub fetch_values_for_type_fp {
 
 sub fetch_values_for_type_piq {
     my ( $self, $summary_row, $wells_hash, $model ) = @_;
-
+$DB::single=1;
     if ( defined $summary_row->piq_well_id && $summary_row->piq_well_id > 0 ) {
 
         my $plate_name     = $summary_row->piq_plate_name;

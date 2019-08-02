@@ -61,7 +61,7 @@ Synchronously generate the report I<$REPORT>. Forward to an HTML view.
 sub sync_report :Path( '/user/report/sync' ) :Args(1) {
     my ( $self, $c, $report ) = @_;
     $c->assert_user_roles( 'read' );
-
+$DB::single=1;
     my $params = $c->request->params;
     $params->{species} ||= $c->session->{selected_species};
 

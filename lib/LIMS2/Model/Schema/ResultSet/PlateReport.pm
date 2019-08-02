@@ -65,7 +65,7 @@ sub consolidate {
     for my $well_id ( keys %data ) {
         push @wells_data, $self->_consolidate_well_data( $data{ $well_id }, $wells{ $well_id }, $plate_user );
     }
-
+$DB::single=1;
     return \@wells_data;
 }
 

@@ -178,7 +178,7 @@ sub generate_report {
     INFO( "Generating $args{report} report $report_id" );
 
     my $work_dir = init_work_dir( $report_id );
-
+$DB::single=1;
     if ( $args{async} ) {
         run_in_background( $generator, $work_dir );
     }
