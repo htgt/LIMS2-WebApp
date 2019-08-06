@@ -56,6 +56,7 @@ sub submit : Path('/user/miseq/submit') : Args(0) {
 
 sub sequencing : Path('/user/miseq/sequencing') : Args(0) {
     my ( $self, $c ) = @_;
+$DB::single=1;
     my $bs    = LIMS2::Model::Util::BaseSpace->new;
     my @plates =
       $c->model('Golgi')->schema->resultset('Plate')

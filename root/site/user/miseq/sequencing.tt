@@ -5,8 +5,15 @@
     action="[% c.uri_for('/user/miseq/submit') %]">
     <div class="form-group">
         <label>
-            Plate:
-            <input name="plate" type="text" class="form-control" />
+            MiSEQ Plate:
+            <select id="walkup" name="walkup" class="form-control">
+                <option disabled selected>
+                    &#x2500;&#x2500;Please select a plate&#x2500;&#x2500;
+                </option>
+                [% FOREACH plate IN plates %]
+                    <option value="[% plate %]">[% plate %]</option>
+                [% END %]
+            </select>
         </label>
     </div>
     <div class="form-group">
@@ -83,4 +90,11 @@ $('#walkup').on('change', function() {
         }
     });
 });
+
+$('#miseqPlate').autocomplete({
+    source: "[% c.uri_for( '/api/autocomplete/plates_by_type' ) %]",
+    type: 'MISEQ',
+    minLength: 2,
+});
+
 </script>
