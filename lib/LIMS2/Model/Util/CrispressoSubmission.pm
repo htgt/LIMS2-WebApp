@@ -51,7 +51,7 @@ sub get_eps_for_plate {
             ]
         }
     );
-
+$DB::single=1;
     foreach my $row (@data) {
         my $design = $row->process->process_design->design;
         my %oligos = map {
@@ -77,7 +77,7 @@ sub get_eps_for_plate {
         my @miseqs = map { $wells{$_}->{index} + 1 } @{ $store->{miseqs} };
         my %values = (
             name =>
-              join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name} ),
+              join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
             crispr   => $row->process->process_crispr->crispr->seq,
             amplicon => $amplicon,
             strand   => q/+/,
@@ -85,6 +85,8 @@ sub get_eps_for_plate {
             hdr => single( map { $_->template } $design->hdr_templates->all ),
             min_index => min(@miseqs),
             max_index => max(@miseqs),
+            exp_id    => ,
+            parent_id => ,
         );
 
         foreach my $key ( keys %values ) {
@@ -114,6 +116,7 @@ sub get_eps_to_miseqs_map {
     my ( $model, $plate_id ) = @_;
     my $result = $model->get_ancestors_by_plate_id($plate_id);
     my %eps;
+$DB::single=1;
     foreach my $row ( @{$result} ) {
         my ( $pid, $iwid, $ep, $design, $miseq, $path ) = @{$row};
         if ( not exists $eps{$ep} ) {

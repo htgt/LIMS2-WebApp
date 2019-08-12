@@ -1,4 +1,19 @@
 [% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+<style>
+.amplicon .hdr .crispr {
+    font-family: monospace;
+    max-width: 200px;
+    width: 200px !important;
+    overflow-x: scroll;
+    display: inline-block;
+}
+
+#expTable {
+    table-layout: table;
+}
+
+</style>
+
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
 <h1>Import MiSEQ sequencing</h1>
 <form method="POST" enctype="multipart/form-data"
@@ -6,7 +21,7 @@
     <div class="form-group">
         <label>
             MiSEQ Plate:
-            <select id="walkup" name="walkup" class="form-control">
+            <select id="miseqPlate" name="miseqPlate" class="form-control">
                 <option disabled selected>
                     &#x2500;&#x2500;Please select a plate&#x2500;&#x2500;
                 </option>
@@ -18,9 +33,43 @@
     </div>
     <div class="form-group">
         <label>
-            Spreadsheet:
+            External Experiments:
             <input class="form-control-file" name="spreadsheet" type="file" />
         </label>
+    </div>
+    <div class="form-group">
+        <table id="expTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        Exp ID
+                    </th>
+                    <th>
+                        Miseq Exp Name
+                    </th>
+                    <th>
+                        Gene
+                    </th>
+                    <th>
+                        Start Well
+                    </th>
+                    <th>
+                        End Well
+                    </th>
+                    <th>
+                        Crispr
+                    </th>
+                    <th class="amplicon" style="max-width:200px">
+                        Amplicon
+                    </th>
+                    <th>
+                        HDR Amplicon
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="expBody">
+            </tbody>
+        </table>
     </div>
     <div class="form-group">
         <label>
@@ -90,11 +139,28 @@ $('#walkup').on('change', function() {
         }
     });
 });
-
-$('#miseqPlate').autocomplete({
-    source: "[% c.uri_for( '/api/autocomplete/plates_by_type' ) %]",
-    type: 'MISEQ',
-    minLength: 2,
+var test;
+$('#miseqPlate').on('change', function() {
+    $.ajax({
+        dataType: 'json',
+        type: 'GET',
+        url: '[% c.uri_for("/api/crispresso_submission") %]',
+        data: {
+            plate: $('#miseqPlate').val(),
+        },
+        success: function(data) {
+            test = data;
+            $('#expBody').empty();
+            var cols = ['exp_id', 'name', 'gene', 'min_index', 'max_index', 'crispr', 'amplicon', 'hdr'];
+            var exps = Object.values(data);
+            exps.forEach(function(exp) {
+                var row = $("#expBody").append($('<tr>').attr("id", exp['name']));
+                cols.forEach(function(column) {
+                    $('#' + exp['name']).append($('<td>').text( exp[column] ).addClass( column ));
+                });
+            });
+        }
+    });
 });
 
 </script>
