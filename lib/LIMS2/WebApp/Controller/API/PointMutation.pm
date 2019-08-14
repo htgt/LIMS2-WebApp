@@ -127,7 +127,7 @@ sub miseq_plate_POST {
     foreach my $fp (keys %{$data->{data}}) {
         $data->{data}->{$fp}->{wells} = flatten_wells($fp, $data->{data});
     }
-
+$DB::single=1;
     my $miseq = $c->model('Golgi')->miseq_plate_creation_json($data);
 
     return $self->status_created(

@@ -3,11 +3,7 @@ package LIMS2::Model::Util::CrispressoSubmission;
 use strict;
 use warnings FATAL => 'all';
 use Sub::Exporter -setup => {
-    exports => [
-        qw(
-              get_eps_for_plate
-          )
-    ]
+    exports => [ qw( get_eps_for_plate get_well_map ) ],
 };
 
 use Log::Log4perl qw( :easy );
@@ -51,7 +47,7 @@ sub get_eps_for_plate {
             ]
         }
     );
-$DB::single=1;
+
     foreach my $row (@data) {
         my $design = $row->process->process_design->design;
         my %oligos = map {
@@ -74,19 +70,27 @@ $DB::single=1;
                   single( map { $_->gene_id } $design->genes->all ),
             }
         );
-        my @miseqs = map { $wells{$_}->{index} + 1 } @{ $store->{miseqs} };
+        my @miseqs = map { $wells{$_}->{index} } @{ $store->{miseqs} };
+        my $crispr = $row->process->process_crispr->crispr;
+        my $exp = $model->schema->resultset('Experiment')->find({
+            crispr_id => $crispr->id,
+            design_id => $design->id,
+        });
+        if ($exp) {
+            $exp = $exp->id;
+        }
+$DB::single=1;
         my %values = (
             name =>
               join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
-            crispr   => $row->process->process_crispr->crispr->seq,
+            crispr   => $crispr->seq,
             amplicon => $amplicon,
             strand   => q/+/,
             gene     => $gene->{gene_symbol},
             hdr => single( map { $_->template } $design->hdr_templates->all ),
             min_index => min(@miseqs),
             max_index => max(@miseqs),
-            exp_id    => ,
-            parent_id => ,
+            exp_id    => $exp,
         );
 
         foreach my $key ( keys %values ) {

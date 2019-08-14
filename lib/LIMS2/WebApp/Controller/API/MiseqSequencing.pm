@@ -3,7 +3,7 @@ use Moose;
 use namespace::autoclean;
 use JSON;
 use Try::Tiny;
-use LIMS2::Model::Util::CrispressoSubmission;
+use LIMS2::Model::Util::CrispressoSubmission qw/get_eps_for_plate/;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -18,7 +18,7 @@ $DB::single=1;
     my $eps;
     if ($plate_rs) {
         my $plate_id = $plate_rs->id;
-        $eps = &LIMS2::Model::Util::CrispressoSubmission::get_eps_for_plate($c->model('Golgi'), $plate_id);
+        $eps = get_eps_for_plate($c->model('Golgi'), $plate_id);
     }
 
     my $json = JSON->new->allow_nonref;

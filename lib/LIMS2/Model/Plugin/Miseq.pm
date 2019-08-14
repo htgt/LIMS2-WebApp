@@ -10,6 +10,7 @@ use Log::Log4perl qw( :easy );
 use namespace::autoclean;
 use LIMS2::Model::Util::Miseq qw( miseq_well_processes );
 use Data::Dumper;
+use LIMS2::Model::Util::CrispressoSubmission qw/get_eps_for_plate/;
 
 requires qw( schema check_params throw retrieve log trace );
 
@@ -330,10 +331,10 @@ sub pspec_create_miseq_experiment {
         miseq_id        => { validate => 'existing_miseq_plate' },
         name            => { validate => 'non_empty_string' },
         gene            => { validate => 'non_empty_string' },
-        nhej_reads      => { validate => 'integer' },
+        nhej_reads      => { validate => 'integer', optional => 1 },
         parent_plate_id => { validate => 'existing_plate_id', optional => 1 },
         experiment_id   => { validate => 'existing_experiment_id', optional => 1 },
-        total_reads     => { validate => 'integer' },
+        total_reads     => { validate => 'integer', optional => 1 },
     };
 }
 
@@ -426,8 +427,44 @@ sub miseq_plate_creation_json {
     my $miseq_plate = $self->create_miseq_plate($miseq_plate_data);
 
     miseq_well_processes($self, $validated_params);
+$DB::single=1;
+    miseq_experiment_inheritance($self, $miseq_plate, $validated_params);
 
     return $miseq_plate;
+}
+
+sub miseq_experiment_inheritance {
+    my ($self, $miseq_plate, $params) = @_;
+$DB::single=1;
+    my $experiments = _construct_miseq_exps($self, $miseq_plate->id, $params);
+    foreach my $experiment (values %{ $experiments }) {
+        $self->create_miseq_experiment($experiment);
+    }
+
+    return;
+}
+
+sub _construct_miseq_exps {
+    my ($self, $miseq_plate_id, $params) = @_;
+
+    my $experiments;
+    foreach my $parent (keys %{ $params->{data} }) {
+        my $parent_plate = $self->schema->resultset('Plate')->find({ name => $parent });
+        my $eps = &LIMS2::Model::Util::CrispressoSubmission::get_eps_for_plate($self, $parent_plate->id);
+        foreach my $ep (keys %{ $eps }) {
+            my $ep_data = $eps->{$ep};
+            my $exp_name = $parent . '_' . $ep_data->{gene};  
+            $experiments->{$exp_name} = {
+                name                => $exp_name,
+                experiment_id       => $ep_data->{exp_id},
+                gene                => $ep_data->{gene},
+                parent_plate_id     => $parent_plate->id,
+                miseq_id            => $miseq_plate_id,
+            };
+        }
+    }
+
+    return $experiments;
 }
 
 sub pspec_create_primer_preset {
