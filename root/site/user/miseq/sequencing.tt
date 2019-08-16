@@ -1,20 +1,30 @@
 [% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
 <style>
-.amplicon .hdr .crispr {
-    font-family: monospace;
-    max-width: 200px;
-    width: 200px !important;
+
+.container {
+    margin-left: 100px;
+}
+
+.amplicon, .hdr, .crispr {
+    font-family: "Lucida Console", Monaco, monospace;
+    text-transform: uppercase;
+}
+
+td.amplicon, td.hdr:not(:empty) {
+    max-width: 400px !important;
+    width: 400px !important;
+    white-space: nowrap;
     overflow-x: scroll;
-    display: inline-block;
 }
 
 #expTable {
-    table-layout: table;
+    display: inline;
 }
 
 </style>
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
+
 <h1>Import MiSEQ sequencing</h1>
 <form method="POST" enctype="multipart/form-data"
     action="[% c.uri_for('/user/miseq/submit') %]">
@@ -59,7 +69,7 @@
                     <th>
                         Crispr
                     </th>
-                    <th class="amplicon" style="max-width:200px">
+                    <th>
                         Amplicon
                     </th>
                     <th>
@@ -139,7 +149,7 @@ $('#walkup').on('change', function() {
         }
     });
 });
-var test;
+
 $('#miseqPlate').on('change', function() {
     $.ajax({
         dataType: 'json',
@@ -149,14 +159,17 @@ $('#miseqPlate').on('change', function() {
             plate: $('#miseqPlate').val(),
         },
         success: function(data) {
-            test = data;
             $('#expBody').empty();
             var cols = ['exp_id', 'name', 'gene', 'min_index', 'max_index', 'crispr', 'amplicon', 'hdr'];
             var exps = Object.values(data);
             exps.forEach(function(exp) {
                 var row = $("#expBody").append($('<tr>').attr("id", exp['name']));
                 cols.forEach(function(column) {
-                    $('#' + exp['name']).append($('<td>').text( exp[column] ).addClass( column ));
+                    $('#' + exp['name']).append(
+                        $('<td>')
+                            .text( exp[column] )
+                            .addClass( column )
+                    );
                 });
             });
         }

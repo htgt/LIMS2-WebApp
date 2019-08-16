@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use LIMS2::Model::Util::MiseqImport;
 use Try::Tiny;
+
 BEGIN { extends 'Catalyst::Controller' }
 
 sub _check_params {

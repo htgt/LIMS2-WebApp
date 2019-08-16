@@ -1,10 +1,17 @@
 package LIMS2::Model::Util::CrispressoSubmission;
 
+use Sub::Exporter -setup => {
+    exports => [
+        qw(
+              get_eps_for_plate
+              get_eps_to_miseqs_map
+              get_well_map
+          )
+    ]
+};
+
 use strict;
 use warnings FATAL => 'all';
-use Sub::Exporter -setup => {
-    exports => [ qw( get_eps_for_plate get_well_map ) ],
-};
 
 use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
@@ -79,7 +86,6 @@ sub get_eps_for_plate {
         if ($exp) {
             $exp = $exp->id;
         }
-$DB::single=1;
         my %values = (
             name =>
               join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
@@ -120,7 +126,6 @@ sub get_eps_to_miseqs_map {
     my ( $model, $plate_id ) = @_;
     my $result = $model->get_ancestors_by_plate_id($plate_id);
     my %eps;
-$DB::single=1;
     foreach my $row ( @{$result} ) {
         my ( $pid, $iwid, $ep, $design, $miseq, $path ) = @{$row};
         if ( not exists $eps{$ep} ) {

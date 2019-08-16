@@ -427,7 +427,7 @@ sub miseq_plate_creation_json {
     my $miseq_plate = $self->create_miseq_plate($miseq_plate_data);
 
     miseq_well_processes($self, $validated_params);
-$DB::single=1;
+
     miseq_experiment_inheritance($self, $miseq_plate, $validated_params);
 
     return $miseq_plate;
@@ -435,7 +435,7 @@ $DB::single=1;
 
 sub miseq_experiment_inheritance {
     my ($self, $miseq_plate, $params) = @_;
-$DB::single=1;
+
     my $experiments = _construct_miseq_exps($self, $miseq_plate->id, $params);
     foreach my $experiment (values %{ $experiments }) {
         $self->create_miseq_experiment($experiment);
