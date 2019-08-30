@@ -1,8 +1,9 @@
 [% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+<script src="[% c.uri_for( '/static/jquery/js/jquery.csv.min.js' ) %]"></script>
 <style>
 
 .container {
-    margin-left: 100px;
+    margin-left: 200px;
 }
 
 .amplicon, .hdr, .crispr {
@@ -11,14 +12,12 @@
 }
 
 td.amplicon, td.hdr:not(:empty) {
-    max-width: 400px !important;
-    width: 400px !important;
+    max-width: 600px !important;
+    width: 600px !important;
     white-space: nowrap;
     overflow-x: scroll;
-}
-
-#expTable {
-    display: inline;
+    display: inline-block;
+    float: left;
 }
 
 </style>
@@ -31,7 +30,7 @@ td.amplicon, td.hdr:not(:empty) {
     <div class="form-group">
         <label>
             MiSEQ Plate:
-            <select id="miseqPlate" name="miseqPlate" class="form-control">
+            <select id="miseqPlate" name="miseq_plate" class="form-control">
                 <option disabled selected>
                     &#x2500;&#x2500;Please select a plate&#x2500;&#x2500;
                 </option>
@@ -44,11 +43,11 @@ td.amplicon, td.hdr:not(:empty) {
     <div class="form-group">
         <label>
             External Experiments:
-            <input class="form-control-file" name="spreadsheet" type="file" />
+            <input class="form-control-file" name="spreadsheet" type="file" id="spreadsheet" />
         </label>
     </div>
     <div class="form-group">
-        <table id="expTable" class="table table-striped">
+        <table id="expTable" class="table">
             <thead>
                 <tr>
                     <th>
@@ -70,10 +69,10 @@ td.amplicon, td.hdr:not(:empty) {
                         Crispr
                     </th>
                     <th>
-                        Amplicon
+                        Seq Name
                     </th>
                     <th>
-                        HDR Amplicon
+                        Sequence
                     </th>
                 </tr>
             </thead>
@@ -97,14 +96,18 @@ td.amplicon, td.hdr:not(:empty) {
     <div id="plates">
     </div>
     <div class="form-group">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="miseqSubmit">
             <i class="glyphicon glyphicon-import"></i>
             Import
         </button>
     </div>
+    <input type="hidden" name="run_data" id="runData">
 </form>
 
 <script type="text/javascript">
+
+var expData;
+
 $('#walkup').on('change', function() {
     var val = this.value;
     $.ajax({
@@ -156,24 +159,106 @@ $('#miseqPlate').on('change', function() {
         type: 'GET',
         url: '[% c.uri_for("/api/crispresso_submission") %]',
         data: {
-            plate: $('#miseqPlate').val(),
+            plate: $('#miseqPlate').val()
         },
         success: function(data) {
-            $('#expBody').empty();
-            var cols = ['exp_id', 'name', 'gene', 'min_index', 'max_index', 'crispr', 'amplicon', 'hdr'];
-            var exps = Object.values(data);
-            exps.forEach(function(exp) {
-                var row = $("#expBody").append($('<tr>').attr("id", exp['name']));
-                cols.forEach(function(column) {
-                    $('#' + exp['name']).append(
-                        $('<td>')
-                            .text( exp[column] )
-                            .addClass( column )
-                    );
-                });
-            });
+            expData = data;
+            buildTable();
         }
     });
 });
+
+$('#spreadsheet').on('change', function(evt) {
+    getSpreadsheetData(evt);
+});
+
+function tableColouring() {
+    $('td').css('background-color','');
+    var evenExpRows = $('.mainRow:even').map(function() { return this.id });
+    evenExpRows.map(function() {
+        $('.' + this).find('td').css('background-color', '#E3E3E3'); //light-grey
+    });
+
+    return;
+}
+
+function getSpreadsheetData(evt) {
+    var upload = $('#spreadsheet').prop('files')[0];
+
+    var files = evt.target.files;
+    var file = files[0];           
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        csvData = event.target.result;
+        var formattedData = $.csv.toObjects(csvData);
+        formatCSVForTable(formattedData);
+        buildTable(formattedData);
+    }
+    reader.readAsText(file);
+}
+
+function formatCSVForTable(csvData) {
+    csvData.forEach(function(expRow) {
+        var name = expRow['experiment'];
+        expData[name] = expRow;
+        expData[name]['name'] = name;
+        delete expData[name]['experiment'];
+    });
+
+    return;
+}
+
+function buildTable() {
+    $('#expBody').empty();
+    var cols = ['exp_id', 'name', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
+    var exps = Object.values(expData);
+    exps.forEach(function(exp) {
+        $("#expBody").append($('<tr>')
+            .attr("id", exp['name'])
+            .addClass("mainRow")
+            .addClass(exp['name'])
+        );
+
+        cols.forEach(function(column) {
+            buildCells(exp, column);
+        });
+
+        if ( exp['hdr'] ) {
+            buildRowHDR(exp);
+        }
+    });
+    tableColouring();
+    $('#runData').val(JSON.stringify(expData));
+}
+
+function buildCells(exp, column) {
+    if (column == 'seq_type') {
+        $('#' + exp['name']).append(
+            $('<td>')
+                .text( 'Amplicon' )
+                .addClass( column )
+        );
+    } else {
+        $('#' + exp['name']).append(
+            $('<td>')
+                .text( exp[column] )
+                .addClass( column )
+        );
+    }
+}
+
+function buildRowHDR(exp) {
+    $('#expBody').append(
+        $('<tr>')
+            .addClass(exp['name'])
+            .append(
+                $('<td colspan=6>'),
+                $('<td>').text('HDR'),
+                $('<td>')
+                    .text( exp['hdr'] )
+                    .addClass( 'hdr' )
+            )
+    );
+}
 
 </script>

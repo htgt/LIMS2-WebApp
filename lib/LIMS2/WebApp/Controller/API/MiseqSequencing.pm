@@ -19,7 +19,6 @@ sub crispresso_submission_GET {
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ 'LOWER(me.name)' => $plate_name });
     my $data;
     if ($plate_rs) {
-$DB::single=1;
         $data = _gather_miseq_experiments($c, $plate_rs);
     }
 
@@ -31,6 +30,16 @@ $DB::single=1;
     $c->response->body( $body );
 
     return;
+}
+
+sub crispresso_submission_POST {
+    my ( $self, $c ) = @_;
+
+    my $plate_name = lc $c->request->param('plate');
+    my $experiments = $c->request->param('data');
+$DB::single=1;
+    
+    return $c->res->redirect( $c->uri_for('/user/miseq/submit') );
 }
 
 sub _gather_miseq_experiments {
@@ -45,8 +54,8 @@ sub _gather_miseq_experiments {
         my $parent_maps = LIMS2::Model::Util::CrispressoSubmission::get_eps_to_miseqs_map( $c->model('Golgi'), $exp->parent_plate_id );
         my %well_map = LIMS2::Model::Util::CrispressoSubmission::get_well_map( $c->model('Golgi'), $parent_maps );
         my @wells = map { $_->{index} } values %well_map;
-$DB::single=1;
-        $exp_results->{$exp->id} = {
+
+        $exp_results->{$exp->name} = {
             exp_id          => $exp->experiment_id,
             name            => $exp->name,
             gene            => $exp->gene,
@@ -57,9 +66,10 @@ $DB::single=1;
             min_index       => min(@wells),
             max_index       => max(@wells),
         };
+
         my $hdr = $exp->experiment->design->hdr_template;
         if ($hdr) {
-            $exp_results->{$exp->id}->{hdr} = $hdr;
+            $exp_results->{$exp->name}->{hdr} = $hdr;
         }
     }
 

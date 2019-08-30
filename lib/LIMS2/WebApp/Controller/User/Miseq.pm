@@ -3,6 +3,7 @@ use Moose;
 use namespace::autoclean;
 use LIMS2::Model::Util::MiseqImport;
 use Try::Tiny;
+use JSON;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -23,27 +24,29 @@ sub _check_params {
 
 sub submit : Path('/user/miseq/submit') : Args(0) {
     my ( $self, $c ) = @_;
+
     try {
         foreach my $var (qw/PROCESS_PATH SCRIPTS_PATH STORAGE_PATH RAW_PATH/) {
             die "LIMS2_MISEQ_$var is not set"
               if not exists $ENV{"LIMS2_MISEQ_$var"};
         }
+
         _check_params(
             $c->request,
-            'plate' => 'You must specify which MiSeq plate was sent',
+            'miseq_plate' => 
+                'You must specify which MiSeq plate was sent',
             'walkup' =>
-              'You must specify which MiSeq walkup contained the data',
-            'spreadsheet' => {
-                type => 'upload',
-                message =>
-                  'You must upload a CSV containing the MiSeq manifest',
-            }
+                'You must specify which MiSeq walkup contained the data',
+            'run_data' => 
+                'You must specify a Miseq plate and/or MiSeq manifest',
         );
         my $importer = LIMS2::Model::Util::MiseqImport->new;
+        my $run_data = decode_json $c->request->param('run_data');
+
         my $data     = $importer->process(
-            plate       => $c->request->param('plate'),
+            plate       => $c->request->param('miseq_plate'),
             walkup      => $c->request->param('walkup'),
-            spreadsheet => $c->request->upload('spreadsheet')->tempname
+            run_data    => $run_data,
         );
         while ( my ( $key, $value ) = each( %{$data} ) ) {
             $c->stash->{$key} = $value;
@@ -52,6 +55,7 @@ sub submit : Path('/user/miseq/submit') : Args(0) {
     catch {
         $c->stash->{error_msg} = $_;
     };
+
     return;
 }
 

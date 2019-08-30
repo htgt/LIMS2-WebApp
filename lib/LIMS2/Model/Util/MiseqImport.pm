@@ -223,15 +223,15 @@ sub _submit_crispresso {
 
 sub process {
     my ( $self, %params ) = @_;
-
+$DB::single=1;
     my $jobid  = Data::UUID->new->create_str;
     my $plate  = $params{plate};
     my $walkup = $params{walkup};
     my $path =
       catfile( $ENV{LIMS2_MISEQ_PROCESS_PATH}, join( q/_/, $plate, $jobid ) );
     my $scripts = $ENV{LIMS2_MISEQ_SCRIPTS_PATH};
-
-    my $experiments = $self->_read_file( $params{spreadsheet} );
+    my $experiments = $params{run_data};
+    #my $experiments = $self->_read_file( $params{spreadsheet} );
     my $stash = { experiments => $experiments };
 
     die "'$plate' is not a valid name for a plate"   if not $plate  =~ m/^\w+$/;
