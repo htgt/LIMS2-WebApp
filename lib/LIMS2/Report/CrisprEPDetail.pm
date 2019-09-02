@@ -8,7 +8,6 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
-use experimental qw(switch);
 
 extends qw( LIMS2::ReportGenerator );
 
