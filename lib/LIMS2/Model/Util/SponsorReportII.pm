@@ -9,8 +9,6 @@ use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
 use Readonly;
-use experimental qw(switch);
-#use feature 'switch';
 use Time::HiRes 'time';
 use Data::Dumper;
 use LIMS2::Model::Util::Miseq qw( query_miseq_tree_from_experiment );

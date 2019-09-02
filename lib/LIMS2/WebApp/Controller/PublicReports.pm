@@ -13,8 +13,6 @@ use LIMS2::Model::Util::SponsorReportII;
 
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
-use experimental qw(switch);
-#use feature 'switch';
 use Text::CSV_XS;
 use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
