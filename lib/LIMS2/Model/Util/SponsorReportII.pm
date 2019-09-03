@@ -251,32 +251,30 @@ sub get_crispr_seq {
     my $crispr_type = $search_info->{type};
     my $experiment = $search_info->{experiment};
 
-    given ($crispr_type) {
-        when(/^crispr$/) {
-            push @seq, $experiment->crispr->seq;
-            return @seq;
-        }
+    if ($crispr_type =~ /^crispr$/) {
+        push @seq, $experiment->crispr->seq;
+        return @seq;
+    }
 
-        when(/^crispr_pair$/) {
-            my $crispr_pair_id = $experiment->crispr_pair_id;
-            my @crispr_pair_rs = $self->model->schema->resultset('CrisprPair')->search({
-                crispr_pair_id => $crispr_pair_id,
-                });
+    elsif ($crispr_type =~ /^crispr_pair$/) {
+        my $crispr_pair_id = $experiment->crispr_pair_id;
+        my @crispr_pair_rs = $self->model->schema->resultset('CrisprPair')->search({
+            crispr_pair_id => $crispr_pair_id,
+            });
 
-            @seq = map { $_->crispr->seq } @crispr_pair_rs;
-            return @seq;
+        @seq = map { $_->crispr->seq } @crispr_pair_rs;
+        return @seq;
 
-        }
+    }
 
-        when(/^crispr_group$/) {
-            my $crispr_group_id = $experiment->crispr_group_id;
-            my @crispr_group_rs = $self->model->schema->resultset('CrisprGroupCrispr')->search({
-                crispr_group_id => $crispr_group_id,
-                });
+    elsif ($crispr_type =~ /^crispr_group$/) {
+        my $crispr_group_id = $experiment->crispr_group_id;
+        my @crispr_group_rs = $self->model->schema->resultset('CrisprGroupCrispr')->search({
+            crispr_group_id => $crispr_group_id,
+            });
 
-            @seq = map { $_->crispr->seq } @crispr_group_rs;
-            return @seq;
-        }
+        @seq = map { $_->crispr->seq } @crispr_group_rs;
+        return @seq;
     }
 
     return;
