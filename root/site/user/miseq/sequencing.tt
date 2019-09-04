@@ -9,12 +9,12 @@
 .amplicon, .hdr, .crispr {
     font-family: "Lucida Console", Monaco, monospace;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 td.amplicon, td.hdr:not(:empty) {
     max-width: 600px !important;
     width: 600px !important;
-    white-space: nowrap;
     overflow-x: scroll;
     display: inline-block;
     float: left;
@@ -191,32 +191,24 @@ function getSpreadsheetData(evt) {
     reader.onload = function(event) {
         csvData = event.target.result;
         var formattedData = $.csv.toObjects(csvData);
-        formatCSVForTable(formattedData);
-        buildTable(formattedData);
+        formattedData.map(function(exp) {
+            expData[exp.experiment] = exp;
+        });
+        buildTable();
     }
+
     reader.readAsText(file);
-}
-
-function formatCSVForTable(csvData) {
-    csvData.forEach(function(expRow) {
-        var name = expRow['experiment'];
-        expData[name] = expRow;
-        expData[name]['name'] = name;
-        delete expData[name]['experiment'];
-    });
-
-    return;
 }
 
 function buildTable() {
     $('#expBody').empty();
-    var cols = ['exp_id', 'name', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
+    var cols = ['experiment_id', 'experiment', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
     var exps = Object.values(expData);
     exps.forEach(function(exp) {
         $("#expBody").append($('<tr>')
-            .attr("id", exp['name'])
+            .attr("id", exp['experiment'])
             .addClass("mainRow")
-            .addClass(exp['name'])
+            .addClass(exp['experiment'])
         );
 
         cols.forEach(function(column) {
@@ -232,25 +224,26 @@ function buildTable() {
 }
 
 function buildCells(exp, column) {
-    if (column == 'seq_type') {
-        $('#' + exp['name']).append(
-            $('<td>')
-                .text( 'Amplicon' )
-                .addClass( column )
-        );
-    } else {
-        $('#' + exp['name']).append(
-            $('<td>')
-                .text( exp[column] )
-                .addClass( column )
-        );
+    var textCellFormat = {
+        'crispr'    : function() { return trimCrispr(exp, column); },
+        'seq_type'  : function() { return 'Amplicon'; },
+    };
+    
+    var text = exp[column];
+    if (textCellFormat[column]) {
+        text = textCellFormat[column]();
     }
+    $('#' + exp['experiment']).append(
+        $('<td>')
+            .text( text )
+            .addClass( column )
+    );
 }
 
 function buildRowHDR(exp) {
     $('#expBody').append(
         $('<tr>')
-            .addClass(exp['name'])
+            .addClass(exp['experiment'])
             .append(
                 $('<td colspan=6>'),
                 $('<td>').text('HDR'),
@@ -259,6 +252,34 @@ function buildRowHDR(exp) {
                     .addClass( 'hdr' )
             )
     );
+}
+
+function trimCrispr(exp, column) {
+    var crispr = exp[column];
+    var boundaries = {
+        GG: {
+            orientation: 0,
+            cut: 20,
+        },
+        CC: {
+            orientation: 1,
+            cut: 3,
+        }
+    };
+    
+    if (crispr.length == 23) {
+        var pam = crispr.match(/(^CC|GG$)/i);
+        var boundary = boundaries[pam[0]];
+        crispr = crispr.substr(0, boundary.cut) + ' ' + crispr.substr(boundary.cut, 23);
+        storeShortCrispr(crispr, boundary, exp);
+    }
+
+    return crispr;
+}
+
+function storeShortCrispr(crispr, boundary, exp) {
+    var shortCrispr = crispr.split(' ')[ boundary['orientation'] ];
+    expData[ exp['experiment'] ]['crispr'] = shortCrispr;
 }
 
 </script>

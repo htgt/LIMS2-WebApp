@@ -161,7 +161,7 @@ sub miseq_hdr_template_GET {
         );
     }
 
-    my $hdr = $design_rs->hdr_template;
+    my $hdr = $design_rs->hdr_amplicon;
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $hdr );

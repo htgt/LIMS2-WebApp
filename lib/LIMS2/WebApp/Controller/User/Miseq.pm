@@ -33,20 +33,21 @@ sub submit : Path('/user/miseq/submit') : Args(0) {
 
         _check_params(
             $c->request,
-            'miseq_plate' => 
+            'miseq_plate' =>
                 'You must specify which MiSeq plate was sent',
             'walkup' =>
                 'You must specify which MiSeq walkup contained the data',
-            'run_data' => 
+            'run_data' =>
                 'You must specify a Miseq plate and/or MiSeq manifest',
         );
         my $importer = LIMS2::Model::Util::MiseqImport->new;
         my $run_data = decode_json $c->request->param('run_data');
+        my @experiments = values %{ $run_data };
 
         my $data     = $importer->process(
             plate       => $c->request->param('miseq_plate'),
             walkup      => $c->request->param('walkup'),
-            run_data    => $run_data,
+            run_data    => \@experiments,
         );
         while ( my ( $key, $value ) = each( %{$data} ) ) {
             $c->stash->{$key} = $value;
@@ -61,7 +62,7 @@ sub submit : Path('/user/miseq/submit') : Args(0) {
 
 sub sequencing : Path('/user/miseq/sequencing') : Args(0) {
     my ( $self, $c ) = @_;
-$DB::single=1;
+
     my $bs    = LIMS2::Model::Util::BaseSpace->new;
     my @plates =
       $c->model('Golgi')->schema->resultset('Plate')

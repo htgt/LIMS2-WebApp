@@ -1,5 +1,8 @@
 package LIMS2::Model::Util::CrispressoSubmission;
 
+use strict;
+use warnings FATAL => 'all';
+
 use Sub::Exporter -setup => {
     exports => [
         qw(
@@ -9,9 +12,6 @@ use Sub::Exporter -setup => {
           )
     ]
 };
-
-use strict;
-use warnings FATAL => 'all';
 
 use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
@@ -87,16 +87,16 @@ sub get_eps_for_plate {
             $exp = $exp->id;
         }
         my %values = (
-            name =>
-              join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
-            crispr   => $crispr->seq,
-            amplicon => $amplicon,
-            strand   => q/+/,
-            gene     => $gene->{gene_symbol},
-            hdr => single( map { $_->template } $design->hdr_templates->all ),
-            min_index => min(@miseqs),
-            max_index => max(@miseqs),
-            exp_id    => $exp,
+            name        =>
+                join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
+            crispr      => $crispr->seq,
+            amplicon    => $amplicon,
+            strand      => q/+/,
+            gene        => $gene->{gene_symbol},
+            hdr         => $design->hdr_amplicon,
+            min_index   => min(@miseqs),
+            max_index   => max(@miseqs),
+            exp_id      => $exp,
         );
 
         foreach my $key ( keys %values ) {

@@ -59,80 +59,24 @@ has spreadsheet_columns => (
 
 sub _build_spreadsheet_columns {
     tie my %columns, 'Tie::IxHash';
-    $columns{Experiment} = qr/.+/xms;    #anything goes, but must be something
-    $columns{Gene} = qr/^[A-Z0-9]+ # start with a gene symbol
-                        (?:_.*)? # can be followed by an underscore and whatever
-                        $/xms;
-    $columns{Crispr}    = qr/^[ACGT]{20}(?:,[ACGT]{20})*$/ixms;
-    $columns{Strand}    = qr/^[+-]$/xms;
-    $columns{Amplicon}  = qr/^[ACGT]+$/ixms;
-    $columns{min_index} = qr/^\d+$/xms;
-    $columns{max_index} = qr/^\d+$/xms;
-    $columns{HDR}       = qr/^[ACGT]*$/ixms;
+    $columns{experiment}        = qr/.+/xms;    #anything goes, but must be something
+    $columns{gene}              = qr/^[A-Z0-9]+ # start with a gene symbol
+                                    (?:_.*)? # can be followed by an underscore and whatever
+                                    $/xms;
+    $columns{experiment_id}     = qr/^\d+$/xms;
+    $columns{parent_plate_id}   = qr/^\d+$/xms;
+    $columns{crispr}            = qr/^[ACGT]{20}(?:,[ACGT]{20})*$/ixms;
+    $columns{strand}            = qr/^[+-]$/xms;
+    $columns{amplicon}          = qr/^[ACGT]+$/ixms;
+    $columns{min_index}         = qr/^\d+$/xms;
+    $columns{max_index}         = qr/^\d+$/xms;
+    $columns{hdr}               = qr/^[ACGT]*$/ixms;
     return \%columns;
-}
-
-sub _validate_columns {
-    my ( $self, $column_ref ) = @_;
-    my %columns = map { $_ => 1 } @{$column_ref};
-    my @missing = ();
-    foreach my $column ( $self->columns ) {
-        if ( not exists $columns{$column} ) {
-            push @missing, $column;
-        }
-    }
-    if (@missing) {
-        die 'Missing required columns: ' . join( q/, /, @missing );
-    }
-    return;
-}
-
-sub _validate_value {
-    my ( $row, $key, $validator, $line ) = @_;
-    my $value = $row->{$key} // q//;
-    if ( not $value =~ $validator ) {
-        my $line_text =
-          exists $row->{_rownum} ? " on line $row->{_rownum}" : q//;
-        die "'$value' is not a valid value for $key$line_text";
-    }
-    return;
-}
-
-sub _validate_values {
-    my ( $self, $row ) = @_;
-    foreach my $column ( $self->columns ) {
-        _validate_value( $row, $column, $self->get_rule($column) );
-    }
-    return;
-}
-
-sub _read_csv {
-    my ( $self, $fh ) = @_;
-    my $csv = Text::CSV->new( { binary => 1 } );
-    my $headers = $csv->getline($fh);
-    $self->_validate_columns($headers);
-    $csv->column_names( @{$headers} );
-    my @rows   = ();
-    my $rownum = 1;
-    while ( my $row = $csv->getline_hr($fh) ) {
-        $row->{_rownum} = ++$rownum;
-        $self->_validate_values($row);
-        push @rows, $row;
-    }
-    return \@rows;
-}
-
-sub _read_file {
-    my ( $self, $file ) = @_;
-    open my $fh, '<:encoding(utf8)', $file
-      or die "Could not open spreadsheet: $!";
-    my $exps = $self->_read_csv($fh);
-    close $fh or die "Could not close spreadsheet: $!";
-    return $exps;
 }
 
 sub _write_file {
     my ( $self, $exps ) = @_;
+
     my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
     open my $fh, '>', \my $buffer or die "Could not write spreadsheet: $!";
     my @columns = $self->columns;
@@ -146,6 +90,7 @@ sub _write_file {
 
 sub _get_plates {
     my ( $samples, $experiments ) = @_;
+
     my ( $num_rows, $num_cols, $num_plates ) = ( 0, 0, 0 );
     my %barcodes = ();
     my $a        = ord('A');
@@ -223,7 +168,7 @@ sub _submit_crispresso {
 
 sub process {
     my ( $self, %params ) = @_;
-$DB::single=1;
+
     my $jobid  = Data::UUID->new->create_str;
     my $plate  = $params{plate};
     my $walkup = $params{walkup};
@@ -231,7 +176,6 @@ $DB::single=1;
       catfile( $ENV{LIMS2_MISEQ_PROCESS_PATH}, join( q/_/, $plate, $jobid ) );
     my $scripts = $ENV{LIMS2_MISEQ_SCRIPTS_PATH};
     my $experiments = $params{run_data};
-    #my $experiments = $self->_read_file( $params{spreadsheet} );
     my $stash = { experiments => $experiments };
 
     die "'$plate' is not a valid name for a plate"   if not $plate  =~ m/^\w+$/;
@@ -298,4 +242,3 @@ $DB::single=1;
 }
 
 1;
-

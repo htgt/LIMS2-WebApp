@@ -2,6 +2,7 @@ package LIMS2::Model::Plugin::Miseq;
 
 use strict;
 use warnings FATAL => 'all';
+
 use Moose::Role;
 use Hash::MoreUtils qw( slice slice_def );
 use Const::Fast;
@@ -450,10 +451,10 @@ sub _construct_miseq_exps {
     my $experiments;
     foreach my $parent (keys %{ $params->{data} }) {
         my $parent_plate = $self->schema->resultset('Plate')->find({ name => $parent });
-        my $eps = &LIMS2::Model::Util::CrispressoSubmission::get_eps_for_plate($self, $parent_plate->id);
+        my $eps = get_eps_for_plate($self, $parent_plate->id);
         foreach my $ep (keys %{ $eps }) {
             my $ep_data = $eps->{$ep};
-            my $exp_name = $parent . '_' . $ep_data->{gene};  
+            my $exp_name = $parent . '_' . $ep_data->{gene};
             $experiments->{$exp_name} = {
                 name                => $exp_name,
                 experiment_id       => $ep_data->{exp_id},

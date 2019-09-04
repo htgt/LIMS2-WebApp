@@ -32,20 +32,10 @@ sub crispresso_submission_GET {
     return;
 }
 
-sub crispresso_submission_POST {
-    my ( $self, $c ) = @_;
-
-    my $plate_name = lc $c->request->param('plate');
-    my $experiments = $c->request->param('data');
-$DB::single=1;
-    
-    return $c->res->redirect( $c->uri_for('/user/miseq/submit') );
-}
-
 sub _gather_miseq_experiments {
     my ($c, $plate_rs) = @_;
 
-    my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ 
+    my $experiments = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({
         miseq_id => $plate_rs->miseq_plates->first->id,
     });
 
@@ -56,18 +46,18 @@ sub _gather_miseq_experiments {
         my @wells = map { $_->{index} } values %well_map;
 
         $exp_results->{$exp->name} = {
-            exp_id          => $exp->experiment_id,
-            name            => $exp->name,
+            experiment_id   => $exp->experiment_id,
+            experiment      => $exp->name,
             gene            => $exp->gene,
             crispr          => $exp->experiment->crispr->seq,
             amplicon        => $exp->experiment->design->amplicon,
             parent_plate    => $exp->parent_plate->name,
-            parent_id       => $exp->parent_plate_id,
+            parent_plate_id => $exp->parent_plate_id,
             min_index       => min(@wells),
             max_index       => max(@wells),
         };
 
-        my $hdr = $exp->experiment->design->hdr_template;
+        my $hdr = $exp->experiment->design->hdr_amplicon;
         if ($hdr) {
             $exp_results->{$exp->name}->{hdr} = $hdr;
         }
