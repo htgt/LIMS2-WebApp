@@ -106,7 +106,8 @@ td.amplicon, td.hdr:not(:empty) {
 
 <script type="text/javascript">
 
-var expData;
+var expData = {};
+var csvData;
 
 $('#walkup').on('change', function() {
     var val = this.value;
@@ -163,6 +164,7 @@ $('#miseqPlate').on('change', function() {
         },
         success: function(data) {
             expData = data;
+            populateCsvIntoTable();
             buildTable();
         }
     });
@@ -190,10 +192,8 @@ function getSpreadsheetData(evt) {
     var reader = new FileReader();
     reader.onload = function(event) {
         csvData = event.target.result;
-        var formattedData = $.csv.toObjects(csvData);
-        formattedData.map(function(exp) {
-            expData[exp.experiment] = exp;
-        });
+        csvData = $.csv.toObjects(csvData);
+        populateCsvIntoTable()
         buildTable();
     }
 
@@ -282,4 +282,13 @@ function storeShortCrispr(crispr, boundary, exp) {
     expData[ exp['experiment'] ]['crispr'] = shortCrispr;
 }
 
+function populateCsvIntoTable() {
+    if (csvData) {
+        csvData.map(function(exp) {
+            expData[exp.experiment] = exp;
+        });
+    }
+
+    return;
+}
 </script>
