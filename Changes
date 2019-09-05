@@ -1,5 +1,32 @@
 {{$NEXT}}
 
+0.539     2019-06-19 15:15:44 Europe/London
+
+    Security enhancements
+
+0.538     2019-06-18 11:15:47 Europe/London
+
+    Create well expansion improvements
+    Change T7 score/status in well details table
+
+0.537     2019-05-31 08:28:14 Europe/London
+    Front page reporting updated to fit 1st and 2nd QC
+0.536     2019-05-07 10:32:23 Europe/London
+    Fixed Miseq Alleles db ref data
+0.535     2019-04-24 08:45:03 Europe/London
+
+    fixed broken deployment
+
+0.534     2019-04-23 15:49:51 Europe/London
+
+    Miseq classification changes and help button
+
+0.533     2019-04-15 12:32:16 Europe/London
+    Duplicate designs block
+0.532     2019-04-03 14:31:49 Europe/London
+
+    Create well expansion process
+    Miseq design stranding fix
 0.531     2019-03-15 12:17:31 Europe/London
 
 0.530     2019-03-08 13:41:44 Europe/London

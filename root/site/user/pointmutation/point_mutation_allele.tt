@@ -277,6 +277,26 @@ input:checked + .slider:before {
                     </select>
                 </form>
             </div>
+            <div class="btn-group dropdown">
+                <button class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    Help 
+                    <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <dl class="dropdown-menu" style="width: 500px;padding: 5px">
+                    <dt>Not Called</dt> <dd>No classification has been set</dd>
+                    <dt>Failed</dt> <dd>Failed to recover from thaw</dd>
+                    <dt>Mixed</dt> <dd>2 or more cell populations detected</dd>
+                    <dt>WT</dt> <dd>No damage to either allele</dd>
+                    <dt>K/O Hom</dt> <dd>Frameshift damage with the same in/del observed in both alleles</dd>
+                    <dt>K/O Hom Compound</dt> <dd>Frameshift damage with a different in/del on each allele</dd>
+                    <dt>K/O Het</dt> <dd>Frameshift damage to one allele, second allele remains undamaged</dd>
+                    <dt>HDR Hom</dt> <dd>Desired change (e.g. SNP) made on both alleles</dd>
+                    <dt>HDR Het</dt> <dd>Desired change (e.g. SNP) made on one allele, no damage on second allele</dd>
+                    <dt>HDR K/O</dt> <dd>Desired change (e.g. SNP) on one allele, frame-shifting in/del on the other</dd>
+                    <dt>HDR Hemizygous</dt> <dd>Desired change (e.g. SNP) on the only allele present (gene resides on X chromosome)</dd>
+                    <dt>K/O Hemizygous</dt> <dd>Frameshift damage on the only allele present (gene resides on X chromosome)</dd>
+                </dl>
+            </div>
         </div>
         <div class='genes [% experiment.id %]'></div>
         <div class="bars" id="bars[% experiment.id %]"></div>
@@ -705,6 +725,7 @@ function getTargets(letter) {
 
 function createTable(exp, result) {
     result = JSON.parse(result);
+console.log(result);
 
     $('#crisprSeq' + exp).text(result.crispr.crispr);
     $('#crisprHeader' + exp).show();

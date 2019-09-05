@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Moose;
 use POSIX 'strftime';
+use List::Util qw/first/;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
 use Log::Log4perl ':easy';
@@ -12,6 +13,7 @@ use experimental qw(switch);
 #use feature 'switch';
 use Time::HiRes 'time';
 use Data::Dumper;
+use LIMS2::Model::Util::Miseq qw( query_miseq_tree_from_experiment );
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -473,64 +475,39 @@ sub get_ipsc_colonies_picked {
 =cut
 
 sub get_genotyping_data {
-    my ($self, @exps) = @_;
+    my ($self, $c, @exps) = @_;
 
     my $genotyping;
-
     foreach my $exp_rec (@exps) {
-        my @miseq_exps_and_wells;
-        my $original_exp_id = $exp_rec->{id};
+        my $exp_id = $exp_rec->{id};
+        my @results = query_miseq_tree_from_experiment($c, $exp_id);
 
-        ## Get the miseq experiment id using an experiment id
-        my @miseq_exp_rs = $self->model->schema->resultset('MiseqExperiment')->search({
-            experiment_id => $original_exp_id,
-            });
+        my $miseq_well_exp_count = $self->model->schema->resultset('MiseqWellExperiment')->search({
+            'miseq_exp.experiment_id' => $exp_id,
+            'parent_plate.type_id' => 'FP'
+        }, {
+            prefetch => {'miseq_exp' => 'parent_plate' }
+        })->count;
 
-        my @miseq_exp_ids = map { $_->id } @miseq_exp_rs;
+        $genotyping->{$exp_id}->{primary}->{total_number_of_clones} = $miseq_well_exp_count; #WRONG. Not all miseq exps will be primary.
+        $genotyping->{total}->{total_number_of_clones} += $miseq_well_exp_count;
 
-        if ( @miseq_exp_ids ) {
-            foreach my $exp_id (@miseq_exp_ids) {
-                @miseq_exps_and_wells = $self->model->schema->resultset('MiseqWellExperiment')->search({
-                    miseq_exp_id => $exp_id,
-                    });
+        my $stage_type = {
+            FP  => 'primary',
+            PIQ => 'secondary',
+        };
+        my $class_regex = qr/^.*(Hom|Het|WT).*$/;
+        foreach my $result_row (@results) {
+            my $classification = $result_row->{classification};
+            my ($call) = $classification =~ $class_regex;
+            $call = lc $call;
 
-                $genotyping->{$original_exp_id}->{primary}->{total_number_of_clones} = scalar @miseq_exps_and_wells;
-                $genotyping->{total}->{total_number_of_clones} += scalar @miseq_exps_and_wells;
+            my $qc_stage = $stage_type->{ $result_row->{parent_plate_type} };
 
-                foreach my $miseq_well (@miseq_exps_and_wells) {
-                    my $class = lc $miseq_well->classification->id;
-                    my $status = $miseq_well->status;
-                    given ($class) {
-                        when(/wild type/) {
-                            $genotyping->{$original_exp_id}->{primary}->{wt}++;
-                            $genotyping->{total}->{primary}->{wt}++;
-                            if ($status eq 'Scanned-Out') {
-                                $genotyping->{$original_exp_id}->{secondary}->{wt}++;
-                                $genotyping->{total}->{secondary}->{wt}++;
-                            }
-                        }
-                        when(/mixed/) {
-                            $genotyping->{$original_exp_id}->{primary}->{het}++;
-                            $genotyping->{total}->{primary}->{het}++;
-                            if ($status eq 'Scanned-Out') {
-                                $genotyping->{$original_exp_id}->{secondary}->{het}++;
-                                $genotyping->{total}->{secondary}->{het}++;
-                            }
-                        }
-                        when(/hom/) {
-                            $genotyping->{$original_exp_id}->{primary}->{hom}++;
-                            $genotyping->{total}->{primary}->{hom}++;
-                            if ($status eq 'Scanned-Out') {
-                                $genotyping->{$original_exp_id}->{secondary}->{hom}++;
-                                $genotyping->{total}->{secondary}->{hom}++;
-                            }
-                        }
-                    }
-                }
-            }
+            $genotyping->{$exp_id}->{$qc_stage}->{$call}++;
+            $genotyping->{total}->{$qc_stage}->{$call}++;
         }
     }
-
     return $genotyping;
 }
 
@@ -540,7 +517,7 @@ sub get_genotyping_data {
 =cut
 
 sub generate_sub_report {
-    my ($self, $sponsor_id, $lab_head, $programme) = @_;
+    my ($self, $c, $sponsor_id, $lab_head, $programme) = @_;
 
     my $report;
     my @data;
@@ -585,7 +562,7 @@ sub generate_sub_report {
         $row_data->{exp_ipscs_colonies_picked} = &{$launch_report_subs->{ 'ipscs_colonies_picked' }}($self, $exps_ep_ii_plate_names->{exps});
 
         ## primary and secondary genotyping
-        $row_data->{genotyping} = &{$launch_report_subs->{ 'genotyping' }}($self, @proj_exps);
+        $row_data->{genotyping} = &{$launch_report_subs->{ 'genotyping' }}($self, $c, @proj_exps);
 
         push @data, $row_data;
     }
@@ -599,12 +576,12 @@ sub generate_sub_report {
     $report->{data} = \@sorted_data;
 
     return $report;
-
 }
 
 
 sub generate_total_sub_report {
     my $self = shift;
+    my $c = shift;
 
     my @total_data;
     my $total_sub_report;
@@ -615,7 +592,7 @@ sub generate_total_sub_report {
         my $curr_lab_head = $unit->{lab_head_id};
         my $curr_programme = $unit->{programme_id};
 
-        my $current_sub_report = $self->generate_sub_report($curr_sponsor, $curr_lab_head, $curr_programme);
+        my $current_sub_report = $self->generate_sub_report($c, $curr_sponsor, $curr_lab_head, $curr_programme);
 
         push @total_data, @{$current_sub_report->{data}};
     }

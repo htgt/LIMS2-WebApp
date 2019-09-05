@@ -2177,7 +2177,9 @@ sub parent_plates {
 
     my @parent_wells = $self->parent_wells;
 
-    return [ map { { plate => $_->plate, well => $_ } } @parent_wells ];
+    my @plate_wells = map { { plate => $_->plate, well => $_ } } @parent_wells;
+
+    return @plate_wells;
 }
 
 __PACKAGE__->meta->make_immutable;

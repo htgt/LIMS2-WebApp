@@ -98,6 +98,16 @@ __PACKAGE__->table("miseq_alleles_frequency");
   default_value: 0
   is_nullable: 0
 
+=head2 reference_sequence
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 quality_score
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -126,6 +136,10 @@ __PACKAGE__->add_columns(
   { data_type => "integer", default_value => 0, is_nullable => 0 },
   "n_reads",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "reference_sequence",
+  { data_type => "text", is_nullable => 1 },
+  "quality_score",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -163,10 +177,12 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-03-28 09:21:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3oJN6zRym1XOvWWiq/9uBA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-08 10:48:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TdseI3cUjSTQQL3WJedYw
+
+use Try::Tiny;
+
 sub as_hash {
-    require Try::Tiny;
     my $self = shift;
 
     my %h = (
@@ -181,19 +197,35 @@ sub as_hash {
         n_mutated                   => $self->n_mutated, #TODO delete after migration
         n_reads                     => $self->n_reads,
     );
-    try {
-        my $ref = $self->reference_sequence;
-        if ($ref) {
-            $h{reference_sequence} = $ref;
-        }
-    };
 
-    try {
-        $h{quality_score} = $self->quality_score;
-    };
+    $h{reference_sequence} = $self->reference;
+    $h{quality_score} = $self->quality;
 
     return \%h;
 }
+
+sub reference {
+    my $self = shift;
+
+    my $ref;
+    try {
+        $ref = $self->reference_sequence;
+    };
+
+    return $ref;
+}
+
+sub quality {
+    my $self = shift;
+
+    my $quality;
+    try {
+        $quality = $self->quality_score;
+    };
+
+    return $quality;
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

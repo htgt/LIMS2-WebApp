@@ -121,8 +121,10 @@ sub as_hash {
     my $self = shift;
 
     my %h = (
-        indel_size                  =>  $self->indel_size,
-        frequency                   =>  $self->frequency,
+        id          => $self->id,
+        well_exp_id => $self->miseq_well_experiment_id,
+        indel_size  => $self->indel_size,
+        frequency   => $self->frequency,
     );
 
     return \%h;

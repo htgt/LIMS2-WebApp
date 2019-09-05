@@ -708,7 +708,8 @@ sub wells_parent_plate_GET {
     if ($plate_rs) {
         my @wells = $c->model('Golgi')->schema->resultset('Well')->search({ plate_id => $plate_rs->id });
         foreach my $well (@wells) {
-            foreach my $plate_well_rs (@{ $well->parent_plates }) {
+            my @parent_plates = $well->parent_plates;
+            foreach my $plate_well_rs (@parent_plates) {
                 my $plate = $plate_well_rs->{plate};
                 unless ($mapping->{$plate->name}) {
                     $mapping->{$plate->name}->{type} = $plate->type->id;

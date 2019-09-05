@@ -170,7 +170,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrispressoSubmission>
 __PACKAGE__->might_have(
   "crispresso_submission",
   "LIMS2::Model::Schema::Result::CrispressoSubmission",
-  { "foreign.id" => "self.id" },
+  { "foreign.miseq_well_exp_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -250,8 +250,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-11 09:54:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1TEF+W3Ae/dm9IUkDWIX/w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-30 10:16:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aunXBcusRU2ius56K0HwTA
 
 sub as_hash{
     my $self = shift;

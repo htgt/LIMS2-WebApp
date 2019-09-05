@@ -9,24 +9,46 @@ BEGIN { extends 'Catalyst::Controller' }
 sub expansion : Path( '/user/epII/expansion' ) : Args(0) {
     my ( $self, $c ) = @_;
 
-    my $parameters = {
-        plate_name        => $c->request->param('plate_name'),
-        parent_well       => $c->request->param('well_name'),
-        child_well_number => $c->request->param('child_well_number'),
-        species           => $c->session->{selected_species},
-        created_by        => $c->user->name,
-    };
-    try {
-        my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
-    $c->stash->{plate_list} = $freeze_plates_created;
+    my @parent_well_list;
+    my @child_well_num_list;
+    my $parent_well;
+    my $child_well_number;
+    my @new_plates;
+    my @errors;
+
+    if (ref($c->request->parameters->{'well_names[]'}) eq "ARRAY") {
+        @parent_well_list = @{$c->request->parameters->{'well_names[]'}};
+        @child_well_num_list = @{$c->request->parameters->{'child_well_numbers[]'}};
     }
-    catch {
-        $c->stash->{error_msg} = "$_";
-    };
+    else {
+        @parent_well_list = $c->request->parameters->{'well_names[]'};
+        @child_well_num_list = $c->request->parameters->{'child_well_numbers[]'};
+    }
+    foreach my $index (0 .. $#parent_well_list) {
+        $parent_well = $parent_well_list[$index];
+        $child_well_number = $child_well_num_list[$index];
+
+        my $parameters = {
+            plate_name        => $c->request->parameters->{'plate_name'},
+            parent_well       => $parent_well,
+            child_well_number => $child_well_number,
+            species           => $c->session->{selected_species},
+            created_by        => $c->user->name,
+        };
+        try {
+            my $freeze_plates_created = create_well_expansion( $c->model('Golgi'), $parameters );
+            foreach my $freeze_plate (@$freeze_plates_created) {
+                push @new_plates, $freeze_plate;
+            }
+        } catch {
+            push @errors, "$_";
+        };
+    }
+    $c->stash->{json_data} = {plates => \@new_plates, errors => \@errors};
+    $c->forward('View::JSON');
     return;
 }
 
 __PACKAGE__->meta->make_immutable;
 
 1;
-

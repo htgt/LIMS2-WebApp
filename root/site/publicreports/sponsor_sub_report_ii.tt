@@ -1,54 +1,93 @@
 [%- META title = "Summary Report II" %]
-
-[% IF sponsor_id %]
-  <SCRIPT LANGUAGE = JavaScript >
-  document.title = "[%- sponsor_id %]";
-  </SCRIPT>
-[% ELSE %]
-  <SCRIPT LANGUAGE = JavaScript >
-  document.title = "Total - Pipeline II";
-  </SCRIPT>
-[% END %]
-
-
+<script src="[% c.uri_for( '/static/jquery/js/jquery.floatThead.min.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/jquery/js/jquery.dataTables.min.js' ) %]"></script>
 <style type="text/css">
 
+.container {
+    margin-left: 15px;
+}
+
 a:hover {
-  cursor: pointer;
-}
-
-table.table-bordered {
-  border: 1.5px solid black;
-}
-
-table.table-bordered > thead > tr > th{
-  border: 1.5px solid black;
-}
-
-table.table-bordered > tbody > tr > td{
-  border: 1.5px solid black;
-}
-
-#stripes {
-  background: repeating-linear-gradient(
-  45deg,
-  #CCCCCC,
-  #CCCCCC 10px,
-  #EEEEEE 10px,
-  #EEEEEE 20px
-);
+    cursor: pointer;
 }
 
 #loading {
-   width: 100%;
-   height: 100%;
-   top: 0;
-   left: 0;
-   position: fixed;
-   opacity: 0.7;
-   background-color: #fff;
-   z-index: 99;
-   text-align: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+    opacity: 0.7;
+    background-color: white;
+    z-index: 99;
+    text-align: center;
+}
+
+#geneSearch {
+    padding: 5px;
+    margin: 5px;
+}
+
+tbody.projectGroup:nth-child(even) > tr > td, th {
+    background-color: #C8F2DD !important; #Aero Green
+}
+
+tbody.projectGroup:nth-child(even) > tr:nth-child(odd) > td, th {
+    background-color: #B4EED1 !important; #Mint Green
+}
+
+tbody.projectGroup:nth-child(odd) > tr:nth-child(even) > td, th {
+    background-color: #F2F2F2 !important; #Anti-flash white
+}
+
+th {
+    background-color: rgba(51, 66, 58, 0.8) !important; 'Dark Green, translucency
+    empty-cells: hide;
+    color: white;
+}
+
+th.primaryQC {
+    background-color: rgba(51, 66, 58, 0.9) !important; #Dark Green, slight translucency
+}
+
+th.secondaryQC {
+    background-color: rgba(51, 66, 58, 1) !important; #Dark Green, max alpha
+}
+
+table, th, td {
+    border: none !important;
+    text-align: left;
+}
+
+.trailingCell {
+    min-width: 100px;
+    width: 100px;
+    max-width: 100px;
+}
+
+.chromo {
+    min-width: 50px;
+    width: 50px;
+}
+
+.project {
+    min-width: 50px;
+    width: 50px;
+}
+
+.electro {
+    word-wrap: normal;
+    min-width: 120px;
+    width: 120px;
+    max-width: 120px;
+}
+
+.expDets {
+    min-width: 100px;
+}
+
+.expDets.crispr {
+    min-width: 200px
 }
 
 </style>
@@ -56,326 +95,243 @@ table.table-bordered > tbody > tr > td{
 <div id="loading"></div>
 
 <span style="float:right">
-  <a id='collapse_expand' type='button' class='btn btn-info btn-sm' onclick="collape_expand_exps('expand');"><b>Expand All</b></a>
-[% IF sponsor_id %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", {csv => '1', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes",{xlsx => '1',pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme}) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+    <button id='collapseExpand' type='button' class='btn btn-info btn-sm'>
+        Expand All
+    </button>
 
-  [% IF c.user %]
-    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', lab_head => lab_head, programme => programme }) %]" id='[% unit.sponsor_id %]'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
-  [% END %]
-[% ELSE %]
-  <a id='csv_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes", {csv => '1', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download CSV</b></a>
-  <a id='xlsx_download' type='button' class='btn btn-primary btn-sm'
-  href="[% c.uri_for( "/public_reports/sponsor_report/total/total/Genes",{xlsx => '1',pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]"><i class="glyphicon glyphicon-download-alt"></i><b> Download XLSX</b></a>
+    [% USE dl_uri = url( "/public_reports/sponsor_report/$targeting_type/$sponsor_id/Genes", pipeline='pipeline_ii', lab_head=lab_head ) %]
+    
+    <a id='csvDownload' type='button' class='btn btn-primary btn-sm' href="[% dl_uri(csv='1') %]">
+        <i class="glyphicon glyphicon-download-alt"></i>
+        <b> Download CSV</b>
+    </a>
+    <a id='xlsxDownload' type='button' class='btn btn-primary btn-sm' href="[% dl_uri(xlsx='1') %]">
+        <i class="glyphicon glyphicon-download-alt"></i>
+        <b> Download XLSX</b>
+    </a>
 
-  [% IF c.user %]
-    <a type='button' onclick="trigger_loader();" class='btn btn-info btn-sm' href="[%- c.uri_for( "/public_reports/sponsor_report/total/total/Genes", { species => $species, cache_param_ii => 'without_cache', type => 'full', pipeline => 'pipeline_ii', total => '1', lab_head => 'total', programme => 'total' }) %]" id='total'><i class="glyphicon glyphicon-refresh"></i><b> Regenerate report</b></a>
-  [% END %]
-[% END %]
+    [% IF c.user %]
+        <a type='button' class='reportGen btn btn-info btn-sm downloadBtn' id='[% unit.sponsor_id %]'
+            href=[% dl_uri(species=species, cache_param_ii='without_cache', type='full') %]
+            <i class="glyphicon glyphicon-refresh"></i>
+            <b> Regenerate report</b>
+        </a>
+    [% END %]
 </span>
 
 <div class="page-header">
-  <h2>Sponsor Progress Sub-Report on [% date %]</h2>
+    <h2>Sponsor Progress Sub-Report on [% date %]</h2>
 </div>
-<p>
+
+[% SET sponsor_label = "all sponsors" %]
 [% IF sponsor_id %]
-  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for sponsor <b>[% sponsor_id %]</b></big>
-[% ELSE %]
-  <big><b>Genes</b> for <b>[% targeting_type %]</b> projects for <b>all</b> sponsors</b></big>
+    [% SET sponsor_label = "sponsor " _ sponsor_id %]
 [% END %]
-</p>
+<h3>Genes for [% targeting_type %] projects for [% sponsor_label %]</h3>
 
-<div>
-  <input class="form-text" style="padding:5px;margin:5px;background-color:#E5E4E2;" type="text" id="myInput" onkeyup="get_genes()" placeholder="Search gene symbol..." autofocus>
+<div class="col-md-3 row">
+    <input id="geneSearch" class="form-control" type="text" placeholder="Search gene symbol..." autofocus>
 </div>
-
-<table class="table table-bordered table-condensed" id="sub_report">
-  <thead>
-    <tr>
-      <th colspan="[% columns.general_first.size %]" style="border-left:1px solid white;border-top:1px solid white;"></th>
-      <th colspan="[% columns.primary_genotyping.size %]" style="background-color:#BDBDBD;">Primary Genotyping</th>
-      <th colspan="[% columns.secondary_genotyping.size %]" style="background-color:#9E9E9E;">Secondary Genotyping</th>
-      <th colspan="[% columns.general_second.size %]" style="border-right:1px solid white;border-top:1px solid white;"></th>
-    </tr>
-    <tr>
-      [%- FOR col IN columns.general_first %]
-        <th style="width:100%;background-color:#EEEEEE;" class="">[% col %]</th>
-      [% END %]
-      [%- FOR col IN columns.primary_genotyping %]
-        <th style="width:100%;background-color:#BDBDBD;" class="">[% col %]</th>
-      [% END %]
-      [%- FOR col IN columns.secondary_genotyping %]
-        <th style="width:100%;background-color:#9E9E9E;" class="">[% col %]</th>
-      [% END %]
-      [%- FOR col IN columns.general_second %]
-        <th style="width:100%;background-color:#EEEEEE;" class="">[% col %]</th>
-      [% END %]
-    </tr>
-  </thead>
-  <tbody>
-    [%- FOREACH elem IN data %]
-      <tr class="main_row">
-        <td style="background-color:#B3ECFF;"><a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% elem.gene_id %]" target="_blank">[% elem.gene_id %]</a></td>
-        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/public_reports/gene_report', elem.gene_id ) %]" target="_blank">[% elem.gene_symbol %]</a></td>
-        <td style="background-color:#B3ECFF;">[% elem.chromosome %]</td>
-        <td style="background-color:#B3ECFF;"><a href="[% c.uri_for('/user/view_project/',{ project_id => elem.project_id }) %]" target="_blank">[% elem.project_id %]</a></td>
-        <td style="background-color:#B3ECFF;">[% elem.cell_line %]</td>
-
-        [% IF elem.experiments.size %]
-        <td style="background-color:#B0E502;"><a class="target_anchor" onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        [% ELSE %]
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        [% END %]
-
-        [% IF elem.experiment_ep_ii_info.has_plates %]
-        <td style="background-color:#B0E502;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        [% ELSE %]
-        <td style="background-color:#FF4444;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        [% END %]
-
-        [% IF elem.exp_ipscs_colonies_picked.total %]
-          <td style="background-color:#B0E502;">[% elem.exp_ipscs_colonies_picked.total %] colonies picked</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.total_number_of_clones %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.total_number_of_clones %] Miseq clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.primary.wt %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.wt %] WT clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.primary.het %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.het %] Het clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.primary.hom %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.primary.hom %] Hom clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.secondary.wt %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.wt %] WT clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.secondary.het %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.het %] Het clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        [% IF elem.genotyping.total.secondary.hom %]
-          <td style="background-color:#B0E502;">[% elem.genotyping.total.secondary.hom %] Hom clones</td>
-        [% ELSE %]
-          <td style="background-color:#FF4444"></td>
-        [% END %]
-
-        <td style="background-color:#B3ECFF;"><a onclick="ShowExpsFor('[% elem.project_id %]')"><span class="nav_[% elem.project_id %] glyphicon glyphicon-plus"></span></a></td>
-        <td style="background-color:#B3ECFF;">[% elem.programme %]</td>
-        <td style="background-color:#B3ECFF;">[% elem.sponsor %]</td>
-        <td style="background-color:#B3ECFF;">[% elem.lab_head %]</td>
-
-        [% FOREACH exp IN elem.experiments %]
-        [% IF exp.id %]
-        <tr class="[% elem.project_id %]" style="display:none;">
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"><span style="display:none;">[% elem.gene_id %]</span></td>
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"><a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.trivial_name %]</a></td>
-          <td style="background-color:#FFCC80;">
-            [% FOREACH seq IN exp.crispr_seq %]
-            [% seq %]
-            [% END %]
-          </td>
-          <td style="background-color:#FFCC80;"><a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a></td>
-          [% IF elem.experiment_ep_ii_info.exps.${exp.id}.size %]
-            <td style="background-color:#FFCC80;">
-              [% FOREACH ep_ii IN elem.experiment_ep_ii_info.exps.${exp.id} %]
-                <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.plate_id } ) %]" target="_blank">[% ep_ii.name %]</a>
-              [% END %]
-            </td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-          [% IF elem.exp_ipscs_colonies_picked.${exp.id}.picked_colonies %]
-            <td style="background-color:#FFCC80;">[% elem.exp_ipscs_colonies_picked.${exp.id}.picked_colonies %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.primary.total_number_of_clones %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.total_number_of_clones %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.primary.wt %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.wt %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.primary.het %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.het %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.primary.hom %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.primary.hom %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.secondary.wt %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.wt %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.secondary.het %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.het %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          [% IF elem.genotyping.${exp.id}.secondary.hom %]
-            <td style="background-color:#FFCC80;">[% elem.genotyping.${exp.id}.secondary.hom %]</td>
-          [% ELSE %]
-            <td style="background-color:#FFCC80;"></td>
-          [% END %]
-
-          <td style="background-color:#FFCC80;">[% exp.requester %]</td>
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"></td>
-          <td style="background-color:#FFCC80;"></td>
+<table class="table table-bordered table-condensed" id="subReport">
+    <thead id="tableHeader">
+        <tr>
+            <th colspan="[% columns.general_first.size %]"></th>
+            <th colspan="[% columns.primary_genotyping.size %]" class="primaryQC">Primary Genotyping</th>
+            <th colspan="[% columns.secondary_genotyping.size %]" class="secondaryQC">Secondary Genotyping</th>
+            <th colspan="[% columns.general_second.size %]"></th>
         </tr>
-        [% END %]
-        [% END %]
-      </tr>
+        <tr>
+            [%- FOR col IN columns.general_first %]
+                [% IF col == 'Electroporation iPSCs' %]
+                    <th class="electro">[% col %]</th>
+                [% ELSE %]
+                    <th>[% col %]</th>
+                [% END %]
+            [% END %]
+            [%- FOR primary_col IN columns.primary_genotyping %]
+                <th class="primaryQC">[% primary_col %]</th>
+            [% END %]
+            [%- FOR secondary_col IN columns.secondary_genotyping %]
+                <th class="secondaryQC">[% secondary_col %]</th>
+            [% END %]
+            [%- FOR col IN columns.general_second %]
+                <th class="trailingCell">[% col %]</th>
+            [% END %]
+        </tr>
+    </thead>
+    [%- FOREACH elem IN data %]
+        <tbody class="projectGroup">
+            <tr class="geneRow">
+                <td>
+                    <a href="http://www.genenames.org/cgi-bin/gene_symbol_report?hgnc_id=[% elem.gene_id %]" target="_blank">[% elem.gene_id %]</a>
+                </td>
+                <td class="geneSymbol">
+                    <a href="[% c.uri_for('/public_reports/gene_report', elem.gene_id ) %]" target="_blank">[% elem.gene_symbol %]</a>
+                </td>
+                <td class="chromo">[% elem.chromosome %]</td>
+                <td class="project">
+                    <a href="[% c.uri_for('/user/view_project/',{ project_id => elem.project_id }) %]" target="_blank">[% elem.project_id %]</a>
+                </td>
+                <td>[% elem.cell_line %]</td>
+
+                [% FOREACH expansion_cell IN ['exp','crispr','design','ep'] %]
+                    <td>
+                        <a class="rowExpansion">
+                            <span class="nav[% elem.project_id %] glyphicon glyphicon-plus expDets [% IF expansion_cell == 'crispr' %]crispr[% END %]"></span>
+                        </a>
+                    </td>
+                [% END %]
+
+                <td>[% elem.exp_ipscs_colonies_picked.total %] colonies picked</td>
+                <td>[% elem.genotyping.total.total_number_of_clones %] Miseq clones</td>
+
+                [% FOREACH qc_stage IN ['primary', 'secondary'] %]
+                    [% FOREACH classification IN ['wt', 'het', 'hom'] %]
+                        [% SET class_val = elem.genotyping.total.${qc_stage}.${classification} %]
+
+                        <td class="[% classification %]" value=[% class_val %]>
+                            [% class_val %]
+                        </td>
+                    [% END %]
+                [% END %]
+
+                <td class="trailingCell">
+                    <a class="rowExpansion">
+                        <span class="nav[% elem.project_id %] glyphicon glyphicon-plus"></span>
+                    </a>
+                </td>
+                <td class="trailingCell">[% elem.programme %]</td>
+                <td class="trailingCell">[% elem.sponsor %]</td>
+                <td class="trailingCell">[% elem.lab_head %]</td>
+                </tr>
+
+                [% FOREACH exp IN elem.experiments %]
+                    [% IF exp.id %]
+                        <tr class="[% elem.project_id %] subRow">
+                            [% FOREACH child_inherited_cells IN [0 .. 4] %]
+                                <td></td>
+                            [% END %]    
+                            <td>
+                                <a href="[% c.uri_for('/user/view_experiment', { experiment_id => exp.id } ) %]" target="_blank">[% exp.trivial_name %]</a>
+                            </td>
+                            <td class="seq">
+                                [% exp.crispr_seq.join(" ,") %]
+                            </td>
+                            <td>
+                                <a href="[% c.uri_for( '/user/view_design', { design_id => exp.design_id } ) %]" target="_blank">[% exp.design_id %]</a>
+                            </td>
+                            <td class="electro">
+                            [% FOREACH ep_ii IN elem.experiment_ep_ii_info.exps.${exp.id} %]
+                                <a href="[% c.uri_for( '/user/view_plate', { id => ep_ii.plate_id } ) %]" target="_blank">[% ep_ii.name %]</a>
+                            [% END %]
+                            </td>
+                            <td>
+                                [% elem.exp_ipscs_colonies_picked.${exp.id}.picked_colonies %]
+                            </td>
+                            <td>
+                                [% elem.genotyping.${exp.id}.primary.total_number_of_clones %]
+                            </td>
+                            [% FOREACH qc_stage IN ['primary', 'secondary'] %]
+                                [% FOREACH classification IN ['wt', 'het', 'hom'] %]
+                                    [% SET class_val = elem.genotyping.${exp.id}.${qc_stage}.${classification} %]
+
+                                    <td class="[% classification %]" value=[% class_val %]>
+                                        [% class_val %]
+                                    </td>
+                                [% END %]
+                            [% END %]
+                            [% FOREACH child_inherited_cells IN [0 .. 4] %]
+                                <td></td>
+                            [% END %]   
+                        </tr>
+                    [% END %]
+                [% END %]
+            </tbody>
     [% END %]
-  </tbody>
 </table>
 
 <script type="text/javascript">
 
-window.onload = function() {
-  document.getElementById('loading').style.display = "none";
-};
+var sponsor = "[% sponsor_id %]";
 
-function trigger_loader() {
-  document.getElementById('loading').style.display = "";
-}
-
-function get_genes() {
-    var collape_expand_btn = document.getElementById('collapse_expand');
-    collape_expand_btn.style.display = "none";
-
-    var input = document.getElementById("myInput");
-    var filter = input.value.toUpperCase();
-    var table = document.getElementById("sub_report");
-    var main_trs = table.getElementsByClassName("main_row");
-
-
-    var all_tds = table.getElementsByTagName("span");
-    for (var j=0; j < all_tds.length; j++) {
-      if (all_tds[j].className.includes("glyphicon-minus")) {
-        all_tds[j].parentElement.click();
-      }
+$(document).ready(function() {
+    var title = "Total - Pipeline II";
+    if (sponsor) {
+        title = sponsor;
     }
+    document.title = title;
 
-    for (var i=0; i < main_trs.length; i++) {
-        var td = main_trs[i].getElementsByTagName("td")[1];
-        if (td) {
-            if (td.innerHTML.toUpperCase().indexOf(filter) > -1){
-                main_trs[i].style.display = "";
-            } else {
-                main_trs[i].style.display = "none";
-            }
+
+    $('tr').children('td','th').removeAttr('style').css('background-color','white');
+    $('#subReport').floatThead( {top: 50} );
+    $('.trailingCell').css('width','60px');
+
+    callLabeling();
+    $('.subRow').hide();
+    $('#loading').hide();
+});
+
+$('.reportGen').click( function() {
+    $('#loading').show();
+});
+
+$('#collapseExpand').click(function() {
+    var operation = $('#collapseExpand').text().trim();
+    if (operation == 'Expand All') {
+        $('.subRow').show();
+        $('.rowExpansion > span').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        $('#collapseExpand').text('Collapse All');
+    } else {
+        $('.subRow').hide();
+        $('.rowExpansion > span').removeClass('glyphicon-minus').addClass('glyphicon-plus');
+        $('#collapseExpand').text('Expand All');
+    }
+});
+
+$('.rowExpansion').click(function() {
+    var classList = $(this).find('span[class^="nav"]').attr('class');
+    var regex = /^nav(\d+)\ .*/g;
+    var projectID = regex.exec(classList)[1];
+    $('.' + projectID).toggle();
+    $('.nav' + projectID).toggleClass('glyphicon-plus glyphicon-minus');
+});
+
+$('#geneSearch').keyup(function() {
+    var filter = $('#geneSearch').val().toUpperCase();
+
+    if (filter == "") {
+        $('tr.geneRow').show();
+        $('#collapseExpand').show();
+        return;
+    }
+    $('#collapseExpand').hide();
+
+    $('.subRow').hide();
+    $('.expDets').removeClass('glyphicon-minus').addClass('glyphicon-plus');
+
+    $('tr.geneRow').each( function() {
+        if ( $(this).find('.geneSymbol').text().indexOf(filter) != -1 ) {
+            $(this).show();
+        } else {
+            $(this).hide();
         }
-    }
-
-    var collape_expand_btn = document.getElementById('collapse_expand');
-    if (input.value == "") {
-      collape_expand_btn.style.display = "";
-    }
+    });
 
     return;
-}
+});
 
+function callLabeling() {
+    var calls = {
+        het:    'HET Clones',
+        hom:    'HOM Clones',
+        wt:     'WT Clones',
+    };
 
-function ShowExpsFor(target) {
-  var exps = document.getElementsByClassName(target);
-  for(var i = 0; i < exps.length; ++i) {
-    if (exps[i].style.display == '') {
-      exps[i].style.display = 'none';
-      var nav_btns = document.getElementsByClassName('nav_' + target);
-      for(var j = 0; j < nav_btns.length; ++j) {
-        nav_btns[j].className = 'nav_' + target + ' glyphicon glyphicon-plus';
-      }
-    } else {
-      exps[i].style.display = '';
-      var nav_btns = document.getElementsByClassName('nav_' + target);
-      for(var j = 0; j < nav_btns.length; ++j) {
-        nav_btns[j].className = 'nav_' + target + ' glyphicon glyphicon-minus';
-      }
-    }
-  }
+    var callTypes = Object.keys(calls);
+    callTypes.forEach(function(call) {
+        $('.' + call + ':not([value=""])').append(calls[call]);
+    });
 
-  return;
-}
-
-function collape_expand_exps(command) {
-  var collape_expand_btn = document.getElementById('collapse_expand');
-  var table = document.getElementById("sub_report");
-  var all_target_anchors = table.getElementsByClassName("target_anchor");
-
-  if (command == 'expand') {
-    for (var j=0; j < all_target_anchors.length; j++) {
-      if ( all_target_anchors[j].childNodes[0].className.includes("glyphicon-plus") ) {
-        all_target_anchors[j].click();
-      }
-    }
-
-    if (collape_expand_btn.innerHTML.trim() == '<b>Expand All</b>') {
-      collape_expand_btn.innerHTML = '<b>Collapse All</b>';
-      collape_expand_btn.onclick = function () { collape_expand_exps("collapse"); };
-    }
-  } else if (command == 'collapse') {
-    for (var j=0; j < all_target_anchors.length; j++) {
-      if ( all_target_anchors[j].childNodes[0].className.includes("glyphicon-minus") ) {
-        all_target_anchors[j].click();
-      }
-    }
-
-    if (collape_expand_btn.innerHTML.trim() == '<b>Collapse All</b>') {
-      collape_expand_btn.innerHTML = '<b>Expand All</b>';
-      collape_expand_btn.onclick = function () { collape_expand_exps("expand"); };
-    }
-  }
-
-  return;
 }
 
 </script>

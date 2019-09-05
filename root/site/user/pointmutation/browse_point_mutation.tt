@@ -28,7 +28,6 @@
         <thead>
             <h4 align="center">Search Results</h4>
             <tr>
-                <th>ID</th>
                 <th>Plate Name</th>
                 <th>Experiment</th>
                 <th>Date</th>
@@ -131,7 +130,7 @@ function modifyResultsTable(res) {
         var link = '[% c.uri_for("/user/point_mutation/") %]' + encodeURI('?miseq=' + data.plate + '&experiment=' + data.name);
         var aPlate = '<a class="brand" href="' + link + '" onclick=\'loading("gene");\'>' + data.plate + '</a>';
         
-        var row = '<tr><td>' + data.id + '</td><td>' + aPlate + '</td><td>' + data.name + '</td><td>' + data.date + '</td></tr>';
+        var row = '<tr><td>' + aPlate + '</td><td>' + data.name + '</td><td>' + data.date + '</td></tr>';
         rows = rows.concat(row);
     }
     $('#geneResultsTable tbody').html(rows);

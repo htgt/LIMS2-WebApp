@@ -1,0 +1,30 @@
+INSERT INTO schema_versions (version) VALUES (152);
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hom', 5);
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hom Compound', 6);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR Hom', 8);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR K/O', 10);
+INSERT INTO miseq_classification (id, ordering) VALUES ('WT', 4);
+INSERT INTO miseq_classification (id, ordering) VALUES ('HDR Hemizygous', 11);
+INSERT INTO miseq_classification (id, ordering) VALUES ('K/O Hemizygous', 12);
+UPDATE miseq_well_experiment SET classification = 'K/O Hom' WHERE classification = 'K/O Hom - 1 Allele';
+UPDATE miseq_well_experiment SET classification = 'K/O Hom Compound' WHERE classification = 'K/O Hom - 2 Allele';
+UPDATE miseq_well_experiment SET classification = 'HDR Hom' WHERE classification = 'HDR Hom - 2 Allele';
+UPDATE miseq_well_experiment SET classification = 'HDR Het' WHERE classification = 'HDR Hom - 1 Allele';
+UPDATE miseq_well_experiment SET classification = 'WT' WHERE classification = 'Wild Type';
+UPDATE miseq_project_well_exp SET classification = 'K/O Hom' WHERE classification = 'K/O Hom - 1 Allele';
+UPDATE miseq_project_well_exp SET classification = 'K/O Hom Compound' WHERE classification = 'K/O Hom - 2 Allele';
+UPDATE miseq_project_well_exp SET classification = 'HDR Hom' WHERE classification = 'HDR Hom - 2 Allele';
+UPDATE miseq_project_well_exp SET classification = 'HDR Het' WHERE classification = 'HDR Hom - 1 Allele';
+UPDATE miseq_project_well_exp SET classification = 'WT' WHERE classification = 'Wild Type';
+DELETE FROM miseq_classification WHERE id = 'K/O Hom - 1 Allele';
+DELETE FROM miseq_classification WHERE id = 'K/O Hom - 2 Allele';
+DELETE FROM miseq_classification WHERE id = 'HDR Hom - 2 Allele';
+DELETE FROM miseq_classification WHERE id = 'HDR Hom - 1 Allele';
+DELETE FROM miseq_classification WHERE id = 'Wild Type';
+UPDATE miseq_classification SET ordering = 1 WHERE id = 'Not Called';
+UPDATE miseq_classification SET ordering = 2 WHERE id = 'Failed';
+UPDATE miseq_classification SET ordering = 3 WHERE id = 'Mixed';
+UPDATE miseq_classification SET ordering = 7 WHERE id = 'K/O Het';
+UPDATE miseq_classification SET ordering = 9 WHERE id = 'HDR Het';
+
+

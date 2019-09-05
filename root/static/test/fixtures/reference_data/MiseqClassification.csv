@@ -1,7 +1,13 @@
-id
-Not Called
-Wild Type
-K/O Het
-K/O Hom - 1 Allele
-K/O Hom - 2 Allele
-Mixed
+id,ordering
+K/O Hom,5
+K/O Hom Compound,6
+HDR Hom,8
+HDR K/O,10
+WT,4
+HDR Hemizygous,11
+K/O Hemizygous,12
+Not Called,1
+Failed,2
+Mixed,3
+K/O Het,7
+HDR Het,9

@@ -409,6 +409,6 @@ export PERL5LIB=/opt/sci/global/software/lims2/lib/
 export SHARED_WEBAPP_TT_DIR=/opt/sci/global/software/lims2/lib/WebAppCommon/shared_templates
 export LIMS2_ENSEMBL_USER=anonymous
 export LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
-export LIMS2_TEMP=/opt/t87/local/tmp
+export LIMS2_TEMP=/opt/sci/local/tmp
 export LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml
 
