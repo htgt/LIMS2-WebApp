@@ -1,8 +1,6 @@
 package LIMS2::Model::Util::CrispressoSubmission;
 
-use strict;
-use warnings FATAL => 'all';
-
+use Moose;
 use Sub::Exporter -setup => {
     exports => [ qw(
         get_eps_for_plate
@@ -10,11 +8,8 @@ use Sub::Exporter -setup => {
         get_well_map
     ) ]
 };
-
 use Log::Log4perl qw( :easy );
 use LIMS2::Exception;
-use Moose;
-use namespace::autoclean;
 use Carp;
 use LIMS2::Model::Util::Miseq qw/wells_generator/;
 use List::Util qw/min max/;
