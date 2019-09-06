@@ -63,10 +63,10 @@ sub _build_spreadsheet_columns {
     $columns{gene}              = qr/^[A-Z0-9]+ # start with a gene symbol
                                     (?:_.*)? # can be followed by an underscore and whatever
                                     $/xms;
-    $columns{experiment_id}     = qr/^\d+$/xms;
-    $columns{parent_plate_id}   = qr/^\d+$/xms;
+    $columns{experiment_id}     = qr/^\d+$|^$/xms;
+    $columns{parent_plate_id}   = qr/^\d+$|^$/xms;
     $columns{crispr}            = qr/^[ACGT]{20}(?:,[ACGT]{20})*$/ixms;
-    $columns{strand}            = qr/^[+-]$/xms;
+    $columns{strand}            = qr/^[+-]$|^$/xms;
     $columns{amplicon}          = qr/^[ACGT]+$/ixms;
     $columns{min_index}         = qr/^\d+$/xms;
     $columns{max_index}         = qr/^\d+$/xms;
@@ -175,7 +175,7 @@ sub process {
     my $path =
       catfile( $ENV{LIMS2_MISEQ_PROCESS_PATH}, join( q/_/, $plate, $jobid ) );
     my $scripts = $ENV{LIMS2_MISEQ_SCRIPTS_PATH};
-    my $experiments = $params{run_data};
+    my $experiments = $self->_check_object($params{run_data});
     my $stash = { experiments => $experiments };
 
     die "'$plate' is not a valid name for a plate"   if not $plate  =~ m/^\w+$/;
@@ -239,6 +239,53 @@ sub process {
 
     $stash->{move_job} = $move_job;
     return $stash;
+}
+
+sub _check_object {
+    my ( $self, $data ) = @_;
+
+    my @rows = ();
+    foreach my $row (@{ $data }) {
+        my @columns = keys %{ $row };
+        $self->_validate_columns(@columns);
+        $self->_validate_values($row);
+        push @rows, $row;
+    }
+
+    return \@rows;
+}
+
+sub _validate_columns {
+    my ( $self, @given_columns ) = @_;
+    my %columns = map { $_ => 1 } @given_columns;
+    my @missing = ();
+    foreach my $column ( @given_columns ) {
+        if ( not exists $columns{$column} ) {
+            push @missing, $column;
+        }
+    }
+    if (@missing) {
+        die 'Missing required columns: ' . join( q/, /, @missing );
+    }
+    return;
+}
+
+sub _validate_value {
+    my ( $row, $key, $validator, $line ) = @_;
+    my $value = $row->{$key} // q//;
+    if ( not $value =~ $validator ) {
+        my $name = $row->{experiment};
+        die "'$value' is not a valid value for $name-$key";
+    }
+    return;
+}
+
+sub _validate_values {
+    my ( $self, $row ) = @_;
+    foreach my $column ( $self->columns ) {
+        _validate_value( $row, $column, $self->get_rule($column) );
+    }
+    return;
 }
 
 1;

@@ -2,9 +2,13 @@ package LIMS2::WebApp::Controller::API::MiseqSequencing;
 
 use Moose;
 use namespace::autoclean;
+
+use LIMS2::Model::Util::CrispressoSubmission qw/
+    get_eps_to_miseqs_map
+    get_well_map
+/;
 use JSON;
 use Try::Tiny;
-use LIMS2::Model::Util::CrispressoSubmission qw( get_eps_to_miseqs_map get_well_map );
 use List::Util qw/min max/;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
@@ -41,29 +45,41 @@ sub _gather_miseq_experiments {
 
     my $exp_results;
     while (my $exp = $experiments->next) {
-        my $parent_maps = LIMS2::Model::Util::CrispressoSubmission::get_eps_to_miseqs_map( $c->model('Golgi'), $exp->parent_plate_id );
-        my %well_map = LIMS2::Model::Util::CrispressoSubmission::get_well_map( $c->model('Golgi'), $parent_maps );
+        my $parent_maps =  &LIMS2::Model::Util::CrispressoSubmission::get_eps_to_miseqs_map( $c->model('Golgi'), $exp->parent_plate_id );
+        my %well_map =  &LIMS2::Model::Util::CrispressoSubmission::get_well_map( $c->model('Golgi'), $parent_maps );
         my @wells = map { $_->{index} } values %well_map;
 
-        $exp_results->{$exp->name} = {
-            experiment_id   => $exp->experiment_id,
-            experiment      => $exp->name,
-            gene            => $exp->gene,
-            crispr          => $exp->experiment->crispr->seq,
-            amplicon        => $exp->experiment->design->amplicon,
-            parent_plate    => $exp->parent_plate->name,
-            parent_plate_id => $exp->parent_plate_id,
-            min_index       => min(@wells),
-            max_index       => max(@wells),
-        };
-
-        my $hdr = $exp->experiment->design->hdr_amplicon;
-        if ($hdr) {
-            $exp_results->{$exp->name}->{hdr} = $hdr;
+        if ($exp->experiment) {
+            $exp_results->{data}->{$exp->name} = _construct_experiment_details($exp, @wells);
+        } else {
+            push (@{ $exp_results->{errors} }, $exp->name);
         }
     }
 
     return $exp_results;
+}
+
+sub _construct_experiment_details {
+    my ($exp, @wells) = @_;
+
+    my $details = {
+        experiment_id   => $exp->experiment_id,
+        experiment      => $exp->name,
+        gene            => $exp->gene,
+        crispr          => $exp->experiment->crispr->seq,
+        amplicon        => $exp->experiment->design->amplicon,
+        parent_plate    => $exp->parent_plate->name,
+        parent_plate_id => $exp->parent_plate_id,
+        min_index       => min(@wells),
+        max_index       => max(@wells),
+    };
+
+    my $hdr = $exp->experiment->design->hdr_amplicon;
+    if ($hdr) {
+        $details->{hdr} = $hdr;
+    }
+
+    return $details;
 }
 
 1;

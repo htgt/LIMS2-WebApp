@@ -46,6 +46,10 @@ td.amplicon, td.hdr:not(:empty) {
             <input class="form-control-file" name="spreadsheet" type="file" id="spreadsheet" />
         </label>
     </div>
+    <div id="errorAlert" class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <p></p>
+    </div>
     <div class="form-group">
         <table id="expTable" class="table">
             <thead>
@@ -109,6 +113,10 @@ td.amplicon, td.hdr:not(:empty) {
 var expData = {};
 var csvData;
 
+$('document').ready(function() {
+    clearError();
+});
+
 $('#walkup').on('change', function() {
     var val = this.value;
     $.ajax({
@@ -163,9 +171,15 @@ $('#miseqPlate').on('change', function() {
             plate: $('#miseqPlate').val()
         },
         success: function(data) {
-            expData = data;
+            expData = data.data || {};
+            clearError();
+            if (data.errors) {
+                showErroneousExps(data.errors);
+            }
             populateCsvIntoTable();
-            buildTable();
+            if (expData) {
+                buildTable();
+            }
         }
     });
 });
@@ -193,7 +207,8 @@ function getSpreadsheetData(evt) {
     reader.onload = function(event) {
         csvData = event.target.result;
         csvData = $.csv.toObjects(csvData);
-        populateCsvIntoTable()
+        clearError();
+        populateCsvIntoTable();
         buildTable();
     }
 
@@ -291,4 +306,18 @@ function populateCsvIntoTable() {
 
     return;
 }
+
+function showErroneousExps(errors) {
+    var errorMsg = "The following Miseq Parents are missing experiment IDs:<br>";
+    errorMsg += errors.sort().join(",<br>");
+    $('#errorAlert > p').html(errorMsg);
+    $('#errorAlert').show();
+    return;
+}
+
+function clearError() {
+    $('#errorAlert > p').html('');
+    $('#errorAlert').hide();
+}
+
 </script>

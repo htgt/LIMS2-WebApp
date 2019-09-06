@@ -4,13 +4,11 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [
-        qw(
-              get_eps_for_plate
-              get_eps_to_miseqs_map
-              get_well_map
-          )
-    ]
+    exports => [ qw(
+        get_eps_for_plate
+        get_eps_to_miseqs_map
+        get_well_map
+    ) ]
 };
 
 use Log::Log4perl qw( :easy );
