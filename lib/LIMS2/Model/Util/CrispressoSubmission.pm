@@ -1,6 +1,8 @@
 package LIMS2::Model::Util::CrispressoSubmission;
 
-use Moose;
+use strict;
+use warnings FATAL => 'all';
+
 use Sub::Exporter -setup => {
     exports => [ qw(
         get_eps_for_plate
