@@ -141,9 +141,11 @@ sub _get_dependency {
 
 sub _submit_crispresso {
     my ( $self, $exp, $path, $crispresso_script, $dependencies ) = @_;
-    my $id = $exp->{Experiment};
-    my @crisprs = split q/,/, uc( $exp->{Crispr} );
-    if ( $exp->{Strand} eq '-' ) {
+
+    my $id = $exp->{experiment};
+    my @crisprs = split q/,/, uc( $exp->{crispr} );
+    $exp->{strand} = $exp->{strand} ? $exp->{strand} : '+';
+    if ( $exp->{strand} eq '-' ) {
         foreach my $crispr (@crisprs) {
             $crispr = revcom_as_string($crispr);
         }
@@ -159,7 +161,7 @@ sub _submit_crispresso {
             cmd          => [
                 $crispresso_script,
                 '-g' => ( join q/,/, @crisprs ),
-                '-a' => $exp->{Amplicon},
+                '-a' => $exp->{amplicon},
                 '-n' => $id,
             ],
         }

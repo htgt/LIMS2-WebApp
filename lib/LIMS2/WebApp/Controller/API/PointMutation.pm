@@ -11,11 +11,16 @@ use POSIX;
 use Try::Tiny;
 use List::Util 'max';
 use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
-use LIMS2::Model::Util::Miseq qw( wells_generator find_file find_folder read_file_lines read_alleles_frequency_file convert_index_to_well_name);
+use LIMS2::Model::Util::Miseq qw/
+    wells_generator
+    find_file
+    find_folder
+    read_file_lines
+    read_alleles_frequency_file
+    convert_index_to_well_name
+/;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
-
-
 
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }

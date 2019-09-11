@@ -7,6 +7,7 @@ use Sub::Exporter -setup => {
     exports => [ qw(
         get_eps_for_plate
         get_eps_to_miseqs_map
+        get_parents_to_miseqs_map
         get_well_map
     ) ]
 };
@@ -49,7 +50,6 @@ sub get_eps_for_plate {
             ]
         }
     );
-
     foreach my $row (@data) {
         my $design = $row->process->process_design->design;
         my %oligos = map {
@@ -81,6 +81,7 @@ sub get_eps_for_plate {
         if ($exp) {
             $exp = $exp->id;
         }
+
         my %values = (
             name        =>
                 join( '_', $plates{ $wells{$ep}->{plate} }, $wells{$ep}->{name}, $gene->{gene_symbol} ),
@@ -88,11 +89,14 @@ sub get_eps_for_plate {
             amplicon    => $amplicon,
             strand      => q/+/,
             gene        => $gene->{gene_symbol},
-            hdr         => $design->hdr_amplicon,
             min_index   => min(@miseqs),
             max_index   => max(@miseqs),
             exp_id      => $exp,
         );
+
+        if ($design->hdr_amplicon) {
+            $values{hdr} = $design->hdr_amplicon;
+        }
 
         foreach my $key ( keys %values ) {
             $store->{$key} = $values{$key};
@@ -102,10 +106,15 @@ sub get_eps_for_plate {
 }
 
 sub get_well_map {
-    my ( $model, $eps ) = @_;
+    my ( $model, $eps, $miseq_only ) = @_;
     my @miseqs = map { @{ $_->{miseqs} } } values %{$eps};
     my %wells = map { $_ => 1 } @miseqs, keys %{$eps};
     my $indices = wells_generator(1);
+
+    my @wells = keys %wells;
+    if ($miseq_only) {
+        @wells = @miseqs;
+    }
     return map {
         $_->id => {
             id    => $_->id,
@@ -114,7 +123,7 @@ sub get_well_map {
             index => $indices->{ $_->name },
           }
       } $model->schema->resultset('Well')
-      ->search( { id => { -in => [ keys %wells ] } } );
+      ->search( { id => { -in => [ @wells ] } } );
 }
 
 sub get_eps_to_miseqs_map {
@@ -134,6 +143,52 @@ sub get_eps_to_miseqs_map {
         push @{ $eps{$ep}->{miseqs} }, $miseq;
     }
     return \%eps;
+}
+
+sub get_parents_to_miseqs_map {
+    my ( $model, $plate_id, $miseq_name ) = @_;
+
+    my $miseq_well_query = $model->schema->resultset('Well')->search ({
+        'me.plate_id'     => $plate_id,
+    },{
+        prefetch => {
+            'process_input_wells' => {
+                'process' => {
+                    'process_output_wells' => 'well'
+                }
+            }
+        },
+    });
+
+    my $parents;
+    while (my $parent_well = $miseq_well_query->next) {
+        $parents = _consolidate_well_query($parents, $parent_well, $miseq_name);
+    }
+
+    return $parents;
+}
+
+sub _consolidate_well_query {
+    my ($parents, $parent_well, $miseq_name) = @_;
+
+    my @process_inputs = $parent_well->process_input_wells;
+    my @process_outputs = map { $_->process->process_output_wells } @process_inputs;
+    foreach my $miseq_output (@process_outputs) {
+        my $plate_name = $miseq_output->well->plate->name;
+        if ($plate_name eq $miseq_name) {
+            my $pid = $parent_well->id;
+            if ( not exists $parents->{$pid} ) {
+                $parents->{$pid} = {
+                    process => $miseq_output->process_id,
+                    parent  => $pid,
+                    miseqs  => []
+                };
+            }
+            push @{ $parents->{$pid}->{miseqs} }, $miseq_output->well->id;
+        }
+    }
+
+    return $parents;
 }
 
 sub get_plate_map {

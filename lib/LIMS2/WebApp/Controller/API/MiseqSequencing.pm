@@ -2,7 +2,7 @@ package LIMS2::WebApp::Controller::API::MiseqSequencing;
 
 use Moose;
 use namespace::autoclean;
-use LIMS2::Model::Util::CrispressoSubmission qw/get_eps_to_miseqs_map get_well_map/;
+use LIMS2::Model::Util::CrispressoSubmission qw/get_parents_to_miseqs_map get_well_map/;
 use JSON;
 use Try::Tiny;
 use List::Util qw/min max/;
@@ -40,8 +40,8 @@ sub _gather_miseq_experiments {
     });
     my $exp_results;
     while (my $exp = $experiments->next) {
-        my $parent_maps = get_eps_to_miseqs_map( $c->model('Golgi'), $exp->parent_plate_id );
-        my %well_map = get_well_map( $c->model('Golgi'), $parent_maps );
+        my $parent_maps = get_parents_to_miseqs_map( $c->model('Golgi'), $exp->parent_plate_id, $plate_rs->name );
+        my %well_map = get_well_map( $c->model('Golgi'), $parent_maps, 'miseq_only' );
         my @wells = map { $_->{index} } values %well_map;
 
         if ($exp->experiment) {
