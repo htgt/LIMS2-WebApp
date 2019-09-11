@@ -40,7 +40,6 @@ sub mock_basespace_api {
       keys %projects;
 
     my $bs = Test::MockModule->new('LIMS2::Model::Util::BaseSpace');
-
     my %responders = (
         projects =>
           sub { my $id = shift; return @{ $projects{$id}->{Samples} }; },
@@ -91,6 +90,7 @@ sub get_default_bsub_options {
 
 sub test_job {
     my ( $actual, $expected, $name ) = @_;
+
     my %options = ( get_default_bsub_options, %{ $expected->{bsub_options} } );
     my @expected_script_args = @{ $expected->{script_args} };
     my $job = parse_job( scalar(@expected_script_args), $actual );
@@ -109,23 +109,6 @@ sub test_job {
     }
 }
 
-sub create_spreadsheet {
-    my ( $data, @columns ) = @_;
-    if ( not @columns ) {
-        @columns =
-          qw/Experiment Gene Crispr Strand Amplicon min_index max_index HDR/;
-    }
-    my $csv = Text::CSV->new( { binary => 1, sep_char => q/,/, eol => "\n" } );
-    my $output;
-    open my $fh, '>', \$output or croak 'Could not create spreadsheet';
-    $csv->print( $fh, \@columns );
-    foreach my $exp ( @{$data} ) {
-        $csv->print( $fh, [ map { $exp->{$_} } @columns ] );
-    }
-    close $fh or croak 'Could not close spreadsheet';
-    return $output;
-}
-
 sub all_tests : Test(52) {
     my $importer = LIMS2::Model::Util::MiseqImport->new;
     $importer->farm_job_runner->dry_run(1);
@@ -142,44 +125,43 @@ sub all_tests : Test(52) {
     );
     my @experiments = (
         {
-            Experiment => 'Exp_01',
-            Gene       => 'GENE1',
-            Crispr     => 'ACGTACTGACTGACTGACTG',
-            Amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
-            Strand     => '+',
+            experiment => 'Exp_01',
+            gene       => 'GENE1',
+            crispr     => 'ACGTACTGACTGACTGACTG',
+            amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
+            strand     => '+',
             min_index  => 1,
             max_index  => 96,
-            HDR        => '',
+            hdr        => '',
         },
         {
-            Experiment => 'Exp_02',
-            Gene       => 'GENE2',
-            Crispr     => 'ACGTACTGACTGACTGACTG',
-            Amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
-            Strand     => '+',
+            experiment => 'Exp_02',
+            gene       => 'GENE2',
+            crispr     => 'ACGTACTGACTGACTGACTG',
+            amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
+            strand     => '+',
             min_index  => 97,
             max_index  => 192,
-            HDR        => '',
+            hdr        => '',
         },
         {
-            Experiment => 'Exp_03',
-            Gene       => 'GENE3',
-            Crispr     => 'ACGTACTGACTGACTGACTG',
-            Amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
-            Strand     => '+',
+            experiment => 'Exp_03',
+            gene       => 'GENE3',
+            crispr     => 'ACGTACTGACTGACTGACTG',
+            amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
+            strand     => '+',
             min_index  => 1,
             max_index  => 96,
-            HDR        => '',
+            hdr        => '',
         },
     );
 
-    my $spreadsheet = create_spreadsheet( \@experiments );
     my ( $plate, $walkup ) = ( 'Miseq_Test_001', 42 );
 
     my $stash = $importer->process(
         plate       => $plate,
         walkup      => $walkup,
-        spreadsheet => \$spreadsheet,
+        run_data    => \@experiments,
     );
     my $jobid = $stash->{job_id};
     my $date = strftime '%d-%m-%Y', localtime;
@@ -210,7 +192,34 @@ sub all_tests : Test(52) {
         },
         'download job',
     );
-    
+
+    my @crispresso_jobs = @{ $stash->{crispresso_jobs} };
+    is( scalar(@crispresso_jobs), scalar(@experiments) );
+    foreach my $job (@crispresso_jobs) {
+        my $exp = shift @experiments;
+        test_job(
+            $job,
+            {
+                bsub_options => {
+                    '-o' => "cp_$exp->{experiment}.%J.%I.out",
+                    '-e' => "cp_$exp->{experiment}.%J.%I.err",
+                    '-J' => sprintf( 'cp_%s[%d-%d]',
+                        $exp->{experiment}, $exp->{min_index},
+                        $exp->{max_index} ),
+                    '-cwd' => $path,
+                    '-w'   => 'done(1)',
+                },
+                script      => 'bjob_crispresso.sh',
+                script_args => [
+                    '-g' => $exp->{crispr},
+                    '-a' => $exp->{amplicon},
+                    '-n' => $exp->{experiment},
+                ],
+            },
+            'CRISPResso ' . $exp->{experiment},
+        );
+    }
+
     test_job(
         $stash->{move_job},
         {
@@ -230,45 +239,18 @@ sub all_tests : Test(52) {
         'move job',
     );
 
-    my @crispresso_jobs = @{ $stash->{crispresso_jobs} };
-    is( scalar(@crispresso_jobs), scalar(@experiments) );
-    foreach my $job (@crispresso_jobs) {
-        my $exp = shift @experiments;
-        test_job(
-            $job,
-            {
-                bsub_options => {
-                    '-o' => "cp_$exp->{Experiment}.%J.%I.out",
-                    '-e' => "cp_$exp->{Experiment}.%J.%I.err",
-                    '-J' => sprintf( 'cp_%s[%d-%d]',
-                        $exp->{Experiment}, $exp->{min_index},
-                        $exp->{max_index} ),
-                    '-cwd' => $path,
-                    '-w'   => 'done(1)',
-                },
-                script      => 'bjob_crispresso.sh',
-                script_args => [
-                    '-g' => $exp->{Crispr},
-                    '-a' => $exp->{Amplicon},
-                    '-n' => $exp->{Experiment},
-                ],
-            },
-            'CRISPResso ' . $exp->{Experiment},
-        );
-    }
     return;
 }
 
 sub test_csv_fails {
     my ( $importer, $validator, $description, $experiments, @columns ) = @_;
-    my $spreadsheet = create_spreadsheet( $experiments, @columns );
-    my ( $plate, $walkup ) = ( 'Miseq_Test_001', 42 );
 
+    my ( $plate, $walkup ) = ( 'Miseq_Test_001', 42 );
     throws_ok {
         $importer->process(
             plate       => $plate,
             walkup      => $walkup,
-            spreadsheet => \$spreadsheet,
+            run_data    => $experiments,
         );
     } $validator, $description;
     return;
@@ -282,11 +264,11 @@ sub invalid_csv : Test(3) {
     my $basespace_api = mock_basespace_api;
 
     my $experiment = {
-        Experiment => 'Exp_01',
-        Gene       => 'GENE1',
-        Crispr     => 'ACGTACTGACTGACTGACTG',
-        Amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
-        Strand     => '+',
+        experiment => 'Exp_01',
+        gene       => 'GENE1',
+        crispr     => 'ACGTACTGACTGACTGACTG',
+        amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
+        strand     => '+',
         min_index  => 1,
         max_index  => 96,
         HDR        => '',
@@ -294,24 +276,16 @@ sub invalid_csv : Test(3) {
 
     test_csv_fails(
         $importer, 
-        qr/not a valid value for Crispr/, 
+        qr/not a valid value for Exp_01-crispr/, 
         'CRISPR is wrong length',
-        [ { %{$experiment}, Crispr => 'ACGT' } ], 
+        [ { %{$experiment}, crispr => 'ACGT' } ], 
     );
     
     test_csv_fails(
         $importer,
-        qr/not a valid value for Experiment/,
+        qr/not a valid value for -?experiment/,
         'Experiment name is missing',
-        [ { %{$experiment}, Experiment => '' } ],
-    );
-
-    test_csv_fails(
-        $importer,
-        qr/Missing required columns: Strand, max_index/,
-        'Missing required columns',
-        [ $experiment ],
-        qw/Experiment Gene Crispr Amplicon min_index HDR/,
+        [ { %{$experiment}, experiment => '' } ],
     );
 
     return;
