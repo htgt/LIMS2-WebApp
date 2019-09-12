@@ -2,8 +2,13 @@
 .virtual_plate {
     background-color: #f2dede;
 }
+.plate_links {
+    list-style-type: none;
+    padding-left: 0;
+}
 </style>
 
+<div id="response_alert" class="col-md-12"></div>
 <div class="page-header">
   <h1>[% title %]
   <a class="btn btn-info" href="[% c.uri_for( '/user/report/download', report_id ) %]">
@@ -47,35 +52,84 @@
   <thead>
     <tr id="table_header_row">
       [%- FOR col IN columns %]
-      <th>[% col %]</th>
+        [% IF col == 'Existing FPs' %]
+          <th>Existing Freeze Plates</th>
+        [% ELSE %] 
+          <th>[% col %]</th>
+        [% END %]
+        [% IF col == 'Well ID' %]
+          [% SET well_id_index = loop.index %]
+        [% ELSIF col == 'Cell Number' %]
+          [% SET cell_num_index = loop.index %]
+        [% END %]
       [%- END %]
     </tr>
   </thead>
   <tbody>
     [%- FOR datum IN data %]
-    <tr title="[% datum.0 %]">
+      <tr title="[% datum.0 %]">
       [%- FOR val IN datum %]
-      [% classes = [] %]
-      [% IF columns.item(loop.index) == 'Seq' %]
-      [% classes.push('seq') %] 
-      [% END %]
-      [% IF plate_is_virtual %]
-      [% classes.push('virtual_plate') %]
-      [% END %]
-      <td[% IF classes.size > 0 %] class="[% classes.join(' ') %]"[% END %]>
-    [% IF columns.item(loop.index) == 'Freeze Plate' %]
-        <form action="[% c.uri_for('/user/epII/expansion') %]" method="post">
-        Colonies picked: <input type="number" name="child_well_number"><br>
-        <input type="hidden" name="well_name" value="[% val %]">
-        <input type="hidden" name="plate_name">
-        <input type="submit" value="Create">
-        </form>
-        [% ELSE %]
-        [% plate_id %][% linkify( val ) | none %]
+        [% classes = [] %]
+        [% IF columns.item(loop.index) == 'Seq' %]
+          [% classes.push('seq') %] 
         [% END %]
-      </td>
+        [% IF plate_is_virtual %]
+          [% classes.push('virtual_plate') %]
+        [% END %]
+        <td[% IF classes.size > 0 %] class="[% classes.join(' ') %]"[% END %]>
+        [% IF columns.item(loop.index) == 'Freeze Plate' %]
+          [% SET existing_fp_id = "existing_fp_" _ datum.$cell_num_index %]
+          [% SET child_well_id = "child_wells_" _ datum.$cell_num_index %]
+          [% SET well_name = "A" _ datum.$cell_num_index %]
+          Colonies picked: <input type="number" value="96" id="[% child_well_id %]"><br>
+          <input type="submit" class="createButton" value="Create" onclick="createFP('[% child_well_id %]', '[% well_name %]', '[% existing_fp_id %]')">
+        [% ELSIF columns.item(loop.index) == 'Existing FPs' %]
+          [% SET existing_fp_id = "existing_fp_" _ datum.$cell_num_index %]
+          [% SET existing_fp_data = val.split(',') %]
+          <ul class="plate_links" id="[% existing_fp_id %]">
+          [% FOR item IN existing_fp_data %]
+            [% IF loop.index % 2 == 0 %] 
+              [% SET fp_name = item %]
+            [% ELSE %]
+              [% SET fp_id = item %]
+              <li><a target="_blank" href="[% c.uri_for('/user/view_plate') %]?id=[% fp_id %]">[% fp_name %]</a></li>
+            [% END %]
+          [% END %]
+          </ul>
+        [% ELSIF columns.item(loop.index) == 'T7 Status' %]
+          [% SET t7_status = val %]
+          [% SET well_id = datum.$well_id_index %]
+          [% SET t7_status_id = "t7_status_" _ datum.$cell_num_index %]
+          <select id="[% t7_status_id %]" onchange="T7Change('[% t7_status_id %]', '[% well_id %]', 't7_status')">
+          <option value="" selected disabled hidden>[% t7_status %]</option>
+          <option value="-">-</option>
+          <option value="pass">pass</option>
+          <option value="fail">fail</option>
+          </select>
+        [% ELSIF columns.item(loop.index) == 'T7 Score' %]
+          [% SET t7_score = val %]
+          [% SET well_id = datum.$well_id_index %]
+          [% SET t7_score_id = "t7_score_" _ datum.$cell_num_index %]
+          <select id="[% t7_score_id %]" onchange="T7Change('[% t7_score_id %]', '[% well_id %]', 't7_score')">
+          <option value="" selected disabled hidden>[% t7_score %]</option>
+          <option value="0">0</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="40">40</option>
+          <option value="50">50</option>
+          <option value="60">60</option>
+          <option value="70">70</option>
+          <option value="80">80</option>
+          <option value="90">90</option>
+          <option value="100">100</option>
+          </select>
+        [% ELSE %]
+          [% plate_id %][% linkify( val ) | none %]
+        [% END %]
+        </td>
       [%- END %]
-    </tr>
+      </tr>
     [%- END %]
   </tbody>
 </table>
@@ -85,6 +139,54 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/primer_validation_state.js', {v => 1} ) %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/lims2_utils.js' ) %]"></script>
 <script type="text/javascript">
+
+    function createFP (childWellId, wellName, existingFpId) {
+        var plateName = document.title;
+        var childWellNumber = document.getElementById(childWellId).value; 
+        if (childWellNumber > 0) {
+            $(".createButton").attr("disabled", "disabled").css("opacity", 0.5);
+            $("#response_alert").removeClass("alert-success").removeClass("alert-danger").addClass("alert-info");
+            message = "Creating freeze plate(s)...";
+            $("#response_alert").html(message);
+            $.post( "[% c.uri_for('/user/epII/expansion') %]",
+                {
+                    "well_names[]":wellName,
+                    plate_name:plateName,
+                    "child_well_numbers[]":childWellNumber
+                },
+                function(result) { 
+                    if (result['plates'].length > 0) {
+                        var existingFpList = document.getElementById(existingFpId);
+                        for (newFp in result['plates']) {
+                            var existingFpLI = document.createElement('li');
+                            existingFpLI.appendChild(document.createTextNode(result['plates'][newFp]));
+                            existingFpList.insertBefore(existingFpLI, existingFpList.childNodes[0]);
+                        }
+                        $("#response_alert").removeClass("alert-info").removeClass("alert-danger").addClass("alert-success");
+                        message = "Freeze plate(s) created: " + result['plates'];
+                        $("#response_alert").html(message);
+                    }
+                    if (result['errors'].length > 0) {
+                        $("#response_alert").removeClass("alert-info").removeClass("alert-success").addClass("alert-danger");
+                        message = result['errors'];
+                        $("#response_alert").html(message);
+                    }
+                    $(".createButton").removeAttr("disabled").css("opacity", 1);
+                }
+            );
+        }
+    }
+
+    function T7Change (t7Id, wellId, t7Type) {
+        var t7Value = document.getElementById(t7Id).value;
+        $.post( "[% c.uri_for('/api/well/save_well_t7_change') %]",
+            {
+                well_id:wellId,
+                t7_type:t7Type,
+                t7_value:t7Value
+            }
+        );
+    }
 
   $(document).ready(function() {
     // Add functionality to comboboxes

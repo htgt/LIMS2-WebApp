@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Design;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Design::VERSION = '0.537';
+    $LIMS2::Model::Schema::Result::Design::VERSION = '0.541';
 }
 ## use critic
 
@@ -691,7 +691,7 @@ sub _fetch_region_coords {
     return $amplicon->seq;
 }
 
-sub hdr_template {
+sub hdr_amplicon {
     my $self = shift;
 
     my $template;

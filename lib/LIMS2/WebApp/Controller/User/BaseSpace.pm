@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BaseSpace;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BaseSpace::VERSION = '0.537';
+    $LIMS2::WebApp::Controller::User::BaseSpace::VERSION = '0.541';
 }
 ## use critic
 
@@ -14,6 +14,7 @@ BEGIN { extends 'Catalyst::Controller' }
 
 sub samples : Path('/user/basespace/samples') : Args(0) {
     my ( $self, $c ) = @_;
+
     my $bs         = LIMS2::Model::Util::BaseSpace->new;
     my $project_id = $c->request->param('project');
     try {

@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::User::BrowseDesigns;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.537';
+    $LIMS2::WebApp::Controller::User::BrowseDesigns::VERSION = '0.541';
 }
 ## use critic
 
@@ -96,7 +96,7 @@ sub view_design : Path( '/user/view_design' ) : Args(0) {
     }
     if ( $design_data->{type} =~ /^miseq/xms ) {
         $c->stash->{amplicon} = $design->amplicon;
-        $c->stash->{hdr_template} = $design->hdr_template;
+        $c->stash->{hdr_template} = $design->hdr_amplicon;
     }
 
     my $design_attempt = $design->design_attempt;

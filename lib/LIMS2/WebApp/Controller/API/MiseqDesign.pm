@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::MiseqDesign;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::MiseqDesign::VERSION = '0.537';
+    $LIMS2::WebApp::Controller::API::MiseqDesign::VERSION = '0.541';
 }
 ## use critic
 
@@ -167,7 +167,7 @@ sub miseq_hdr_template_GET {
         );
     }
 
-    my $hdr = $design_rs->hdr_template;
+    my $hdr = $design_rs->hdr_amplicon;
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $hdr );

@@ -1,19 +1,88 @@
 [% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+<script src="[% c.uri_for( '/static/jquery/js/jquery.csv.min.js' ) %]"></script>
+<style>
+
+.container {
+    margin-left: 200px;
+}
+
+.amplicon, .hdr, .crispr {
+    font-family: "Lucida Console", Monaco, monospace;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+td.amplicon, td.hdr:not(:empty) {
+    max-width: 600px !important;
+    width: 600px !important;
+    overflow-x: scroll;
+    display: inline-block;
+    float: left;
+}
+
+</style>
+
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
+
 <h1>Import MiSEQ sequencing</h1>
 <form method="POST" enctype="multipart/form-data"
     action="[% c.uri_for('/user/miseq/submit') %]">
     <div class="form-group">
         <label>
-            Plate:
-            <input name="plate" type="text" class="form-control" />
+            MiSEQ Plate:
+            <select id="miseqPlate" name="miseq_plate" class="form-control">
+                <option disabled selected>
+                    &#x2500;&#x2500;Please select a plate&#x2500;&#x2500;
+                </option>
+                [% FOREACH plate IN plates %]
+                    <option value="[% plate %]">[% plate %]</option>
+                [% END %]
+            </select>
         </label>
     </div>
     <div class="form-group">
         <label>
-            Spreadsheet:
-            <input class="form-control-file" name="spreadsheet" type="file" />
+            External Experiments:
+            <input class="form-control-file" name="spreadsheet" type="file" id="spreadsheet" />
         </label>
+    </div>
+    <div id="errorAlert" class="alert alert-danger alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <p></p>
+    </div>
+    <div class="form-group">
+        <table id="expTable" class="table">
+            <thead>
+                <tr>
+                    <th>
+                        Exp ID
+                    </th>
+                    <th>
+                        Miseq Exp Name
+                    </th>
+                    <th>
+                        Gene
+                    </th>
+                    <th>
+                        Start Well
+                    </th>
+                    <th>
+                        End Well
+                    </th>
+                    <th>
+                        Crispr
+                    </th>
+                    <th>
+                        Seq Name
+                    </th>
+                    <th>
+                        Sequence
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="expBody">
+            </tbody>
+        </table>
     </div>
     <div class="form-group">
         <label>
@@ -31,14 +100,23 @@
     <div id="plates">
     </div>
     <div class="form-group">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="miseqSubmit">
             <i class="glyphicon glyphicon-import"></i>
             Import
         </button>
     </div>
+    <input type="hidden" name="run_data" id="runData">
 </form>
 
 <script type="text/javascript">
+
+var expData = {};
+var csvData;
+
+$('document').ready(function() {
+    clearError();
+});
+
 $('#walkup').on('change', function() {
     var val = this.value;
     $.ajax({
@@ -83,4 +161,163 @@ $('#walkup').on('change', function() {
         }
     });
 });
+
+$('#miseqPlate').on('change', function() {
+    $.ajax({
+        dataType: 'json',
+        type: 'GET',
+        url: '[% c.uri_for("/api/crispresso_submission") %]',
+        data: {
+            plate: $('#miseqPlate').val()
+        },
+        success: function(data) {
+            expData = data.data || {};
+            clearError();
+            if (data.errors) {
+                showErroneousExps(data.errors);
+            }
+            populateCsvIntoTable();
+            if (expData) {
+                buildTable();
+            }
+        }
+    });
+});
+
+$('#spreadsheet').on('change', function(evt) {
+    getSpreadsheetData(evt);
+});
+
+function tableColouring() {
+    $('td').css('background-color','');
+    var evenExpRows = $('.mainRow:even').map(function() { return this.id });
+    evenExpRows.map(function() {
+        $('.' + this).find('td').css('background-color', '#E3E3E3'); //light-grey
+    });
+
+    return;
+}
+
+function getSpreadsheetData(evt) {
+    var upload = $('#spreadsheet').prop('files')[0];
+
+    var files = evt.target.files;
+    var file = files[0];           
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        csvData = event.target.result;
+        csvData = $.csv.toObjects(csvData);
+        clearError();
+        populateCsvIntoTable();
+        buildTable();
+    }
+
+    reader.readAsText(file);
+}
+
+function buildTable() {
+    $('#expBody').empty();
+    var cols = ['experiment_id', 'experiment', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
+    var exps = Object.values(expData);
+    exps.forEach(function(exp) {
+        $("#expBody").append($('<tr>')
+            .attr("id", exp['experiment'])
+            .addClass("mainRow")
+            .addClass(exp['experiment'])
+        );
+
+        cols.forEach(function(column) {
+            buildCells(exp, column);
+        });
+
+        if ( exp['hdr'] ) {
+            buildRowHDR(exp);
+        }
+    });
+    tableColouring();
+    $('#runData').val(JSON.stringify(expData));
+}
+
+function buildCells(exp, column) {
+    var textCellFormat = {
+        'crispr'    : function() { return trimCrispr(exp, column); },
+        'seq_type'  : function() { return 'Amplicon'; },
+    };
+    
+    var text = exp[column];
+    if (textCellFormat[column]) {
+        text = textCellFormat[column]();
+    }
+    $('#' + exp['experiment']).append(
+        $('<td>')
+            .text( text )
+            .addClass( column )
+    );
+}
+
+function buildRowHDR(exp) {
+    $('#expBody').append(
+        $('<tr>')
+            .addClass(exp['experiment'])
+            .append(
+                $('<td colspan=6>'),
+                $('<td>').text('HDR'),
+                $('<td>')
+                    .text( exp['hdr'] )
+                    .addClass( 'hdr' )
+            )
+    );
+}
+
+function trimCrispr(exp, column) {
+    var crispr = exp[column];
+    var boundaries = {
+        GG: {
+            orientation: 0,
+            cut: 20,
+        },
+        CC: {
+            orientation: 1,
+            cut: 3,
+        }
+    };
+    
+    if (crispr.length == 23) {
+        var pam = crispr.match(/(^CC|GG$)/i);
+        var boundary = boundaries[pam[0]];
+        crispr = crispr.substr(0, boundary.cut) + ' ' + crispr.substr(boundary.cut, 23);
+        storeShortCrispr(crispr, boundary, exp);
+    }
+
+    return crispr;
+}
+
+function storeShortCrispr(crispr, boundary, exp) {
+    var shortCrispr = crispr.split(' ')[ boundary['orientation'] ];
+    expData[ exp['experiment'] ]['crispr'] = shortCrispr;
+}
+
+function populateCsvIntoTable() {
+    if (csvData) {
+        csvData.map(function(exp) {
+            expData[exp.experiment] = exp;
+        });
+    }
+
+    return;
+}
+
+function showErroneousExps(errors) {
+    var errorMsg = "The following Miseq Parents are missing experiment IDs:<br>";
+    errorMsg += errors.sort().join(",<br>");
+    $('#errorAlert > p').html(errorMsg);
+    $('#errorAlert').show();
+    return;
+}
+
+function clearError() {
+    $('#errorAlert > p').html('');
+    $('#errorAlert').hide();
+}
+
 </script>

@@ -1,3 +1,19 @@
+0.541     2019-09-12 12:03:16 Europe/London
+    Tied exp ID and parent ID to Miseq Plate creation
+0.540     2019-07-17 12:29:37 Europe/London
+
+    Create well expansion improvements
+    Skip unit tests failing due to WGE
+
+0.539     2019-06-19 15:15:44 Europe/London
+
+    Security enhancements
+
+0.538     2019-06-18 11:15:47 Europe/London
+
+    Create well expansion improvements
+    Change T7 score/status in well details table
+
 0.537     2019-05-31 08:28:14 Europe/London
     Front page reporting updated to fit 1st and 2nd QC
 0.536     2019-05-07 10:32:23 Europe/London
