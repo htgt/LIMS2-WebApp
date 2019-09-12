@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.541     2019-09-12 12:03:16 Europe/London
+    Tied exp ID and parent ID to Miseq Plate creation
 0.540     2019-07-17 12:29:37 Europe/London
 
     Create well expansion improvements
