@@ -685,7 +685,7 @@ sub _fetch_region_coords {
     return $amplicon->seq;
 }
 
-sub hdr_template {
+sub hdr_amplicon {
     my $self = shift;
 
     my $template;
