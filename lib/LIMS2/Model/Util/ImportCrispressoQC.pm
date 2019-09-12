@@ -5,7 +5,6 @@ use warnings FATAL => 'all';
 use feature qw(say);
 use Data::Dumper;
 use Try::Tiny;
-use Moose;
 use LIMS2::Model::Util::Miseq qw( miseq_well_processes convert_index_to_well_name );
 use List::Compare::Functional qw( get_intersection );
 use Sub::Exporter -setup => {
