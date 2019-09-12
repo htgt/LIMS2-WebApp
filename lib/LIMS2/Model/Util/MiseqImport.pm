@@ -63,10 +63,10 @@ sub _build_spreadsheet_columns {
     $columns{gene}              = qr/^[A-Z0-9]+ # start with a gene symbol
                                     (?:_.*)? # can be followed by an underscore and whatever
                                     $/xms;
-    $columns{experiment_id}     = qr/^\d+$|^$/xms;
-    $columns{parent_plate_id}   = qr/^\d+$|^$/xms;
+    $columns{experiment_id}     = qr/^\d*$/xms;
+    $columns{parent_plate_id}   = qr/^\d*$/xms;
     $columns{crispr}            = qr/^[ACGT]{20}(?:,[ACGT]{20})*$/ixms;
-    $columns{strand}            = qr/^[+-]$|^$/xms;
+    $columns{strand}            = qr/^[+-]?$/xms;
     $columns{amplicon}          = qr/^[ACGT]+$/ixms;
     $columns{min_index}         = qr/^\d+$/xms;
     $columns{max_index}         = qr/^\d+$/xms;
@@ -277,7 +277,7 @@ sub _validate_value {
     my $value = $row->{$key} // q//;
     if ( not $value =~ $validator ) {
         my $name = $row->{experiment};
-        die "'$value' is not a valid value for $name-$key";
+        die "'$value' is not a valid value for $key:$name";
     }
     return;
 }

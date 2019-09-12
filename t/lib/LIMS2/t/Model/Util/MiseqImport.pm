@@ -276,14 +276,14 @@ sub invalid_csv : Test(3) {
 
     test_csv_fails(
         $importer, 
-        qr/not a valid value for Exp_01-crispr/, 
+        qr/not a valid value for crispr:Exp_01/, 
         'CRISPR is wrong length',
         [ { %{$experiment}, crispr => 'ACGT' } ], 
     );
     
     test_csv_fails(
         $importer,
-        qr/not a valid value for -?experiment/,
+        qr/not a valid value for experiment/,
         'Experiment name is missing',
         [ { %{$experiment}, experiment => '' } ],
     );
