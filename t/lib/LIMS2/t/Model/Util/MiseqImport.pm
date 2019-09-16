@@ -14,7 +14,7 @@ use LIMS2::Model::Util::MiseqImport;
 
 sub mock_file_api {
     my @log      = ();
-    my $file_api = Test::MockModule->new('HTGT::QC::Util::FileAccessServer');
+    my $file_api = Test::MockModule->new('WebAppCommon::Util::FileAccess');
     $file_api->mock(
         'make_dir',
         sub {
@@ -218,7 +218,7 @@ sub all_tests : Test(52) {
                 '-o'   => 'mv.%J.out',
                 '-e'   => 'mv.%J.err',
                 '-J'   => 'move_miseq_data',
-                '-w'   => 'done(3)',
+                '-w'   => 'exit(3)',
                 '-cwd' => $path,
             },
             script      => 'move_miseq_data.sh',

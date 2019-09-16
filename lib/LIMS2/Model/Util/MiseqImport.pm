@@ -11,18 +11,18 @@ use POSIX qw/strftime/;
 use Text::CSV;
 use Tie::IxHash;
 use WebAppCommon::Util::FarmJobRunner;
+use WebAppCommon::Util::FileAccess;
 with 'MooseX::Log::Log4perl';
 
 has file_api => (
     is         => 'ro',
-    isa        => 'HTGT::QC::Util::FileAccessServer',
+    isa        => 'WebAppCommon::Util::FileAccess',
     lazy_build => 1,
-    handles    => [qw/post_file_content/],
 );
 
 sub _build_file_api {
-    return HTGT::QC::Util::FileAccessServer->new(
-        { file_api_url => $ENV{FILE_API_URL}, } );
+    return WebAppCommon::Util::FileAccess->new(
+        { server => 'file-access-server', } );
 }
 
 has farm_job_runner => (
@@ -289,6 +289,7 @@ sub process {
                 '-p' => $destination,
                 '-r' => $raw_dest,
             ],
+            dep_type => 'ended',
             dependencies => $self->_get_dependency(@crispresso_jobs),
         }
     );
