@@ -99,7 +99,7 @@ sub loci_builder {
     if ( not defined $oligo_bwa ) {
         return;
     }
-    my $oligo_len = length( $primer->{seq} );
+    my $oligo_len = length( $primer->{seq} ) - 1; #Store to ensembl -1 convention. 
     my $oligo_end = $oligo_bwa->{start} + $oligo_len;
     my $chr       = $oligo_bwa->{chr};
     $chr =~ s/chr//xms;
