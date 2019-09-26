@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::PrimerFinder;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.541';
+    $LIMS2::Model::Util::PrimerFinder::VERSION = '0.542';
 }
 ## use critic
 
@@ -106,7 +106,7 @@ sub loci_builder {
         return;
     }
     my $oligo_len = length( $primer->{seq} );
-    my $oligo_end = $oligo_bwa->{start} + $oligo_len;
+    my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};
     $chr =~ s/chr//xms;
     return {

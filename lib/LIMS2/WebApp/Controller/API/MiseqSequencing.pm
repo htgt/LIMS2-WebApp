@@ -1,7 +1,7 @@
 package LIMS2::WebApp::Controller::API::MiseqSequencing;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::WebApp::Controller::API::MiseqSequencing::VERSION = '0.541';
+    $LIMS2::WebApp::Controller::API::MiseqSequencing::VERSION = '0.542';
 }
 ## use critic
 
