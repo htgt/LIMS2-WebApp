@@ -1,0 +1,5 @@
+id,name,type_id
+12307,Miseq010,MISEQ
+12316,Miseq011,MISEQ
+12345,EP_Plate,EP
+13579,Test_Plate,MISEQ
