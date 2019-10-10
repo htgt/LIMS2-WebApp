@@ -205,6 +205,21 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
+=head2 design_amplicons
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::DesignAmplicon>
+
+=cut
+
+__PACKAGE__->has_many(
+  "design_amplicons",
+  "LIMS2::Model::Schema::Result::DesignAmplicon",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 designs
 
 Type: has_many
@@ -261,21 +276,6 @@ Related object: L<LIMS2::Model::Schema::Result::GenotypingPrimer>
 __PACKAGE__->has_many(
   "genotyping_primers",
   "LIMS2::Model::Schema::Result::GenotypingPrimer",
-  { "foreign.design_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 hdr_templates
-
-Type: has_many
-
-Related object: L<LIMS2::Model::Schema::Result::HdrTemplate>
-
-=cut
-
-__PACKAGE__->has_many(
-  "hdr_templates",
-  "LIMS2::Model::Schema::Result::HdrTemplate",
   { "foreign.design_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -396,8 +396,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-07-03 13:49:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gTgbTVIPyxlnr3tZBKgQjw
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-03 09:59:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nc02kIVHZIN76eOeZWMaQQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -660,10 +660,16 @@ sub gene_symbols {
 sub amplicon {
     my $self = shift;
 
-    my @oligos = @{$self->oligos_sorted};
+    my $wt_amp = _find_amplicon_by_type($self, 'WT');
+    my $amplicon;
+    if ($wt_amp) {
+        $amplicon = $wt_amp->amplicon->seq;
+    } else {
+        my @oligos = @{$self->oligos_sorted};
 
-    #[Left external, Left internal, Right Internal, Right External] 
-    my $amplicon = _fetch_region_coords($self, $oligos[1], $oligos[2]);
+        #[Left external, Left internal, Right Internal, Right External] 
+        $amplicon = _fetch_region_coords($self, $oligos[1], $oligos[2]);
+    }
 
     return $amplicon;
 }
@@ -685,15 +691,29 @@ sub _fetch_region_coords {
     return $amplicon->seq;
 }
 
+sub _find_amplicon_by_type {
+    my ($self, $type) = @_;
+
+    my $matched_amps;
+    foreach my $amplicon ($self->design_amplicons) {
+        if ($amplicon->amplicon->amplicon_type->id eq $type) {
+            $matched_amps = $amplicon;
+        }
+    }
+
+    return $matched_amps;
+}
+
 sub hdr_amplicon {
     my $self = shift;
 
-    my $template;
-    try {
-        $template = $self->hdr_templates->first->template;
-    };
+    my $hdr_amp = _find_amplicon_by_type($self, 'HDR');
+    my $amplicon;
+    if ($hdr_amp) {
+        $amplicon = $hdr_amp->amplicon->seq;
+    }
 
-    return $template;
+    return $amplicon;
 }
 
 __PACKAGE__->meta->make_immutable;

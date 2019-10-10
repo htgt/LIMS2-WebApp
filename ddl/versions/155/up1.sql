@@ -9,8 +9,8 @@ CREATE TABLE amplicons (
 );
 
 CREATE TABLE design_amplicons (
-    design_id INTEGER PRIMARY KEY REFERENCES designs(id),
-    amplicon_id INTEGER NOT NULL REFERENCES amplicons(id)
+    design_id INTEGER NOT NULL REFERENCES designs(id),
+    amplicon_id INTEGER PRIMARY KEY REFERENCES amplicons(id)
 );
 
 CREATE TABLE amplicon_loci (
