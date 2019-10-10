@@ -59,6 +59,18 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</amplicon_id>
+
+=back
+
+=cut
+
+__PACKAGE__->set_primary_key("amplicon_id");
+
 =head1 RELATIONS
 
 =head2 amplicon
@@ -92,8 +104,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-03 09:59:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yJomipyFSPISyHasESKA2w
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-10 12:01:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1zjzl8ccehM91vI1TMOvlQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

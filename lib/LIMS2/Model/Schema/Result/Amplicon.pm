@@ -116,24 +116,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 design_amplicons
+=head2 design_amplicon
 
-Type: has_many
+Type: might_have
 
 Related object: L<LIMS2::Model::Schema::Result::DesignAmplicon>
 
 =cut
 
-__PACKAGE__->has_many(
-  "design_amplicons",
+__PACKAGE__->might_have(
+  "design_amplicon",
   "LIMS2::Model::Schema::Result::DesignAmplicon",
   { "foreign.amplicon_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-01 14:33:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:syZKKXIoZVQI3ETmLKUgVA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-10 12:01:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jrtBt03Qlucze4rW80mchA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
