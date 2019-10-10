@@ -674,21 +674,16 @@ sub amplicon {
     return $amplicon;
 }
 
-sub _fetch_region_coords {
-    my ($self, $inf, $inr) = @_;
+sub hdr_amplicon {
+    my $self = shift;
 
-    require WebAppCommon::Util::EnsEMBL;
-    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
+    my $hdr_amp = _find_amplicon_by_type($self, 'HDR');
+    my $amplicon;
+    if ($hdr_amp) {
+        $amplicon = $hdr_amp->amplicon->seq;
+    }
 
-    my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
-        'chromosome',
-        $inf->{locus}->{chr_name},
-        $inf->{locus}->{chr_end},
-        $inr->{locus}->{chr_start} + 1,
-        $inf->{locus}->{chr_strand},
-    );
-
-    return $amplicon->seq;
+    return $amplicon;
 }
 
 sub _find_amplicon_by_type {
@@ -704,16 +699,21 @@ sub _find_amplicon_by_type {
     return $matched_amps;
 }
 
-sub hdr_amplicon {
-    my $self = shift;
+sub _fetch_region_coords {
+    my ($self, $inf, $inr) = @_;
 
-    my $hdr_amp = _find_amplicon_by_type($self, 'HDR');
-    my $amplicon;
-    if ($hdr_amp) {
-        $amplicon = $hdr_amp->amplicon->seq;
-    }
+    require WebAppCommon::Util::EnsEMBL;
+    my $ensembl_util = WebAppCommon::Util::EnsEMBL->new( species => $self->species_id );
 
-    return $amplicon;
+    my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
+        'chromosome',
+        $inf->{locus}->{chr_name},
+        $inf->{locus}->{chr_end},
+        $inr->{locus}->{chr_start} + 1,
+        $inf->{locus}->{chr_strand},
+    );
+
+    return $amplicon->seq;
 }
 
 __PACKAGE__->meta->make_immutable;
