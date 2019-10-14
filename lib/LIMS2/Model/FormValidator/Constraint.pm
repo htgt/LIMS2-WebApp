@@ -488,7 +488,7 @@ sub ep_well {
 }
 
 sub sequencing_result {
-    return shift->regexp_matches(qr/^[ACTG-]+$/);
+    return shift->regexp_matches(qr/^[ACTGN-]+$/);
 }
 
 sub phred_string {

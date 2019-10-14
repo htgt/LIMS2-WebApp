@@ -116,5 +116,8 @@ miseq_alleles_frequency,
 indel_histogram,
 crispresso_submissions,
 cell_line_external,
-cell_line_internal
+cell_line_internal,
+amplicon_loci,
+design_amplicons,
+amplicons
  CASCADE;
