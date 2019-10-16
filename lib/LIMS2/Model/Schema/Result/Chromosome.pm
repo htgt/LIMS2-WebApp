@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Chromosome;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.542';
+    $LIMS2::Model::Schema::Result::Chromosome::VERSION = '0.543';
 }
 ## use critic
 
@@ -107,6 +107,21 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("new_chromosomes_species_id_name_key", ["species_id", "name"]);
 
 =head1 RELATIONS
+
+=head2 amplicon_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::AmpliconLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "amplicon_locis",
+  "LIMS2::Model::Schema::Result::AmpliconLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 bac_clone_loci
 
@@ -229,8 +244,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z03KBcSQ9CpThrRh/UL69A
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-01 14:33:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CMr2KQDGZRmXfqVTmC8m/Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

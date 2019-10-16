@@ -1,7 +1,7 @@
 package LIMS2::Model::Util::GenomeBrowser;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.542';
+    $LIMS2::Model::Util::GenomeBrowser::VERSION = '0.543';
 }
 ## use critic
 

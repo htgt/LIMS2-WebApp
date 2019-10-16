@@ -2,7 +2,7 @@ use utf8;
 package LIMS2::Model::Schema::Result::Assembly;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::Schema::Result::Assembly::VERSION = '0.542';
+    $LIMS2::Model::Schema::Result::Assembly::VERSION = '0.543';
 }
 ## use critic
 
@@ -77,6 +77,21 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
+
+=head2 amplicon_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::AmpliconLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "amplicon_locis",
+  "LIMS2::Model::Schema::Result::AmpliconLoci",
+  { "foreign.assembly_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 bac_clone_loci
 
@@ -199,8 +214,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pM2cAk8U27xZR625VGpBOA
+# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-01 14:33:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eGqnz1ll8eI4TGtHO2FDFw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

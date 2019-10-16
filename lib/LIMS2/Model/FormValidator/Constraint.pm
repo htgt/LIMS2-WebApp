@@ -1,7 +1,7 @@
 package LIMS2::Model::FormValidator::Constraint;
 ## no critic(RequireUseStrict,RequireUseWarnings)
 {
-    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.542';
+    $LIMS2::Model::FormValidator::Constraint::VERSION = '0.543';
 }
 ## use critic
 
@@ -494,7 +494,7 @@ sub ep_well {
 }
 
 sub sequencing_result {
-    return shift->regexp_matches(qr/^[ACTG-]+$/);
+    return shift->regexp_matches(qr/^[ACTGN-]+$/);
 }
 
 sub phred_string {

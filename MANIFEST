@@ -62,6 +62,9 @@ lib/LIMS2/Model/Plugin/WellBarcode.pm
 lib/LIMS2/Model/ProcessGraph.pm
 lib/LIMS2/Model/Schema.pm
 lib/LIMS2/Model/Schema/Result/AlleleDump.pm
+lib/LIMS2/Model/Schema/Result/Amplicon.pm
+lib/LIMS2/Model/Schema/Result/AmpliconLoci.pm
+lib/LIMS2/Model/Schema/Result/AmpliconType.pm
 lib/LIMS2/Model/Schema/Result/Assembly.pm
 lib/LIMS2/Model/Schema/Result/BacClone.pm
 lib/LIMS2/Model/Schema/Result/BacCloneLocus.pm
@@ -102,6 +105,7 @@ lib/LIMS2/Model/Schema/Result/CrisprValidation.pm
 lib/LIMS2/Model/Schema/Result/CrispressoSubmission.pm
 lib/LIMS2/Model/Schema/Result/DefaultDesignOligoLocus.pm
 lib/LIMS2/Model/Schema/Result/Design.pm
+lib/LIMS2/Model/Schema/Result/DesignAmplicon.pm
 lib/LIMS2/Model/Schema/Result/DesignAppendAlias.pm
 lib/LIMS2/Model/Schema/Result/DesignAttempt.pm
 lib/LIMS2/Model/Schema/Result/DesignComment.pm
@@ -2946,6 +2950,7 @@ root/static/test/fixtures/LIMS2/t/js/User/QC/ViewTraces/SequencingProjectPrimer.
 root/static/test/fixtures/LIMS2/t/js/User/QC/ViewTraces/User.csv
 root/static/test/fixtures/LIMS2/t/js/User/QC/ViewTraces/UserRole.csv
 root/static/test/fixtures/legacy/10-load-fixture-data.sql
+root/static/test/fixtures/reference_data/AmpliconType.csv
 root/static/test/fixtures/reference_data/Assembly.csv
 root/static/test/fixtures/reference_data/BacLibrary.csv
 root/static/test/fixtures/reference_data/Backbone.csv
