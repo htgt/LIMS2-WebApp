@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.543     2019-10-16 08:44:31 Europe/London
+    Amplicon Tables initial merge
 0.542     2019-09-26 15:17:28 Europe/London
     Fixed +1 design chr_end bug
 0.541     2019-09-12 12:03:16 Europe/London
