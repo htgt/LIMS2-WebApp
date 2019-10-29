@@ -8,7 +8,6 @@ use Log::Log4perl qw(:easy);
 use namespace::autoclean;
 use List::MoreUtils qw( uniq );
 use Try::Tiny;
-use experimental qw(switch);
 
 extends qw( LIMS2::ReportGenerator );
 
@@ -153,15 +152,19 @@ sub build_ep_detail {
                                 join    => 'crispr_es_qc_run',
                             } );
                             foreach my $damage (@damage) {
-                                for ($damage->crispr_damage_type_id) {
-                                    when ('frameshift') {
+                                my $crispr_damage_type_id = $damage->crispr_damage_type_id;
+                                if ($crispr_damage_type_id eq 'frameshift') {
                                         $fs_count++;
                                         $fs_list = !$fs_list ? $specification : join q{ }, ( $fs_list, $specification );
-                                    }
-                                    when ('in-frame')   { $if_count++ }
-                                    when ('wild_type')  { $wt_count++ }
-                                    when ('mosaic')     { $ms_count++ }
-                                    # default { DEBUG "No damage set for well: " . $ep_pick->ep_pick_well_id }
+                                }
+                                elsif ($crispr_damage_type_id eq 'in-frame') {
+                                    $if_count++
+                                }
+                                elsif ($crispr_damage_type_id eq 'wild_type') {
+                                    $wt_count++
+                                }
+                                elsif ($crispr_damage_type_id eq 'mosaic') {
+                                    $ms_count++
                                 }
                             }
                         };
