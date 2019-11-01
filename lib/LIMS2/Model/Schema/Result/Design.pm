@@ -708,8 +708,8 @@ sub _fetch_region_coords {
     my $amplicon = $ensembl_util->slice_adaptor->fetch_by_region(
         'chromosome',
         $inf->{locus}->{chr_name},
-        $inf->{locus}->{chr_end},
-        $inr->{locus}->{chr_start} + 1,
+        $inf->{locus}->{chr_start},
+        $inr->{locus}->{chr_end} + 1,
         $inf->{locus}->{chr_strand},
     );
 
