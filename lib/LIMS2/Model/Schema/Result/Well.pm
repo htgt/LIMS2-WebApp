@@ -678,7 +678,7 @@ sub as_string {
 
     my $name;
     if($self->plate){
-        $name = sprintf( '%s_%s', $self->plate->name, $self->name );
+        $name = sprintf( '%s_%s', $self->plate->name, $self->well_name );
 
         if($self->plate->version){
             $name = sprintf( '%s(v%s)_%s', $self->plate->name, $self->plate->version, $self->name);

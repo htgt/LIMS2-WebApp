@@ -371,7 +371,7 @@ sub as_hash {
         type        => $self->type_id,
         created_by  => $self->created_by->name,
         created_at  => $self->created_at->iso8601,
-        wells       => [ sort map { $_->name } $self->wells ]
+        wells       => [ sort map { $_->well_name } $self->wells ]
     };
 }
 
