@@ -1,12 +1,12 @@
 use utf8;
-package LIMS2::Model::Schema::Result::ProcessCellLine;
+package LIMS2::Model::Schema::Result::DesignAmplicon;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-LIMS2::Model::Schema::Result::ProcessCellLine
+LIMS2::Model::Schema::Result::DesignAmplicon
 
 =cut
 
@@ -30,87 +30,82 @@ extends 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<process_cell_line>
+=head1 TABLE: C<design_amplicons>
 
 =cut
 
-__PACKAGE__->table("process_cell_line");
+__PACKAGE__->table("design_amplicons");
 
 =head1 ACCESSORS
 
-=head2 process_id
+=head2 design_id
 
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
 
-=head2 cell_line_id
+=head2 amplicon_id
 
   data_type: 'integer'
   is_foreign_key: 1
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
 __PACKAGE__->add_columns(
-  "process_id",
+  "design_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "cell_line_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "amplicon_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
 
 =over 4
 
-=item * L</process_id>
+=item * L</amplicon_id>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("process_id");
+__PACKAGE__->set_primary_key("amplicon_id");
 
 =head1 RELATIONS
 
-=head2 cell_line
+=head2 amplicon
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::CellLine>
+Related object: L<LIMS2::Model::Schema::Result::Amplicon>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "cell_line",
-  "LIMS2::Model::Schema::Result::CellLine",
-  { id => "cell_line_id" },
-  {
-    is_deferrable => 0,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+  "amplicon",
+  "LIMS2::Model::Schema::Result::Amplicon",
+  { id => "amplicon_id" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 process
+=head2 design
 
 Type: belongs_to
 
-Related object: L<LIMS2::Model::Schema::Result::Process>
+Related object: L<LIMS2::Model::Schema::Result::Design>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "process",
-  "LIMS2::Model::Schema::Result::Process",
-  { id => "process_id" },
+  "design",
+  "LIMS2::Model::Schema::Result::Design",
+  { id => "design_id" },
   { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JCp3g9q5fHgJbIMEPmrjMg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cWnD3p9bZTaXQGaJ7G53WQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

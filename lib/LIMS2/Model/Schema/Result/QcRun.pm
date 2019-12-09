@@ -129,7 +129,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_alignments
@@ -189,7 +189,7 @@ __PACKAGE__->belongs_to(
   "qc_template",
   "LIMS2::Model::Schema::Result::QcTemplate",
   { id => "qc_template_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_template_well_crispr_primers
@@ -238,8 +238,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1kZn14JwLZscs+kFIpTzw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CP1Kh6aWmjB+6AJm6UMtdw
 
 # Restore many to many relationship which is no longer generated
 # automatically as extra field has been added to the linker table

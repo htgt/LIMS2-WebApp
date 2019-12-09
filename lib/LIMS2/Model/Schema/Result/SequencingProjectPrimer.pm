@@ -73,7 +73,7 @@ __PACKAGE__->belongs_to(
   "primer",
   "LIMS2::Model::Schema::Result::SequencingPrimerType",
   { id => "primer_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 seq_project
@@ -88,12 +88,12 @@ __PACKAGE__->belongs_to(
   "seq_project",
   "LIMS2::Model::Schema::Result::SequencingProject",
   { id => "seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-10-05 14:59:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ClOAB9CY0CcoLe0JvF7+4g
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FCdtf0tpqmCRnCYesHVFFw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

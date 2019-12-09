@@ -114,10 +114,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -137,8 +137,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-10-27 10:58:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jl3GsgdoWbGcVbrvgQ8goQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YEHVl5VdagBiV+vmZG+ewA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

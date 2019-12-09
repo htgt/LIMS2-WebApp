@@ -181,10 +181,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Chromosome",
   { id => "crispr_chr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -201,10 +201,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprDamageType",
   { id => "crispr_damage_type_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -220,7 +220,7 @@ __PACKAGE__->belongs_to(
   "crispr_es_qc_run",
   "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
   { id => "crispr_es_qc_run_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr_validations
@@ -250,12 +250,12 @@ __PACKAGE__->belongs_to(
   "well",
   "LIMS2::Model::Schema::Result::Well",
   { id => "well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 07:48:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YCe585FTaxThOQPMxvnUdw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kHrspRDjkkv8rKnMAk+qgA
 
 use JSON;
 use List::Util qw ( min max );

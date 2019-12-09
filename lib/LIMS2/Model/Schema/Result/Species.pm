@@ -106,7 +106,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crispr_es_qcs_runs
+=head2 crispr_es_qc_runs
 
 Type: has_many
 
@@ -115,7 +115,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcRuns>
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_es_qcs_runs",
+  "crispr_es_qc_runs",
   "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
   { "foreign.species_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -257,8 +257,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-04-07 10:26:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PIsAginEtdabRiKXK4vd5w
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hmvuyeFtluybQCG1UfG54A
 
 sub check_assembly_belongs {
     my ( $self, $assembly ) = @_;

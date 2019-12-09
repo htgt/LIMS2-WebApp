@@ -137,16 +137,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Priority",
   { id => "priority" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-20 15:17:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:48GHmHI2baow5zMxya+/ew
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zHGPxvxenyRst3yxVvmcHw
 
 
 sub as_hash {

@@ -143,12 +143,12 @@ __PACKAGE__->belongs_to(
   "qc_seq_project",
   "LIMS2::Model::Schema::Result::QcSeqProject",
   { id => "qc_seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qH8WK+10S98cpFCQ+8w5/w
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:01wv0RzFVXUoqknfekiYvA
 
 __PACKAGE__->many_to_many("qc_seq_wells", "qc_run_seq_well_qc_seqs_read", "qc_run_seq_well");
 

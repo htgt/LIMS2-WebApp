@@ -72,6 +72,21 @@ __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
 
+=head2 amplicon_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::AmpliconLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "amplicon_locis",
+  "LIMS2::Model::Schema::Result::AmpliconLoci",
+  { "foreign.assembly_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 bac_clone_loci
 
 Type: has_many
@@ -174,7 +189,7 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 species_default_assemblies
@@ -193,8 +208,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-07 08:15:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pM2cAk8U27xZR625VGpBOA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OwsPvyVErAJg4VFxvIOWDg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

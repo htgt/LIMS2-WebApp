@@ -101,7 +101,7 @@ __PACKAGE__->belongs_to(
   "cassette_function",
   "LIMS2::Model::Schema::Result::CassetteFunction",
   { id => "cassette_function" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 targeting_profile
@@ -116,12 +116,12 @@ __PACKAGE__->belongs_to(
   "targeting_profile",
   "LIMS2::Model::Schema::Result::TargetingProfile",
   { id => "targeting_profile_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-04-08 13:21:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2jcTkgtaeUMoOqFM5G6l8Q
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TzsXgzr7YphdSYaLxQEa7w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

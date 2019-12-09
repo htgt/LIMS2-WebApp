@@ -79,12 +79,12 @@ __PACKAGE__->belongs_to(
   "design_oligo_type",
   "LIMS2::Model::Schema::Result::DesignOligoType",
   { id => "design_oligo_type_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-01-05 14:00:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+y8pKKQ+Sl/Czz63sA+8Hw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KjAY/yFsNXI4RfDQnZQdWw
 
 sub as_hash {
     my $self = shift;
