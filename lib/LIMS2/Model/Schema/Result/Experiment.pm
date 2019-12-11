@@ -300,6 +300,11 @@ with qw( LIMS2::Model::Util::Trivial );
 sub as_hash {
     my $self = shift;
 
+    my $requester;
+    if ($self->requester) {
+      $requester = $self->requester->id;
+    }
+
     return {
         id              => $self->id,
         gene_id         => $self->gene_id,
@@ -308,6 +313,7 @@ sub as_hash {
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_group_id => $self->crispr_group_id,
         deleted         => $self->deleted,
+        requester       => $requester,
     };
 }
 
