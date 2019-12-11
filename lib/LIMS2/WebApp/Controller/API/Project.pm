@@ -3,6 +3,7 @@ use Moose;
 use Hash::MoreUtils qw( slice_def );
 use namespace::autoclean;
 use Data::Dumper;
+use JSON;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -122,5 +123,31 @@ sub project_priority_GET{
 
     return $self->status_ok( $c, entity => $project_sponsor->project->as_hash );
 }
+
+sub cell_line : Path( '/api/cell_line' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub cell_line_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+
+    my $result;
+    my $cell_line = $c->request->param('name');
+
+    my $cell_rs = $c->model('Golgi')->schema->resultset('CellLine')->find({ 'name' => $cell_line });
+$DB::single=1;
+    if ($cell_rs) {
+        $result = $cell_rs->tracking;
+    }
+
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($result);
+
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+}
+
 
 1;

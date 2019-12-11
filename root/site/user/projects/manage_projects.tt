@@ -1,180 +1,296 @@
 [%- META title = 'Manage Projects' %]
 
+<style>
+
+td {
+    text-align: left;
+}
+
+#rightHalf {
+    border-left: 1px solid lightgray;
+    height: 350px;
+}
+
+#repoLabel {
+    text-align: center;
+}
+
+</style>
+
 <div class="page-header">
-  <h1>Manage Projects</h1>
+    <h1>Manage Projects</h1>
 </div>
 
-<form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="form-horizontal well">
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Gene Identifier</label>
-    <div class="col-md-2">
-      <input class="text" name="gene" value="[% gene %]">
-    </div>
-  </div>
-  <br>
-  </br>
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Cell Line</label>
-    <div class="col-md-3">
-        <select class="form-control" name="cell_line_id">
-          <option value=""></option>
-          [% FOREACH cell_line IN cell_line_options %]
-            <option value="[% cell_line.id %]" [% IF cell_line.id == cell_line_id %]selected[% END %]>[% cell_line.name %]</option>
-          [% END %]
-        </select>
-    </div>
-  </div>
-  <br>
-  </br>
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Strategy</label>
-    <div class="col-md-3">
-        <select class="form-control" name="strategy_id">
-          <option value=""></option>
-          [% FOREACH strategy IN strategy_options %]
-            <option value="[% strategy %]" [% IF strategy == strategy_id %]selected[% END %]>[% strategy %]</option>
-          [% END %]
-        </select>
-    </div>
-  </div>
-  <br>
-  </br>
-  <div class="col-md-12 control-group row">
-    <label class="col-md-2 control-label">Targeting Type</label>
-    <div class="col-md-3">
-        <div class="radio">
-            <label><input type="radio" name="targeting_type" value="single_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
-                Single Targeted
-            </label>
+<form method="GET" action="[% c.uri_for( '/user/manage_projects' ) %]" class="form-horizontal well col-md-12">
+    <div id="leftHalf" class="col-md-6">
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Gene Identifier</label>
+            <div class="col-md-6">
+                <input class="text" name="gene" value="[% gene %]">
+            </div>
         </div>
-        <div class="radio">
-            <label><input type="radio" name="targeting_type" value="double_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
-                Double Targeted
-            </label>
+
+        <br></br>
+
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Cell Line</label>
+            <div class="col-md-6">
+                <select class="form-control" name="cell_line_id" id="cellLineID">
+                    <option value=""></option>
+                    [% FOREACH cell_line IN cell_line_options %]
+                        <option value="[% cell_line.id %]" [% IF cell_line.id == cell_line_id %]selected[% END %]>[% cell_line.name %]</option>
+                    [% END %]
+                </select>
+            </div>
+        </div>
+
+        <br></br>
+
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Strategy</label>
+            <div class="col-md-6">
+                <select class="form-control" name="strategy_id">
+                    <option value=""></option>
+                    [% FOREACH strategy IN strategy_options %]
+                        <option value="[% strategy %]" [% IF strategy == strategy_id %]selected[% END %]>[% strategy %]</option>
+                    [% END %]
+                </select>
+            </div>
+        </div>
+        
+        <br></br>
+        
+        <div class="col-md-12 control-group row">
+            <label class="col-md-4 control-label">Targeting Type</label>
+            <div class="col-md-6">
+                <div class="radio">
+                    <label><input type="radio" name="targeting_type" value="single_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
+                        Single Targeted
+                    </label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="targeting_type" value="double_targeted" [% IF targeting_type == 'single_targeted' %]checked[% END %]>
+                        Double Targeted
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <br></br><br />
+        
+        [% IF  c.session.selected_species == "Mouse" %]
+            <div class="col-md-12 control-group row">
+                <label class="col-md-4 control-label">Targeting Profile</label>
+                <div class="col-md-6">
+                    <select class="form-control" name="targeting_profile_id">
+                        <option value=""></option>
+                        <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
+                        <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
+                        <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
+                    </select>
+                </div>
+            </div>
+            
+            <br></br>
+        [% END %]
+
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Sponsor</label>
+            <div class="col-md-6">
+                <select class="form-control" name="sponsor">
+                    <option value=""></option>
+                    [% FOREACH sp IN sponsors %]
+                        <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
+                    [% END %]
+                </select>
+            </div>
+        </div>
+        
+        <br></br>
+        
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Lab Head</label>
+            <div class="col-md-6">
+                <select class="form-control" name="lab_head">
+                    <option value="Other">Other</option>
+                    [% FOREACH lab_head IN lab_heads %]
+                        [% IF lab_head != 'Other' %]
+                            <option value="[% lab_head %]">[% lab_head %]</option>
+                        [% END %]
+                    [% END %]
+                </select>
+            </div>
+        </div>
+        
+        <br></br>
+
+        <div class="col-md-12 control-group row">
+            <label class="control-label col-md-4">Programme</label>
+            <div class="col-md-6">
+                <select class="form-control" name="programme">
+                    <option value="Other">Other</option>
+                    [% FOREACH programme IN programmes %]
+                        [% IF programme != 'Other' %]
+                            <option value="[% programme %]">[% programme %]</option>
+                        [% END %]
+                    [% END %]
+                </select>
+            </div>
+        </div>
+
+        <br></br><br />
+
+        <div class="control-group col-md-offset-1">
+            <div class="row">
+                <button type="submit" class="col-md-offset-2 btn btn-primary" name="search_projects" value="1">Search</button>
+                [% IF c.check_user_roles( 'edit' ) %]
+                    <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
+                [% END %]
+            </div>
         </div>
     </div>
-  </div>
-  <br>
-  </br>
-  <br />
-  [% IF  c.session.selected_species == "Mouse" %]
-  <div class="col-md-12 control-group row">
-    <label class="col-md-2 control-label">Targeting Profile</label>
-    <div class="col-md-3">
-        <select class="form-control" name="targeting_profile_id">
-          <option value=""></option>
-          <option value="homozygous" [% IF targeting_profile == 'homozygous' %]selected[% END %]>homozygous</option>
-          <option value="cre_knockin" [% IF targeting_profile == 'cre_knockin' %]selected[% END %]>cre_knockin</option>
-          <option value="ko_first" [% IF targeting_profile == 'ko_first' %]selected[% END %]>ko_first</option>
-        </select>
+    <div id="rightHalf" class="col-md-6">
+        <table class="table table-striped">
+            <tr>
+                <th class="col-md-3">Cell Line</th>
+                <td id="nameCL" class="cellLine"></td>
+            </tr>
+            <tr>
+                <th class="col-md-3">Species</th>
+                <td id="speciesCL" class="cellLine"></td>
+            </tr>
+            <tr>
+                <th class="col-md-3">Description</th>
+                <td id="descriptionCL" class="cellLine"></td>
+            </tr>
+        </table>
+        <div id="externalRepo">
+            <label id="repoLabel" class="control-label col-md-12">External Repositories</label>
+            <br></br>
+            <div id="repos" class="cellLine">
+            </div>
+        </div>
     </div>
-  </div>
-  <br>
-  </br>
-  [% END %]
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Sponsor</label>
-    <div class="col-md-3">
-        <select class="form-control" name="sponsor">
-          <option value=""></option>
-          [% FOREACH sp IN sponsors %]
-            <option value="[% sp %]" [% IF sponsor == sp %]selected[% END %]>[% sp %]</option>
-          [% END %]
-        </select>
-    </div>
-  </div>
-<br>
-</br>
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Lab Head</label>
-    <div class="col-md-3">
-        <select class="form-control" name="lab_head">
-          <option value="Other">Other</option>
-          [% FOREACH lab_head IN lab_heads %]
-            [% IF lab_head != 'Other' %]
-              <option value="[% lab_head %]">[% lab_head %]</option>
-            [% END %]
-          [% END %]
-        </select>
-    </div>
-  </div>
-<br>
-</br>
-  <div class="col-md-12 control-group row">
-    <label class="control-label col-md-2">Programme</label>
-    <div class="col-md-3">
-        <select class="form-control" name="programme">
-          <option value="Other">Other</option>
-          [% FOREACH programme IN programmes %]
-            [% IF programme != 'Other' %]
-              <option value="[% programme %]">[% programme %]</option>
-            [% END %]
-          [% END %]
-        </select>
-    </div>
-  </div>
-  <br>
-  </br>
-  <br />
-  <div class="control-group">
-    <div class="row">
-    <button type="submit" class="col-md-offset-2 btn btn-primary" name="search_projects" value="1">Search</button>
-    [% IF c.check_user_roles( 'edit' ) %]
-    <button type="submit" class="btn btn-warning" name="create_project" value="1">Create Project</button>
-    [% END %]
-    </div>
-  </div>
 </form>
 
 [% IF projects.size %]
-<table class='table well'>
-  <tr>
-   <th>Project ID</th>
-   <th>View/Edit Project</th>
-   <th>Gene ID</th>
-   <th>Gene Symbol</th>
-   <th>Cell Line</th>
-   <th>Targeting Type</th>
-   [% IF  c.session.selected_species == "Mouse" %]
-   <th>Targeting Profile</th>
-   [% END %]
-   <th>Strategy</th>
-   <th>Sponsor</th>
-   <th>Lab Head</th>
-   <th>Programme</th>
-  </tr>
-  [% FOREACH project IN projects %]
-   <tr>
-     <td>[% project.id %]</td>
-     <td>
-       <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
-       View/Edit
-       </a>
-     </td>
-     <td>[% project.gene_id %]</td>
-     <td>[% project.gene_symbol %]</td>
-     <td>[% project.cell_line %]</td>
-     <td>[% project.targeting_type %]</td>
-     [% IF  c.session.selected_species == "Mouse" %]
-     <td>[% project.targeting_profile_id %]</td>
-     [% END %]
-     <td>[% project.strategy %]</td>
-     <td>[% project.sponsors %]</td>
-     <td>[% project.lab_heads %]</td>
-     <td>[% project.programmes %]</td>
-   </tr>
-  [% END %]
-</table>
+    <table class='table well'>
+        <tr>
+            <th>Project ID</th>
+            <th>View/Edit Project</th>
+            <th>Gene ID</th>
+            <th>Gene Symbol</th>
+            <th>Cell Line</th>
+            <th>Targeting Type</th>
+            [% IF c.session.selected_species == "Mouse" %]
+                <th>Targeting Profile</th>
+            [% END %]
+            <th>Strategy</th>
+            <th>Sponsor</th>
+            <th>Lab Head</th>
+            <th>Programme</th>
+        </tr>
+        [% FOREACH project IN projects %]
+            <tr>
+                <td>[% project.id %]</td>
+                <td>
+                    <a href="[% c.uri_for('/user/view_project/', { project_id => project.id } ) %]">
+                        View/Edit
+                    </a>
+                </td>
+                <td>[% project.gene_id %]</td>
+                <td>[% project.gene_symbol %]</td>
+                <td>[% project.cell_line %]</td>
+                <td>[% project.targeting_type %]</td>
+                [% IF  c.session.selected_species == "Mouse" %]
+                    <td>[% project.targeting_profile_id %]</td>
+                [% END %]
+                <td>[% project.strategy %]</td>
+                <td>[% project.sponsors %]</td>
+                <td>[% project.lab_heads %]</td>
+                <td>[% project.programmes %]</td>
+            </tr>
+        [% END %]
+    </table>
 [% END %]
 
-
-
 <script type="text/javascript">
-$("input[name='gene']").autocomplete({
-  source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
-  minLength: 2,
+
+$(document).ready(function() {
+    $('#rightHalf').hide();
+    $('#externalRepo').hide();
 });
 
+$("input[name='gene']").autocomplete({
+    source: "[% c.uri_for( '/api/autocomplete/gene_symbols' ) %]",
+    minLength: 2,
+});
 
+$('#cellLineID').change(function() {
+
+    var cellLine = $('#cellLineID').children("option:selected").text();
+
+    $.ajax({
+        url: '[% c.uri_for('/api/cell_line/') %]',
+        type: "GET",
+        contentType: 'plain/text',
+        data: {
+            name: cellLine, 
+        },
+        success: function(result){
+            if (result != 'null') {
+                var info = JSON.parse(result);
+                spawnCellLineInfo(info);
+            } else {
+                $('#rightHalf').hide();
+            }
+        },
+        error: function() {
+            console.log('No cell line information found for ' + cellLine);
+            $('#rightHalf').hide();
+        }
+    });
+});
+
+function clearCellLines() {
+    $('.cellLine').html('');
+    $('#externalRepo').hide();
+}
+
+function spawnCellLineInfo(info) {
+    clearCellLines();
+    $('#rightHalf').show();
+
+    var descriptors = ['name', 'species', 'description'];
+    descriptors.map(function(field) { 
+        $('#' + field + 'CL').text( info[field] || 'No ' + field + ' set.' ) 
+    });
+
+    if (info.external) {
+        $('#externalRepo').show();
+        spawnExternalRepos(info.external);
+    }
+}
+
+function spawnExternalRepos(externals) {
+    var repoAttrs = [
+        { 'key' : 'repo', 'cell' : 'Repository' },
+        { 'key' : 'ext_name', 'cell' : 'Line Name' },
+        { 'key' : 'url', 'cell' : 'URL' }
+    ];
+    
+    externals.forEach(function(repo) {
+        $('#repos').append('<table id="' + repo.repo + '" class="table table-striped">');
+
+        repoAttrs.forEach(function(attr) {
+            var cellVal = repo[attr.key];
+            if (attr.key == 'url') {
+                cellVal = '<a href=' + cellVal + '>' + cellVal + '</a>';
+            }
+
+            $('#' + repo.repo).append('<tr><th class="col-md-3">' + attr.cell + '</th><td>' + cellVal + '</td></tr>');
+        });
+    });
+}
 
 </script>

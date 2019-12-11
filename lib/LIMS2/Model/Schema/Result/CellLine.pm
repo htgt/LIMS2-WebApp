@@ -56,6 +56,13 @@ __PACKAGE__->table("cell_lines");
   data_type: 'text'
   is_nullable: 1
 
+=head2 species_id
+
+  data_type: 'text'
+  default_value: 'Human'
+  is_foreign_key: 1
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -70,6 +77,13 @@ __PACKAGE__->add_columns(
   { data_type => "text", default_value => "", is_nullable => 0 },
   "description",
   { data_type => "text", is_nullable => 1 },
+  "species_id",
+  {
+    data_type      => "text",
+    default_value  => "Human",
+    is_foreign_key => 1,
+    is_nullable    => 0,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -146,17 +160,30 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 species
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cJ9GlivcilCXLIK8XTBEOQ
+Type: belongs_to
+
+Related object: L<LIMS2::Model::Schema::Result::Species>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "species",
+  "LIMS2::Model::Schema::Result::Species",
+  { id => "species_id" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-12-09 15:32:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lTL2kjvEfHJp0SELL7Tn8w
 use Try::Tiny;
 
 sub tracking {
     my $self = shift;
 
-    my $tracking_details = {
-        description => $self->description,
-    };
+    my $tracking_details = $self->as_hash;
 
     try {
         $tracking_details->{internal} = $self->cell_line_internal->as_hash;
@@ -170,6 +197,19 @@ sub tracking {
     };
 
     return $tracking_details;
+}
+
+sub as_hash {
+    my $self = shift;
+$DB::single=1;
+    my %h = (
+        id          => $self->id,
+        name        => $self->name,
+        description => $self->description,
+        species     => $self->species->id,
+    );
+
+    return \%h;
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
