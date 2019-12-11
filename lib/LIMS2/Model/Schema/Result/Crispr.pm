@@ -164,7 +164,7 @@ __PACKAGE__->belongs_to(
   "crispr_loci_type",
   "LIMS2::Model::Schema::Result::CrisprLociType",
   { id => "crispr_loci_type_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr_pairs_left_crisprs
@@ -285,10 +285,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "nonsense_crispr_original_crispr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -394,12 +394,12 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-13 08:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jQHrAWidGLlTcWt1RkyAKg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:o4P+G6RGsrSrN0vLV+wp9Q
 
 __PACKAGE__->many_to_many("crispr_groups" => "crispr_group_crisprs", "crispr_group");
 

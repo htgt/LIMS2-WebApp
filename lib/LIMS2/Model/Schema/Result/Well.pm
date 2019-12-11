@@ -217,10 +217,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::BarcodeState",
   { id => "barcode_state" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -251,7 +251,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr_es_qc_wells
@@ -312,10 +312,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Plate",
   { id => "plate_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -640,8 +640,8 @@ Composing rels: L</process_output_wells> -> process
 __PACKAGE__->many_to_many("output_processes", "process_output_wells", "process");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3rFes5mKRnAPEsZgE1MMbA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OSwhIiXVAMlK7KZZJ54EMA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

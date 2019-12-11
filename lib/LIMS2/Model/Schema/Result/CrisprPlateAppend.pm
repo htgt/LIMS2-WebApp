@@ -86,7 +86,7 @@ __PACKAGE__->belongs_to(
   "append",
   "LIMS2::Model::Schema::Result::CrisprPlateAppendsType",
   { id => "append_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 plate
@@ -101,12 +101,12 @@ __PACKAGE__->belongs_to(
   "plate",
   "LIMS2::Model::Schema::Result::Plate",
   { id => "plate_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-12 11:46:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wVoEVmegWYKe9Vkje7zdjQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wGw+V9Wi6huqFLA+X5+6Zw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

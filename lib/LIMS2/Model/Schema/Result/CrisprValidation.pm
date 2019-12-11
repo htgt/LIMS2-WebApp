@@ -126,7 +126,7 @@ __PACKAGE__->belongs_to(
   "crispr",
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr_es_qc_well
@@ -141,12 +141,12 @@ __PACKAGE__->belongs_to(
   "crispr_es_qc_well",
   "LIMS2::Model::Schema::Result::CrisprEsQcWell",
   { id => "crispr_es_qc_well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-22 08:27:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAR81deOJV1B8vtGG2YAFw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nvSZUkiIXdEIM8YW7K+xaw
 
 sub as_hash {
     my $self = shift;

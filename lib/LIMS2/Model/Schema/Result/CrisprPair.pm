@@ -159,7 +159,7 @@ __PACKAGE__->belongs_to(
   "left_crispr",
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "left_crispr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 process_crispr_pairs
@@ -189,12 +189,12 @@ __PACKAGE__->belongs_to(
   "right_crispr",
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "right_crispr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Y96Ob9mt/W7Cdl3x1ZIcbw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fekQpvmTsD2OVggaurlcdQ
 
 __PACKAGE__->has_many(
   "experiments",

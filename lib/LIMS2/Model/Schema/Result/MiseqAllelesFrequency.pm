@@ -169,16 +169,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::MiseqWellExperiment",
   { id => "miseq_well_experiment_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-08 10:48:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TdseI3cUjSTQQL3WJedYw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6oV4wDzXazefK0WDHVdu8Q
 
 use Try::Tiny;
 

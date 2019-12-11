@@ -102,6 +102,21 @@ __PACKAGE__->add_unique_constraint("new_chromosomes_species_id_name_key", ["spec
 
 =head1 RELATIONS
 
+=head2 amplicon_locis
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::AmpliconLoci>
+
+=cut
+
+__PACKAGE__->has_many(
+  "amplicon_locis",
+  "LIMS2::Model::Schema::Result::AmpliconLoci",
+  { "foreign.chr_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 bac_clone_loci
 
 Type: has_many
@@ -219,12 +234,12 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-05-07 11:32:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z03KBcSQ9CpThrRh/UL69A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ftH+A/mJ8f4KwJVLwUWV7w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -85,7 +85,7 @@ __PACKAGE__->belongs_to(
   "nuclease",
   "LIMS2::Model::Schema::Result::Nuclease",
   { id => "nuclease_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 process
@@ -100,12 +100,12 @@ __PACKAGE__->belongs_to(
   "process",
   "LIMS2::Model::Schema::Result::Process",
   { id => "process_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-03-10 12:23:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WzdGVq8adcpmo7BVII6zyQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1oy4CnG9LutB5QcMG6wJAw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

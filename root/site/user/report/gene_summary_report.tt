@@ -1175,6 +1175,7 @@ function toggle_btn(btn, show_or_hide) {
               <th>Crispr Id</th>
               <th>Crispr Pair Id</th>
               <th>Crispr Group Id</th>
+              <th>Requester</th>
             </tr>
           </thead>
           <tbody>
@@ -1196,6 +1197,7 @@ function toggle_btn(btn, show_or_hide) {
               [% exp.crispr_pair_id %]</a></td>
               <td><a href="[% c.uri_for("/user/crispr_group/${exp.crispr_group_id}/view") %]">
               [% exp.crispr_group_id %]</a></td>
+              <td>[% exp.requester %]</td>
             </tr>
             [%- END %]
           </tbody>

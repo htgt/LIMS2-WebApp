@@ -168,10 +168,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -188,10 +188,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprGroup",
   { id => "crispr_group_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -208,10 +208,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprPair",
   { id => "crispr_pair_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -228,10 +228,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Design",
   { id => "design_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -278,16 +278,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Requester",
   { id => "requester" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:j6HiANndPVnIQd1PckT/jQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HNWKOAwTjdNzaw9s9zbMhw
 
 __PACKAGE__->has_one(
   'trivial',
@@ -300,6 +300,11 @@ with qw( LIMS2::Model::Util::Trivial );
 sub as_hash {
     my $self = shift;
 
+    my $requester;
+    if ($self->requester) {
+      $requester = $self->requester->id;
+    }
+
     return {
         id              => $self->id,
         gene_id         => $self->gene_id,
@@ -308,6 +313,7 @@ sub as_hash {
         crispr_pair_id  => $self->crispr_pair_id,
         crispr_group_id => $self->crispr_group_id,
         deleted         => $self->deleted,
+        requester       => $requester,
     };
 }
 

@@ -314,7 +314,8 @@ sub _build_design {
             $assembly );
         $response->{crispr} = $crispr->{id};
         my $primers = $request->{primers};
-        locate_primers( $request->{species}, $crispr, $primers );
+$DB::single=1;
+	    locate_primers( $request->{species}, $crispr, $primers );
         my $strand = _choose_strand( @{$primers}{qw/exf exr/} );
         _set_locus_props(
             $primers,

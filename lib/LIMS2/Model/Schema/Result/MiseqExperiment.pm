@@ -144,10 +144,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Experiment",
   { id => "experiment_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -164,10 +164,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::MiseqPlate",
   { id => "miseq_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -214,10 +214,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::MiseqProject",
   { id => "old_miseq_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -234,16 +234,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Plate",
   { id => "parent_plate_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-11 09:54:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V6yyaDE687FSspaHFevAnA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VXzYb4NfuyBXhG+7ZAMZIA
 
 sub as_hash {
     my $self = shift;

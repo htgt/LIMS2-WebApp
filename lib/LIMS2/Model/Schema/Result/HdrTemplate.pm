@@ -98,12 +98,12 @@ __PACKAGE__->belongs_to(
   "design",
   "LIMS2::Model::Schema::Result::Design",
   { id => "design_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-15 15:07:54
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MvdK8yNrIoAWIH4S81zBKg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KauZfJUa8pko18TniINhow
 
 sub as_hash {
     my $self = shift;

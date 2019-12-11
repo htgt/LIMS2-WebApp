@@ -158,7 +158,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 sequencing_project_backups
@@ -207,8 +207,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-24 15:39:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I/0WZuVqKyaCXbKmVeyRXw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P1csmMa1l4MgP+t43Keg6A
 
 sub as_hash {
     my ( $self, $options ) = @_;

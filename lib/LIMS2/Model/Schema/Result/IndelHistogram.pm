@@ -106,16 +106,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::MiseqWellExperiment",
   { id => "miseq_well_experiment_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-12-05 09:21:08
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+285X1KIWQnLif70mKjdJg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mr7phBrs4cnytNe4JXomTQ
 
 sub as_hash {
     my $self = shift;

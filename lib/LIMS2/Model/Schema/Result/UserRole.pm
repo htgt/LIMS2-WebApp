@@ -87,7 +87,7 @@ __PACKAGE__->belongs_to(
   "role",
   "LIMS2::Model::Schema::Result::Role",
   { id => "role_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 user
@@ -102,12 +102,12 @@ __PACKAGE__->belongs_to(
   "user",
   "LIMS2::Model::Schema::Result::User",
   { id => "user_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S8BRvtWMKDY/T+EyAr2ddQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r8I7ZdxA2TuTCqH/TFlrEw
 
 sub as_hash {
     my $self = shift;

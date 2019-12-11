@@ -116,7 +116,7 @@ __PACKAGE__->belongs_to(
   "assembly",
   "LIMS2::Model::Schema::Result::Assembly",
   { id => "assembly_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 chr
@@ -131,7 +131,7 @@ __PACKAGE__->belongs_to(
   "chr",
   "LIMS2::Model::Schema::Result::Chromosome",
   { id => "chr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr
@@ -146,12 +146,12 @@ __PACKAGE__->belongs_to(
   "crispr",
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:55
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MvTFD2FpuKrcMn/zfuw6Ew
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g2f5k7OHBzzN9aar3/l9nA
 
 __PACKAGE__->belongs_to(
     "browse_crispr_pair",
