@@ -136,7 +136,7 @@ sub cell_line_GET {
     my $cell_line = $c->request->param('name');
 
     my $cell_rs = $c->model('Golgi')->schema->resultset('CellLine')->find({ 'name' => $cell_line });
-$DB::single=1;
+
     if ($cell_rs) {
         $result = $cell_rs->tracking;
     }
