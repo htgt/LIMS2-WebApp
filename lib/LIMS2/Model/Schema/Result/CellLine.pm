@@ -201,7 +201,7 @@ sub tracking {
 
 sub as_hash {
     my $self = shift;
-$DB::single=1;
+
     my %h = (
         id          => $self->id,
         name        => $self->name,
