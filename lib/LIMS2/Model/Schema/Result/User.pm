@@ -138,7 +138,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 crispr_es_qcs_runs
+=head2 crispr_es_qc_runs
 
 Type: has_many
 
@@ -147,7 +147,7 @@ Related object: L<LIMS2::Model::Schema::Result::CrisprEsQcRuns>
 =cut
 
 __PACKAGE__->has_many(
-  "crispr_es_qcs_runs",
+  "crispr_es_qc_runs",
   "LIMS2::Model::Schema::Result::CrisprEsQcRuns",
   { "foreign.created_by_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
@@ -599,8 +599,8 @@ Composing rels: L</user_roles> -> role
 __PACKAGE__->many_to_many("roles", "user_roles", "role");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QkZZTRc211cqtizRnb2rLw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yB5inzMpHVe/Ifca+MSPPA
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

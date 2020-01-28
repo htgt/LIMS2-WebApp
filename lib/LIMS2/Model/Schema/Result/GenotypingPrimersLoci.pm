@@ -115,7 +115,7 @@ __PACKAGE__->belongs_to(
   "assembly",
   "LIMS2::Model::Schema::Result::Assembly",
   { id => "assembly_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 chr
@@ -130,12 +130,12 @@ __PACKAGE__->belongs_to(
   "chr",
   "LIMS2::Model::Schema::Result::Chromosome",
   { id => "chr_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2014-07-04 08:54:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8fecjtaH+hKLgDo7uGxo0A
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LuLhjzuhC2rnX8Ro1AuqSw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

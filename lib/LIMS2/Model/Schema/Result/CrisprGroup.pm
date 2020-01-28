@@ -144,10 +144,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::GeneType",
   { id => "gene_type_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -167,8 +167,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-10-23 14:11:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CTUUQ9opEzxYGyAdZJDkag
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AmvphWvP0BRvRtuP4vzLoQ
 #
 =head2 crisprs
 

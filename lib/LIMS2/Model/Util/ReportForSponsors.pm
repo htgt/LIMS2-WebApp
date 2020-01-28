@@ -401,6 +401,31 @@ sub build_columns {
     return $sponsor_columns;
 };
 
+sub save_json_report {
+    my $self = shift;
+    my $uri = shift;
+    my $json_data = shift;
+    my $name = shift;
+
+    my $cache_server;
+
+    for ($uri) {
+        if    (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
+        elsif (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
+        elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
+        else  { die 'Error finding path for cached sponsor report'; }
+    }
+
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+
+    open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
+    print $json_fh $json_data;
+    close ($json_fh);
+
+    return;
+}
+
 #----------------------------------------------------------
 # For Sub-Reports
 #----------------------------------------------------------

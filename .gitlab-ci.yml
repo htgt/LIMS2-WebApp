@@ -1,0 +1,21 @@
+job:
+  image: ja16/lims2:xenial_unittests
+  before_script:
+  - echo 'before'
+  script:
+  - ls -l /opt/sci/global/scripts/bash_utils.sh
+  - source bin/lims2_setup.sh || echo 'error'
+  - lims2 test || echo 'error'
+  - export REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf
+  - export LIMS2_WEBAPP_CONFIG=/opt/sci/global/conf/lims2/webapp.conf
+  - export PERL5LIB=/opt/sci/global/software/lims2/lib/
+  - export SHARED_WEBAPP_TT_DIR=/opt/sci/global/software/lims2/lib/WebAppCommon/shared_templates
+  - export LIMS2_ENSEMBL_USER=anonymous
+  - export LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
+  - export LIMS2_TEMP=/opt/t87/local/tmp
+  - export LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml
+  - dzil build --in .build/lims2
+  - "prove -lv .build/lims2/t/LIMS2/WebApp/Controller/User/10_LIMS2_WebApp_Controller_User_BrowsePlates.t"
+  after_script:
+  - echo 'end'
+

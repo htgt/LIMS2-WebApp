@@ -166,7 +166,7 @@ __PACKAGE__->belongs_to(
   "barcode",
   "LIMS2::Model::Schema::Result::Well",
   { barcode => "barcode" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 created_by
@@ -182,10 +182,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -202,10 +202,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Plate",
   { id => "new_plate_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -222,10 +222,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::BarcodeState",
   { id => "new_state" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -242,10 +242,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Plate",
   { id => "old_plate_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -262,16 +262,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::BarcodeState",
   { id => "old_state" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-02-03 13:41:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qxvT4MUpYEW/wKByi5RfGw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wPeHyuRUxvjGdW/4+wrBZg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

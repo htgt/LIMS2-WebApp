@@ -13,7 +13,7 @@
       }
       div#main {
         padding-top: 20px;
-        padding-bottom: 30px;
+        padding-bottom: 80px;
       }
     </style>
     <!-- jQuery UI stylesheets -->
@@ -105,10 +105,15 @@
     <div class="navbar navbar-default navbar-fixed-bottom">
       <div class="navbar-inner">
         <div class="container">
-          <p class="navbar-nav pull-right navbar-text">
+          <p class="navbar-nav pull-left navbar-text">
           version: <strong>[% c.model('Golgi').software_version %]</strong> |
           database: <strong>[% c.model('Golgi').database_name %]</strong>
+          <br />
+          Copyright &copy; 2015-2018 Genome Research Limited (reg no. 2742969) is a charity registered in England with number 1021457.
+          <br />
+          <a href="http://www.sanger.ac.uk/legal/">Terms and conditions</a> | <a href="http://www.sanger.ac.uk/legal/cookiespolicy.html">Cookies policy</a>.
           </p>
+          <img style="right:15px;bottom:15px;position:absolute;height:50px" alt="SangerLogo" src="[% c.uri_for( '/static/images/sanger_logo.jpg' ) %]">
         </div>
       </div>
     </div>

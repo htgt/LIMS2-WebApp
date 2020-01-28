@@ -202,7 +202,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 design_amplicons
@@ -280,6 +280,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 hdr_templates
+
+Type: has_many
+
+Related object: L<LIMS2::Model::Schema::Result::HdrTemplate>
+
+=cut
+
+__PACKAGE__->has_many(
+  "hdr_templates",
+  "LIMS2::Model::Schema::Result::HdrTemplate",
+  { "foreign.design_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 nonsense_design_crispr
 
 Type: belongs_to
@@ -293,10 +308,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "nonsense_design_crispr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -328,10 +343,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Design",
   { id => "parent_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -377,7 +392,7 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 type
@@ -392,13 +407,12 @@ __PACKAGE__->belongs_to(
   "type",
   "LIMS2::Model::Schema::Result::DesignType",
   { id => "design_type_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-03 09:59:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nc02kIVHZIN76eOeZWMaQQ
-
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-01-28 08:29:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5frZ/tw6P2WQ9LXf4cv/Yg
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 

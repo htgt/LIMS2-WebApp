@@ -124,7 +124,7 @@ __PACKAGE__->belongs_to(
   "qc_eng_seq",
   "LIMS2::Model::Schema::Result::QcEngSeq",
   { id => "qc_eng_seq_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_run
@@ -139,7 +139,7 @@ __PACKAGE__->belongs_to(
   "qc_run",
   "LIMS2::Model::Schema::Result::QcRun",
   { id => "qc_run_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_run_seq_well
@@ -154,12 +154,12 @@ __PACKAGE__->belongs_to(
   "qc_run_seq_well",
   "LIMS2::Model::Schema::Result::QcRunSeqWell",
   { id => "qc_run_seq_well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2013-11-01 12:02:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YP8MdZ7cZLVKxjfuqnDYpQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n1Q6+RKg1Mk1sn/eAZ2IbQ
 
 sub as_hash {
     my $self = shift;

@@ -136,7 +136,7 @@ __PACKAGE__->belongs_to(
   "cell_line",
   "LIMS2::Model::Schema::Result::CellLine",
   { id => "cell_line_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 origin_well
@@ -151,12 +151,12 @@ __PACKAGE__->belongs_to(
   "origin_well",
   "LIMS2::Model::Schema::Result::Well",
   { id => "origin_well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-01-29 15:56:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3Dc8+CRQf/J91uV4s2HbWg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AvrfYglg8wJncVbiKCFfiw
 
 sub as_hash {
     my $self = shift;

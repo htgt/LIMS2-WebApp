@@ -113,7 +113,7 @@ __PACKAGE__->belongs_to(
   "amplicon_type",
   "LIMS2::Model::Schema::Result::AmpliconType",
   { id => "amplicon_type" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 design_amplicon
@@ -132,9 +132,8 @@ __PACKAGE__->might_have(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-10 12:01:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jrtBt03Qlucze4rW80mchA
-
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-01-28 08:29:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zQ9ZO8h2bXXKldHS/+eOng
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

@@ -204,7 +204,7 @@ sub int_recom_process : Test(20) {
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_input_well} );
     }
-    qr/int_recom process input well should be type PREINT,DESIGN \(got EP\)/;
+    qr/int_recom process input well should be type DESIGN,PREINT \(got EP\)/;
 
     throws_ok {
         my $process = model->create_process( $int_recom_process_data->{invalid_output_well} );
@@ -374,7 +374,7 @@ sub three_way_gateway_process : Test(22) {
     throws_ok {
         my $process = model->create_process( $process_data_3w_gateway->{invalid_input_well} );
     }
-    qr/3w_gateway process input well should be type POSTINT,INT \(got DESIGN\)/;
+    qr/3w_gateway process input well should be type INT,POSTINT \(got DESIGN\)/;
 
     throws_ok {
         my $process = model->create_process( $process_data_3w_gateway->{invalid_output_well} );
@@ -608,7 +608,7 @@ sub dna_prep_process : Test(14) {
     throws_ok {
         my $process = model->create_process( $dna_prep_process_data->{invalid_input_well} );
     }
-    qr/dna_prep process input well should be type FINAL/;
+    qr/dna_prep process input well should be type CRISPR_V,FINAL,FINAL_PICK/;
 
     throws_ok {
         my $process = model->create_process( $dna_prep_process_data->{invalid_output_well} );
@@ -868,7 +868,7 @@ sub dist_qc_process : Test(13) {
             my $invalid_output_process
                 = model->create_process( $dist_qc_process_data->{invalid_output} );
         }
-        qr/dist_qc process output well should be type S_PIQ,PIQ \(got SEP\)/;
+        qr/dist_qc process output well should be type PIQ,S_PIQ \(got SEP\)/;
     }
 }
 
@@ -1050,7 +1050,7 @@ sub crispr_vector_and_assembly_processes : Test(55) {
     throws_ok {
         my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input1} );
     }
-    qr/paired_crispr_assembly process input well should be type DNA \(got XEP,DNA\)/;
+    qr/paired_crispr_assembly process input well should be type DNA \(got DNA,XEP\)/;
 
     throws_ok {
         my $process = model->create_process( $assembly_process_data->{paired_ep_invalid_input2} );
@@ -1231,7 +1231,7 @@ sub oligo_assembly_process : Test(18) {
     throws_ok {
         my $process = model->create_process( $oligo_assembly_process_data->{invalid_input_well} );
     }
-    qr/oligo_assembly process input well should be type CRISPR,DESIGN \(got DNA,DESIGN\)/;
+    qr/oligo_assembly process input well should be type CRISPR,DESIGN \(got DESIGN,DNA\)/;
 
     throws_ok {
         my $process = model->create_process( $oligo_assembly_process_data->{invalid_output_well} );

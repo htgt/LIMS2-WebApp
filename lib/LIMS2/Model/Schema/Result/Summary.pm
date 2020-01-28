@@ -1341,16 +1341,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::DnaTemplate",
   { id => "dna_template" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-02-02 11:27:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7lBcH7QNkFJk6XBhEJ/4Ug
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tgX+9MaPbbMYz72boIhClg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

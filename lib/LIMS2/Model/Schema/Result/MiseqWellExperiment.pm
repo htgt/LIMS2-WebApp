@@ -152,10 +152,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::MiseqClassification",
   { id => "classification" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -216,7 +216,7 @@ __PACKAGE__->belongs_to(
   "miseq_exp",
   "LIMS2::Model::Schema::Result::MiseqExperiment",
   { id => "miseq_exp_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 status
@@ -231,7 +231,7 @@ __PACKAGE__->belongs_to(
   "status",
   "LIMS2::Model::Schema::Result::MiseqStatus",
   { id => "status" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 well
@@ -246,12 +246,12 @@ __PACKAGE__->belongs_to(
   "well",
   "LIMS2::Model::Schema::Result::Well",
   { id => "well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-04-30 10:16:30
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aunXBcusRU2ius56K0HwTA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z8hRiMUIKAi58tz/f4NLwA
 
 sub as_hash{
     my $self = shift;

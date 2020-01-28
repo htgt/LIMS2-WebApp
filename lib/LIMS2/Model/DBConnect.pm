@@ -112,8 +112,7 @@ sub connect {
     my $schema_class = delete $params->{schema_class}
         or confess "No schema_class defined for '$dbname'";
 
-    eval "require $schema_class"
-        or confess("Failed to load $schema_class: $@");
+    eval "require $schema_class" or confess("Failed to load $schema_class: $@");## no critic
 
     my $conn = $class->_connector_for( $dbname, $role, $params );
 

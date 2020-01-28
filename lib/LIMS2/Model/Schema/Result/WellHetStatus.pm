@@ -93,12 +93,12 @@ __PACKAGE__->belongs_to(
   "well",
   "LIMS2::Model::Schema::Result::Well",
   { id => "well_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-05-28 17:13:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/tFe5jBkbkiE10uYlNeITA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mSkowdCMwZvMcqkOd/q3vw
 
 sub as_hash {
     my $self = shift;

@@ -188,10 +188,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CellLine",
   { id => "cell_line_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -238,10 +238,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::ProjectRecoveryClass",
   { id => "recovery_class_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -258,10 +258,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Strategy",
   { id => "strategy_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -278,16 +278,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::TargetingProfile",
   { id => "targeting_profile_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-01-04 15:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kjaupYHfcjExbBkHPgLbIA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jNyUZOoWOKDMk5lCUO6FmQ
 
 __PACKAGE__->many_to_many(
     sponsors => 'project_sponsors',

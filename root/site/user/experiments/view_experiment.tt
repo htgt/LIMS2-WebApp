@@ -74,7 +74,15 @@
     </td>
   </tr>
   [% END %]
-
+  <tr>
+    <th>Requester</th>
+    [% IF experiment.requester %]
+      <td>[% experiment.requester %]</td>
+    [% ELSE %]
+      <td>No Requester found.</td>
+    [% END %]
+  </tr>
+  
 </table>
 
 [% IF experiment.deleted %]

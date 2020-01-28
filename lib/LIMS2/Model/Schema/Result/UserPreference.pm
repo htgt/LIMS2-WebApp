@@ -100,10 +100,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Pipeline",
   { id => "default_pipeline_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -119,7 +119,7 @@ __PACKAGE__->belongs_to(
   "default_species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "default_species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 user
@@ -134,12 +134,12 @@ __PACKAGE__->belongs_to(
   "user",
   "LIMS2::Model::Schema::Result::User",
   { id => "user_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-12 12:21:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AoDJ2Pkopeao+dh3hJimFw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:K9YGrW47R3SJtjnyVBab7g
 sub pipeline {
     return shift->default_pipeline_id;
 }

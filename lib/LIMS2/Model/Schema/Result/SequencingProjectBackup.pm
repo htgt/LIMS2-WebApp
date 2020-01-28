@@ -100,12 +100,12 @@ __PACKAGE__->belongs_to(
   "seq_project",
   "LIMS2::Model::Schema::Result::SequencingProject",
   { id => "seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-06-27 14:15:09
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yvr5h08lAr539rKXSa0V7w
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Wtf8dIqGQxoCX57tQMspmA
 
 sub as_hash {
     my ( $self, $options ) = @_;
