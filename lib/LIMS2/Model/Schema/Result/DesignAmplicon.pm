@@ -85,7 +85,7 @@ __PACKAGE__->belongs_to(
   "amplicon",
   "LIMS2::Model::Schema::Result::Amplicon",
   { id => "amplicon_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 design
@@ -100,13 +100,12 @@ __PACKAGE__->belongs_to(
   "design",
   "LIMS2::Model::Schema::Result::Design",
   { id => "design_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-10 12:01:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1zjzl8ccehM91vI1TMOvlQ
-
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-01-28 08:29:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dzqdYO5nV5jGJ/EF67hmpA
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

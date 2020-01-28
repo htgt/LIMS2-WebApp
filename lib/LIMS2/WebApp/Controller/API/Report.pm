@@ -48,6 +48,7 @@ sub confluence_report_GET {
         if    (/^http:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/http:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/http:\/\/\d+.\d+.\d+.\d+:\d+\//) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
@@ -71,7 +72,7 @@ sub confluence_report_GET {
     foreach my $csv_name (@pipeline_ii_sponsors) {
 
         try {
-            my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
+            my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
             my $fh;
 
             my $csv = Text::CSV->new ({

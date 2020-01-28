@@ -136,7 +136,7 @@ __PACKAGE__->belongs_to(
   "design",
   "LIMS2::Model::Schema::Result::Design",
   { id => "design_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 genotyping_primer_type
@@ -151,7 +151,7 @@ __PACKAGE__->belongs_to(
   "genotyping_primer_type",
   "LIMS2::Model::Schema::Result::GenotypingPrimerType",
   { id => "genotyping_primer_type_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_template_well_genotyping_primers
@@ -170,8 +170,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-01-05 12:52:38
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:naTLhG8UVk0Sv59M9O8dVg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jdr8Tq6dWKQdR0N99UPP3A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -234,13 +234,12 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2019-10-01 14:33:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CMr2KQDGZRmXfqVTmC8m/Q
-
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2020-01-28 08:29:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TRsQVU8jhdk7SeE6HeN6Og
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->meta->make_immutable;

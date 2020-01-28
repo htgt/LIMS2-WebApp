@@ -136,10 +136,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::User",
   { name => "created_by_user" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -156,10 +156,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -176,16 +176,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::User",
   { name => "stored_by_user" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2017-07-13 08:57:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CXeYJRbmFhDyl6LpYOBlFQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V3jm3VVcR1tvHY+umbxqiw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

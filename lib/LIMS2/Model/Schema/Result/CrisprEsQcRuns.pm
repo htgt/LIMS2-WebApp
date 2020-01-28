@@ -143,7 +143,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 crispr_es_qc_wells
@@ -173,12 +173,12 @@ __PACKAGE__->belongs_to(
   "species",
   "LIMS2::Model::Schema::Result::Species",
   { id => "species_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-08-24 14:41:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CvvIOO3T45BBoagsGfilJA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sXVN4E07sAHwRf0HJGnk2A
 
 sub as_hash {
   my ( $self, $options ) = @_;

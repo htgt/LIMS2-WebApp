@@ -94,11 +94,12 @@ sub choose_closest_primer_hit {
 
 sub loci_builder {
     my ( $target_loci, $primer, $oligo_hits ) = @_;
-
-    my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
-    if ( not defined $oligo_bwa ) {
-        return;
-    }
+$DB::single=1;
+    #my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
+    #if ( not defined $oligo_bwa ) {
+    #    return;
+   # }
+    my $oligo_bwa = $oligo_hits;
     my $oligo_len = length( $primer->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};
@@ -149,6 +150,7 @@ sub locate_primers {
     my ( $species, $target_crispr, $primers, $genomic_threshold ) = @_;
     my $data = shift;
     my ( $fasta, $dir ) = generate_bwa_query_file($primers);
+$DB::single=1;
     my $bwa = DesignCreate::Util::BWA->new(
         query_file        => $fasta,
         work_dir          => $dir,
@@ -186,7 +188,7 @@ sub fetch_amplicon_seq {
         $left_prime = $primers->{inr}->{loci};
         $right_prime = $primers->{inf}->{loci};
     }
-
+$DB::single=1;
     my $amplicon = $ensembl->slice_adaptor->fetch_by_region(
         'chromosome',
         $left_prime->{chr_name},

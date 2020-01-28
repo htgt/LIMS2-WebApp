@@ -153,10 +153,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::Crispr",
   { id => "crispr_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -173,10 +173,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprGroup",
   { id => "crispr_group_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -193,10 +193,10 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::CrisprPair",
   { id => "crispr_pair_id" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
@@ -212,7 +212,7 @@ __PACKAGE__->belongs_to(
   "primer_name",
   "LIMS2::Model::Schema::Result::CrisprPrimerType",
   { primer_name => "primer_name" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_template_well_crispr_primers
@@ -231,8 +231,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2015-02-05 12:08:16
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G+Y4JJM59Dy+9mc1CNIDoA
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N6Tv9vYBEVT40hHSSD6bQQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

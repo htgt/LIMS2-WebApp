@@ -172,6 +172,7 @@ sub generate_primers {
 sub find_appropriate_primers {
     my ($crispr_primers, $target, $max, $region, $crispr, $primer_set) = @_;
     my @primers = keys %{$crispr_primers->{left}};
+    @primers = reverse sort @primers;
     my $closest->{record} = 5000;
     foreach my $prime (@primers) {
         my $int = (split /_/, $prime)[1];

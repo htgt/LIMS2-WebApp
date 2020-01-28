@@ -60,13 +60,13 @@ __PACKAGE__->config(
         INCLUDE_PATH => [
             __PACKAGE__->path_to( 'root', 'lib' ),
             __PACKAGE__->path_to( 'root', 'site' ),
-            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
+            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/sci/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
         ],
     },
     'View::HTML_fragment' => {
         INCLUDE_PATH => [
             __PACKAGE__->path_to( 'root', 'lib' ),
-            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
+            $ENV{SHARED_WEBAPP_TT_DIR} || '/opt/sci/global/software/perl/lib/perl5/WebAppCommon/shared_templates',
         ],
     },
     'View::JSON' => { expose_stash => 'json_data' },
@@ -75,9 +75,9 @@ __PACKAGE__->config(
         storage => $ENV{LIMS2_SESSION_STORE},
         cookie_domain => $ENV{LIMS2_COOKIE_DOMAIN},
     },
-    'static' => {
+    'Plugin::Static::Simple' => {
         include_path => [
-            $ENV{SHARED_WEBAPP_STATIC_DIR} || '/opt/t87/global/software/perl/lib/perl5/WebAppCommon/shared_static',
+            $ENV{SHARED_WEBAPP_STATIC_DIR} || '/opt/sci/global/software/perl/lib/perl5/WebAppCommon/shared_static',
             __PACKAGE__->path_to( 'root' ),
         ],
         ignore_extensions => [ qw{ tt } ],

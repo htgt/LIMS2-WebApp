@@ -13,8 +13,6 @@ use LIMS2::Model::Util::SponsorReportII;
 
 use List::MoreUtils qw( uniq );
 use namespace::autoclean;
-#use experimental qw(switch);
-use feature 'switch';
 use Text::CSV_XS;
 use LIMS2::Model::Util::DataUpload qw/csv_to_spreadsheet/;
 use Excel::Writer::XLSX;
@@ -296,15 +294,23 @@ sub _view_cached_top_level_report {
     my $server_path = $c->uri_for('/');
     my $cache_server;
 
-    given ($server_path) {
-        when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
-        default  { die 'Error finding path for cached sponsor report'; }
+    if ($server_path =~ /^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) {
+        $cache_server = 'production/';
+    }
+    elsif ($server_path =~ /https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) {
+        $cache_server = 'staging/';
+    }
+    elsif (($server_path =~ /http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) || ($server_path =~ /http:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//)) {
+        $cache_server = "$1/";
+    }
+    elsif ($server_path =~ /https*:\/\/\S+/) {
+        $cache_server = 'localhost/';
+    }
+    else {
+        die 'Error finding path for cached sponsor report';
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_handle, "<:encoding(UTF-8)", $cached_file_name ) or die "unable to open cached file ($cached_file_name): $!";
     my $file_stats = stat $cached_file_name or die "$cached_file_name not found: $!";
@@ -411,15 +417,23 @@ sub save_json_report {
 
     my $cache_server;
 
-    given ($uri) {
-        when (/^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
-        when (/https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
-        when (/http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
-        when (/http:\/\/\S+/) { $cache_server = 'localhost/'; }
-        default  { die 'Error finding path for cached sponsor report'; }
+    if ($uri =~ /^https:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) {
+        $cache_server = 'production/';
+    }
+    elsif ($uri =~ /https:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) {
+        $cache_server = 'staging/';
+    }
+    elsif ($uri =~ /http:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) {
+        $cache_server = "$1/";
+    }
+    elsif ($uri =~ /https*:\/\/\S+/) {
+        $cache_server = 'localhost/';
+    }
+    else {
+        die 'Error finding path for cached sponsor report';
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
     open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
     print $json_fh $json_data;
@@ -463,10 +477,11 @@ sub _view_cached_csv {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $csv_name . '.csv';
 
     $c->response->status( 200 );
     $c->response->content_type( 'text/csv' );
@@ -540,9 +555,7 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         $c->session->{display_type} = 'default';
     }
 
-    given ($pipeline) {
-
-    when(/^pipeline_i$/) {
+    if ($pipeline =~ /^pipeline_i$/) {
         my $sponsor_report = LIMS2::Model::Util::ReportForSponsors->new( {
                 'species' => $species,
                 'model' => $c->model( 'Golgi' ),
@@ -650,10 +663,9 @@ sub view : Path( '/public_reports/sponsor_report' ) : Args(3) {
         }
 
     }
-    when(/^pipeline_ii$/) {
+    elsif ($pipeline =~ /^pipeline_ii$/) {
         $self->pipeline_ii_workflow($c, $targeting_type, $sponsor_id, $stage);
     }
-}
     return;
 }
 
@@ -926,13 +938,14 @@ sub _view_cached_lines {
         if    (/^https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/$/) { $cache_server = 'production/'; }
         elsif (/https?:\/\/www.sanger.ac.uk\/htgt\/lims2\/+staging\//) { $cache_server = 'staging/'; }
         elsif (/https?:\/\/t87-dev.internal.sanger.ac.uk:(\d+)\// || /https?:\/\/t87-dev-farm3.internal.sanger.ac.uk:(\d+)\//) { $cache_server = "$1/"; }
+        elsif (/https*:\/\/\S+/) { $cache_server = 'localhost/'; }
         else  { die 'Error finding path for cached sponsor report'; }
     }
 
     my $suffix = '.html';
     if ($simple) {$suffix = '_simple.html'}
     $report_name =~ s/\ /_/g; # convert spaces to underscores in report name
-    my $cached_file_name = '/opt/t87/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
+    my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $report_name . $suffix;
 
     my @lines_out;
     open( my $html_handle, "<:encoding(UTF-8)", $cached_file_name )

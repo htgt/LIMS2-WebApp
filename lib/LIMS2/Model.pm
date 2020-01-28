@@ -156,8 +156,7 @@ sub throw {
         $error_class = 'LIMS2::Exception::' . $error_class;
     }
 
-    eval "require $error_class"
-        or confess "Load $error_class: $!";
+    eval "require $error_class" or confess "Load $error_class: $!"; ## no critic
 
     my $err = $error_class->new($args);
 

@@ -161,7 +161,7 @@ __PACKAGE__->belongs_to(
   "created_by",
   "LIMS2::Model::Schema::Result::User",
   { id => "created_by" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 miseq_primer_presets
@@ -180,8 +180,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2018-06-13 17:03:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RwM9N+S66LX3fITl2u4idg
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:t/B5/o2wdatGYkChSXletA
 
 sub as_hash {
     my $self = shift;

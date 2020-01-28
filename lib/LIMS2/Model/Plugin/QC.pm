@@ -1016,14 +1016,14 @@ sub _add_well_qc_sequencing_results{
         my $results = $v_params->{results_by_well}->{$well->name};
         my $best = $results->[0];
 
-        my $view_params = {
-            well_name  => lc($well->name),
-            plate_name => $v_params->{orig_name},
-            qc_run_id  => $v_params->{qc_run_id},
-        };
+        my @key_value_pairs = (
+            'well_name', lc($well->name),
+            'plate_name', $v_params->{orig_name},
+            'qc_run_id', $v_params->{qc_run_id},
+        );
 
         my $url = URI->new($v_params->{view_uri});
-        $url->query_form($view_params);
+        $url->query_form(\@key_value_pairs);
 
         my $qc_result = {
             well_id         => $well->id,

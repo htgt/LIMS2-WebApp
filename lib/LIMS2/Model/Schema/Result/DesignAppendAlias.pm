@@ -73,16 +73,16 @@ __PACKAGE__->belongs_to(
   "LIMS2::Model::Schema::Result::DesignType",
   { id => "design_type" },
   {
-    is_deferrable => 1,
+    is_deferrable => 0,
     join_type     => "LEFT",
-    on_delete     => "CASCADE",
-    on_update     => "CASCADE",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
   },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-03-11 14:04:19
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/2p7ihYoba4gBzW12TTVRQ
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:woogtqlu5nYBgf2uRMqfhw
 
 sub get_alias {
     my $self = shift;

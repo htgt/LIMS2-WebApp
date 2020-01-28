@@ -95,7 +95,7 @@ __PACKAGE__->belongs_to(
   "qc_run",
   "LIMS2::Model::Schema::Result::QcRun",
   { id => "qc_run_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 =head2 qc_seq_project
@@ -110,12 +110,12 @@ __PACKAGE__->belongs_to(
   "qc_seq_project",
   "LIMS2::Model::Schema::Result::QcSeqProject",
   { id => "qc_seq_project_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  { is_deferrable => 0, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07022 @ 2016-04-12 14:23:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3YDCqvS6pvz9uLlWrVEeiw
+# Created by DBIx::Class::Schema::Loader v0.07049 @ 2019-11-04 15:39:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+etfbBLVv2OwBQpStuODdA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
