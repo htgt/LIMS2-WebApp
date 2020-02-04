@@ -10,7 +10,10 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 use List::Util 'max';
-use LIMS2::Model::Util::ImportCrispressoQC qw( get_data );
+use LIMS2::Model::Util::ImportCrispressoQC qw/
+    get_data
+    construct_miseq_path
+/;
 use LIMS2::Model::Util::Miseq qw/
     wells_generator
     find_file
@@ -19,6 +22,7 @@ use LIMS2::Model::Util::Miseq qw/
     read_alleles_frequency_file
     convert_index_to_well_name
 /;
+use LIMS2::Model::Util::ImportCrispressoQC;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
@@ -55,7 +59,8 @@ sub point_mutation_summary_GET {
             data => join("\n", @result),
         };
     }
-    $alleles->{crispr} = crispr_seq($c, $miseq, $oligo_index, $experiment);
+    $alleles->{crispr} = _retrieve_crispr_seq_from_job_output($c, $miseq, $oligo_index, $experiment);
+
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($alleles);
     $c->response->status( 200 );
@@ -64,6 +69,74 @@ sub point_mutation_summary_GET {
 
     return;
 }
+
+sub _retrieve_crispr_seq_from_job_output {
+    my ($c, $miseq, $oligo_index, $experiment) = @_;
+
+    my $crispr_details;
+    my $importer = LIMS2::Model::Util::ImportCrispressoQC->new;
+    my $path = construct_miseq_path($miseq, $oligo_index, $experiment, 'job.out');
+    my $data = $importer->get_remote_file($path);
+    if ($data) {
+        my $crispr_amp = _extract_crispr_from_job_file($c, $data);
+        $crispr_details = _precompute_crispr_loc($c, $crispr_amp->{crispr}, $crispr_amp->{amp});
+    }
+
+    return $crispr_details;
+}
+
+sub _extract_crispr_from_job_file {
+    my ($c, $job) = @_;
+
+    my @job_content = split "\n", $job;
+    my $submission_line = uc $job_content[1];
+    my ($amplicon, $crispr) = $submission_line =~ /^.*\-A\ ([ACTG]+).*\-G\ ([ACTG]+).*$/g;
+
+    return {
+        amp     => $amplicon,
+        crispr  => $crispr
+    };
+}
+
+sub _retrieve_crispr_sequence {
+    my ($c, $exp_id) = @_;
+
+    my $crispr_details;
+    my $experiment = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $exp_id });
+
+    if ($experiment->crispr) {
+        my $seq = $experiment->crispr->seq;
+        my $amplicon = $experiment->design->amplicon;
+        $crispr_details = _precompute_crispr_loc($c, $seq, $amplicon);
+    }
+
+    return $crispr_details;
+}
+
+sub _precompute_crispr_loc {
+    my ($c, $crispr, $amplicon) = @_;
+
+    my $rev_crispr = revcom($crispr)->seq;
+
+    my $pos = index($amplicon, $crispr);
+    if ($pos == -1) {
+        try {
+            $pos = index($amplicon, $rev_crispr);
+        } catch {
+            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+        };
+    }
+
+    my $result = {
+        crispr      => $crispr,
+        rev_crispr  => $rev_crispr,
+        position    => $pos,
+    };
+
+    return $result;
+}
+
+
 
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -203,41 +276,6 @@ sub miseq_preset_names_GET {
 }
 
 
-
-
-
-sub crispr_seq {
-    my ( $c, $miseq, $index, $exp ) = @_;
-    my $job_out = find_file($miseq, $index, $exp, 'CRISPResso_RUNNING_LOG.txt');
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $job_out) or die "$!";
-    my @lines = <$fh>;
-    my $job_input = $lines[1];
-    close $fh;
-
-    my ($amplicon,$crispr) = $job_input =~ /^.*\-a\ ([ACTGactg]+).*\-g\ ([ACTGactg]+).*$/g;
-    $amplicon = uc $amplicon;
-    $crispr = uc $crispr;
-    my $rev_crispr = revcom($crispr)->seq;
-
-    my $pos = index($amplicon, $crispr);
-    if ($pos == -1) {
-        try {
-            $pos = index($amplicon, $rev_crispr);
-        } catch {
-            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-        };
-    }
-
-    my $result = {
-        crispr      => $crispr,
-        rev_crispr  => $rev_crispr,
-        position    => $pos,
-    };
-
-    return $result;
-}
 
 #Quads had to to be introduced in a way to preserve data in the view.
 #Messy to deal with in the back end

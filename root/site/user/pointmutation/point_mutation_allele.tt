@@ -725,11 +725,13 @@ function getTargets(letter) {
 
 function createTable(exp, result) {
     result = JSON.parse(result);
-console.log(result);
-
-    $('#crisprSeq' + exp).text(result.crispr.crispr);
+    if (result.crispr) {
+        $('#crisprSeq' + exp).text(result.crispr.crispr);
+    } else {
+        $('#crisprSeq' + exp).text('N/A');
+    }
     $('#crisprHeader' + exp).show();
-    
+
     var rows = result.data.split("\n");
     var headers = rows.shift().split(",");
     var displayHeaders = ['Aligned_Sequence','NHEJ','UNMODIFIED','HDR','n_deleted','n_inserted','n_mutated','#Reads','%Reads'];
@@ -778,7 +780,10 @@ console.log(result);
             var bodyCell = bodyRow.insertCell(-1);
             var columnName = displayHeaders[cellCount];
             if (columnName == 'Aligned_Sequence') {
-                var highlight = highlightBases(rowData.Aligned_Sequence, result.crispr, rowData.Reference_Sequence, rowData.Phred_Quality);
+                var highlight = rowData.Aligned_Sequence;
+                if (result.crispr) {
+                    highlight = highlightBases(rowData.Aligned_Sequence, result.crispr, rowData.Reference_Sequence, rowData.Phred_Quality);
+                }
                 bodyCell.innerHTML = '<div class="seq' + exp + ' sequence" style="width: 400px;">' + highlight + '</div>';
             } else {
                 if ($.isNumeric(rowData[columnName])) {

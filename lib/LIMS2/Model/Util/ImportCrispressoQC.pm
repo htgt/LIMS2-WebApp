@@ -1,5 +1,6 @@
 package LIMS2::Model::Util::ImportCrispressoQC;
 
+use Moose;
 use strict;
 use warnings FATAL => 'all';
 use feature qw(say);
@@ -21,10 +22,41 @@ use Sub::Exporter -setup => {
             migrate_histogram
             migrate_crispresso_subs
             header_hash
+            construct_miseq_path
         )
     ],
 };
+use WebAppCommon::Util::FileAccess;
 
+has file_api => (
+    is         => 'ro',
+    isa        => 'WebAppCommon::Util::FileAccess',
+    lazy_build => 1,
+);
+
+sub _build_file_api {
+    return WebAppCommon::Util::FileAccess->construct({ server => $ENV{FILE_SERVER} });
+}
+
+sub construct_miseq_path {
+    my ($miseq, $index, $exp, $file) = @_;
+
+    my $path = $ENV{'LIMS2_RNA_SEQ'} .
+        '/' . $miseq .
+        '/S' . $index . '_exp' . $exp .
+        '/' . $file;
+
+    return $path;
+}
+
+sub get_remote_file {
+    my ($self, $file) = @_;
+
+    my $api = $self->file_api;
+    my $content = $api->get_file_content($file);
+
+    return $content;
+}
 
 #SUBS GO HERE
 sub header_hash {
