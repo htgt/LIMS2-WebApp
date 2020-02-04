@@ -98,21 +98,6 @@ sub _extract_crispr_from_job_file {
     };
 }
 
-sub _retrieve_crispr_sequence {
-    my ($c, $exp_id) = @_;
-
-    my $crispr_details;
-    my $experiment = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $exp_id });
-
-    if ($experiment->crispr) {
-        my $seq = $experiment->crispr->seq;
-        my $amplicon = $experiment->design->amplicon;
-        $crispr_details = _precompute_crispr_loc($c, $seq, $amplicon);
-    }
-
-    return $crispr_details;
-}
-
 sub _precompute_crispr_loc {
     my ($c, $crispr, $amplicon) = @_;
 
