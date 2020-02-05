@@ -35,7 +35,7 @@ has file_api => (
 );
 
 sub _build_file_api {
-    return WebAppCommon::Util::FileAccess->construct({ server => $ENV{FILE_SERVER} });
+    return WebAppCommon::Util::FileAccess->construct({ server => $ENV{LIMS2_FILE_ACCESS_SERVER} });
 }
 
 sub construct_miseq_path {
