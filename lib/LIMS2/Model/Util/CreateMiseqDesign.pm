@@ -30,7 +30,7 @@ use LIMS2::Model::Util::PrimerFinder qw( locate_primers );
 
 sub generate_miseq_design {
     my ($c, $design_params, $crispr_id, $requirements) = @_;
-$DB::single=1;
+
     my $search_range = {
         search      => {
             internal    => $design_params->{miseq}->{search_width} || 170,
@@ -123,7 +123,7 @@ sub generate_primers {
         gc                  => $search_range->{gc_content},
         tm                  => $search_range->{melting},
     };
-$DB::single=1;
+
     local $ENV{'LIMS2_SEQ_SEARCH_FIELD'} = $search_range->{search}->{internal};
     local $ENV{'LIMS2_SEQ_DEAD_FIELD'} = $search_range->{dead}->{internal};
     local $ENV{'LIMS2_PCR_SEARCH_FIELD'} = $search_range->{search}->{external};

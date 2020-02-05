@@ -950,7 +950,7 @@ sub pick_single_crispr_primers {
 sub pick_miseq_internal_crispr_primers {
     my $model = shift;
     my $params = shift;
-$DB::single=1;
+
     my $crispr_oligos = oligo_for_single_crispr( $model->schema, $params->{'crispr_id'}, 'GRCh38' );
     $params->{'crispr_oligos'} = $crispr_oligos;
     $params->{'search_field_width'} = $ENV{'LIMS2_SEQ_SEARCH_FIELD'} // 170;
@@ -1006,7 +1006,7 @@ sub single_crispr_primer_generation {
         primer_product_size_range => $target_sequence_length . '-' . ($target_sequence_length
             + $params->{'search_field_width' } + $offset ),
     );
-$DB::single=1;
+
     my $time = strftime "%S-%M-%H_%d-%m-%Y", localtime;
     my $dir_out = dir( $ENV{ 'LIMS2_PRIMER_SELECTION_DIR' } );
     my $logfile = $dir_out->file( $params->{'crispr_id'} . '_' . $time . '_seq_oligos.log');
