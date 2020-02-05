@@ -41,7 +41,7 @@ sub _build_file_api {
 sub construct_miseq_path {
     my ($miseq, $index, $exp, $file) = @_;
 
-    my $path = $ENV{'LIMS2_RNA_SEQ'} .
+    my $path = $ENV{'WAREHOUSE_RNA_SEQ'} .
         '/' . $miseq .
         '/S' . $index . '_exp' . $exp .
         '/' . $file;
