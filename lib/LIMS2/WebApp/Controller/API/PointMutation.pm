@@ -10,10 +10,6 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 use List::Util 'max';
-use LIMS2::Model::Util::ImportCrispressoQC qw/
-    get_data
-    construct_miseq_path
-/;
 use LIMS2::Model::Util::Miseq qw/
     wells_generator
     find_file
@@ -75,7 +71,7 @@ sub _retrieve_crispr_seq_from_job_output {
 
     my $crispr_details;
     my $importer = LIMS2::Model::Util::ImportCrispressoQC->new;
-    my $path = construct_miseq_path($miseq, $oligo_index, $experiment, 'job.out');
+    my $path = $importer->construct_miseq_path($miseq, $oligo_index, $experiment, 'job.out');
     my $data = $importer->get_remote_file($path);
     if ($data) {
         my $crispr_amp = _extract_crispr_from_job_file($c, $data);
