@@ -97,7 +97,7 @@ USER user
 
 #
 # Create the user-level configs
-RUN mkdir -p /home/user/conf/LIMS2-WebApp/ /home/user/LIMS2-tmp/ /home/user/var/tmp/lims2/run/ /var/tmp/LIMS2-tmp-user /var/tmp/LIMS2-tmp-user/lims2_primer_generation
+RUN mkdir -p /home/user/conf/LIMS2-WebApp/ /home/user/LIMS2-tmp/ /home/user/var/tmp/lims2/run/ /var/tmp/LIMS2-tmp-user /var/tmp/LIMS2-tmp-user/lims2_primer_generation /home/user/.ssh
 
 COPY LIMS2-WebApp-filesystem/user/ssh_config /home/user/.ssh/config
 COPY LIMS2-WebApp-filesystem/user/lims2_local /home/user/.lims2_local

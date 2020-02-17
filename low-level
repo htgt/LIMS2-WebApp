@@ -109,6 +109,7 @@ Spreadsheet::XLSX \
 Excel::Writer::XLSX \
 File::Slurp \
 Log::Log4perl \
+Log::Dispatch::FileRotate \
 Algorithm::Diff \
 Class::Load::XS \
 Clone \
