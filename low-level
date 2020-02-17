@@ -1,0 +1,200 @@
+#
+# Low-level dockerfile
+#
+
+#
+# Base image (can also specify 16.04 instead)
+FROM ubuntu:xenial
+
+#
+# System updates
+RUN apt-get update && apt-get upgrade -y
+
+#
+# Install system packages
+RUN apt-get install -y \
+git \
+wget \
+make \
+gcc \
+libpng-dev \
+build-essential \
+libreadline-dev \
+zlib1g-dev \
+flex \
+bison \
+libxml2-dev \
+libxslt-dev \
+libssl-dev \
+libapparmor-perl \
+libapt-pkg-perl \
+libclass-accessor-perl \
+libdate-manip-perl \
+libdbd-mysql-perl \
+libdbi-perl \
+liberror-perl \
+libfile-copy-recursive-perl \
+libfont-afm-perl \
+libhtml-format-perl \
+libhtml-parser-perl \
+libhtml-tagset-perl \
+libhtml-tree-perl \
+libio-pty-perl \
+libio-string-perl \
+libio-stringy-perl \
+libipc-run-perl \
+liblocale-gettext-perl \
+liblog-log4perl-perl \
+libmailtools-perl \
+libnet-daemon-perl \
+libparse-debianchangelog-perl \
+librpc-xml-perl \
+libsub-name-perl \
+libterm-readkey-perl \
+libtext-charwidth-perl \
+libtext-iconv-perl \
+libtext-wrapi18n-perl \
+libtimedate-perl \
+liburi-perl \
+libwww-perl \
+libxml-libxml-perl \
+libxml-namespacesupport-perl \
+libxml-parser-perl \
+libxml-sax-expat-perl \
+libxml-sax-perl \
+libyaml-syck-perl \
+perl-base \
+perl-modules \
+libbio-scf-perl \
+graphviz \
+bioperl-run \
+bioperl \
+postgresql \
+postgresql-contrib \
+apache2 \
+libapache2-mod-fastcgi \
+libjson-perl \
+firefox \
+xterm \
+sudo \
+liblocal-lib-perl \
+pkg-config \
+libgd-dev \
+libpq-dev
+
+
+#
+# Install Perl modules
+RUN cpan -i Moose \
+Class::Load \
+YAML::XS \
+Test::Most \
+Hash::MoreUtils \
+TryCatch \
+Const::Fast \
+MooseX::ClassAttribute \
+Throwable::Error \
+Config::Tiny \
+MooseX::Log::Log4perl \
+DBIx::RunSQL \
+CHI \
+Text::CSV \
+Data::FormValidator \
+MooseX::Types::URI \
+YAML::Tiny \
+Data::Serializer \
+Data::Printer \
+Perl6::Slurp \
+Spreadsheet::XLSX \
+Excel::Writer::XLSX \
+File::Slurp \
+Log::Log4perl \
+Algorithm::Diff \
+Class::Load::XS \
+Clone \
+List::MoreUtils \
+IO::String \
+MooseX::Meta::TypeConstraint::Structured \
+DBIx::Class::Schema::Loader \
+DBIx::Connector \
+Image::PNG \
+Iterator::Simple \
+Moose::Role \
+MooseX::Types::Path::Class \
+MooseX::Types::Path::Class::MoreCoercions \
+namespace::autoclean \
+Number::Range \
+Parse::BooleanLogic \
+Selenium::Firefox \
+Term::ReadPassword \
+Try::Tiny \
+Test::Class \
+Test::WWW::Mechanize::Catalyst \
+WWW::JSON \
+Catalyst::Plugin::RequireSSL \
+Catalyst::Plugin::Authorization::Roles \
+Catalyst::Plugin::Session::Store::FastMmap \
+Catalyst::Plugin::Static::Simple \
+Catalyst::Plugin::ConfigLoader \
+Catalyst::Model::Factory::PerRequest \
+Catalyst::Model::DBIC::Schema \
+Catalyst::View::TT Catalyst::View::JSON \
+Catalyst::Controller::REST \
+DBIx::Connector \
+MooseX::Params::Validate \
+MooseX::NonMoose \
+Bio::SeqFeature::Generic \
+Data::Compare \
+Config::Scoped \
+MooseX::StrictConstructor \
+Crypt::SaltedHash \
+Crypt::PBKDF2 \
+DBD::Pg \
+Template::AutoFilter \
+Readonly \
+IPC::System::Simple \
+Moose::Autobox \
+Git::Wrapper \
+Version::Next \
+MooseX::AttributeShortcuts \
+MooseX::Has::Sugar \
+Bio::SeqFeature::Generic \
+Bio::SeqFeature::Generic \
+GraphViz2 \
+Bio::Tools::Primer3 \
+File::Sort \
+Data::Pageset \
+String::ShellQuote \
+Catalyst::Action::RenderView \
+Term::Size::Any \
+Catalyst::Authentication::Store::DBIx::Class \
+Catalyst::Authentication::Credential::HTTP \
+Catalyst::Authentication::Credential::Password \
+Dist::Zilla \
+inc::Module::Install \
+Module::Install::Catalyst \
+Math::Round \
+DateTime::Format::Pg \
+Test::Perl::Critic \
+Test::Manifest \
+YAML::Old MIME::Lite \
+JSON \
+Template::Plugin::JSON \
+Bio::SeqIO \
+FCGI::Engine::Manager \
+FCGI::ProcManager::Constrained \
+List::Compare::Functional \
+Redis \
+Net::SCP \
+Net::OpenSSH \
+Dist::Zilla::Plugin::Test::Compile \
+Dist::Zilla::Plugin::NoSmartCommentsTests \
+Dist::Zilla::Plugin::Test::Perl::Critic \
+Dist::Zilla::Plugin::Git::NextVersion \
+Test::More \
+ExtUtils::PkgConfig \
+GD \
+Bio::DB::GenBank \
+DBD::Pg \
+Bio::DB::Query::GenBank \
+Bio::Tools::Run::WrapperBase
