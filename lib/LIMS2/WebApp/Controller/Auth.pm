@@ -7,6 +7,7 @@ use namespace::autoclean;
 use Data::Dumper;
 use MIME::Lite;
 use Email::Valid;
+with 'LIMS2::Model::Util::Email';
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -112,18 +113,20 @@ sub logout : Global {
 sub reset_password : Path('/reset_password') {
 
     my ( $self, $c ) = @_;
-    $c->log->debug('reset_passord');
+    $c->log->debug('reset_password');
+    if ( !$self->can_email ) {
+        $c->stash( error_msg => 'Please contact to htgt@sanger.ac.uk to arrange a password reset' );
+        return;
+    }
+
     my $username = $c->req->param("username");
+    return unless $username;
 
-    unless ($username){return}
-
-        my $model   = $c->model('Golgi');
-
-        my $user_rs = $model->schema->resultset("User")->find({name => $username});
+    my $model   = $c->model('Golgi');
+    my $user_rs = $model->schema->resultset("User")->find({name => $username});
 
     if ($username eq $user_rs->{_column_data}->{name}){
-
-        $user_rs = $model->schema->resultset("User")->find({name => $username})->as_hash;
+        $user_rs = $user_rs->as_hash;
 
         my $password = $model->pwgen;
 
@@ -133,13 +136,8 @@ sub reset_password : Path('/reset_password') {
                 $self->email_notification($c, $username, $password);
             }
         );
-
-	}else{
-
-   	 $c->stash( error_msg => 'Incorrect email' );
-
 	}
-    return;
+    $c->flash( info_msg => 'Your new password will be emailed to you' );
 }
 
 sub email_notification : Global {
@@ -164,7 +162,6 @@ sub email_notification : Global {
         );
 
         $msg->send;
-        $c->flash( info_msg => 'Email Sent Successfully' );
 
     } else {
         $c->stash( error_msg => 'Not a valid email address, please contact htgt@sanger.ac.uk' );

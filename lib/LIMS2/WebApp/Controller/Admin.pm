@@ -7,9 +7,8 @@ use DateTime::Format::Strptime;
 use Data::UUID;
 use MIME::Lite;
 use Email::Valid;
-#use Try::Tiny;
-
 use LIMS2::Model::Util::AnnouncementAdmin qw( delete_message create_message list_messages list_priority );
+with 'LIMS2::Model::Util::Email';
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -118,7 +117,7 @@ sub create_user : Path( '/admin/create_user' ) : Args(0) {
                     password => $password
                 }
             );
-            $self->new_user_notification($c, $username, $password);
+            $self->new_user_notification($c, $username, $password) if $self->can_email;
         }
     );
 

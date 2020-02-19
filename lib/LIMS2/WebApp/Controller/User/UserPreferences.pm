@@ -4,6 +4,7 @@ use namespace::autoclean;
 use Try::Tiny;
 use MIME::Lite;
 use Email::Valid;
+with 'LIMS2::Model::Util::Email';
 
 BEGIN {extends 'Catalyst::Controller'; }
 
@@ -53,7 +54,7 @@ sub change_password :Path( '/user/change_password' ) :Args(0) {
 
                 $c->flash->{success_msg} = 'Password successfully changed for: ' . $user->name ;
                 $c->res->redirect( $c->uri_for('/') );
-                $self->email_notification($c, $user->name);
+                $self->email_notification($c, $user->name) if $self->can_email;
             }
             catch {
                 $c->stash->{error_msg} = 'Error encountered while changing password : ' . $_;
