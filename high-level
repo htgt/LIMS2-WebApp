@@ -16,15 +16,15 @@ RUN mkdir -p /opt/sci/global/software/lims2/lib /opt/sci/global/conf/lims2/ /opt
 
 #
 # Copy config files
-COPY LIMS2-WebApp-filesystem/bashrc/bash_utils.sh /opt/sci/global/scripts/
-COPY LIMS2-WebApp-filesystem/fcgi/fastcgi.yaml /opt/sci/global/conf/lims2/
-COPY LIMS2-WebApp-filesystem/fcgi/lims2.conf /etc/apache2/sites-available/
-COPY LIMS2-WebApp-filesystem/bashrc/* /opt/sci/global/conf/bashrc/
-COPY LIMS2-WebApp-filesystem/lims2_conf/lims2/* /opt/sci/global/conf/lims2/
-COPY LIMS2-WebApp-filesystem/lims2_conf/* /opt/sci/global/conf/
-COPY LIMS2-WebApp-filesystem/farm/primers/ /nfs/sci/farm/conf/primers/
-COPY LIMS2-WebApp-filesystem/farm/lims2-live-rest-client.conf /nfs/sci/farm/conf/
-COPY LIMS2-WebApp-filesystem/farm/wge-live-rest-client.conf /nfs/sci/farm/conf/
+COPY lims2-webapp-filesystem/bashrc/bash_utils.sh /opt/sci/global/scripts/
+COPY lims2-webapp-filesystem/fcgi/fastcgi.yaml /opt/sci/global/conf/lims2/
+COPY lims2-webapp-filesystem/fcgi/lims2.conf /etc/apache2/sites-available/
+COPY lims2-webapp-filesystem/bashrc/* /opt/sci/global/conf/bashrc/
+COPY lims2-webapp-filesystem/lims2_conf/lims2/* /opt/sci/global/conf/lims2/
+COPY lims2-webapp-filesystem/lims2_conf/* /opt/sci/global/conf/
+COPY lims2-webapp-filesystem/farm/primers/ /nfs/sci/farm/conf/primers/
+COPY lims2-webapp-filesystem/farm/lims2-live-rest-client.conf /nfs/sci/farm/conf/
+COPY lims2-webapp-filesystem/farm/wge-live-rest-client.conf /nfs/sci/farm/conf/
 
 #
 # Enable apache rewrite
@@ -99,11 +99,11 @@ USER user
 # Create the user-level configs
 RUN mkdir -p /home/user/conf/LIMS2-WebApp/ /home/user/LIMS2-tmp/ /home/user/var/tmp/lims2/run/ /var/tmp/LIMS2-tmp-user /var/tmp/LIMS2-tmp-user/lims2_primer_generation /home/user/.ssh
 
-COPY LIMS2-WebApp-filesystem/user/ssh_config /home/user/.ssh/config
-COPY LIMS2-WebApp-filesystem/user/lims2_local /home/user/.lims2_local
-COPY LIMS2-WebApp-filesystem/user/dbconnect.yaml /opt/sci/global/conf/lims2/dbconnect.yaml
-COPY LIMS2-WebApp-filesystem/LIMS2-tmp/* /home/user/LIMS2-tmp/
-COPY LIMS2-WebApp-filesystem/front_page_reports/* /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/
+COPY lims2-webapp-filesystem/user/ssh_config /home/user/.ssh/config
+COPY lims2-webapp-filesystem/user/lims2_local /home/user/.lims2_local
+COPY lims2-webapp-filesystem/user/dbconnect.yaml /opt/sci/global/conf/lims2/dbconnect.yaml
+COPY lims2-webapp-filesystem/LIMS2-tmp/* /home/user/LIMS2-tmp/
+COPY lims2-webapp-filesystem/front_page_reports/* /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/
 
 #
 # Clone the LIMS2-WebApp repo
@@ -115,7 +115,7 @@ WORKDIR /home/user/git_checkout/LIMS2-WebApp
 
 #
 # temp executions
-COPY LIMS2-WebApp-filesystem/lims2_conf/lims2_webapp.sh /home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh
+COPY lims2-webapp-filesystem/lims2_conf/lims2_webapp.sh /home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh
 
 #
 # Set up the environemnt and allow webapp launch with FCGI
