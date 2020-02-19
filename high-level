@@ -99,12 +99,17 @@ USER user
 # Create the user-level configs
 RUN mkdir -p /home/user/conf/LIMS2-WebApp/ /home/user/LIMS2-tmp/ /home/user/var/tmp/lims2/run/ /var/tmp/LIMS2-tmp-user /var/tmp/LIMS2-tmp-user/lims2_primer_generation /home/user/.ssh
 
-COPY lims2-webapp-filesystem/user/ssh_config /home/user/.ssh/config
+COPY --chown=user:user lims2-webapp-filesystem/user/ssh_config /home/user/.ssh/config
 COPY lims2-webapp-filesystem/user/lims2_local /home/user/.lims2_local
 COPY lims2-webapp-filesystem/user/dbconnect.yaml /opt/sci/global/conf/lims2/dbconnect.yaml
 COPY lims2-webapp-filesystem/LIMS2-tmp/* /home/user/LIMS2-tmp/
 COPY lims2-webapp-filesystem/front_page_reports/* /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/
 
+ARG branch=master
+ARG database=LIMS2_STAGING
+ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
+ARG human_fa=/data/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+ARG file_access=t87-dev-farm3
 #
 # Clone the LIMS2-WebApp repo
 RUN mkdir /home/user/git_checkout && cd /home/user/git_checkout && git clone https://github.com/htgt/LIMS2-WebApp.git
@@ -112,10 +117,18 @@ RUN mkdir /home/user/git_checkout && cd /home/user/git_checkout && git clone htt
 #
 # Define a default working directory
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
+RUN git checkout $branch
 
 #
 # temp executions
 COPY lims2-webapp-filesystem/lims2_conf/lims2_webapp.sh /home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh
+
+ENV LIMS2_DB=$database \
+    LIMS2_RNA_SEQ=$rna_seq \
+    WAREHOUSE_RNA_SEQ=$rna_seq \
+    DESIGN_CREATION_HUMAN_FA=$human_fa \
+    BWA_REF_GENOME_HUMAN_FA=$human_fa \
+    LIMS2_FILE_ACCESS_SERVER=$file_access
 
 #
 # Set up the environemnt and allow webapp launch with FCGI
