@@ -28,7 +28,9 @@ COPY lims2-webapp-filesystem/farm/wge-live-rest-client.conf /nfs/sci/farm/conf/
 
 #
 # Enable apache rewrite
-RUN a2enmod rewrite && a2ensite lims2
+RUN a2dismod mpm_event && a2enmod mpm_prefork && a2enmod rewrite && a2ensite lims2
+
+ARG ensembl_args=""
 
 #
 # Clone the git repos
@@ -44,7 +46,7 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
   git clone https://github.com/htgt/HTGT-QC-Common.git /tmp/HTGT-QC-Common && \
   git clone https://github.com/htgt/LIMS2-Exception.git /tmp/LIMS2-Exception && \
   git clone https://github.com/fschwach/Bio-Tools-Primer3Redux.git /tmp/Bio-Tools-Primer3Redux && \
-  git clone https://github.com/Ensembl/ensembl.git /tmp/ensembl && \
+  git clone https://github.com/Ensembl/ensembl.git $ensembl_args /tmp/ensembl && \
   cp -r  /tmp/WebApp-Common/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r  /tmp/WebApp-Common/shared_templates /opt/sci/global/software/lims2/lib/WebAppCommon/ && \
   cp -r /tmp/Design-Creation/lib/* /opt/sci/global/software/lims2/lib/ && \
@@ -133,8 +135,8 @@ ENV LIMS2_DB=$database \
     BWA_REF_GENOME_HUMAN_FA=$human_fa \
     LIMS2_FILE_ACCESS_SERVER=$file_access \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
-    LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/primer3_crispr_sequencing_config.yaml \
-    LIMS2_PRIMER3_MISEQ_PCR_CONFIG=/nfs/sci/farm/conf/primers/primer3_pcr_miseq_config.yaml
+    LIMS2_ENSEMBL_USER=anonymous \
+    LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
 
 #
 # Set up the environemnt and allow webapp launch with FCGI
