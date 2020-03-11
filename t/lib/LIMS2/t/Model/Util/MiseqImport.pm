@@ -78,7 +78,7 @@ sub parse_job {
 }
 
 sub get_default_bsub_options {
-    my $runner = WebAppCommon::Util::FarmJobRunner->new( { dry_run => 1 } );
+    my $runner = WebAppCommon::Util::FarmJobRunner->new( { dry_run => 1, server => 'fake_server' } );
     return (
         '-G' => $runner->default_group,
         '-q' => $runner->default_queue,

@@ -32,7 +32,7 @@ has farm_job_runner => (
 );
 
 sub _build_farm_job_runner {
-    return WebAppCommon::Util::FarmJobRunner->new( { dry_run => 0 } );
+    return WebAppCommon::Util::FarmJobRunner->new( { dry_run => 0, server => $ENV{LIMS2_FILE_ACCESS_SERVER} } );
 }
 
 has basespace_api => (
