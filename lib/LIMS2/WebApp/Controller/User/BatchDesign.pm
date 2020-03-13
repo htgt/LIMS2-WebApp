@@ -22,7 +22,7 @@ Readonly::Hash my %RULES                   => (
 Readonly::Hash my %COLUMNS => (
     NUMERIC  => [qw/WGE_ID/],
     TYPE     => [qw/Design_Type/],
-    GENE     => [qw/CRISPR_ID/],
+    GENE     => [qw/Gene_Symbol/],
     SEQUENCE => [
         'CRISPR Sequence',
         'PCR forward',
@@ -105,7 +105,7 @@ sub _validate_primers {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = $row->{CRISPR_ID} =~ m/^(\w+)/xms;
+    my ($symbol) = $row->{Gene_Symbol} =~ m/^(\w+)/xms;
     return {
         wge_id      => $row->{WGE_ID},
         design_type => $row->{Design_Type},
