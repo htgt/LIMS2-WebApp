@@ -27,15 +27,16 @@ sub validate_values : Test(11) {
         i => 12345,
         j => -13,
         k => 42,
-        CRISPR_ID => 'ATG16L1_1v2',
+        Gene_Symbol => 'ATG16L1_1v2',
         symbol => 'PTENP1-202',
         seq => 'ACTGCTGA',
         missing_seq => 'NGG',
         type => 'fusion',
     };
     note('all checked values ok');
+    # no error message returned
     ok not BatchDesign::_validate_values( $data, 'NUMERIC', [qw/i k/] );
-    ok not BatchDesign::_validate_values( $data, 'GENE', [qw/CRISPR_ID symbol/] );
+    ok not BatchDesign::_validate_values( $data, 'GENE', [qw/Gene_Symbol symbol/] );
     ok not BatchDesign::_validate_values( $data, 'SEQUENCE', [qw/seq/] );
 
     note('some checked values bad');
