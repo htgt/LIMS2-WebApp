@@ -395,7 +395,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     my @hdr_example_row = qw/
         904034556
         miseq-hdr
-        AHDC1_3
+        AHDC1
         TGCCCCACACCGGTCGGAGA
         AGGCTCGTAGAGGGGATG
         GTGCAGCTCTCCTGACTAC
@@ -406,7 +406,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
 
     open my $fh, '>', \$output or croak 'Could not create example file';
     $csv->print( $fh, \@columns );
-    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
+    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
     $csv->print( $fh, \@hdr_example_row );
     close $fh or croak 'Could not close example file';
 
