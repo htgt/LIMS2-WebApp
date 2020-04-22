@@ -35,6 +35,7 @@ use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
 use Try::Tiny;
+use WebAppCommon::Util::FileAccess;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -749,17 +750,23 @@ sub read_alleles_frequency_file {
 
     $threshold = $threshold ? $threshold : 0;
 
-    my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
-    if (!defined $path) {
+    my $base = $ENV{LIMS2_RNA_SEQ};
+    my $api;
+    if (-e $base) {
+        $api = WebAppCommon::Util::FileAccess->construct();
+    } else {
+        $api = WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
+    }
+    my $path = $ENV{LIMS2_RNA_SEQ} . $miseq . '/S' . $index . '_exp' . $exp . "/CRISPResso_on_${index}_S${index}_L001_R1_001_${index}_S${index}_L001_R2_001/Alleles_frequency_table.txt";
+    if (! $api->check_file_existence($path)) {
         return [{ error => 'No path available' }];
     }
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $path) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
+    my @lines;
+    my @content = $api->get_file_content($path);
+    foreach my $line (@content) {
+        chomp $line;
+        push(@lines, join(',', split(/\t/,$line)));
+    }
     if ($percentage_bool) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {

@@ -39,10 +39,13 @@ sub point_mutation_summary_GET {
     my $well_rs = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate_rs->id, name => $well_name });
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ miseq_exp_id => $miseq_exp->{id}, well_id => $well_rs->id })->as_hash;
+    my $alleles;
     my @result;
-    my $alleles = {
-        data => get_frequency_data($c, $miseq_well_exp_hash)
-    };
+    if ($threshold and $threshold <= 10) {
+        $alleles = {
+            data => get_frequency_data($c, $miseq_well_exp_hash)
+        };
+    }
 
     unless ($alleles) {
         @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
