@@ -22,7 +22,7 @@ Readonly::Hash my %RULES                   => (
 Readonly::Hash my %COLUMNS => (
     NUMERIC  => [qw/WGE_ID/],
     TYPE     => [qw/Design_Type/],
-    GENE     => [qw/CRISPR_ID/],
+    GENE     => [qw/Gene_Symbol/],
     SEQUENCE => [
         'CRISPR Sequence',
         'PCR forward',
@@ -105,7 +105,7 @@ sub _validate_primers {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = $row->{CRISPR_ID} =~ m/^(\w+)/xms;
+    my ($symbol) = $row->{Gene_Symbol} =~ m/^(\w+)/xms;
     return {
         wge_id      => $row->{WGE_ID},
         design_type => $row->{Design_Type},
@@ -395,7 +395,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
     my @hdr_example_row = qw/
         904034556
         miseq-hdr
-        AHDC1_3
+        AHDC1
         TGCCCCACACCGGTCGGAGA
         AGGCTCGTAGAGGGGATG
         GTGCAGCTCTCCTGACTAC
@@ -406,7 +406,7 @@ sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
 
     open my $fh, '>', \$output or croak 'Could not create example file';
     $csv->print( $fh, \@columns );
-    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP_2 AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
+    $csv->print( $fh, [qw/1174490822 miseq-nhej ADNP AGGATCGGTTCCCTTGCTTC TTTAACTGGCCCGATGAGAG ATGCCCGAGAAGAGAGTAGT CCTGGCCTACAGATTTGACT CCCTTGATGCTAATTGCTCC/] );
     $csv->print( $fh, \@hdr_example_row );
     close $fh or croak 'Could not close example file';
 

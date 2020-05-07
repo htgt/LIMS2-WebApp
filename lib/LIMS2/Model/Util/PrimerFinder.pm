@@ -117,7 +117,7 @@ $DB::single=1;
     and the location of a CRISPR that they are near.
 
     my $target_crispr = {
-        wge_id => 1149665659,
+        wge_crispr_id => 1149665659,
         locus  => {
             chr_name   => 17,
             chr_start  => 58363337,
@@ -170,7 +170,7 @@ $DB::single=1;
         my $locus = loci_builder( $target_crispr->{locus},
             $primers->{$oligo}, $oligo_hits->{$oligo}, );
         carp "Could not find $oligo primer for CRISPR "
-          . $target_crispr->{wge_id}
+          . $target_crispr->{wge_crispr_id}
           if not defined $locus;
         $primers->{$oligo}->{loci} = $locus;
     }

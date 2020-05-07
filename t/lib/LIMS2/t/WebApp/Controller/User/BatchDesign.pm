@@ -9,7 +9,7 @@ use strict;
 sub validate_columns : Test(3) {
     note('all columns included');
     {
-        my @columns = ('WGE_ID', 'Design_Type', 'CRISPR_ID', 'CRISPR Sequence', 'PCR forward',
+        my @columns = ('WGE_ID', 'Design_Type', 'Gene_Symbol', 'CRISPR Sequence', 'PCR forward',
             'PCR reverse', 'MiSEQ forward', 'MiSEQ reverse', 'HDR template');
         ok not BatchDesign::_validate_columns(\@columns);
     }
@@ -18,7 +18,7 @@ sub validate_columns : Test(3) {
         my @columns = ('WGE_ID', 'CRISPR Sequence', 'PCR forward',
             'PCR reverse', 'MiSEQ reverse');
         ok my $error = BatchDesign::_validate_columns(\@columns);
-        is($error, 'Missing required columns: Design_Type, CRISPR_ID, MiSEQ forward');
+        is($error, 'Missing required columns: Design_Type, Gene_Symbol, MiSEQ forward');
     }
 }
 
@@ -27,15 +27,16 @@ sub validate_values : Test(11) {
         i => 12345,
         j => -13,
         k => 42,
-        CRISPR_ID => 'ATG16L1_1v2',
+        Gene_Symbol => 'ATG16L1_1v2',
         symbol => 'PTENP1-202',
         seq => 'ACTGCTGA',
         missing_seq => 'NGG',
         type => 'fusion',
     };
     note('all checked values ok');
+    # no error message returned
     ok not BatchDesign::_validate_values( $data, 'NUMERIC', [qw/i k/] );
-    ok not BatchDesign::_validate_values( $data, 'GENE', [qw/CRISPR_ID symbol/] );
+    ok not BatchDesign::_validate_values( $data, 'GENE', [qw/Gene_Symbol symbol/] );
     ok not BatchDesign::_validate_values( $data, 'SEQUENCE', [qw/seq/] );
 
     note('some checked values bad');

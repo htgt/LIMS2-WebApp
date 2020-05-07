@@ -26,7 +26,7 @@ p.tab{
     <li>
         <h3>Step 2</h3>
         <p>Rename the template csv according to the following formula:</p>
-        <p class="tab">MiSeq_<i><b>"Run Number"</i></b>_<i><b>"Walkup Number"</b></i>.csv</p>
+        <p class="tab">Miseq_<i><b>"Run Number"</i></b>_<i><b>"Walkup Number"</b></i>.csv</p>
         <p>Example:</p>
         <p class="tab"> <b>Miseq_038_123.csv </b></p>
     </li>

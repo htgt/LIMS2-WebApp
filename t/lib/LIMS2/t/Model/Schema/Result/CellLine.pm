@@ -89,7 +89,8 @@ sub all_tests : Test(8) {
     my %record        = (
         'id'            => 9999,
         'name'          => 'Vogon',
-        'description'   => 'On no account should you allow a Vogon to read poetry at you.'
+        'description'   => 'On no account should you allow a Vogon to read poetry at you.',
+        'species_id'    => 'Human'
     );
 
     note("Accessing the schema");

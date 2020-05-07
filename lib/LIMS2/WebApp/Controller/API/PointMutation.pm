@@ -84,9 +84,8 @@ sub _retrieve_crispr_seq_from_job_output {
 sub _extract_crispr_from_job_file {
     my ($c, $job) = @_;
 
-    my @job_content = split "\n", $job;
-    my $submission_line = uc $job_content[1];
-    my ($amplicon, $crispr) = $submission_line =~ /^.*\-A\ ([ACTG]+).*\-G\ ([ACTG]+).*$/g;
+    my $job_upper = uc $job;
+    my ($amplicon, $crispr) = $job_upper =~ /.*\-A\ ([ACTG]+).*\-G\ ([ACTG]+).*/g;
 
     return {
         amp     => $amplicon,
@@ -293,7 +292,7 @@ sub get_frequency_data {
     my @lines;
     my @headers;
     my $freq_hash;
-    $limit = $freq_count if ($limit > $freq_count);
+    $limit = $freq_count if (!defined $limit || $limit > $freq_count);
     if ($limit > 0){
         $freq_hash = $frequency_rs->next->as_hash;
 
