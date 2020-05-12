@@ -692,7 +692,7 @@ sub read_alleles_frequency_file {
     my $api = get_api($base);
     my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
     if (! $api->check_file_existence($path)) {
-        return [{ error => 'No path available' }];
+        return ({ error => 'No path available' });
     }
     my @content = $api->get_file_content($path);
     my @lines = get_csv_from_tsv_lines(@content);
