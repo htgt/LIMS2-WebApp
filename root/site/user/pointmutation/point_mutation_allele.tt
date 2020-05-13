@@ -311,10 +311,15 @@ input:checked + .slider:before {
             <div class="col-md-4">
                 <h4 id="crisprHeader[% experiment.id %]" class="crisprHeaders" style="display: inline">Crispr: <span id="crisprSeq[% experiment.id %]" class="sequence">Null</span></h4>
             </div>
-            <div class="col-md-2">
-                <button id="dl[% experiment.id %]" class="download btn btn-success" value="[% experiment.id %]">
+            <div class="btn-group dropup col-md-2">
+                <button id="dl[% experiment.id %]" class="download btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Download CSV <i class="glyphicon glyphicon-download-alt"></i>
+                    <span class="sr-only">Toggle Dropdown</span>
                 </button>
+                <div class="dropdown-menu">
+                    <button class="btn btn-block btn-primary download_10" value="[% experiment.id %]">10 rows</button>
+                    <button class="btn btn-block btn-info download_all" value="[% experiment.id %]">All rows</button>
+                </div>
             </div>
             <div class="btn-group dropup col-md-2">
                 <button id="ck[% experiment.id %]" class="colourKey btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -436,7 +441,12 @@ $('.allele').click(function() {
     }
 });
 
-$('.download').click(function() {
+$('.download_10').click(function() {
+    var value = $(this).val();
+    getSummary(value,'1','1');
+});
+
+$('.download_all').click(function() {
     var value = $(this).val();
     getSummary(value,'1');
 });
@@ -657,7 +667,7 @@ function getImages(letter, chart, div) {
     });
 }
 
-function getSummary(letter, downloadFlag) {
+function getSummary(letter, downloadFlag, limitFlag) {
     var index = '[% oligo_index %]';
     var res; 
     if (downloadFlag == null) {
@@ -667,7 +677,7 @@ function getSummary(letter, downloadFlag) {
             type: "GET",
             contentType: 'text/plain',
             data: {
-                miseq: '[% miseq %]', 
+                miseq: '[% miseq %]',
                 oligo: index,
                 exp: letter,
                 limit: 10,
@@ -681,16 +691,27 @@ function getSummary(letter, downloadFlag) {
             }
         });
     } else {
-        //Full summary for downloading
+        //Download summary
+        var data;
+        if (limitFlag == null) {
+            //All rows
+            data = {
+                miseq: '[% miseq %]',
+                oligo: index,
+                exp: letter, }
+        } else {
+            //10 rows
+            data = {
+                miseq: '[% miseq %]',
+                oligo: index,
+                exp: letter,
+                limit: 10, }
+        }
         $.ajax({
             url: '[% c.uri_for('/api/point_mutation_summary/') %]',
             type: "GET",
             contentType: 'text/plain',
-            data: {
-                miseq: '[% miseq %]', 
-                oligo: index,
-                exp: letter,
-            },
+            data: data,
             success: function(result){
                 console.log(result);
                 downloadCSV(letter, result);
