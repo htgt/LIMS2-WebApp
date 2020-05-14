@@ -736,7 +736,6 @@ function createTable(exp, result) {
     var headers = rows.shift().split(",");
     var displayHeaders = ['Aligned_Sequence','NHEJ','UNMODIFIED','HDR','n_deleted','n_inserted','n_mutated','#Reads','%Reads'];
     var quoteQualityRegex = /([ACTG-]+,[ACTG-]+,)([\x21-\x4B]+)((,(True|False|\d+\.?\d?)){7},\d+\.?\d*$)/gm;
-    console.log(quoteQualityRegex);
     //Bind on to the last 7 commas since those columns are constant.
     var splitIgnoreQuoted = /("[^"]*")|[^,]+/g;
     //Phred Qualities use , as a value. Quote the quality string then split the row
@@ -748,7 +747,6 @@ function createTable(exp, result) {
         }
         var rowStr = rows[rowCount];
         var rowResult = rowStr.replace(quoteQualityRegex, `$1"$2"$3`);
-	console.log(rowResult);
 	var rowData = rowResult.match(splitIgnoreQuoted);
 
         var rowObj = headers.reduce((obj, key, index) => ({...obj, [key]: rowData[index]}), {});
