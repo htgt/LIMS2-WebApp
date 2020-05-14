@@ -5,7 +5,6 @@ use strict;
 use warnings FATAL => 'all';
 use LIMS2::Model::Util::Miseq qw(:all);
 
-
 sub test_module_import : Test(2) {
     my @subs = qw(
       miseq_well_processes
@@ -26,6 +25,7 @@ sub test_module_import : Test(2) {
       query_miseq_tree_from_experiment
       get_api
       get_alleles_freq_path
+      get_offset_alleles_freq_path
       get_csv_from_tsv_lines
     );
     use_ok( 'LIMS2::Model::Util::Miseq', @subs );
@@ -39,6 +39,14 @@ sub test_get_alleles_freq_path : Test(1) {
         get_alleles_freq_path( 'base', 'miseq', 'exp', 1 ),
 'base/miseq/S1_expexp/CRISPResso_on_1_S1_L001_R1_001_1_S1_L001_R2_001/Alleles_frequency_table.txt',
         'get_alleles_freq_path returns correct path'
+    );
+}
+
+sub test_get_offset_alleles_freq_path : Test(1) {
+    is(
+        get_offset_alleles_freq_path( 'base', 'miseq', 'exp', 1 ),
+'base/miseq/S1_expexp/CRISPResso_on_385_S385_L001_R1_001_385_S385_L001_R2_001/Alleles_frequency_table.txt',
+        'get_offset_alleles_freq_path returns correct path'
     );
 }
 
