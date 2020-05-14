@@ -23,6 +23,7 @@ use Sub::Exporter -setup => {
               query_miseq_tree_from_experiment
               get_api
               get_alleles_freq_path
+              get_offset_alleles_freq_path
               get_csv_from_tsv_lines
           )
     ]
@@ -692,7 +693,10 @@ sub read_alleles_frequency_file {
     my $api = get_api($base);
     my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
     if (! $api->check_file_existence($path)) {
-        return ({ error => 'No path available' });
+        $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
+        if (! $api->check_file_existence($path)) {
+            return ({ error => 'No path available' });
+        }
     }
     my @content = $api->get_file_content($path);
     my @lines = get_csv_from_tsv_lines(@content);
@@ -717,6 +721,12 @@ sub get_api {
 sub get_alleles_freq_path {
     my ($base, $miseq, $exp, $index) = @_;
     return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index}_S${index}_L001_R1_001_${index}_S${index}_L001_R2_001/Alleles_frequency_table.txt";
+}
+
+sub get_offset_alleles_freq_path {
+    my ($base, $miseq, $exp, $index) = @_;
+    my $index_384 = $index + 384;
+    return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index_384}_S${index_384}_L001_R1_001_${index_384}_S${index_384}_L001_R2_001/Alleles_frequency_table.txt";
 }
 
 sub get_csv_from_tsv_lines {
