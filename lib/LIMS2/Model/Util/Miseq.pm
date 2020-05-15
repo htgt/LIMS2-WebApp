@@ -21,6 +21,10 @@ use Sub::Exporter -setup => {
               read_alleles_frequency_file
               qc_relations
               query_miseq_tree_from_experiment
+              get_api
+              get_alleles_freq_path
+              get_offset_alleles_freq_path
+              get_csv_from_tsv_lines
           )
     ]
 };
@@ -35,6 +39,7 @@ use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
 use Try::Tiny;
+use WebAppCommon::Util::FileAccess;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
@@ -347,71 +352,6 @@ sub _find_miseq_data_by_exp {
         }
     );
 }
-
-=head
-sub find_miseq_data_from_experiment {
-    my ($c, $experiment_id) = @_;
-    my $rs = $c->model('Golgi')->schema->resultset('MiseqExperiment')->search(
-    {
-
-        experiment_id   => $experiment_id,
-        'miseq_well_experiments.classification'  => { '!=' => 'Not Called' },
-        'miseq_well_experiments.classification'  => { '!=' => 'Mixed' },
-        'plate_2.id' => { -ident => 'parent_plate_id' },
-    },
-    {
-        join => {
-            'miseq_well_experiments' => [{
-                'well' => [
-                    'plate',
-                    {
-                        'process_output_wells' => {
-                            'process' => {
-                                'process_input_wells' => {
-                                    'well' => 'plate',
-                                }
-                            }
-                        }
-                    }
-                ],
-            }],
-        },
-        prefetch => 'parent_plate',
-    });
-    
-
-    my @miseq_experiments;
-    while (my $miseq_exp = $rs->next) {
-        my $result = {
-            parent_plate    => $miseq_exp->parent_plate->as_hash,
-            #clones          => map { clone_information($_) } @{ $miseq_exp->miseq_well_experiments },
-        };
-        while (my $me = $miseq_exp->miseq_well_experiments->next) {
-            clone_information($me);
-        }
-        print Dumper $miseq_exp->parent_plate->name;
-        push (@miseq_experiments, $result);
-    }
-
-    return \@miseq_experiments;
-}
-
-sub clone_information {
-    my ($well_exp) = @_;
-    my $pows = $well_exp->well->process_output_wells;
-
-    while (my $pow = $pows->next) {
-        my $piws = $pow->process->process_input_wells;
-        while (my $piw = $piws->next) {
-            my $dets = $well_exp->as_hash;
-            $dets->{clone} = $piw->well->plate->name . '_' . $piw->well->name;
-            print Dumper $dets;
-        }
-    }
-
-    return;
-}
-=cut
 
 sub miseq_well_processes {
     my ($c, $params) = @_;
@@ -749,17 +689,17 @@ sub read_alleles_frequency_file {
 
     $threshold = $threshold ? $threshold : 0;
 
-    my $path = find_file($miseq, $index, $exp, 'Alleles_frequency_table.txt');
-    if (!defined $path) {
-        return [{ error => 'No path available' }];
+    my $base = $ENV{LIMS2_RNA_SEQ};
+    my $api = get_api($base);
+    my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
+    if (! $api->check_file_existence($path)) {
+        $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
+        if (! $api->check_file_existence($path)) {
+            return ({ error => 'No path available' });
+        }
     }
-
-    my $fh;
-    open ($fh, '<:encoding(UTF-8)', $path) or die "$!";
-    my @lines = read_file_lines($fh);
-    close $fh;
-
-    my $res;
+    my @content = $api->get_file_content($path);
+    my @lines = get_csv_from_tsv_lines(@content);
     if ($percentage_bool) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
@@ -769,6 +709,35 @@ sub read_alleles_frequency_file {
     return @lines;
 }
 
+sub get_api {
+    my $base = shift;
+    if (-e $base) {
+        return WebAppCommon::Util::FileAccess->construct();
+    } else {
+        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
+    }
+}
+
+sub get_alleles_freq_path {
+    my ($base, $miseq, $exp, $index) = @_;
+    return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index}_S${index}_L001_R1_001_${index}_S${index}_L001_R2_001/Alleles_frequency_table.txt";
+}
+
+sub get_offset_alleles_freq_path {
+    my ($base, $miseq, $exp, $index) = @_;
+    my $index_384 = $index + 384;
+    return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index_384}_S${index_384}_L001_R1_001_${index_384}_S${index_384}_L001_R2_001/Alleles_frequency_table.txt";
+}
+
+sub get_csv_from_tsv_lines {
+    my @tsv_lines = @_;
+    my @csv_lines;
+    foreach my $line (@tsv_lines) {
+        chomp $line;
+        push(@csv_lines, join(',', split(/\t/,$line)));
+    }
+    return @csv_lines;
+}
 
 #The method beloow works, but does not have refference sequences. Therefore, for the time it is not used.
 sub read_alleles_frequency_file_db {
