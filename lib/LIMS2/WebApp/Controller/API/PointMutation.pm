@@ -69,6 +69,53 @@ sub point_mutation_summary_GET {
     return;
 }
 
+sub experiment_summary : Path( '/api/experiment_summary' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub experiment_summary_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $experiment = $c->request->param( 'exp' );
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
+    my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+    my @results = get_experiment_data($c, @miseq_well_exps);
+    my $headers = "Well_Name,Aligned_Sequence,Reference_Sequence,Phred_Quality,NHEJ,UNMODIFIED,HDR,n_deleted,n_inserted,n_mutated,#Reads,%Reads\n";
+    my $alleles = { data => $headers . join("\n", @results) };
+
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($alleles);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub get_experiment_data {
+    my ($c, @miseq_well_exps) = @_;
+    my @experiment_data;
+    foreach my $miseq_well_exp (@miseq_well_exps) {
+        my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
+        my $data = get_frequency_data($c, $miseq_well_exp_hash);
+        next if not ($data);
+        push @experiment_data, modify_alleles_freq_data($miseq_well_exp_hash->{well_name}, split("\n", $data));
+    }
+    return @experiment_data;
+}
+
+sub modify_alleles_freq_data {
+    my ($well_name, @alleles_freq_data) = @_;
+    shift @alleles_freq_data;
+    my @modified_data;
+    foreach my $row (@alleles_freq_data) {
+        push @modified_data, "$well_name,$row";
+    }
+    return @modified_data;
+}
+
 sub _retrieve_crispr_seq_from_job_output {
     my ($c, $miseq, $oligo_index, $experiment) = @_;
 

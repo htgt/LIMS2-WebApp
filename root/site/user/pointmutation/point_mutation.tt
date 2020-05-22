@@ -152,6 +152,10 @@ body {
     [% END %]
 </div>
 
+<div>
+    <button id="downloadButton" class="btn btn-success" onclick="getSummary();">Download Experiment CSV</button>
+</div>
+
 [% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
 
 <script type="text/javascript" charset="utf-8">
@@ -241,6 +245,7 @@ $(document).ready(function() {
     highlight_init();
     crisprStartUp();
     clearButtonVisibility();
+    downloadButtonVisibility();
 });
 
 $('#geneSelect').change(function() {
@@ -265,6 +270,7 @@ $('#geneSelect').change(function() {
         $(".crisprSelect").hide().prop('disabled', true);
     }
     clearButtonVisibility();
+    downloadButtonVisibility();
     highlight_init();
 });
 
@@ -302,6 +308,7 @@ $('#crisprSelect').on('click', function() {
 
 $('#expSelect').on('click', function() {
     clearButtonVisibility();
+    downloadButtonVisibility();
     highlight_init();
 });
 
@@ -376,6 +383,14 @@ function clearButtonVisibility() {
     }
 }
 
+function downloadButtonVisibility() {
+    if ($('#expSelect').val() == 'All'){
+        $('#downloadButton').hide().prop('disabled', true);
+    } else {
+        $('#downloadButton').show().prop('disabled', false);
+    }
+}
+
 function expSelect(){
     $("#expSelect").children('option').hide().prop('disabled', true);
     $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
@@ -400,6 +415,7 @@ function clearSelection() {
     $('select').each(function() { this.selectedIndex = 0 });
     $(".crisprSelect").hide().prop('disabled', true);
     $('#clearButton').hide().prop('disabled', true);
+    $('#downloadButton').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -707,6 +723,35 @@ function tooltip(node) {
     }
 return response;
 
+}
+
+function getSummary() {
+    var exp = document.getElementById('expSelect').value;
+    $.ajax({
+        url: '[% c.uri_for('/api/experiment_summary/') %]',
+        type: "GET",
+        contentType: 'text/plain',
+        data: {
+            miseq: '[% miseq %]',
+            exp: exp,
+        },
+        success: function(result){
+            console.log(result);
+            downloadCSV(exp, result);
+        },
+        error: function() {
+            console.log("Failed to retrieve data");
+        }
+    });
+}
+
+function downloadCSV(exp, result) {
+    result = JSON.parse(result);
+    var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
+    hiddenElement.download = exp + '.csv';
+    document.body.appendChild(hiddenElement);
+    hiddenElement.click();
 }
 
 </script>
