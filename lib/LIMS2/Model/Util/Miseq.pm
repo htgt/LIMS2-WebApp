@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
               wells_generator
               well_builder
               convert_index_to_well_name
+              convert_well_name_to_index
               generate_summary_data
               find_folder
               find_file
@@ -34,7 +35,7 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
-use List::Util qw( sum );
+use List::Util qw( sum first min );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
@@ -422,6 +423,14 @@ sub convert_index_to_well_name {
     return $name;
 }
 
+sub convert_well_name_to_index {
+    my $well_name = shift;
+
+    my @wells = wells_generator();
+    my $index = first { $wells[$_] eq $well_name } 0..$#wells;
+
+    return $index + 1;
+}
 
 sub wells_generator {
     my $name_to_index = shift;
@@ -703,7 +712,8 @@ sub read_alleles_frequency_file {
     if ($percentage_bool) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
-        @lines = @lines[0..$threshold];
+        my $line_limit = min($threshold, (scalar(@lines) - 1));
+        @lines = @lines[0..$line_limit];
     }
 
     return @lines;
