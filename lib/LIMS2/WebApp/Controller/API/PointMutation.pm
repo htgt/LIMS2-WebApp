@@ -83,10 +83,14 @@ sub experiment_summary_GET {
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
     my @results = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
-    my $alleles = { data => join("\n", @results) };
-
+    if (! defined $results[0]) {
+        $c->response->status( 404 );
+        $c->response->body( "No alleles frequency data found for $experiment" );
+        return;
+    }
+    my $data = { data => join("\n", @results) };
     my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($alleles);
+    my $body = $json->encode($data);
     $c->response->status( 200 );
     $c->response->content_type( 'text/plain' );
     $c->response->body( $body );
@@ -103,18 +107,19 @@ sub get_experiment_data {
         my $well_name = $miseq_well_exp_hash->{well_name};
         my $index = convert_well_name_to_index($well_name);
         my @data = read_alleles_frequency_file($c, $miseq, $index, $experiment, 10);
-        if (!@data) {
+        # if error, try retrieving from database
+        if (ref($data[0]) eq "HASH") {
             @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
             next if not (@data);
         }
-        my @modified_data = modify_alleles_freq_data($well_name, @data);
-        $headers = shift @modified_data;
-        push @experiment_data, @modified_data;
+        my @data_with_well_name = add_well_name_col($well_name, @data);
+        $headers = shift @data_with_well_name;
+        push @experiment_data, @data_with_well_name;
     }
     return ($headers, @experiment_data);
 }
 
-sub modify_alleles_freq_data {
+sub add_well_name_col {
     my ($well_name, @alleles_freq_data) = @_;
     my $headers = 'Well_Name,' . shift @alleles_freq_data;
     my @modified_data;

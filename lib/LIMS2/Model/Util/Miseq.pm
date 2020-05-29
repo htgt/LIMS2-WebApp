@@ -708,6 +708,9 @@ sub read_alleles_frequency_file {
         }
     }
     my @content = $api->get_file_content($path);
+    if (! @content) {
+        return ({ error => 'File is empty' });
+    }
     my @lines = get_csv_from_tsv_lines(@content);
     if ($percentage_bool) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);

@@ -60,6 +60,8 @@ body {
 [% SET y1 = [ "A", "B", "C", "D", "E", "F", "G", "H" ] %]
 [% SET y2 = [ "I", "J", "K", "L", "M", "N", "O", "P" ] %]
 
+<div id="response_alert" class="col-md-12"></div>
+
 <div class="page-header">
   <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
 </div>
@@ -726,6 +728,8 @@ return response;
 }
 
 function getSummary() {
+    $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
+    $("#response_alert").html("Downloading...");
     var exp = document.getElementById('expSelect').value;
     $.ajax({
         url: '[% c.uri_for('/api/experiment_summary/') %]',
@@ -738,9 +742,13 @@ function getSummary() {
         success: function(result){
             console.log(result);
             downloadCSV(exp, result);
+            $("#response_alert").removeClass("alert-info").addClass("alert-success");
+            $("#response_alert").html("Downloaded!");
         },
         error: function() {
             console.log("Failed to retrieve data");
+            $("#response_alert").removeClass("alert-info").addClass("alert-danger");
+            $("#response_alert").html("Error while downloading!");
         }
     });
 }
