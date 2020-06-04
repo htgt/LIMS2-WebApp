@@ -23,6 +23,17 @@ use LIMS2::Model::Util::ImportCrispressoQC;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
+my $API = get_api($ENV{LIMS2_RNA_SEQ});
+
+sub get_api {
+    my $base = shift;
+    if (-e $base) {
+        return WebAppCommon::Util::FileAccess->construct();
+    } else {
+        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
+    }
+}
+
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
@@ -49,7 +60,7 @@ sub point_mutation_summary_GET {
     }
 
     unless ($alleles) {
-        @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+        @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
         if (ref($result[0]) eq "HASH") {
             $c->response->status( 404 );
             $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
@@ -83,6 +94,7 @@ sub experiment_summary_GET {
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
     my @results = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
+    # checks headers are defined, if not there's no data
     if (! defined $results[0]) {
         $c->response->status( 404 );
         $c->response->body( "No alleles frequency data found for $experiment" );
@@ -106,7 +118,7 @@ sub get_experiment_data {
         my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
         my $well_name = $miseq_well_exp_hash->{well_name};
         my $index = convert_well_name_to_index($well_name);
-        my @data = read_alleles_frequency_file($c, $miseq, $index, $experiment, 10);
+        my @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
         # if error, try retrieving from database
         if (ref($data[0]) eq "HASH") {
             @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));

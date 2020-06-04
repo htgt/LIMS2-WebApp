@@ -22,7 +22,6 @@ use Sub::Exporter -setup => {
               read_alleles_frequency_file
               qc_relations
               query_miseq_tree_from_experiment
-              get_api
               get_alleles_freq_path
               get_offset_alleles_freq_path
               get_csv_from_tsv_lines
@@ -429,6 +428,10 @@ sub convert_well_name_to_index {
     my @wells = wells_generator();
     my $index = first { $wells[$_] eq $well_name } 0..$#wells;
 
+    if (! defined $index) {
+        return 0;
+    }
+
     return $index + 1;
 }
 
@@ -694,12 +697,11 @@ sub generate_summary_data_old {
 }
 
 sub read_alleles_frequency_file {
-    my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
+    my ($api, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
 
     $threshold = $threshold ? $threshold : 0;
 
     my $base = $ENV{LIMS2_RNA_SEQ};
-    my $api = get_api($base);
     my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
     if (! $api->check_file_existence($path)) {
         $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
@@ -708,8 +710,8 @@ sub read_alleles_frequency_file {
         }
     }
     my @content = $api->get_file_content($path);
-    if (! @content) {
-        return ({ error => 'File is empty' });
+    if (scalar @content < 2) {
+        return ({ error => 'No data in file' });
     }
     my @lines = get_csv_from_tsv_lines(@content);
     if ($percentage_bool) {
@@ -720,15 +722,6 @@ sub read_alleles_frequency_file {
     }
 
     return @lines;
-}
-
-sub get_api {
-    my $base = shift;
-    if (-e $base) {
-        return WebAppCommon::Util::FileAccess->construct();
-    } else {
-        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
-    }
 }
 
 sub get_alleles_freq_path {
@@ -887,7 +880,7 @@ sub miseq_genotyping_info {
         $miseq_quant = _calc_read_percentages($miseq_quant);
         my $qc_origin_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{miseq_well_id} });
 
-        my @alleles_frequency = read_alleles_frequency_file($c, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
+        my @alleles_frequency = read_alleles_frequency_file($qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
 
         my @crisprs = map { $_->seq } $exp_rs->crispr;
         my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
