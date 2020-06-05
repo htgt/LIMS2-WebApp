@@ -25,6 +25,7 @@ use Sub::Exporter -setup => {
               get_alleles_freq_path
               get_offset_alleles_freq_path
               get_csv_from_tsv_lines
+              get_api
           )
     ]
 };
@@ -855,6 +856,7 @@ sub miseq_genotyping_info {
     };
 
     my $index_converter = wells_generator(1);
+    my $api = get_api($ENV{LIMS2_RNA_SEQ});
     my @overview_symbols;
     my @overview_gene_ids;
     my @overview_design_ids;
@@ -880,7 +882,7 @@ sub miseq_genotyping_info {
         $miseq_quant = _calc_read_percentages($miseq_quant);
         my $qc_origin_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{miseq_well_id} });
 
-        my @alleles_frequency = read_alleles_frequency_file($qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
+        my @alleles_frequency = read_alleles_frequency_file($api, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
 
         my @crisprs = map { $_->seq } $exp_rs->crispr;
         my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
@@ -920,6 +922,15 @@ sub miseq_genotyping_info {
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
+}
+
+sub get_api {
+    my $base = shift;
+    if (-e $base) {
+        return WebAppCommon::Util::FileAccess->construct();
+    } else {
+        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
+    }
 }
 
 sub _handle_singular {

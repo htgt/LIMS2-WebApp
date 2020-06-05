@@ -18,21 +18,13 @@ use LIMS2::Model::Util::Miseq qw/
     read_alleles_frequency_file
     convert_index_to_well_name
     convert_well_name_to_index
+    get_api
 /;
 use LIMS2::Model::Util::ImportCrispressoQC;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
 
 my $API = get_api($ENV{LIMS2_RNA_SEQ});
-
-sub get_api {
-    my $base = shift;
-    if (-e $base) {
-        return WebAppCommon::Util::FileAccess->construct();
-    } else {
-        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
-    }
-}
 
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -51,25 +43,21 @@ sub point_mutation_summary_GET {
     my $well_rs = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate_rs->id, name => $well_name });
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ miseq_exp_id => $miseq_exp->{id}, well_id => $well_rs->id })->as_hash;
-    my $alleles;
-    my @result;
+    my $data;
     if ($threshold and $threshold <= 10) {
-        $alleles = {
-            data => get_frequency_data($c, $miseq_well_exp_hash)
-        };
+        $data = get_frequency_data($c, $miseq_well_exp_hash)
     }
 
-    unless ($alleles) {
-        @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+    unless ($data) {
+        my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
         if (ref($result[0]) eq "HASH") {
             $c->response->status( 404 );
             $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
             return;
         }
-        $alleles = {
-            data => join("\n", @result),
-        };
+        $data = join("\n", @result);
     }
+    my $alleles = { data => $data };
     $alleles->{crispr} = _retrieve_crispr_seq_from_job_output($c, $miseq, $oligo_index, $experiment);
 
     my $json = JSON->new->allow_nonref;

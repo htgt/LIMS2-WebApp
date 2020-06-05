@@ -28,6 +28,7 @@ sub test_module_import : Test(2) {
       get_alleles_freq_path
       get_offset_alleles_freq_path
       get_csv_from_tsv_lines
+      get_api
     );
     use_ok( 'LIMS2::Model::Util::Miseq', @subs );
     can_ok( __PACKAGE__, @subs );
@@ -41,6 +42,7 @@ sub test_convert_well_name_to_index : Test(5) {
     is(convert_well_name_to_index('A01'), 1, 'convert well_name_to_index returns correct index for well A01');
     is(convert_well_name_to_index('P24'), 384, 'convert well_name_to_index returns correct index for well P24');
     is(convert_well_name_to_index('B22'), 170, 'convert well_name_to_index returns correct index for well B22');
+    return;
 }
 
 sub mock_api {
@@ -74,6 +76,7 @@ sub test_read_alleles_frequency_file : Test(3) {
     is_deeply(LIMS2::Model::Util::Miseq::read_alleles_frequency_file($api, 'Miseq', 1, 'Exp'), ({error => 'No data in file'}), 'read_alleles_frequency_data returns hash ref with error if no data in file');
     $api = mock_api(0, (''));
     is_deeply(LIMS2::Model::Util::Miseq::read_alleles_frequency_file($api, 'Miseq', 1, 'Exp'), ({ error => 'No path available'}), 'read_alleles_frequency_file returns hash ref with error if no path found');
+    return;
 }
 
 sub test_get_alleles_freq_path : Test(1) {
@@ -82,6 +85,7 @@ sub test_get_alleles_freq_path : Test(1) {
 'base/miseq/S1_expexp/CRISPResso_on_1_S1_L001_R1_001_1_S1_L001_R2_001/Alleles_frequency_table.txt',
         'get_alleles_freq_path returns correct path'
     );
+    return;
 }
 
 sub test_get_offset_alleles_freq_path : Test(1) {
@@ -90,6 +94,7 @@ sub test_get_offset_alleles_freq_path : Test(1) {
 'base/miseq/S1_expexp/CRISPResso_on_385_S385_L001_R1_001_385_S385_L001_R2_001/Alleles_frequency_table.txt',
         'get_offset_alleles_freq_path returns correct path'
     );
+    return;
 }
 
 sub test_get_csv_from_tsv_lines : Test(3) {
@@ -107,6 +112,7 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     @result    = get_csv_from_tsv_lines(@tsv_lines);
     is_deeply( \@result, \@csv_lines,
         'get_csv_from_tsv_lines returns expected list of csv lines' );
+    return;
 }
 
 1;
