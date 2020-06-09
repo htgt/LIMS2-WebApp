@@ -155,7 +155,7 @@ body {
 </div>
 
 <div>
-    <button id="downloadButton" class="btn btn-success" onclick="getSummary();">Download Experiment CSV</button>
+    <button id="downloadButton" class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
 </div>
 
 [% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
@@ -727,7 +727,7 @@ return response;
 
 }
 
-function getSummary() {
+function getExpSummary() {
     $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
     $("#response_alert").html("Downloading...");
     var exp = document.getElementById('expSelect').value;

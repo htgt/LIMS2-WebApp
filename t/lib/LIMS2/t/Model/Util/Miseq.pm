@@ -37,18 +37,23 @@ sub test_module_import : Test(2) {
 }
 
 sub test_convert_well_name_to_index : Test(5) {
-    is(convert_well_name_to_index(1), 0, 'convert well_name_to_index returns 0 if number input');
-    is(convert_well_name_to_index('Z01'), 0, 'convert well_name_to_index returns 0 if well name does not exist');
-    is(convert_well_name_to_index('A01'), 1, 'convert well_name_to_index returns correct index for well A01');
-    is(convert_well_name_to_index('P24'), 384, 'convert well_name_to_index returns correct index for well P24');
-    is(convert_well_name_to_index('B22'), 170, 'convert well_name_to_index returns correct index for well B22');
+    is( convert_well_name_to_index(1),
+        0, 'convert well_name_to_index returns 0 if number input' );
+    is( convert_well_name_to_index('Z01'),
+        0, 'convert well_name_to_index returns 0 if well name does not exist' );
+    is( convert_well_name_to_index('A01'),
+        1, 'convert well_name_to_index returns correct index for well A01' );
+    is( convert_well_name_to_index('P24'),
+        384, 'convert well_name_to_index returns correct index for well P24' );
+    is( convert_well_name_to_index('B22'),
+        170, 'convert well_name_to_index returns correct index for well B22' );
     return;
 }
 
 sub mock_api {
-    my ($file_exists, @contents) = @_;
+    my ( $file_exists, @contents ) = @_;
     my $module = 'WebAppCommon::Util::FileAccess';
-    my $api = Test::MockObject->new(\$module);
+    my $api    = Test::MockObject->new( \$module );
     $api->mock(
         'check_file_existence',
         sub {
@@ -67,15 +72,30 @@ sub mock_api {
 }
 
 sub test_read_alleles_frequency_file : Test(3) {
-    my @file_contents = ("first\tline\n", "second\tline");
-    my $api = mock_api(1, @file_contents);
-    my @expected_results = ('first,line', 'second,line');
-    my @results = LIMS2::Model::Util::Miseq::read_alleles_frequency_file($api, 'Miseq', 1, 'Exp');
-    is_deeply(\@results, \@expected_results, 'read_alleles_frequency_file returns expected data');
-    $api = mock_api(1, (''));
-    is_deeply(LIMS2::Model::Util::Miseq::read_alleles_frequency_file($api, 'Miseq', 1, 'Exp'), ({error => 'No data in file'}), 'read_alleles_frequency_data returns hash ref with error if no data in file');
-    $api = mock_api(0, (''));
-    is_deeply(LIMS2::Model::Util::Miseq::read_alleles_frequency_file($api, 'Miseq', 1, 'Exp'), ({ error => 'No path available'}), 'read_alleles_frequency_file returns hash ref with error if no path found');
+    my @file_contents    = ( "first\tline\n", "second\tline" );
+    my $api              = mock_api( 1, @file_contents );
+    my @expected_results = ( 'first,line', 'second,line' );
+    my @results =
+      LIMS2::Model::Util::Miseq::read_alleles_frequency_file( $api, 'Miseq', 1,
+        'Exp' );
+    is_deeply( \@results, \@expected_results,
+        'read_alleles_frequency_file returns expected data' );
+    $api = mock_api( 1, ('') );
+    is_deeply(
+        LIMS2::Model::Util::Miseq::read_alleles_frequency_file(
+            $api, 'Miseq', 1, 'Exp'
+        ),
+        ( { error => 'No data in file' } ),
+'read_alleles_frequency_data returns hash ref with error if no data in file'
+    );
+    $api = mock_api( 0, ('') );
+    is_deeply(
+        LIMS2::Model::Util::Miseq::read_alleles_frequency_file(
+            $api, 'Miseq', 1, 'Exp'
+        ),
+        ( { error => 'No path available' } ),
+'read_alleles_frequency_file returns hash ref with error if no path found'
+    );
     return;
 }
 

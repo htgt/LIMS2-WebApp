@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 BEGIN {
     use Log::Log4perl qw( :easy );
-    Log::Log4perl->easy_init( $FATAL );
+    Log::Log4perl->easy_init($FATAL);
 }
 
 use FindBin qw($Bin);
@@ -15,7 +15,6 @@ use Test::Class;
 use LIMS2::t::WebApp::Controller::API::PointMutation;
 
 Test::Class->runtests;
-
 
 1;
 
