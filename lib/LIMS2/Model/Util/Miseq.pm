@@ -40,6 +40,7 @@ use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
 use Try::Tiny;
+use Carp;
 use WebAppCommon::Util::FileAccess;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
@@ -698,7 +699,7 @@ sub generate_summary_data_old {
 }
 
 sub read_alleles_frequency_file {
-    my ($api, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
+    my ($api, $miseq, $index, $exp, $threshold, $threshold_as_percentage) = @_;
 
     $threshold = $threshold ? $threshold : 0;
 
@@ -707,15 +708,15 @@ sub read_alleles_frequency_file {
     if (! $api->check_file_existence($path)) {
         $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
         if (! $api->check_file_existence($path)) {
-            return ({ error => 'No path available' });
+            croak 'No path available';
         }
     }
     my @content = $api->get_file_content($path);
     if (scalar @content < 2) {
-        return ({ error => 'No data in file' });
+        croak 'No data in file';
     }
     my @lines = get_csv_from_tsv_lines(@content);
-    if ($percentage_bool) {
+    if ($threshold_as_percentage) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
         my $line_limit = min($threshold, (scalar(@lines) - 1));
@@ -748,7 +749,7 @@ sub get_csv_from_tsv_lines {
 
 #The method beloow works, but does not have refference sequences. Therefore, for the time it is not used.
 sub read_alleles_frequency_file_db {
-    my ($c, $miseq_well_experiment_hash, $threshold, $percentage_bool) = @_;
+    my ($c, $miseq_well_experiment_hash, $threshold, $threshold_as_percentage) = @_;
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search(
          { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} }
     );
@@ -775,7 +776,7 @@ sub read_alleles_frequency_file_db {
     }
 
     my $res;
-    if ($percentage_bool) {
+    if ($threshold_as_percentage) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
         @lines = @lines[0..$threshold];

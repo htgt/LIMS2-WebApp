@@ -49,13 +49,14 @@ sub point_mutation_summary_GET {
     }
 
     unless ($data) {
-        my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
-        if (ref($result[0]) eq "HASH") {
+        try {
+            my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+            $data = join("\n", @result);
+        } catch {
             $c->response->status( 404 );
             $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
             return;
-        }
-        $data = join("\n", @result);
+        };
     }
     my $alleles = { data => $data };
     $alleles->{crispr} = _retrieve_crispr_seq_from_job_output($c, $miseq, $oligo_index, $experiment);
@@ -81,14 +82,13 @@ sub experiment_summary_GET {
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-    my @results = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
-    # checks headers are defined, if not there's no data
-    if (! defined $results[0]) {
-        $c->response->status( 404 );
+    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
+    if (! @results) {
+        $c->response->status( 500 );
         $c->response->body( "No alleles frequency data found for $experiment" );
         return;
     }
-    my $data = { data => join("\n", @results) };
+    my $data = { data => join("\n", ($headers, @results)) };
     my $json = JSON->new->allow_nonref;
     my $body = $json->encode($data);
     $c->response->status( 200 );
@@ -106,12 +106,15 @@ sub get_experiment_data {
         my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
         my $well_name = $miseq_well_exp_hash->{well_name};
         my $index = convert_well_name_to_index($well_name);
-        my @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
-        # if error, try retrieving from database
-        if (ref($data[0]) eq "HASH") {
+        my @data;
+        try {
+            @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
+        } catch {
+            # if error, try retrieving from database
             @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
             next if not (@data);
-        }
+        };
+        # add well name column to separate data from different wells
         my @data_with_well_name = add_well_name_col($well_name, @data);
         $headers = shift @data_with_well_name;
         push @experiment_data, @data_with_well_name;
@@ -120,8 +123,8 @@ sub get_experiment_data {
 }
 
 sub add_well_name_col {
-    my ($well_name, @alleles_freq_data) = @_;
-    my $headers = 'Well_Name,' . shift @alleles_freq_data;
+    my ($well_name, $headers, @alleles_freq_data) = @_;
+    $headers = 'Well_Name,' . $headers;
     my @modified_data;
     foreach my $row (@alleles_freq_data) {
         push @modified_data, "$well_name,$row";

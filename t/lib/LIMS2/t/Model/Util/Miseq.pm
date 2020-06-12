@@ -2,6 +2,7 @@ package LIMS2::t::Model::Util::Miseq;
 use base qw/Test::Class/;
 use Test::More;
 use Test::MockObject;
+use Test::Exception;
 use strict;
 use warnings FATAL => 'all';
 use LIMS2::Model::Util::Miseq qw(:all);
@@ -81,21 +82,19 @@ sub test_read_alleles_frequency_file : Test(3) {
     is_deeply( \@results, \@expected_results,
         'read_alleles_frequency_file returns expected data' );
     $api = mock_api( 1, ('') );
-    is_deeply(
-        LIMS2::Model::Util::Miseq::read_alleles_frequency_file(
-            $api, 'Miseq', 1, 'Exp'
-        ),
-        ( { error => 'No data in file' } ),
-'read_alleles_frequency_data returns hash ref with error if no data in file'
-    );
+    throws_ok {
+        LIMS2::Model::Util::Miseq::read_alleles_frequency_file( $api, 'Miseq',
+            1, 'Exp' )
+    }
+    qr/No data in file/,
+      'read_alleles_frequency_data dies with correct error if no data in file';
     $api = mock_api( 0, ('') );
-    is_deeply(
-        LIMS2::Model::Util::Miseq::read_alleles_frequency_file(
-            $api, 'Miseq', 1, 'Exp'
-        ),
-        ( { error => 'No path available' } ),
-'read_alleles_frequency_file returns hash ref with error if no path found'
-    );
+    throws_ok {
+        LIMS2::Model::Util::Miseq::read_alleles_frequency_file( $api, 'Miseq',
+            1, 'Exp' )
+    }
+    qr/No path available/,
+'read_alleles_frequency_file dies with with correct error if no path found';
     return;
 }
 
