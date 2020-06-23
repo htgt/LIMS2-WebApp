@@ -17,10 +17,14 @@ use LIMS2::Model::Util::Miseq qw/
     read_file_lines
     read_alleles_frequency_file
     convert_index_to_well_name
+    convert_well_name_to_index
+    get_api
 /;
 use LIMS2::Model::Util::ImportCrispressoQC;
 
 BEGIN {extends 'LIMS2::Catalyst::Controller::REST'; }
+
+my $API = get_api($ENV{LIMS2_RNA_SEQ});
 
 sub point_mutation_summary : Path( '/api/point_mutation_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
@@ -39,25 +43,22 @@ sub point_mutation_summary_GET {
     my $well_rs = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate_rs->id, name => $well_name });
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ miseq_exp_id => $miseq_exp->{id}, well_id => $well_rs->id })->as_hash;
-    my $alleles;
-    my @result;
+    my $data;
     if ($threshold and $threshold <= 10) {
-        $alleles = {
-            data => get_frequency_data($c, $miseq_well_exp_hash)
-        };
+        $data = get_frequency_data($c, $miseq_well_exp_hash)
     }
 
-    unless ($alleles) {
-        @result = read_alleles_frequency_file($c, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
-        if (ref($result[0]) eq "HASH") {
+    unless ($data) {
+        try {
+            my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+            $data = join("\n", @result);
+        } catch {
             $c->response->status( 404 );
             $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
             return;
-        }
-        $alleles = {
-            data => join("\n", @result),
         };
     }
+    my $alleles = { data => $data };
     $alleles->{crispr} = _retrieve_crispr_seq_from_job_output($c, $miseq, $oligo_index, $experiment);
 
     my $json = JSON->new->allow_nonref;
@@ -67,6 +68,68 @@ sub point_mutation_summary_GET {
     $c->response->body( $body );
 
     return;
+}
+
+sub experiment_summary : Path( '/api/experiment_summary' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub experiment_summary_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $experiment = $c->request->param( 'exp' );
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
+    my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
+    if (! @results) {
+        $c->response->status( 500 );
+        $c->response->body( "No alleles frequency data found for $experiment" );
+        return;
+    }
+    my $data = { data => join("\n", ($headers, @results)) };
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($data);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub get_experiment_data {
+    my ($c, $miseq, $experiment, @miseq_well_exps) = @_;
+    my $headers;
+    my @experiment_data;
+    foreach my $miseq_well_exp (@miseq_well_exps) {
+        my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
+        my $well_name = $miseq_well_exp_hash->{well_name};
+        my $index = convert_well_name_to_index($well_name);
+        my @data;
+        try {
+            @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
+        } catch {
+            # if error, try retrieving from database
+            @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
+            next if not (@data);
+        };
+        # add well name column to separate data from different wells
+        my @data_with_well_name = add_well_name_col($well_name, @data);
+        $headers = shift @data_with_well_name;
+        push @experiment_data, @data_with_well_name;
+    }
+    return ($headers, @experiment_data);
+}
+
+sub add_well_name_col {
+    my ($well_name, $headers, @alleles_freq_data) = @_;
+    $headers = 'Well_Name,' . $headers;
+    my @modified_data;
+    foreach my $row (@alleles_freq_data) {
+        push @modified_data, "$well_name,$row";
+    }
+    return ($headers, @modified_data);
 }
 
 sub _retrieve_crispr_seq_from_job_output {

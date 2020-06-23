@@ -261,7 +261,7 @@ sub as_hash{
         miseq_exp_id        => $self->miseq_exp_id,
         classification      => $self->classification->as_string,
         frameshifted        => $self->frameshifted,
-        well_name           => $self->well->name,
+        well_name           => $self->well->well_name,
         status              => $self->status->id,
         total_reads         => $self->total_reads,
         nhej_reads          => $self->nhej_reads,

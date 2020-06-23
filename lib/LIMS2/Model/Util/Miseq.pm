@@ -9,6 +9,7 @@ use Sub::Exporter -setup => {
               wells_generator
               well_builder
               convert_index_to_well_name
+              convert_well_name_to_index
               generate_summary_data
               find_folder
               find_file
@@ -21,10 +22,10 @@ use Sub::Exporter -setup => {
               read_alleles_frequency_file
               qc_relations
               query_miseq_tree_from_experiment
-              get_api
               get_alleles_freq_path
               get_offset_alleles_freq_path
               get_csv_from_tsv_lines
+              get_api
           )
     ]
 };
@@ -34,11 +35,12 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
-use List::Util qw( sum );
+use List::Util qw( sum first min );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
 use Try::Tiny;
+use Carp;
 use WebAppCommon::Util::FileAccess;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
@@ -422,6 +424,18 @@ sub convert_index_to_well_name {
     return $name;
 }
 
+sub convert_well_name_to_index {
+    my $well_name = shift;
+
+    my @wells = wells_generator();
+    my $index = first { $wells[$_] eq $well_name } 0..$#wells;
+
+    if (! defined $index) {
+        return 0;
+    }
+
+    return $index + 1;
+}
 
 sub wells_generator {
     my $name_to_index = shift;
@@ -685,37 +699,31 @@ sub generate_summary_data_old {
 }
 
 sub read_alleles_frequency_file {
-    my ($c, $miseq, $index, $exp, $threshold, $percentage_bool) = @_;
+    my ($api, $miseq, $index, $exp, $threshold, $threshold_as_percentage) = @_;
 
     $threshold = $threshold ? $threshold : 0;
 
     my $base = $ENV{LIMS2_RNA_SEQ};
-    my $api = get_api($base);
     my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
     if (! $api->check_file_existence($path)) {
         $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
         if (! $api->check_file_existence($path)) {
-            return ({ error => 'No path available' });
+            croak 'No path available';
         }
     }
     my @content = $api->get_file_content($path);
+    if (scalar @content < 2) {
+        croak 'No data in file';
+    }
     my @lines = get_csv_from_tsv_lines(@content);
-    if ($percentage_bool) {
+    if ($threshold_as_percentage) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
-        @lines = @lines[0..$threshold];
+        my $line_limit = min($threshold, (scalar(@lines) - 1));
+        @lines = @lines[0..$line_limit];
     }
 
     return @lines;
-}
-
-sub get_api {
-    my $base = shift;
-    if (-e $base) {
-        return WebAppCommon::Util::FileAccess->construct();
-    } else {
-        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
-    }
 }
 
 sub get_alleles_freq_path {
@@ -741,7 +749,7 @@ sub get_csv_from_tsv_lines {
 
 #The method beloow works, but does not have refference sequences. Therefore, for the time it is not used.
 sub read_alleles_frequency_file_db {
-    my ($c, $miseq_well_experiment_hash, $threshold, $percentage_bool) = @_;
+    my ($c, $miseq_well_experiment_hash, $threshold, $threshold_as_percentage) = @_;
     my $frequency_rs = $c->model('Golgi')->schema->resultset('MiseqAllelesFrequency')->search(
          { miseq_well_experiment_id => $miseq_well_experiment_hash->{id} }
     );
@@ -768,7 +776,7 @@ sub read_alleles_frequency_file_db {
     }
 
     my $res;
-    if ($percentage_bool) {
+    if ($threshold_as_percentage) {
         @lines = _find_read_quantification_gt_threshold($threshold, @lines);
     } elsif ($threshold != 0) {
         @lines = @lines[0..$threshold];
@@ -849,6 +857,7 @@ sub miseq_genotyping_info {
     };
 
     my $index_converter = wells_generator(1);
+    my $api = get_api($ENV{LIMS2_RNA_SEQ});
     my @overview_symbols;
     my @overview_gene_ids;
     my @overview_design_ids;
@@ -874,7 +883,7 @@ sub miseq_genotyping_info {
         $miseq_quant = _calc_read_percentages($miseq_quant);
         my $qc_origin_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{miseq_well_id} });
 
-        my @alleles_frequency = read_alleles_frequency_file($c, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
+        my @alleles_frequency = read_alleles_frequency_file($api, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
 
         my @crisprs = map { $_->seq } $exp_rs->crispr;
         my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
@@ -914,6 +923,15 @@ sub miseq_genotyping_info {
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
+}
+
+sub get_api {
+    my $base = shift;
+    if (-e $base) {
+        return WebAppCommon::Util::FileAccess->construct();
+    } else {
+        return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
+    }
 }
 
 sub _handle_singular {

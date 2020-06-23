@@ -60,6 +60,8 @@ body {
 [% SET y1 = [ "A", "B", "C", "D", "E", "F", "G", "H" ] %]
 [% SET y2 = [ "I", "J", "K", "L", "M", "N", "O", "P" ] %]
 
+<div id="response_alert" class="col-md-12"></div>
+
 <div class="page-header">
   <h1>Point Mutation [% IF miseq %]- [% miseq %] [% END %]</h1>
 </div>
@@ -152,6 +154,10 @@ body {
     [% END %]
 </div>
 
+<div>
+    <button id="downloadButton" class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
+</div>
+
 [% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
 
 <script type="text/javascript" charset="utf-8">
@@ -241,6 +247,7 @@ $(document).ready(function() {
     highlight_init();
     crisprStartUp();
     clearButtonVisibility();
+    downloadButtonVisibility();
 });
 
 $('#geneSelect').change(function() {
@@ -265,6 +272,7 @@ $('#geneSelect').change(function() {
         $(".crisprSelect").hide().prop('disabled', true);
     }
     clearButtonVisibility();
+    downloadButtonVisibility();
     highlight_init();
 });
 
@@ -302,6 +310,7 @@ $('#crisprSelect').on('click', function() {
 
 $('#expSelect').on('click', function() {
     clearButtonVisibility();
+    downloadButtonVisibility();
     highlight_init();
 });
 
@@ -376,6 +385,14 @@ function clearButtonVisibility() {
     }
 }
 
+function downloadButtonVisibility() {
+    if ($('#expSelect').val() == 'All'){
+        $('#downloadButton').hide().prop('disabled', true);
+    } else {
+        $('#downloadButton').show().prop('disabled', false);
+    }
+}
+
 function expSelect(){
     $("#expSelect").children('option').hide().prop('disabled', true);
     $("#expSelect").children('option[value^=All]').show().prop('disabled', false);
@@ -400,6 +417,7 @@ function clearSelection() {
     $('select').each(function() { this.selectedIndex = 0 });
     $(".crisprSelect").hide().prop('disabled', true);
     $('#clearButton').hide().prop('disabled', true);
+    $('#downloadButton').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -707,6 +725,41 @@ function tooltip(node) {
     }
 return response;
 
+}
+
+function getExpSummary() {
+    $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
+    $("#response_alert").html("Downloading...");
+    var exp = document.getElementById('expSelect').value;
+    $.ajax({
+        url: '[% c.uri_for('/api/experiment_summary/') %]',
+        type: "GET",
+        contentType: 'text/plain',
+        data: {
+            miseq: '[% miseq %]',
+            exp: exp,
+        },
+        success: function(result){
+            console.log(result);
+            downloadCSV(exp, result);
+            $("#response_alert").removeClass("alert-info").addClass("alert-success");
+            $("#response_alert").html("Downloaded!");
+        },
+        error: function() {
+            console.log("Failed to retrieve data");
+            $("#response_alert").removeClass("alert-info").addClass("alert-danger");
+            $("#response_alert").html("Error while downloading!");
+        }
+    });
+}
+
+function downloadCSV(exp, result) {
+    result = JSON.parse(result);
+    var hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
+    hiddenElement.download = exp + '.csv';
+    document.body.appendChild(hiddenElement);
+    hiddenElement.click();
 }
 
 </script>
