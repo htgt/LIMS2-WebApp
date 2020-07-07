@@ -4,7 +4,7 @@
 
 #
 # Base image: LIMS2 low-level docker image
-FROM sci/lims2:xenial
+FROM sci/lims2:bionic
 
 #
 # System updates
@@ -28,7 +28,7 @@ COPY lims2-webapp-filesystem/farm/wge-live-rest-client.conf /nfs/sci/farm/conf/
 
 #
 # Enable apache rewrite
-RUN a2dismod mpm_event && a2enmod mpm_prefork && a2enmod rewrite && a2ensite lims2
+RUN a2enmod proxy_fcgi &&  a2dismod mpm_event && a2enmod mpm_prefork && a2enmod rewrite && a2ensite lims2
 
 ARG ensembl_args=""
 
@@ -77,7 +77,7 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
 
 #
 # Change dependency path permissions
-RUN chmod -R 755 /usr/local/share/perl/5.22.1/ && \
+RUN chmod -R 755 /usr/local/share/perl/5.26.1/ && \
   chmod -R 755 /opt/sci/global/software/lims2/lib/ && \
   chmod -R 777 /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/
 
