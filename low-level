@@ -4,11 +4,15 @@
 
 #
 # Base image (can also specify 16.04 instead)
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 
 #
 # System updates
 RUN apt-get update && apt-get upgrade -y
+
+#
+#
+ENV DEBIAN_FRONTEND=noninteractive
 
 #
 # Install system packages
@@ -72,7 +76,7 @@ bioperl \
 postgresql \
 postgresql-contrib \
 apache2 \
-libapache2-mod-fastcgi \
+libapache2-mod-fcgid \
 libjson-perl \
 firefox \
 xterm \
@@ -82,6 +86,9 @@ pkg-config \
 libgd-dev \
 libpq-dev
 
+#
+#
+RUN cd /tmp && wget http://mirrors.kernel.org/ubuntu/pool/multiverse/liba/libapache-mod-fastcgi/libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb && dpkg -i libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb && apt install -f
 
 #
 # Install Perl modules
