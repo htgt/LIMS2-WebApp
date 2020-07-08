@@ -37,6 +37,25 @@ sub test_module_import : Test(2) {
     return;
 }
 
+sub test_convert_index_to_well_name : Test(5) {
+    is( convert_index_to_well_name(0),
+        '',
+        'convert_index_to_well_name returns empty string if index too low' );
+    is( convert_index_to_well_name(500),
+        '',
+        'convert_index_to_well_name returns empty string if index too high' );
+    is( convert_index_to_well_name(1),
+        'A01',
+        'convert_index_to_well_name returns correct well name or index 1' );
+    is( convert_index_to_well_name(384),
+        'P24',
+        'convert_index_to_well_name returns correct well name for index 384' );
+    is( convert_index_to_well_name(170),
+        'B22',
+        'convert_index_to_well_name returns correct well name for index 170' );
+    return;
+}
+
 sub test_convert_well_name_to_index : Test(5) {
     is( convert_well_name_to_index(1),
         0, 'convert well_name_to_index returns 0 if number input' );
