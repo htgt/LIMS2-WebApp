@@ -154,8 +154,10 @@ body {
     [% END %]
 </div>
 
-<div>
-    <button id="downloadButton" class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
+<div id="expCSVDownload">
+    <button class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
+    <input type="checkbox" id="offsetCheckbox">
+    <label for="offsetCheckbox">Offset well names</input>
 </div>
 
 [% INCLUDE "user/pointmutation/miseq_donut_d3_setup.tt" %]
@@ -387,9 +389,9 @@ function clearButtonVisibility() {
 
 function downloadButtonVisibility() {
     if ($('#expSelect').val() == 'All'){
-        $('#downloadButton').hide().prop('disabled', true);
+        $('#expCSVDownload').hide().prop('disabled', true);
     } else {
-        $('#downloadButton').show().prop('disabled', false);
+        $('#expCSVDownload').show().prop('disabled', false);
     }
 }
 
@@ -417,7 +419,7 @@ function clearSelection() {
     $('select').each(function() { this.selectedIndex = 0 });
     $(".crisprSelect").hide().prop('disabled', true);
     $('#clearButton').hide().prop('disabled', true);
-    $('#downloadButton').hide().prop('disabled', true);
+    $('#expCSVDownload').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -731,6 +733,7 @@ function getExpSummary() {
     $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
     $("#response_alert").html("Downloading...");
     var exp = document.getElementById('expSelect').value;
+    var offset = document.getElementById('offsetCheckbox').checked ? 1 : 0;
     $.ajax({
         url: '[% c.uri_for('/api/experiment_summary/') %]',
         type: "GET",
@@ -738,6 +741,7 @@ function getExpSummary() {
         data: {
             miseq: '[% miseq %]',
             exp: exp,
+            offset: offset
         },
         success: function(result){
             console.log(result);

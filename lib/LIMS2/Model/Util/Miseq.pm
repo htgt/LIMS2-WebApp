@@ -418,6 +418,10 @@ sub miseq_well_relations {
 sub convert_index_to_well_name {
     my $index = shift;
 
+    if ($index < 1 or $index > 384) {
+        return '';
+    }
+
     my @wells = wells_generator();
     my $name = $wells[$index - 1];
 

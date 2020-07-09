@@ -37,7 +37,7 @@ sub point_mutation_summary_GET {
     my $oligo_index = $c->request->param( 'oligo' );
     my $experiment = $c->request->param( 'exp' );
     my $threshold = $c->request->param( 'limit' );
-    my $percentage_bool = $c->request->param( 'perc' );
+    my $threshold_as_percentage = $c->request->param( 'perc' );
     my $well_name = convert_index_to_well_name($oligo_index);
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
     my $well_rs = $c->model('Golgi')->schema->resultset('Well')->find({ plate_id => $plate_rs->id, name => $well_name });
@@ -50,7 +50,7 @@ sub point_mutation_summary_GET {
 
     unless ($data) {
         try {
-            my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $percentage_bool);
+            my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $threshold_as_percentage);
             $data = join("\n", @result);
         } catch {
             $c->response->status( 404 );
@@ -79,10 +79,11 @@ sub experiment_summary_GET {
     $c->assert_user_roles('read');
     my $miseq = $c->request->param('miseq');
     my $experiment = $c->request->param( 'exp' );
+    my $offset_well_names = $c->request->param('offset');
     my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
     my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
     my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, @miseq_well_exps);
+    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps);
     if (! @results) {
         $c->response->status( 500 );
         $c->response->body( "No alleles frequency data found for $experiment" );
@@ -99,7 +100,7 @@ sub experiment_summary_GET {
 }
 
 sub get_experiment_data {
-    my ($c, $miseq, $experiment, @miseq_well_exps) = @_;
+    my ($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps) = @_;
     my $headers;
     my @experiment_data;
     foreach my $miseq_well_exp (@miseq_well_exps) {
@@ -114,6 +115,12 @@ sub get_experiment_data {
             @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
             next if not (@data);
         };
+        if ($offset_well_names) {
+            my $quadrant;
+            ($well_name, $quadrant) = offset_well($index);
+            # add quadrant column to separate wells from different quadrants
+            @data = add_quadrant_col($quadrant, @data);
+        }
         # add well name column to separate data from different wells
         my @data_with_well_name = add_well_name_col($well_name, @data);
         $headers = shift @data_with_well_name;
@@ -122,13 +129,44 @@ sub get_experiment_data {
     return ($headers, @experiment_data);
 }
 
+sub offset_well {
+    my $index = shift;
+    my $quadrant = 0;
+    if ($index >= 1 && $index <= 96) {
+        $quadrant = 1;
+    } elsif ($index >= 97 && $index <= 192) {
+        $index -= 96;
+        $quadrant = 2;
+    } elsif ($index >= 193 && $index <= 288) {
+        $index -= 192;
+        $quadrant = 3;
+    } elsif ($index >= 289 && $index <= 384) {
+        $index -= 288;
+        $quadrant = 4;
+    }
+    return (convert_index_to_well_name($index), $quadrant);
+}
+
+sub add_quadrant_col {
+    my ($quadrant, $headers, @alleles_freq_data) = @_;
+    $headers = 'Quadrant,' . $headers;
+    my @modified_data = add_item_to_data($quadrant, @alleles_freq_data);
+    return ($headers, @modified_data);
+}
+
+sub add_item_to_data {
+    my ($item, @data) = @_;
+    my @modified_data;
+    foreach my $row (@data) {
+        push @modified_data, "$item,$row";
+    }
+    return @modified_data;
+}
+
 sub add_well_name_col {
     my ($well_name, $headers, @alleles_freq_data) = @_;
     $headers = 'Well_Name,' . $headers;
-    my @modified_data;
-    foreach my $row (@alleles_freq_data) {
-        push @modified_data, "$well_name,$row";
-    }
+    my @modified_data = add_item_to_data($well_name, @alleles_freq_data);
     return ($headers, @modified_data);
 }
 
