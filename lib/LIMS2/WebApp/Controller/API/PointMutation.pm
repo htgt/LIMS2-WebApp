@@ -70,6 +70,57 @@ sub point_mutation_summary_GET {
     return;
 }
 
+sub _retrieve_crispr_seq_from_job_output {
+    my ($c, $miseq, $oligo_index, $experiment) = @_;
+
+    my $crispr_details;
+    my $importer = LIMS2::Model::Util::ImportCrispressoQC->new;
+    my $path = $importer->construct_miseq_path($miseq, $oligo_index, $experiment, 'job.out');
+    my $data = $importer->get_remote_file($path);
+    if ($data) {
+        my $crispr_amp = _extract_crispr_from_job_file($c, $data);
+        $crispr_details = _precompute_crispr_loc($c, $crispr_amp->{crispr}, $crispr_amp->{amp});
+    }
+
+    return $crispr_details;
+}
+
+sub _extract_crispr_from_job_file {
+    my ($c, $job) = @_;
+
+    my $job_upper = uc $job;
+    my ($amplicon, $crispr) = $job_upper =~ /.*\-A\ ([ACTG]+).*\-G\ ([ACTG]+).*/g;
+
+    return {
+        amp     => $amplicon,
+        crispr  => $crispr
+    };
+}
+
+sub _precompute_crispr_loc {
+    my ($c, $crispr, $amplicon) = @_;
+
+    my $rev_crispr = revcom($crispr)->seq;
+
+    my $pos = index($amplicon, $crispr);
+    if ($pos == -1) {
+        try {
+            $pos = index($amplicon, $rev_crispr);
+        } catch {
+            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
+        };
+    }
+
+    my $result = {
+        crispr      => $crispr,
+        rev_crispr  => $rev_crispr,
+        position    => $pos,
+    };
+
+    return $result;
+}
+
+
 sub experiment_summary : Path( '/api/experiment_summary' ) : Args(0) : ActionClass( 'REST' ) {
 }
 
@@ -170,56 +221,55 @@ sub add_well_name_col {
     return ($headers, @modified_data);
 }
 
-sub _retrieve_crispr_seq_from_job_output {
-    my ($c, $miseq, $oligo_index, $experiment) = @_;
 
-    my $crispr_details;
-    my $importer = LIMS2::Model::Util::ImportCrispressoQC->new;
-    my $path = $importer->construct_miseq_path($miseq, $oligo_index, $experiment, 'job.out');
-    my $data = $importer->get_remote_file($path);
-    if ($data) {
-        my $crispr_amp = _extract_crispr_from_job_file($c, $data);
-        $crispr_details = _precompute_crispr_loc($c, $crispr_amp->{crispr}, $crispr_amp->{amp});
+sub miseq_summary : Path( '/api/miseq_summary' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub miseq_summary_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $offset_well_names = $c->request->param('offset');
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+    my @miseq_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $plate_rs->miseq_plates->first->id });
+    my ($headers, @miseq_data) = get_miseq_data($c, $miseq, $offset_well_names, @miseq_exps);
+    if (! @miseq_data) {
+        $c->response->status( 500 );
+        $c->response->body( "No alleles frequency data found for $miseq" );
+        return;
     }
+    my $data = { data => join("\n", ($headers, @miseq_data)) };
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($data);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
 
-    return $crispr_details;
+    return;
 }
 
-sub _extract_crispr_from_job_file {
-    my ($c, $job) = @_;
-
-    my $job_upper = uc $job;
-    my ($amplicon, $crispr) = $job_upper =~ /.*\-A\ ([ACTG]+).*\-G\ ([ACTG]+).*/g;
-
-    return {
-        amp     => $amplicon,
-        crispr  => $crispr
-    };
-}
-
-sub _precompute_crispr_loc {
-    my ($c, $crispr, $amplicon) = @_;
-
-    my $rev_crispr = revcom($crispr)->seq;
-
-    my $pos = index($amplicon, $crispr);
-    if ($pos == -1) {
-        try {
-            $pos = index($amplicon, $rev_crispr);
-        } catch {
-            $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-        };
+sub get_miseq_data {
+    my ($c, $miseq, $offset_well_names, @miseq_exps) = @_;
+    my $headers;
+    my @miseq_data;
+    foreach my $miseq_exp (@miseq_exps) {
+        my $exp_name = $miseq_exp->{name};
+        my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        my @exp_data = get_experiment_data($c, $miseq, $exp_name, $offset_well_names, @miseq_well_exps);
+        # add experiment column to separate different experiments
+        ($headers, @exp_data) = add_experiment_col($exp_name, @exp_data);
+        push @miseq_data, @exp_data;
     }
-
-    my $result = {
-        crispr      => $crispr,
-        rev_crispr  => $rev_crispr,
-        position    => $pos,
-    };
-
-    return $result;
+    return ($headers, @miseq_data);
 }
 
+sub add_experiment_col {
+    my ($experiment, $headers, @exp_data) = @_;
+    $headers = 'Experiment,' . $headers;
+    my @modified_data = add_item_to_data($experiment, @exp_data);
+    return ($headers, @modified_data);
+}
 
 
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {

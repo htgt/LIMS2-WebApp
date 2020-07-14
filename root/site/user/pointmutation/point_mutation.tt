@@ -154,8 +154,8 @@ body {
     [% END %]
 </div>
 
-<div id="expCSVDownload">
-    <button class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
+<div id="CSVDownload">
+    <button class="btn btn-success" onclick="downloadSummary();">Download CSV</button>
     <input type="checkbox" id="offsetCheckbox">
     <label for="offsetCheckbox">Offset well names</input>
 </div>
@@ -310,7 +310,7 @@ $('#crisprSelect').on('click', function() {
     }
 });
 
-$('#expSelect').on('click', function() {
+$('#expSelect').change(function() {
     clearButtonVisibility();
     downloadButtonVisibility();
     highlight_init();
@@ -388,10 +388,10 @@ function clearButtonVisibility() {
 }
 
 function downloadButtonVisibility() {
-    if ($('#expSelect').val() == 'All'){
-        $('#expCSVDownload').hide().prop('disabled', true);
+    if ($('#geneSelect').val() != 'All' && $('#expSelect').val() == 'All'){
+        $('#CSVDownload').hide().prop('disabled', true);
     } else {
-        $('#expCSVDownload').show().prop('disabled', false);
+        $('#CSVDownload').show().prop('disabled', false);
     }
 }
 
@@ -419,7 +419,7 @@ function clearSelection() {
     $('select').each(function() { this.selectedIndex = 0 });
     $(".crisprSelect").hide().prop('disabled', true);
     $('#clearButton').hide().prop('disabled', true);
-    $('#expCSVDownload').hide().prop('disabled', true);
+    $('#CSVDownload').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -729,13 +729,18 @@ return response;
 
 }
 
-function getExpSummary() {
+function downloadSummary() {
     $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
     $("#response_alert").html("Downloading...");
     var exp = document.getElementById('expSelect').value;
+    var url = '[% c.uri_for('/api/experiment_summary/') %]';
+    if (exp == 'All') {
+        url = '[% c.uri_for('/api/miseq_summary/') %]';
+        exp = '[% miseq %]';
+    }
     var offset = document.getElementById('offsetCheckbox').checked ? 1 : 0;
     $.ajax({
-        url: '[% c.uri_for('/api/experiment_summary/') %]',
+        url: url,
         type: "GET",
         contentType: 'text/plain',
         data: {
@@ -744,7 +749,6 @@ function getExpSummary() {
             offset: offset
         },
         success: function(result){
-            console.log(result);
             downloadCSV(exp, result);
             $("#response_alert").removeClass("alert-info").addClass("alert-success");
             $("#response_alert").html("Downloaded!");
