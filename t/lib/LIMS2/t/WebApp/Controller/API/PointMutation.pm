@@ -5,6 +5,28 @@ use strict;
 use warnings FATAL => 'all';
 use LIMS2::WebApp::Controller::API::PointMutation;
 
+sub test_modify_data : Test(3) {
+    my @result =
+      LIMS2::WebApp::Controller::API::PointMutation::modify_data( 0, 300,
+        'L14', ( 'header', 'row1', 'row2' ) );
+    my @expected = ( 'Well_Name,header', 'L14,row1', 'L14,row2' );
+    is_deeply( \@result, \@expected,
+        'modify_data returns correctly modified data with no well offset' );
+    @result =
+      LIMS2::WebApp::Controller::API::PointMutation::modify_data( 1, 300,
+        'L14', ( 'header', 'row1', 'row2' ) );
+    @expected = ( 'Well_Name,Quadrant,header', 'D02,4,row1', 'D02,4,row2' );
+    is_deeply( \@result, \@expected,
+        'modify_data returns correctly modified data with well offset' );
+    @result =
+      LIMS2::WebApp::Controller::API::PointMutation::modify_data( 1, 0, '',
+        ( 'header', 'data' ) );
+    @expected = ( 'Well_Name,Quadrant,header', ',0,data' );
+    is_deeply( \@result, \@expected,
+'modify_data returns expected data with missing well name and out of range index'
+    );
+}
+
 sub test_offset_well : Test(6) {
     my @result = LIMS2::WebApp::Controller::API::PointMutation::offset_well(1);
     my @expected = ( 'A01', 1 );
@@ -33,14 +55,28 @@ sub test_offset_well : Test(6) {
     return;
 }
 
-sub test_add_quadrant_col : Test(1) {
+sub test_add_column : Test(3) {
     my @result =
-      LIMS2::WebApp::Controller::API::PointMutation::add_quadrant_col( 1,
+      LIMS2::WebApp::Controller::API::PointMutation::add_column( 'Quadrant', 1,
         ( 'header1,header2', 'data1,data2', 'data3,data4' ) );
     my @expected =
       ( 'Quadrant,header1,header2', ( '1,data1,data2', '1,data3,data4' ) );
     is_deeply( \@result, \@expected,
-        'add_quadrant_col returns data with quadrant' );
+        'add_column returns expected data with quadrant column' );
+    @result =
+      LIMS2::WebApp::Controller::API::PointMutation::add_column( 'Experiment',
+        'exp', ( 'header1,header2', 'data1,data2', 'data3,data4' ) );
+    @expected =
+      ( 'Experiment,header1,header2',
+        ( 'exp,data1,data2', 'exp,data3,data4' ) );
+    is_deeply( \@result, \@expected,
+        'add_column returns expected data with experiment column' );
+    @result =
+      LIMS2::WebApp::Controller::API::PointMutation::add_column( 'Well_Name',
+        '', ( 'header', 'data' ) );
+    @expected = ( 'Well_Name,header', (',data') );
+    is_deeply( \@result, \@expected,
+        'add_column returns expected data with missing well name' );
     return;
 }
 
@@ -55,23 +91,6 @@ sub test_add_item_to_data : Test(2) {
         ( 'data1,data2', 'data3,data4' ) );
     @expected = ( 'A01,data1,data2', 'A01,data3,data4' );
     is_deeply( \@result, \@expected, 'add_item_to_data adds string to data' );
-    return;
-}
-
-sub test_add_well_name_col : Test(2) {
-    my @result =
-      LIMS2::WebApp::Controller::API::PointMutation::add_well_name_col( 'A01',
-        ( 'header1,header2', 'data1,data2', 'data3,data4' ) );
-    my @expected =
-      ( 'Well_Name,header1,header2', ( 'A01,data1,data2', 'A01,data3,data4' ) );
-    is_deeply( \@result, \@expected,
-        'add_well_name_col returns data with well name' );
-    @result =
-      LIMS2::WebApp::Controller::API::PointMutation::add_well_name_col( '',
-        ( 'header', 'data' ) );
-    @expected = ( 'Well_Name,header', (',data') );
-    is_deeply( \@result, \@expected,
-        'add_well_name_col returns expected data with missing well name' );
     return;
 }
 

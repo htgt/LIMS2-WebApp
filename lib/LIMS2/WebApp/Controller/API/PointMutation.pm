@@ -158,26 +158,33 @@ sub get_experiment_data {
         my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
         my $well_name = $miseq_well_exp_hash->{well_name};
         my $index = convert_well_name_to_index($well_name);
-        my @data;
-        try {
-            @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
-        } catch {
-            # if error, try retrieving from database
-            @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
-            next if not (@data);
-        };
-        if ($offset_well_names) {
-            my $quadrant;
-            ($well_name, $quadrant) = offset_well($index);
-            # add quadrant column to separate wells from different quadrants
-            @data = add_quadrant_col($quadrant, @data);
+        my @alleles_freq_data;
+        @alleles_freq_data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
+        if (! @alleles_freq_data) {
+            try {
+                @alleles_freq_data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
+            } catch {
+                next;
+            };
         }
-        # add well name column to separate data from different wells
-        my @data_with_well_name = add_well_name_col($well_name, @data);
-        $headers = shift @data_with_well_name;
-        push @experiment_data, @data_with_well_name;
+        my @well_data = modify_data($offset_well_names, $index, $well_name, @alleles_freq_data);
+        $headers = shift @well_data;
+        push @experiment_data, @well_data;
     }
     return ($headers, @experiment_data);
+}
+
+sub modify_data {
+    my ($offset_well_names, $index, $well_name, @data) = @_;
+    if ($offset_well_names) {
+        my $quadrant;
+        ($well_name, $quadrant) = offset_well($index);
+        # add quadrant column to separate wells from different quadrants
+        @data = add_column('Quadrant', $quadrant, @data);
+    }
+    # add well name column to separate data from different wells
+    my @data_with_well_name = add_column('Well_Name', $well_name, @data);
+    return @data_with_well_name;
 }
 
 sub offset_well {
@@ -198,10 +205,10 @@ sub offset_well {
     return (convert_index_to_well_name($index), $quadrant);
 }
 
-sub add_quadrant_col {
-    my ($quadrant, $headers, @alleles_freq_data) = @_;
-    $headers = 'Quadrant,' . $headers;
-    my @modified_data = add_item_to_data($quadrant, @alleles_freq_data);
+sub add_column {
+    my ($new_header, $item, $headers, @data) = @_;
+    $headers = "$new_header,$headers";
+    my @modified_data = add_item_to_data($item, @data);
     return ($headers, @modified_data);
 }
 
@@ -212,13 +219,6 @@ sub add_item_to_data {
         push @modified_data, "$item,$row";
     }
     return @modified_data;
-}
-
-sub add_well_name_col {
-    my ($well_name, $headers, @alleles_freq_data) = @_;
-    $headers = 'Well_Name,' . $headers;
-    my @modified_data = add_item_to_data($well_name, @alleles_freq_data);
-    return ($headers, @modified_data);
 }
 
 
@@ -258,17 +258,10 @@ sub get_miseq_data {
         my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @exp_data = get_experiment_data($c, $miseq, $exp_name, $offset_well_names, @miseq_well_exps);
         # add experiment column to separate different experiments
-        ($headers, @exp_data) = add_experiment_col($exp_name, @exp_data);
+        ($headers, @exp_data) = add_column('Experiment', $exp_name, @exp_data);
         push @miseq_data, @exp_data;
     }
     return ($headers, @miseq_data);
-}
-
-sub add_experiment_col {
-    my ($experiment, $headers, @exp_data) = @_;
-    $headers = 'Experiment,' . $headers;
-    my @modified_data = add_item_to_data($experiment, @exp_data);
-    return ($headers, @modified_data);
 }
 
 
