@@ -157,6 +157,9 @@ sub get_experiment_data {
     foreach my $miseq_well_exp (@miseq_well_exps) {
         my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
         my $well_name = $miseq_well_exp_hash->{well_name};
+        if ($well_name eq '') {
+            $c->log->debug('Warning: well name not found');
+        }
         my $index = convert_well_name_to_index($well_name);
         my @alleles_freq_data;
         @alleles_freq_data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
