@@ -179,15 +179,31 @@ sub get_experiment_data {
 
 sub modify_data {
     my ($offset_well_names, $index, $well_name, @data) = @_;
+    # check expected columns are present, if not fill in with empty strings
+    @data = validate_columns(@data);
     if ($offset_well_names) {
         my $quadrant;
         ($well_name, $quadrant) = offset_well($index);
         # add quadrant column to separate wells from different quadrants
-        @data = add_column('Quadrant', $quadrant, @data);
+        @data = add_column('Quadrant', $quadrant, 0, @data);
     }
     # add well name column to separate data from different wells
-    my @data_with_well_name = add_column('Well_Name', $well_name, @data);
-    return @data_with_well_name;
+    @data = add_column('Well_Name', $well_name, 0, @data);
+    return @data;
+}
+
+sub validate_columns {
+    my ($headers, @data) = @_;
+    if (index($headers, 'Aligned_Sequence') == -1) {
+        ($headers, @data) = add_column('Aligned_Sequence', '', 0, $headers, @data);
+    }
+    if (index($headers, 'Reference_Sequence') == -1) {
+        ($headers, @data) = add_column('Reference_Sequence', '', 1, $headers, @data);
+    }
+    if (index($headers, 'Phred_Quality') == -1) {
+        ($headers, @data) = add_column('Phred_Quality', '', 2, $headers, @data);
+    }
+    return ($headers, @data);
 }
 
 sub offset_well {
@@ -209,17 +225,20 @@ sub offset_well {
 }
 
 sub add_column {
-    my ($new_header, $item, $headers, @data) = @_;
-    $headers = "$new_header,$headers";
-    my @modified_data = add_item_to_data($item, @data);
-    return ($headers, @modified_data);
+    my ($new_header, $item, $place, $headers, @data) = @_;
+    my @new_headers = split(',', $headers);
+    splice(@new_headers, $place, 0, $new_header);
+    @data = add_item_to_data($item, $place, @data);
+    return (join(',', @new_headers), @data);
 }
 
 sub add_item_to_data {
-    my ($item, @data) = @_;
+    my ($item, $place, @data) = @_;
     my @modified_data;
     foreach my $row (@data) {
-        push @modified_data, "$item,$row";
+        my @modified_row = split(',', $row);
+        splice(@modified_row, $place, 0, $item);
+        push @modified_data, join(',', @modified_row);
     }
     return @modified_data;
 }
@@ -261,7 +280,7 @@ sub get_miseq_data {
         my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @exp_data = get_experiment_data($c, $miseq, $exp_name, $offset_well_names, @miseq_well_exps);
         # add experiment column to separate different experiments
-        ($headers, @exp_data) = add_column('Experiment', $exp_name, @exp_data);
+        ($headers, @exp_data) = add_column('Experiment', $exp_name, 0, @exp_data);
         push @miseq_data, @exp_data;
     }
     return ($headers, @miseq_data);
