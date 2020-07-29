@@ -10,6 +10,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 use List::Util 'max';
+use Carp;
 use LIMS2::Model::Util::Miseq qw/
     wells_generator
     find_file
@@ -53,9 +54,10 @@ sub point_mutation_summary_GET {
             my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $threshold_as_percentage);
             $data = join("\n", @result);
         } catch {
-            $c->response->status( 404 );
-            $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-            return;
+            $c->response->status( 500 );
+            my $error_msg = "Allele frequency data can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".";
+            $c->response->body( $error_msg );
+            croak $error_msg;
         };
     }
     my $alleles = { data => $data };
@@ -137,8 +139,9 @@ sub experiment_summary_GET {
     my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps);
     if (! @results) {
         $c->response->status( 500 );
-        $c->response->body( "No alleles frequency data found for $experiment" );
-        return;
+        my $error_msg = "No alleles frequency data found for $experiment";
+        $c->response->body( $error_msg );
+        croak $error_msg;
     }
     my $data = { data => join("\n", ($headers, @results)) };
     my $json = JSON->new->allow_nonref;
@@ -258,8 +261,9 @@ sub miseq_summary_GET {
     my ($headers, @miseq_data) = get_miseq_data($c, $miseq, $offset_well_names, @miseq_exps);
     if (! @miseq_data) {
         $c->response->status( 500 );
-        $c->response->body( "No alleles frequency data found for $miseq" );
-        return;
+        my $error_msg = "No alleles frequency data found for $miseq";
+        $c->response->body( $error_msg );
+        croak $error_msg;
     }
     my $data = { data => join("\n", ($headers, @miseq_data)) };
     my $json = JSON->new->allow_nonref;
