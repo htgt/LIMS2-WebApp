@@ -55,7 +55,7 @@ sub point_mutation_summary_GET {
             $data = join("\n", @result);
         } catch {
             $c->response->status( 500 );
-            my $error_msg = "Allele frequency data can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".";
+            my $error_msg = "Allele frequency data cannot be found for index: $oligo_index, exp: $experiment";
             $c->response->body( $error_msg );
             croak $error_msg;
         };
