@@ -788,7 +788,7 @@ function validateRow(row) {
     var splitIgnoreQuoted = /("[^"]*")|[^,]+/g;
     //Phred Qualities use , as a value. Quote the quality string then split the row
     var rowResult = row.replace(quoteQualityRegex, `$1"$2"$3`);
-	var rowData = rowResult.match(splitIgnoreQuoted);
+    var rowData = rowResult.match(splitIgnoreQuoted);
     return rowData;
 }
 
