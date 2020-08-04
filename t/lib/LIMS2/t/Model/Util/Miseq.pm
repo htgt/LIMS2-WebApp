@@ -27,7 +27,6 @@ sub test_module_import : Test(2) {
       qc_relations
       query_miseq_tree_from_experiment
       get_alleles_freq_path
-      get_offset_alleles_freq_path
       get_csv_from_tsv_lines
       get_api
     );
@@ -117,21 +116,16 @@ sub test_read_alleles_frequency_file : Test(3) {
     return;
 }
 
-sub test_get_alleles_freq_path : Test(1) {
+sub test_get_alleles_freq_path : Test(2) {
+    my $api = mock_api( 1, '' );
     is(
-        get_alleles_freq_path( 'base', 'miseq', 'exp', 1 ),
+        get_alleles_freq_path( 'base', 'miseq', 'exp', 1, $api ),
 'base/miseq/S1_expexp/CRISPResso_on_1_S1_L001_R1_001_1_S1_L001_R2_001/Alleles_frequency_table.txt',
-        'get_alleles_freq_path returns correct path'
+        'get_alleles_freq_path returns correct existing path'
     );
-    return;
-}
-
-sub test_get_offset_alleles_freq_path : Test(1) {
-    is(
-        get_offset_alleles_freq_path( 'base', 'miseq', 'exp', 1 ),
-'base/miseq/S1_expexp/CRISPResso_on_385_S385_L001_R1_001_385_S385_L001_R2_001/Alleles_frequency_table.txt',
-        'get_offset_alleles_freq_path returns correct path'
-    );
+    $api = mock_api( 0, '' );
+    is( get_alleles_freq_path( 'base', 'miseq', 'exp', 1, $api ),
+        0, 'get_alleles_freq_path returns 0 if path cannot be found' );
     return;
 }
 

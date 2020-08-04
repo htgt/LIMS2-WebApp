@@ -154,8 +154,8 @@ body {
     [% END %]
 </div>
 
-<div id="expCSVDownload">
-    <button class="btn btn-success" onclick="getExpSummary();">Download Experiment CSV</button>
+<div id="CSVDownload">
+    <button class="btn btn-success" onclick="downloadSummary();">Download CSV</button>
     <input type="checkbox" id="offsetCheckbox">
     <label for="offsetCheckbox">Offset well names</input>
 </div>
@@ -310,7 +310,7 @@ $('#crisprSelect').on('click', function() {
     }
 });
 
-$('#expSelect').on('click', function() {
+$('#expSelect').change(function() {
     clearButtonVisibility();
     downloadButtonVisibility();
     highlight_init();
@@ -388,10 +388,10 @@ function clearButtonVisibility() {
 }
 
 function downloadButtonVisibility() {
-    if ($('#expSelect').val() == 'All'){
-        $('#expCSVDownload').hide().prop('disabled', true);
+    if ($('#geneSelect').val() != 'All' && $('#expSelect').val() == 'All'){
+        $('#CSVDownload').hide().prop('disabled', true);
     } else {
-        $('#expCSVDownload').show().prop('disabled', false);
+        $('#CSVDownload').show().prop('disabled', false);
     }
 }
 
@@ -419,7 +419,7 @@ function clearSelection() {
     $('select').each(function() { this.selectedIndex = 0 });
     $(".crisprSelect").hide().prop('disabled', true);
     $('#clearButton').hide().prop('disabled', true);
-    $('#expCSVDownload').hide().prop('disabled', true);
+    $('#CSVDownload').hide().prop('disabled', true);
 
     if (quadrants != null) {
         buildOverview();
@@ -729,13 +729,18 @@ return response;
 
 }
 
-function getExpSummary() {
+function downloadSummary() {
     $("#response_alert").removeClass("alert-danger").removeClass("alert-success").addClass("alert-info");
     $("#response_alert").html("Downloading...");
     var exp = document.getElementById('expSelect').value;
+    var url = '[% c.uri_for('/api/experiment_summary/') %]';
+    if (exp == 'All') {
+        url = '[% c.uri_for('/api/miseq_summary/') %]';
+        exp = '[% miseq %]';
+    }
     var offset = document.getElementById('offsetCheckbox').checked ? 1 : 0;
     $.ajax({
-        url: '[% c.uri_for('/api/experiment_summary/') %]',
+        url: url,
         type: "GET",
         contentType: 'text/plain',
         data: {
@@ -744,7 +749,6 @@ function getExpSummary() {
             offset: offset
         },
         success: function(result){
-            console.log(result);
             downloadCSV(exp, result);
             $("#response_alert").removeClass("alert-info").addClass("alert-success");
             $("#response_alert").html("Downloaded!");
@@ -759,11 +763,33 @@ function getExpSummary() {
 
 function downloadCSV(exp, result) {
     result = JSON.parse(result);
+    var rows = result.data.split("\n");
+    var headers = rows.shift();
+    var validatedRows = [];
+    for (var rowCount = 0; rowCount < rows.length; rowCount++) {
+        if (rows[rowCount] == "") {
+            continue;
+        }
+        var rowData = validateRow(rows[rowCount]);
+        validatedRows.push(rowData);
+    }
+    validatedRows.unshift(headers);
+    var data = validatedRows.join("\n");
     var hiddenElement = document.createElement('a');
-    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(result.data);
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data);
     hiddenElement.download = exp + '.csv';
     document.body.appendChild(hiddenElement);
     hiddenElement.click();
+}
+
+function validateRow(row) {
+    var quoteQualityRegex = /([ACTG-]+,[ACTG-]+,)([\x21-\x4B]*)((,(True|False|\d+\.?\d?)){7},\d+\.?\d*$)/gm;
+    //Bind on to the last 7 commas since those columns are constant.
+    var splitIgnoreQuoted = /("[^"]*")|[^,]+/g;
+    //Phred Qualities use , as a value. Quote the quality string then split the row
+    var rowResult = row.replace(quoteQualityRegex, `$1"$2"$3`);
+    var rowData = rowResult.match(splitIgnoreQuoted);
+    return rowData;
 }
 
 </script>

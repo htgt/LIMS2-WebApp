@@ -23,7 +23,6 @@ use Sub::Exporter -setup => {
               qc_relations
               query_miseq_tree_from_experiment
               get_alleles_freq_path
-              get_offset_alleles_freq_path
               get_csv_from_tsv_lines
               get_api
           )
@@ -708,12 +707,9 @@ sub read_alleles_frequency_file {
     $threshold = $threshold ? $threshold : 0;
 
     my $base = $ENV{LIMS2_RNA_SEQ};
-    my $path = get_alleles_freq_path($base, $miseq, $exp, $index);
-    if (! $api->check_file_existence($path)) {
-        $path = get_offset_alleles_freq_path($base, $miseq, $exp, $index);
-        if (! $api->check_file_existence($path)) {
-            croak 'No path available';
-        }
+    my $path = get_alleles_freq_path($base, $miseq, $exp, $index, $api);
+    if (! $path) {
+        croak 'No path available';
     }
     my @content = $api->get_file_content($path);
     if (scalar @content < 2) {
@@ -731,14 +727,22 @@ sub read_alleles_frequency_file {
 }
 
 sub get_alleles_freq_path {
-    my ($base, $miseq, $exp, $index) = @_;
-    return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index}_S${index}_L001_R1_001_${index}_S${index}_L001_R2_001/Alleles_frequency_table.txt";
-}
-
-sub get_offset_alleles_freq_path {
-    my ($base, $miseq, $exp, $index) = @_;
+    my ($base, $miseq, $exp, $index, $api) = @_;
+    my $start = "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on";
+    my $filename = "Alleles_frequency_table.txt";
     my $index_384 = $index + 384;
-    return "${base}/${miseq}/S${index}_exp${exp}/CRISPResso_on_${index_384}_S${index_384}_L001_R1_001_${index_384}_S${index_384}_L001_R2_001/Alleles_frequency_table.txt";
+    my @possible_paths = (
+        "${start}_${index}_S${index}_L001_R1_001_${index}_S${index}_L001_R2_001/$filename",
+        "${start}_${index_384}_S${index_384}_L001_R1_001_${index_384}_S${index_384}_L001_R2_001/$filename",
+        "${start}_${index}_S${index}_L001_R1/$filename",
+        "${start}_${index_384}_S${index_384}_L001_R1/$filename"
+    );
+    foreach my $path (@possible_paths) {
+        if ($api->check_file_existence($path)) {
+            return $path;
+        }
+    }
+    return 0;
 }
 
 sub get_csv_from_tsv_lines {

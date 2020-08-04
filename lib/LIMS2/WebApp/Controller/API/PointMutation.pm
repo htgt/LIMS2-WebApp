@@ -10,6 +10,7 @@ use Bio::Perl;
 use POSIX;
 use Try::Tiny;
 use List::Util 'max';
+use Carp;
 use LIMS2::Model::Util::Miseq qw/
     wells_generator
     find_file
@@ -53,9 +54,10 @@ sub point_mutation_summary_GET {
             my @result = read_alleles_frequency_file($API, $miseq, $oligo_index, $experiment, $threshold, $threshold_as_percentage);
             $data = join("\n", @result);
         } catch {
-            $c->response->status( 404 );
-            $c->response->body( "Allele frequency table can not be found for Index: " . $oligo_index . "Exp: " . $experiment . ".");
-            return;
+            $c->response->status( 500 );
+            my $error_msg = "Allele frequency data cannot be found for index: $oligo_index, exp: $experiment";
+            $c->response->body( $error_msg );
+            croak $error_msg;
         };
     }
     my $alleles = { data => $data };
@@ -68,106 +70,6 @@ sub point_mutation_summary_GET {
     $c->response->body( $body );
 
     return;
-}
-
-sub experiment_summary : Path( '/api/experiment_summary' ) : Args(0) : ActionClass( 'REST' ) {
-}
-
-sub experiment_summary_GET {
-    my ( $self, $c ) = @_;
-
-    $c->assert_user_roles('read');
-    my $miseq = $c->request->param('miseq');
-    my $experiment = $c->request->param( 'exp' );
-    my $offset_well_names = $c->request->param('offset');
-    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
-    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
-    my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
-    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps);
-    if (! @results) {
-        $c->response->status( 500 );
-        $c->response->body( "No alleles frequency data found for $experiment" );
-        return;
-    }
-    my $data = { data => join("\n", ($headers, @results)) };
-    my $json = JSON->new->allow_nonref;
-    my $body = $json->encode($data);
-    $c->response->status( 200 );
-    $c->response->content_type( 'text/plain' );
-    $c->response->body( $body );
-
-    return;
-}
-
-sub get_experiment_data {
-    my ($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps) = @_;
-    my $headers;
-    my @experiment_data;
-    foreach my $miseq_well_exp (@miseq_well_exps) {
-        my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
-        my $well_name = $miseq_well_exp_hash->{well_name};
-        my $index = convert_well_name_to_index($well_name);
-        my @data;
-        try {
-            @data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
-        } catch {
-            # if error, try retrieving from database
-            @data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
-            next if not (@data);
-        };
-        if ($offset_well_names) {
-            my $quadrant;
-            ($well_name, $quadrant) = offset_well($index);
-            # add quadrant column to separate wells from different quadrants
-            @data = add_quadrant_col($quadrant, @data);
-        }
-        # add well name column to separate data from different wells
-        my @data_with_well_name = add_well_name_col($well_name, @data);
-        $headers = shift @data_with_well_name;
-        push @experiment_data, @data_with_well_name;
-    }
-    return ($headers, @experiment_data);
-}
-
-sub offset_well {
-    my $index = shift;
-    my $quadrant = 0;
-    if ($index >= 1 && $index <= 96) {
-        $quadrant = 1;
-    } elsif ($index >= 97 && $index <= 192) {
-        $index -= 96;
-        $quadrant = 2;
-    } elsif ($index >= 193 && $index <= 288) {
-        $index -= 192;
-        $quadrant = 3;
-    } elsif ($index >= 289 && $index <= 384) {
-        $index -= 288;
-        $quadrant = 4;
-    }
-    return (convert_index_to_well_name($index), $quadrant);
-}
-
-sub add_quadrant_col {
-    my ($quadrant, $headers, @alleles_freq_data) = @_;
-    $headers = 'Quadrant,' . $headers;
-    my @modified_data = add_item_to_data($quadrant, @alleles_freq_data);
-    return ($headers, @modified_data);
-}
-
-sub add_item_to_data {
-    my ($item, @data) = @_;
-    my @modified_data;
-    foreach my $row (@data) {
-        push @modified_data, "$item,$row";
-    }
-    return @modified_data;
-}
-
-sub add_well_name_col {
-    my ($well_name, $headers, @alleles_freq_data) = @_;
-    $headers = 'Well_Name,' . $headers;
-    my @modified_data = add_item_to_data($well_name, @alleles_freq_data);
-    return ($headers, @modified_data);
 }
 
 sub _retrieve_crispr_seq_from_job_output {
@@ -220,6 +122,178 @@ sub _precompute_crispr_loc {
     return $result;
 }
 
+
+sub experiment_summary : Path( '/api/experiment_summary' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub experiment_summary_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $experiment = $c->request->param( 'exp' );
+    my $offset_well_names = $c->request->param('offset');
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+    my $miseq_exp = $c->model('Golgi')->schema->resultset('MiseqExperiment')->find({ name => $experiment, miseq_id => $plate_rs->miseq_plates->first->id })->as_hash;
+    my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+    my ($headers, @results) = get_experiment_data($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps);
+    if (! @results) {
+        $c->response->status( 500 );
+        my $error_msg = "No alleles frequency data found for $experiment";
+        $c->response->body( $error_msg );
+        croak $error_msg;
+    }
+    my $data = { data => join("\n", ($headers, @results)) };
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($data);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub get_experiment_data {
+    my ($c, $miseq, $experiment, $offset_well_names, @miseq_well_exps) = @_;
+    my $headers;
+    my @experiment_data;
+    foreach my $miseq_well_exp (@miseq_well_exps) {
+        my $miseq_well_exp_hash = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->find({ id => $miseq_well_exp->id })->as_hash;
+        my $well_name = $miseq_well_exp_hash->{well_name};
+        my $index = convert_well_name_to_index($well_name);
+        if (! $index) {
+            $c->log->debug("Warning: well name not found for id $miseq_well_exp_hash->{id}");
+        }
+        my @alleles_freq_data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
+        if (! @alleles_freq_data) {
+            try {
+                @alleles_freq_data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
+            } catch {
+                $c->log->debug("No alleles frequency data found for id $miseq_well_exp_hash->{id}");
+                next;
+            };
+        }
+        my @well_data = modify_data($offset_well_names, $index, $well_name, @alleles_freq_data);
+        $headers = shift @well_data;
+        push @experiment_data, @well_data;
+    }
+    return ($headers, @experiment_data);
+}
+
+sub modify_data {
+    my ($offset_well_names, $index, $well_name, @data) = @_;
+    # check expected columns are present, if not fill in with empty strings
+    @data = validate_columns(@data);
+    if ($offset_well_names) {
+        my $quadrant;
+        ($well_name, $quadrant) = offset_well($index);
+        # add quadrant column to separate wells from different quadrants
+        @data = add_column('Quadrant', $quadrant, 0, @data);
+    }
+    # add well name column to separate data from different wells
+    @data = add_column('Well_Name', $well_name, 0, @data);
+    return @data;
+}
+
+sub validate_columns {
+    my ($headers, @data) = @_;
+    if (index($headers, 'Aligned_Sequence') == -1) {
+        ($headers, @data) = add_column('Aligned_Sequence', '', 0, $headers, @data);
+    }
+    if (index($headers, 'Reference_Sequence') == -1) {
+        ($headers, @data) = add_column('Reference_Sequence', '', 1, $headers, @data);
+    }
+    if (index($headers, 'Phred_Quality') == -1) {
+        ($headers, @data) = add_column('Phred_Quality', '', 2, $headers, @data);
+    }
+    return ($headers, @data);
+}
+
+sub offset_well {
+    my $index = shift;
+    my $quadrant = 0;
+    if ($index >= 1 && $index <= 96) {
+        $quadrant = 1;
+    } elsif ($index >= 97 && $index <= 192) {
+        $index -= 96;
+        $quadrant = 2;
+    } elsif ($index >= 193 && $index <= 288) {
+        $index -= 192;
+        $quadrant = 3;
+    } elsif ($index >= 289 && $index <= 384) {
+        $index -= 288;
+        $quadrant = 4;
+    }
+    return (convert_index_to_well_name($index), $quadrant);
+}
+
+sub add_column {
+    my ($new_header, $item, $place, $headers, @data) = @_;
+    my @new_headers = split(',', $headers);
+    splice(@new_headers, $place, 0, $new_header);
+    @data = add_item_to_data($item, $place, @data);
+    return (join(',', @new_headers), @data);
+}
+
+sub add_item_to_data {
+    my ($item, $place, @data) = @_;
+    my @modified_data;
+    foreach my $row (@data) {
+        my @modified_row = split(',', $row);
+        splice(@modified_row, $place, 0, $item);
+        push @modified_data, join(',', @modified_row);
+    }
+    return @modified_data;
+}
+
+
+sub miseq_summary : Path( '/api/miseq_summary' ) : Args(0) : ActionClass( 'REST' ) {
+}
+
+sub miseq_summary_GET {
+    my ( $self, $c ) = @_;
+
+    $c->assert_user_roles('read');
+    my $miseq = $c->request->param('miseq');
+    my $offset_well_names = $c->request->param('offset');
+    my $plate_rs = $c->model('Golgi')->schema->resultset('Plate')->find({ name => $miseq }, { prefetch => 'miseq_plates' });
+    my @miseq_exps = map { $_->as_hash } $c->model('Golgi')->schema->resultset('MiseqExperiment')->search({ miseq_id => $plate_rs->miseq_plates->first->id });
+    my ($headers, @miseq_data) = get_miseq_data($c, $miseq, $offset_well_names, @miseq_exps);
+    if (! @miseq_data) {
+        $c->response->status( 500 );
+        my $error_msg = "No alleles frequency data found for $miseq";
+        $c->response->body( $error_msg );
+        croak $error_msg;
+    }
+    my $data = { data => join("\n", ($headers, @miseq_data)) };
+    my $json = JSON->new->allow_nonref;
+    my $body = $json->encode($data);
+    $c->response->status( 200 );
+    $c->response->content_type( 'text/plain' );
+    $c->response->body( $body );
+
+    return;
+}
+
+sub get_miseq_data {
+    my ($c, $miseq, $offset_well_names, @miseq_exps) = @_;
+    my $headers;
+    my @miseq_data;
+    foreach my $miseq_exp (@miseq_exps) {
+        my $exp_name = $miseq_exp->{name};
+        my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
+        my @exp_data = get_experiment_data($c, $miseq, $exp_name, $offset_well_names, @miseq_well_exps);
+        # check for headers
+        if (! defined $exp_data[0]) {
+            $c->log->debug("No alleles frequency data found for $exp_name");
+            next;
+        }
+        # add experiment column to separate different experiments
+        ($headers, @exp_data) = add_column('Experiment', $exp_name, 0, @exp_data);
+        push @miseq_data, @exp_data;
+    }
+    return ($headers, @miseq_data);
+}
 
 
 sub freezer_wells : Path( '/api/freezer_wells' ) : Args(0) : ActionClass( 'REST' ) {
