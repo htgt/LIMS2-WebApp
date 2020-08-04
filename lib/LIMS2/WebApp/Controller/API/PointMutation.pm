@@ -164,12 +164,12 @@ sub get_experiment_data {
         if (! $index) {
             $c->log->debug("Warning: well name not found for id $miseq_well_exp_hash->{id}");
         }
-        my @alleles_freq_data;
-        @alleles_freq_data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
+        my @alleles_freq_data = split("\n", get_frequency_data($c, $miseq_well_exp_hash));
         if (! @alleles_freq_data) {
             try {
                 @alleles_freq_data = read_alleles_frequency_file($API, $miseq, $index, $experiment, 10);
             } catch {
+                $c->log->debug("No alleles frequency data found for id $miseq_well_exp_hash->{id}");
                 next;
             };
         }
@@ -283,6 +283,11 @@ sub get_miseq_data {
         my $exp_name = $miseq_exp->{name};
         my @miseq_well_exps = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search({ miseq_exp_id => $miseq_exp->{id} });
         my @exp_data = get_experiment_data($c, $miseq, $exp_name, $offset_well_names, @miseq_well_exps);
+        # check for headers
+        if (! defined $exp_data[0]) {
+            $c->log->debug("No alleles frequency data found for $exp_name");
+            next;
+        }
         # add experiment column to separate different experiments
         ($headers, @exp_data) = add_column('Experiment', $exp_name, 0, @exp_data);
         push @miseq_data, @exp_data;
