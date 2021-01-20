@@ -79,7 +79,8 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
 # Change dependency path permissions
 RUN chmod -R 755 /usr/local/share/perl/5.26.1/ && \
   chmod -R 755 /opt/sci/global/software/lims2/lib/ && \
-  chmod -R 777 /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/
+  chmod -R 777 /opt/sci/local/report_cache/lims2_cache_fp_report/localhost/ && \
+  chmod -R 777 /home/ubuntu/bwa_dump/
 
 #
 # Install BWA
