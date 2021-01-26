@@ -114,7 +114,7 @@ RUN sudo chown user:user /home/user/.ssh/config
 ARG branch=master
 ARG database=LIMS2_STAGING
 ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
-ARG human_fa=/shared/bwa_genomes/Homo_sapiens.GRCh38_15.fa
+ARG human_fa=/shared/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 ARG file_access=sci-batch-farm5
 #
 # Clone the LIMS2-WebApp repo
