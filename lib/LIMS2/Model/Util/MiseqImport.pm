@@ -261,7 +261,7 @@ sub _validate_columns {
     my ( $self, @given_columns ) = @_;
     my %columns = map { $_ => 1 } @given_columns;
     my @missing = ();
-    foreach my $column ( @given_columns ) {
+    foreach my $column ( $self->columns ) {
         if ( not exists $columns{$column} ) {
             push @missing, $column;
         }
@@ -273,7 +273,7 @@ sub _validate_columns {
 }
 
 sub _validate_value {
-    my ( $row, $key, $validator, $line ) = @_;
+    my ( $row, $key, $validator ) = @_;
     my $value = $row->{$key} // q//;
     if ( not $value =~ $validator ) {
         my $name = $row->{experiment};

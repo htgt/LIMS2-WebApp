@@ -126,6 +126,8 @@ sub all_tests : Test(52) {
     my @experiments = (
         {
             experiment => 'Exp_01',
+            experiment_id => '',
+            parent_plate_id => '',
             gene       => 'GENE1',
             crispr     => 'ACGTACTGACTGACTGACTG',
             amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
@@ -136,6 +138,8 @@ sub all_tests : Test(52) {
         },
         {
             experiment => 'Exp_02',
+            experiment_id => '',
+            parent_plate_id => '',
             gene       => 'GENE2',
             crispr     => 'ACGTACTGACTGACTGACTG',
             amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
@@ -146,6 +150,8 @@ sub all_tests : Test(52) {
         },
         {
             experiment => 'Exp_03',
+            experiment_id => '',
+            parent_plate_id => '',
             gene       => 'GENE3',
             crispr     => 'ACGTACTGACTGACTGACTG',
             amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
@@ -265,13 +271,15 @@ sub invalid_csv : Test(3) {
 
     my $experiment = {
         experiment => 'Exp_01',
+        experiment_id => '',
+        parent_plate_id => '',
         gene       => 'GENE1',
         crispr     => 'ACGTACTGACTGACTGACTG',
         amplicon   => 'ACTGACTGacgtactgactgactactgACTGACTG',
         strand     => '+',
         min_index  => 1,
         max_index  => 96,
-        HDR        => '',
+        hdr        => '',
     };
 
     test_csv_fails(
