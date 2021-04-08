@@ -15,14 +15,14 @@ with 'MooseX::Log::Log4perl';
 
 has file_api => (
     is         => 'ro',
-    isa        => 'HTGT::QC::Util::FileAccessServer',
+    isa        => 'WebAppCommon::Util::RemoteFileAccess',
     lazy_build => 1,
     handles    => [qw/post_file_content/],
 );
 
 sub _build_file_api {
-    return HTGT::QC::Util::FileAccessServer->new(
-        { file_api_url => $ENV{FILE_API_URL}, } );
+    return WebAppCommon::Util::FileAccess->construct(
+        { server => $ENV{LIMS2_FILE_ACCESS_SERVER}, } );
 }
 
 has farm_job_runner => (

@@ -14,7 +14,7 @@ use LIMS2::Model::Util::MiseqImport;
 
 sub mock_file_api {
     my @log      = ();
-    my $file_api = Test::MockModule->new('HTGT::QC::Util::FileAccessServer');
+    my $file_api = Test::MockModule->new('WebAppCommon::Util::RemoteFileAccess');
     $file_api->mock(
         'make_dir',
         sub {
