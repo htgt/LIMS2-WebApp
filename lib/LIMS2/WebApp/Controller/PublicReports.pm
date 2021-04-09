@@ -176,12 +176,14 @@ sub access_denied : Path( '/public_reports/access_denied' ) {
 =head2 index
 
 =cut
+
 sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my ( $self, $c, $targeting_type ) = @_;
 
     if (! $targeting_type) {
         $targeting_type = 'single_targeted';
     }
+    $targeting_type = _validate_targeting_type($targeting_type);
 
     my $species;
     my $cache_params = {
@@ -195,17 +197,7 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
     my $client_host = $c->request->hostname;
 
     if ($c->user_exists) {
-        $c->request->params->{'species'} = $c->session->{'selected_species'};
-        $is_internal = 1;
-
-        if ( $c->request->params->{'cache_param_i'} ) {
-            $cache_params->{sub_cache_param_i} = $c->request->params->{'cache_param_i'};
-            $cache_params->{top_cache_param_i} = $c->request->params->{'cache_param_i'};
-        }
-        if ( $c->request->params->{'cache_param_ii'} ) {
-            $cache_params->{sub_cache_param_ii} = $c->request->params->{'cache_param_ii'};
-            $cache_params->{top_cache_param_ii} = $c->request->params->{'cache_param_ii'};
-        }
+        $is_internal = _pass_internal_user_preferences($c, $cache_params);
     }
 
     if ( $client_host =~ /internal/ ) {
@@ -218,6 +210,55 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
 
     $species = $c->request->params->{'species'};
     $c->session->{'selected_species'} = $species;
+
+
+    if ($targeting_type ne 'bad_gateway') {
+        _construct_pipeline_i_top_level_report($self, $c, $cache_params, $targeting_type, $species);
+        _construct_pipeline_ii_top_level_report($self, $c, $cache_params, $targeting_type, $species);
+    }
+
+    $c->stash(
+        template    => 'publicreports/sponsor_report.tt',
+        is_internal => $is_internal,
+    );
+
+    return;
+}
+
+sub _pass_internal_user_preferences {
+    my ($c, $cache_params) = @_;
+
+    $c->request->params->{'species'} = $c->session->{'selected_species'};
+
+    if ( $c->request->params->{'cache_param_i'} ) {
+        $cache_params->{sub_cache_param_i} = $c->request->params->{'cache_param_i'};
+        $cache_params->{top_cache_param_i} = $c->request->params->{'cache_param_i'};
+    }
+    if ( $c->request->params->{'cache_param_ii'} ) {
+        $cache_params->{sub_cache_param_ii} = $c->request->params->{'cache_param_ii'};
+        $cache_params->{top_cache_param_ii} = $c->request->params->{'cache_param_ii'};
+    }
+
+    return 1;
+}
+
+sub _validate_targeting_type {
+    my ( $targeting_type ) = @_;
+
+    my $valid_types = {
+        'single_targeted' => 1,
+        'double_targeted' => 1,
+    };
+
+    if ($valid_types->{$targeting_type} == 1) {
+        return $targeting_type;
+    }
+
+    return 'bad_gateway';
+}
+
+sub _construct_pipeline_i_top_level_report {
+    my ( $self, $c, $cache_params, $targeting_type, $species ) = @_;
 
     if ( $cache_params->{top_cache_param_i} eq  'with_cache' ) {
 
@@ -251,6 +292,12 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         $self->_generate_front_page_report_pipeline_i ( $c, 'single_targeted', $species );
     }
 
+    return;
+}
+
+sub _construct_pipeline_ii_top_level_report {
+    my ( $self, $c, $cache_params, $targeting_type, $species ) = @_;
+
     if ( $cache_params->{top_cache_param_ii} eq 'with_cache' ) {
 
         try {
@@ -280,13 +327,9 @@ sub sponsor_report :Path( '/public_reports/sponsor_report' ) {
         $self->_generate_front_page_report_pipeline_ii ( $c, 'single_targeted', $species, $cache_params->{top_cache_param_i} );
     }
 
-    $c->stash(
-        template    => 'publicreports/sponsor_report.tt',
-        is_internal => $is_internal,
-    );
-
     return;
 }
+
 
 sub _view_cached_top_level_report {
     my ( $self, $c, $name ) = @_;
@@ -435,7 +478,7 @@ sub save_json_report {
 
     my $cached_file_name = '/opt/sci/local/report_cache/lims2_cache_fp_report/' . $cache_server . $name . '.json';
 
-    open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file: $!";
+    open( my $json_fh, ">:encoding(UTF-8)", $cached_file_name ) or die "Can not open file $cached_file_name: $!";
     print $json_fh $json_data;
     close ($json_fh);
     chmod 0777, $cached_file_name;

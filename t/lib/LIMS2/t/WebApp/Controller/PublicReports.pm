@@ -111,6 +111,18 @@ sub all_tests  : Tests {
     $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
     $mech->content_contains('HGNC:30801');
 
+    
+}
+
+sub targeting_type_validation : Tests {
+    my $mech = LIMS2::Test::mech();
+
+    ok(2, "Testing targeting type validation");
+
+    $mech->get_ok("/public_reports/sponsor_report/single_targeted?species=Mouse");
+    $mech->content_contains('Pipeline I Summary Report');
+    $mech->get_ok("/public_reports/sponsor_report/single_targeted' OR 1=1; SELECT * from species?species=Mouse");
+    $mech->content_contains('No projects found for this species / targeting type.');
 
 }
 
