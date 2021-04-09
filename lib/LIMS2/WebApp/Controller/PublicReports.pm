@@ -250,7 +250,7 @@ sub _validate_targeting_type {
         'double_targeted' => 1,
     };
 
-    if ($valid_types->{$targeting_type} == 1) {
+    if ( exists($valid_types->{$targeting_type}) ) {
         return $targeting_type;
     }
 
