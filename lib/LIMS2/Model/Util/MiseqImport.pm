@@ -144,7 +144,6 @@ sub _submit_crispresso {
 
     my $id = $exp->{experiment};
     my @crisprs = split q/,/, uc( $exp->{crispr} );
-    $exp->{strand} = $exp->{strand} ? $exp->{strand} : '+';
     if ( $exp->{strand} eq '-' ) {
         foreach my $crispr (@crisprs) {
             $crispr = revcom_as_string($crispr);
@@ -163,6 +162,7 @@ sub _submit_crispresso {
                 '-g' => ( join q/,/, @crisprs ),
                 '-a' => $exp->{amplicon},
                 '-n' => $id,
+                '-e' => $exp->{hdr},
             ],
         }
     );

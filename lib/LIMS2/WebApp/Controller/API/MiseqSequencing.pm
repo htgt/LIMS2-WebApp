@@ -67,12 +67,11 @@ sub _construct_experiment_details {
         parent_plate_id => $exp->parent_plate_id,
         min_index       => min(@wells),
         max_index       => max(@wells),
+        strand          => '+',
     };
 
     my $hdr = $exp->experiment->design->hdr_amplicon;
-    if ($hdr) {
-        $details->{hdr} = $hdr;
-    }
+    $details->{hdr} = $hdr || '';
 
     return $details;
 }
