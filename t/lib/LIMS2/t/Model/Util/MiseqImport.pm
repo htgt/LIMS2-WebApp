@@ -109,7 +109,7 @@ sub test_job {
     }
 }
 
-sub all_tests : Test(52) {
+sub all_tests : Test(57) {
     my $importer = LIMS2::Model::Util::MiseqImport->new;
     $importer->farm_job_runner->dry_run(1);
 
@@ -134,7 +134,7 @@ sub all_tests : Test(52) {
             strand     => '+',
             min_index  => 1,
             max_index  => 96,
-            hdr        => '',
+            hdr        => 'ACTGACTGacgtactgactggctactgACTGACTG',
         },
         {
             experiment => 'Exp_02',
@@ -146,7 +146,7 @@ sub all_tests : Test(52) {
             strand     => '+',
             min_index  => 97,
             max_index  => 192,
-            hdr        => '',
+            hdr        => 'ACTGACTGacgtactgactggctactgACTGACTG',
         },
         {
             experiment => 'Exp_03',
@@ -158,7 +158,7 @@ sub all_tests : Test(52) {
             strand     => '+',
             min_index  => 1,
             max_index  => 96,
-            hdr        => '',
+            hdr        => 'ACTGACTGacgtactgactggctactgACTGACTG',
         },
     );
 
@@ -220,6 +220,8 @@ sub all_tests : Test(52) {
                     '-g' => $exp->{crispr},
                     '-a' => $exp->{amplicon},
                     '-n' => $exp->{experiment},
+                    '-o' => 0,
+                    '-e' => $exp->{hdr},
                 ],
             },
             'CRISPResso ' . $exp->{experiment},
@@ -279,7 +281,7 @@ sub invalid_csv : Test(3) {
         strand     => '+',
         min_index  => 1,
         max_index  => 96,
-        hdr        => '',
+        hdr        => 'ACTGACTGacgtactgactggctactgACTGACTG',
     };
 
     test_csv_fails(
@@ -294,6 +296,13 @@ sub invalid_csv : Test(3) {
         qr/not a valid value for experiment/,
         'Experiment name is missing',
         [ { %{$experiment}, experiment => '' } ],
+    );
+
+    test_csv_fails(
+        $importer,
+        qr/Min index and max index must both be either above or below 384 for Exp_01/,
+        'Min and max indexes go below and above 384',
+        [ { %{$experiment}, max_index => 480 } ],
     );
 
     return;

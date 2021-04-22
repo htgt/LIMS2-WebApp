@@ -149,6 +149,10 @@ sub _submit_crispresso {
             $crispr = revcom_as_string($crispr);
         }
     }
+    my $offset = 0;
+    if ( $exp->{min_index} > 384 ) {
+        $offset = 384;
+    }
     return $self->farm_job_runner->submit(
         {
             name => sprintf( 'cp_%s[%d-%d]',
@@ -162,6 +166,7 @@ sub _submit_crispresso {
                 '-g' => ( join q/,/, @crisprs ),
                 '-a' => $exp->{amplicon},
                 '-n' => $id,
+                '-o' => $offset,
                 '-e' => $exp->{hdr},
             ],
         }
@@ -251,6 +256,7 @@ sub _check_object {
         my @columns = keys %{ $row };
         $self->_validate_columns(@columns);
         $self->_validate_values($row);
+        $self->_validate_indexes($row);
         push @rows, $row;
     }
 
@@ -286,6 +292,14 @@ sub _validate_values {
     my ( $self, $row ) = @_;
     foreach my $column ( $self->columns ) {
         _validate_value( $row, $column, $self->get_rule($column) );
+    }
+    return;
+}
+
+sub _validate_indexes {
+    my ( $self, $row ) = @_;
+    if ( $row->{min_index} <= 384 and $row->{max_index} > 384 ) {
+        die "Min index and max index must both be either above or below 384 for $row->{experiment}";
     }
     return;
 }
