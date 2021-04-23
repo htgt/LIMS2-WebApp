@@ -55,6 +55,9 @@ td.amplicon, td.hdr:not(:empty) {
             <thead>
                 <tr>
                     <th>
+                        Offset 384
+                    </th>
+                    <th>
                         Exp ID
                     </th>
                     <th>
@@ -188,6 +191,15 @@ $('#spreadsheet').on('change', function(evt) {
     getSpreadsheetData(evt);
 });
 
+$('#miseqSubmit').on('click', function() {
+    var exps = Object.values(expData);
+    exps.forEach(function(exp) {
+        var offset384  = document.getElementById(exp['experiment'] + '-offset').checked;
+        expData[ exp['experiment'] ]['offset_384'] = offset384;
+    });
+    $('#runData').val(JSON.stringify(expData));
+});
+
 function tableColouring() {
     $('td').css('background-color','');
     var evenExpRows = $('.mainRow:even').map(function() { return this.id });
@@ -220,10 +232,12 @@ function buildTable() {
     var cols = ['experiment_id', 'experiment', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
     var exps = Object.values(expData);
     exps.forEach(function(exp) {
+        offsetId = exp['experiment'] + '-offset';
         $("#expBody").append($('<tr>')
             .attr("id", exp['experiment'])
             .addClass("mainRow")
             .addClass(exp['experiment'])
+            .html('<input type="checkbox" id="' + offsetId + '"/>')
         );
 
         cols.forEach(function(column) {
@@ -235,7 +249,6 @@ function buildTable() {
         }
     });
     tableColouring();
-    $('#runData').val(JSON.stringify(expData));
 }
 
 function buildCells(exp, column) {

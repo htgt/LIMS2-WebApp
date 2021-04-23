@@ -71,6 +71,7 @@ sub _build_spreadsheet_columns {
     $columns{min_index}         = qr/^\d+$/xms;
     $columns{max_index}         = qr/^\d+$/xms;
     $columns{hdr}               = qr/^[ACGT]*$/ixms;
+    $columns{offset_384}        = qr/^0|1$/xms;
     return \%columns;
 }
 
@@ -113,8 +114,9 @@ sub _get_plates {
                 my $barcode = $barcodes{$name} // 0;
                 my @exps = ();
                 foreach my $exp ( @{$experiments} ) {
-                    if (   ( $barcode >= $exp->{min_index} )
-                        && ( $barcode <= $exp->{max_index} ) )
+                    my ( $min_index, $max_index ) = _get_correct_indexes($exp);
+                    if (   ( $barcode >= $min_index )
+                        && ( $barcode <= $max_index ) )
                     {
                         push @exps, $exp;
                     }
@@ -133,6 +135,17 @@ sub _get_plates {
     return \@plates;
 }
 
+sub _get_correct_indexes {
+    my ( $exp ) = @_;
+    my $min_index = $exp->{min_index};
+    my $max_index = $exp->{max_index};
+    if ( $exp->{offset_384} ) {
+        $min_index += 384;
+        $max_index += 384;
+    }
+    return ( $min_index, $max_index );
+}
+
 #this mostly exists to stop it breaking when running with dry_run
 sub _get_dependency {
     my ( $self, @jobs ) = @_;
@@ -149,14 +162,15 @@ sub _submit_crispresso {
             $crispr = revcom_as_string($crispr);
         }
     }
+    my ( $min_index, $max_index ) = _get_correct_indexes($exp);
     my $offset = 0;
-    if ( $exp->{min_index} > 384 ) {
+    if ( $min_index > 384 ) {
         $offset = 384;
     }
     return $self->farm_job_runner->submit(
         {
             name => sprintf( 'cp_%s[%d-%d]',
-                $id, $exp->{min_index}, $exp->{max_index} ),
+                $id, $min_index, $max_index ),
             cwd          => $path,
             out_file     => "cp_$id.%J.%I.out",
             err_file     => "cp_$id.%J.%I.err",
@@ -298,8 +312,8 @@ sub _validate_values {
 
 sub _validate_indexes {
     my ( $self, $row ) = @_;
-    if ( $row->{min_index} <= 384 and $row->{max_index} > 384 ) {
-        die "Min index and max index must both be either above or below 384 for $row->{experiment}";
+    if ( $row->{min_index} > 384 or $row->{max_index} > 384 ) {
+        die "Indexes should be below 384 for $row->{experiment}";
     }
     return;
 }
