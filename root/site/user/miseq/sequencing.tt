@@ -232,13 +232,13 @@ function buildTable() {
     var cols = ['experiment_id', 'experiment', 'gene', 'min_index', 'max_index', 'crispr', 'seq_type', 'amplicon'];
     var exps = Object.values(expData);
     exps.forEach(function(exp) {
-        offsetId = exp['experiment'] + '-offset';
         $("#expBody").append($('<tr>')
             .attr("id", exp['experiment'])
             .addClass("mainRow")
             .addClass(exp['experiment'])
-            .html('<input type="checkbox" id="' + offsetId + '"/>')
         );
+
+        buildRowOffset(exp);
 
         cols.forEach(function(column) {
             buildCells(exp, column);
@@ -249,6 +249,15 @@ function buildTable() {
         }
     });
     tableColouring();
+}
+
+function buildRowOffset (exp) {
+    offsetId = exp['experiment'] + '-offset';
+    $('#' + exp['experiment']).append(
+        $('<td>')
+            .html('<input type="checkbox" id="' + offsetId + '"/>')
+            .addClass("offset384")
+    );
 }
 
 function buildCells(exp, column) {
