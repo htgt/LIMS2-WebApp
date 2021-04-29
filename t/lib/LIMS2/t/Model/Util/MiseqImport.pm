@@ -238,7 +238,7 @@ sub all_tests : Test(57) {
                 '-o'   => 'mv.%J.out',
                 '-e'   => 'mv.%J.err',
                 '-J'   => 'move_miseq_data',
-                '-w'   => 'done(3)',
+                '-w'   => 'ended(3)',
                 '-cwd' => $path,
             },
             script      => 'move_miseq_data.sh',

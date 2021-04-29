@@ -243,18 +243,20 @@ sub process {
     } @{$experiments};
     $stash->{crispresso_jobs} = \@crispresso_jobs;
 
+    # Moving to warehouse fails as the farm doesn't have access
     my $move_job = $self->farm_job_runner->submit(
         {
-            name     => 'move_miseq_data',
-            cwd      => $path,
-            out_file => 'mv.%J.out',
-            err_file => 'mv.%J.err',
-            cmd      => [
+            name         => 'move_miseq_data',
+            cwd          => $path,
+            out_file     => 'mv.%J.out',
+            err_file     => 'mv.%J.err',
+            dependencies => $self->_get_dependency(@crispresso_jobs),
+            dep_type     => 'ended',
+            cmd          => [
                 catfile( $scripts, 'move_miseq_data.sh' ),
                 '-p' => $destination,
                 '-r' => $raw_dest,
             ],
-            dependencies => $self->_get_dependency(@crispresso_jobs),
         }
     );
 
