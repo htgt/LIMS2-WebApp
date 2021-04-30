@@ -1,4 +1,4 @@
-[% META title = "Import MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+[% META title = "MiSeq analysis"; META tab_name = "MiSEQ" %]
 <script src="[% c.uri_for( '/static/jquery/js/jquery.csv.min.js' ) %]"></script>
 <style>
 
@@ -24,7 +24,7 @@ td.amplicon, td.hdr:not(:empty) {
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
 
-<h1>Import MiSEQ sequencing</h1>
+<h1>MiSeq analysis</h1>
 <form method="POST" enctype="multipart/form-data"
     action="[% c.uri_for('/user/miseq/submit') %]">
     <div class="form-group">
@@ -104,8 +104,8 @@ td.amplicon, td.hdr:not(:empty) {
     </div>
     <div class="form-group">
         <button type="submit" class="btn btn-primary" id="miseqSubmit">
-            <i class="glyphicon glyphicon-import"></i>
-            Import
+            <i class="glyphicon glyphicon-send"></i>
+            Submit
         </button>
     </div>
     <input type="hidden" name="run_data" id="runData">
