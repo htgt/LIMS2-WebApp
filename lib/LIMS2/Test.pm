@@ -259,6 +259,7 @@ sub load_static_files {
             Backbone
             Cassette
             CassetteFunction
+            Species
             CellLine
             ColonyCountType
             CrisprPrimerType
@@ -280,7 +281,6 @@ sub load_static_files {
             Recombinase
             RecombineeringResultType
             Role
-            Species
             Chromosome
             Assembly
             BacLibrary
