@@ -15,14 +15,14 @@ with 'MooseX::Log::Log4perl';
 
 has file_api => (
     is         => 'ro',
-    isa        => 'HTGT::QC::Util::FileAccessServer',
+    isa        => 'WebAppCommon::Util::RemoteFileAccess',
     lazy_build => 1,
     handles    => [qw/post_file_content/],
 );
 
 sub _build_file_api {
-    return HTGT::QC::Util::FileAccessServer->new(
-        { file_api_url => $ENV{FILE_API_URL}, } );
+    return WebAppCommon::Util::FileAccess->construct(
+        { server => $ENV{LIMS2_FILE_ACCESS_SERVER}, } );
 }
 
 has farm_job_runner => (
@@ -71,6 +71,7 @@ sub _build_spreadsheet_columns {
     $columns{min_index}         = qr/^\d+$/xms;
     $columns{max_index}         = qr/^\d+$/xms;
     $columns{hdr}               = qr/^[ACGT]*$/ixms;
+    $columns{offset_384}        = qr/^0|1$/xms;
     return \%columns;
 }
 
@@ -113,8 +114,9 @@ sub _get_plates {
                 my $barcode = $barcodes{$name} // 0;
                 my @exps = ();
                 foreach my $exp ( @{$experiments} ) {
-                    if (   ( $barcode >= $exp->{min_index} )
-                        && ( $barcode <= $exp->{max_index} ) )
+                    my ( $min_index, $max_index ) = _get_correct_indexes($exp);
+                    if (   ( $barcode >= $min_index )
+                        && ( $barcode <= $max_index ) )
                     {
                         push @exps, $exp;
                     }
@@ -133,6 +135,17 @@ sub _get_plates {
     return \@plates;
 }
 
+sub _get_correct_indexes {
+    my ( $exp ) = @_;
+    my $min_index = $exp->{min_index};
+    my $max_index = $exp->{max_index};
+    if ( $exp->{offset_384} ) {
+        $min_index += 384;
+        $max_index += 384;
+    }
+    return ( $min_index, $max_index );
+}
+
 #this mostly exists to stop it breaking when running with dry_run
 sub _get_dependency {
     my ( $self, @jobs ) = @_;
@@ -144,16 +157,20 @@ sub _submit_crispresso {
 
     my $id = $exp->{experiment};
     my @crisprs = split q/,/, uc( $exp->{crispr} );
-    $exp->{strand} = $exp->{strand} ? $exp->{strand} : '+';
     if ( $exp->{strand} eq '-' ) {
         foreach my $crispr (@crisprs) {
             $crispr = revcom_as_string($crispr);
         }
     }
+    my ( $min_index, $max_index ) = _get_correct_indexes($exp);
+    my $offset = 0;
+    if ( $min_index > 384 ) {
+        $offset = 384;
+    }
     return $self->farm_job_runner->submit(
         {
             name => sprintf( 'cp_%s[%d-%d]',
-                $id, $exp->{min_index}, $exp->{max_index} ),
+                $id, $min_index, $max_index ),
             cwd          => $path,
             out_file     => "cp_$id.%J.%I.out",
             err_file     => "cp_$id.%J.%I.err",
@@ -163,6 +180,8 @@ sub _submit_crispresso {
                 '-g' => ( join q/,/, @crisprs ),
                 '-a' => $exp->{amplicon},
                 '-n' => $id,
+                '-o' => $offset,
+                '-e' => $exp->{hdr},
             ],
         }
     );
@@ -224,18 +243,20 @@ sub process {
     } @{$experiments};
     $stash->{crispresso_jobs} = \@crispresso_jobs;
 
+    # Moving to warehouse fails as the farm doesn't have access
     my $move_job = $self->farm_job_runner->submit(
         {
-            name     => 'move_miseq_data',
-            cwd      => $path,
-            out_file => 'mv.%J.out',
-            err_file => 'mv.%J.err',
-            cmd      => [
+            name         => 'move_miseq_data',
+            cwd          => $path,
+            out_file     => 'mv.%J.out',
+            err_file     => 'mv.%J.err',
+            dependencies => $self->_get_dependency(@crispresso_jobs),
+            dep_type     => 'ended',
+            cmd          => [
                 catfile( $scripts, 'move_miseq_data.sh' ),
                 '-p' => $destination,
                 '-r' => $raw_dest,
             ],
-            dependencies => $self->_get_dependency(@crispresso_jobs),
         }
     );
 
@@ -251,6 +272,7 @@ sub _check_object {
         my @columns = keys %{ $row };
         $self->_validate_columns(@columns);
         $self->_validate_values($row);
+        $self->_validate_indexes($row);
         push @rows, $row;
     }
 
@@ -261,7 +283,7 @@ sub _validate_columns {
     my ( $self, @given_columns ) = @_;
     my %columns = map { $_ => 1 } @given_columns;
     my @missing = ();
-    foreach my $column ( @given_columns ) {
+    foreach my $column ( $self->columns ) {
         if ( not exists $columns{$column} ) {
             push @missing, $column;
         }
@@ -273,7 +295,7 @@ sub _validate_columns {
 }
 
 sub _validate_value {
-    my ( $row, $key, $validator, $line ) = @_;
+    my ( $row, $key, $validator ) = @_;
     my $value = $row->{$key} // q//;
     if ( not $value =~ $validator ) {
         my $name = $row->{experiment};
@@ -286,6 +308,14 @@ sub _validate_values {
     my ( $self, $row ) = @_;
     foreach my $column ( $self->columns ) {
         _validate_value( $row, $column, $self->get_rule($column) );
+    }
+    return;
+}
+
+sub _validate_indexes {
+    my ( $self, $row ) = @_;
+    if ( $row->{min_index} > 384 or $row->{max_index} > 384 ) {
+        die "Indexes should be below 384 for $row->{experiment}";
     }
     return;
 }

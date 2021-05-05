@@ -1,7 +1,7 @@
-[% META title = "Importing MiSEQ sequencing"; META tab_name = "MiSEQ" %]
+[% META title = "MiSeq analysis"; META tab_name = "MiSEQ" %]
 <link rel="stylesheet" type="text/css" href="[% c.uri_for('/static/css/platewells.css') %]" />
 [% IF job_id %]
-    <h1>Importing MiSEQ sequencing...</h1>
+    <h1>Analysis in progress...</h1>
     <div id="plates">
     [% USE String %]
     [% FOREACH plate IN plates %]<div class="well-plate">
