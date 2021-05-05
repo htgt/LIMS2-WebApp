@@ -194,7 +194,7 @@ $('#spreadsheet').on('change', function(evt) {
 $('#miseqSubmit').on('click', function() {
     var exps = Object.values(expData);
     exps.forEach(function(exp) {
-        var offset384  = document.getElementById(exp['experiment'] + '-offset').checked;
+        var offset384 = $('#' + exp['experiment'] + '-offset').prop('checked');
         expData[ exp['experiment'] ]['offset_384'] = offset384;
     });
     $('#runData').val(JSON.stringify(expData));
@@ -252,7 +252,7 @@ function buildTable() {
 }
 
 function buildRowOffset (exp) {
-    offsetId = exp['experiment'] + '-offset';
+    var offsetId = exp['experiment'] + '-offset';
     $('#' + exp['experiment']).append(
         $('<td>')
             .html('<input type="checkbox" id="' + offsetId + '"/>')
