@@ -86,7 +86,7 @@ sub all_tests : Test(80) {
         isa_ok $gene_designs, ref [];
         isa_ok $_, 'LIMS2::Model::Schema::Result::GeneDesign' for @{$gene_designs};
 
-        isa_ok $pager, 'Data::Page';
+        isa_ok $pager, 'DBIx::Class::ResultSet::Pager';
 
     }
 
