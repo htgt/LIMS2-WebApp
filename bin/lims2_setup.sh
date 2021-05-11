@@ -393,16 +393,6 @@ Files:
 END
 }
 
-printf "Environment setup for lims2. Type 'lims2 help' for help on commands.\n"
-if [[ -f $HOME/.lims2_local ]] ; then
-    printf "Sourcing local mods to lims2 environment\n"
-    source $HOME/.lims2_local
-fi
-
-if [[ !"$PGUSER" ]]; then
-    export PGUSER=lims2
-fi
-
 export REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf
 export LIMS2_WEBAPP_CONFIG=/opt/sci/global/conf/lims2/webapp.conf
 export PERL5LIB=/opt/sci/global/software/lims2/lib/
@@ -412,3 +402,12 @@ export LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
 export LIMS2_TEMP=/opt/sci/local/tmp
 export LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml
 
+printf "Environment setup for lims2. Type 'lims2 help' for help on commands.\n"
+if [[ -f $HOME/.lims2_local ]] ; then
+    printf "Sourcing local mods to lims2 environment\n"
+    source $HOME/.lims2_local
+fi
+
+if [[ !"$PGUSER" ]]; then
+    export PGUSER=lims2
+fi
