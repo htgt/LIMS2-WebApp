@@ -137,7 +137,8 @@ ENV LIMS2_DB=$database \
     LIMS2_FILE_ACCESS_SERVER=$file_access \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
     LIMS2_ENSEMBL_USER=anonymous \
-    LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk
+    LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
+    LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_url.conf
 
 #
 # Set up the environemnt and allow webapp launch with FCGI
