@@ -210,8 +210,8 @@ sub all_tests : Test(57) {
             $job,
             {
                 bsub_options => {
-                    '-o' => "cp_$exp->{experiment}.%J.%I.out",
-                    '-e' => "cp_$exp->{experiment}.%J.%I.err",
+                    '-o' => "S%I_exp$exp->{experiment}/job.out",
+                    '-e' => "S%I_exp$exp->{experiment}/job.err",
                     '-J' => sprintf( 'cp_%s[%d-%d]',
                         $exp->{experiment}, $exp->{min_index},
                         $exp->{max_index} ),

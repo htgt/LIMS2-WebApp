@@ -162,18 +162,14 @@ sub _submit_crispresso {
             $crispr = revcom_as_string($crispr);
         }
     }
-    my ( $min_index, $max_index ) = _get_correct_indexes($exp);
-    my $offset = 0;
-    if ( $min_index > 384 ) {
-        $offset = 384;
-    }
+    my $offset = $exp->{offset_384} ? 384 : 0;
     return $self->farm_job_runner->submit(
         {
             name => sprintf( 'cp_%s[%d-%d]',
-                $id, $min_index, $max_index ),
+                $id, $exp->{min_index}, $exp->{max_index} ),
             cwd          => $path,
-            out_file     => "cp_$id.%J.%I.out",
-            err_file     => "cp_$id.%J.%I.err",
+            out_file     => "S%I_exp$id/job.out",
+            err_file     => "S%I_exp$id/job.err",
             dependencies => $dependencies,
             cmd          => [
                 $crispresso_script,
