@@ -376,9 +376,7 @@ $DB::single=1;
 
 sub format_location {
     my $loci = shift;
-    my ( $chr, $start, $end ) =
-      ( $loci->{chr_name}, $loci->{chr_start}, $loci->{chr_end} );
-    return "$chr:$start-$end";
+    return sprintf('%s:%d-%d', @{$loci}{qw/chr_name chr_start chr_end/});
 }
 
 sub miseq_example : Path( '/user/batchdesign/miseq_example' ) : Args(0) {
