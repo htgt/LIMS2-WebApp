@@ -1,0 +1,13 @@
+build-job:
+  stage: build
+  script:
+    # Use symlink to run tests from their 'usual' directory.
+    - ln -sfn $CI_PROJECT_DIR ~/dev
+
+test-job:
+  stage: test
+  script:
+    - cd ~/dev/LIMS2-WebApp
+    - source bin/lims2_setup.sh
+    - lims2 test
+    - prove -lr t

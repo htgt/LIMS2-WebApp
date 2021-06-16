@@ -6,6 +6,8 @@ use LIMS2::Model::Util::CreateMiseqDesign;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 use File::Temp ':seekable';
 
+use Test::More skip_all => "See LIMS 2.0 - Issue 12653";
+
 use strict;
 
 BEGIN { *CreateMiseqDesign:: = \*LIMS2::Model::Util::CreateMiseqDesign:: };
