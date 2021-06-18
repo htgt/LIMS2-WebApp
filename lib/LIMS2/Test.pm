@@ -307,6 +307,7 @@ sub load_static_files {
             MiseqAllelesFrequency
             IndelHistogram
             CrispressoSubmission
+            AmpliconType
         )
 
     );

@@ -323,8 +323,8 @@ sub all_tests : Test(158) {
         ok my $di = LIMS2::Model::Util::DesignInfo->new( { design => $design } ),
             'can grab new design info object';
 
-        is $di->target_region_start,136993159, 'correct target region start';
-        is $di->target_region_end,136993258, 'correct target region start';
+        is $di->target_region_start, 136993159, 'correct target region start';
+        is $di->target_region_end, 136993258, 'correct target region start';
         is $di->chr_strand, -1, 'correct strand';
         is $di->chr_name, 9, 'correct chromosome';
         ok my $target_region_slice = $di->target_region_slice, 'can grab target region slice';
