@@ -90,6 +90,12 @@ libpq-dev
 #
 RUN cd /tmp && wget http://mirrors.kernel.org/ubuntu/pool/multiverse/liba/libapache-mod-fastcgi/libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb && dpkg -i libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb && apt install -f
 
+# The following modules have broken tests, however it seems to be issues with the tests themselves, there's no indicator that the production code is broken.
+# Bio::DB::GenBank - PR for fix here: https://github.com/bioperl/Bio-DB-NCBIHelper/pull/7
+# DBD::Pg - This seems to have been fixed - https://github.com/bucardo/dbdpg/issues/79 - but the changes don't seem to have made it back to cpan.
+RUN cpan -T Bio::DB::GenBank \
+DBD::Pg
+
 #
 # Install Perl modules
 RUN cpan -i Moose \
@@ -157,7 +163,6 @@ Config::Scoped \
 MooseX::StrictConstructor \
 Crypt::SaltedHash \
 Crypt::PBKDF2 \
-DBD::Pg \
 Template::AutoFilter \
 Readonly \
 IPC::System::Simple \
@@ -202,7 +207,5 @@ Dist::Zilla::Plugin::Git::NextVersion \
 Test::More \
 ExtUtils::PkgConfig \
 GD \
-Bio::DB::GenBank \
-DBD::Pg \
 Bio::DB::Query::GenBank \
 Bio::Tools::Run::WrapperBase
