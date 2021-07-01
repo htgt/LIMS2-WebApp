@@ -1,0 +1,4 @@
+FROM sci/lims2:fs
+
+# Allow webapp launch with FCGI
+CMD ["/home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh"]
