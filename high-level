@@ -129,6 +129,7 @@ RUN git checkout $branch
 # temp executions
 COPY lims2-webapp-filesystem/lims2_conf/lims2_webapp.sh /home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh
 
+# Set up the environment
 ENV LIMS2_DB=$database \
     LIMS2_RNA_SEQ=$rna_seq \
     WAREHOUSE_RNA_SEQ=$rna_seq \
@@ -139,9 +140,3 @@ ENV LIMS2_DB=$database \
     LIMS2_ENSEMBL_USER=anonymous \
     LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
     LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_urls.conf
-
-#
-# Set up the environemnt and allow webapp launch with FCGI
-CMD ["/home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh"]
-
-

@@ -1,0 +1,16 @@
+FROM sci/lims2:fs
+
+ARG database=LIMS2_TEST_USER
+
+ENV LIMS2_DB=$database \
+    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
+    PERL5LIB=/opt/sci/global/software/lims2/lib/ \
+    USER=user
+
+WORKDIR /home/user/git_checkout/LIMS2-WebApp
+SHELL ["/bin/bash", "-c"]
+
+CMD source bin/lims2_setup.sh && \
+    lims2 replicate test && \
+    lims2 test && \
+    prove -lvr /home/user/git_checkout/LIMS2-WebApp/t
