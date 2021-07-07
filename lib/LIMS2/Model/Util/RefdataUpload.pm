@@ -50,7 +50,7 @@ sub load_csv_file {
     catch {
         DEBUG( "Error inserting csv data ('" . $_ . "')" );
         DEBUG( "Result set - " . $rs->result_class );
-        LIMS2::Exception::Validation->throw( "Result set - "  . " Rec - " . $rec_copy );
+        LIMS2::Exception::Validation->throw( "Result set - "  . " Rec - " . $rec_copy . $_ );
         #"Error inserting csv data: " . $_
     };
 
