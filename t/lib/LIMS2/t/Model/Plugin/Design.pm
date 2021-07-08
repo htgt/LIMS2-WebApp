@@ -376,10 +376,12 @@ sub design_attempts : Tests(8) {
 
 }
 
-sub existing_design_check : Test(5) {
-    my $design_params = {design_type_id => 'miseq-hdr',
+sub test_existing_design_check {
+    my ($design_type, $hdr, $chr_start, $expected, $description) = @_;
+    my $design_params = {design_type_id => $design_type,
+        hdr_template => $hdr,
         oligos => [
-            {loci => [{chr_start => 60743094,
+            {loci => [{chr_start => $chr_start,
                         chr_end => 60743114}]},
             {loci => [{chr_start => 60742588,
                         chr_end => 60742608}]},
@@ -388,16 +390,17 @@ sub existing_design_check : Test(5) {
             {loci => [{chr_start => 60742936,
                         chr_end => 60742956}]}
         ]};
-    is model->existing_design_check($design_params), 123456, 'Returns match when no HDR provided';
-    $design_params->{hdr_template} = 'GCTA';
-    is model->existing_design_check($design_params), undef, 'No match returned when different HDR provided';
-    $design_params->{hdr_template} = 'ATCG';
-    is model->existing_design_check($design_params), 123456, 'Returns match when existing HDR provided';
-    $design_params->{design_type_id} = 'miseq-nhej';
-    is model->existing_design_check($design_params), undef, 'No match returned when different design type provided';
-    $design_params->{design_type_id} = 'miseq-hdr';
-    $design_params->{oligos}[0]->{loci}[0]->{chr_start} = 60743095;
-    is model->existing_design_check($design_params), undef, 'No match returned when different oligos provided';
+    is model->existing_design_check($design_params), $expected, $description;
+    return;
+}
+
+sub existing_design_check : Test(5) {
+    test_existing_design_check('miseq-hdr', '', 60743094, 123456, 'Returns match when no HDR provided');
+    test_existing_design_check('miseq-hdr', 'GCTA', 60743094, undef, 'No match returned when different HDR provided');
+    test_existing_design_check('miseq-hdr', 'ATCG', 60743094, 123456, 'Returns match when existing HDR provided');
+    test_existing_design_check('miseq-nhej', 'ATCG', 60743094, undef, 'No match returned when different design type provided');
+    test_existing_design_check('miseq-hdr', 'ATCG', 60743095, undef, 'No match returned when different oligos provided');
+    return;
 }
 
 ## use critic
