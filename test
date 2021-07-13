@@ -7,6 +7,36 @@ ENV LIMS2_DB=$database \
     PERL5LIB=/opt/sci/global/software/lims2/lib/ \
     USER=user
 
+ARG file_api_url
+
+# Got by diffing the output of printenv for web_app and test
+ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
+    DEFAULT_CRISPR_ES_QC_DIR=/tmp/lims2_crispr_es_qc \
+    FILE_API_URL=$file_api_url \
+    HTGT_QC_CONF=/opt/sci/global/conf/qc.conf \
+    LIMS2_BWA_OLIGO_DIR=/home/ubuntu/bwa_dump/ \
+    LIMS2_ERRBIT_CONFIG=/opt/sci/global/conf/errbit.yaml \
+    LIMS2_HTGT_KEY=/opt/sci/global/conf/htgt_key.conf \
+    LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf \
+    LIMS2_LOG4PERL_CONFIG=/opt/sci/global/conf/lims2/log4perl.default.conf \
+    LIMS2_MISEQ_PROCESS_PATH=/lustre/scratch117/sciops/team87/MiSeq \
+    LIMS2_MISEQ_RAW_PATH=/warehouse/team229_wh01/illumina_managed_miseq_archive/miseq_import \
+    LIMS2_MISEQ_SCRIPTS_PATH=/nfs/team87/farm5/software/LIMS2-Scripts/bin \
+    LIMS2_MISEQ_STORAGE_PATH=/warehouse/team229_wh01/lims2_managed_miseq_data/miseq_import \
+    LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/primer3_crispr_sequencing_config.yaml \
+    LIMS2_PRIMER3_MISEQ_PCR_CONFIG=/nfs/sci/farm/conf/primers/primer3_pcr_crispr_miseq_config.yaml \
+    LIMS2_PRIMER_SELECTION_DIR=/tmp/ \
+    LIMS2_REPORT_CACHE_CONFIG=/opt/sci/global/conf/lims2/cache_report_conf.yaml \
+    LIMS2_REST_CLIENT=/nfs/sci/farm/conf/lims2-live-rest-client.conf \
+    LIMS2_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/lims2-live-rest-client.conf \
+    LIMS2_SEQ_ARCHIVE_DIR=/warehouse/team229_wh01/eurofins_order_archive_data \
+    LIMS2_SEQ_FILE_DIR=/warehouse/team229_wh01/lims2_managed_sequencing_data \
+    LIMS2_SHARED=/home/user/git_checkout \
+    NFS_HTGT_QC_CONF=/nfs/sci/htgt/htgt_root/config/qc.conf \
+    PERL_LWP_ENV_PROXY=1 \
+    VEP_CACHE_DIR=/nfs/sci/vep_cache \
+    XA2MULTI_CMD=/opt/sci/global/software/bwa/xa2multi.pl
+
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
