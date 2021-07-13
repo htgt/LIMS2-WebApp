@@ -308,6 +308,12 @@ sub load_static_files {
             IndelHistogram
             CrispressoSubmission
             AmpliconType
+            User
+            Design
+            DesignOligo
+            DesignOligoLocus
+            Amplicon
+            DesignAmplicon
         )
 
     );
