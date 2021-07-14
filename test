@@ -37,6 +37,10 @@ ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
     VEP_CACHE_DIR=/nfs/sci/vep_cache \
     XA2MULTI_CMD=/opt/sci/global/software/bwa/xa2multi.pl
 
+# Adding by analysing failed tests
+# ENG_SEQ_BUILDER_CONF is different for dev/prod
+ENV ENG_SEQ_BUILDER_CONF=/opt/sci/global/conf/eng-seq-builder.devel.yaml
+
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
