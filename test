@@ -47,6 +47,9 @@ ENV SKIP_WGE_IMPORT_TESTS=1
 # Following previous ansible configuration
 ENV LIMS2_ALLELE_DET_CONFIG=/opt/sci/global/conf/allele_determination.conf
 
+# Stub just to 'Odd number of elements in anonymous hash' error
+ENV BASESPACE_TOKEN=12345
+
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
