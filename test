@@ -41,6 +41,9 @@ ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
 # ENG_SEQ_BUILDER_CONF is different for dev/prod
 ENV ENG_SEQ_BUILDER_CONF=/opt/sci/global/conf/eng-seq-builder.devel.yaml
 
+# Skipped due to 'WGE inaccessible from deployment environment'.
+ENV SKIP_WGE_IMPORT_TESTS=1
+
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
