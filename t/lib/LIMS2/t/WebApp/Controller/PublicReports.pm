@@ -119,7 +119,7 @@ sub targeting_type_validation : Tests {
 
     ok(2, "Testing targeting type validation");
 
-    $mech->get_ok("/public_reports/sponsor_report/single_targeted?species=Mouse");
+    $mech->get_ok("/public_reports/sponsor_report/single_targeted?species=Mouse&cache_param=without_cache");
     $mech->content_contains('Pipeline I Summary Report');
     $mech->get_ok("/public_reports/sponsor_report/single_targeted' OR 1=1; SELECT * from species?species=Mouse");
     $mech->content_contains('No projects found for this species / targeting type.');
