@@ -56,6 +56,11 @@ ENV CRISPR_SEQUENCING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/crispr_sequencing
     CRISPR_PCR_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/crispr_pcr_primer_conf.yaml \
     DESIGN_GENOTYPING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/design_genotyping_primer_conf.yaml
 
+# We use a volume to store the fasta index files
+ARG human_fa=/home/user/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+ENV DESIGN_CREATION_HUMAN_FA=$human_fa \
+    BWA_REF_GENOME_HUMAN_FA=$human_fa
+
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
