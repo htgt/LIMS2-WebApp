@@ -28,7 +28,6 @@ ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
     LIMS2_SEQ_ARCHIVE_DIR=/warehouse/team229_wh01/eurofins_order_archive_data \
     LIMS2_SEQ_FILE_DIR=/warehouse/team229_wh01/lims2_managed_sequencing_data \
     LIMS2_SHARED=/home/user/git_checkout \
-    NFS_HTGT_QC_CONF=/nfs/sci/htgt/htgt_root/config/qc.conf \
     PERL_LWP_ENV_PROXY=1 \
     VEP_CACHE_DIR=/nfs/sci/vep_cache \
     XA2MULTI_CMD=/opt/sci/global/software/bwa/xa2multi.pl
