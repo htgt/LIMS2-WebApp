@@ -24,7 +24,6 @@ ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
     LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/primer3_crispr_sequencing_config.yaml \
     LIMS2_PRIMER3_MISEQ_PCR_CONFIG=/nfs/sci/farm/conf/primers/primer3_pcr_crispr_miseq_config.yaml \
     LIMS2_PRIMER_SELECTION_DIR=/tmp/ \
-    LIMS2_REPORT_CACHE_CONFIG=/opt/sci/global/conf/lims2/cache_report_conf.yaml \
     LIMS2_REST_CLIENT=/nfs/sci/farm/conf/lims2-live-rest-client.conf \
     LIMS2_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/lims2-live-rest-client.conf \
     LIMS2_SEQ_ARCHIVE_DIR=/warehouse/team229_wh01/eurofins_order_archive_data \
