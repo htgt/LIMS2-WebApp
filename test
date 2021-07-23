@@ -15,7 +15,6 @@ ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
     FILE_API_URL=$file_api_url \
     HTGT_QC_CONF=/opt/sci/global/conf/qc.conf \
     LIMS2_BWA_OLIGO_DIR=/home/ubuntu/bwa_dump/ \
-    LIMS2_ERRBIT_CONFIG=/opt/sci/global/conf/errbit.yaml \
     LIMS2_HTGT_KEY=/opt/sci/global/conf/htgt_key.conf \
     LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf \
     LIMS2_LOG4PERL_CONFIG=/opt/sci/global/conf/lims2/log4perl.default.conf \
