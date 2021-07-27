@@ -84,7 +84,8 @@ sudo \
 liblocal-lib-perl \
 pkg-config \
 libgd-dev \
-libpq-dev
+libpq-dev \
+unattended-upgrades
 
 #
 #
