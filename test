@@ -10,6 +10,24 @@ ENV LIMS2_DB=$database \
 ARG file_api_url
 
 # Got by diffing the output of printenv for web_app and test
+# Note that some envars that pointed to config files have been removed to avoid leaking production config in to dev/test.
+# Of those that are left:
+# HTGT_QC_CONF=/opt/sci/global/conf/qc.conf - just contains gene sequence related data.
+# LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf - This is needed for
+# the LIMS2::Model::Util::CreKiESDistribution module. It seems that that host listed in the
+# config file no longer exists. The tests need a config file to run, but it seems that there
+# is no actual database coneection made - as proved by changing the values in the config
+# file to nonsense. The whole package under test can probably be removed, but for now we will
+# continue using this config.
+# LIMS2_LOG4PERL_CONFIG=/opt/sci/global/conf/lims2/log4perl.default.conf - Just basic logging config.
+# LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG=/nfs/sci/farm/conf/primers/primer3_crispr_sequencing_config.yaml
+# - Bio-informatics related config.
+# LIMS2_PRIMER3_MISEQ_PCR_CONFIG=/nfs/sci/farm/conf/primers/primer3_pcr_crispr_miseq_config.yaml
+# - Bio-informatics related config.
+# LIMS2_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/lims2-live-rest-client.conf - This is needed by
+# t/LIMS2/Model/Util/10_LIMS2_Model_Util_MiseqImport.t - due to the MiseqImport using
+# WepAppCommon::Util::Jobrunner. Although the env-var neds to be set, the file pointed to doesn't need to
+# exist (to get the tests to pass)
 ENV BWA_CMD=/opt/sci/global/software/bwa/bwa \
     DEFAULT_CRISPR_ES_QC_DIR=/tmp/lims2_crispr_es_qc \
     FILE_API_URL=$file_api_url \
