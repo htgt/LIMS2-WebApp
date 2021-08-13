@@ -77,8 +77,7 @@ sub choose_closest_primer_hit {
     if ( exists $hits->{hit_locations} ) {
         push @candidates, @{ $hits->{hit_locations} };
     }
-    my $target_chr = 'chr' . $target->{chr_name};
-    @candidates = grep { $_->{chr} eq $target_chr } @candidates;
+    @candidates = grep { $_->{chr} eq $target->{chr_name} } @candidates;
     return if not @candidates;
     my $best          = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
@@ -94,12 +93,10 @@ sub choose_closest_primer_hit {
 
 sub loci_builder {
     my ( $target_loci, $primer, $oligo_hits ) = @_;
-$DB::single=1;
-    #my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
-    #if ( not defined $oligo_bwa ) {
-    #    return;
-   # }
-    my $oligo_bwa = $oligo_hits;
+    my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
+    if ( not defined $oligo_bwa ) {
+        return;
+    }
     my $oligo_len = length( $primer->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};

@@ -6,11 +6,11 @@ use Test::Most;
 use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit/;
 
 sub _create_hits {
-    my $result = { chr => 'chr' . shift, start => shift };
+    my $result = { chr => shift, start => shift };
     if(@_){
         my @alternatives = ();
         while(@_){
-            push @alternatives, { chr => 'chr' . shift, start => shift }; 
+            push @alternatives, { chr => shift, start => shift };
         }
         $result->{hit_locations} = \@alternatives;
     }
