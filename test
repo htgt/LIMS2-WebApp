@@ -4,7 +4,7 @@ ARG database=LIMS2_TEST_USER
 
 ENV LIMS2_DB=$database \
     LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
-    PERL5LIB=/opt/sci/global/software/lims2/lib/ \
+    PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib:/opt/sci/global/software/lims2/lib/ \
     USER=user
 
 ARG file_api_url
@@ -77,7 +77,9 @@ ENV DESIGN_CREATION_HUMAN_FA=$human_fa \
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 SHELL ["/bin/bash", "-c"]
 
+# We have to reset the PERL5LIB env-var here as it is sset in lims2_setup.sh.
 CMD source bin/lims2_setup.sh && \
     lims2 replicate test && \
     lims2 test && \
+    export PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib:/opt/sci/global/software/lims2/lib/ && \
     prove -lvr /home/user/git_checkout/LIMS2-WebApp/t
