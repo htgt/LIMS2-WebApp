@@ -8,7 +8,7 @@ use DesignCreate::Util::BWA;
 use Path::Class;
 use WebAppCommon::Util::EnsEMBL;
 use base qw/Exporter/;
-our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq/;
+our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq loci_builder/;
 
 sub generate_bwa_query_file {
     my $primers = shift;
@@ -100,7 +100,6 @@ sub loci_builder {
     my $oligo_len = length( $primer->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};
-    $chr =~ s/chr//xms;
     return {
         chr_start => $oligo_bwa->{start},
         chr_name  => $chr,

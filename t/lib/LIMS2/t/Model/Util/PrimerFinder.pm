@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/Test::Class/;
 use Test::Most;
-use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit/;
+use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit loci_builder/;
 
 sub _create_hits {
     my $result = { chr => shift, start => shift };
@@ -49,6 +49,18 @@ sub test_choose_closest_primer_hit : Test(9) {
         ok not choose_closest_primer_hit( $target, $hits );
     }
 
+}
+
+sub test_loci_builder : Test(2) {
+    my $target = { chr_name => 1, chr_start => 12345 };
+    my $primer = { seq => 'ATCG' };
+    my $hits = _create_hits( 1 => 12300, Y => 12345, 20 => 10000 );
+    my $expected = { chr_start => 12300, chr_name => 1, chr_end => 12303 };
+    is_deeply( loci_builder($target, $primer, $hits), $expected, 'loci_builder returns correct loci' );
+    $target = { chr_name => 13, chr_start => 50000 };
+    $hits = _create_hits( X => 51000, 13 => 49000, 2 => 50000 );
+    $expected = { chr_start => 49000, chr_name => 13, chr_end => 49003 };
+    is_deeply( loci_builder($target, $primer, $hits), $expected, 'loci_builder returns correct loci' );
 }
 
 1;
