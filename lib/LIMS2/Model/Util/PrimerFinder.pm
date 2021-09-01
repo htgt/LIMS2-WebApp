@@ -8,7 +8,7 @@ use DesignCreate::Util::BWA;
 use Path::Class;
 use WebAppCommon::Util::EnsEMBL;
 use base qw/Exporter/;
-our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq/;
+our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq loci_builder/;
 
 sub generate_bwa_query_file {
     my $primers = shift;
@@ -47,11 +47,11 @@ Selects the candidate hit from BWA output nearest to a given target.
     # the hits object is read from the BWA YAML output, will look like:
     # $hits = {
     #   exf => {
-    #       chr => 'chrX',
+    #       chr => 'X',
     #       start => 47169187,
     #       hit_locations => [
-    #           { chr => 'chr9', start => 15093992 },
-    #           { chr => 'chr3', start => 130686952 },
+    #           { chr => '9', start => 15093992 },
+    #           { chr => '3', start => 130686952 },
     #           ...
     #       ],
     #   },
@@ -60,9 +60,11 @@ Selects the candidate hit from BWA output nearest to a given target.
 
     my $best = choose_closest_primer_hit ( $target, $hits );
     # $best = {
-    #   chr   => 'chr9',
+    #   chr   => '9',
     #   start => 15093992,
     # };
+
+    # note: chr can also have 'chr' at the start
 
 Note that choose_closest_primer_hit returns the closest hit as output by BWA,
 with no attempt to munge the properties into the format expected elsewhere.
@@ -77,8 +79,7 @@ sub choose_closest_primer_hit {
     if ( exists $hits->{hit_locations} ) {
         push @candidates, @{ $hits->{hit_locations} };
     }
-    my $target_chr = 'chr' . $target->{chr_name};
-    @candidates = grep { $_->{chr} eq $target_chr } @candidates;
+    @candidates = grep { $_->{chr} =~ /^(?:chr)?$target->{chr_name}/ } @candidates;
     return if not @candidates;
     my $best          = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
@@ -94,12 +95,10 @@ sub choose_closest_primer_hit {
 
 sub loci_builder {
     my ( $target_loci, $primer, $oligo_hits ) = @_;
-$DB::single=1;
-    #my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
-    #if ( not defined $oligo_bwa ) {
-    #    return;
-   # }
-    my $oligo_bwa = $oligo_hits;
+    my $oligo_bwa = choose_closest_primer_hit( $target_loci, $oligo_hits );
+    if ( not defined $oligo_bwa ) {
+        return;
+    }
     my $oligo_len = length( $primer->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};

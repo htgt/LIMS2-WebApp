@@ -3,21 +3,21 @@ use strict;
 use warnings;
 use base qw/Test::Class/;
 use Test::Most;
-use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit/;
+use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit loci_builder/;
 
 sub _create_hits {
-    my $result = { chr => 'chr' . shift, start => shift };
+    my $result = { chr => shift, start => shift };
     if(@_){
         my @alternatives = ();
         while(@_){
-            push @alternatives, { chr => 'chr' . shift, start => shift }; 
+            push @alternatives, { chr => shift, start => shift };
         }
         $result->{hit_locations} = \@alternatives;
     }
     return $result;
 }
 
-sub test_choose_closest_primer_hit : Test(9) {
+sub test_choose_closest_primer_hit : Test(12) {
     my $target = { chr_name => 13, chr_start => 50000 };
     note('first hit is best');
     {
@@ -43,12 +43,35 @@ sub test_choose_closest_primer_hit : Test(9) {
         ok my $best = choose_closest_primer_hit( $target, $hits );
         is($best->{start}, 60000);
     }
+    note('works when chromosome starts with \'chr\'');
+    {
+        my $hits = _create_hits( chr13 => 60000, chr2 => 51000, chr13 => 20000 );
+        ok my $best = choose_closest_primer_hit( $target, $hits );
+        is($best->{start}, 60000);
+    }
+    note('does not work when chromosome starts with \'chrom\'');
+    {
+        my $hits = _create_hits( chrom13 => 60000, chrom2 => 51000, chrom13 => 20000 );
+        ok not choose_closest_primer_hit( $target, $hits );
+    }
     note('no appropriate candidates');
     {
         my $hits = _create_hits( 12 => 80000, X => 51000, 2 => 50000 );
         ok not choose_closest_primer_hit( $target, $hits );
     }
 
+}
+
+sub test_loci_builder : Test(2) {
+    my $target = { chr_name => 1, chr_start => 12345 };
+    my $primer = { seq => 'ATCG' };
+    my $hits = _create_hits( 1 => 12300, Y => 12345, 20 => 10000 );
+    my $expected = { chr_start => 12300, chr_name => 1, chr_end => 12303 };
+    is_deeply( loci_builder($target, $primer, $hits), $expected, 'loci_builder returns correct loci when closest hit first in list' );
+    $target = { chr_name => 13, chr_start => 50000 };
+    $hits = _create_hits( X => 51000, 13 => 49000, 2 => 50000 );
+    $expected = { chr_start => 49000, chr_name => 13, chr_end => 49003 };
+    is_deeply( loci_builder($target, $primer, $hits), $expected, 'loci_builder returns correct loci when closest hit second in list' );
 }
 
 1;
