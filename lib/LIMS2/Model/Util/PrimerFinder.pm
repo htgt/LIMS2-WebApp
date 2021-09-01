@@ -47,11 +47,11 @@ Selects the candidate hit from BWA output nearest to a given target.
     # the hits object is read from the BWA YAML output, will look like:
     # $hits = {
     #   exf => {
-    #       chr => 'chrX',
+    #       chr => 'X',
     #       start => 47169187,
     #       hit_locations => [
-    #           { chr => 'chr9', start => 15093992 },
-    #           { chr => 'chr3', start => 130686952 },
+    #           { chr => '9', start => 15093992 },
+    #           { chr => '3', start => 130686952 },
     #           ...
     #       ],
     #   },
@@ -60,9 +60,11 @@ Selects the candidate hit from BWA output nearest to a given target.
 
     my $best = choose_closest_primer_hit ( $target, $hits );
     # $best = {
-    #   chr   => 'chr9',
+    #   chr   => '9',
     #   start => 15093992,
     # };
+
+    # note: chr can also have 'chr' at the start
 
 Note that choose_closest_primer_hit returns the closest hit as output by BWA,
 with no attempt to munge the properties into the format expected elsewhere.
@@ -77,7 +79,7 @@ sub choose_closest_primer_hit {
     if ( exists $hits->{hit_locations} ) {
         push @candidates, @{ $hits->{hit_locations} };
     }
-    @candidates = grep { $_->{chr} eq $target->{chr_name} } @candidates;
+    @candidates = grep { $_->{chr} =~ /^(?:chr)?$target->{chr_name}/ } @candidates;
     return if not @candidates;
     my $best          = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
@@ -100,6 +102,7 @@ sub loci_builder {
     my $oligo_len = length( $primer->{seq} );
     my $oligo_end = $oligo_bwa->{start} + $oligo_len - 1;  #Store to ensembl -1 convention. 
     my $chr       = $oligo_bwa->{chr};
+    $chr =~ s/chr//xms;
     return {
         chr_start => $oligo_bwa->{start},
         chr_name  => $chr,
