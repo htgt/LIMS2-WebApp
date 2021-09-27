@@ -116,6 +116,7 @@ ARG database=LIMS2_STAGING
 ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
 ARG human_fa=/shared/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 ARG file_access=sci-batch-farm5
+ARG solr_url=""
 #
 # Clone the LIMS2-WebApp repo
 RUN mkdir /home/user/git_checkout && cd /home/user/git_checkout && git clone https://github.com/htgt/LIMS2-WebApp.git
@@ -139,4 +140,5 @@ ENV LIMS2_DB=$database \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
     LIMS2_ENSEMBL_USER=anonymous \
     LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
-    LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_urls.conf
+    LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_urls.conf \
+    SOLR_URL=$solr_url
