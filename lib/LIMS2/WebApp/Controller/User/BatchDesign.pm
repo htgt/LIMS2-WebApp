@@ -105,7 +105,7 @@ sub _validate_primers {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = $row->{Gene_Symbol} =~ m/^(\w+)/xms;
+    my ($symbol) = $row->{Gene_Symbol} =~ m/^([a-zA-Z0-9-]+)/xms;
     return {
         wge_id      => $row->{WGE_ID},
         design_type => $row->{Design_Type},
