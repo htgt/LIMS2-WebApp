@@ -297,13 +297,11 @@ sub pcr_genomic_check {
 
     # implement genomic specificity checking using BWA
     #
-    my ($bwa_query_filespec, $work_dir ) = generate_pcr_bwa_query_file( $well_id, $primer_data );
     my $num_bwa_threads = 2;
 
 
     my $bwa = DesignCreate::Util::BWA->new(
-            query_file        => $bwa_query_filespec,
-            work_dir          => $work_dir,
+            primers           => $primer_data,
             species           => $species,
             three_prime_check => 0,
             num_bwa_threads   => $num_bwa_threads,
@@ -327,13 +325,11 @@ sub genomic_check {
     # implement genomic specificity checking using BWA
     #
 
-    my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $well_id, $primer_data );
     my $num_bwa_threads = 2;
 
 
     my $bwa = DesignCreate::Util::BWA->new(
-            query_file        => $bwa_query_filespec,
-            work_dir          => $work_dir,
+            primers           => $primer_data,
             species           => $species,
             three_prime_check => 0,
             num_bwa_threads   => $num_bwa_threads,
@@ -396,67 +392,6 @@ sub del_bad_pairs {
     }
     return $primer_data;
 }
-
-sub generate_pcr_bwa_query_file {
-    my $well_id = shift;
-    my $primer_data = shift;
-
-    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
-    use Data::UUID;
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
-    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file( $well_id . '_oligos.fasta');
-    my $fh = $fasta_file_name->openw();
-    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    return ($fasta_file_name, $dir_out);
-}
-
-
-sub generate_bwa_query_file {
-    my $design_id= shift;
-    my $well_id = shift;
-    my $primer_data = shift;
-
-    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
-    use Data::UUID;
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
-    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file( $design_id . '_oligos.fasta');
-    my $fh = $fasta_file_name->openw();
-    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    return ($fasta_file_name, $dir_out);
-}
-
 
 sub parse_primer3_results {
     my $result = shift;
