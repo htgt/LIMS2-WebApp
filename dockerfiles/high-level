@@ -118,13 +118,14 @@ ARG human_fa=/shared/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 ARG file_access=sci-batch-farm5
 ARG solr_url=""
 #
-# Clone the LIMS2-WebApp repo
-RUN mkdir /home/user/git_checkout && cd /home/user/git_checkout && git clone https://github.com/htgt/LIMS2-WebApp.git
+# Copy over source the LIMS2-WebApp repo
+RUN mkdir -p /home/user/git_checkout/LIMS2-WebApp
+COPY --chown=user:user . /home/user/git_checkout/LIMS2-WebApp/
+RUN rm -rf /home/user/git_checkout/LIMS2-WebApp/lims2-webapp-filesystem
 
 #
 # Define a default working directory
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
-RUN git checkout $branch
 
 #
 # temp executions
