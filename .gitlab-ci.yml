@@ -2,7 +2,7 @@ build-job:
   stage: build
   script:
     - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/low-level --tag sci/lims2:bionic /home/ubuntu/git/
-    - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/high-level --tag sci/lims2:fs /home/ubuntu/git/
+    - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/high-level --tag sci/lims2:fs --no-cache /home/ubuntu/git/
     - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/test --tag sci/lims2:test /home/ubuntu/git/
 test-job:
   stage: test
