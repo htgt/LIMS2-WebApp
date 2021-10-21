@@ -159,4 +159,42 @@ sub create_oligos : Test(10) {
     }
 }
 
+sub _build_data {
+    my ( $input_gene, $output_gene ) = @_;
+    my $input_data = {
+        WGE_ID => 12345,
+        Design_Type => 'miseq-nhej',
+        Gene_Symbol => $input_gene,
+        'CRISPR Sequence' => 'ATCG',
+        'PCR forward' => 'ATCG',
+        'PCR reverse' => 'ATCG',
+        'MiSEQ forward' => 'ATCG',
+        'MiSEQ reverse' => 'ATCG',
+        'HDR template' => 'ATCG'
+    };
+    my $output_data = {
+        wge_id => 12345,
+        design_type => 'miseq-nhej',
+        symbol => $output_gene,
+        crispr_seq => 'ATCG',
+        exf => 'ATCG',
+        exr => 'ATCG',
+        inf => 'ATCG',
+        inr => 'ATCG',
+        hdr => 'ATCG'
+    };
+    return ( $input_data, $output_data );
+}
+
+sub read_line : Test(4) {
+    my ( $input_data, $output_data ) = _build_data('GENE1', 'GENE1');
+    is_deeply(BatchDesign::_read_line($input_data), $output_data, '_read_line output as expected with correctly formatted gene unchanged');
+    ( $input_data, $output_data ) = _build_data('GENE-1', 'GENE-1');
+    is_deeply(BatchDesign::_read_line($input_data), $output_data, '_read_line output as expected with correctly formatted gene with hyphen unchanged');
+    ( $input_data, $output_data ) = _build_data('GENE_1', 'GENE');
+    is_deeply(BatchDesign::_read_line($input_data), $output_data, '_read_line output as expected with gene truncated at the underscore');
+    ( $input_data, $output_data ) = _build_data('GENE 1', 'GENE');
+    is_deeply(BatchDesign::_read_line($input_data), $output_data, '_read_line output as expected with gene truncated at whitespace');
+}
+
 1;
