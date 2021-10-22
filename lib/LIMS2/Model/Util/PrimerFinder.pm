@@ -106,7 +106,7 @@ sub loci_builder {
         inr => { seq => q/TTTATCTTCCTCCATCCAGCC/ }
     };
     
-    locate_primers( 'Human', 'GRCh38', $target_crispr, $primers );
+    locate_primers( 'Human', $target_crispr, $primers );
 
     # $primers = {
     #   exf => {

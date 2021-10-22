@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base qw/Test::Class/;
 use Test::Most;
-use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit loci_builder/;
+use LIMS2::Model::Util::PrimerFinder qw/choose_closest_primer_hit loci_builder locate_primers/;
 
 sub _create_hits {
     my $result = { chr => shift, start => shift };
@@ -72,6 +72,57 @@ sub test_loci_builder : Test(2) {
     $hits = _create_hits( X => 51000, 13 => 49000, 2 => 50000 );
     $expected = { chr_start => 49000, chr_name => 13, chr_end => 49003 };
     is_deeply( loci_builder($target, $primer, $hits), $expected, 'loci_builder returns correct loci when closest hit second in list' );
+}
+
+sub test_locate_primers : Test(1) {
+    my $target_crispr = {
+        wge_crispr_id => 1149665659,
+        locus  => {
+            chr_name   => 17,
+            chr_start  => 58363337,
+        },
+    };
+    my $primers = {
+        exf => { seq => q/TTTGGGCCTCACCTACAGAA/ },
+        exr => { seq => q/CTCACCCCTCACACATCTATC/ },
+        inf => { seq => q/GGGTAAGCACACTAGACCTC/ },
+        inr => { seq => q/TTTATCTTCCTCCATCCAGCC/ }
+    };
+    my $expected = {
+        exf => {
+            loci => {
+                chr_name => 17,
+                chr_start => 58363089,
+                chr_end => 58363108,
+            },
+            seq => q/TTTGGGCCTCACCTACAGAA/,
+        },
+        exr => {
+            loci => {
+                chr_name => 17,
+                chr_start => 58363667,
+                chr_end => 58363687,
+            },
+            seq => q/CTCACCCCTCACACATCTATC/,
+        },
+        inf => {
+            loci => {
+                chr_name => 17,
+                chr_start => 58363257,
+                chr_end => 58363276,
+            },
+            seq => q/GGGTAAGCACACTAGACCTC/,
+        },
+        inr => {
+            loci => {
+                chr_name => 17,
+                chr_start => 58363473,
+                chr_end => 58363493,
+            },
+            seq => q/TTTATCTTCCTCCATCCAGCC/,
+        },
+    };
+    is_deeply(locate_primers('Human', $target_crispr, $primers), $expected, 'locate_primers returns expected data');
 }
 
 1;
