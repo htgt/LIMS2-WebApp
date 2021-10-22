@@ -14,10 +14,10 @@ BEGIN { extends 'Catalyst::Controller' }
 Readonly::Scalar my $MAX_INTERNAL_DISTANCE => 1000;
 Readonly::Scalar my $MAX_EXTERNAL_DISTANCE => 3000;
 Readonly::Hash my %RULES                   => (
-    NUMERIC  => qr/^\d+$ /xms,
-    TYPE     => qr/^miseq\S*/xms,
-    GENE     => qr/^\w+ /xms,
-    SEQUENCE => qr/^[ACTG]+$ /xms,
+    NUMERIC  => qr/^\d+$/,
+    TYPE     => qr/^miseq-(nhej|hdr)$/,
+    GENE     => qr/^[\w-]+$/,
+    SEQUENCE => qr/^[ACTG]+$/,
 );
 Readonly::Hash my %COLUMNS => (
     NUMERIC  => [qw/WGE_ID/],
@@ -105,7 +105,7 @@ sub _validate_primers {
 
 sub _read_line {
     my $row = shift;
-    my ($symbol) = $row->{Gene_Symbol} =~ m/^([a-zA-Z0-9-]+)/xms;
+    my ($symbol) = $row->{Gene_Symbol} =~ m/^([a-zA-Z0-9-]+)/;
     return {
         wge_id      => $row->{WGE_ID},
         design_type => $row->{Design_Type},
