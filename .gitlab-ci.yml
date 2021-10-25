@@ -1,9 +1,10 @@
 build-job:
   stage: build
   script:
-    - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/low-level --tag sci/lims2:bionic /home/ubuntu/git/
-    - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/high-level --tag sci/lims2:fs --no-cache /home/ubuntu/git/
-    - docker build --file /home/ubuntu/git/lims2-webapp-dockerfiles/test --tag sci/lims2:test /home/ubuntu/git/
+    - cp -R /home/ubuntu/git/lims2-webapp-filesystem .
+    - docker build --file dockerfiles/low-level --tag sci/lims2:bionic .
+    - docker build --file dockerfiles/high-level --build-arg solr_url=$SOLR_URL --tag sci/lims2:fs --no-cache .
+    - docker build --file dockerfiles/test --tag sci/lims2:test .
 test-job:
   stage: test
   script:
@@ -11,6 +12,5 @@ test-job:
     - docker run
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
       --mount "type=volume,source=bwa_genomes,destination=/home/user/bwa_genomes,readonly"
-      --mount "type=bind,source=$CI_PROJECT_DIR,destination=/home/user/git_checkout/LIMS2-WebApp"
       --name lims2_test
       sci/lims2:test
