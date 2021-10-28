@@ -37,7 +37,7 @@ sub a_test_oligos_for_gibson : Test(11) {
 
     ok my $gibson_design_oligos_rs = LIMS2::Model::Util::OligoSelection::gibson_design_oligos_rs( model->schema, $design_id ), 'Created resultset';
     my %gps;
-    #dies_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } 'Searching for primer 3T fails';
+    dies_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } 'Searching for primer 3T fails';
     throws_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } qr/No data returned/, 'Searching for primer 3T fails';
 
     #ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence({ schema => model->schema, design_id => $design_id }), 'Sequences generated for forward and reverse strands';
@@ -85,6 +85,89 @@ sub c_test_oligos_for_crispr_pair : Test(2) {
     #is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
 
 }
+
+sub test_pcr_genomic_check : Test(2) {
+    my $species = 'Human';
+    my $primer_data = {
+        'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
+            'left_1' => {'seq' => 'ACCTGATGAGATTCTCTGCTC'}},
+	    'right' => {'right_0' => {'seq' => 'AGTTTCTGTGGCCATTCTCT'},
+            'right_1' => {'seq' => 'TGAATGCTCAAAGGGATGAGA'}},
+        'pair_count' => 2,
+        'error_flag' => 'pass'
+    };
+    my $expected = {
+        'left' => {},
+        'right' => {},
+        'pair_count' => 0,
+        'error_flag' => 'pass'
+    };
+    $ENV{'BWA_GENOMIC_THRESHOLD'} = 30;
+    is_deeply(LIMS2::Model::Util::OligoSelection::pcr_genomic_check($species, $primer_data), $expected, 'pcr_genomic_check returns expected data with no primers when BWA score threshold too high');
+    $primer_data = {
+        'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
+            'left_1' => {'seq' => 'ACCTGATGAGATTCTCTGCTC'}},
+	    'right' => {'right_0' => {'seq' => 'AGTTTCTGTGGCCATTCTCT'},
+            'right_1' => {'seq' => 'TGAATGCTCAAAGGGATGAGA'}},
+        'pair_count' => 2,
+        'error_flag' => 'pass'
+    };
+    $expected = {
+        'left' => {
+            'left_0' => {
+                'seq' => 'TAGGTAGAAAACTCGCTGCT',
+                'mapped' => {
+                    'start' => 158181283,
+                    'sub_opt_hits' => 'X1:i:0',
+                    'score' => '25',
+                    'hits' => 1,
+                    'chr' => '1',
+                    'unique_alignment' => 1
+                }
+            },
+            'left_1' => {
+                'seq' => 'ACCTGATGAGATTCTCTGCTC',
+                'mapped' => {
+                    'start' => 158181803,
+                    'sub_opt_hits' => 'X1:i:0',
+                    'score' => '25',
+                    'hits' => 1,
+                    'chr' => '1',
+                    'unique_alignment' => 1
+                }
+            }
+        },
+	    'right' => {
+            'right_0' => {
+                'seq' => 'AGTTTCTGTGGCCATTCTCT',
+                'mapped' => {
+                    'start' => 158181762,
+                    'sub_opt_hits' => 'X1:i:0',
+                    'score' => '25',
+                    'hits' => 1,
+                    'chr' => '1',
+                    'unique_alignment' => 1
+                }
+            },
+            'right_1' => {
+                'seq' => 'TGAATGCTCAAAGGGATGAGA',
+                'mapped' => {
+                    'start' => 158182379,
+                    'sub_opt_hits' => 'X1:i:0',
+                    'score' => '25',
+                    'hits' => 1,
+                    'chr' => '1',
+                    'unique_alignment' => 1
+                }
+            }
+        },
+        'pair_count' => 2,
+        'error_flag' => 'pass'
+    };
+    $ENV{'BWA_GENOMIC_THRESHOLD'} = 20;
+    is_deeply(LIMS2::Model::Util::OligoSelection::pcr_genomic_check($species, $primer_data), $expected, 'pcr_genomic_check returns expected data including primers when they meet the BWA score threshold');
+}
+
 
 ## use critic
 

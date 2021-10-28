@@ -166,7 +166,7 @@ sub crispr_PCR_calculate {
         INFO ( "$well_id pcr primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-        $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
+        $primer_passes = pcr_genomic_check( $species, $primer_data );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
@@ -290,21 +290,16 @@ sub genotyping_calculate {
 
 
 sub pcr_genomic_check {
-    my $well_id = shift;
     my $species = shift;
     my $primer_data = shift;
 
-
     # implement genomic specificity checking using BWA
-    #
-    my $num_bwa_threads = 2;
-
 
     my $bwa = DesignCreate::Util::BWA->new(
             primers           => $primer_data,
             species           => $species,
             three_prime_check => 0,
-            num_bwa_threads   => $num_bwa_threads,
+            num_bwa_threads   => 2,
     );
 
     $bwa->generate_sam_file;

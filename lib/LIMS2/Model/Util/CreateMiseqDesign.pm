@@ -18,12 +18,8 @@ use YAML::XS qw( LoadFile );
 use Try::Tiny;
 
 use LIMS2::Model::Util::OligoSelection qw(
-        pick_crispr_primers
-        pick_single_crispr_primers
         pick_miseq_internal_crispr_primers
         pick_miseq_crispr_PCR_primers
-        oligo_for_single_crispr
-        pick_crispr_PCR_primers
 );
 use LIMS2::Model::Util::Crisprs qw( gene_ids_for_crispr );
 use LIMS2::Model::Util::PrimerFinder qw( locate_primers );
