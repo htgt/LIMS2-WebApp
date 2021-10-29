@@ -20,7 +20,7 @@ LIMS2/t/Model/Util/OligoSelection.pm - test class for LIMS2::Model::Util::OligoS
 
 =cut
 
-sub a_test_oligos_for_gibson : Test(9) {
+sub a_test_oligos_for_gibson : Test(12) {
 
     my $design_id = '1002582';
     my $assembly = 'GRCm38';
@@ -39,9 +39,13 @@ sub a_test_oligos_for_gibson : Test(9) {
     throws_ok { LIMS2::Model::Util::OligoSelection::update_primer_type( '3T', \%gps, $gibson_design_oligos_rs) } qr/No data returned/, 'Searching for primer 3T fails';
 
     ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence( model, { design_id => $design_id } ), 'Sequences generated for forward and reverse strands';
+    #ok my @primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model, { 'design_id' => $design_id, 'species' => $species, 'repeat_mask' => ['NONE'] } ), 'Running primer3';
+    #is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
+    #is $primer_results->{'left'}->{'left_1'}->{'seq'}, 'AACCAGAAAAATGTCAGGACAAGAC', 'Left rank 1 primer correct';
+
 }
 
-sub b_test_oligos_for_gibson : Test(3) {
+sub b_test_oligos_for_gibson : Test(6) {
 
     my $design_id = '1002436';
     my $assembly = 'GRCh37';
@@ -51,10 +55,13 @@ sub b_test_oligos_for_gibson : Test(3) {
     is $gibson_rs->first->design_id, $design_id, 'can retrieve resultset for design_id ' . $design_id;
     
     #ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence( model, { design_id => $design_id } ), 'Sequences generated for forward and reverse strands';
+    #ok my @primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model, { 'design_id' => $design_id, 'species' => $species, 'repeat_mask' => ['NONE'] } ), 'Running primer3';
+    #is $primer_results[1]->{'pair_count'}, 6, 'Correct number of primer pairs found';
+    #is $primer_results[0]->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
 
 }
 
-sub c_test_oligos_for_crispr_pair : Test(3) {
+sub c_test_oligos_for_crispr_pair : Test(6) {
 
     my $crispr_pair_id = '19768';
     my $assembly = 'GRCh37';
@@ -63,11 +70,14 @@ sub c_test_oligos_for_crispr_pair : Test(3) {
     ok my $crispr_pairs_rs =  LIMS2::Model::Util::OligoSelection::crispr_pair_oligos_rs( model->schema, $crispr_pair_id), 'Created crispr_pair resultset';
     is $crispr_pairs_rs->first->left_crispr_id, 65619, 'left crispr id is correct';
 
-    #ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence( model, { design_id => 1 } ), 'Sequences generated for forward and reverse strands';
+    #ok my $ensembl_seq = LIMS2::Model::Util::OligoSelection::get_EnsEmbl_sequence( model, { design_id => $design_id } ), 'Sequences generated for forward and reverse strands';
+    #ok my $primer_results = LIMS2::Model::Util::OligoSelection::pick_genotyping_primers( model, { design_id => $design_id, species => $species } ), 'Running primer3';
+    #is $primer_results->{'pair_count'}, 6, 'Correct number of primer pairs found';
+    #is $primer_results->{'left'}->{'left_0'}->{'seq'}, 'ATGTTATTTCCCCTATGAGCTCCAG', 'Left rank 0 primer correct';
 
 }
 
-sub test_pcr_genomic_check : Test(2) {
+sub test_genomic_check : Test(2) {
     my $species = 'Human';
     my $primer_data = {
         'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
@@ -84,7 +94,7 @@ sub test_pcr_genomic_check : Test(2) {
         'error_flag' => 'pass'
     };
     $ENV{'BWA_GENOMIC_THRESHOLD'} = 30;
-    is_deeply(LIMS2::Model::Util::OligoSelection::pcr_genomic_check($species, $primer_data), $expected, 'pcr_genomic_check returns expected data with no primers when BWA score threshold too high');
+    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check($species, $primer_data), $expected, 'genomic_check returns expected data with no primers when BWA score threshold too high');
     $primer_data = {
         'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
             'left_1' => {'seq' => 'ACCTGATGAGATTCTCTGCTC'}},
@@ -146,7 +156,7 @@ sub test_pcr_genomic_check : Test(2) {
         'error_flag' => 'pass'
     };
     $ENV{'BWA_GENOMIC_THRESHOLD'} = 20;
-    is_deeply(LIMS2::Model::Util::OligoSelection::pcr_genomic_check($species, $primer_data), $expected, 'pcr_genomic_check returns expected data including primers when they meet the BWA score threshold');
+    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check($species, $primer_data), $expected, 'genomic_check returns expected data including primers when they meet the BWA score threshold');
 }
 
 
