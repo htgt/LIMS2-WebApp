@@ -166,7 +166,7 @@ sub crispr_PCR_calculate {
         INFO ( "$well_id pcr primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-        $primer_passes = genomic_check( $species, $primer_data );
+        $primer_passes = genomic_check( '', $well_id, $species, $primer_data );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
@@ -275,7 +275,7 @@ sub genotyping_calculate {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-        $primer_passes = genomic_check( $species, $primer_data );
+        $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
@@ -290,6 +290,8 @@ sub genotyping_calculate {
 
 
 sub genomic_check {
+    my $design_id = shift;
+    my $well_id = shift;
     my $species = shift;
     my $primer_data = shift;
 
@@ -300,6 +302,8 @@ sub genomic_check {
             species           => $species,
             three_prime_check => 0,
             num_bwa_threads   => 2,
+            design_id         => $design_id,
+            well_id           => $well_id,
     );
 
     $bwa->generate_sam_file;
