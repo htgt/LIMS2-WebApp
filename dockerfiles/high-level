@@ -83,13 +83,6 @@ RUN chmod -R 755 /usr/local/share/perl/5.26.1/ && \
   chmod -R 777 /home/ubuntu/bwa_dump/
 
 #
-# Install BWA
-RUN cd /opt/sci/global/software/ && \
-  git clone https://github.com/lh3/bwa.git && \
-  cd bwa && \
-  make
-
-#
 # Create new user
 RUN adduser user && usermod -aG sudo user && \
   echo "user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -114,7 +107,7 @@ RUN sudo chown user:user /home/user/.ssh/config
 ARG branch=master
 ARG database=LIMS2_STAGING
 ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
-ARG human_fa=/shared/bwa_genomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+ARG human_fa=/home/ubuntu/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 ARG file_access=sci-batch-farm5
 ARG solr_url=""
 #
@@ -138,6 +131,9 @@ ENV LIMS2_DB=$database \
     DESIGN_CREATION_HUMAN_FA=$human_fa \
     BWA_REF_GENOME_HUMAN_FA=$human_fa \
     LIMS2_FILE_ACCESS_SERVER=$file_access \
+    BWA_CMD=/usr/bin/bwa \
+    XA2MULTI_CMD=/home/ubuntu/xa2multi.pl \
+    BWA_SERVER=bwa \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
     LIMS2_ENSEMBL_USER=anonymous \
     LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
