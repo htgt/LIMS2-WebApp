@@ -1,14 +1,11 @@
 package LIMS2::Model::Util::PrimerFinder;
 use strict;
 use warnings;
-use Bio::SeqIO;
 use Carp;
 use Data::UUID;
 use DesignCreate::Util::BWA;
-use IO::String;
 use Path::Class;
 use WebAppCommon::Util::EnsEMBL;
-use WebAppCommon::Util::RemoteFileAccess;
 use base qw/Exporter/;
 our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq loci_builder/;
 
