@@ -107,6 +107,7 @@ RUN sudo chown user:user /home/user/.ssh/config
 ARG branch=master
 ARG database=LIMS2_STAGING
 ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
+# location of reference genome files on bwa instance
 ARG human_fa=/home/ubuntu/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 ARG file_access=sci-batch-farm5
 ARG solr_url=""
@@ -134,6 +135,7 @@ ENV LIMS2_DB=$database \
     BWA_CMD=/usr/bin/bwa \
     XA2MULTI_CMD=/home/ubuntu/xa2multi.pl \
     BWA_SERVER=bwa \
+    LIMS2_BWA_OLIGO_DIR=/home/ubuntu/bwa_dump/ \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
     LIMS2_ENSEMBL_USER=anonymous \
     LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
