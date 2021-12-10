@@ -48,7 +48,7 @@ ENV DEFAULT_CRISPR_ES_QC_DIR=/tmp/lims2_crispr_es_qc \
     LIMS2_SEQ_FILE_DIR=/warehouse/team229_wh01/lims2_managed_sequencing_data \
     LIMS2_SHARED=/home/user/git_checkout \
     PERL_LWP_ENV_PROXY=1 \
-    VEP_CACHE_DIR=/nfs/sci/vep_cache \
+    VEP_CACHE_DIR=/nfs/sci/vep_cache
 
 # Adding by analysing failed tests
 # ENG_SEQ_BUILDER_CONF is different for dev/prod
