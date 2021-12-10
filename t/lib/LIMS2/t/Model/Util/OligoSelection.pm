@@ -6,8 +6,8 @@ use base qw( Test::Class );
 use Test::Most;
 
 use LIMS2::Model::Util::OligoSelection qw/
-        oligos_for_crispr_pair
         oligos_for_gibson
+        oligos_for_crispr_pair
     /;
 use LIMS2::Test model => { classname => __PACKAGE__ };
 
@@ -78,76 +78,81 @@ sub c_test_oligos_for_crispr_pair : Test(6) {
 }
 
 sub test_genomic_check : Test(2) {
-    my $design_id = 123;
-    my $well_id = 'Miseq_Crispr_456_18-11-2021';
-    my $species = 'Human';
+
     my $primer_data = {
-        'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
-            'left_1' => {'seq' => 'ACCTGATGAGATTCTCTGCTC'}},
-	    'right' => {'right_0' => {'seq' => 'AGTTTCTGTGGCCATTCTCT'},
-            'right_1' => {'seq' => 'TGAATGCTCAAAGGGATGAGA'}},
-        'pair_count' => 2,
-        'error_flag' => 'pass'
+        left => {left_0 => {seq => 'TAGGTAGAAAACTCGCTGCT'},
+            left_1 => {seq => 'ACCTGATGAGATTCTCTGCTC'}},
+	    right => {right_0 => {seq => 'AGTTTCTGTGGCCATTCTCT'},
+            right_1 => {seq => 'TGAATGCTCAAAGGGATGAGA'}},
+        pair_count => 2,
+        error_flag => 'pass'
     };
+
     my $expected = {
-        'left' => {},
-        'right' => {},
-        'pair_count' => 0,
-        'error_flag' => 'pass'
+        left => {},
+        right => {},
+        pair_count => 0,
+        error_flag => 'pass'
     };
-    $ENV{'BWA_GENOMIC_THRESHOLD'} = 30;
-    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check($design_id, $well_id, $species, $primer_data), $expected, 'genomic_check returns expected data with no primers when BWA score threshold too high');
+
+    $ENV{BWA_GENOMIC_THRESHOLD} = 30;
+
+    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check({species => 'Human', primers => $primer_data}), $expected, 'genomic_check returns expected data with no primers when BWA score threshold too high');
+
     $primer_data = {
-        'left' => {'left_0' => {'seq' => 'TAGGTAGAAAACTCGCTGCT'},
-            'left_1' => {'seq' => 'ACCTGATGAGATTCTCTGCTC'}},
-	    'right' => {'right_0' => {'seq' => 'AGTTTCTGTGGCCATTCTCT'},
-            'right_1' => {'seq' => 'TGAATGCTCAAAGGGATGAGA'}},
-        'pair_count' => 2,
-        'error_flag' => 'pass'
+        left => {left_0 => {seq => 'TAGGTAGAAAACTCGCTGCT'},
+            left_1 => {seq => 'ACCTGATGAGATTCTCTGCTC'}},
+	    right => {right_0 => {seq => 'AGTTTCTGTGGCCATTCTCT'},
+            right_1 => {seq => 'TGAATGCTCAAAGGGATGAGA'}},
+        pair_count => 2,
+        error_flag => 'pass'
     };
+
     $expected = {
-        'left' => {
-            'left_1' => {
-                'seq' => 'ACCTGATGAGATTCTCTGCTC',
-                'mapped' => {
-                    'start' => 158181803,
-                    'sub_opt_hits' => 'X1:i:2',
-                    'score' => '20',
-                    'hits' => 3,
-                    'chr' => '1',
-                    'unique_alignment' => 1,
-                    'hit_locations' => [
-                        {'start' => 169099177, 'chr' => 5},
-                        {'start' => 220261115, 'chr' => 1}
+        left => {
+            left_1 => {
+                seq => 'ACCTGATGAGATTCTCTGCTC',
+                mapped => {
+                    start => 158181803,
+                    sub_opt_hits => 'X1:i:2',
+                    score => 20,
+                    hits => 3,
+                    chr => 1,
+                    unique_alignment => 1,
+                    hit_locations => [
+                        {start => 169099177, chr => 5},
+                        {start => 220261115, chr => 1}
                     ]
                 }
             }
         },
-	    'right' => {
-            'right_1' => {
-                'seq' => 'TGAATGCTCAAAGGGATGAGA',
-                'mapped' => {
-                    'start' => 158182379,
-                    'sub_opt_hits' => 'X1:i:5',
-                    'score' => '16',
-                    'hits' => 6,
-                    'chr' => '1',
-                    'unique_alignment' => 1,
-                    'hit_locations' => [
-                        {'start' => 76121279, 'chr' => 2},
-                        {'start' => 26202938, 'chr' => 15},
-                        {'start' => 6241820, 'chr' => 18},
-                        {'start' => 156364578, 'chr' => 2},
-                        {'start' => 32373024, 'chr' => 22}
+	    right => {
+            right_1 => {
+                seq => 'TGAATGCTCAAAGGGATGAGA',
+                mapped => {
+                    start => 158182379,
+                    sub_opt_hits => 'X1:i:5',
+                    score => 16,
+                    hits => 6,
+                    chr => 1,
+                    unique_alignment => 1,
+                    hit_locations => [
+                        {start => 76121279, chr => 2},
+                        {start => 26202938, chr => 15},
+                        {start => 6241820, chr => 18},
+                        {start => 156364578, chr => 2},
+                        {start => 32373024, chr => 22}
                     ]
                 }
             }
         },
-        'pair_count' => 1,
-        'error_flag' => 'pass'
+        pair_count => 1,
+        error_flag => 'pass'
     };
-    $ENV{'BWA_GENOMIC_THRESHOLD'} = 15;
-    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check($design_id, $well_id, $species, $primer_data), $expected, 'genomic_check returns expected data including primer pairs that meet the BWA score threshold');
+
+    $ENV{BWA_GENOMIC_THRESHOLD} = 15;
+
+    is_deeply(LIMS2::Model::Util::OligoSelection::genomic_check({species => 'Human', primers => $primer_data}), $expected, 'genomic_check returns expected data including primer pairs that meet the BWA score threshold');
 }
 
 
