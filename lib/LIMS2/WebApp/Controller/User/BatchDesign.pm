@@ -122,10 +122,11 @@ sub _read_line {
 sub _read_file {
     my ( $c, $fh ) = @_;
 
-    my $csv     = Text::CSV->new;
-    my $headers = $csv->getline($fh);
-    $csv->column_names( @{$headers} );
-    if ( my $error = _validate_columns($headers) ) {
+    my $csv     = Text::CSV->new({ binary => 1 });
+    my $header = $csv->getline($fh);
+    my @col_names = map { $_ =~ s/^\N{BOM}//r } @{$header};
+    $csv->column_names( @col_names );
+    if ( my $error = _validate_columns(\@col_names) ) {
         $c->stash->{error_msg} = $error;
         return;
     }
