@@ -33,7 +33,6 @@ Generate bioseq object, plus target sequence mask for design
 ==================================================================
 COMMON
 
-pcr_genomic_check
 genomic_check
 -----------------
 Run genomic checks for primers for crispr / design

@@ -1,7 +1,6 @@
 package LIMS2::Model::Util::PrimerFinder;
 use strict;
 use warnings;
-use Bio::SeqIO;
 use Carp;
 use Data::UUID;
 use DesignCreate::Util::BWA;
@@ -9,31 +8,6 @@ use Path::Class;
 use WebAppCommon::Util::EnsEMBL;
 use base qw/Exporter/;
 our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq loci_builder/;
-
-sub generate_bwa_query_file {
-    my $primers = shift;
-
-    my $root_dir = $ENV{'LIMS2_BWA_OLIGO_DIR'} // '/var/tmp/bwa';
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $unique_string );
-    mkdir $dir_out->stringify
-      or croak 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file('oligos.fasta');
-    my $fh              = $fasta_file_name->openw();
-    my $seq_out         = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{$primers} ) {
-        my $fasta_seq = Bio::Seq->new(
-            -seq => $primers->{$oligo}->{seq},
-            -id  => $oligo
-        );
-        $seq_out->write_seq($fasta_seq);
-    }
-    return ( $fasta_file_name, $dir_out );
-}
 
 =head2 choose_closest_primer_hit
 
@@ -129,7 +103,7 @@ sub loci_builder {
         inr => { seq => q/TTTATCTTCCTCCATCCAGCC/ }
     };
     
-    locate_primers( 'Human', 'GRCh38', $target_crispr, $primers );
+    locate_primers( 'Human', $target_crispr, $primers );
 
     # $primers = {
     #   exf => {
@@ -148,11 +122,8 @@ sub loci_builder {
 sub locate_primers {
     my ( $species, $target_crispr, $primers, $genomic_threshold ) = @_;
     my $data = shift;
-    my ( $fasta, $dir ) = generate_bwa_query_file($primers);
-$DB::single=1;
     my $bwa = DesignCreate::Util::BWA->new(
-        query_file        => $fasta,
-        work_dir          => $dir,
+        primers           => $primers,
         species           => $species,
         three_prime_check => 0,
         num_bwa_threads   => 2,

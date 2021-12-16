@@ -166,7 +166,12 @@ sub crispr_PCR_calculate {
         INFO ( "$well_id pcr primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-        $primer_passes = pcr_genomic_check( $well_id, $species, $primer_data );
+        my $genomic_check_params = {
+            well_id => $well_id,
+            species => $species,
+            primers => $primer_data
+        };
+        $primer_passes = genomic_check( $genomic_check_params );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
@@ -275,7 +280,13 @@ sub genotyping_calculate {
         INFO ( "$design_id genotyping primer region primer pairs: " . $result->num_primer_pairs );
         $primer_data = parse_primer3_results( $result );
         $primer_data->{'error_flag'} = 'pass';
-        $primer_passes = genomic_check( $design_id, $well_id, $species, $primer_data, $chr_strand );
+        my $genomic_check_params = {
+            design_id => $design_id,
+            well_id   => $well_id,
+            species   => $species,
+            primers   => $primer_data
+        };
+        $primer_passes = genomic_check( $genomic_check_params );
         $primer_passes->{'genomic_error_flag'} = $primer_passes->{'pair_count'} > 0 ? 'pass' : 'fail';
     }
     else {
@@ -289,61 +300,24 @@ sub genotyping_calculate {
 }
 
 
-sub pcr_genomic_check {
-    my $well_id = shift;
-    my $species = shift;
-    my $primer_data = shift;
-
-
-    # implement genomic specificity checking using BWA
-    #
-    my ($bwa_query_filespec, $work_dir ) = generate_pcr_bwa_query_file( $well_id, $primer_data );
-    my $num_bwa_threads = 2;
-
-
-    my $bwa = DesignCreate::Util::BWA->new(
-            query_file        => $bwa_query_filespec,
-            work_dir          => $work_dir,
-            species           => $species,
-            three_prime_check => 0,
-            num_bwa_threads   => $num_bwa_threads,
-    );
-
-    $bwa->generate_sam_file;
-    my $oligo_hits = $bwa->oligo_hits;
-    $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
-
-    return $primer_data;
-}
-
-
 sub genomic_check {
-    my $design_id = shift;
-    my $well_id = shift;
-    my $species = shift;
-    my $primer_data = shift;
-
+    my $params = shift;
 
     # implement genomic specificity checking using BWA
-    #
-
-    my ($bwa_query_filespec, $work_dir ) = generate_bwa_query_file( $design_id, $well_id, $primer_data );
-    my $num_bwa_threads = 2;
-
 
     my $bwa = DesignCreate::Util::BWA->new(
-            query_file        => $bwa_query_filespec,
-            work_dir          => $work_dir,
-            species           => $species,
+            primers           => $params->{primers},
+            species           => $params->{species},
             three_prime_check => 0,
-            num_bwa_threads   => $num_bwa_threads,
+            num_bwa_threads   => 2,
+            design_id         => $params->{design_id} // '',
+            well_id           => $params->{well_id} // '',
     );
+
     $bwa->generate_sam_file;
     my $oligo_hits = $bwa->oligo_hits;
-    $primer_data = filter_oligo_hits( $oligo_hits, $primer_data );
 
-    return $primer_data;
-
+    return filter_oligo_hits( $oligo_hits, $params->{primers} );
 }
 
 
@@ -396,67 +370,6 @@ sub del_bad_pairs {
     }
     return $primer_data;
 }
-
-sub generate_pcr_bwa_query_file {
-    my $well_id = shift;
-    my $primer_data = shift;
-
-    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
-    use Data::UUID;
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
-    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file( $well_id . '_oligos.fasta');
-    my $fh = $fasta_file_name->openw();
-    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    return ($fasta_file_name, $dir_out);
-}
-
-
-sub generate_bwa_query_file {
-    my $design_id= shift;
-    my $well_id = shift;
-    my $primer_data = shift;
-
-    my $root_dir = $ENV{ 'LIMS2_BWA_OLIGO_DIR' } // '/var/tmp/bwa';
-    use Data::UUID;
-    my $ug = Data::UUID->new();
-
-    my $unique_string = $ug->create_str();
-    my $dir_out = dir( $root_dir, '_' . $well_id . $unique_string );
-    mkdir $dir_out->stringify  or die 'Could not create directory ' . $dir_out->stringify . ": $!";
-
-    my $fasta_file_name = $dir_out->file( $design_id . '_oligos.fasta');
-    my $fh = $fasta_file_name->openw();
-    my $seq_out = Bio::SeqIO->new( -fh => $fh, -format => 'fasta' );
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'left'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'left'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    foreach my $oligo ( sort keys %{ $primer_data->{'right'} } ) {
-        my $fasta_seq = Bio::Seq->new( -seq => $primer_data->{'right'}->{$oligo}->{'seq'}, -id => $oligo );
-        $seq_out->write_seq( $fasta_seq );
-    }
-
-    return ($fasta_file_name, $dir_out);
-}
-
 
 sub parse_primer3_results {
     my $result = shift;
