@@ -60,7 +60,8 @@ has spreadsheet_columns => (
 sub _build_spreadsheet_columns {
     tie my %columns, 'Tie::IxHash';
     $columns{experiment}        = qr/.+/xms;    #anything goes, but must be something
-    $columns{gene}              = qr/^[A-Z0-9]+ # start with a gene symbol
+    $columns{gene}              = qr/^[A-Z0-9a-z]+
+                                    (?:-[A-Z0-9a-z]+)? # some genes have hyphens
                                     (?:_.*)? # can be followed by an underscore and whatever
                                     $/xms;
     $columns{experiment_id}     = qr/^\d*$/xms;

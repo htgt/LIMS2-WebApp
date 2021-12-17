@@ -267,12 +267,33 @@ sub test_csv_fails {
     return;
 }
 
+sub test_csv_passes {
+    my ( $importer, $description, $experiments, @columns ) = @_;
 
-sub invalid_csv : Test(3) {
+    my ( $plate, $walkup ) = ( 'Miseq_Test_001', 42 );
+    ok (
+        $importer->process(
+            plate       => $plate,
+            walkup      => $walkup,
+            run_data    => $experiments,
+        ), $description
+    );
+    return;
+}
+
+sub csv_validation : Test(4) {
     my $importer = LIMS2::Model::Util::MiseqImport->new;
     $importer->farm_job_runner->dry_run(1);
     my $file_api      = mock_file_api;
-    my $basespace_api = mock_basespace_api;
+    my $basespace_api = mock_basespace_api(
+        {
+            Id      => 42,
+            Samples => [
+                { Id => 421, SampleId => 'A01_1', Name => '1', },
+                { Id => 422, SampleId => 'B01_1', Name => '2', },
+            ],
+        },
+    );
 
     my $experiment = {
         experiment      => 'Exp_01',
@@ -307,6 +328,12 @@ sub invalid_csv : Test(3) {
         qr/Indexes should be below 384 for Exp_01/,
         'Index goes above 384',
         [ { %{$experiment}, max_index => 480 } ],
+    );
+
+    test_csv_passes(
+        $importer,
+        'Gene with hyphen allowed',
+        [ { %{$experiment}, gene => 'GENE-1' } ],
     );
 
     return;
