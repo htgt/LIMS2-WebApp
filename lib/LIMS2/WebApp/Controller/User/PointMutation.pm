@@ -322,7 +322,7 @@ sub get_genes {
             my @gene = ($value =~ qr/^([A-Za-z0-9\-\_]*)/);
             push (@{$genes->{$gene[0]}}, $key);
 
-            my @gene_prefix = ($value =~ qr/^([A-Za-z0-9]*)/);
+            my @gene_prefix = ($value =~ qr/^([A-Za-z0-9-]*)/);
             push (@{$gene_prefixs->{$gene_prefix[0]}}, $key);
         }
     }
