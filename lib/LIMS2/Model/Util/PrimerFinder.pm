@@ -53,7 +53,12 @@ sub choose_closest_primer_hit {
     if ( exists $hits->{hit_locations} ) {
         push @candidates, @{ $hits->{hit_locations} };
     }
-    @candidates = grep { $_->{chr} =~ /^(?:chr)?$target->{chr_name}$/ } @candidates;
+    @candidates = grep { $_->{chr} =~ /
+        ^                       # Start of string
+	(?:chr)?                # Zero or one occurrences of "chr" - Hits can have chromosomes with or without chr prefix
+	$target->{chr_name}	# The target chromsome name
+	$                       # End of string
+    /x } @candidates;
     return if not @candidates;
     my $best          = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
