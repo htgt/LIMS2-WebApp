@@ -53,7 +53,7 @@ sub choose_closest_primer_hit {
     if ( exists $hits->{hit_locations} ) {
         push @candidates, @{ $hits->{hit_locations} };
     }
-    @candidates = grep { $_->{chr} =~ /^(?:chr)?$target->{chr_name}/ } @candidates;
+    @candidates = grep { $_->{chr} =~ /^(?:chr)?$target->{chr_name}$/ } @candidates;
     return if not @candidates;
     my $best          = shift @candidates;
     my $best_distance = abs $target->{chr_start} - $best->{start};
