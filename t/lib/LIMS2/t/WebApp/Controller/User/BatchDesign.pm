@@ -112,7 +112,15 @@ sub validate_primers : Test(21) {
         $primers->{exr}->{loci}->{chr_name} = 12;
         ok my $error = BatchDesign::_validate_primers( $primers );
         # valid primers are on chromosome 1.
-        like ($error, qr/^Oligos have inconsistent chromosomes: (?:1, 12|12, 1)$/);
+        like (
+            $error,
+            qr/
+                ^                                                # Start of string 
+                Oligos[ ]have[ ]inconsistent[ ]chromosomes:[ ]   # Error message
+                (?:1,[ ]12|12,[ ]1)                                  # We don't care about order.
+                $                                                # Make sure there aren't extra characters at the end.
+            /x
+        );
     }
     
     note('strand mismatch');
