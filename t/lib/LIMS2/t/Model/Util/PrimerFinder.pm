@@ -17,7 +17,7 @@ sub _create_hits {
     return $result;
 }
 
-sub test_choose_closest_primer_hit : Test(12) {
+sub test_choose_closest_primer_hit : Test(13) {
     my $target = { chr_name => 13, chr_start => 50000 };
     note('first hit is best');
     {
@@ -57,6 +57,13 @@ sub test_choose_closest_primer_hit : Test(12) {
     note('no appropriate candidates');
     {
         my $hits = _create_hits( 12 => 80000, X => 51000, 2 => 50000 );
+        ok not choose_closest_primer_hit( $target, $hits );
+    }
+    note('does not choose chromosomes with partial match');
+    {
+	# 1 is a substring of 12 - we want to avoid false matches.
+	my $target = { chr_name => 1, chr_start => 50000 };
+	my $hits = _create_hits( 12 => 50000 );
         ok not choose_closest_primer_hit( $target, $hits );
     }
 
