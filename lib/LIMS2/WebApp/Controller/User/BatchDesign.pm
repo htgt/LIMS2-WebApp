@@ -84,9 +84,9 @@ sub _genomic_distance {
 sub _validate_primers {
     my $primers_ref = shift;
     my %primers     = %{$primers_ref};
-    my $chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
-    if ( $chromosomes != 1 ) {
-        return 'Oligos have inconsistent chromosomes';
+    my @chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
+    if ( scalar @chromosomes != 1 ) {
+        return 'Oligos have inconsistent chromosomes: ' . join(", ", @chromosomes);
     }
     my $strands = uniq map { $_->{loci}->{chr_strand} } values %primers;
     if ( $strands != 1 ) {

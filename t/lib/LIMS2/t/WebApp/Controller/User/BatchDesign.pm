@@ -109,9 +109,10 @@ sub validate_primers : Test(21) {
     note('chromosome mismatch');
     {
         my $primers = _make_valid_primers;
-        $primers->{exr}->{loci}->{chr_name} = 2;
+        $primers->{exr}->{loci}->{chr_name} = 12;
         ok my $error = BatchDesign::_validate_primers( $primers );
-        is($error, 'Oligos have inconsistent chromosomes');
+        # valid primers are on chromosome 1.
+        like ($error, qr/^Oligos have inconsistent chromosomes: (?:1, 12|12, 1)$/);
     }
     
     note('strand mismatch');
