@@ -100,7 +100,7 @@ sub _test_genome_distance {
     return;
 }
 
-sub validate_primers : Test(21) {
+sub validate_primers : Test(23) {
     note('all ok');
     {
         my $primers = _make_valid_primers;
@@ -146,6 +146,46 @@ sub validate_primers : Test(21) {
         _test_genome_distance(1, 'inr', 42600, 'Internal oligos are 1300bp apart');
         _test_genome_distance(0, 'inr', 40300, 'Internal oligos are 1300bp apart');
         _test_genome_distance(0, 'inf', 42500, 'Internal oligos are 1200bp apart');
+    }
+
+    note('missing loci data');
+    {
+        my $primers_ref = {
+	    'exf' => {
+                'loci' => {
+		    'chr_strand' => 1,
+		    'assembly' => 'GRCh38',
+	            'chr_start' => 10000,
+		},
+		'seq' => 'CAAAACTAGCTGCAGAGTCAC',
+            },
+            'inr' => {
+                'loci' => _make_loci( 1, 1, 42900 ),
+		'seq' => 'TCATCTGTACCGACCTTCTTG',
+            },
+            'exr' => {
+                'loci' => _make_loci( 1, 1, 41700 ),
+		'seq' => 'TCCCCTTGTATAGTCTTCAGC',
+            },
+            'inf' => {
+                'loci' => {
+		    'chr_strand' => 1,
+		    'assembly' => 'GRCh38',
+                    'chr_end' => 10010
+		},
+		'seq' => 'AGACATCAAGAGGAGAACTGC',
+            },
+        };
+        ok my $error = BatchDesign::_validate_primers( $primers_ref );
+        like (
+            $error,
+            qr/
+                ^                                                # Start of string.
+                Loci[ ]data[ ]missing[ ]for:[ ]                  # Error message.
+                (?:exf,[ ]inf|inf,[ ]exf)                        # We don't care about order.
+                $                                                # Make sure there aren't extra characters at the end.
+            /x
+	);
     }
 }
 

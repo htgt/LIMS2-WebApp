@@ -87,6 +87,18 @@ sub _validate_primers {
     my $primers_ref = shift;
     DEBUG("Validating primers: " . Dumper($primers_ref));
     my %primers     = %{$primers_ref};
+    my @oligos_with_missing_loci_data = grep {
+        !(
+	    defined $primers{$_}{'loci'}{'chr_start'}
+	    && defined $primers{$_}{'loci'}{'chr_end'}
+	    && defined $primers{$_}{'loci'}{'chr_strand'}
+	    && defined $primers{$_}{'loci'}{'chr_name'}
+	    && defined $primers{$_}{'loci'}{'assembly'}
+	)
+    } keys %primers;
+    if ( scalar @oligos_with_missing_loci_data != 0 ) {
+        return 'Loci data missing for: ' . join(", ", @oligos_with_missing_loci_data);
+    }
     my @chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
     if ( scalar @chromosomes != 1 ) {
         return 'Oligos have inconsistent chromosomes: ' . join(", ", @chromosomes);
