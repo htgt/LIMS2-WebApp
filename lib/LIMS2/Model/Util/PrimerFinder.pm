@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use Carp;
 use Data::UUID;
+use Data::Dumper;
 use DesignCreate::Util::BWA;
 use Path::Class;
+use Log::Log4perl qw( :easy );
 use WebAppCommon::Util::EnsEMBL;
 use base qw/Exporter/;
 our @EXPORT_OK = qw/locate_primers choose_closest_primer_hit fetch_amplicon_seq loci_builder/;
@@ -126,6 +128,7 @@ sub loci_builder {
 
 sub locate_primers {
     my ( $species, $target_crispr, $primers, $genomic_threshold ) = @_;
+    INFO("Locating primers: " . Dumper(@_));
     my $data = shift;
     my $bwa = DesignCreate::Util::BWA->new(
         primers           => $primers,
@@ -141,6 +144,7 @@ sub locate_primers {
 
     $bwa->generate_sam_file;
     my $oligo_hits = $bwa->oligo_hits;
+    DEBUG("Oligo hits: " . Dumper($oligo_hits));
     foreach my $oligo ( keys %{$oligo_hits} ) {
         my $locus = loci_builder( $target_crispr->{locus},
             $primers->{$oligo}, $oligo_hits->{$oligo}, );
