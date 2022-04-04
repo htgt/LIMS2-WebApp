@@ -3,9 +3,11 @@ use Moose;
 use namespace::autoclean;
 use Bio::Perl qw/revcom/;
 use Carp;
+use Data::Dumper;
 use JSON;
 use LIMS2::Model::Util::PrimerFinder qw/locate_primers fetch_amplicon_seq/;
 use List::MoreUtils qw/uniq/;
+use Log::Log4perl qw( :easy );
 use Readonly;
 use Text::CSV;
 use Try::Tiny;
@@ -83,6 +85,7 @@ sub _genomic_distance {
 
 sub _validate_primers {
     my $primers_ref = shift;
+    DEBUG("Validating primers: " . Dumper($primers_ref));
     my %primers     = %{$primers_ref};
     my @chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
     if ( scalar @chromosomes != 1 ) {
