@@ -74,7 +74,8 @@ sub _make_loci {
             chr_name => $chr,
             chr_strand => $strand,
             chr_start => $start,
-            chr_end => $start + 100
+            chr_end => $start + 100,
+            assembly => 'GRCh38',
     };
 }
 
