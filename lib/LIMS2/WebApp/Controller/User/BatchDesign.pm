@@ -3,9 +3,11 @@ use Moose;
 use namespace::autoclean;
 use Bio::Perl qw/revcom/;
 use Carp;
+use Data::Dumper;
 use JSON;
 use LIMS2::Model::Util::PrimerFinder qw/locate_primers fetch_amplicon_seq/;
 use List::MoreUtils qw/uniq/;
+use Log::Log4perl qw( :easy );
 use Readonly;
 use Text::CSV;
 use Try::Tiny;
@@ -83,7 +85,20 @@ sub _genomic_distance {
 
 sub _validate_primers {
     my $primers_ref = shift;
+    DEBUG("Validating primers: " . Dumper($primers_ref));
     my %primers     = %{$primers_ref};
+    my @oligos_with_missing_loci_data = grep {
+        !(
+	    defined $primers{$_}{'loci'}{'chr_start'}
+	    && defined $primers{$_}{'loci'}{'chr_end'}
+	    && defined $primers{$_}{'loci'}{'chr_strand'}
+	    && defined $primers{$_}{'loci'}{'chr_name'}
+	    && defined $primers{$_}{'loci'}{'assembly'}
+	)
+    } keys %primers;
+    if ( scalar @oligos_with_missing_loci_data != 0 ) {
+        return 'Loci data missing for: ' . join(", ", @oligos_with_missing_loci_data);
+    }
     my @chromosomes = uniq map { $_->{loci}->{chr_name} } values %primers;
     if ( scalar @chromosomes != 1 ) {
         return 'Oligos have inconsistent chromosomes: ' . join(", ", @chromosomes);
