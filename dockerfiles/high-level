@@ -30,7 +30,7 @@ COPY lims2-webapp-filesystem/farm/wge-live-rest-client.conf /nfs/sci/farm/conf/
 # Enable apache rewrite
 RUN a2enmod proxy_fcgi &&  a2dismod mpm_event && a2enmod mpm_prefork && a2enmod rewrite && a2ensite lims2
 
-ARG ensembl_args="--branch release/102"
+ARG ensembl_args="--branch release/97"
 
 #
 # Clone the git repos
