@@ -138,6 +138,6 @@ ENV LIMS2_DB=$database \
     LIMS2_BWA_OLIGO_DIR=/home/ubuntu/bwa_dump/ \
     WGE_REST_CLIENT_CONFIG=/nfs/sci/farm/conf/wge-live-rest-client.conf \
     LIMS2_ENSEMBL_USER=anonymous \
-    LIMS2_ENSEMBL_HOST=ensembldb-mirror.internal.sanger.ac.uk \
+    LIMS2_ENSEMBL_HOST=ensembldb.ensembl.org \
     LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_urls.conf \
     SOLR_URL=$solr_url
