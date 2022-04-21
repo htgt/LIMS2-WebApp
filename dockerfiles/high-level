@@ -114,6 +114,9 @@ RUN mkdir -p /home/user/git_checkout/LIMS2-WebApp
 COPY --chown=user:user . /home/user/git_checkout/LIMS2-WebApp/
 RUN rm -rf /home/user/git_checkout/LIMS2-WebApp/lims2-webapp-filesystem
 
+# Symlink Utils library
+RUN sudo ln -s /home/user/git_checkout/LIMS2-WebApp/LIMS2-Utils/lib/LIMS2/* /opt/sci/global/software/lims2/lib/LIMS2
+
 #
 # Define a default working directory
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
