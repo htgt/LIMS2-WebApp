@@ -42,7 +42,6 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
   git clone https://github.com/htgt/LIMS2-REST-Client.git /tmp/LIMS2-REST-Client && \
   git clone https://github.com/htgt/LIMS2-Tasks.git /tmp/LIMS2-Tasks && \
   git clone https://github.com/htgt/LIMS2-WebApp.git /tmp/LIMS2-WebApp && \
-  git clone https://github.com/htgt/LIMS2-Utils.git /tmp/LIMS2-Utils && \
   git clone https://github.com/htgt/HTGT-QC-Common.git /tmp/HTGT-QC-Common && \
   git clone https://github.com/htgt/LIMS2-Exception.git /tmp/LIMS2-Exception && \
   git clone https://github.com/fschwach/Bio-Tools-Primer3Redux.git /tmp/Bio-Tools-Primer3Redux && \
@@ -56,7 +55,6 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
   cp -r /tmp/LIMS2-REST-Client/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r /tmp/LIMS2-Tasks/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r /tmp/LIMS2-WebApp/lib/* /opt/sci/global/software/lims2/lib/ && \
-  cp -r /tmp/LIMS2-Utils/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r /tmp/HTGT-QC-Common/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r /tmp/LIMS2-Exception/lib/* /opt/sci/global/software/lims2/lib/ && \
   cp -r /tmp/Bio-Tools-Primer3Redux/lib/* /opt/sci/global/software/lims2/lib/ && \
@@ -69,7 +67,6 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
   rm -rf /tmp/LIMS2-REST-Client && \
   rm -rf /tmp/LIMS2-Tasks && \
   rm -rf /tmp/LIMS2-WebApp && \
-  rm -rf /tmp/LIMS2-Utils && \
   rm -rf /tmp/HTGT-QC-Common && \
   rm -rf /tmp/LIMS2-Exception && \
   rm -rf /tmp/Bio-Tools-Primer3Redux && \
