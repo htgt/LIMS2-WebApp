@@ -163,8 +163,8 @@ sub ensEMBL_gene {
     my $gene_id      = $self->gene_id;
     my $gene_type_id = $self->gene_type->id;
 
-    require LIMS2::Util::EnsEMBL;
-    my $ensEMBL_util = LIMS2::Util::EnsEMBL->new( { 'species' => $species, } );
+    require WebAppCommon::Util::EnsEMBL;
+    my $ensEMBL_util = WebAppCommon::Util::EnsEMBL->new( { 'species' => $species, } );
     my $ga = $ensEMBL_util->gene_adaptor();
 
     my $gene;
