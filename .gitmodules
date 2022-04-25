@@ -1,0 +1,3 @@
+[submodule "LIMS2-Utils"]
+	path = LIMS2-Utils
+	url = ../LIMS2-Utils.git
