@@ -77,4 +77,5 @@ CMD source bin/lims2_setup.sh && \
     lims2 replicate test && \
     lims2 test && \
     export PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib:/opt/sci/global/software/lims2/lib/ && \
+    export LIMS2_ENSEMBL_HOST=ensembldb.ensembl.org && \
     prove --timer -lvr /home/user/git_checkout/LIMS2-WebApp/t
