@@ -22,3 +22,23 @@ test:
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
       --name lims2_test
       $CI_REGISTRY/sci/lims2-webapp/lims2:test
+
+build-prod:
+  stage: deploy
+  script:
+    - cp -R /home/ubuntu/git/lims2-webapp-filesystem .
+    - docker build
+      --file dockerfiles/low-level
+      --tag sci/lims2:bionic
+      .
+    - docker build
+      --file dockerfiles/high-level
+      --build-arg database=LIMS2_LIVE
+      --build-arg solr_url=$SOLR_URL
+      --tag sci/lims2:fs
+      --no-cache
+      .
+    - docker build
+      --file dockerfiles/web_app
+      --tag $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
+      .
