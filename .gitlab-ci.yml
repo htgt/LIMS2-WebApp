@@ -53,3 +53,4 @@ build-prod:
       --file dockerfiles/web_app
       --tag $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
       .
+    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
