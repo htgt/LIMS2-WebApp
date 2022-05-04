@@ -110,6 +110,19 @@ sub all_tests  : Tests {
         $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
         $mech->content_contains('HGNC:30801');
     }
+
+    note('Well genotyping info for pipeline 2');
+    {
+        my $plate_name = "MISEQ1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        $mech->content_contains($plate_name);
+        $mech->content_contains($well_name);
+        $mech->content_contains('KOLF_2_C1');
+    }
 }
 
 sub targeting_type_validation : Tests {
