@@ -88,30 +88,28 @@ Code to execute all tests
 sub all_tests  : Tests {
     ok(1, "Test of LIMS2::WebApp::Controller::PublicReports");
 
+    note('Well genotyping info for pipeline 1');
+    {
+        my $barcode = "1117507060";
+        my $well_name = "A01";
+        my $plate_name = "HUFP0043_1_A";
 
-    my $barcode = "1117507060";
-    my $well_name = "A01";
-    my $plate_name = "HUFP0043_1_A";
+        my $mech = LIMS2::Test::mech();
+        $mech->get_ok('/public_reports/well_genotyping_info_search');
+        $mech->title_is('Design Target Report');
+        $mech->get_ok('/public_reports/well_genotyping_info/1117507060');
+        $mech->content_contains($plate_name);
+        $mech->content_contains($well_name);
+        $mech->content_contains('KOLF_2_C1');
+        $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
+        $mech->content_contains('HGNC:30801');
 
-
-    my $mech = LIMS2::Test::mech();
-    $mech->get_ok('/public_reports/well_genotyping_info_search');
-    $mech->title_is('Design Target Report');
-    $mech->get_ok('/public_reports/well_genotyping_info/1117507060');
-    $mech->content_contains($plate_name);
-    $mech->content_contains($well_name);
-    $mech->content_contains('KOLF_2_C1');
-    $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
-    $mech->content_contains('HGNC:30801');
-
-
-    $mech->get_ok('/public_reports/well_genotyping_info/HUFP0043_1_A/A01');
-    $mech->content_contains($barcode);
-    $mech->content_contains('KOLF_2_C1');
-    $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
-    $mech->content_contains('HGNC:30801');
-
-    
+        $mech->get_ok('/public_reports/well_genotyping_info/HUFP0043_1_A/A01');
+        $mech->content_contains($barcode);
+        $mech->content_contains('KOLF_2_C1');
+        $mech->content_contains('CGGTCTCCATCCTACAAACA CGG');
+        $mech->content_contains('HGNC:30801');
+    }
 }
 
 sub targeting_type_validation : Tests {
