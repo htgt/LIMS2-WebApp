@@ -66,7 +66,7 @@ has [
 );
 
 has ensembl_util => (
-    isa        => 'LIMS2::Util::EnsEMBL',
+    isa        => 'WebAppCommon::Util::EnsEMBL',
     lazy_build => 1,
     handles    => {
         #make all the functions accessible without having to do ensembl->slice_adaptor
@@ -527,9 +527,9 @@ sub _build_oligos {
 
 sub _build_ensembl_util {
     my $self = shift;
-    require LIMS2::Util::EnsEMBL;
+    require WebAppCommon::Util::EnsEMBL;
 
-    return LIMS2::Util::EnsEMBL->new( species => $self->design->species_id );
+    return WebAppCommon::Util::EnsEMBL->new( species => $self->design->species_id );
 }
 
 sub _build_target_region_slice {

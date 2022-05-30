@@ -122,7 +122,7 @@ sub _build_eng_seq_builder {
 }
 
 has ensembl_util => (
-    isa        => 'LIMS2::Util::EnsEMBL',
+    isa        => 'WebAppCommon::Util::EnsEMBL',
     lazy_build => 1,
     handles    => {
         map { 'ensembl_' . $_ => $_ }
@@ -131,10 +131,9 @@ has ensembl_util => (
 );
 
 sub _build_ensembl_util {
-    require LIMS2::Util::EnsEMBL;
+    require WebAppCommon::Util::EnsEMBL;
 
-    # Could specify species in constructor, default species => 'mouse'
-    return LIMS2::Util::EnsEMBL->new;
+    return WebAppCommon::Util::EnsEMBL->new(species => 'mouse');
 }
 
 sub solr_util {
