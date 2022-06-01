@@ -1,4 +1,5 @@
 id,name,password,active,access_key,secret_key
+3,test,,t,,
 162,ka5@sanger.ac.uk,,t,,
 163,jg7@sanger.ac.uk,,t,,
 164,ah19@sanger.ac.uk,,t,,
