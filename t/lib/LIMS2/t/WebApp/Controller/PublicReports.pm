@@ -122,6 +122,7 @@ sub all_tests  : Tests {
         $mech->content_contains($plate_name);
         $mech->content_contains($well_name);
         $mech->content_contains('KOLF_2_C1');
+        $mech->content_contains('Human');
     }
 }
 
