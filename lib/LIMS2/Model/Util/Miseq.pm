@@ -42,6 +42,8 @@ use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
 
+use Data::Dumper;
+
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
      SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
@@ -106,6 +108,7 @@ EOT
 
 
 sub query_miseq_details {
+    DEBUG("Querying miseq details");
     my ($self, $plate_id) = @_;
 
     my @ancestor_rows = @{ _find_inherited_experiment($self, $plate_id) };
@@ -146,6 +149,8 @@ sub query_miseq_details {
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
 
     map { $_->{sibling_origin_wells} = $parent_mapping->{ $_->{origin_well_id} } } @miseq_results;
+
+    DEBUG("Miseq details: " . Dumper(@miseq_results));
 
     return @miseq_results;
 }
@@ -849,10 +854,12 @@ sub qc_relations {
 }
 
 sub miseq_genotyping_info {
+    INFO("Getting Miseq genotyping info.");
     my ($c, $well) = @_;
 
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
     @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
+    DEBUG("Miseq details for well id $well->id: " . Dumper(@related_qc));
 
     my $experiments = {
         well_id             => $well->id,
@@ -899,6 +906,7 @@ sub miseq_genotyping_info {
             crisprs => @crispr_locs,
         };
         $experiments->{species} = $design_rs->species_id;
+        DEBUG("Set species to: $experiments->{species}");
         my $exp_details = {
             experiment_id       => $exp_rs->id,
             read_counts         => $miseq_quant,
