@@ -870,6 +870,7 @@ sub miseq_genotyping_info {
         well_name           => $well->name,
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
+        species             => $well->plate->species_id,
     };
 
     my $index_converter = wells_generator(1);
