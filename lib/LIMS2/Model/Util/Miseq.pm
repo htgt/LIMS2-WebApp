@@ -112,6 +112,7 @@ sub query_miseq_details {
     my ($self, $plate_id) = @_;
 
     my @ancestor_rows = @{ _find_inherited_experiment($self, $plate_id) };
+    DEBUG("Ancestor rows: " . Dumper(@ancestor_rows));
     my @ancestor_headers = qw(
         exp_id
         crispr_id
@@ -122,6 +123,7 @@ sub query_miseq_details {
         start_well_name
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
+    DEBUG("Ancestor results " . Dumper(@ancestor_results));
     my @epii_results = grep { $_->{type_id} eq 'EP_PIPELINE_II' && $_->{exp_id} } @ancestor_results;
     my @epii = uniq map { $_->{exp_id} } @epii_results;
     my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II' } @ancestor_results;
@@ -146,6 +148,7 @@ sub query_miseq_details {
         miseq_well_exp_frameshift
     );
     my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
+    DEBUG("Offspring rows: " . Dumper(@offspring_rows));
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
 
     map { $_->{sibling_origin_wells} = $parent_mapping->{ $_->{origin_well_id} } } @miseq_results;
