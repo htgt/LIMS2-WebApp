@@ -43,26 +43,24 @@ use Carp;
 use WebAppCommon::Util::FileAccess;
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
-WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, crispr_id, design_id, start_well_id) AS (
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id, pr_out.well_id
+WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
-     LEFT JOIN process_crispr pc ON pr_out.process_id = pc.process_id
-     LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
      WHERE pr_out.well_id IN (select id from wells where plate_id = ?)
      UNION
-     SELECT pr.id, pr_in.well_id, pr_out.well_id, pc.crispr_id, pd.design_id, well_hierarchy.start_well_id
+     SELECT pr.id, pr_in.well_id, pr_out.well_id, well_hierarchy.start_well_id
      FROM processes pr
      LEFT OUTER JOIN process_input_well pr_in ON pr_in.process_id = pr.id
      JOIN process_output_well pr_out ON pr_out.process_id = pr.id
      JOIN well_hierarchy ON well_hierarchy.input_well_id = pr_out.well_id
-     LEFT JOIN process_crispr pc ON pr_out.process_id = pc.process_id
-     LEFT JOIN process_design pd ON pr_out.process_id = pd.process_id
 )
-SELECT DISTINCT exp.id AS experiment_id, wh.crispr_id, wh.design_id, output_well_id, op.type_id, start_well_id, sw.name AS start_well_name
+SELECT DISTINCT exp.id AS experiment_id, pc.crispr_id, pd.design_id, output_well_id, op.type_id, start_well_id, sw.name AS start_well_name
 FROM well_hierarchy wh
-LEFT JOIN experiments exp ON exp.crispr_id = wh.crispr_id AND exp.design_id = wh.design_id
+LEFT JOIN process_crispr pc ON wh.process_id = pc.process_id
+LEFT JOIN process_design pd ON wh.process_id = pd.process_id
+LEFT JOIN experiments exp ON exp.crispr_id = pc.crispr_id AND exp.design_id = pd.design_id
 INNER JOIN wells ow ON ow.id=output_well_id
 INNER JOIN plates op ON ow.plate_id=op.id
 INNER JOIN wells sw ON sw.id=start_well_id
