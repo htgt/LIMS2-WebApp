@@ -870,7 +870,7 @@ sub miseq_genotyping_info {
         well_name           => $well->name,
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
-        species             => $well->plate->species_id,
+        species             => _get_species_from_well($well),
     };
 
     my $index_converter = wells_generator(1);
@@ -941,6 +941,15 @@ sub miseq_genotyping_info {
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
+}
+
+sub _get_species_from_well {
+    my $well = shift;
+    my $species = $well->design->species_id;
+    unless(defined $species){
+        die "Can't find species. Looks like the programmer doesn't understand the data model yet.";
+    }
+    return $species;
 }
 
 sub get_api {
