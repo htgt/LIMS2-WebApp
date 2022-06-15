@@ -198,6 +198,7 @@ sub _traverse_process_tree {
     my ($well_where, @well_binds) = $sql->where(
         { 'pr_out.well_id' => { -in => $parent_well_ids } },
     );
+    # Converts to "WHERE experiment_id IN (id1, id2, ...)", for the IDs in $experiments.
     my ($exps_where, @exps_binds) = $sql->where(
         { experiment_id => { -in => $experiments } },
     );
