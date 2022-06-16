@@ -38,6 +38,9 @@ BEGIN {
     unless ( Log::Log4perl->initialized ) {
         Log::Log4perl->easy_init( { level => $OFF } );
     }
+    if (defined $ENV{'LIMS2_TEST_DEBUG_LOGGING'}) {
+        Log::Log4perl->easy_init( { level => $DEBUG } );
+    }
 }
 
 const my $FIXTURE_RX => qr/^\d\d\-[\w-]+\.sql$/;
