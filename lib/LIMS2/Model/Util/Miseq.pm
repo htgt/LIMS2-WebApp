@@ -872,6 +872,7 @@ sub miseq_genotyping_info {
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
         species             => _get_species_from_well($well),
+        gene                => _get_gene_symbols_from_well($c, $well),
     };
 
     my $index_converter = wells_generator(1);
@@ -937,7 +938,6 @@ sub miseq_genotyping_info {
         push (@overview_design_ids, $design_rs->id);
     }
 
-    $experiments->{gene} = _handle_singular(uniq @overview_symbols);
     $experiments->{gene_id} = _handle_singular(uniq @overview_gene_ids);
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
@@ -951,6 +951,13 @@ sub _get_species_from_well {
         die "No design associated with well. Looks like the programmer doesn't understand the data model yet.";
     }
     return $design->species_id;
+}
+
+sub _get_gene_symbols_from_well {
+    my ($c, $well) = @_;
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+    my @gene_symbols = $well->design->gene_symbols($gene_finder);
+    return join(", ", @gene_symbols);
 }
 
 sub get_api {
