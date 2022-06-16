@@ -1171,6 +1171,11 @@ sub _stash_well_genotyping_info {
 sub _stash_pipeline_ii_genotyping_info {
     my ( $self, $c, $well ) = @_;
 
+    if ($well->plate->type_id ne "FP") {
+        $c->stash( error_msg => "Clone genotyping information is only available for wells in FP plates at present. Please contact the cellular-informatics team if you'd like to be able to search using wells in other plates." );
+	return
+    }
+
     my $data = miseq_genotyping_info($c, $well);
     my $alleles_data;
 
