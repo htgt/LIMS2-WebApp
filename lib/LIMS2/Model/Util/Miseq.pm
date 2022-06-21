@@ -872,6 +872,7 @@ sub miseq_genotyping_info {
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
         species             => _get_species_from_well($well),
+        gene_id             => _get_gene_id_from_well($well),
         gene                => _get_gene_symbols_from_well($c, $well),
     };
 
@@ -938,7 +939,6 @@ sub miseq_genotyping_info {
         push (@overview_design_ids, $design_rs->id);
     }
 
-    $experiments->{gene_id} = _handle_singular(uniq @overview_gene_ids);
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
@@ -951,6 +951,19 @@ sub _get_species_from_well {
         die "No design associated with well. Looks like the programmer doesn't understand the data model yet.";
     }
     return $design->species_id;
+}
+
+sub _get_gene_id_from_well {
+    my $well = shift;
+    my @gene_ids = $well->design->gene_ids;
+    if (@gene_ids != 1) {
+        LIMS2::Exception::Implementation->throw(
+            "Current implementation of _get_gene_id_from_well assumes"
+	    . " only one gene associated with each well, but multiple found: "
+	    . Dumper(@gene_ids)
+        );
+    }
+    return $gene_ids[0];
 }
 
 sub _get_gene_symbols_from_well {
