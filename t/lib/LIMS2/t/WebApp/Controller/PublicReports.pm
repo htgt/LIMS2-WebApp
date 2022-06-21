@@ -115,12 +115,14 @@ sub all_tests  : Tests {
     {
         my $plate_name = "HUPFP1234A1";
         my $well_name = "A01";
+        my $clone_id = $plate_name . '_' . $well_name;
         my $mech = LIMS2::Test::mech();
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
         $mech->content_contains($plate_name);
         $mech->content_contains($well_name);
+        $mech->content_contains($clone_id);
         $mech->content_contains("HGNC:15766");
         $mech->content_contains("ADNP");
         $mech->content_contains('KOLF_2_C1');
