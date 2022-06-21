@@ -12,6 +12,10 @@
       <td>[% data.well_name %]</td>
     </tr>
     <tr>
+      <th>Clone ID</th>
+      <td>[% data.clone_id %]</td>
+    </tr>
+    <tr>
       <th>Barcode</th>
       <td>[% data.barcode %]</td>
     </tr>
