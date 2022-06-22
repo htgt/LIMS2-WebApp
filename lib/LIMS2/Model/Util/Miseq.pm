@@ -946,11 +946,11 @@ sub miseq_genotyping_info {
 
 sub _get_species_from_well {
     my $well = shift;
-    my $species = $well->design->species_id;
-    unless(defined $species){
-        die "Can't find species. Looks like the programmer doesn't understand the data model yet.";
+    my $design = $well->design;
+    unless(defined $design){
+        die "No design associated with well. Looks like the programmer doesn't understand the data model yet.";
     }
-    return $species;
+    return $design->species_id;
 }
 
 sub get_api {
