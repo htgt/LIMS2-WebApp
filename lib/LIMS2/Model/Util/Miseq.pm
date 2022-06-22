@@ -863,7 +863,7 @@ sub miseq_genotyping_info {
 
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
     @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
-    DEBUG("Miseq details for well id $well->id: " . Dumper(@related_qc));
+    DEBUG("Miseq details for well id " . $well->id . ": " . Dumper(@related_qc));
 
     my $experiments = {
         well_id             => $well->id,
@@ -911,7 +911,7 @@ sub miseq_genotyping_info {
             crisprs => @crispr_locs,
         };
         $experiments->{species} = $design_rs->species_id;
-        DEBUG("Set species to: $experiments->{species}");
+        DEBUG("Set species to: " . $experiments->{species});
         my $exp_details = {
             experiment_id       => $exp_rs->id,
             read_counts         => $miseq_quant,
