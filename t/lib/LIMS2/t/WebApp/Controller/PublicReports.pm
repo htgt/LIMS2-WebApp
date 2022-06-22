@@ -113,7 +113,7 @@ sub all_tests  : Tests {
 
     note('Well genotyping info for pipeline 2');
     {
-        my $plate_name = "MISEQ1";
+        my $plate_name = "HUPFP1234A1";
         my $well_name = "A01";
         my $mech = LIMS2::Test::mech();
 
@@ -122,6 +122,7 @@ sub all_tests  : Tests {
         $mech->content_contains($plate_name);
         $mech->content_contains($well_name);
         $mech->content_contains('KOLF_2_C1');
+        $mech->content_contains('Human');
     }
 }
 

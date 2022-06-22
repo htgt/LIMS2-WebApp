@@ -42,6 +42,8 @@ use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
 
+use Data::Dumper;
+
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
      SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
@@ -106,9 +108,11 @@ EOT
 
 
 sub query_miseq_details {
+    DEBUG("Querying miseq details");
     my ($self, $plate_id) = @_;
 
     my @ancestor_rows = @{ _find_inherited_experiment($self, $plate_id) };
+    DEBUG("Ancestor rows: " . Dumper(@ancestor_rows));
     my @ancestor_headers = qw(
         exp_id
         crispr_id
@@ -119,6 +123,7 @@ sub query_miseq_details {
         start_well_name
     );
     my @ancestor_results = _prepare_headers({ headers => \@ancestor_headers, results => \@ancestor_rows });
+    DEBUG("Ancestor results " . Dumper(@ancestor_results));
     my @epii_results = grep { $_->{type_id} eq 'EP_PIPELINE_II' && $_->{exp_id} } @ancestor_results;
     my @epii = uniq map { $_->{exp_id} } @epii_results;
     my @parents = uniq map { $_->{well_id} } grep { $_->{type_id} ne 'EP_PIPELINE_II' } @ancestor_results;
@@ -143,9 +148,12 @@ sub query_miseq_details {
         miseq_well_exp_frameshift
     );
     my @offspring_rows = @{ _traverse_process_tree($self, { parents => \@parents, experiments => \@epii }) };
+    DEBUG("Offspring rows: " . Dumper(@offspring_rows));
     my @miseq_results = _prepare_headers({ headers => \@offspring_headers, results => \@offspring_rows });
 
     map { $_->{sibling_origin_wells} = $parent_mapping->{ $_->{origin_well_id} } } @miseq_results;
+
+    DEBUG("Miseq details: " . Dumper(@miseq_results));
 
     return @miseq_results;
 }
@@ -190,6 +198,7 @@ sub _traverse_process_tree {
     my ($well_where, @well_binds) = $sql->where(
         { 'pr_out.well_id' => { -in => $parent_well_ids } },
     );
+    # Converts to "WHERE experiment_id IN (id1, id2, ...)", for the IDs in $experiments.
     my ($exps_where, @exps_binds) = $sql->where(
         { experiment_id => { -in => $experiments } },
     );
@@ -849,10 +858,12 @@ sub qc_relations {
 }
 
 sub miseq_genotyping_info {
+    INFO("Getting Miseq genotyping info.");
     my ($c, $well) = @_;
 
     my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
     @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
+    DEBUG("Miseq details for well id " . $well->id . ": " . Dumper(@related_qc));
 
     my $experiments = {
         well_id             => $well->id,
@@ -860,6 +871,7 @@ sub miseq_genotyping_info {
         well_name           => $well->name,
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
+        species             => _get_species_from_well($well),
     };
 
     my $index_converter = wells_generator(1);
@@ -899,6 +911,7 @@ sub miseq_genotyping_info {
             crisprs => @crispr_locs,
         };
         $experiments->{species} = $design_rs->species_id;
+        DEBUG("Set species to: " . $experiments->{species});
         my $exp_details = {
             experiment_id       => $exp_rs->id,
             read_counts         => $miseq_quant,
@@ -929,6 +942,15 @@ sub miseq_genotyping_info {
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
+}
+
+sub _get_species_from_well {
+    my $well = shift;
+    my $design = $well->design;
+    unless(defined $design){
+        die "No design associated with well. Looks like the programmer doesn't understand the data model yet.";
+    }
+    return $design->species_id;
 }
 
 sub get_api {
