@@ -124,6 +124,16 @@ sub all_tests  : Tests {
         $mech->content_contains('KOLF_2_C1');
         $mech->content_contains('Human');
     }
+
+    note('User is warned if searching for non-FP plates');
+    {
+        my $plate_name = "MISEQ1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+        $mech->content_contains("Clone genotyping information is only available for wells in FP plates at present. Please contact the cellular-informatics team if you'd like to be able to search using wells in other plates.");
+    }
 }
 
 sub targeting_type_validation : Tests {
