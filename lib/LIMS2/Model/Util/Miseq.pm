@@ -928,25 +928,6 @@ sub get_api {
     }
 }
 
-sub _calc_read_percentages {
-    my $calls = shift;
-
-    my $total = 0;
-    $total = sum values %$calls;
-    my $factor = 100 / $total;
-
-    my $perc;
-    foreach my $class (keys %$calls) {
-        my $call_perc = sprintf("%0.2f", $factor * $calls->{$class});
-        $perc->{$class} = {
-            count   => $calls->{$class},
-            perc    => $call_perc,
-        };
-    }
-
-    return $perc;
-}
-
 sub crispr_location_in_amplicon {
     my ($c, $amplicon, @crisprs) = @_;
 
