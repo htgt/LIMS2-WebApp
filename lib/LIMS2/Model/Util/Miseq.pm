@@ -928,12 +928,6 @@ sub get_api {
     }
 }
 
-sub _handle_singular {
-    my @array = shift;
-
-    return @array == 1 ? $array[0] : [ @array ];
-}
-
 sub _calc_read_percentages {
     my $calls = shift;
 
