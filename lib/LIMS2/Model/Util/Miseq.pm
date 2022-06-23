@@ -928,29 +928,6 @@ sub get_api {
     }
 }
 
-sub crispr_location_in_amplicon {
-    my ($c, $amplicon, @crisprs) = @_;
-
-    my @crispr_positions;
-    foreach my $crispr (@crisprs) {
-        my $loc = index($amplicon, $crispr);
-        if ($loc == -1) {
-            try {
-                $loc = index($loc, revcom($crispr)->seq);
-            } catch {
-                $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-            };
-        }
-        my $crispr_data = {
-            crispr      => $crispr,
-            position    => $loc,
-        };
-        push @crispr_positions, $crispr_data;
-    }
-
-    return @crispr_positions;
-}
-
 sub _map_comma_string {
     my (@reads) = @_;
 
