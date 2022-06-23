@@ -928,23 +928,6 @@ sub get_api {
     }
 }
 
-sub _map_comma_string {
-    my (@reads) = @_;
-
-    my @headers = split /,/, shift @reads;
-    my $hashed_reads->{headers} = \@headers;
-    foreach my $read (@reads) {
-        my $row;
-        my @cells = split /,/, $read;
-        for (my $i = 0; $i < scalar @headers; $i++) {
-            $row->{$headers[$i]} = $cells[$i];
-        }
-        push (@{ $hashed_reads->{rows} }, $row);
-    }
-
-    return $hashed_reads;
-}
-
 1;
 
 __END__
