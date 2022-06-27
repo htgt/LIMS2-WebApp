@@ -111,7 +111,7 @@ sub all_tests  : Tests {
         $mech->content_contains('HGNC:30801');
     }
 
-    note('Well genotyping info for pipeline 2');
+    note('Well genotyping info for pipeline 2 - General Info');
     {
         my $plate_name = "HUPFP1234A1";
         my $well_name = "A01";
