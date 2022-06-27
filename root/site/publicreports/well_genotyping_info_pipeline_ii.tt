@@ -51,6 +51,8 @@
 
 </style>
 
+<h2>Design Information</h2>
+
 <h2>QC results</h2>
 [% FOREACH exp IN data.experiments %]
     [% SET uniq_id = exp.qc_origin_plate _ "_" _ exp.qc_origin_well _ "_" _ exp.experiment_name %]
