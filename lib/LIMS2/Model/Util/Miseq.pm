@@ -875,6 +875,7 @@ sub miseq_genotyping_info {
         gene_id             => _get_gene_id_from_well($well),
         gene                => _get_gene_symbols_from_well($c, $well),
         clone_id            => $well,  # Well object resolves to the well-id (aka clone-id) when stringified.
+        design_id           => _get_design_id_from_well($well),
     };
 
     my $index_converter = wells_generator(1);
@@ -971,6 +972,11 @@ sub _get_gene_symbols_from_well {
     my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
     my @gene_symbols = $well->design->gene_symbols($gene_finder);
     return join(", ", @gene_symbols);
+}
+
+sub _get_design_id_from_well {
+    my $well = shift;
+    return $well->design->id;
 }
 
 sub get_api {

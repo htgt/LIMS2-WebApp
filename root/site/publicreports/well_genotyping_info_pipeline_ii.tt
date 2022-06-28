@@ -53,6 +53,13 @@
 
 <h2>Design Information</h2>
 
+<table class="table table-bordered table-condensed table-striped">
+    <tr>
+      <td>Design ID</td>
+      <td><a href="[% c.uri_for( '/user/view_design', { design_id => data.design_id } ) %]">[% data.design_id %]</a></td>
+    </tr>
+</table>
+
 <h2>QC results</h2>
 [% FOREACH exp IN data.experiments %]
     [% SET uniq_id = exp.qc_origin_plate _ "_" _ exp.qc_origin_well _ "_" _ exp.experiment_name %]

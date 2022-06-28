@@ -137,7 +137,11 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
+        my $expected_design_id = "10000257";
+
         $mech->content_contains("Design Information");
+        ok($mech->find_link( text => $expected_design_id , url_regex => qr"user/view_design\?design_id=$expected_design_id"));
+
     }
 
     note('User is warned if searching for non-FP plates');
