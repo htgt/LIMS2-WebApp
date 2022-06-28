@@ -940,8 +940,6 @@ sub miseq_genotyping_info {
         push (@overview_design_ids, $design_rs->id);
     }
 
-    $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
-
     return $experiments;
 }
 
