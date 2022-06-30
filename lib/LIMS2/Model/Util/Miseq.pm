@@ -956,10 +956,11 @@ sub _get_species_from_well {
 sub _get_gene_id_from_well {
     my $well = shift;
     my @gene_ids = $well->design->gene_ids;
-    if (@gene_ids != 1) {
+    my $number_of_genes = scalar @gene_ids;
+    if ($number_of_genes != 1) {
         LIMS2::Exception::Implementation->throw(
             "Current implementation of _get_gene_id_from_well assumes"
-	    . " only one gene associated with each well, but multiple found: "
+	    . " only one gene associated with each well, but $number_of_genes found: "
 	    . Dumper(@gene_ids)
         );
     }
