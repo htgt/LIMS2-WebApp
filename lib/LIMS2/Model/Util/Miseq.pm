@@ -872,6 +872,8 @@ sub miseq_genotyping_info {
         plate_name          => $well->plate_name,
         cell_line           => $well->first_cell_line->name,
         species             => _get_species_from_well($well),
+        gene_id             => _get_gene_id_from_well($well),
+        gene                => _get_gene_symbols_from_well($c, $well),
     };
 
     my $index_converter = wells_generator(1);
@@ -937,8 +939,6 @@ sub miseq_genotyping_info {
         push (@overview_design_ids, $design_rs->id);
     }
 
-    $experiments->{gene} = _handle_singular(uniq @overview_symbols);
-    $experiments->{gene_id} = _handle_singular(uniq @overview_gene_ids);
     $experiments->{design_id} = _handle_singular(uniq @overview_design_ids);
 
     return $experiments;
@@ -951,6 +951,27 @@ sub _get_species_from_well {
         die "No design associated with well. Looks like the programmer doesn't understand the data model yet.";
     }
     return $design->species_id;
+}
+
+sub _get_gene_id_from_well {
+    my $well = shift;
+    my @gene_ids = $well->design->gene_ids;
+    my $number_of_genes = scalar @gene_ids;
+    if ($number_of_genes != 1) {
+        LIMS2::Exception::Implementation->throw(
+            "Current implementation of _get_gene_id_from_well assumes"
+	    . " only one gene associated with each well, but $number_of_genes found: "
+	    . Dumper(@gene_ids)
+        );
+    }
+    return $gene_ids[0];
+}
+
+sub _get_gene_symbols_from_well {
+    my ($c, $well) = @_;
+    my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
+    my @gene_symbols = $well->design->gene_symbols($gene_finder);
+    return join(", ", @gene_symbols);
 }
 
 sub get_api {
