@@ -56,7 +56,7 @@
 <table class="table table-bordered table-condensed table-striped">
     <tr>
       <td>Design ID</td>
-      <td><a href="[% c.uri_for( '/user/view_design', { design_id => data.design_id } ) %]">[% data.design_id %]</a></td>
+      <td>[% data.design_id %]</td>
     </tr>
 </table>
 

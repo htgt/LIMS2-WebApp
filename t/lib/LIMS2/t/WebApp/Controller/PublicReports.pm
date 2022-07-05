@@ -140,7 +140,7 @@ sub all_tests  : Tests {
         my $expected_design_id = "10000257";
 
         $mech->content_contains("Design Information");
-        ok($mech->find_link( text => $expected_design_id , url_regex => qr"user/view_design\?design_id=$expected_design_id"));
+        $mech->content_contains($expected_design_id);
 
     }
 
