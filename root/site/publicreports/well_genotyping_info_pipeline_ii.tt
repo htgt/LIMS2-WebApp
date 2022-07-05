@@ -58,6 +58,10 @@
       <td>Design ID</td>
       <td>[% data.design_id %]</td>
     </tr>
+    <tr>
+      <td>Design Type</td>
+      <td>[% data.design_type %]</td>
+    </tr>
 </table>
 
 <h2>QC results</h2>

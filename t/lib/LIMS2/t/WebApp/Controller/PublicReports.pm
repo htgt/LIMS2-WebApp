@@ -138,9 +138,11 @@ sub all_tests  : Tests {
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
         my $expected_design_id = "10000257";
+        my $expected_design_type = "miseq-nhej";
 
         $mech->content_contains("Design Information");
         $mech->content_contains($expected_design_id);
+        $mech->content_contains($expected_design_type);
 
     }
 
