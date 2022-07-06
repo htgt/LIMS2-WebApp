@@ -145,7 +145,9 @@ sub all_tests  : Tests {
         $mech->content_contains($expected_design_type);
 
         $mech->content_contains("Genotyping Primers");
-
+        my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
+        my @expected_headers = ("Type", "Chromosome", "Strand", "Start", "End", "Sequence");
+        assert_has_correct_headers($genotyping_primers_header, @expected_headers);
     }
 
     note('User is warned if searching for non-FP plates');
@@ -161,6 +163,12 @@ sub all_tests  : Tests {
             " using wells in other plates."
         );
     }
+}
+
+sub assert_has_correct_headers {
+    my ($header_text, @expected_headers) = @_;
+    my $expected_headers_regex = join(qr/\s+/, map { qr/$_/ } @expected_headers);
+    like($header_text, qr/$expected_headers_regex/);
 }
 
 sub targeting_type_validation : Tests {

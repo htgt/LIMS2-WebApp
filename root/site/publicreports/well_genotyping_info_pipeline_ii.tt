@@ -12,3 +12,17 @@
 </table>
 
 <h2>Genotyping Primers</h2>
+
+<table class="table table-bordered table-condensed table-striped">
+    <theader>
+        <tr id="genotyping_primers_header">
+            <th>Type</th>
+            <th>Chromosome</th>
+            <th>Strand</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Sequence</th>
+        </tr>
+    </theader>
+</table>
+
