@@ -11,6 +11,7 @@
     </tr>
 </table>
 
+
 <h2>Genotyping Primers</h2>
 
 <table class="table table-bordered table-condensed table-striped">
@@ -24,5 +25,17 @@
             <th>Sequence</th>
         </tr>
     </theader>
+    <tbody>
+        [%- FOR oligo IN data.oligos %]
+            <tr class="genotyping_primers_row">
+                <td>[% oligo.type %]</td>
+                <td>[% oligo.locus.chr_name %]</td>
+                <td>[% oligo.locus.chr_strand %]</td>
+                <td>[% oligo.locus.chr_start %]</td>
+                <td>[% oligo.locus.chr_end %]</td>
+                <td class="seq"> [% oligo.seq %] </td>
+            </tr>
+        [%- END %]
+    </tbody>
 </table>
 

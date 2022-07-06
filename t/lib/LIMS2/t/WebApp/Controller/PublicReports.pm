@@ -148,6 +148,24 @@ sub all_tests  : Tests {
         my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
         my @expected_headers = ("Type", "Chromosome", "Strand", "Start", "End", "Sequence");
         assert_has_correct_headers($genotyping_primers_header, @expected_headers);
+
+        my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["EXF", "20", "1", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
+        );
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["INF", "20", "1", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
+        );
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["INR", "20", "1", "50893896", "50893915", "GGAGCAATTAGCATCAAGGG"]
+        );
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["EXR", "20", "1", "50894054", "50894073", "ACTACTCTCTTCTCGGGCAT"]
+        );
     }
 
     note('User is warned if searching for non-FP plates');
@@ -169,6 +187,23 @@ sub assert_has_correct_headers {
     my ($header_text, @expected_headers) = @_;
     my $expected_headers_regex = join(qr/\s+/, map { qr/$_/ } @expected_headers);
     like($header_text, qr/$expected_headers_regex/);
+}
+
+sub assert_has_row_with_contents {
+    my ($genotyping_primers_rows, $expected_contents) = @_;
+    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
+    my @expected_contents_is_in_row = map {
+        _check_row_has_contents($_, qr/$expected_contents_regex/)
+    } @$genotyping_primers_rows;
+    ok(
+        grep($_, @expected_contents_is_in_row),
+        "Table should have row with: @$expected_contents",
+    );
+}
+
+sub _check_row_has_contents {
+    my ($row, $expected_contents_regex) = @_;
+    return $row =~ $expected_contents_regex;
 }
 
 sub targeting_type_validation : Tests {

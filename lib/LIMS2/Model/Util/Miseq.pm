@@ -874,6 +874,7 @@ sub miseq_genotyping_info {
         clone_id            => "$well",  # Well object resolves to the well-id (aka clone-id) when stringified.
         design_id           => _get_design_id_from_well($well),
         design_type         => _get_design_type_from_well($well),
+        oligos              => _get_oligo_from_well($well),
     };
 
     return $experiments;
@@ -912,6 +913,11 @@ sub _get_gene_symbols_from_well {
 sub _get_design_id_from_well {
     my $well = shift;
     return $well->design->id;
+}
+
+sub _get_oligo_from_well {
+    my $well = shift;
+    return $well->design->as_hash->{'oligos'};
 }
 
 sub _get_design_type_from_well {
