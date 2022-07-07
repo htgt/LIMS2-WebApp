@@ -111,7 +111,7 @@ sub all_tests  : Tests {
         $mech->content_contains('HGNC:30801');
     }
 
-    note('Well genotyping info for pipeline 2');
+    note('Well genotyping info for pipeline 2 - General Info');
     {
         my $plate_name = "HUPFP1234A1";
         my $well_name = "A01";
@@ -129,6 +129,23 @@ sub all_tests  : Tests {
         $mech->content_contains('Human');
     }
 
+    note('Well genotyping info for pipeline 2 - Design Info');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        my $expected_design_id = "10000257";
+        my $expected_design_type = "miseq-nhej";
+
+        $mech->content_contains("Design Information");
+        $mech->content_contains($expected_design_id);
+        $mech->content_contains($expected_design_type);
+
+    }
+
     note('User is warned if searching for non-FP plates');
     {
         my $plate_name = "MISEQ1";
@@ -136,7 +153,11 @@ sub all_tests  : Tests {
         my $mech = LIMS2::Test::mech();
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
-        $mech->content_contains("Clone genotyping information is only available for wells in FP plates at present. Please contact the cellular-informatics team if you'd like to be able to search using wells in other plates.");
+        $mech->content_contains(
+            "Clone genotyping information is only available for wells in FP plates at present." .
+            " Please contact the cellular-informatics team if you'd like to be able to search" .
+            " using wells in other plates."
+        );
     }
 }
 
