@@ -859,11 +859,8 @@ sub qc_relations {
 
 sub miseq_genotyping_info {
     INFO("Getting Miseq genotyping info.");
-    my ($c, $well) = @_;
 
-    my @related_qc = query_miseq_details($c->model('Golgi'), $well->plate_id);
-    @related_qc = grep { $_->{origin_well_id} eq $well->id } @related_qc;
-    DEBUG("Miseq details for well id " . $well->id . ": " . Dumper(@related_qc));
+    my ($c, $well) = @_;
 
     my $experiments = {
         well_id             => $well->id,
@@ -878,69 +875,6 @@ sub miseq_genotyping_info {
         design_id           => _get_design_id_from_well($well),
         design_type         => _get_design_type_from_well($well),
     };
-
-    my $index_converter = wells_generator(1);
-    my $api = get_api($ENV{LIMS2_RNA_SEQ});
-    my @overview_symbols;
-    my @overview_gene_ids;
-    my @overview_design_ids;
-    foreach my $qc (@related_qc) {
-        #check that result is from 2nd QC
-        my $qc_parent_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{ancestor_well_id} });
-        if ($qc_parent_well->plate->type->id ne 'PIQ') {
-            next;
-        }
-
-        my $exp_rs = $c->model('Golgi')->schema->resultset('Experiment')->find({ id => $qc->{experiment_id} });
-        my $design_rs = $exp_rs->design;
-        my $gene_finder = sub { $c->model('Golgi')->find_genes( @_ ); };
-        my @gene_symbols = $design_rs->gene_symbols($gene_finder);
-        my @gene_ids = $design_rs->gene_ids;
-        my $illumina_index = $index_converter->{ $qc->{miseq_well_name} };
-
-        my $miseq_quant = read_quant_file(
-            $qc->{miseq_plate_name},
-            $illumina_index,
-            $qc->{miseq_experiment_name}
-        );
-        $miseq_quant = _calc_read_percentages($miseq_quant);
-        my $qc_origin_well = $c->model('Golgi')->schema->resultset('Well')->find({ id => $qc->{miseq_well_id} });
-
-        my @alleles_frequency = read_alleles_frequency_file($api, $qc_origin_well->plate_name, $illumina_index, $qc->{miseq_experiment_name}, 1, 1);
-
-        my @crisprs = map { $_->seq } $exp_rs->crispr;
-        my @crispr_locs = crispr_location_in_amplicon($c, $alleles_frequency[1], @crisprs);
-
-        my $alleles_table_data = {
-            data    => _map_comma_string(@alleles_frequency),
-            crisprs => @crispr_locs,
-        };
-        $experiments->{species} = $design_rs->species_id;
-        DEBUG("Set species to: " . $experiments->{species});
-        my $exp_details = {
-            experiment_id       => $exp_rs->id,
-            read_counts         => $miseq_quant,
-            gene                => _handle_singular(@gene_symbols),
-            gene_id             => _handle_singular(@gene_ids),
-            design_id           => $design_rs->id,
-            design_type         => $design_rs->type->id,
-            crisprs             => join (',', @crisprs),
-            qc_origin_plate     => $qc_origin_well->plate_name,
-            qc_origin_well      => $qc_origin_well->name,
-            species             => $design_rs->species_id,
-            oligos              => $exp_rs->design->oligos_sorted,
-            experiment_name     => $qc->{miseq_experiment_name},
-            classification      => $qc->{miseq_well_exp_classification},
-            frameshift          => $qc->{miseq_well_exp_frameshift},
-            alleles_freq        => $alleles_table_data,
-            amplicon            => $design_rs->amplicon,
-        };
-
-        push (@{$experiments->{experiments}}, $exp_details);
-        push (@overview_symbols, @gene_symbols);
-        push (@overview_gene_ids, @gene_ids);
-        push (@overview_design_ids, $design_rs->id);
-    }
 
     return $experiments;
 }
@@ -992,71 +926,6 @@ sub get_api {
     } else {
         return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
     }
-}
-
-sub _handle_singular {
-    my @array = shift;
-
-    return @array == 1 ? $array[0] : [ @array ];
-}
-
-sub _calc_read_percentages {
-    my $calls = shift;
-
-    my $total = 0;
-    $total = sum values %$calls;
-    my $factor = 100 / $total;
-
-    my $perc;
-    foreach my $class (keys %$calls) {
-        my $call_perc = sprintf("%0.2f", $factor * $calls->{$class});
-        $perc->{$class} = {
-            count   => $calls->{$class},
-            perc    => $call_perc,
-        };
-    }
-
-    return $perc;
-}
-
-sub crispr_location_in_amplicon {
-    my ($c, $amplicon, @crisprs) = @_;
-
-    my @crispr_positions;
-    foreach my $crispr (@crisprs) {
-        my $loc = index($amplicon, $crispr);
-        if ($loc == -1) {
-            try {
-                $loc = index($loc, revcom($crispr)->seq);
-            } catch {
-                $c->log->debug('Miseq allele frequency summary API: Can not find crispr in forward or reverse compliment');
-            };
-        }
-        my $crispr_data = {
-            crispr      => $crispr,
-            position    => $loc,
-        };
-        push @crispr_positions, $crispr_data;
-    }
-
-    return @crispr_positions;
-}
-
-sub _map_comma_string {
-    my (@reads) = @_;
-
-    my @headers = split /,/, shift @reads;
-    my $hashed_reads->{headers} = \@headers;
-    foreach my $read (@reads) {
-        my $row;
-        my @cells = split /,/, $read;
-        for (my $i = 0; $i < scalar @headers; $i++) {
-            $row->{$headers[$i]} = $cells[$i];
-        }
-        push (@{ $hashed_reads->{rows} }, $row);
-    }
-
-    return $hashed_reads;
 }
 
 1;
