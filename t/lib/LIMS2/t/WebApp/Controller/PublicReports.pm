@@ -144,6 +144,8 @@ sub all_tests  : Tests {
         $mech->content_contains($expected_design_id);
         $mech->content_contains($expected_design_type);
 
+        $mech->content_contains("Genotyping Primers");
+
     }
 
     note('User is warned if searching for non-FP plates');

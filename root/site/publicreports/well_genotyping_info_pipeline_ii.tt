@@ -10,3 +10,5 @@
       <td>[% data.design_type %]</td>
     </tr>
 </table>
+
+<h2>Genotyping Primers</h2>
