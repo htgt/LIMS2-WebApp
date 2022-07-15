@@ -2,11 +2,11 @@
 
 <table class="table table-bordered table-condensed table-striped">
     <tr>
-      <td>Design ID</td>
+      <th>Design ID</th>
       <td>[% data.design_id %]</td>
     </tr>
     <tr>
-      <td>Design Type</td>
+      <th>Design Type</th>
       <td>[% data.design_type %]</td>
     </tr>
 </table>
