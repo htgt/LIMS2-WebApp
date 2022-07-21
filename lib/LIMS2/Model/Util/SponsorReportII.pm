@@ -130,7 +130,7 @@ sub _build_total_gene_count {
 
 sub _build_sponsor_gene_count {
     my $self = shift;
-    my $sponsor_gene_count;
+    my $sponsor_gene_count = [];
 
     my @project_ii_rs = $self->model->schema->resultset('Project')->search(
           { strategy_id => 'Pipeline II' },
