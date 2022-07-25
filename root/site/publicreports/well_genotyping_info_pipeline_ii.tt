@@ -22,7 +22,7 @@
             <th>Strand</th>
             <th>Start</th>
             <th>End</th>
-            <th>Sequence</th>
+            <th>Sequence in 5'-3' orientation</th>
         </tr>
     </theader>
     <tbody>
@@ -33,7 +33,7 @@
                 <td>[% oligo.locus.chr_strand %]</td>
                 <td>[% oligo.locus.chr_start %]</td>
                 <td>[% oligo.locus.chr_end %]</td>
-                <td class="seq"> [% oligo.seq %] </td>
+                <td class="seq"> [% oligo.sequence_in_5_prime_3_prime_order %] </td>
             </tr>
         [%- END %]
     </tbody>

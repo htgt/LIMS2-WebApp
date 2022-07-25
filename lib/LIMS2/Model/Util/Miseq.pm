@@ -917,7 +917,25 @@ sub _get_design_id_from_well {
 
 sub _get_oligo_from_well {
     my $well = shift;
-    return $well->design->as_hash->{'oligos'};
+    my $oligos = $well->design->as_hash->{'oligos'};
+    for my $oligo (@$oligos) {
+        $oligo->{'sequence_in_5_prime_3_prime_order'} = _calculate_sequence_in_5_prime_3_prime_order(
+            $oligo->{'seq'},
+            $oligo->{'type'}
+        )
+    }
+    return $oligos;
+}
+
+sub _calculate_sequence_in_5_prime_3_prime_order {
+    my ($stored_sequence, $primer_type) = @_;
+    if (grep $_ eq $primer_type, ("INF", "EXF")) {
+        return $stored_sequence;
+    }
+    if (grep $_ eq $primer_type, ("INR", "EXR")) {
+        return reverse_complement_as_string($stored_sequence);
+    }
+    die "Unrecognised primer type: $primer_type";
 }
 
 sub _get_design_type_from_well {

@@ -146,7 +146,7 @@ sub all_tests  : Tests {
 
         $mech->content_contains("Genotyping Primers");
         my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
-        my @expected_headers = ("Type", "Chromosome", "Strand", "Start", "End", "Sequence");
+        my @expected_headers = ("Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation");
         assert_has_correct_headers($genotyping_primers_header, @expected_headers);
 
         my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
@@ -158,13 +158,15 @@ sub all_tests  : Tests {
             \@genotyping_primers_rows,
             ["INF", "20", "1", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
         );
+        # INR and EXR are on the negative strand, so the sequence is the
+        # reverse complement of what is stored in LIMS2.
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["INR", "20", "1", "50893896", "50893915", "GGAGCAATTAGCATCAAGGG"]
+            ["INR", "20", "1", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
         );
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["EXR", "20", "1", "50894054", "50894073", "ACTACTCTCTTCTCGGGCAT"]
+            ["EXR", "20", "1", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
         );
     }
 
