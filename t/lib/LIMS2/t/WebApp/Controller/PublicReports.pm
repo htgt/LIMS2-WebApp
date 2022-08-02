@@ -152,21 +152,21 @@ sub all_tests  : Tests {
         my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["EXF", "20", "1", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
+            ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
         );
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["INF", "20", "1", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
+            ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
         );
         # INR and EXR are on the negative strand, so the sequence is the
         # reverse complement of what is stored in LIMS2.
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["INR", "20", "1", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
+            ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
         );
         assert_has_row_with_contents(
             \@genotyping_primers_rows,
-            ["EXR", "20", "1", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
+            ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
         );
     }
 
