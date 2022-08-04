@@ -170,6 +170,21 @@ sub all_tests  : Tests {
         );
     }
 
+    note('Well genotyping info for pipeline 2 - HDR Template');
+    {
+        my $plate_name = "HUPFP7890A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        $mech->content_contains("HDR Template");
+        $mech->content_contains(
+            "ATGGTCGCAGGTTCACCCGCCCGTTGTCCCAGCAGCGTCGGGAGCTGCGGCCGTCTCCGA" .
+	    "CCGGTGTGGGGCAGCGGGCCTGTGAGACAGGACGGGCTGCCCGTGGGGGCAGCGGGT"
+        );
+    }
+
     note('User is warned if searching for non-FP plates');
     {
         my $plate_name = "MISEQ1";
