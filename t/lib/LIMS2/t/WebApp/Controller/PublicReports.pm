@@ -144,6 +144,30 @@ sub all_tests  : Tests {
         $mech->content_contains($expected_design_id);
         $mech->content_contains($expected_design_type);
 
+        $mech->content_contains("Genotyping Primers");
+        my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
+        my @expected_headers = ("Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation");
+        assert_has_correct_headers($genotyping_primers_header, @expected_headers);
+
+        my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
+        );
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
+        );
+        # INR and EXR are on the negative strand, so the sequence is the
+        # reverse complement of what is stored in LIMS2.
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
+        );
+        assert_has_row_with_contents(
+            \@genotyping_primers_rows,
+            ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
+        );
     }
 
     note('User is warned if searching for non-FP plates');
@@ -159,6 +183,35 @@ sub all_tests  : Tests {
             " using wells in other plates."
         );
     }
+}
+
+sub assert_has_correct_headers {
+    my ($header_text, @expected_headers) = @_;
+    my $expected_headers_regex = join(qr/\s+/, map { qr/$_/ } @expected_headers);
+    like($header_text, qr/$expected_headers_regex/);
+}
+
+sub assert_has_row_with_contents {
+    my ($genotyping_primers_rows, $expected_contents) = @_;
+    my $at_least_one_row_has_expected_contents = _check_has_content(
+        $genotyping_primers_rows,
+        $expected_contents
+    );
+    ok(
+        $at_least_one_row_has_expected_contents,
+        "Table should have row with: @$expected_contents",
+    );
+}
+
+sub _check_has_content {
+    my ($genotyping_primers_rows, $expected_contents) = @_;
+    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
+    foreach my $row (@$genotyping_primers_rows) {
+        if ($row =~ qr/$expected_contents_regex/) {
+	    return 1;
+	}
+    }
+    return 0;
 }
 
 sub targeting_type_validation : Tests {

@@ -2,11 +2,38 @@
 
 <table class="table table-bordered table-condensed table-striped">
     <tr>
-      <td>Design ID</td>
+      <th>Design ID</th>
       <td>[% data.design_id %]</td>
     </tr>
     <tr>
-      <td>Design Type</td>
+      <th>Design Type</th>
       <td>[% data.design_type %]</td>
     </tr>
 </table>
+
+
+<h2>Genotyping Primers</h2>
+
+<table class="table table-bordered table-condensed table-striped">
+    <theader>
+        <tr id="genotyping_primers_header">
+            <th>Type</th>
+            <th>Chromosome</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Sequence in 5'-3' orientation</th>
+        </tr>
+    </theader>
+    <tbody>
+        [%- FOR oligo IN data.oligos %]
+            <tr class="genotyping_primers_row">
+                <td>[% oligo.type %]</td>
+                <td>[% oligo.locus.chr_name %]</td>
+                <td>[% oligo.locus.chr_start %]</td>
+                <td>[% oligo.locus.chr_end %]</td>
+                <td class="seq"> [% oligo.sequence_in_5_to_3_prime_orientation %] </td>
+            </tr>
+        [%- END %]
+    </tbody>
+</table>
+

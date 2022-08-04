@@ -874,6 +874,7 @@ sub miseq_genotyping_info {
         clone_id            => "$well",  # Well object resolves to the well-id (aka clone-id) when stringified.
         design_id           => _get_design_id_from_well($well),
         design_type         => _get_design_type_from_well($well),
+        oligos              => _get_oligo_from_well($well),
     };
 
     return $experiments;
@@ -912,6 +913,29 @@ sub _get_gene_symbols_from_well {
 sub _get_design_id_from_well {
     my $well = shift;
     return $well->design->id;
+}
+
+sub _get_oligo_from_well {
+    my $well = shift;
+    my $oligos = $well->design->as_hash->{'oligos'};
+    for my $oligo (@$oligos) {
+        $oligo->{'sequence_in_5_to_3_prime_orientation'} = _calculate_sequence_in_5_to_3_prime_orientation (
+            $oligo->{'seq'},
+            $oligo->{'type'}
+        )
+    }
+    return $oligos;
+}
+
+sub _calculate_sequence_in_5_to_3_prime_orientation {
+    my ($stored_sequence, $primer_type) = @_;
+    if (grep $_ eq $primer_type, ("INF", "EXF")) {
+        return $stored_sequence;
+    }
+    if (grep $_ eq $primer_type, ("INR", "EXR")) {
+        return reverse_complement_as_string($stored_sequence);
+    }
+    die "Unrecognised primer type: $primer_type";
 }
 
 sub _get_design_type_from_well {
