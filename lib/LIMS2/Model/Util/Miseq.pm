@@ -919,7 +919,7 @@ sub _get_oligo_from_well {
     my $well = shift;
     my $oligos = $well->design->as_hash->{'oligos'};
     for my $oligo (@$oligos) {
-        $oligo->{'sequence_in_5_prime_3_prime_order'} = _calculate_sequence_in_5_prime_3_prime_order(
+        $oligo->{'sequence_in_5_to_3_prime_orientation'} = _calculate_sequence_in_5_to_3_prime_orientation (
             $oligo->{'seq'},
             $oligo->{'type'}
         )
@@ -927,7 +927,7 @@ sub _get_oligo_from_well {
     return $oligos;
 }
 
-sub _calculate_sequence_in_5_prime_3_prime_order {
+sub _calculate_sequence_in_5_to_3_prime_orientation {
     my ($stored_sequence, $primer_type) = @_;
     if (grep $_ eq $primer_type, ("INF", "EXF")) {
         return $stored_sequence;

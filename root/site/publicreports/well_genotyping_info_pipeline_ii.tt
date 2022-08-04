@@ -31,7 +31,7 @@
                 <td>[% oligo.locus.chr_name %]</td>
                 <td>[% oligo.locus.chr_start %]</td>
                 <td>[% oligo.locus.chr_end %]</td>
-                <td class="seq"> [% oligo.sequence_in_5_prime_3_prime_order %] </td>
+                <td class="seq"> [% oligo.sequence_in_5_to_3_prime_orientation %] </td>
             </tr>
         [%- END %]
     </tbody>
