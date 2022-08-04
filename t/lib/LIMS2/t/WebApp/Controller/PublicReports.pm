@@ -193,19 +193,25 @@ sub assert_has_correct_headers {
 
 sub assert_has_row_with_contents {
     my ($genotyping_primers_rows, $expected_contents) = @_;
-    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
-    my @expected_contents_is_in_row = map {
-        _check_row_has_contents($_, qr/$expected_contents_regex/)
-    } @$genotyping_primers_rows;
+    my $at_least_one_row_has_expected_contents = _check_has_content(
+        $genotyping_primers_rows,
+        $expected_contents
+    );
     ok(
-        grep($_, @expected_contents_is_in_row),
+        $at_least_one_row_has_expected_contents,
         "Table should have row with: @$expected_contents",
     );
 }
 
-sub _check_row_has_contents {
-    my ($row, $expected_contents_regex) = @_;
-    return $row =~ $expected_contents_regex;
+sub _check_has_content {
+    my ($genotyping_primers_rows, $expected_contents) = @_;
+    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
+    foreach my $row (@$genotyping_primers_rows) {
+        if ($row =~ qr/$expected_contents_regex/) {
+	    return 1;
+	}
+    }
+    return 0;
 }
 
 sub targeting_type_validation : Tests {
