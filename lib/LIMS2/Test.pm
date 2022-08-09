@@ -394,6 +394,9 @@ sub load_dynamic_files {
             MiseqWellExperiment
             CellLineExternal
             CellLineInternal
+            AmpliconType
+            Amplicon
+            DesignAmplicon
             )
     );
 
