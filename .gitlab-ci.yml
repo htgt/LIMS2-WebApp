@@ -71,5 +71,7 @@ deploy-prod:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
+    - echo "$LIMS2_TEST_HOST_PUBLIC_KEY" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh -o StrictHostKeyChecking=no ubuntu@$LIMS2_TEMP_TEST_HOST "echo Working"
+    - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "echo Working"
