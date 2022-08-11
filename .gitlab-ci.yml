@@ -1,11 +1,17 @@
 variables:
   GIT_SUBMODULE_STRATEGY: normal
 
+stages:
+  - build-test
+  - test
+  - build-prod
+  - deploy-prod
+
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 build-test:
-  stage: build
+  stage: build-test
   script:
     - cp -R /home/ubuntu/git/lims2-webapp-filesystem .
     - docker build
@@ -35,7 +41,7 @@ test:
       $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
 
 build-prod:
-  stage: deploy
+  stage: build-prod
   script:
     - cp -R /home/ubuntu/git/lims2-webapp-filesystem .
     - docker build
@@ -54,3 +60,10 @@ build-prod:
       --tag $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
       .
     - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
+
+deploy-prod:
+  tags:
+    - autoscale
+  stage: deploy-prod
+  script:
+    - echo "I'm deploying ... "
