@@ -72,4 +72,4 @@ deploy-prod:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
-    - echo "Working..."
+    - ssh -o StrictHostKeyChecking=no ubuntu@$LIMS2_TEMP_TEST_HOST "echo Working"
