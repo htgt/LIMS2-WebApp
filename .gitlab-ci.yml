@@ -92,6 +92,7 @@ deploy-prod:
         echo \"Getting to this bit\"
       "
   after_script:
+    - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "sudo docker logout"
   when: manual
