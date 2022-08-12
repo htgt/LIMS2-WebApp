@@ -83,3 +83,5 @@ deploy-prod:
         sudo docker run -d --mount \"type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared\" --name lims2_live -p 8001:8001 -p 8002:8002 $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA;
         echo \"Getting to this bit\"
       "
+  after_script:
+    - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "sudo docker logout"
