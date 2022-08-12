@@ -93,3 +93,6 @@ deploy-prod:
       "
   after_script:
     - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "sudo docker logout"
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "one-button-deploy-for-prod"
