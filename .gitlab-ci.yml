@@ -97,4 +97,4 @@ deploy-prod:
     - ssh ubuntu@$LIMS2_PROD_HOST "sudo docker logout"
   when: manual
   rules:
-    - if: $CI_COMMIT_BRANCH == "one-button-deploy-for-prod"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
