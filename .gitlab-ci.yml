@@ -71,10 +71,10 @@ deploy-prod:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - echo "$LIMS2_TEST_HOST_PUBLIC_KEY" >> ~/.ssh/known_hosts
+    - echo "$LIMS2_PROD_PUBLIC_KEY" >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "
+    - ssh ubuntu@$LIMS2_PROD_HOST "
         set -e;
         sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
         sudo docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA;
@@ -94,7 +94,7 @@ deploy-prod:
   after_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - ssh ubuntu@$LIMS2_TEMP_TEST_HOST "sudo docker logout"
+    - ssh ubuntu@$LIMS2_PROD_HOST "sudo docker logout"
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "one-button-deploy-for-prod"
