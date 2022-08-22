@@ -90,7 +90,6 @@ deploy-prod:
           $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
         ;
         sudo docker image prune --all --force;
-        echo \"Getting to this bit\"
       "
   after_script:
     - eval $(ssh-agent -s)
