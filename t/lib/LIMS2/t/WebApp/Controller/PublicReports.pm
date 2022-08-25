@@ -193,7 +193,9 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-	$mech->content_contains("CRISPR");
+        $mech->content_contains("CRISPR");
+        # WGE ID
+        $mech->content_contains("1174490822");
     }
 
     note('User is warned if searching for non-FP plates');

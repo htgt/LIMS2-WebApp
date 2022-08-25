@@ -50,3 +50,10 @@
 [% END %]
 
 <h2>CRISPR</h2>
+
+<table class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>WGE ID</th>
+      <td>[% data.crispr.wge_crispr_id %]</td>
+    </tr>
+</table>
