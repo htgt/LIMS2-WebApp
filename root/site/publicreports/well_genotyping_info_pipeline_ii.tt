@@ -60,4 +60,8 @@
       <th>WGE ID</th>
       <td>[% data.crispr.wge_crispr_id %]</td>
     </tr>
+    <tr>
+      <th>Location Type</th>
+      <td>[% data.crispr.type %]</td>
+    </tr>
 </table>

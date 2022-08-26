@@ -199,6 +199,8 @@ sub all_tests  : Tests {
         $mech->content_contains("187477");
         # WGE ID
         $mech->content_contains("1174490822");
+        # Location Type
+        $mech->content_contains("Exonic");
     }
 
     note('User is warned if searching for non-FP plates');
