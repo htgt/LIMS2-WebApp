@@ -37,3 +37,14 @@
     </tbody>
 </table>
 
+[% IF data.hdr_template %]
+<h2>HDR Template</h2>
+
+<table class="table table-bordered table-condensed table-striped">
+    <tbody>
+        <tr class="genotyping_primers_row">
+            <td class="seq"> [% data.hdr_template %] </td>
+        </tr>
+    </tbody>
+</table>
+[% END %]

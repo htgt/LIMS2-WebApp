@@ -875,6 +875,7 @@ sub miseq_genotyping_info {
         design_id           => _get_design_id_from_well($well),
         design_type         => _get_design_type_from_well($well),
         oligos              => _get_oligo_from_well($well),
+        hdr_template        => _get_hdr_template_from_well($well),
     };
 
     return $experiments;
@@ -941,6 +942,11 @@ sub _calculate_sequence_in_5_to_3_prime_orientation {
 sub _get_design_type_from_well {
     my $well = shift;
     return $well->design->design_type_id;
+}
+
+sub _get_hdr_template_from_well {
+    my $well = shift;
+    return $well->design->hdr_amplicon;
 }
 
 sub get_api {
