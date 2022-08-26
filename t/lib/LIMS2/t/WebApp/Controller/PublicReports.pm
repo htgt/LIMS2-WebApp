@@ -194,6 +194,9 @@ sub all_tests  : Tests {
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
         $mech->content_contains("CRISPR");
+
+        # LIMS2 ID
+        $mech->content_contains("187477");
         # WGE ID
         $mech->content_contains("1174490822");
     }
