@@ -366,6 +366,7 @@ sub load_dynamic_files {
             ProcessGlobalArmShorteningDesign
             ProcessCrisprTrackerRna
             Plate
+            PlateComment
             Well
             ProcessInputWell
             ProcessOutputWell
