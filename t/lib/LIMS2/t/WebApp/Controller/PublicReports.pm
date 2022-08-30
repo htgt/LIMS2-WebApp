@@ -198,7 +198,14 @@ sub all_tests  : Tests {
         # LIMS2 ID
         $mech->content_contains("187477");
         # WGE ID
-        $mech->content_contains("1174490822");
+        my $wge_link = $mech->find_link(text => "1174490822");
+        ok(defined $wge_link, "WGE ID should be a link");
+        is(
+            $wge_link->url(),
+            "https://wge.stemcell.sanger.ac.uk/crispr/1174490822",
+            "Should link to WGE CRISPR page.",
+        );
+
         # Location Type
         $mech->content_contains("Exonic");
     }

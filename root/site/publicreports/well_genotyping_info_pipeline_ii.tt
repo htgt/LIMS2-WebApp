@@ -58,7 +58,7 @@
     </tr>
     <tr>
       <th>WGE ID</th>
-      <td>[% data.crispr.wge_crispr_id %]</td>
+      <td><a href="https://wge.stemcell.sanger.ac.uk/crispr/[% data.crispr.wge_crispr_id %]"> [% data.crispr.wge_crispr_id %]</a></td>
     </tr>
     <tr>
       <th>Location Type</th>
