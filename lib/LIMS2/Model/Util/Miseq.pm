@@ -858,9 +858,9 @@ sub qc_relations {
 }
 
 sub miseq_genotyping_info {
-    INFO("Getting Miseq genotyping info.");
-
     my ($c, $well) = @_;
+
+    INFO("Getting clone genotyping info for well: $well");
 
     my $experiments = {
         well_id             => $well->id,
@@ -876,6 +876,7 @@ sub miseq_genotyping_info {
         design_type         => _get_design_type_from_well($well),
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
+        crispr              => _get_crispr_from_well($well),
     };
 
     return $experiments;
@@ -947,6 +948,17 @@ sub _get_design_type_from_well {
 sub _get_hdr_template_from_well {
     my $well = shift;
     return $well->design->hdr_amplicon;
+}
+
+sub _get_crispr_from_well {
+    my $well = shift;
+    return $well
+      ->ancestors
+      ->find_process_of_type($well, "ep_pipeline_ii")
+      ->process_crispr
+      ->crispr
+      ->as_hash()
+    ;
 }
 
 sub get_api {

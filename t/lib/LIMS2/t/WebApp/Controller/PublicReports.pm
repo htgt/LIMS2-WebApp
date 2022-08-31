@@ -185,6 +185,31 @@ sub all_tests  : Tests {
         );
     }
 
+    note('Well genotyping info for pipeline 2 - CRISPRs');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        $mech->content_contains("CRISPR");
+
+        # LIMS2 ID
+        $mech->content_contains("187477");
+        # WGE ID
+        my $wge_link = $mech->find_link(text => "1174490822");
+        ok(defined $wge_link, "WGE ID should be a link");
+        is(
+            $wge_link->url(),
+            "https://wge.stemcell.sanger.ac.uk/crispr/1174490822",
+            "Should link to WGE CRISPR page.",
+        );
+
+        # Location Type
+        $mech->content_contains("Exonic");
+    }
+
     note('User is warned if searching for non-FP plates');
     {
         my $plate_name = "MISEQ1";
