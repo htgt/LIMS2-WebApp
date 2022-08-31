@@ -61,6 +61,10 @@
       <td><a href="https://wge.stemcell.sanger.ac.uk/crispr/[% data.crispr.wge_crispr_id %]"> [% data.crispr.wge_crispr_id %]</a></td>
     </tr>
     <tr>
+      <th>Location</th>
+      <td>[% data.crispr.locus.chr_name %]:[% data.crispr.locus.chr_start %]-[% data.crispr.locus.chr_end %]</td>
+    </tr>
+    <tr>
       <th>Location Type</th>
       <td>[% data.crispr.type %]</td>
     </tr>
