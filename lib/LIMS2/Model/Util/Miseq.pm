@@ -858,9 +858,9 @@ sub qc_relations {
 }
 
 sub miseq_genotyping_info {
-    INFO("Getting Miseq genotyping info.");
-
     my ($c, $well) = @_;
+
+    INFO("Getting clone genotyping info for well: $well");
 
     my $experiments = {
         well_id             => $well->id,
