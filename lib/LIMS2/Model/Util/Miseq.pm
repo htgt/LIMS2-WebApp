@@ -952,9 +952,13 @@ sub _get_hdr_template_from_well {
 
 sub _get_crispr_from_well {
     my $well = shift;
-    my $crispr = $well->ancestors->find_process_of_type($well, "ep_pipeline_ii")->process_crispr->crispr ||
-        die "No crispr associated with well: $well";
-    return $crispr->as_hash();
+    return $well
+      ->ancestors
+      ->find_process_of_type($well, "ep_pipeline_ii")
+      ->process_crispr
+      ->crispr
+      ->as_hash()
+    ;
 }
 
 sub get_api {
