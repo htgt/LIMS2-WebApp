@@ -208,6 +208,8 @@ sub all_tests  : Tests {
 
         # Location Type
         $mech->content_contains("Exonic");
+        # Location
+        $mech->content_contains("20:50893836-50893858");
     }
 
     note('User is warned if searching for non-FP plates');
