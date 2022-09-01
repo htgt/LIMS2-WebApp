@@ -2,6 +2,7 @@ package LIMS2::t::WebApp::Controller::PublicReports;
 
 use base qw(Test::Class);
 use Test::Most;
+use HTML::TableExtract;
 use LIMS2::WebApp::Controller::PublicReports;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
@@ -243,6 +244,39 @@ sub assert_has_row_with_contents {
         $at_least_one_row_has_expected_contents,
         "Table should have row with: @$expected_contents",
     );
+}
+
+sub assert_table_has_row_with_contents {
+    my ($html, $table_id, $expected_row) = @_;
+    my $te = HTML::TableExtract->new();
+    $te->parse($html);
+    my @tables = $te->tables();
+    my $table = _get_table_with_id(\@tables, $table_id);
+    my @rows = $table->rows();
+    ok(
+        _check_rows_contains_expected_row(\@rows, $expected_row),
+        "Table should have row: " . join(', ', @$expected_row),
+    );
+}
+
+sub _get_table_with_id {
+   my ($tables, $id) = @_;
+   foreach my $table (@$tables) {
+       if ($table->{attribs}{id} eq $id) {
+           return $table;
+       }
+   }
+   die "Can't find table with id: $id";
+}
+
+sub _check_rows_contains_expected_row {
+   my ($rows, $expected_row) = @_;
+   foreach my $row (@$rows) {
+       if (@$row ~~ @$expected_row){
+           return 1;
+       }
+   }
+   return 0;
 }
 
 sub _check_has_content {
