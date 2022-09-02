@@ -5,3 +5,4 @@ id,seq,species_id,crispr_loci_type_id,comment,pam_right,wge_crispr_id,nonsense_c
 187475,CCTGGAGTCCAACACATTTCCGG,Human,Exonic,,f,900796700,
 187477,CCAGAAGCAAGGGAACCGATCCT,Human,Exonic,,f,1174490822,
 187478,CCGTCTCCGACCGGTGTGGGGCA,Human,Exonic,,f,904034556,
+187479,GCAAGGGAACCGATCCTTGGTGG,Human,Exonic,,t,1174490824,
