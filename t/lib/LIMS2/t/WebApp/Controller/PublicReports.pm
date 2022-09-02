@@ -138,12 +138,30 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        my $expected_design_id = "10000257";
-        my $expected_design_type = "miseq-nhej";
+        my $page = $mech->content();
 
         $mech->content_contains("Design Information");
-        $mech->content_contains($expected_design_id);
-        $mech->content_contains($expected_design_type);
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "design",
+	    ["Design ID", "10000257"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "design",
+	    ["Design Type", "miseq-nhej"],
+        );
+    }
+
+    note('Well genotyping info for pipeline 2 - Primer Info');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
         $mech->content_contains("Genotyping Primers");
         my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
