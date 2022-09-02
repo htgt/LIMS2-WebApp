@@ -198,29 +198,37 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        $mech->content_contains("Genotyping Primers");
-        my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
-        my @expected_headers = ("Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation");
-        assert_has_correct_headers($genotyping_primers_header, @expected_headers);
+        my $page = $mech->content;
 
-        my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
+        $mech->content_contains("Genotyping Primers");
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation"],
         );
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"],
+        );
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"],
         );
         # INR and EXR are on the negative strand, so the sequence is the
         # reverse complement of what is stored in LIMS2.
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"],
         );
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"],
         );
     }
 

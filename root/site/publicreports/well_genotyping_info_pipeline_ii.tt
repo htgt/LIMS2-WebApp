@@ -14,7 +14,7 @@
 
 <h2>Genotyping Primers</h2>
 
-<table class="table table-bordered table-condensed table-striped">
+<table id="primers" class="table table-bordered table-condensed table-striped">
     <theader>
         <tr id="genotyping_primers_header">
             <th>Type</th>
@@ -31,7 +31,7 @@
                 <td>[% oligo.locus.chr_name %]</td>
                 <td>[% oligo.locus.chr_start %]</td>
                 <td>[% oligo.locus.chr_end %]</td>
-                <td class="seq"> [% oligo.sequence_in_5_to_3_prime_orientation %] </td>
+                <td class="seq">[% oligo.sequence_in_5_to_3_prime_orientation %]</td>
             </tr>
         [%- END %]
     </tbody>
