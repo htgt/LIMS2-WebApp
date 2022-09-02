@@ -306,24 +306,6 @@ sub all_tests  : Tests {
     }
 }
 
-sub assert_has_correct_headers {
-    my ($header_text, @expected_headers) = @_;
-    my $expected_headers_regex = join(qr/\s+/, map { qr/$_/ } @expected_headers);
-    like($header_text, qr/$expected_headers_regex/);
-}
-
-sub assert_has_row_with_contents {
-    my ($genotyping_primers_rows, $expected_contents) = @_;
-    my $at_least_one_row_has_expected_contents = _check_has_content(
-        $genotyping_primers_rows,
-        $expected_contents
-    );
-    ok(
-        $at_least_one_row_has_expected_contents,
-        "Table should have row with: @$expected_contents",
-    );
-}
-
 sub assert_table_has_row_with_contents {
     my ($html, $table_id, $expected_row) = @_;
     my $te = HTML::TableExtract->new();
@@ -355,17 +337,6 @@ sub _check_rows_contains_expected_row {
        }
    }
    return 0;
-}
-
-sub _check_has_content {
-    my ($genotyping_primers_rows, $expected_contents) = @_;
-    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
-    foreach my $row (@$genotyping_primers_rows) {
-        if ($row =~ qr/$expected_contents_regex/) {
-	    return 1;
-	}
-    }
-    return 0;
 }
 
 sub targeting_type_validation : Tests {
