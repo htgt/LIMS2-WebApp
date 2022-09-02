@@ -194,11 +194,21 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
+	my $page = $mech->content();
+
         $mech->content_contains("CRISPR");
 
-        # LIMS2 ID
-        $mech->content_contains("187477");
-        # WGE ID
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["LIMS2 ID", "187477"],
+	);
+
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["WGE ID", "1174490822"],
+	);
         my $wge_link = $mech->find_link(text => "1174490822");
         ok(defined $wge_link, "WGE ID should be a link");
         is(
@@ -207,10 +217,17 @@ sub all_tests  : Tests {
             "Should link to WGE CRISPR page.",
         );
 
-        # Location Type
-        $mech->content_contains("Exonic");
-        # Location
-        $mech->content_contains("20:50893836-50893858");
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["Location Type", "Exonic"],
+	);
+
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["Location", "20:50893836-50893858"],
+	);
     }
 
     note('User is warned if searching for non-FP plates');
