@@ -36,7 +36,6 @@ test:
     - docker run
       --rm
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
-      --name lims2_test
       $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
 
 build-prod:
