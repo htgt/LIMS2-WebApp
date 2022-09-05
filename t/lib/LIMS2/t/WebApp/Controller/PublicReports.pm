@@ -3,6 +3,8 @@ package LIMS2::t::WebApp::Controller::PublicReports;
 use base qw(Test::Class);
 use Test::Most;
 use HTML::TableExtract;
+use Array::Compare;
+
 use LIMS2::WebApp::Controller::PublicReports;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
@@ -332,24 +334,11 @@ sub _get_table_with_id {
 sub _check_rows_contains_expected_row {
    my ($rows, $expected_row) = @_;
    foreach my $row (@$rows) {
-       if (_check_arrays_equal($row, $expected_row)){
+       if (Array::Compare->new()->simple_compare($row, $expected_row)){
            return 1;
        }
    }
    return 0;
-}
-
-sub _check_arrays_equal {
-    my ($array_left, $array_right) = @_;
-    if (scalar @$array_left != scalar @$array_right) {
-        return 0;
-    }
-    for (0 .. scalar(@$array_left)-1) {
-        if (@$array_left[$_] ne @$array_right[$_]) {
-	    return 0;
-	}
-    }
-    return 1;
 }
 
 sub targeting_type_validation : Tests {
