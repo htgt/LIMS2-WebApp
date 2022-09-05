@@ -291,6 +291,38 @@ sub all_tests  : Tests {
             "crispr",
             ["Location", "20:50893836-50893858"],
 	);
+
+	{  # Negative strand
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+	    my $page = $mech->content();
+
+            assert_table_has_row_with_contents(
+                $page,
+                "crispr",
+                ["Strand", "-"],
+	    );
+	}
+
+	{  # Positive strand
+            my $plate_name = "HUPFP1235A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+	    my $page = $mech->content();
+
+            assert_table_has_row_with_contents(
+                $page,
+                "crispr",
+                ["Strand", "+"],
+	    );
+	}
     }
 
     note('User is warned if searching for non-FP plates');
