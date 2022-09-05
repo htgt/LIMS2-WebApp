@@ -33,8 +33,6 @@ build-test:
 test:
   stage: test
   script:
-    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:test
-    - docker stop lims2_test || true && docker rm lims2_test || true
     - docker run
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
       --name lims2_test
