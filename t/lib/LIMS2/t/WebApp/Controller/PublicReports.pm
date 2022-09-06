@@ -306,6 +306,12 @@ sub all_tests  : Tests {
                 "crispr",
                 ["Strand", "-"],
 	    );
+
+            assert_table_has_row_with_contents(
+                $page,
+                "crispr",
+                ["Sequence in 5'-3' orientation", "AGGATCGGTTCCCTTGCTTCTGG"],
+            );
 	}
 
 	{  # Positive strand
@@ -322,6 +328,12 @@ sub all_tests  : Tests {
                 "crispr",
                 ["Strand", "+"],
 	    );
+
+            assert_table_has_row_with_contents(
+                $page,
+                "crispr",
+                ["Sequence in 5'-3' orientation", "GCAAGGGAACCGATCCTTGGTGG"],
+            );
 	}
     }
 
