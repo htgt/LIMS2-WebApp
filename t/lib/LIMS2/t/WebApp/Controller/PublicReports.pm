@@ -2,6 +2,9 @@ package LIMS2::t::WebApp::Controller::PublicReports;
 
 use base qw(Test::Class);
 use Test::Most;
+use HTML::TableExtract;
+use Array::Compare;
+
 use LIMS2::WebApp::Controller::PublicReports;
 
 use LIMS2::Test model => { classname => __PACKAGE__ };
@@ -115,18 +118,53 @@ sub all_tests  : Tests {
     {
         my $plate_name = "HUPFP1234A1";
         my $well_name = "A01";
-        my $clone_id = $plate_name . '_' . $well_name;
         my $mech = LIMS2::Test::mech();
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        $mech->content_contains($plate_name);
-        $mech->content_contains($well_name);
-        $mech->content_contains($clone_id);
-        $mech->content_contains("HGNC:15766");
-        $mech->content_contains("ADNP");
-        $mech->content_contains('KOLF_2_C1');
-        $mech->content_contains('Human');
+        my $page = $mech->content;
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Plate Name", "HUPFP1234A1"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Well Name", "A01"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Clone ID", "HUPFP1234A1_A01"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Gene ID", "HGNC:15766"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Gene Symbol", "ADNP"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Species", "Human"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "genotyping_table2",
+	    ["Cell Line", "KOLF_2_C1"],
+        );
     }
 
     note('Well genotyping info for pipeline 2 - Design Info');
@@ -137,36 +175,62 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        my $expected_design_id = "10000257";
-        my $expected_design_type = "miseq-nhej";
+        my $page = $mech->content();
 
         $mech->content_contains("Design Information");
-        $mech->content_contains($expected_design_id);
-        $mech->content_contains($expected_design_type);
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "design",
+	    ["Design ID", "10000257"],
+        );
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "design",
+	    ["Design Type", "miseq-nhej"],
+        );
+    }
+
+    note('Well genotyping info for pipeline 2 - Primer Info');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        my $page = $mech->content;
 
         $mech->content_contains("Genotyping Primers");
-        my $genotyping_primers_header = $mech->scrape_text_by_id("genotyping_primers_header");
-        my @expected_headers = ("Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation");
-        assert_has_correct_headers($genotyping_primers_header, @expected_headers);
 
-        my @genotyping_primers_rows = $mech->scrape_text_by_attr("class", "genotyping_primers_row");
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"]
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["Type", "Chromosome", "Start", "End", "Sequence in 5'-3' orientation"],
         );
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"]
+
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["EXF", "20", "50893491", "50893510", "TTTAACTGGCCCGATGAGAG"],
+        );
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["INF", "20", "50893696", "50893715", "CCTGGCCTACAGATTTGACT"],
         );
         # INR and EXR are on the negative strand, so the sequence is the
         # reverse complement of what is stored in LIMS2.
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"]
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["INR", "20", "50893896", "50893915", "CCCTTGATGCTAATTGCTCC"],
         );
-        assert_has_row_with_contents(
-            \@genotyping_primers_rows,
-            ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"]
+        assert_table_has_row_with_contents(
+            $page,
+	    "primers",
+	    ["EXR", "20", "50894054", "50894073", "ATGCCCGAGAAGAGAGTAGT"],
         );
     }
 
@@ -193,11 +257,21 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
+	my $page = $mech->content();
+
         $mech->content_contains("CRISPR");
 
-        # LIMS2 ID
-        $mech->content_contains("187477");
-        # WGE ID
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["LIMS2 ID", "187477"],
+	);
+
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["WGE ID", "1174490822"],
+	);
         my $wge_link = $mech->find_link(text => "1174490822");
         ok(defined $wge_link, "WGE ID should be a link");
         is(
@@ -206,10 +280,17 @@ sub all_tests  : Tests {
             "Should link to WGE CRISPR page.",
         );
 
-        # Location Type
-        $mech->content_contains("Exonic");
-        # Location
-        $mech->content_contains("20:50893836-50893858");
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["Location Type", "Exonic"],
+	);
+
+        assert_table_has_row_with_contents(
+            $page,
+            "crispr",
+            ["Location", "20:50893836-50893858"],
+	);
     }
 
     note('User is warned if searching for non-FP plates');
@@ -227,33 +308,37 @@ sub all_tests  : Tests {
     }
 }
 
-sub assert_has_correct_headers {
-    my ($header_text, @expected_headers) = @_;
-    my $expected_headers_regex = join(qr/\s+/, map { qr/$_/ } @expected_headers);
-    like($header_text, qr/$expected_headers_regex/);
-}
-
-sub assert_has_row_with_contents {
-    my ($genotyping_primers_rows, $expected_contents) = @_;
-    my $at_least_one_row_has_expected_contents = _check_has_content(
-        $genotyping_primers_rows,
-        $expected_contents
-    );
+sub assert_table_has_row_with_contents {
+    my ($html, $table_id, $expected_row) = @_;
+    my $te = HTML::TableExtract->new();
+    $te->parse($html);
+    my @tables = $te->tables();
+    my $table = _get_table_with_id(\@tables, $table_id);
+    my @rows = $table->rows();
     ok(
-        $at_least_one_row_has_expected_contents,
-        "Table should have row with: @$expected_contents",
+        _check_rows_contains_expected_row(\@rows, $expected_row),
+        "Table should have row: " . join(', ', @$expected_row),
     );
 }
 
-sub _check_has_content {
-    my ($genotyping_primers_rows, $expected_contents) = @_;
-    my $expected_contents_regex = join(qr/\s+/, map { qr/$_/ } @$expected_contents);
-    foreach my $row (@$genotyping_primers_rows) {
-        if ($row =~ qr/$expected_contents_regex/) {
-	    return 1;
-	}
-    }
-    return 0;
+sub _get_table_with_id {
+   my ($tables, $id) = @_;
+   foreach my $table (@$tables) {
+       if ($table->{attribs}{id} eq $id) {
+           return $table;
+       }
+   }
+   die "Can't find table with id: $id";
+}
+
+sub _check_rows_contains_expected_row {
+   my ($rows, $expected_row) = @_;
+   foreach my $row (@$rows) {
+       if (Array::Compare->new()->simple_compare($row, $expected_row)){
+           return 1;
+       }
+   }
+   return 0;
 }
 
 sub targeting_type_validation : Tests {
