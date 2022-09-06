@@ -66,7 +66,7 @@
     </tr>
     <tr>
       <th>Sequence in 5'-3' orientation</th>
-      <td>[% data.crispr.fwd_seq %]</td>
+      <td class="seq">[% data.crispr.fwd_seq %]</td>
     </tr>
     <tr>
       <th>Strand</th>
