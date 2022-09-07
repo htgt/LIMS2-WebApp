@@ -952,13 +952,29 @@ sub _get_hdr_template_from_well {
 
 sub _get_crispr_from_well {
     my $well = shift;
-    return $well
+    my $crispr_info = $well
       ->ancestors
       ->find_process_of_type($well, "ep_pipeline_ii")
       ->process_crispr
       ->crispr
       ->as_hash()
     ;
+    $crispr_info->{locus}{chr_strand} = _reformat_strand_info_into_plus_minus_form(
+        $crispr_info->{locus}{chr_strand}
+    );
+    return $crispr_info;
+}
+
+sub _reformat_strand_info_into_plus_minus_form {
+    my $input_strand_info = shift;
+    if ($input_strand_info eq "1") {
+	return "+";
+    }
+    if ($input_strand_info eq "-1") {
+	return "-";
+    }
+    die "Unknown strand type: $input_strand_info";
+
 }
 
 sub get_api {
