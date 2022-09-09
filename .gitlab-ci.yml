@@ -80,6 +80,7 @@ deploy-prod:
         sudo docker container rm lims2_live || echo \"No container to remove\";
         sudo docker run
           -d
+          --restart unless-stopped
           --mount
           \"type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared\"
           --name lims2_live
