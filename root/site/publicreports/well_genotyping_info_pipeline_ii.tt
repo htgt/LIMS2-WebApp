@@ -65,6 +65,10 @@
       <td>[% data.crispr.locus.chr_name %]:[% data.crispr.locus.chr_start %]-[% data.crispr.locus.chr_end %]</td>
     </tr>
     <tr>
+      <th>Sequence in 5'-3' orientation</th>
+      <td class="seq">[% data.crispr.fwd_seq %]</td>
+    </tr>
+    <tr>
       <th>Strand</th>
       <td>[% data.crispr.locus.chr_strand %]</td>
     </tr>
