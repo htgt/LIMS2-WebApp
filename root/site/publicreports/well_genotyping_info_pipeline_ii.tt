@@ -77,3 +77,6 @@
       <td>[% data.crispr.type %]</td>
     </tr>
 </table>
+
+<h2>MiSeq QA</h2>
+
