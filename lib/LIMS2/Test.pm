@@ -317,6 +317,8 @@ sub load_static_files {
             DesignOligoLocus
             Amplicon
             DesignAmplicon
+            MiseqPlate
+            MiseqExperiment
         )
 
     );
