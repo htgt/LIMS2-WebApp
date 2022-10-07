@@ -27,3 +27,5 @@ id,name,description,type_id,created_by_id,created_at,species_id,is_virtual,barco
 441,HUPEPD1235A1,"",EP_PICK,168,2022-09-02 14:26:21.259438,Human,,,,
 442,HUPFP1235A1,"",FP,168,2022-09-02 14:26:24.896896,Human,,,,
 443,MISEQ1235,"",MISEQ,168,2022-09-02 13:30:38,Human,,,,
+444,HUEDQ1234,"",PIQ,168,2022-10-05 14:45:52,Human,,,,
+445,MISEQ1234_2,"",MISEQ,168,2022-10-05 14:46:27,Human,,,,

@@ -317,6 +317,8 @@ sub load_static_files {
             DesignOligoLocus
             Amplicon
             DesignAmplicon
+            MiseqPlate
+            MiseqExperiment
         )
 
     );
@@ -378,7 +380,7 @@ sub load_dynamic_files {
             CrisprEsQcRuns
             CrisprEsQcWell
             CrisprPlateAppendsType
-            CrisprPlateAppends
+            CrisprPlateAppend
             SequencingProject
             SequencingPrimerType
             SequencingProjectPrimer
