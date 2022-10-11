@@ -877,6 +877,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
+        miseq_data          => _get_miseq_data_from_well($well),
     };
 
     return $experiments;
@@ -974,6 +975,64 @@ sub _reformat_strand_info_into_plus_minus_form {
 	return "-";
     }
     die "Unknown strand type: $input_strand_info";
+}
+
+sub _get_miseq_data_from_well {
+    my $well = shift;
+    my $piq_plate_well = _get_piq_plate_well_from_well($well);
+    if (! defined $piq_plate_well ) {
+        return {};
+    }
+    DEBUG("Parent plate id: " .  $piq_plate_well->id);
+    my $miseq_plate_well = _get_miseq_well_from_piq_well($piq_plate_well);
+    if (! defined $miseq_plate_well ) {
+        return {};
+    }
+    DEBUG("Miseq well id: " .  $miseq_plate_well->id);
+    my @miseq_well_experiments = $miseq_plate_well
+        ->miseq_well_experiments
+	->search(
+            {'miseq_exp.parent_plate_id' => $piq_plate_well->plate->id},
+            {prefetch => ['miseq_exp']},
+        )
+    ;
+    if (scalar @miseq_well_experiments == 0) {
+        return {};
+    }
+    if (scalar @miseq_well_experiments > 1) {
+        die "Expected at most on miseq well experiment, but found: " . Dumper(@miseq_well_experiments);
+    }
+    my $experiment_name = $miseq_well_experiments[0]->miseq_exp->name;
+    return {"experiment_name" => $experiment_name};
+
+}
+
+sub _get_miseq_well_from_piq_well {
+    my $piq_plate_well = shift;
+    my @miseq_plate_wells = $piq_plate_well
+      ->descendants_of_type('MISEQ')
+    ;
+    if (scalar @miseq_plate_wells == 0){
+        return undef;
+    }
+    if (scalar @miseq_plate_wells > 1){
+        die "Assumming only one MISEQ plate, but found: " . scalar @miseq_plate_wells;
+    }
+    return $miseq_plate_wells[0];
+}
+
+sub _get_piq_plate_well_from_well {
+    my $well = shift;
+    my @piq_plate_wells = $well
+      ->descendants_of_type('PIQ')
+    ;
+    if (scalar @piq_plate_wells == 0){
+        return undef;
+    }
+    if (scalar @piq_plate_wells > 1){
+        die "Assumming only one PIQ plate, but found: " . scalar @piq_plate_wells;
+    }
+    return $piq_plate_wells[0];
 
 }
 
