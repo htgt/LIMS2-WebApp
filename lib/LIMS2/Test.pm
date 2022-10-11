@@ -319,6 +319,7 @@ sub load_static_files {
             DesignAmplicon
             MiseqPlate
             MiseqExperiment
+            MiseqWellExperiment
         )
 
     );
