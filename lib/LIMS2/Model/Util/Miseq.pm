@@ -981,12 +981,12 @@ sub _get_miseq_data_from_well {
     my $well = shift;
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well ) {
-        return {};
+        return undef;
     }
     DEBUG("Parent plate id: " .  $piq_plate_well->id);
     my $miseq_plate_well = _get_miseq_well_from_piq_well($piq_plate_well);
     if (! defined $miseq_plate_well ) {
-        return {};
+        return undef;
     }
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
     my @miseq_well_experiments = $miseq_plate_well
@@ -997,7 +997,7 @@ sub _get_miseq_data_from_well {
         )
     ;
     if (scalar @miseq_well_experiments == 0) {
-        return {};
+        return undef;
     }
     if (scalar @miseq_well_experiments > 1) {
         die "Expected at most on miseq well experiment, but found: " . Dumper(@miseq_well_experiments);

@@ -339,20 +339,34 @@ sub all_tests  : Tests {
 
     note('Well genotyping info for pipeline 2 - MiSeq QA');
     {
-        my $plate_name = "HUPFP1234A1";
-        my $well_name = "A01";
-        my $mech = LIMS2::Test::mech();
+	# Well with misiq data available.
+	{
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
 
-        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        $mech->content_contains("MiSeq QA");
+            $mech->content_contains("MiSeq QA");
 
-        my $page = $mech->content();
-        assert_table_has_row_with_contents(
-	    $page,
-	    "miseq-overview",
-	    ["Experiment", "HUEDQ1234_ADNP"],
-        );
+            my $page = $mech->content();
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-overview",
+	        ["Experiment", "HUEDQ1234_ADNP"],
+            );
+        }
+
+        # Well without miseq data available.
+        {
+            my $plate_name = "HUPFP7890A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+            $mech->content_contains("No MiSeq information available for this well");
+        }
     }
 
 
