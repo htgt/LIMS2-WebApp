@@ -355,6 +355,11 @@ sub all_tests  : Tests {
 	        "miseq-overview",
 	        ["Experiment", "HUEDQ1234_ADNP"],
             );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-overview",
+	        ["Classification", "Mixed"],
+            );
         }
 
         # Well without miseq data available.

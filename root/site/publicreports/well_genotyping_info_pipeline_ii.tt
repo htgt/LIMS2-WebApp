@@ -87,6 +87,10 @@
       <th>Experiment</th>
       <td>[% data.miseq_data.experiment_name %]</td>
     </tr>
+    <tr>
+      <th>Classification</th>
+      <td>[% data.miseq_data.classification %]</td>
+    </tr>
 </table>
 
 [% ELSE %]

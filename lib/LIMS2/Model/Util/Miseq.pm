@@ -1002,8 +1002,11 @@ sub _get_miseq_data_from_well {
     if (scalar @miseq_well_experiments > 1) {
         die "Expected at most on miseq well experiment, but found: " . Dumper(@miseq_well_experiments);
     }
-    my $experiment_name = $miseq_well_experiments[0]->miseq_exp->name;
-    return {"experiment_name" => $experiment_name};
+    my $miseq_well_experiment = $miseq_well_experiments[0];
+    return {
+        "experiment_name" => $miseq_well_experiment->experiment,
+        "classification" => $miseq_well_experiment->class,
+    };
 
 }
 
