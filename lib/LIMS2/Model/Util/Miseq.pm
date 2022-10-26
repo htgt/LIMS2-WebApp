@@ -989,10 +989,26 @@ sub _get_miseq_data_from_well {
         return undef;
     }
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
+    my @experiments_in_well = $well
+        ->result_source
+        ->schema
+        ->resultset('Experiment')
+	->search({
+            'design_id' => $well->design->id,
+            'crispr_id' => _get_crispr_from_well($well)->{'id'},
+        })
+    ;
+    if (scalar @experiments_in_well == 0) {
+        die "No experiment found for well with id: " . $well->id;
+    }
+    if (scalar @experiments_in_well > 1) {
+        die "Multiple experiments found for well with id: " . $well->id;
+    }
+    my $experiment_in_well =  $experiments_in_well[0];
     my @miseq_well_experiments = $miseq_plate_well
         ->miseq_well_experiments
 	->search(
-            {'miseq_exp.parent_plate_id' => $piq_plate_well->plate->id},
+            {'miseq_exp.experiment_id' => $experiment_in_well->id},
             {prefetch => ['miseq_exp']},
         )
     ;
