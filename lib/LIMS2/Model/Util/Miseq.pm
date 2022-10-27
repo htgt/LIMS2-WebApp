@@ -989,22 +989,7 @@ sub _get_miseq_data_from_well {
         return undef;
     }
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
-    my @experiments_in_well = $well
-        ->result_source
-        ->schema
-        ->resultset('Experiment')
-	->search({
-            'design_id' => $well->design->id,
-            'crispr_id' => _get_crispr_from_well($well)->{'id'},
-        })
-    ;
-    if (scalar @experiments_in_well == 0) {
-        die "No experiment found for well with id: " . $well->id;
-    }
-    if (scalar @experiments_in_well > 1) {
-        die "Multiple experiments found for well with id: " . $well->id;
-    }
-    my $experiment_in_well =  $experiments_in_well[0];
+    my $experiment_in_well =  _get_experiment_from_well($well);
     my @miseq_well_experiments = $miseq_plate_well
         ->miseq_well_experiments
 	->search(
@@ -1024,6 +1009,26 @@ sub _get_miseq_data_from_well {
         "classification" => $miseq_well_experiment->class,
     };
 
+}
+
+sub _get_experiment_from_well {
+    my $well = shift;
+    my @experiments_in_well = $well
+        ->result_source
+        ->schema
+        ->resultset('Experiment')
+        ->search({
+            'design_id' => $well->design->id,
+            'crispr_id' => _get_crispr_from_well($well)->{'id'},
+        })
+    ;
+    if (scalar @experiments_in_well == 0) {
+        die "No experiment found for well with id: " . $well->id;
+    }
+    if (scalar @experiments_in_well > 1) {
+        die "Multiple experiments found for well with id: " . $well->id;
+    }
+    return $experiments_in_well[0];
 }
 
 sub _get_miseq_well_from_piq_well {
