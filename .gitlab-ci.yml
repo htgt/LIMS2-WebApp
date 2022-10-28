@@ -1,5 +1,6 @@
 variables:
   GIT_SUBMODULE_STRATEGY: normal
+  LIMS2_WEBAPP_FILESYSTEM_VERSION: 5e6ccfdcc69ae9237d4587ed9b102aebeb8390d0
 
 stages:
   - build-test
@@ -14,6 +15,7 @@ build-test:
   stage: build-test
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
+    - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
     - docker build
       --file dockerfiles/low-level
       --tag sci/lims2:bionic
@@ -42,6 +44,7 @@ build-prod:
   stage: build-prod
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
+    - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
     - docker build
       --file dockerfiles/low-level
       --tag sci/lims2:bionic
