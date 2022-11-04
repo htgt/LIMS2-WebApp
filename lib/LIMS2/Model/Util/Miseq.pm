@@ -1001,7 +1001,8 @@ sub _get_miseq_data_from_well {
         return undef;
     }
     if (scalar @miseq_well_experiments > 1) {
-        die "Expected at most on miseq well experiment, but found: " . Dumper(@miseq_well_experiments);
+        my @miseq_well_experiment_ids = map {$_->id} @miseq_well_experiments;
+        die "Expected at most one miseq well experiment, but found experiments with ID: " . Dumper(@miseq_well_experiment_ids);
     }
     my $miseq_well_experiment = $miseq_well_experiments[0];
     return {
