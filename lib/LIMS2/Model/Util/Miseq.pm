@@ -983,7 +983,7 @@ sub _get_miseq_data_from_well {
     if (! defined $piq_plate_well ) {
         return undef;
     }
-    DEBUG("Parent plate id: " .  $piq_plate_well->id);
+    DEBUG("Parent plate well id: " .  $piq_plate_well->id);
     my $miseq_plate_well = _get_miseq_well_from_piq_well($piq_plate_well);
     if (! defined $miseq_plate_well ) {
         return undef;
@@ -1038,6 +1038,7 @@ sub _get_miseq_well_from_piq_well {
       ->descendants_of_type('MISEQ')
     ;
     if (scalar @miseq_plate_wells == 0){
+        DEBUG("Can't find miseq-plate well for PIQ plate well with ID: " . $piq_plate_well->id);
         return undef;
     }
     if (scalar @miseq_plate_wells > 1){
@@ -1052,6 +1053,7 @@ sub _get_piq_plate_well_from_well {
       ->descendants_of_type('PIQ')
     ;
     if (scalar @piq_plate_wells == 0){
+        DEBUG("Can't find PIQ-plate well for well with ID: " . $well->id);
         return undef;
     }
     if (scalar @piq_plate_wells > 1){
