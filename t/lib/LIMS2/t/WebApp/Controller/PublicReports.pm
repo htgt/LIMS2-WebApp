@@ -339,7 +339,7 @@ sub all_tests  : Tests {
 
     note('Well genotyping info for pipeline 2 - MiSeq QA');
     {
-	# Well with misiq data available.
+	# Well with miseq data available.
 	{
             my $plate_name = "HUPFP1234A1";
             my $well_name = "A01";
