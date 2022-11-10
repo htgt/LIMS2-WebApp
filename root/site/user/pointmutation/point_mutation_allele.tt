@@ -702,26 +702,6 @@ function getSummary(letter, downloadFlag, limitFlag) {
     return res;
 }
 
-function getTargets(letter) {
-    var index = '[% oligo_index %]';
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_target_region/') %]',
-        type: "GET",
-        contentType: 'text/plain',
-        data: {
-            miseq: '[% miseq %]', 
-            oligo: index,
-            exp: letter,
-        },
-        success: function(result){
-            var res = JSON.parse(result);
-        },
-        error: function() {
-            console.log("Found no targets for this experiment");
-        }
-    });
-}
-
 function createTable(exp, result) {
     result = JSON.parse(result);
     if (result.crispr) {
