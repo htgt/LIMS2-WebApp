@@ -641,33 +641,6 @@ function buildImages(selection, data) {
     }
 }
 
-function getImages(letter, chart, div) {
-    var index = '[% oligo_index %]';
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_img/') %]',
-        type: "GET",
-        contentType: 'image/png',
-        data: {
-            miseq: '[% miseq %]', 
-            oligo: index,
-            exp: letter,
-            name: chart
-        },
-        success: function(result){
-            if (div == null) {
-                $('.' + letter).html('<img src="data:image/png;base64,' + result + '"/>');
-            } else {
-                $('#' + div).html('<img src="data:image/png;base64,' + result + '"/>');
-            }
-        },
-        error: function() {
-            console.log('Failure to retrieve indel size distribution graph for ' + letter);
-            $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
-            $('#clearfix' + letter).hide();
-        }
-    });
-}
-
 function getSummary(letter, downloadFlag, limitFlag) {
     var index = '[% oligo_index %]';
     var res; 
