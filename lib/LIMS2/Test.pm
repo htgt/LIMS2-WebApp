@@ -315,10 +315,12 @@ sub load_static_files {
             Design
             DesignOligo
             DesignOligoLocus
+            Experiment
             Amplicon
             DesignAmplicon
             MiseqPlate
             MiseqExperiment
+            MiseqWellExperiment
         )
 
     );

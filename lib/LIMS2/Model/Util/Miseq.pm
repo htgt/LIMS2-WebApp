@@ -877,6 +877,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
+        miseq_data          => _get_miseq_data_from_well($well),
     };
 
     return $experiments;
@@ -974,6 +975,91 @@ sub _reformat_strand_info_into_plus_minus_form {
 	return "-";
     }
     die "Unknown strand type: $input_strand_info";
+}
+
+sub _get_miseq_data_from_well {
+    my $well = shift;
+    my $piq_plate_well = _get_piq_plate_well_from_well($well);
+    if (! defined $piq_plate_well) {
+        return undef;
+    }
+    DEBUG("Parent plate well id: " .  $piq_plate_well->id);
+    my $miseq_plate_well = _get_miseq_well_from_piq_well($piq_plate_well);
+    if (! defined $miseq_plate_well) {
+        return undef;
+    }
+    DEBUG("Miseq well id: " .  $miseq_plate_well->id);
+    my $experiment_in_well =  _get_experiment_from_well($well);
+    my @miseq_well_experiments = $miseq_plate_well
+        ->miseq_well_experiments
+	->search(
+            {'miseq_exp.experiment_id' => $experiment_in_well->id},
+            {prefetch => ['miseq_exp']},
+        )
+    ;
+    if (scalar @miseq_well_experiments == 0) {
+        return undef;
+    }
+    if (scalar @miseq_well_experiments > 1) {
+        my @miseq_well_experiment_ids = map {$_->id} @miseq_well_experiments;
+        die "Expected at most one miseq well experiment, but found experiments with ID: " . Dumper(@miseq_well_experiment_ids);
+    }
+    my $miseq_well_experiment = $miseq_well_experiments[0];
+    return {
+        "experiment_name" => $miseq_well_experiment->experiment,
+        "classification" => $miseq_well_experiment->class,
+    };
+
+}
+
+sub _get_experiment_from_well {
+    my $well = shift;
+    my @experiments_in_well = $well
+        ->result_source
+        ->schema
+        ->resultset('Experiment')
+        ->search({
+            'design_id' => $well->design->id,
+            'crispr_id' => _get_crispr_from_well($well)->{'id'},
+        })
+    ;
+    if (scalar @experiments_in_well == 0) {
+        die "No experiment found for well with id: " . $well->id;
+    }
+    if (scalar @experiments_in_well > 1) {
+        die "Multiple experiments found for well with id: " . $well->id;
+    }
+    return $experiments_in_well[0];
+}
+
+sub _get_miseq_well_from_piq_well {
+    my $piq_plate_well = shift;
+    my @miseq_plate_wells = $piq_plate_well
+      ->descendants_of_type('MISEQ')
+    ;
+    if (scalar @miseq_plate_wells == 0) {
+        DEBUG("Can't find miseq-plate well for PIQ plate well with ID: " . $piq_plate_well->id);
+        return undef;
+    }
+    if (scalar @miseq_plate_wells > 1) {
+        die "Assuming only one MISEQ plate, but found: " . scalar @miseq_plate_wells;
+    }
+    return $miseq_plate_wells[0];
+}
+
+sub _get_piq_plate_well_from_well {
+    my $well = shift;
+    my @piq_plate_wells = $well
+      ->descendants_of_type('PIQ')
+    ;
+    if (scalar @piq_plate_wells == 0) {
+        DEBUG("Can't find PIQ-plate well for well with ID: " . $well->id);
+        return undef;
+    }
+    if (scalar @piq_plate_wells > 1) {
+        die "Assuming only one PIQ plate, but found: " . scalar @piq_plate_wells;
+    }
+    return $piq_plate_wells[0];
 
 }
 

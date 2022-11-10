@@ -77,3 +77,25 @@
       <td>[% data.crispr.type %]</td>
     </tr>
 </table>
+
+<h2>MiSeq QA</h2>
+
+[% IF data.miseq_data %]
+
+<table id="miseq-overview" class="table table-bordered table-condensed table-striped">
+    <tr>
+      <th>Experiment</th>
+      <td>[% data.miseq_data.experiment_name %]</td>
+    </tr>
+    <tr>
+      <th>Classification</th>
+      <td>[% data.miseq_data.classification %]</td>
+    </tr>
+</table>
+
+[% ELSE %]
+
+<p>No MiSeq information available for this well</p>
+
+[% END %]
+
