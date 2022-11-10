@@ -390,7 +390,6 @@ input:checked + .slider:before {
 
 <script type="text/javascript" charset="utf-8">
 var exps = [];
-var rowQualityData = {};
 
 
 $(document).ready(function() {
@@ -778,8 +777,6 @@ function createTable(exp, result) {
         $('#response' + exp).text('No Phred33 Quality Data found.');
     }
 
-    rowQualityData[exp] = rowObjs;
-    
     var tableID = "table" + exp;
     $('#' + exp).append('<table id="' + tableID + '" class="table table-striped table-bordered"></table>');
     var table = document.getElementById("table" + exp);
