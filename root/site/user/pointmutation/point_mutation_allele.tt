@@ -790,10 +790,6 @@ function showAll() {
     window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]&miseq=[% miseq %]'); 
 }
 
-function overview() {
-    window.location.href = '[% c.uri_for('/user/point_mutation/') %]' + encodeURI('?miseq=[% miseq %]'); 
-}
-
 function downloadCSV(letter, result) {
     result = JSON.parse(result);
     var rows = result.data.split("\n");
