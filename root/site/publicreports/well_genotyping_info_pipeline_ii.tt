@@ -93,6 +93,8 @@
     </tr>
 </table>
 
+<h3>Indels</h3>
+
 [% ELSE %]
 
 <p>No MiSeq information available for this well</p>
