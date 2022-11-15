@@ -1005,9 +1005,11 @@ sub _get_miseq_data_from_well {
         die "Expected at most one miseq well experiment, but found experiments with ID: " . Dumper(@miseq_well_experiment_ids);
     }
     my $miseq_well_experiment = $miseq_well_experiments[0];
+    my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
         "experiment_name" => $miseq_well_experiment->experiment,
         "classification" => $miseq_well_experiment->class,
+        "indel_data" => $indel_data,
     };
 
 }
@@ -1061,6 +1063,17 @@ sub _get_piq_plate_well_from_well {
     }
     return $piq_plate_wells[0];
 
+}
+
+sub _get_indel_data_from_miseq_well_experiment {
+    my $miseq_well_experiment = shift;
+    my @indel_data = map {
+        {
+	    "indel" => $_->indel_size,
+	    "frequency" => $_->frequency,
+        }
+    } $miseq_well_experiment->indel_histograms;
+    return \@indel_data;
 }
 
 sub get_api {

@@ -390,6 +390,97 @@ sub all_tests  : Tests {
 	        ["Indel", "Frequency"],
             );
 
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-20", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["1", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["51", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-2", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["4", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-11", "8953"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-4", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-1", "8155"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["55", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["50", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["44", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["54", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["53", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["52", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["34", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-12", "6"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-14", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-15", "2"],
+            );
+
         }
     }
 

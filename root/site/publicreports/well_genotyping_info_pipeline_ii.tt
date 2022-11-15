@@ -102,6 +102,14 @@
             <th>Frequency</th>
         </tr>
     </theader>
+    <tbody>
+        [%- FOR indel_data IN data.miseq_data.indel_data %]
+            <tr>
+                <td>[% indel_data.indel %]</td>
+                <td>[% indel_data.frequency %]</td>
+            </tr>
+        [%- END %]
+    </tbody>
 </table>
 
 [% ELSE %]
