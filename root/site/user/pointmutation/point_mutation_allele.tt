@@ -641,33 +641,6 @@ function buildImages(selection, data) {
     }
 }
 
-function getImages(letter, chart, div) {
-    var index = '[% oligo_index %]';
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_img/') %]',
-        type: "GET",
-        contentType: 'image/png',
-        data: {
-            miseq: '[% miseq %]', 
-            oligo: index,
-            exp: letter,
-            name: chart
-        },
-        success: function(result){
-            if (div == null) {
-                $('.' + letter).html('<img src="data:image/png;base64,' + result + '"/>');
-            } else {
-                $('#' + div).html('<img src="data:image/png;base64,' + result + '"/>');
-            }
-        },
-        error: function() {
-            console.log('Failure to retrieve indel size distribution graph for ' + letter);
-            $('.' + letter).html('<p>Unable to retrieve graph for well ' + index + ' experiment ' + letter + '</p>');
-            $('#clearfix' + letter).hide();
-        }
-    });
-}
-
 function getSummary(letter, downloadFlag, limitFlag) {
     var index = '[% oligo_index %]';
     var res; 
@@ -727,26 +700,6 @@ function getSummary(letter, downloadFlag, limitFlag) {
         });
     }
     return res;
-}
-
-function getTargets(letter) {
-    var index = '[% oligo_index %]';
-    $.ajax({
-        url: '[% c.uri_for('/api/point_mutation_target_region/') %]',
-        type: "GET",
-        contentType: 'text/plain',
-        data: {
-            miseq: '[% miseq %]', 
-            oligo: index,
-            exp: letter,
-        },
-        success: function(result){
-            var res = JSON.parse(result);
-        },
-        error: function() {
-            console.log("Found no targets for this experiment");
-        }
-    });
 }
 
 function createTable(exp, result) {
@@ -835,10 +788,6 @@ function validateRow(row) {
 
 function showAll() {
     window.location.href = '[% c.uri_for('/user/point_mutation_allele/') %]' + encodeURI('?oligoIndex=[% oligo_index %]&miseq=[% miseq %]'); 
-}
-
-function overview() {
-    window.location.href = '[% c.uri_for('/user/point_mutation/') %]' + encodeURI('?miseq=[% miseq %]'); 
 }
 
 function downloadCSV(letter, result) {
