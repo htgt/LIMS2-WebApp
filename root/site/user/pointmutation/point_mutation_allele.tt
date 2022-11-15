@@ -388,6 +388,7 @@ input:checked + .slider:before {
 
 [% INCLUDE 'user/pointmutation/miseq_alleles_frequency.tt' %]
 
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
 <script type="text/javascript" charset="utf-8">
 var exps = [];
 
