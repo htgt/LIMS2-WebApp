@@ -382,6 +382,14 @@ sub all_tests  : Tests {
             $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
             $mech->content_contains("Indels");
+
+            my $page = $mech->content();
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["Indel", "Frequency"],
+            );
+
         }
     }
 

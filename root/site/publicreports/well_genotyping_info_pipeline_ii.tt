@@ -95,6 +95,15 @@
 
 <h3>Indels</h3>
 
+<table id="miseq-indels" class="table table-bordered table-condensed table-striped">
+    <theader>
+        <tr>
+            <th>Indel</th>
+            <th>Frequency</th>
+        </tr>
+    </theader>
+</table>
+
 [% ELSE %]
 
 <p>No MiSeq information available for this well</p>
