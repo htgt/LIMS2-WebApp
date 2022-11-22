@@ -1,4 +1,4 @@
-function buildImages(selection, data) {
+function buildIndelPlot(selection, data) {
 
     var percentage = 0;
 
