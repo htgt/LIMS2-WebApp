@@ -151,3 +151,18 @@
 
 [% END %]
 
+<div id="barsTestExample"></div>
+
+<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+<script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
+<script type="text/javascript">
+    var indelData = [
+        {'indel': -11, 'frequency': 210},
+        {'indel': -1, 'frequency': 220},
+        {'indel': 2, 'frequency': 230},
+        {'indel': 4, 'frequency': 240},
+    ];
+    buildIndelPlot("barsTestExample", indelData);
+</script>
+
