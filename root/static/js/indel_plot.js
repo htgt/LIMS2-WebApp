@@ -1,5 +1,16 @@
 function buildIndelPlot(selection, data) {
 
+    /**
+     * Plot indel number against relative (i.e. percentage) frequency.
+     *
+     * @param {String} selection - Conventionally, this is the name of the
+     *   miseq-experiment, although this isn't necessary. However there must
+     *   exit a div with id="bars<selection>" on the page on which the plot
+     *   is displayed. The plot is added to this div.
+     * @param {Object[]} data - Each object should have an `indel` and
+     *   `frequency` attribute
+     */
+
     var percentage = 0;
 
     var margin = {top: 40, right: 20, bottom: 70, left: 90},
