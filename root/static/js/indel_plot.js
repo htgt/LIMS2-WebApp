@@ -1,12 +1,10 @@
-function buildIndelPlot(selection, data) {
+function buildIndelPlot(element_id, data) {
 
     /**
      * Plot indel number against relative (i.e. percentage) frequency.
      *
-     * @param {String} selection - Conventionally, this is the name of the
-     *   miseq-experiment, although this isn't necessary. However there must
-     *   exit a div with id="bars<selection>" on the page on which the plot
-     *   is displayed. The plot is added to this div.
+     * @param {String} element_id - The ID of the element into which the plot
+     *   will be added.
      * @param {Object[]} data - Each object should have an `indel` and
      *   `frequency` attribute
      */
@@ -59,7 +57,7 @@ function buildIndelPlot(selection, data) {
         .scale(y)
         .ticks(10);
 
-    var svg = d3.select("#bars" + selection)
+    var svg = d3.select(element_id)
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)

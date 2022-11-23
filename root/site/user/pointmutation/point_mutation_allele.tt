@@ -412,7 +412,7 @@ $(document).ready(function() {
         var selection = exps[expIndex];
         JSON.stringify(selection);
         var data = indels[selection];
-        buildIndelPlot(selection,data);
+        buildIndelPlot("#bars"+selection, data);
     }
     
     var expSel = '[% selection %]';
