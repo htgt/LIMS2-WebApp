@@ -34,7 +34,7 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
-use List::Util qw( sum first min );
+use List::Util qw( sum first min sum0 );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
@@ -1073,7 +1073,17 @@ sub _get_indel_data_from_miseq_well_experiment {
 	    "frequency" => $_->frequency,
         }
     } $miseq_well_experiment->indel_histograms;
+    push @indel_data, _calculate_zero_indel_frequency($miseq_well_experiment, @indel_data);
     return \@indel_data;
+}
+
+sub _calculate_zero_indel_frequency {
+    my ($miseq_well_experiment, @indel_data) = @_;
+    my $total_non_zero_reads = sum0 (map {$_->{"frequency"}} @indel_data);
+    return {
+        "indel" => 0,
+        "frequency" => $miseq_well_experiment->total_reads - $total_non_zero_reads,
+    };
 }
 
 sub get_api {

@@ -480,6 +480,11 @@ sub all_tests  : Tests {
 	        "miseq-indels",
 		["-15", "2"],
             );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["0", "12860"],  # Calculated from total reads (30000) minus sum of non-zero indel frequencies (17140).
+            );
 
         }
     }
