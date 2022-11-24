@@ -1,2 +1,2 @@
 id,well_id,miseq_exp_id,classification,frameshifted,status,total_reads,hdr_reads,mixed_reads,nhej_reads
-1,1147,4,Mixed,f,Plated,12930,0,0,7099
+1,1147,4,Mixed,f,Plated,30000,0,0,7099
