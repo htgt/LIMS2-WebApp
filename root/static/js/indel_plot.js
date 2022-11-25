@@ -57,7 +57,7 @@ function buildIndelPlot(element_id, data) {
         .scale(y)
         .ticks(10);
 
-    var svg = d3.select(element_id)
+    var svg = d3.select("#" + element_id)
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
