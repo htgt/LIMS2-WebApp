@@ -158,10 +158,9 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
 <script type="text/javascript">
     var indelData = [
-        {'indel': -11, 'frequency': 210},
-        {'indel': -1, 'frequency': 220},
-        {'indel': 2, 'frequency': 230},
-        {'indel': 4, 'frequency': 240},
+        [%- FOR indel_data IN data.miseq_data.indel_data %]
+	    {'indel': [% indel_data.indel %], 'frequency': [% indel_data.frequency %]},
+        [%- END %]
     ];
     buildIndelPlot("barsTestExample", indelData);
 </script>
