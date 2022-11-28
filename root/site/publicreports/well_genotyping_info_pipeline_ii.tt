@@ -95,22 +95,24 @@
 
 <h3>Indels</h3>
 
-<table id="miseq-indels" class="table table-bordered table-condensed table-striped">
-    <theader>
-        <tr>
-            <th>Indel</th>
-            <th>Frequency</th>
-        </tr>
-    </theader>
-    <tbody>
-        [%- FOR indel_data IN data.miseq_data.indel_data %]
+<div id="miseq-indels-container">
+    <table id="miseq-indels" class="table table-bordered table-condensed table-striped">
+        <theader>
             <tr>
-                <td>[% indel_data.indel %]</td>
-                <td>[% indel_data.frequency %]</td>
+                <th>Indel</th>
+                <th>Frequency</th>
             </tr>
-        [%- END %]
-    </tbody>
-</table>
+        </theader>
+        <tbody>
+            [%- FOR indel_data IN data.miseq_data.indel_data %]
+                <tr>
+                    <td>[% indel_data.indel %]</td>
+                    <td>[% indel_data.frequency %]</td>
+                </tr>
+            [%- END %]
+        </tbody>
+    </table>
+</div>
 
 <h3>Alleles</h3>
 
@@ -151,17 +153,18 @@
 
 [% END %]
 
-<div id="barsTestExample"></div>
 
-<script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
-<script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
-<script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
-<script type="text/javascript">
-    var indelData = [
-        [%- FOR indel_data IN data.miseq_data.indel_data %]
-	    {'indel': [% indel_data.indel %], 'frequency': [% indel_data.frequency %]},
-        [%- END %]
-    ];
-    buildIndelPlot("barsTestExample", indelData);
-</script>
-
+[% IF data.miseq_data %]
+    <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
+    <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
+    <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
+    <script type="text/javascript">
+        document.getElementById("miseq-indels-container").replaceChildren();
+        var indelData = [
+            [%- FOR indel_data IN data.miseq_data.indel_data %]
+	        {'indel': [% indel_data.indel %], 'frequency': [% indel_data.frequency %]},
+            [%- END %]
+        ];
+        buildIndelPlot("miseq-indels-container", indelData);
+    </script>
+[% END %]
