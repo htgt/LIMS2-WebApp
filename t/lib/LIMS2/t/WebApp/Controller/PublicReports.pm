@@ -372,6 +372,121 @@ sub all_tests  : Tests {
 
             $mech->content_contains("No MiSeq information available for this well");
         }
+
+	# Indel date
+	{
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+            $mech->content_contains("Indels");
+
+            my $page = $mech->content();
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["Indel", "Frequency"],
+            );
+
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-20", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["1", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["51", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-2", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["4", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-11", "8953"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-4", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["-1", "8155"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+	        ["55", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["50", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["44", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["54", "3"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["53", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["52", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["34", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-12", "6"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-14", "1"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["-15", "2"],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-indels",
+		["0", "12860"],  # Calculated from total reads (30000) minus sum of non-zero indel frequencies (17140).
+            );
+
+        }
     }
 
 

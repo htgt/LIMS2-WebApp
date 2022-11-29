@@ -402,6 +402,7 @@ sub load_dynamic_files {
             AmpliconType
             Amplicon
             DesignAmplicon
+            IndelHistogram
             )
     );
 
