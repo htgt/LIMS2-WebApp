@@ -168,6 +168,8 @@
         buildIndelPlot("miseq-indels-container", prepareDataForIndelPlot(indelData));
 
         function prepareDataForIndelPlot(inputData) {
+            // This is a shim to get the data in the correct form. See commit
+            // message for why this is needed.
             let inclusiveRange = (theMin, theMax) => Array.from(
                  Array(theMax - theMin +1),
                  (_, index) => index + theMin,
