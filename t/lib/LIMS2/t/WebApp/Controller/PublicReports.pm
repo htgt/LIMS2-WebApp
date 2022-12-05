@@ -487,6 +487,17 @@ sub all_tests  : Tests {
             );
 
         }
+
+	# Allele data
+	{
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+            $mech->content_contains("Alleles");
+	}
     }
 
 
