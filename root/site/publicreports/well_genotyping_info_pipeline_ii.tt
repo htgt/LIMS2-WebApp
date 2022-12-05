@@ -112,6 +112,8 @@
     </tbody>
 </table>
 
+<h3>Alleles</h3>
+
 [% ELSE %]
 
 <p>No MiSeq information available for this well</p>
