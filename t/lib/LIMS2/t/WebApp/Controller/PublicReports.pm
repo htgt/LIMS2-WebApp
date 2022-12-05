@@ -497,6 +497,25 @@ sub all_tests  : Tests {
             $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
             $mech->content_contains("Alleles");
+
+            my $page = $mech->content();
+
+            # Table headers
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "Aligned_Sequence",
+                    "NHEJ",
+                    "UNMODIFIED",
+                    "HDR",
+                    "n_deleted",
+                    "n_inserted",
+                    "n_mutated",
+                    "#Reads",
+                    "%Reads",
+                ],
+            );
 	}
     }
 
