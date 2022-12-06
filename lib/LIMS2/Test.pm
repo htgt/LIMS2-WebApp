@@ -403,6 +403,7 @@ sub load_dynamic_files {
             Amplicon
             DesignAmplicon
             IndelHistogram
+            MiseqAllelesFrequency
             )
     );
 
