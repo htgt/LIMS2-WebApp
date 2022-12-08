@@ -1012,6 +1012,7 @@ sub _get_miseq_data_from_well {
         "experiment_name" => $miseq_well_experiment->experiment,
         "classification" => $miseq_well_experiment->class,
         "indel_data" => $indel_data,
+        "allele_data" => $allele_data,
     };
 
 }
