@@ -1006,6 +1006,7 @@ sub _get_miseq_data_from_well {
     }
     my $miseq_well_experiment = $miseq_well_experiments[0];
     my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
+    my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
         "experiment_name" => $miseq_well_experiment->experiment,
         "classification" => $miseq_well_experiment->class,
@@ -1075,6 +1076,24 @@ sub _get_indel_data_from_miseq_well_experiment {
     } $miseq_well_experiment->indel_histograms;
     push @indel_data, _calculate_zero_indel_frequency($miseq_well_experiment, @indel_data);
     return \@indel_data;
+}
+
+sub _get_allele_data_from_miseq_well_experiment {
+    my $miseq_well_experiment = shift;
+    my @allele_data = map {
+        {
+            "aligned_sequence" => $_->aligned_sequence,
+            "nhej" => $_->nhej,
+            "unmodified" => $_->unmodified,
+            "hdr" => $_->hdr,
+            "n_deleted" => $_->n_deleted,
+            "n_inserted" => $_->n_inserted,
+            "n_mutated" => $_->n_mutated,
+            "n_reads" => $_->n_reads,
+        }
+    } $miseq_well_experiment->miseq_alleles_frequencies;
+    return \@allele_data;
+
 }
 
 sub _calculate_zero_indel_frequency {
