@@ -1080,6 +1080,10 @@ sub _get_indel_data_from_miseq_well_experiment {
 
 sub _get_allele_data_from_miseq_well_experiment {
     my $miseq_well_experiment = shift;
+    my $total_reads = sum0(
+        map {$_->n_reads} $miseq_well_experiment->miseq_alleles_frequencies
+    );
+    if ($total_reads == 0) { die "Not sure if this should ever be zero" };
     my @allele_data = map {
         {
             "aligned_sequence" => $_->aligned_sequence,
