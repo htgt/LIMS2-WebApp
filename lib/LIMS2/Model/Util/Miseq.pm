@@ -41,6 +41,7 @@ use Bio::Perl;
 use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
+use Math::Round qw( round );
 
 use Data::Dumper;
 
@@ -1094,6 +1095,7 @@ sub _get_allele_data_from_miseq_well_experiment {
             "n_inserted" => $_->n_inserted,
             "n_mutated" => $_->n_mutated,
             "n_reads" => $_->n_reads,
+            "percentage_reads" => _calculate_percentage_reads($_->n_reads, $total_reads),
         }
     } $miseq_well_experiment->miseq_alleles_frequencies;
     return \@allele_data;
@@ -1107,6 +1109,12 @@ sub _calculate_zero_indel_frequency {
         "indel" => 0,
         "frequency" => $miseq_well_experiment->total_reads - $total_non_zero_reads,
     };
+}
+
+sub _calculate_percentage_reads {
+    my ($n_reads, $total_reads) = @_;
+    # We want the percentage to two decimal places.
+    return round( $n_reads / $total_reads * 10_000 ) / 100;
 }
 
 sub get_api {
