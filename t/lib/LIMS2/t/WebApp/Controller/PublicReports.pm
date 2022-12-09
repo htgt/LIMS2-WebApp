@@ -532,7 +532,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "7400",
-                    "51.9",
+                    "24.67",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -551,7 +551,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "6511",
-                    "45.66",
+                    "21.7",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -570,7 +570,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "93",
-                    "0.65"
+                    "0.31"
 		],
             );
             assert_table_has_row_with_contents(
@@ -589,7 +589,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "80",
-                    "0.56",
+                    "0.27",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -608,7 +608,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "41",
-                    "0.29",
+                    "0.14",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -627,7 +627,7 @@ sub all_tests  : Tests {
                     "0",
                     "1",
                     "33",
-                    "0.23",
+                    "0.11",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -646,7 +646,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "28",
-                    "0.2",
+                    "0.09",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -665,7 +665,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "25",
-                    "0.18",
+                    "0.08",
                 ],
             );
             assert_table_has_row_with_contents(
@@ -684,7 +684,7 @@ sub all_tests  : Tests {
                     "0",
                     "0",
                     "24",
-                    "0.17",
+                    "0.08",
 		],
             );
             assert_table_has_row_with_contents(
@@ -703,7 +703,7 @@ sub all_tests  : Tests {
                     "0",
                     "1",
                     "24",
-                    "0.17",
+                    "0.08",
                 ],
             );
 	}
