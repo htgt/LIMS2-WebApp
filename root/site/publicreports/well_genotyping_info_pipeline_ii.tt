@@ -166,27 +166,5 @@
             [%- END %]
         ];
         buildIndelPlot("miseq-indels-container", prepareDataForIndelPlot(indelData));
-
-        function prepareDataForIndelPlot(inputData) {
-            // This is a shim to get the data in the correct form. See commit
-            // message for why this is needed.
-            let inclusiveRange = (theMin, theMax) => Array.from(
-                 Array(theMax - theMin +1),
-                 (_, index) => index + theMin,
-            );
-            let indelsWithNonZeroFrequency = inputData
-                .filter(e => e['frequency'] != 0)
-                .map(e => e['indel'])
-            let plotMin = Math.min(...indelsWithNonZeroFrequency) - 1;
-            let plotMax = Math.max(...indelsWithNonZeroFrequency) + 1;
-            let fullData = inclusiveRange(plotMin, plotMax)
-                .map(
-                    n => {
-                        let originalData = inputData.find(e => e['indel'] == n);
-                        return originalData ? originalData : {'indel': n, 'frequency': 0};
-                    }
-                );
-            return fullData;
-        }
     </script>
 [% END %]
