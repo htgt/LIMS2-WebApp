@@ -112,6 +112,39 @@
     </tbody>
 </table>
 
+<h3>Alleles</h3>
+
+<table id="miseq-alleles" class="table table-bordered table-condensed table-striped">
+    <theader>
+        <tr>
+            <th>Aligned_Sequence</th>
+            <th>NHEJ</th>
+            <th>UNMODIFIED</th>
+            <th>HDR</th>
+            <th>n_deleted</th>
+            <th>n_inserted</th>
+            <th>n_mutated</th>
+            <th>#Reads</th>
+            <th>%Reads</th>
+        </tr>
+    </theader>
+    <tbody>
+        [%- FOR allele_datum IN data.miseq_data.allele_data %]
+            <tr>
+                <td>[% allele_datum.aligned_sequence %]</td>
+                <td>[% allele_datum.nhej %]</td>
+                <td>[% allele_datum.unmodified %]</td>
+                <td>[% allele_datum.hdr %]</td>
+                <td>[% allele_datum.n_deleted %]</td>
+                <td>[% allele_datum.n_inserted %]</td>
+                <td>[% allele_datum.n_mutated %]</td>
+                <td>[% allele_datum.n_reads %]</td>
+                <td>[% allele_datum.percentage_reads %]</td>
+            <tr>
+        [%- END %]
+    </tbody>
+</table>
+
 [% ELSE %]
 
 <p>No MiSeq information available for this well</p>

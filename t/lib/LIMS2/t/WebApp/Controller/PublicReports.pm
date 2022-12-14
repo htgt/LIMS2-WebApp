@@ -487,6 +487,226 @@ sub all_tests  : Tests {
             );
 
         }
+
+	# Allele data
+	{
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+            $mech->content_contains("Alleles");
+
+            my $page = $mech->content();
+
+            # Table headers
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "Aligned_Sequence",
+                    "NHEJ",
+                    "UNMODIFIED",
+                    "HDR",
+                    "n_deleted",
+                    "n_inserted",
+                    "n_mutated",
+                    "#Reads",
+                    "%Reads",
+                ],
+            );
+            # Table content
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTGGGA"
+                     . "GCTATGGCTC-----------GTATGGTTGTCGTAACTGTTGTATTCAAACGAGGTCTTG"
+                     . "GAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGGACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "11",
+                    "0",
+                    "0",
+                    "7400",
+                    "24.67",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "6511",
+                    "21.7",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGA"
+                     . "CATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "93",
+                    "0.31"
+		],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTC-----------GTATGGTTGTCGTAACTGTTGTATTCAAACGAG" 
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGA"
+                     . "CATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "11",
+                    "0",
+                    "0",
+                    "80",
+                    "0.27",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGACTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "41",
+                    "0.14",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTC-----------ATATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "11",
+                    "0",
+                    "1",
+                    "33",
+                    "0.11",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGTACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "28",
+                    "0.09",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGTGTG"
+                     . "CACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTGGGA"
+                     . "GCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAGGTC"
+                     . "TTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGGACA"
+                     . "TTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "25",
+                    "0.08",
+                ],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAATGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTCAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "0",
+                    "24",
+                    "0.08",
+		],
+            );
+            assert_table_has_row_with_contents(
+	        $page,
+	        "miseq-alleles",
+		[
+                    "GACATTGATATACACAACAACAACATCATCAATGGCAACGTGTCTCTCATGTATAAGAGT"
+                     . "GTGCACCTCCTACCATCATCATATCCTTTGGGGGATATATCCCTGGTTTGCACCTTG"
+                     . "GGAGCTATGGCTCGCTTGCCAT-AGTATGGTTGTCGTAACTGTTGTATTAAAACGAG"
+                     . "GTCTTGGAATATTTCTCGAGCTCCTTGGCCAGGTTGGAACGCGGCGTAGTTGTGGGG"
+                     . "ACATTGTTTC",
+                    "1",
+                    "0",
+                    "0",
+                    "1",
+                    "0",
+                    "1",
+                    "24",
+                    "0.08",
+                ],
+            );
+	}
     }
 
 

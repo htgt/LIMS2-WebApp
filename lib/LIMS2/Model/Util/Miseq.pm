@@ -41,6 +41,7 @@ use Bio::Perl;
 use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
+use Math::Round qw( round );
 
 use Data::Dumper;
 
@@ -1006,10 +1007,12 @@ sub _get_miseq_data_from_well {
     }
     my $miseq_well_experiment = $miseq_well_experiments[0];
     my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
+    my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
         "experiment_name" => $miseq_well_experiment->experiment,
         "classification" => $miseq_well_experiment->class,
         "indel_data" => $indel_data,
+        "allele_data" => $allele_data,
     };
 
 }
@@ -1077,6 +1080,26 @@ sub _get_indel_data_from_miseq_well_experiment {
     return \@indel_data;
 }
 
+sub _get_allele_data_from_miseq_well_experiment {
+    my $miseq_well_experiment = shift;
+    my $total_reads = $miseq_well_experiment->total_reads;
+    my @allele_data = map {
+        {
+            "aligned_sequence" => $_->aligned_sequence,
+            "nhej" => $_->nhej,
+            "unmodified" => $_->unmodified,
+            "hdr" => $_->hdr,
+            "n_deleted" => $_->n_deleted,
+            "n_inserted" => $_->n_inserted,
+            "n_mutated" => $_->n_mutated,
+            "n_reads" => $_->n_reads,
+            "percentage_reads" => _calculate_percentage_reads($_->n_reads, $total_reads),
+        }
+    } $miseq_well_experiment->miseq_alleles_frequencies;
+    return \@allele_data;
+
+}
+
 sub _calculate_zero_indel_frequency {
     my ($miseq_well_experiment, @indel_data) = @_;
     my $total_non_zero_reads = sum0 (map {$_->{"frequency"}} @indel_data);
@@ -1084,6 +1107,13 @@ sub _calculate_zero_indel_frequency {
         "indel" => 0,
         "frequency" => $miseq_well_experiment->total_reads - $total_non_zero_reads,
     };
+}
+
+sub _calculate_percentage_reads {
+    my ($n_reads, $total_reads) = @_;
+    if ($total_reads == 0) { die "Total allele reads is unexpectedly zero." };
+    # We want the percentage to two decimal places.
+    return round( $n_reads / $total_reads * 10_000 ) / 100;
 }
 
 sub get_api {
