@@ -1111,7 +1111,7 @@ sub _calculate_zero_indel_frequency {
 
 sub _calculate_percentage_reads {
     my ($n_reads, $total_reads) = @_;
-    if ($total_reads == 0) { die "Not sure if this should ever be zero" };
+    if ($total_reads == 0) { die "Total allele reads is unexpectedly zero." };
     # We want the percentage to two decimal places.
     return round( $n_reads / $total_reads * 10_000 ) / 100;
 }
