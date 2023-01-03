@@ -1,4 +1,41 @@
 FROM sci/lims2:fs
 
+# Notes:
+# IMITS is not used anymore
+# Erbit is not used - but the code is still there.
+ENV REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf \
+    LIMS2_WEBAPP_CONFIG=/opt/sci/global/conf/lims2/webapp.conf \
+    PERL5LIB=/opt/sci/global/software/lims2/lib/ \
+    SHARED_WEBAPP_TT_DIR=/opt/sci/global/software/lims2/lib/WebAppCommon/shared_templates \
+    LIMS2_TEMP=/opt/t87/local/tmp \
+    LIMS2_FCGI_CONFIG=/opt/sci/global/conf/lims2/fastcgi.yaml \
+    LIMS2_HTGT_KEY=/opt/sci/global/conf/htgt_key.conf \
+    PERL5LIB=/opt/sci/global/software/lims2/lib/ \
+    LIMS2_SHARED=/home/user/git_checkout \
+    LIMS2_TEMP=/var/tmp/LIMS2-tmp-user \
+    LIMS2_PRIMER_DIR=/var/tmp/LIMS2-tmp-user/lims2_primer_generation \
+    DEFAULT_CRISPR_ES_QC_DIR=/tmp/lims2_crispr_es_qc \
+    LIMS2_REPORT_CACHE_CONFIG=/opt/sci/global/conf/lims2/cache_report_conf.yaml \
+    LIMS2_PRIMER_SELECTION_DIR=/tmp/ \
+    LIMS2_ALLELE_DET_CONFIG=/opt/sci/global/conf/allele_determination.conf \
+    LIMS2_LOG4PERL_CONFIG=/opt/sci/global/conf/lims2/log4perl.default.conf \
+    LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf \
+    PERL_LWP_ENV_PROXY=1 \
+    LIMS2_BWA_OLIGO_DIR=/tmp/ \
+    HTGT_QC_CONF=/opt/sci/global/conf/qc.conf \
+    LIMS2_ERRBIT_CONFIG=/opt/sci/global/conf/errbit.yaml \
+    LIMS2_DEV_ROOT=/home/user/git_checkout/LIMS2-WebApp \
+    L2W_STRING=LIMS2-Warning \
+    LIMS2_DEBUG_DEFINITION=perl -d \
+    LIMS2_MIGRATION_ROOT=/home/user/git_checkout/LIMS2-WebApp \
+    LIMS2_WEBAPP_SERVER_OPTIONS=-d \
+    GIT_CHECKOUT_ROOT=/home/user/git_checkout \
+    LIMS2_WEBAPP_SERVER_PORT= \
+    LIMS2_LOCAL_CONF=/home/user/conf \
+    PGUSER=lims2 \
+    L2I_STRING=LIMS2-Information \
+    L2E_STRING=LIMS2-Error \
+    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml
+
 # Allow webapp launch with FCGI
 CMD ["/home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh"]
