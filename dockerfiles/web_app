@@ -1,5 +1,29 @@
 FROM sci/lims2:fs
 
+ARG lims2_ensembl_user \
+    lims2_ensembl_host \
+    nfs_htgt_qc_conf \
+    lims2_file_access_server \
+    file_api_url \
+    off_target_binary_path \
+    lims2_rest_client \
+    lims2_rest_client_config \
+    vep_cache_dir \
+    lims2_seq_file_dir \
+    lims2_miseq_process_path \
+    lims2_primer3_miseq_pcr_config \
+    lims2_primer3_crispr_sequencing_primer_config \
+    lims2_miseq_scripts_path \
+    lims2_miseq_raw_path \
+    lims2_miseq_storage_path \
+    lims2_rna_seq \
+    lims2_seq_archive_dir \
+    lims2_rna_seq \
+    warehouse_rna_seq \
+    lims2_rna_seq \
+    basespace_api \
+    basespace_token
+
 # Notes:
 # IMITS is not used anymore
 # Erbit is not used - but the code is still there.
@@ -26,7 +50,7 @@ ENV REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf \
     LIMS2_ERRBIT_CONFIG=/opt/sci/global/conf/errbit.yaml \
     LIMS2_DEV_ROOT=/home/user/git_checkout/LIMS2-WebApp \
     L2W_STRING=LIMS2-Warning \
-    LIMS2_DEBUG_DEFINITION=perl -d \
+    LIMS2_DEBUG_DEFINITION="perl -d" \
     LIMS2_MIGRATION_ROOT=/home/user/git_checkout/LIMS2-WebApp \
     LIMS2_WEBAPP_SERVER_OPTIONS=-d \
     GIT_CHECKOUT_ROOT=/home/user/git_checkout \
@@ -35,7 +59,30 @@ ENV REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf \
     PGUSER=lims2 \
     L2I_STRING=LIMS2-Information \
     L2E_STRING=LIMS2-Error \
-    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml
+    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
+    LIMS2_ENSEMBL_USER=$lims2_ensembl_user \
+    LIMS2_ENSEMBL_HOST=$lims2_ensembl_host \
+    NFS_HTGT_QC_CONF=$nfs_htgt_qc_conf \
+    LIMS2_FILE_ACCESS_SERVER=$lims2_file_access_server \
+    FILE_API_URL=$file_api_url \
+    OFF_TARGET_BINARY_PATH=$off_target_binary_path \
+    LIMS2_REST_CLIENT=$lims2_rest_client \
+    LIMS2_REST_CLIENT_CONFIG=$lims2_rest_client_config \
+    VEP_CACHE_DIR=$vep_cache_dir \
+    LIMS2_SEQ_FILE_DIR=$lims2_seq_file_dir \
+    LIMS2_MISEQ_PROCESS_PATH=$lims2_miseq_process_path \
+    LIMS2_PRIMER3_MISEQ_PCR_CONFIG=$lims2_primer3_miseq_pcr_config \
+    LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG=$lims2_primer3_crispr_sequencing_primer_config \
+    LIMS2_MISEQ_SCRIPTS_PATH=$lims2_miseq_scripts_path \
+    LIMS2_MISEQ_RAW_PATH=$lims2_miseq_raw_path \
+    LIMS2_MISEQ_STORAGE_PATH=$lims2_miseq_storage_path \
+    LIMS2_RNA_SEQ=$lims2_rna_seq \
+    LIMS2_SEQ_ARCHIVE_DIR=$lims2_seq_archive_dir \
+    LIMS2_RNA_SEQ=$lims2_rna_seq \
+    WAREHOUSE_RNA_SEQ=$warehouse_rna_seq \
+    LIMS2_RNA_SEQ=$lims2_rna_seq \
+    BASESPACE_API=$basespace_api \
+    BASESPACE_TOKEN=$basespace_token
 
 # Allow webapp launch with FCGI
 CMD ["/home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh"]

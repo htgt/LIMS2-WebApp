@@ -58,6 +58,29 @@ build-prod:
       .
     - docker build
       --file dockerfiles/web_app
+      --build-arg lims2_ensembl_user=$LIMS2_ENSEMBL_USER
+      --build-arg lims2_ensembl_host=$LIMS2_ENSEMBL_HOST
+      --build-arg nfs_htgt_qc_conf=$NFS_HTGT_QC_CONF
+      --build-arg lims2_file_access_server=$LIMS2_FILE_ACCESS_SERVER
+      --build-arg file_api_url=$FILE_API_URL
+      --build-arg off_target_binary_path=$OFF_TARGET_BINARY_PATH
+      --build-arg lims2_rest_client=$LIMS2_REST_CLIENT
+      --build-arg lims2_rest_client_config=$LIMS2_REST_CLIENT_CONFIG
+      --build-arg vep_cache_dir=$VEP_CACHE_DIR
+      --build-arg lims2_seq_file_dir=$LIMS2_SEQ_FILE_DIR
+      --build-arg lims2_miseq_process_path=$LIMS2_MISEQ_PROCESS_PATH
+      --build-arg lims2_primer3_miseq_pcr_config=$LIMS2_PRIMER3_MISEQ_PCR_CONFIG
+      --build-arg lims2_primer3_crispr_sequencing_primer_config=$LIMS2_PRIMER3_CRISPR_SEQUENCING_PRIMER_CONFIG
+      --build-arg lims2_miseq_scripts_path=$LIMS2_MISEQ_SCRIPTS_PATH
+      --build-arg lims2_miseq_raw_path=$LIMS2_MISEQ_RAW_PATH
+      --build-arg lims2_miseq_storage_path=$LIMS2_MISEQ_STORAGE_PATH
+      --build-arg lims2_rna_seq=$LIMS2_RNA_SEQ
+      --build-arg lims2_seq_archive_dir=$LIMS2_SEQ_ARCHIVE_DIR
+      --build-arg lims2_rna_seq=$LIMS2_RNA_SEQ
+      --build-arg warehouse_rna_seq=$WAREHOUSE_RNA_SEQ
+      --build-arg lims2_rna_seq=$LIMS2_RNA_SEQ
+      --build-arg basespace_api=$BASESPACE_API
+      --build-arg basespace_token=$BASESPACE_TOKEN
       --tag $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
       .
     - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
