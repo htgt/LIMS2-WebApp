@@ -1193,6 +1193,11 @@ sub _stash_pipeline_ii_genotyping_info {
 
     $c->stash( data => $data, tables => $alleles_json );
 
+    if ( $c->request->accepts('application/json') ) {
+        $c->stash(json_data => $data);
+        $c->forward("View::JSON");
+    }
+
     return;
 }
 

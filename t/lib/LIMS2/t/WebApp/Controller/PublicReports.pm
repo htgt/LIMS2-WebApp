@@ -4,6 +4,7 @@ use base qw(Test::Class);
 use Test::Most;
 use HTML::TableExtract;
 use Array::Compare;
+use JSON qw(decode_json);
 
 use LIMS2::WebApp::Controller::PublicReports;
 
@@ -722,6 +723,21 @@ sub all_tests  : Tests {
             " Please contact the cellular-informatics team if you'd like to be able to search" .
             " using wells in other plates."
         );
+    }
+
+    note('Well genotyping data can be got in JSON format');
+    {
+            my $plate_name = "HUPFP1234A1";
+            my $well_name = "A01";
+            my $mech = LIMS2::Test::mech();
+            $mech->default_header("Accept" => "application/json");
+
+            $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+            my $data = decode_json($mech->content);
+
+            # Checking one attribute should be enough to convince it's working.
+            is($data->{'clone_id'}, 'HUPFP1234A1_A01');
     }
 }
 
