@@ -1,5 +1,7 @@
 WITH piq_plates AS (
-        SELECT id FROM plates WHERE type_id = 'PIQ'
+        SELECT id FROM plates
+        WHERE type_id = 'PIQ'
+        AND (name LIKE 'HUEDQ05%' OR name LIKE 'HUEDQ06%')
      ),
      wells_in_piq_plates AS (
         SELECT wells.id AS id FROM wells JOIN piq_plates ON wells.plate_id = piq_plates.id
