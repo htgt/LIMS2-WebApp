@@ -1,1 +1,1 @@
-SELECT * FROM plates;
+SELECT * FROM plates WHERE type_id = 'PIQ';
