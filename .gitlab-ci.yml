@@ -104,7 +104,7 @@ deploy-staging:
     - docker run
       -d
       --restart unless-stopped
-      --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
+      --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared-staging,target=/shared"
       --name lims2_staging
       -p 8080:8002
       $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
