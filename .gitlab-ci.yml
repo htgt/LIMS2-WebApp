@@ -28,9 +28,9 @@ build-test:
       .
     - docker build
       --file dockerfiles/test
-      --tag $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      --tag $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
       .
-    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
 
 test:
   stage: test
@@ -38,7 +38,7 @@ test:
     - docker run
       --rm
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
-      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
 
 build:
   stage: build
