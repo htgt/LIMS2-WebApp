@@ -6,8 +6,7 @@ stages:
   - build-test
   - test
   - build
-  - deploy-staging
-  - deploy-prod
+  - deploy
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -96,7 +95,7 @@ build:
     - docker push $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
 
 deploy-staging:
-  stage: deploy-staging
+  stage: deploy
   script:
     - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
     - docker container stop lims2_staging || echo \"No container to stop\"
@@ -115,7 +114,7 @@ deploy-staging:
 deploy-prod:
   tags:
     - autoscale
-  stage: deploy-prod
+  stage: deploy
   before_script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
