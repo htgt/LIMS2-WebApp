@@ -23,4 +23,6 @@ WITH piq_plates AS (
         JOIN plates ON plates.id = wells.plate_id
         WHERE plates.type_id = 'FP'
      )
-SELECT * FROM wells_in_freeze_plates;
+SELECT plate_name, well_name
+FROM wells_in_freeze_plates
+ORDER BY plate_name, well_name;
