@@ -6,6 +6,7 @@ stages:
   - build-test
   - test
   - build
+  - deploy-staging
   - deploy-prod
 
 before_script:
@@ -93,6 +94,23 @@ build:
       --tag $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
       .
     - docker push $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
+
+deploy-staging:
+  stage: deploy-staging
+  script:
+    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+    - docker container stop lims2_staging || echo \"No container to stop\"
+    - docker container rm lims2_staging || echo \"No container to remove\"
+    - docker run
+      -d
+      --restart unless-stopped
+      --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
+      --name lims2_staging
+      -p 8080:8002
+      $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
 deploy-prod:
   tags:
