@@ -5,7 +5,7 @@ variables:
 stages:
   - build-test
   - test
-  - build-prod
+  - build
   - deploy-prod
 
 before_script:
@@ -40,8 +40,8 @@ test:
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
       $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
 
-build-prod:
-  stage: build-prod
+build:
+  stage: build
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
     - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
