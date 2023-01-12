@@ -121,10 +121,6 @@ RUN sudo ln -s /home/user/git_checkout/LIMS2-WebApp/LIMS2-Utils/lib/LIMS2/* /opt
 # Define a default working directory
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 
-#
-# temp executions
-COPY lims2-webapp-filesystem/lims2_conf/lims2_webapp.sh /home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh
-
 # Set up the environment
 ENV LIMS2_DB=$database \
     LIMS2_RNA_SEQ=$rna_seq \

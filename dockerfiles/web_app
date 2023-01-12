@@ -85,4 +85,7 @@ ENV REDMINE_API_CONFIG=/opt/sci/global/conf/redmine_api_lab_tracker_test.conf \
     BASESPACE_TOKEN=$basespace_token
 
 # Allow webapp launch with FCGI
-CMD ["/home/user/git_checkout/LIMS2-WebApp/script/lims2_webapp.sh"]
+CMD sudo a2enmod rewrite && \
+    sudo a2enmod fastcgi && \
+    bin/fcgi-manager.pl --config "${LIMS2_FCGI_CONFIG}" start lims2 && \
+    sudo apachectl -DFOREGROUND
