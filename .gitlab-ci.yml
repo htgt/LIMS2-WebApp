@@ -50,7 +50,7 @@ build:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
       variables:
         DATABASE: "LIMS2_STAGING"
-        IMAGE_NAME: "lims2"
+        IMAGE_NAME: "lims2-staging"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
     - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
