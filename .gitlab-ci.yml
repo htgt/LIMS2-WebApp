@@ -97,10 +97,15 @@ test-clone-data:
     - docker container stop lims2_test_clone_data || echo \"No container to stop\"
     - docker container rm lims2_test_clone_data || echo \"No container to remove\"
     - docker run
+      --rm
+      --env USER=user
+      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      ./bin/lims2_clone_data_db_clone
+    - docker run
       -d
       --restart unless-stopped
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared-staging,target=/shared"
-      --env LIMS2_DB=LIMS2_STAGING
+      --env LIMS2_DB=LIMS2_CLONE_DATA
       --name lims2_test_clone_data
       -p 8081:8002
       $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
@@ -109,7 +114,7 @@ test-clone-data:
     - pip install pip==23.0
     - pip install -r ./bin/clone_data_tests/clone_data_tests_requirements.txt
     - python ./bin/clone_data_tests/clone_data_tests.py
-    - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_STAGING_DATABASE_DETAILS}
+    - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_CLONE_DATA_DATABASE_DETAILS}
   artifacts:
     paths:
       - well_graphs.png
