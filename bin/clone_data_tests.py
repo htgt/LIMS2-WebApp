@@ -15,7 +15,7 @@ for t in range(60):
     else:
         break
 
-Result = namedtuple("Result", ["clone_name", "response_status"])
+Result = namedtuple("Result", ["clone_name", "response_status", "json_data"])
 
 with open("list_of_clones_12_01_23.tsv", newline='') as f:
     clones = DictReader(f, delimiter='\t')
@@ -24,9 +24,10 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
         if n % 100 == 0:
             print(n)
         response = get(
-            f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}"
+            f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}",
+            headers={"accept": "application/json"},
         )
-        results.append(Result(clone_name=clone["plate_name"]+"_"+clone["well_name"], response_status=response.status_code))
+        results.append(Result(clone_name=clone["plate_name"]+"_"+clone["well_name"], response_status=response.status_code, json_data=json_data))
 
 print("Total number of clones: ", len(results))
 print("Total number of 'good' clones: ", len([result for result in results if result.response_status == 200]))
