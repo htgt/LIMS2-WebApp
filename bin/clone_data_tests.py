@@ -3,7 +3,7 @@ from csv import DictReader
 
 from requests import get
 
-response = get("http://localhost:8004")
+response = get("http://localhost:8081")
 
 Result = namedtuple("Result", ["clone_name", "response_status"])
 
@@ -13,7 +13,7 @@ with open("list_of_clones_12_01_23.tsv") as f:
     for n, clone in enumerate(clones):
         if n % 100 == 0:
             print(n)
-        response = get("http://localhost:8004/public_reports/well_genotyping_info/{plate}/{well}".format(plate=clone["plate_name"], well=clone["well_name"]))
+        response = get("http://localhost:8081/public_reports/well_genotyping_info/{plate}/{well}".format(plate=clone["plate_name"], well=clone["well_name"]))
         results.append(Result(clone_name=clone["plate_name"]+"_"+clone["well_name"], response_status=response.status_code))
 
 print("Total number of clones: ", len(results))
