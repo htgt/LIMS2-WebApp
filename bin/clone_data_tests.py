@@ -1,9 +1,19 @@
 from collections import namedtuple
 from csv import DictReader
+from time import sleep
 
-from requests import get
+from requests import get, ConnectionError
 
-response = get("http://localhost:8081")
+# Check that the server is up and running.
+for t in range(60):
+    try:
+        get("http://localhost:8081")
+    except ConnectionError:
+        sleep(1)
+        if t == 59:
+            raise
+    else:
+        break
 
 Result = namedtuple("Result", ["clone_name", "response_status"])
 
