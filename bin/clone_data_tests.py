@@ -58,3 +58,5 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
 
 print("Total number of clones: ", len(results))
 print("Total number of 'good' clones: ", len([result for result in results if result.error is None]))
+print("Clones with non-200 HTTP status: ", [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)])
+print("Clones with non-JSON result (probably due to being pipeline I): ", [result.clone_name for result in results if isinstance(result.error, NotJSONData)])
