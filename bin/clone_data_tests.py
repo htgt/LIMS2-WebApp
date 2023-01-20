@@ -28,7 +28,7 @@ for t in range(60):
     else:
         break
 
-Result = namedtuple("Result", ["clone_name", "response_status", "json_data", "error"])
+Result = namedtuple("Result", ["clone_name", "json_data", "error"])
 
 with open("list_of_clones_12_01_23.tsv", newline='') as f:
     clones = DictReader(f, delimiter='\t')
@@ -46,14 +46,15 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
                 json_data = response.json()
             except JSONDecodeError:
                 error = NotJSONData()
+        else:
+            error = Non200HTMLStatus(status_code=response.status_code)
         results.append(
             Result(
                 clone_name=clone["plate_name"]+"_"+clone["well_name"],
-                response_status=response.status_code,
                 json_data=json_data,
                 error=error,
             )
         )
 
 print("Total number of clones: ", len(results))
-print("Total number of 'good' clones: ", len([result for result in results if result.response_status == 200]))
+print("Total number of 'good' clones: ", len([result for result in results if result.error is None]))
