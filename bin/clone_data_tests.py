@@ -34,8 +34,6 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
     clones = DictReader(f, delimiter='\t')
     results = []
     for n, clone in enumerate(clones):
-        if n % 100 == 0:
-            print(n)
         json_data = error = None
         response = get(
             f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}",
