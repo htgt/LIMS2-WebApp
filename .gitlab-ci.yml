@@ -5,8 +5,8 @@ variables:
 stages:
   - build-test
   - test
-  - build-prod
-  - deploy-prod
+  - build
+  - deploy
 
 before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -28,9 +28,9 @@ build-test:
       .
     - docker build
       --file dockerfiles/test
-      --tag $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      --tag $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
       .
-    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
 
 test:
   stage: test
@@ -38,10 +38,19 @@ test:
     - docker run
       --rm
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared"
-      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
 
-build-prod:
-  stage: build-prod
+build:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:
+        DATABASE: "LIMS2_LIVE"
+        IMAGE_NAME: "lims2-prod-do-not-use-this-anywhere-else"
+    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
+      variables:
+        DATABASE: "LIMS2_STAGING"
+        IMAGE_NAME: "lims2-staging"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
     - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
@@ -51,7 +60,7 @@ build-prod:
       .
     - docker build
       --file dockerfiles/high-level
-      --build-arg database=LIMS2_LIVE
+      --build-arg database=${DATABASE}
       --build-arg solr_url=$SOLR_URL
       --tag sci/lims2:fs
       --no-cache
@@ -81,14 +90,31 @@ build-prod:
       --build-arg lims2_rna_seq=$LIMS2_RNA_SEQ
       --build-arg basespace_api=$BASESPACE_API
       --build-arg basespace_token=$BASESPACE_TOKEN
-      --tag $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
+      --tag $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
       .
-    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
+
+deploy-staging:
+  stage: deploy
+  script:
+    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+    - docker container stop lims2_staging || echo \"No container to stop\"
+    - docker container rm lims2_staging || echo \"No container to remove\"
+    - docker run
+      -d
+      --restart unless-stopped
+      --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared-staging,target=/shared"
+      --name lims2_staging
+      -p 8080:8002
+      $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
 deploy-prod:
   tags:
     - autoscale
-  stage: deploy-prod
+  stage: deploy
   before_script:
     - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
