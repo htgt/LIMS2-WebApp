@@ -3,7 +3,7 @@ from csv import DictReader
 from time import sleep
 
 from requests import get, ConnectionError, JSONDecodeError
-from jsonschema import validate as validate_json_schema
+from jsonschema import validate as validate_json_schema, ValidationError as SchemaValidationError
 
 class CloneDataError(object):
     """Base error.
@@ -43,15 +43,18 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
         if response.status_code == 200:
             try:
                 json_data = response.json()
-                validate_json_schema(
-                    json_data,
-                    {
-                        "type": "object",
-                        "properties": {
-                            "miseq_data": {"type": "object"},
+                try:
+                    validate_json_schema(
+                        json_data,
+                        {
+                            "type": "object",
+                            "properties": {
+                                "miseq_data": {"type": "object"},
+                            },
                         },
-                    },
-                )
+                    )
+                except SchemaValidationError as e:
+                    error = e
             except JSONDecodeError:
                 error = NotJSONData()
         else:
@@ -68,3 +71,4 @@ print("Total number of clones: ", len(results))
 print("Total number of 'good' clones: ", len([result for result in results if result.error is None]))
 print("Clones with non-200 HTTP status: ", [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)])
 print("Clones with non-JSON result (probably due to being pipeline I): ", [result.clone_name for result in results if isinstance(result.error, NotJSONData)])
+print("Clones with missing miseq data: ", [result.clone_name for result in results if isinstance(result.error, SchemaValidationError)])
