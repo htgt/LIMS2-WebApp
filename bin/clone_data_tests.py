@@ -43,7 +43,15 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
         if response.status_code == 200:
             try:
                 json_data = response.json()
-                validate_json_schema(json_data, {})
+                validate_json_schema(
+                    json_data,
+                    {
+                        "type": "object",
+                        "properties": {
+                            "miseq_data": {"type": "object"},
+                        },
+                    },
+                )
             except JSONDecodeError:
                 error = NotJSONData()
         else:
