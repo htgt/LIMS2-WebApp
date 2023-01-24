@@ -999,6 +999,7 @@ sub _get_miseq_data_from_well {
         )
     ;
     if (scalar @miseq_well_experiments == 0) {
+        DEBUG("No miseq_well_experiments found.");
         return undef;
     }
     if (scalar @miseq_well_experiments > 1) {
