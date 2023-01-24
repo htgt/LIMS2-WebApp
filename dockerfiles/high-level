@@ -102,7 +102,6 @@ COPY lims2-webapp-filesystem/user/ssh_config /home/user/.ssh/config
 RUN sudo chown user:user /home/user/.ssh/config
 
 ARG branch=master
-ARG database=LIMS2_STAGING
 ARG rna_seq=/warehouse/team229_wh01/lims2_managed_miseq_data/
 # location of reference genome files on bwa instance
 ARG human_fa=/home/ubuntu/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa
@@ -122,8 +121,7 @@ RUN sudo ln -s /home/user/git_checkout/LIMS2-WebApp/LIMS2-Utils/lib/LIMS2/* /opt
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 
 # Set up the environment
-ENV LIMS2_DB=$database \
-    LIMS2_RNA_SEQ=$rna_seq \
+ENV LIMS2_RNA_SEQ=$rna_seq \
     WAREHOUSE_RNA_SEQ=$rna_seq \
     DESIGN_CREATION_HUMAN_FA=$human_fa \
     BWA_REF_GENOME_HUMAN_FA=$human_fa \
