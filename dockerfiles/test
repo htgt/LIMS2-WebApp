@@ -1,9 +1,6 @@
 FROM sci/lims2:fs
 
-ARG database=LIMS2_TEST_USER
-
-ENV LIMS2_DB=$database \
-    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
+ENV LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
     PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib:/opt/sci/global/software/lims2/lib/ \
     USER=user
 
