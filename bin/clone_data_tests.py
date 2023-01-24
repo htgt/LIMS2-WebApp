@@ -17,7 +17,7 @@ for t in range(60):
 
 Result = namedtuple("Result", ["clone_name", "response_status"])
 
-with open("list_of_clones_12_01_23.tsv") as f:
+with open("list_of_clones_12_01_23.tsv", newline='') as f:
     clones = DictReader(f, delimiter='\t')
     results = []
     for n, clone in enumerate(clones):
