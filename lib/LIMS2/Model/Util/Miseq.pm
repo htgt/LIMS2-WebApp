@@ -1035,7 +1035,9 @@ sub _get_experiment_from_well {
     if (scalar @experiments_in_well > 1) {
         die "Multiple experiments found for well with id: " . $well->id;
     }
-    return $experiments_in_well[0];
+    my $experiment_in_well = $experiments_in_well[0];
+    DEBUG("Got experiment with ID: " . $experiment_in_well->id);
+    return $experiment_in_well;
 }
 
 sub _get_miseq_well_from_piq_well {
