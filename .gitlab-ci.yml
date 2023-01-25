@@ -36,11 +36,9 @@ build:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       variables:
-        DATABASE: "LIMS2_LIVE"
         IMAGE_NAME: "lims2-prod-do-not-use-this-anywhere-else"
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
       variables:
-        DATABASE: "LIMS2_STAGING"
         IMAGE_NAME: "lims2-staging"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
@@ -51,7 +49,6 @@ build:
       .
     - docker build
       --file dockerfiles/high-level
-      --build-arg database=${DATABASE}
       --build-arg solr_url=$SOLR_URL
       --tag sci/lims2:fs
       --no-cache
@@ -104,6 +101,7 @@ test-clone-data:
       -d
       --restart unless-stopped
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared-staging,target=/shared"
+      --env LIMS2_DB=LIMS2_STAGING
       --name lims2_test_clone_data
       -p 8081:8002
       $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
@@ -122,6 +120,7 @@ deploy-staging:
       -d
       --restart unless-stopped
       --mount "type=bind,source=/home/ubuntu/lims2-webapp-shared-staging,target=/shared"
+      --env LIMS2_DB=LIMS2_STAGING
       --name lims2_staging
       -p 8080:8002
       $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
@@ -153,6 +152,7 @@ deploy-prod:
           --restart unless-stopped
           --mount
           \"type=bind,source=/home/ubuntu/lims2-webapp-shared,target=/shared\"
+          --env LIMS2_DB=LIMS2_LIVE
           --name lims2_live
           -p 8001:8001
           -p 8002:8002
