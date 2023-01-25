@@ -33,13 +33,6 @@ build-test:
 
 build:
   stage: build
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-      variables:
-        IMAGE_NAME: "lims2-prod-do-not-use-this-anywhere-else"
-    - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
-      variables:
-        IMAGE_NAME: "lims2-staging"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/sci/lims2-webapp-filesystem.git
     - git -C "./lims2-webapp-filesystem" checkout ${LIMS2_WEBAPP_FILESYSTEM_VERSION}
@@ -78,9 +71,9 @@ build:
       --build-arg lims2_rna_seq=$LIMS2_RNA_SEQ
       --build-arg basespace_api=$BASESPACE_API
       --build-arg basespace_token=$BASESPACE_TOKEN
-      --tag $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
+      --tag $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
       .
-    - docker push $CI_REGISTRY/sci/lims2-webapp/${IMAGE_NAME}:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
 
 test:
   stage: test
@@ -94,7 +87,7 @@ test:
 test-clone-data:
   stage: test
   script:
-    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
     - docker container stop lims2_test_clone_data || echo \"No container to stop\"
     - docker container rm lims2_test_clone_data || echo \"No container to remove\"
     - docker run
@@ -104,7 +97,7 @@ test-clone-data:
       --env LIMS2_DB=LIMS2_STAGING
       --name lims2_test_clone_data
       -p 8081:8002
-      $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
     - python3 -m venv .test_clone_data_venv
     - source .test_clone_data_venv/bin/activate
     - pip install -r ./bin/clone_data_tests/clone_data_tests_requirements.txt
@@ -113,7 +106,7 @@ test-clone-data:
 deploy-staging:
   stage: deploy
   script:
-    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
     - docker container stop lims2_staging || echo \"No container to stop\"
     - docker container rm lims2_staging || echo \"No container to remove\"
     - docker run
@@ -123,7 +116,7 @@ deploy-staging:
       --env LIMS2_DB=LIMS2_STAGING
       --name lims2_staging
       -p 8080:8002
-      $CI_REGISTRY/sci/lims2-webapp/lims2-staging:$CI_COMMIT_SHORT_SHA
+      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
@@ -144,7 +137,7 @@ deploy-prod:
     - ssh ubuntu@$LIMS2_PROD_HOST "
         set -e;
         sudo docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
-        sudo docker pull $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA;
+        sudo docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA;
         sudo docker container stop lims2_live || echo \"No container to stop\";
         sudo docker container rm lims2_live || echo \"No container to remove\";
         sudo docker run
@@ -156,7 +149,7 @@ deploy-prod:
           --name lims2_live
           -p 8001:8001
           -p 8002:8002
-          $CI_REGISTRY/sci/lims2-webapp/lims2-prod-do-not-use-this-anywhere-else:$CI_COMMIT_SHORT_SHA
+          $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
         ;
         sudo docker image prune --all --force;
       "
