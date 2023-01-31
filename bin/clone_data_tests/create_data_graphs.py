@@ -1,7 +1,8 @@
 from sys import argv
 
-from sqlalchemy import create_engine, text, MetaData
+from sqlalchemy import create_engine, select, text, MetaData
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
 
 data_base_details = argv[1]
 engine = create_engine(f"postgresql://{data_base_details}")
@@ -15,6 +16,6 @@ Base.prepare()
 Plate = Base.classes.plates
 Well = Base.classes.wells
 
-with engine.connect() as conn:
-    results = conn.execute(text("SELECT * FROM plates"))
+with Session(engine) as session:
+    results = session.execute(select(Plate))
     print(results.all())
