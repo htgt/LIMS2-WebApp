@@ -1,7 +1,7 @@
 from sys import argv
 from collections import namedtuple
 
-from sqlalchemy import create_engine, select, text, MetaData
+from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 
@@ -30,3 +30,15 @@ with open("bin/get_list_of_clones.sql") as clones_sql:
 # This might change if staging db is updated, but shouldn't decrease.
 expected_number_of_clones = 1866
 assert len(clones) == expected_number_of_clones, f"Found {len(clones)} clones."
+
+with Session(engine) as session:
+    results = session.execute(
+        select(Well)
+        .join(Well.plates)
+        .where(tuple_(Plate.name, Well.name).in_(clones))
+    )
+
+    wells = [r[0] for r in results]
+
+# Should be one well for each clone.
+assert len(wells) == expected_number_of_clones, f"Found {len(wells)} wells."
