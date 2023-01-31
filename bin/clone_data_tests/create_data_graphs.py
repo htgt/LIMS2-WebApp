@@ -22,9 +22,11 @@ Well = Base.classes.wells
 with open("bin/get_list_of_clones.sql") as clones_sql:
     with engine.connect() as conn:
         results = conn.execute(text(clones_sql.read())).all()
-        clones = [
+        clones = {
             Clone(*result)
             for result in results
-        ]
+        }
 
-print(clones)
+# This might change if staging db is updated, but shouldn't decrease.
+expected_number_of_clones = 1866
+assert len(clones) == expected_number_of_clones, f"Found {len(clones)} clones."
