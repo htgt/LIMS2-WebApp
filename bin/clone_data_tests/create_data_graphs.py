@@ -1,8 +1,11 @@
 from sys import argv
+from collections import namedtuple
 
 from sqlalchemy import create_engine, select, text, MetaData
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
+
+Clone = namedtuple("Clone", ["plate", "well"])
 
 data_base_details = argv[1]
 engine = create_engine(f"postgresql://{data_base_details}")
@@ -16,6 +19,12 @@ Base.prepare()
 Plate = Base.classes.plates
 Well = Base.classes.wells
 
-with Session(engine) as session:
-    results = session.execute(select(Plate))
-    print(results.all())
+with open("bin/get_list_of_clones.sql") as clones_sql:
+    with engine.connect() as conn:
+        results = conn.execute(text(clones_sql.read())).all()
+        clones = [
+            Clone(*result)
+            for result in results
+        ]
+
+print(clones)
