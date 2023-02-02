@@ -19,26 +19,36 @@ Base.prepare()
 Plate = Base.classes.plates
 Well = Base.classes.wells
 
-with open("bin/get_list_of_clones.sql") as clones_sql:
-    with engine.connect() as conn:
-        results = conn.execute(text(clones_sql.read())).all()
-        clones = {
-            Clone(*result)
-            for result in results
-        }
+def get_clones():
+    with open("bin/get_list_of_clones.sql") as clones_sql:
+        with engine.connect() as conn:
+            results = conn.execute(text(clones_sql.read())).all()
+            clones = {
+                Clone(*result)
+                for result in results
+            }
+    return clones
 
-# This might change if staging db is updated, but shouldn't decrease.
-expected_number_of_clones = 1866
-assert len(clones) == expected_number_of_clones, f"Found {len(clones)} clones."
 
-with Session(engine) as session:
-    results = session.execute(
-        select(Well)
-        .join(Well.plates)
-        .where(tuple_(Plate.name, Well.name).in_(clones))
-    )
+def get_fp_wells_from_clones(clones):
+    with Session(engine) as session:
+        results = session.execute(
+            select(Well)
+            .join(Well.plates)
+            .where(tuple_(Plate.name, Well.name).in_(clones))
+        )
 
-    wells = [r[0] for r in results]
+        wells = [r[0] for r in results]
+    return wells
 
-# Should be one well for each clone.
-assert len(wells) == expected_number_of_clones, f"Found {len(wells)} wells."
+
+if __name__ == "__main__":
+
+    # This might change if staging db is updated, but shouldn't decrease.
+    clones = get_clones()
+    expected_number_of_clones = 1866
+    assert len(clones) == expected_number_of_clones, f"Found {len(clones)} clones."
+
+    fp_wells = get_fp_wells_from_clones(clones)
+    # Should be one well for each clone.
+    assert len(fp_wells) == expected_number_of_clones, f"Found {len(fp_wells)} freeze plate wells."
