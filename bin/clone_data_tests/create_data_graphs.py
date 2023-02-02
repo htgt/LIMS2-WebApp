@@ -7,17 +7,22 @@ from sqlalchemy.orm import Session
 
 Clone = namedtuple("Clone", ["plate", "well"])
 
-data_base_details = argv[1]
-engine = create_engine(f"postgresql://{data_base_details}")
+engine = None
 
-metadata = MetaData()
-metadata.reflect(engine, only=["plates", "wells"])
+Plate = None
+Well = None
 
-Base = automap_base(metadata=metadata)
-Base.prepare()
 
-Plate = Base.classes.plates
-Well = Base.classes.wells
+def init(data_base_details):
+    global engine, Plate, Well
+    engine = create_engine(f"postgresql://{data_base_details}")
+    metadata = MetaData()
+    metadata.reflect(engine, only=["plates", "wells"])
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    Plate = Base.classes.plates
+    Well = Base.classes.wells
+
 
 def get_clones():
     with open("bin/get_list_of_clones.sql") as clones_sql:
@@ -43,6 +48,9 @@ def get_fp_wells_from_clones(clones):
 
 
 if __name__ == "__main__":
+
+    data_base_details = argv[1]
+    init(data_base_details)
 
     # This might change if staging db is updated, but shouldn't decrease.
     clones = get_clones()
