@@ -102,6 +102,7 @@ test-clone-data:
     - source .test_clone_data_venv/bin/activate
     - pip install -r ./bin/clone_data_tests/clone_data_tests_requirements.txt
     - python3 ./bin/clone_data_tests/clone_data_tests.py
+    - python3 bin/clone_data_tests/create_data_graphs.py ${LIMS2_STAGING_DATABASE_DETAILS}
 
 deploy-staging:
   stage: deploy
