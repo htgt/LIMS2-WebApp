@@ -44,7 +44,7 @@ def get_fp_wells_from_clones(clones):
             .options(joinedload(Well.plates))
         )
 
-        wells = [r[0] for r in results]
+        wells = [r.wells for r in results]
     return wells
 
 
