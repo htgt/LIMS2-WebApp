@@ -56,10 +56,11 @@ if __name__ == "__main__":
     # This might change if staging db is updated, but shouldn't decrease.
     clones = get_clones()
     expected_number_of_clones = 1866
-    assert len(clones) == expected_number_of_clones, f"Found {len(clones)} clones."
+    assert len(clones) == expected_number_of_clones, f"Expected {expected_number_of_clones} clones, found {len(clones)}."
 
     fp_wells = get_fp_wells_from_clones(clones)
     # Should be one well for each clone.
-    assert len(fp_wells) == expected_number_of_clones, f"Found {len(fp_wells)} freeze plate wells."
+    assert len(fp_wells) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(fp_wells)}."
     # Check that known clone, HUPFP0085A1_C10 from LIMS-46 tests, is in returned data.
-    assert len(list(filter(lambda well: well.name == "C10" and well.plates.name == "HUPFP0085A1", fp_wells))) == 1
+    wells_for_clone_HUPFP0085A1_C10 = list(filter(lambda well: well.name == "C10" and well.plates.name == "HUPFP0085A1", fp_wells))
+    assert len(wells_for_clone_HUPFP0085A1_C10) == 1, f"Found {len(wells_for_clone_HUPFP0085A1_C10)} wells containing clone HUPFP0085A1_C10"
