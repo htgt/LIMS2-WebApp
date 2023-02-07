@@ -5,8 +5,6 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, Session
 
-Clone = namedtuple("Clone", ["plate", "well"])
-
 engine = None
 
 Plate = None
@@ -25,6 +23,7 @@ def init(data_base_details):
 
 
 def get_clones():
+    Clone = namedtuple("Clone", ["plate", "well"])
     with open("bin/get_list_of_clones.sql") as clones_sql:
         with engine.connect() as conn:
             results = conn.execute(text(clones_sql.read())).all()
