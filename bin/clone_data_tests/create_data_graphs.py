@@ -32,6 +32,7 @@ def init(data_base_details):
             secondary=well_to_well_join,
             primaryjoin=wells.c.id == process_input_well.c.well_id,
             secondaryjoin=process_output_well.c.well_id == wells.c.id,
+            viewonly=True,
         )
         def __repr__(self):
             return self.plates.name + "_" + self.name
