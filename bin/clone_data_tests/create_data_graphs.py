@@ -131,3 +131,4 @@ if __name__ == "__main__":
     for graph in graphs:
         add_piq_wells_to_graph(graph)
     equivalence_classes = create_equivalence_classes(graphs)
+    print(len(equivalence_classes))
