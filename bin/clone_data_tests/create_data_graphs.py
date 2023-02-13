@@ -74,10 +74,23 @@ def get_piq_wells_from_fp_well(fp_well):
     return piq_wells
 
 
+def get_miseq_wells_from_piq_well(piq_well):
+    with Session(engine) as session:
+        session.add(piq_well)
+        next_wells = piq_well.next_wells
+        # Access plates attribute to populate - this seems a bit hacky, not to say inneffiecient, but...
+        for well in next_wells:
+            well.plates
+        # Probably a way to do this using a query, rather than in code, but for now...
+        miseq_wells = [well for well in next_wells if well.plates.type_id == "MISEQ"]
+    return miseq_wells
+
+
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
     graph.add_node(fp_well, **{"type": "fp_well"})
     return graph
+
 
 def add_piq_wells_to_graph(graph):
     fp_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "fp_well"]
@@ -85,6 +98,14 @@ def add_piq_wells_to_graph(graph):
         for piq_well in get_piq_wells_from_fp_well(fp_well):
             graph.add_node(piq_well, **{"type": "piq_well"})
             graph.add_edge(fp_well, piq_well)
+
+
+def add_miseq_wells_to_graph(graph):
+    piq_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "piq_well"]
+    for piq_well in piq_wells:
+        for miseq_well in get_miseq_wells_from_piq_well(piq_well):
+            graph.add_node(miseq_well, **{"type": "miseq_well"})
+            graph.add_edge(piq_well, miseq_well)
 
 
 def create_equivalence_classes(graphs):
@@ -130,5 +151,6 @@ if __name__ == "__main__":
     graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
     for graph in graphs:
         add_piq_wells_to_graph(graph)
+        add_miseq_wells_to_graph(graph)
     equivalence_classes = create_equivalence_classes(graphs)
     print(len(equivalence_classes))
