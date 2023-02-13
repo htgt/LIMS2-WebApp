@@ -153,4 +153,6 @@ if __name__ == "__main__":
         add_piq_wells_to_graph(graph)
         add_miseq_wells_to_graph(graph)
     equivalence_classes = create_equivalence_classes(graphs)
-    print(len(equivalence_classes))
+    print(f"Number of equivalence classes: {len(equivalence_classes)}")
+    print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
+
