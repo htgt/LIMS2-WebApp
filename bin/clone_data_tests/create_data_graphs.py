@@ -1,6 +1,7 @@
 from sys import argv
 from collections import namedtuple
 
+from networkx import Graph
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -71,6 +72,12 @@ def get_piq_wells_from_fp_well(fp_well):
     return piq_wells
 
 
+def create_graph_from_fp_well(fp_well):
+    graph = Graph()
+    graph.add_node(fp_well, **{"type": "fp_well"})
+    return graph
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -97,3 +104,4 @@ if __name__ == "__main__":
     test_piq_well = test_piq_wells[0]
     full_well_name = test_piq_well.plates.name + "_" + test_piq_well.name
     assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
+    fp_well_graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
