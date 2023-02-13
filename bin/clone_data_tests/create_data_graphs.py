@@ -66,7 +66,9 @@ def get_piq_wells_from_fp_well(fp_well):
     with Session(engine) as session:
         session.add(fp_well)
         next_wells = fp_well.next_wells
-    return next_wells
+        # Probably a way to do this using a query, rather than in code, but for now...
+        piq_wells = [well for well in next_wells if well.plates.type_id == "PIQ"]
+    return piq_wells
 
 
 if __name__ == "__main__":
@@ -92,3 +94,6 @@ if __name__ == "__main__":
 
     test_piq_wells = get_piq_wells_from_fp_well(test_fp_well)
     assert len(test_piq_wells) == 1, f"Found {len(test_piq_wells)}"
+    test_piq_well = test_piq_wells[0]
+    full_well_name = test_piq_well.plates.name + "_" + test_piq_well.name
+    assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
