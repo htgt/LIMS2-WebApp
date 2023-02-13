@@ -1,7 +1,7 @@
 from sys import argv
 from collections import namedtuple
 
-from networkx import Graph
+from networkx import Graph, is_isomorphic
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -87,6 +87,20 @@ def add_piq_wells_to_graph(graph):
             graph.add_edge(fp_well, piq_well)
 
 
+def create_equivalence_classes(graphs):
+    equivalence_classes = []
+    for graph in graphs:
+        for equivalence_class in equivalence_classes:
+            other_graph = equivalence_class[0]
+            if is_isomorphic(graph, other_graph, node_match=lambda n1, n2: n1["type"] == n2["type"]):
+                equivalence_class.append(graph)
+                break
+        else:
+            equivalence_classes.append([graph])
+
+    return equivalence_classes
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -116,3 +130,4 @@ if __name__ == "__main__":
     graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
     for graph in graphs:
         add_piq_wells_to_graph(graph)
+    equivalence_classes = create_equivalence_classes(graphs)
