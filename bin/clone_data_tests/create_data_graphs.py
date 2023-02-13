@@ -33,6 +33,8 @@ def init(data_base_details):
             primaryjoin=wells.c.id == process_input_well.c.well_id,
             secondaryjoin=process_output_well.c.well_id == wells.c.id,
         )
+        def __repr__(self):
+            return self.plates.name + "_" + self.name
     Base.prepare()
     Plate = Base.classes.plates
     Process = Base.classes.processes
