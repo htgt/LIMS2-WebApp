@@ -154,6 +154,17 @@ if __name__ == "__main__":
         add_piq_wells_to_graph(graph)
         add_miseq_wells_to_graph(graph)
     equivalence_classes = create_equivalence_classes(graphs)
+
+    # Check that the biggest equivalnce class has graphs of the right shape
+    expected_graph = Graph()
+    expected_graph.add_node(1, **{"type": "fp_well"})
+    expected_graph.add_node(2, **{"type": "piq_well"})
+    expected_graph.add_node(3, **{"type": "miseq_well"})
+    expected_graph.add_edge(1,2)
+    expected_graph.add_edge(2,3)
+    biggest_ec_example = sorted(equivalence_classes, key=len)[-1][0]
+    assert is_isomorphic(expected_graph, biggest_ec_example, node_match=lambda n1, n2: n1["type"] == n2["type"])
+
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
