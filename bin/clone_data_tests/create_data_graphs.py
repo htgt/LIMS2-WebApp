@@ -2,7 +2,7 @@ from sys import argv
 from collections import namedtuple
 
 from matplotlib.pyplot import savefig, subplots
-from networkx import draw, Graph, is_isomorphic
+from networkx import draw_networkx, Graph, is_isomorphic
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -178,5 +178,5 @@ if __name__ == "__main__":
     equivalence_class_representatives = [ec[0] for ec in equivalence_classes]
     fig,axes= subplots(nrows=len(equivalence_class_representatives))
     for graph, axis in zip(equivalence_class_representatives, axes):
-        draw(graph, ax=axis)
+        draw_networkx(graph, ax=axis)
     savefig("the_fig.png")
