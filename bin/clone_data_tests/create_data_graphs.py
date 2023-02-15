@@ -176,7 +176,7 @@ if __name__ == "__main__":
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
     equivalence_class_representatives = [ec[0] for ec in equivalence_classes]
-    fig,axes= subplots(nrows=len(equivalence_class_representatives))
+    fig,axes= subplots(nrows=len(equivalence_class_representatives), **{"figsize": (10, 50)})
     for graph, axis in zip(equivalence_class_representatives, axes):
         draw_networkx(graph, ax=axis)
     savefig("the_fig.png")
