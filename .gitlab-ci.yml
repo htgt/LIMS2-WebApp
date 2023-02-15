@@ -104,6 +104,9 @@ test-clone-data:
     - pip install -r ./bin/clone_data_tests/clone_data_tests_requirements.txt
     - python ./bin/clone_data_tests/clone_data_tests.py
     - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_STAGING_DATABASE_DETAILS}
+  artifacts:
+    paths:
+      - the_fig.png
 
 deploy-staging:
   stage: deploy
