@@ -2,3 +2,4 @@ requests==2.27.1
 jsonschema==4.0.0
 psycopg2==2.9.5
 sqlalchemy==2.0.0
+networkx==3.0
