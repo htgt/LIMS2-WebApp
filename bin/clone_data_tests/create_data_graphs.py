@@ -1,7 +1,7 @@
 from sys import argv
 from collections import namedtuple
 
-from matplotlib.pyplot import savefig
+from matplotlib.pyplot import savefig, subplots
 from networkx import draw, Graph, is_isomorphic
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
@@ -175,5 +175,8 @@ if __name__ == "__main__":
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
-    draw(biggest_ec_example)
+    equivalence_class_representatives = [ec[0] for ec in equivalence_classes]
+    fig,axes= subplots(nrows=len(equivalence_class_representatives))
+    for graph, axis in zip(equivalence_class_representatives, axes):
+        draw(graph, ax=axis)
     savefig("the_fig.png")
