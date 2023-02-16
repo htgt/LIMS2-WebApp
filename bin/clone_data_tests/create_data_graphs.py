@@ -139,6 +139,17 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
     )
 
 
+def plot_graphs(equivalence_classes):
+    fig,axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
+    for equivalence_class, axis in zip(equivalence_classes, axes):
+        graph = equivalence_class[0]
+        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
+        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
+    fig.tight_layout()
+    savefig("the_fig.png")
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -175,11 +186,4 @@ if __name__ == "__main__":
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
-    fig,axes= subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
-    for equivalence_class, axis in zip(equivalence_classes, axes):
-        graph = equivalence_class[0]
-        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
-        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
-        axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
-    fig.tight_layout()
-    savefig("the_fig.png")
+    plot_graphs(equivalence_classes)
