@@ -179,4 +179,6 @@ if __name__ == "__main__":
     fig,axes= subplots(nrows=len(equivalence_class_representatives), **{"figsize": (10, 50)})
     for graph, axis in zip(equivalence_class_representatives, axes):
         draw_networkx(graph, ax=axis)
+        fp_well = = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        axis.set_title(f"E.g. {fp_well}")
     savefig("the_fig.png")
