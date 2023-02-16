@@ -2,7 +2,7 @@ from sys import argv
 from collections import namedtuple
 
 from matplotlib.pyplot import savefig, subplots
-from networkx import draw_networkx, Graph, is_isomorphic
+from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -90,7 +90,7 @@ def get_miseq_wells_from_piq_well(piq_well):
 
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
-    graph.add_node(fp_well, **{"type": "fp_well"})
+    graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
     return graph
 
 
@@ -98,7 +98,7 @@ def add_piq_wells_to_graph(graph):
     fp_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "fp_well"]
     for fp_well in fp_wells:
         for piq_well in get_piq_wells_from_fp_well(fp_well):
-            graph.add_node(piq_well, **{"type": "piq_well"})
+            graph.add_node(piq_well, **{"type": "piq_well", "layer": 2})
             graph.add_edge(fp_well, piq_well)
 
 
@@ -106,7 +106,7 @@ def add_miseq_wells_to_graph(graph):
     piq_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "piq_well"]
     for piq_well in piq_wells:
         for miseq_well in get_miseq_wells_from_piq_well(piq_well):
-            graph.add_node(miseq_well, **{"type": "miseq_well"})
+            graph.add_node(miseq_well, **{"type": "miseq_well", "layer": 3})
             graph.add_edge(piq_well, miseq_well)
 
 
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     equivalence_class_representatives = [ec[0] for ec in equivalence_classes]
     fig,axes= subplots(nrows=len(equivalence_class_representatives), **{"figsize": (10, 50)})
     for graph, axis in zip(equivalence_class_representatives, axes):
-        draw_networkx(graph, ax=axis)
-        fp_well = = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
+        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
         axis.set_title(f"E.g. {fp_well}")
     savefig("the_fig.png")
