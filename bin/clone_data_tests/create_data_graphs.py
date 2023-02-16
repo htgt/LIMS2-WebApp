@@ -175,11 +175,11 @@ if __name__ == "__main__":
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
-    equivalence_class_representatives = [ec[0] for ec in equivalence_classes]
-    fig,axes= subplots(nrows=len(equivalence_class_representatives), **{"figsize": (10, 50)})
-    for graph, axis in zip(equivalence_class_representatives, axes):
+    fig,axes= subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
+    for equivalence_class, axis in zip(equivalence_classes, axes):
+        graph = equivalence_class[0]
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
         fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
-        axis.set_title(f"E.g. {fp_well}")
+        axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
     fig.tight_layout()
     savefig("the_fig.png")
