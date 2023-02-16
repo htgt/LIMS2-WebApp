@@ -181,4 +181,5 @@ if __name__ == "__main__":
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
         fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
         axis.set_title(f"E.g. {fp_well}")
+    fig.tight_layout()
     savefig("the_fig.png")
