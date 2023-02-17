@@ -231,3 +231,7 @@ if __name__ == "__main__":
 
     happy_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, happy_shape())
     missing_miseq_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, missing_miseq_shape())
+
+    print(f"Plates with just happy wells: {happy_plate_names - missing_miseq_plate_names}")
+    print(f"Plates with happy and missing-miseq wells: {happy_plate_names & missing_miseq_plate_names}")
+    print(f"Plates with just missing-miseq wells: {missing_miseq_plate_names - happy_plate_names}")
