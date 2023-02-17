@@ -156,6 +156,13 @@ def get_fp_well_from_graph(graph):
     return fp_wells[0]
 
 
+def get_plate_names_from_graphs(graphs):
+    return {
+        get_fp_well_from_graph(graph).plates.name
+        for graph in graphs
+    }
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -193,3 +200,8 @@ if __name__ == "__main__":
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
     plot_graphs(equivalence_classes)
+
+    equivalence_classes_and_plate_names = [
+        (ec, get_plate_names_from_graphs(ec))
+        for ec in equivalence_classes
+    ]
