@@ -160,7 +160,7 @@ def get_plate_names_from_graphs(graphs):
 
 def get_plate_names_by_shape(equivalence_classes_and_plate_names, shape):
     for equivalence_class, plate_names in equivalence_classes_and_plate_names:
-        if is_isomorphic(equivalence_class, shape):
+        if is_isomorphic(equivalence_class[0], shape):
             return plate_names
     raise RuntimeError("Can't find graphs with correct shape")
 
