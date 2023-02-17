@@ -144,10 +144,16 @@ def plot_graphs(equivalence_classes):
     for equivalence_class, axis in zip(equivalence_classes, axes):
         graph = equivalence_class[0]
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
-        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        fp_well = get_fp_well_from_graph(graph)
         axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
     fig.tight_layout()
     savefig("well_graphs.png")
+
+
+def get_fp_well_from_graph(graph):
+    fp_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"]
+    assert len(fp_wells) == 1
+    return fp_wells[0]
 
 
 if __name__ == "__main__":
