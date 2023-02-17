@@ -125,12 +125,7 @@ def create_equivalence_classes(graphs):
 
 
 def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes):
-    expected_graph = Graph()
-    expected_graph.add_node(1, **{"type": "fp_well"})
-    expected_graph.add_node(2, **{"type": "piq_well"})
-    expected_graph.add_node(3, **{"type": "miseq_well"})
-    expected_graph.add_edge(1,2)
-    expected_graph.add_edge(2,3)
+    expected_graph = happy_shape()
     biggest_ec_example = sorted(equivalence_classes, key=len)[-1][0]
     assert is_isomorphic(
         expected_graph,
@@ -161,6 +156,34 @@ def get_plate_names_from_graphs(graphs):
         get_fp_well_from_graph(graph).plates.name
         for graph in graphs
     }
+
+
+def get_plate_names_by_shape(equivalence_classes_and_plate_names, shape):
+    for equivalence_class, plate_names in equivalence_classes_and_plate_names:
+        if is_isomorphic(equivalence_class, shape):
+            return plate_names
+    raise RuntimeError("Can't find graphs with correct shape")
+
+
+def happy_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_node(3, **{"type": "miseq_well"})
+    graph.add_edge(1,2)
+    graph.add_edge(2,3)
+
+    return graph
+
+
+def missing_miseq_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_edge(1,2)
+
+    return graph
+
 
 
 if __name__ == "__main__":
@@ -205,3 +228,6 @@ if __name__ == "__main__":
         (ec, get_plate_names_from_graphs(ec))
         for ec in equivalence_classes
     ]
+
+    happy_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, happy_shape())
+    missing_miseq_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, missing_miseq_shape())
