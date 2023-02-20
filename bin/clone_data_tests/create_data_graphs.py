@@ -240,3 +240,4 @@ if __name__ == "__main__":
     example_just_missing_miseq_plate = plate_with_just_missing_miseq_wells.pop()
     clones_in_missing_miseq_plate_example = [c for c in clones if c.plate == example_just_missing_miseq_plate]
     print(f"Clones in missing-miseq plate example {example_just_missing_miseq_plate}: {[c.plate + '_' + c.well for c in clones_in_missing_miseq_plate_example]}")
+    fp_wells_for_clones = get_fp_wells_from_clones(clones_in_missing_miseq_plate_example)
