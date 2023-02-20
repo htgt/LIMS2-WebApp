@@ -147,7 +147,7 @@ def plot_graphs(equivalence_classes):
         fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
         axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
     fig.tight_layout()
-    savefig("the_fig.png")
+    savefig("well_graphs.png")
 
 
 if __name__ == "__main__":

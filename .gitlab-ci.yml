@@ -106,7 +106,7 @@ test-clone-data:
     - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_STAGING_DATABASE_DETAILS}
   artifacts:
     paths:
-      - the_fig.png
+      - well_graphs.png
 
 deploy-staging:
   stage: deploy
