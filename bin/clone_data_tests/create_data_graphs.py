@@ -1,7 +1,8 @@
 from sys import argv
 from collections import namedtuple
 
-from networkx import Graph, is_isomorphic
+from matplotlib.pyplot import savefig, subplots
+from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -89,7 +90,7 @@ def get_miseq_wells_from_piq_well(piq_well):
 
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
-    graph.add_node(fp_well, **{"type": "fp_well"})
+    graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
     return graph
 
 
@@ -97,7 +98,7 @@ def add_piq_wells_to_graph(graph):
     fp_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "fp_well"]
     for fp_well in fp_wells:
         for piq_well in get_piq_wells_from_fp_well(fp_well):
-            graph.add_node(piq_well, **{"type": "piq_well"})
+            graph.add_node(piq_well, **{"type": "piq_well", "layer": 2})
             graph.add_edge(fp_well, piq_well)
 
 
@@ -105,7 +106,7 @@ def add_miseq_wells_to_graph(graph):
     piq_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "piq_well"]
     for piq_well in piq_wells:
         for miseq_well in get_miseq_wells_from_piq_well(piq_well):
-            graph.add_node(miseq_well, **{"type": "miseq_well"})
+            graph.add_node(miseq_well, **{"type": "miseq_well", "layer": 3})
             graph.add_edge(piq_well, miseq_well)
 
 
@@ -136,6 +137,17 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
         biggest_ec_example,
         node_match=lambda n1, n2: n1["type"] == n2["type"]
     )
+
+
+def plot_graphs(equivalence_classes):
+    fig,axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
+    for equivalence_class, axis in zip(equivalence_classes, axes):
+        graph = equivalence_class[0]
+        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
+        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
+    fig.tight_layout()
+    savefig("well_graphs.png")
 
 
 if __name__ == "__main__":
@@ -174,3 +186,4 @@ if __name__ == "__main__":
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
+    plot_graphs(equivalence_classes)
