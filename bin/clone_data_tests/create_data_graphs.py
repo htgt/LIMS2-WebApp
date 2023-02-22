@@ -1,3 +1,4 @@
+from itertools import chain
 from sys import argv
 from collections import namedtuple
 
@@ -151,6 +152,11 @@ def get_fp_well_from_graph(graph):
     return fp_wells[0]
 
 
+def get_piq_wells_from_graph(graph):
+    piq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "piq_well"]
+    return piq_wells
+
+
 def get_plate_names_from_graphs(graphs):
     return {
         get_fp_well_from_graph(graph).plates.name
@@ -193,6 +199,13 @@ def print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_w
         print("FP wells and PIQ wells for plate: ")
         for fp_well in fp_wells_for_clones:
             print (f"{fp_well}, {get_piq_wells_from_fp_well(fp_well)[0]}")
+
+
+def get_all_piq_plate_names(graphs):
+    all_piq_wells = chain(*[get_piq_wells_from_graph(g) for g in graphs])
+    return {
+        pw.plates.name for pw in all_piq_wells
+    }
 
 
 if __name__ == "__main__":
@@ -247,3 +260,5 @@ if __name__ == "__main__":
     print(f"Plates with just missing-miseq wells: {plates_with_just_missing_miseq_wells}")
     print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_with_just_missing_miseq_wells, clones)
 
+    all_piq_plate_names = get_all_piq_plate_names(graphs)
+    print(all_piq_plate_names)
