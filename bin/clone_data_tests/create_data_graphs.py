@@ -125,12 +125,7 @@ def create_equivalence_classes(graphs):
 
 
 def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes):
-    expected_graph = Graph()
-    expected_graph.add_node(1, **{"type": "fp_well"})
-    expected_graph.add_node(2, **{"type": "piq_well"})
-    expected_graph.add_node(3, **{"type": "miseq_well"})
-    expected_graph.add_edge(1,2)
-    expected_graph.add_edge(2,3)
+    expected_graph = happy_shape()
     biggest_ec_example = sorted(equivalence_classes, key=len)[-1][0]
     assert is_isomorphic(
         expected_graph,
@@ -140,14 +135,55 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
 
 
 def plot_graphs(equivalence_classes):
-    fig,axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
+    fig, axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
     for equivalence_class, axis in zip(equivalence_classes, axes):
         graph = equivalence_class[0]
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
-        fp_well = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"][0]
+        fp_well = get_fp_well_from_graph(graph)
         axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
     fig.tight_layout()
     savefig("well_graphs.png")
+
+
+def get_fp_well_from_graph(graph):
+    fp_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"]
+    assert len(fp_wells) == 1
+    return fp_wells[0]
+
+
+def get_plate_names_from_graphs(graphs):
+    return {
+        get_fp_well_from_graph(graph).plates.name
+        for graph in graphs
+    }
+
+
+def get_plate_names_by_shape(equivalence_classes_and_plate_names, shape):
+    for equivalence_class, plate_names in equivalence_classes_and_plate_names:
+        if is_isomorphic(equivalence_class[0], shape):
+            return plate_names
+    raise RuntimeError("Can't find graphs with correct shape")
+
+
+def happy_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_node(3, **{"type": "miseq_well"})
+    graph.add_edge(1,2)
+    graph.add_edge(2,3)
+
+    return graph
+
+
+def missing_miseq_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_edge(1,2)
+
+    return graph
+
 
 
 if __name__ == "__main__":
@@ -187,3 +223,15 @@ if __name__ == "__main__":
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
 
     plot_graphs(equivalence_classes)
+
+    equivalence_classes_and_plate_names = [
+        (ec, get_plate_names_from_graphs(ec))
+        for ec in equivalence_classes
+    ]
+
+    happy_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, happy_shape())
+    missing_miseq_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, missing_miseq_shape())
+
+    print(f"Plates with just happy wells: {happy_plate_names - missing_miseq_plate_names}")
+    print(f"Plates with happy and missing-miseq wells: {happy_plate_names & missing_miseq_plate_names}")
+    print(f"Plates with just missing-miseq wells: {missing_miseq_plate_names - happy_plate_names}")
