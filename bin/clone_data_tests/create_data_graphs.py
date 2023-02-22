@@ -135,7 +135,7 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
 
 
 def plot_graphs(equivalence_classes):
-    fig,axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
+    fig, axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
     for equivalence_class, axis in zip(equivalence_classes, axes):
         graph = equivalence_class[0]
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
