@@ -121,6 +121,17 @@ RUN sudo ln -s /home/user/git_checkout/LIMS2-WebApp/LIMS2-Utils/lib/LIMS2/* /opt
 WORKDIR /home/user/git_checkout/LIMS2-WebApp
 
 # Set up the environment
+#
+# Some notes:
+# LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf - This is needed for
+# the LIMS2::Model::Util::CreKiESDistribution module. It seems that that host listed in the
+# config file no longer exists. The tests need a config file to run, but it seems that there
+# is no actual database coneection made - as proved by changing the values in the config
+# file to nonsense. The whole package under test can probably be removed, but for now we will
+# continue using this config.
+# According to Joel: iMits is a public tracking system for mouse experiments. It used to be in-house
+# but Sanger has since sent it off (I think EBI manages it now) and Sanger no longer does mouse stuff.
+# So this'll be gone and the mouse bit at least won't be coming back.
 ENV LIMS2_RNA_SEQ=$rna_seq \
     WAREHOUSE_RNA_SEQ=$rna_seq \
     DESIGN_CREATION_HUMAN_FA=$human_fa \
@@ -134,4 +145,13 @@ ENV LIMS2_RNA_SEQ=$rna_seq \
     LIMS2_ENSEMBL_USER=anonymous \
     LIMS2_ENSEMBL_HOST=ensembldb.ensembl.org \
     LIMS2_URL_CONFIG=/opt/sci/global/conf/lims2_urls.conf \
-    SOLR_URL=$solr_url
+    SOLR_URL=$solr_url \
+    LIMS2_DBCONNECT_CONFIG=/opt/sci/global/conf/lims2/dbconnect.yaml \
+    HTGT_QC_CONF=/opt/sci/global/conf/qc.conf \
+    LIMS2_IMITS_CONN_CONFIG=/opt/sci/global/conf/lims2_imits_conn.conf \
+    LIMS2_LOG4PERL_CONFIG=/opt/sci/global/conf/lims2/log4perl.default.conf \
+    LIMS2_PRIMER_SELECTION_DIR=/tmp/ \
+    DEFAULT_CRISPR_ES_QC_DIR=/tmp/lims2_crispr_es_qc \
+    LIMS2_SHARED=/home/user/git_checkout \
+    PERL_LWP_ENV_PROXY=1 \
+    LIMS2_ALLELE_DET_CONFIG=/opt/sci/global/conf/allele_determination.conf \
