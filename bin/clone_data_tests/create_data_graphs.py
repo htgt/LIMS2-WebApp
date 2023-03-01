@@ -234,7 +234,7 @@ def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
             fp_well = get_fp_well_from_graph(piq_plate_graph)
             axis.set_title(f"FP well:  {fp_well}")
         fig.tight_layout()
-        savefig("graphs_grouped_by_piq_plate/{piq_plate_name}.png")
+        savefig(f"graphs_grouped_by_piq_plate/{piq_plate_name}.png")
 
 
 if __name__ == "__main__":
