@@ -1,3 +1,9 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
 variables:
   GIT_SUBMODULE_STRATEGY: normal
   LIMS2_WEBAPP_FILESYSTEM_VERSION: 6855f697db17b7c5ef4ba8928a5b3681a72dfd65
