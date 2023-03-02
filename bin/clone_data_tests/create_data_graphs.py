@@ -261,4 +261,3 @@ if __name__ == "__main__":
     print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_with_just_missing_miseq_wells, clones)
 
     all_piq_plate_names = get_all_piq_plate_names(graphs)
-    print(all_piq_plate_names)
