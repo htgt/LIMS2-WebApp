@@ -224,7 +224,12 @@ def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
     for piq_plate_name in piq_plate_names:
         piq_plate_graphs = get_graphs_containing_wells_in_piq_plate(graphs, piq_plate_name)
         fig, axes = subplots(nrows=len(piq_plate_graphs), **{"figsize": (10, 5*len(piq_plate_graphs))})
-        for piq_plate_graph in piq_plate_graphs:
+        # Rubbish API - axes is a single object if len is 1.
+        try:
+            iter(axes)
+        except TypeError:
+            axes = [axes]
+        for piq_plate_graph, axis in zip(piq_plate_graphs, axes):
             draw_networkx(piq_plate_graph, ax=axis, pos=multipartite_layout(piq_plate_graph, subset_key="layer"))
             fp_well = get_fp_well_from_graph(piq_plate_graph)
             axis.set_title(f"FP well:  {fp_well}")
