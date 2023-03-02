@@ -208,6 +208,16 @@ def get_all_piq_plate_names(graphs):
     }
 
 
+def get_graphs_containing_wells_in_piq_plate(graphs, piq_plate_name):
+    piq_plate_name_graphs = []
+    for graph in graphs:
+        piq_wells = get_piq_wells_from_graph(graph)
+        if piq_plate_name in [p.plates.name for p in piq_wells]:
+            piq_plate_name_graphs.append(graph)
+
+    return piq_plate_name_graphs
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
