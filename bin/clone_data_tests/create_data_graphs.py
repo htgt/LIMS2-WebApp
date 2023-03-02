@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     for plate_name in plates_with_just_missing_miseq_wells:
         clones_in_missing_miseq_plate_example = [c for c in clones if c.plate == plate_name]
-        print(f"Missing-miseq plate: {plate_name}.")
+        print(f"Plate with miseq-well missing for clones: {plate_name}.")
         fp_wells_for_clones = get_fp_wells_from_clones(clones_in_missing_miseq_plate_example)
         print("FP wells and PIQ wells for plate: ")
         for fp_well in fp_wells_for_clones:
