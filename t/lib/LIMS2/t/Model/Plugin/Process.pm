@@ -1250,6 +1250,18 @@ sub oligo_assembly_process : Test(18) {
     qr/nonsense design is linked to crispr 113, not crispr 69543/;
 }
 
+sub miseq_no_template_process : Test(3) {
+    note("Testing miseq_no_template process creation");
+    my $miseq_no_template_process_data = test_data('miseq_no_template_process.yaml');
+
+    {
+        ok my $process = model->create_process( $miseq_no_template_process_data->{valid_piq_to_miseq} ),
+            'create_process for type miseq_no_template should succeed';
+        isa_ok $process, 'LIMS2::Model::Schema::Result::Process';
+        is $process->type->id, 'miseq_no_template', 'process is of correct type';
+    }
+}
+
 1;
 
 __END__
