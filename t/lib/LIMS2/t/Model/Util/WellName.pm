@@ -3,6 +3,7 @@ use base qw(Test::Class);
 use Test::Most;
 use LIMS2::Model::Util::WellName qw/
 	generate_96_well_annotations
+        convert_numeric_well_names_to_alphanumeric
 /;
 
 use strict;
@@ -198,6 +199,31 @@ sub test_generate_96_well_annotations: Tests
             ok (1, "Test ok - No value for $rand_int\n");
         }
     }
+}
+
+sub test_convert_numeric_well_names_to_alphanumeric : Tests
+{
+    # We test the corners of 'quadrants', plus a few arbitarily chosen wells.
+    is(convert_numeric_well_names_to_alphanumeric(1), "A01");
+    is(convert_numeric_well_names_to_alphanumeric(8), "H01");
+    is(convert_numeric_well_names_to_alphanumeric(23), "G03");
+    is(convert_numeric_well_names_to_alphanumeric(89), "A12");
+    is(convert_numeric_well_names_to_alphanumeric(96), "H12");
+    is(convert_numeric_well_names_to_alphanumeric(97), "A13");
+    is(convert_numeric_well_names_to_alphanumeric(104), "H13");
+    is(convert_numeric_well_names_to_alphanumeric(156), "D20");
+    is(convert_numeric_well_names_to_alphanumeric(185), "A24");
+    is(convert_numeric_well_names_to_alphanumeric(192), "H24");
+    is(convert_numeric_well_names_to_alphanumeric(193), "I01");
+    is(convert_numeric_well_names_to_alphanumeric(200), "P01");
+    is(convert_numeric_well_names_to_alphanumeric(258), "J09");
+    is(convert_numeric_well_names_to_alphanumeric(281), "I12");
+    is(convert_numeric_well_names_to_alphanumeric(288), "P12");
+    is(convert_numeric_well_names_to_alphanumeric(289), "I13");
+    is(convert_numeric_well_names_to_alphanumeric(296), "P13");
+    is(convert_numeric_well_names_to_alphanumeric(337), "I19");
+    is(convert_numeric_well_names_to_alphanumeric(377), "I24");
+    is(convert_numeric_well_names_to_alphanumeric(384), "P24");
 }
 
 =head1 AUTHOR

@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 
 use Sub::Exporter -setup => {
-    exports => [ qw( to96 to384 generate_96_well_annotations ) ]
+    exports => [ qw( to96 to384 generate_96_well_annotations convert_numeric_well_names_to_alphanumeric) ]
 };
 
 use Log::Log4perl qw( :easy );
@@ -432,5 +432,49 @@ sub generate_96_well_annotations
     }
     return $wells;
 }
+
+# Miseq plates consist of 384 wells numbered sequencially, starting at 1.
+#
+sub convert_numeric_well_names_to_alphanumeric {
+    my $numeric_well_name = shift;
+    my @well_names;
+    my $quads = {
+        '0' => {
+            mod     => 0,
+            letters => ['A','B','C','D','E','F','G','H'],
+        },
+        '1' => {
+            mod     => 12,
+            letters => ['A','B','C','D','E','F','G','H'],
+        },
+        '2' => {
+            mod     => 0,
+            letters => ['I','J','K','L','M','N','O','P'],
+        },
+        '3' => {
+            mod     => 12,
+            letters => ['I','J','K','L','M','N','O','P'],
+        }
+    };
+    for (my $ind = 0; $ind < 4; $ind++) {
+        @well_names = well_builder($quads->{$ind}, @well_names);
+    }
+    return $well_names[$numeric_well_name - 1]
+}
+
+sub well_builder {
+    my ($mod, @well_names) = @_;
+
+    foreach my $number (1..12) {
+        my $well_num = $number + $mod->{mod};
+        foreach my $letter ( @{$mod->{letters}} ) {
+            my $well = sprintf("%s%02d", $letter, $well_num);
+            push (@well_names, $well);
+        }
+    }
+
+    return @well_names;
+}
+
 
 1;
