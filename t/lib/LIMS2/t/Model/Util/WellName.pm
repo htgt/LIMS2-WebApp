@@ -78,13 +78,7 @@ sub shutdown  : Test(shutdown)
     #diag("running after all tests");
 };
 
-=head2 all_tests
-
-Code to execute all tests
-
-=cut
-
-sub all_tests  : Tests
+sub test_generate_96_well_annotations: Tests
 {
     ok(1, "Test of LIMS2::Model::Util::WellName");
 
