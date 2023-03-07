@@ -1,0 +1,9 @@
+---
+valid_piq_to_miseq:
+    type: miseq_no_template
+    output_wells:
+        - plate_name: MISEQ_123
+          well_name: J08
+    input_wells:
+        - plate_name: CRISPR_PIQ
+          well_name: A01
