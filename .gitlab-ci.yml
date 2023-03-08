@@ -114,6 +114,7 @@ test-clone-data:
     paths:
       - well_graphs.png
       - graphs_grouped_by_piq_plate
+      - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv
 
 deploy-staging:
   stage: deploy

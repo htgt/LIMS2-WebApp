@@ -1,3 +1,4 @@
+from csv import DictWriter
 from itertools import chain
 from os import mkdir
 from sys import argv
@@ -192,16 +193,6 @@ def missing_miseq_shape():
     return graph
 
 
-def print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_with_just_missing_miseq_wells, clones):
-    for plate_name in plates_with_just_missing_miseq_wells:
-        clones_in_missing_miseq_plate_example = [c for c in clones if c.plate == plate_name]
-        print(f"Plate with miseq-well missing for clones: {plate_name}.")
-        fp_wells_for_clones = get_fp_wells_from_clones(clones_in_missing_miseq_plate_example)
-        print("FP wells and PIQ wells for plate: ")
-        for fp_well in fp_wells_for_clones:
-            print (f"{fp_well}, {get_piq_wells_from_fp_well(fp_well)[0]}")
-
-
 def get_all_piq_plate_names(graphs):
     all_piq_wells = chain(*[get_piq_wells_from_graph(g) for g in graphs])
     return {
@@ -235,6 +226,29 @@ def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
             axis.set_title(f"FP well:  {fp_well}")
         fig.tight_layout()
         savefig(f"graphs_grouped_by_piq_plate/{piq_plate_name}.png")
+
+
+def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(plates_with_just_missing_miseq_wells, clones):
+    """
+    A complete list of fp/piq wells for clones where,
+        * There is a single mapping from the fp well containing the clone to a piq well.
+        * The fp well containing the clone is on a plate in which *none* of the wells
+          on that plate have a mapping (via a piq well) to a miseq plate.
+    """
+    with open("fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", "w", newline='') as f:
+        fp_and_piq_writer = DictWriter(f, fieldnames=["fp_plate", "fp_well", "piq_plate", "piq_well"], delimiter="\t")
+        fp_and_piq_writer.writeheader()
+        for plate_name in plates_with_just_missing_miseq_wells:
+            clones_in_missing_miseq_plate_example = [c for c in clones if c.plate == plate_name]
+            fp_wells_for_clones = get_fp_wells_from_clones(clones_in_missing_miseq_plate_example)
+            for fp_well in fp_wells_for_clones:
+                piq_well = get_piq_wells_from_fp_well(fp_well)[0]
+                fp_and_piq_writer.writerow({
+                    "fp_plate": fp_well.plates.name,
+                    "fp_well": fp_well.name,
+                    "piq_plate": piq_well.plates.name,
+                    "piq_well": piq_well.name,
+                })
 
 
 if __name__ == "__main__":
@@ -287,7 +301,6 @@ if __name__ == "__main__":
     print(f"Plates with happy and missing-miseq wells: {happy_plate_names & missing_miseq_plate_names}")
     plates_with_just_missing_miseq_wells = missing_miseq_plate_names - happy_plate_names
     print(f"Plates with just missing-miseq wells: {plates_with_just_missing_miseq_wells}")
-    print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_with_just_missing_miseq_wells, clones)
-
+    create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(plates_with_just_missing_miseq_wells, clones)
     all_piq_plate_names = get_all_piq_plate_names(graphs)
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
