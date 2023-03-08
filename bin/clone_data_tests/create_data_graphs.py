@@ -1,3 +1,5 @@
+from itertools import chain
+from os import mkdir
 from sys import argv
 from collections import namedtuple
 
@@ -151,6 +153,11 @@ def get_fp_well_from_graph(graph):
     return fp_wells[0]
 
 
+def get_piq_wells_from_graph(graph):
+    piq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "piq_well"]
+    return piq_wells
+
+
 def get_plate_names_from_graphs(graphs):
     return {
         get_fp_well_from_graph(graph).plates.name
@@ -193,6 +200,41 @@ def print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_w
         print("FP wells and PIQ wells for plate: ")
         for fp_well in fp_wells_for_clones:
             print (f"{fp_well}, {get_piq_wells_from_fp_well(fp_well)[0]}")
+
+
+def get_all_piq_plate_names(graphs):
+    all_piq_wells = chain(*[get_piq_wells_from_graph(g) for g in graphs])
+    return {
+        pw.plates.name for pw in all_piq_wells
+    }
+
+
+def get_graphs_containing_wells_in_piq_plate(graphs, piq_plate_name):
+    piq_plate_name_graphs = []
+    for graph in graphs:
+        piq_wells = get_piq_wells_from_graph(graph)
+        if piq_plate_name in [p.plates.name for p in piq_wells]:
+            piq_plate_name_graphs.append(graph)
+
+    return piq_plate_name_graphs
+
+
+def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
+    mkdir("graphs_grouped_by_piq_plate")
+    for piq_plate_name in piq_plate_names:
+        piq_plate_graphs = get_graphs_containing_wells_in_piq_plate(graphs, piq_plate_name)
+        fig, axes = subplots(nrows=len(piq_plate_graphs), **{"figsize": (10, 5*len(piq_plate_graphs))})
+        # Rubbish API - axes is a single object if len is 1.
+        try:
+            iter(axes)
+        except TypeError:
+            axes = [axes]
+        for piq_plate_graph, axis in zip(piq_plate_graphs, axes):
+            draw_networkx(piq_plate_graph, ax=axis, pos=multipartite_layout(piq_plate_graph, subset_key="layer"))
+            fp_well = get_fp_well_from_graph(piq_plate_graph)
+            axis.set_title(f"FP well:  {fp_well}")
+        fig.tight_layout()
+        savefig(f"graphs_grouped_by_piq_plate/{piq_plate_name}.png")
 
 
 if __name__ == "__main__":
@@ -247,3 +289,5 @@ if __name__ == "__main__":
     print(f"Plates with just missing-miseq wells: {plates_with_just_missing_miseq_wells}")
     print_fp_and_piq_well_info_for_plates_with_just_missing_miseq_wells(plates_with_just_missing_miseq_wells, clones)
 
+    all_piq_plate_names = get_all_piq_plate_names(graphs)
+    plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
