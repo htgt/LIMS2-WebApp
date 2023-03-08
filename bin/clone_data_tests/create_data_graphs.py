@@ -229,6 +229,12 @@ def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
 
 
 def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(plates_with_just_missing_miseq_wells, clones):
+    """
+    A complete list of fp/piq wells for clones where,
+        * There is a single mapping from the fp well containing the clone to a piq well.
+        * The fp well containing the clone is on a plate in which *none* of the wells
+          on that plate have a mapping (via a piq well) to a miseq plate.
+    """
     with open("fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", "w", newline='') as f:
         fp_and_piq_writer = DictWriter(f, fieldnames=["fp_plate", "fp_well", "piq_plate", "piq_well"], delimiter="\t")
         fp_and_piq_writer.writeheader()
