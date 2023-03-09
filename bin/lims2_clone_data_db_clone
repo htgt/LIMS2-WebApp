@@ -1,0 +1,11 @@
+#!/bin/bash
+perl ./script/lims2_clone_database.pl \
+    --source_defn LIMS2_STAGING \
+    --source_role lims2 \
+    --destination_defn LIMS2_CLONE_DATA \
+    --destination_role lims2 \
+    --destination_db lims2_clone_data \
+    --overwrite 1 \
+    --with_data 1 \
+    --create_test_role 0
+
