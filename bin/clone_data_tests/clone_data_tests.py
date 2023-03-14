@@ -38,11 +38,7 @@ def get_clones():
         return list(DictReader(f, delimiter='\t'))
 
 
-if __name__ == "__main__":
-
-    check_the_server_is_up_and_running()
-
-    clones = get_clones()
+def check_clone_data(clones):
     results = []
     for n, clone in enumerate(clones):
         json_data = error = None
@@ -76,6 +72,17 @@ if __name__ == "__main__":
                 error=error,
             )
         )
+
+    return results
+
+
+if __name__ == "__main__":
+
+    check_the_server_is_up_and_running()
+
+    clones = get_clones()
+
+    results = check_clone_data(clones)
 
     good_clones = [result for result in results if result.error is None]
     clones_with_non_200_http_status = [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)]
