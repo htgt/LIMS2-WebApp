@@ -21,8 +21,7 @@ class NotJSONData(CloneDataError):
 Result = namedtuple("Result", ["clone_name", "json_data", "error"])
 
 
-if __name__ == "__main__":
-    # Check that the server is up and running.
+def check_the_server_is_up_and_running():
     for t in range(60):
         try:
             get("http://localhost:8081")
@@ -32,6 +31,11 @@ if __name__ == "__main__":
                 raise
         else:
             break
+
+
+if __name__ == "__main__":
+
+    check_the_server_is_up_and_running()
 
     with open("list_of_clones_12_01_23.tsv", newline='') as f:
         clones = DictReader(f, delimiter='\t')
