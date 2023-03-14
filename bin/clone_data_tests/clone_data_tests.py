@@ -33,45 +33,50 @@ def check_the_server_is_up_and_running():
             break
 
 
+def get_clones():
+    with open("list_of_clones_12_01_23.tsv", newline='') as f:
+        return list(DictReader(f, delimiter='\t'))
+
+
 if __name__ == "__main__":
 
     check_the_server_is_up_and_running()
 
-    with open("list_of_clones_12_01_23.tsv", newline='') as f:
-        clones = DictReader(f, delimiter='\t')
-        results = []
-        for n, clone in enumerate(clones):
-            json_data = error = None
-            response = get(
-                f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}",
-                headers={"accept": "application/json"},
-            )
-            if response.status_code == 200:
+    clones = get_clones()
+    results = []
+    for n, clone in enumerate(clones):
+        json_data = error = None
+        response = get(
+            f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}",
+            headers={"accept": "application/json"},
+        )
+        if response.status_code == 200:
+            try:
+                json_data = response.json()
                 try:
-                    json_data = response.json()
-                    try:
-                        validate_json_schema(
-                            json_data,
-                            {
-                                "type": "object",
-                                "properties": {
-                                    "miseq_data": {"type": "object"},
-                                },
+                    validate_json_schema(
+                        json_data,
+                        {
+                            "type": "object",
+                            "properties": {
+                                "miseq_data": {"type": "object"},
                             },
-                        )
-                    except SchemaValidationError as e:
-                        error = e
-                except JSONDecodeError:
-                    error = NotJSONData()
-            else:
-                error = Non200HTMLStatus(status_code=response.status_code)
-            results.append(
-                Result(
-                    clone_name=clone["plate_name"]+"_"+clone["well_name"],
-                    json_data=json_data,
-                    error=error,
-                )
+                        },
+                    )
+                except SchemaValidationError as e:
+                    error = e
+            except JSONDecodeError:
+                error = NotJSONData()
+        else:
+            error = Non200HTMLStatus(status_code=response.status_code)
+        results.append(
+            Result(
+                clone_name=clone["plate_name"]+"_"+clone["well_name"],
+                json_data=json_data,
+                error=error,
             )
+        )
+
     good_clones = [result for result in results if result.error is None]
     clones_with_non_200_http_status = [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)]
     clones_with_non_json_result = [result.clone_name for result in results if isinstance(result.error, NotJSONData)]
