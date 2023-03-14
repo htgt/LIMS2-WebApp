@@ -11,6 +11,14 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
+from clone_data_tests import (
+    check_clone_data,
+    check_the_server_is_up_and_running,
+    get_clones as get_clones_for_checking,
+    print_clone_data_results,
+)
+
+
 
 engine = None
 
@@ -278,6 +286,14 @@ if __name__ == "__main__":
 
     data_base_details = argv[1]
     docker_image = argv[2]
+
+    check_the_server_is_up_and_running()
+    clones_for_checking = get_clones_for_checking()
+    results_from_checking = check_clone_data(clones_for_checking)
+    print("Results before fixing:")
+    print_clone_data_results(results_from_checking)
+
+
     init(data_base_details)
 
     # This might change if staging db is updated, but shouldn't decrease.
@@ -330,3 +346,8 @@ if __name__ == "__main__":
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
 
     create_missing_piq_miseq_well_relations(docker_image)
+
+    clones_for_checking = get_clones_for_checking()
+    results_from_checking = check_clone_data(clones_for_checking)
+    print("Results after fixing:")
+    print_clone_data_results(results_from_checking)
