@@ -114,12 +114,7 @@ test-clone-data:
     - pip install pip==23.0
     - pip install -r ./bin/clone_data_tests/clone_data_tests_requirements.txt
     - python ./bin/clone_data_tests/clone_data_tests.py
-    - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_CLONE_DATA_DATABASE_DETAILS}
-    - docker run
-      --rm
-      --env LIMS2_DB=LIMS2_CLONE_DATA
-      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
-      ./bin/clone_data_tests/add-piq-to-miseq-process-between-wells.pl --piq_plate_name HUPFP0021_14 --piq_well_name B01 --miseq_plate_name Miseq_018 --miseq_well_number 163
+    - python bin/clone_data_tests/create_data_graphs.py ${LIMS2_CLONE_DATA_DATABASE_DETAILS} ${CI_REGISTRY}/sci/lims2-webapp/lims2:${CI_COMMIT_SHORT_SHA}
   artifacts:
     paths:
       - well_graphs.png

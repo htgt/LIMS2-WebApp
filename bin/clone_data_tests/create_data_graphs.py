@@ -1,6 +1,7 @@
-from csv import DictWriter
+from csv import DictReader, DictWriter
 from itertools import chain
 from os import mkdir
+from subprocess import run
 from sys import argv
 from collections import namedtuple
 
@@ -251,9 +252,32 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
                 })
 
 
+def create_missing_piq_miseq_well_relations(docker_image):
+    with open("bin/clone_data_tests/missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+        reader = DictReader(f, delimiter="\t")
+        rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
+    for row in rows_with_miseq_data:
+        run(
+            (
+                "docker" " run"
+                " --rm"
+                " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+                f" {docker_image}"
+                " ./bin/clone_data_tests/add-piq-to-miseq-process-between-wells.pl"
+                    f" --piq_plate_name {row['piq_plate']}"
+                    f" --piq_well_name {row['piq_well']}"
+                    f" --miseq_plate_name {row['miseq_plate']}"
+                    f" --miseq_well_number {row['miseq_well']}"
+            ),
+            check=True,
+            shell=True,
+        )
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
+    docker_image = argv[2]
     init(data_base_details)
 
     # This might change if staging db is updated, but shouldn't decrease.
@@ -304,3 +328,5 @@ if __name__ == "__main__":
     create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(plates_with_just_missing_miseq_wells, clones)
     all_piq_plate_names = get_all_piq_plate_names(graphs)
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
+
+    create_missing_piq_miseq_well_relations(docker_image)
