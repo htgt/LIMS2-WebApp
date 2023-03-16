@@ -112,7 +112,7 @@ test-clone-data:
     - python3.8 -m venv .test_clone_data_venv
     - source .test_clone_data_venv/bin/activate
     - pip install pip==23.0
-    - pip install -r ./bin/clone_data/clone_data_tests_requirements.txt
+    - pip install -r ./bin/clone_data/clone_data_requirements.txt
     - python bin/clone_data/create_data_graphs.py ${LIMS2_CLONE_DATA_DATABASE_DETAILS} ${CI_REGISTRY}/sci/lims2-webapp/lims2:${CI_COMMIT_SHORT_SHA}
   artifacts:
     paths:
