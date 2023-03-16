@@ -18,21 +18,27 @@ class Non200HTMLStatus(CloneDataError):
 class NotJSONData(CloneDataError):
     pass
 
-# Check that the server is up and running.
-for t in range(60):
-    try:
-        get("http://localhost:8081")
-    except ConnectionError:
-        sleep(1)
-        if t == 59:
-            raise
-    else:
-        break
-
 Result = namedtuple("Result", ["clone_name", "json_data", "error"])
 
-with open("list_of_clones_12_01_23.tsv", newline='') as f:
-    clones = DictReader(f, delimiter='\t')
+
+def check_the_server_is_up_and_running():
+    for t in range(60):
+        try:
+            get("http://localhost:8081")
+        except ConnectionError:
+            sleep(1)
+            if t == 59:
+                raise
+        else:
+            break
+
+
+def get_clones():
+    with open("list_of_clones_12_01_23.tsv", newline='') as f:
+        return list(DictReader(f, delimiter='\t'))
+
+
+def check_clone_data(clones):
     results = []
     for n, clone in enumerate(clones):
         json_data = error = None
@@ -66,12 +72,25 @@ with open("list_of_clones_12_01_23.tsv", newline='') as f:
                 error=error,
             )
         )
-good_clones = [result for result in results if result.error is None]
-clones_with_non_200_http_status = [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)]
-clones_with_non_json_result = [result.clone_name for result in results if isinstance(result.error, NotJSONData)]
-clones_with_missing_miseq_data = [result.clone_name for result in results if isinstance(result.error, SchemaValidationError)]
-print("Total number of clones: ", len(results))
-print("Total number of 'good' clones: ", len(good_clones))
-print(f"Clones with non-200 HTTP status ({len(clones_with_non_200_http_status)}): {clones_with_non_200_http_status}")
-print(f"Clones with non-JSON result (probably due to being pipeline I) ({len(clones_with_non_json_result)}): , {clones_with_non_json_result}")
-print(f"Clones with missing miseq data ({len(clones_with_missing_miseq_data)}): {clones_with_missing_miseq_data}")
+
+    return results
+
+
+def print_clone_data_results(results):
+    good_clones = [result for result in results if result.error is None]
+    clones_with_non_200_http_status = [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)]
+    clones_with_non_json_result = [result.clone_name for result in results if isinstance(result.error, NotJSONData)]
+    clones_with_missing_miseq_data = [result.clone_name for result in results if isinstance(result.error, SchemaValidationError)]
+    print("Total number of clones: ", len(results))
+    print("Total number of 'good' clones: ", len(good_clones))
+    print(f"Clones with non-200 HTTP status ({len(clones_with_non_200_http_status)}): {clones_with_non_200_http_status}")
+    print(f"Clones with non-JSON result (probably due to being pipeline I) ({len(clones_with_non_json_result)}): , {clones_with_non_json_result}")
+    print(f"Clones with missing miseq data ({len(clones_with_missing_miseq_data)}): {clones_with_missing_miseq_data}")
+
+
+if __name__ == "__main__":
+
+    check_the_server_is_up_and_running()
+    clones = get_clones()
+    results = check_clone_data(clones)
+    print_clone_data_results(results)
