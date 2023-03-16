@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
-from clone_data_tests import (
+from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
     get_clones as get_clones_for_checking,
