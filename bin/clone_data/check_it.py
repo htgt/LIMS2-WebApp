@@ -86,11 +86,3 @@ def print_clone_data_results(results):
     print(f"Clones with non-200 HTTP status ({len(clones_with_non_200_http_status)}): {clones_with_non_200_http_status}")
     print(f"Clones with non-JSON result (probably due to being pipeline I) ({len(clones_with_non_json_result)}): , {clones_with_non_json_result}")
     print(f"Clones with missing miseq data ({len(clones_with_missing_miseq_data)}): {clones_with_missing_miseq_data}")
-
-
-if __name__ == "__main__":
-
-    check_the_server_is_up_and_running()
-    clones = get_clones()
-    results = check_clone_data(clones)
-    print_clone_data_results(results)
