@@ -4,6 +4,7 @@ import responses
 
 from check_it import (
     check_clone_data,
+    Clone,
     NotJSONData,
     Non200HTMLStatus,
     SchemaValidationError
@@ -19,7 +20,7 @@ class TestCheckCloneData(TestCase):
             f"http://localhost:8081/public_reports/well_genotyping_info/{plate_name}/{well_name}",
             json=json_data,
         )
-        clone_data = [{"plate_name": plate_name, "well_name": well_name}]
+        clone_data = [Clone(plate=plate_name, well=well_name)]
 
         results = check_clone_data(clone_data)
 
@@ -44,7 +45,7 @@ class TestCheckCloneData(TestCase):
             f"http://localhost:8081/public_reports/well_genotyping_info/{plate_name}/{well_name}",
             json=json_data,
         )
-        clone_data = [{"plate_name": plate_name, "well_name": well_name}]
+        clone_data = [Clone(plate=plate_name, well=well_name)]
 
         results = check_clone_data(clone_data)
 
@@ -69,7 +70,7 @@ class TestCheckCloneData(TestCase):
             f"http://localhost:8081/public_reports/well_genotyping_info/{plate_name}/{well_name}",
             status=status_code,
         )
-        clone_data = [{"plate_name": plate_name, "well_name": well_name}]
+        clone_data = [Clone(plate=plate_name, well=well_name)]
 
         results = check_clone_data(clone_data)
 
@@ -91,7 +92,7 @@ class TestCheckCloneData(TestCase):
             f"http://localhost:8081/public_reports/well_genotyping_info/{plate_name}/{well_name}",
             body="<html>Some stuff<\html§>",
         )
-        clone_data = [{"plate_name": plate_name, "well_name": well_name}]
+        clone_data = [Clone(plate=plate_name, well=well_name)]
 
         results = check_clone_data(clone_data)
 

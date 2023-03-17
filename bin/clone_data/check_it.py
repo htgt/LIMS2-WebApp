@@ -19,6 +19,7 @@ class NotJSONData(CloneDataError):
     pass
 
 Result = namedtuple("Result", ["clone_name", "json_data", "error"])
+Clone = namedtuple("Clone", ["plate", "well"])
 
 
 def check_the_server_is_up_and_running():
@@ -33,17 +34,12 @@ def check_the_server_is_up_and_running():
             break
 
 
-def get_clones():
-    with open("list_of_clones_12_01_23.tsv", newline='') as f:
-        return list(DictReader(f, delimiter='\t'))
-
-
 def check_clone_data(clones):
     results = []
-    for n, clone in enumerate(clones):
+    for clone in clones:
         json_data = error = None
         response = get(
-            f"http://localhost:8081/public_reports/well_genotyping_info/{clone['plate_name']}/{clone['well_name']}",
+            f"http://localhost:8081/public_reports/well_genotyping_info/{clone.plate}/{clone.well}",
             headers={"accept": "application/json"},
         )
         if response.status_code == 200:
@@ -67,7 +63,7 @@ def check_clone_data(clones):
             error = Non200HTMLStatus(status_code=response.status_code)
         results.append(
             Result(
-                clone_name=clone["plate_name"]+"_"+clone["well_name"],
+                clone_name=clone.plate+"_"+clone.well,
                 json_data=json_data,
                 error=error,
             )

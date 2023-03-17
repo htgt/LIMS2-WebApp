@@ -14,11 +14,8 @@ from sqlalchemy.orm import joinedload, relationship, Session
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
-    get_clones as get_clones_for_checking,
     print_clone_data_results,
 )
-
-
 
 engine = None
 
@@ -291,17 +288,17 @@ if __name__ == "__main__":
     docker_image = argv[2]
 
     check_the_server_is_up_and_running()
-    clones_for_checking = get_clones_for_checking()
-    results_from_checking = check_clone_data(clones_for_checking)
+
+    # This might change if staging db is updated, but shouldn't decrease.
+    expected_number_of_clones = 1866
+    clones = get_clones(expected_number_of_clones=expected_number_of_clones)
+
+    results_from_checking = check_clone_data(clones)
     print("Results before fixing:")
     print_clone_data_results(results_from_checking)
 
 
     init(data_base_details)
-
-    # This might change if staging db is updated, but shouldn't decrease.
-    expected_number_of_clones = 1866
-    clones = get_clones(expected_number_of_clones=expected_number_of_clones)
 
     fp_wells = get_fp_wells_from_clones(clones)
     # Should be one well for each clone.
@@ -349,7 +346,6 @@ if __name__ == "__main__":
 
     create_missing_piq_miseq_well_relations(docker_image)
 
-    clones_for_checking = get_clones_for_checking()
-    results_from_checking = check_clone_data(clones_for_checking)
+    results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
     print_clone_data_results(results_from_checking)
