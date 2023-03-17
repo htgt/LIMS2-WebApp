@@ -26,6 +26,9 @@ class TestCheckCloneData(TestCase):
         with self.subTest(msg="Has a single result."):
             self.assertEqual(len(results), 1)
 
+        with self.subTest(msg="Has correct clone name."):
+            self.assertEqual(results[0].clone_name, plate_name+"_"+well_name)
+
         with self.subTest(msg="Has correct json data."):
             self.assertEqual(results[0].json_data, json_data)
 
@@ -47,6 +50,9 @@ class TestCheckCloneData(TestCase):
 
         with self.subTest(msg="Has a single result."):
             self.assertEqual(len(results), 1)
+
+        with self.subTest(msg="Has correct clone name."):
+            self.assertEqual(results[0].clone_name, plate_name+"_"+well_name)
 
         with self.subTest(msg="Has correct json data."):
             self.assertEqual(results[0].json_data, json_data)
@@ -70,6 +76,9 @@ class TestCheckCloneData(TestCase):
         with self.subTest(msg="Has a single result."):
             self.assertEqual(len(results), 1)
 
+        with self.subTest(msg="Has correct clone name."):
+            self.assertEqual(results[0].clone_name, plate_name+"_"+well_name)
+
         with self.subTest(msg="Has correct error - Non200HTMLStatus."):
             self.assertIsInstance(results[0].error, Non200HTMLStatus)
             self.assertEqual(results[0].error.status_code, status_code)
@@ -88,6 +97,9 @@ class TestCheckCloneData(TestCase):
 
         with self.subTest(msg="Has a single result."):
             self.assertEqual(len(results), 1)
+
+        with self.subTest(msg="Has correct clone name."):
+            self.assertEqual(results[0].clone_name, plate_name+"_"+well_name)
 
         with self.subTest(msg="Has correct error - NotJSONData."):
             self.assertIsInstance(results[0].error, NotJSONData)
