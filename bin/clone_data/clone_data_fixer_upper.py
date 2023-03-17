@@ -271,7 +271,7 @@ def create_missing_piq_miseq_well_relations(docker_image):
                 " --rm"
                 " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
                 f" {docker_image}"
-                " ./bin/clone_data_tests/add-piq-to-miseq-process-between-wells.pl"
+                " ./bin/clone_data/add-piq-to-miseq-process-between-wells.pl"
                     f" --piq_plate_name {row['piq_plate']}"
                     f" --piq_well_name {row['piq_well']}"
                     f" --miseq_plate_name {row['miseq_plate']}"
