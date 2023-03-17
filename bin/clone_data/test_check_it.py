@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import responses
 
-from check_it import check_clone_data, SchemaValidationError
+from check_it import check_clone_data, Non200HTMLStatus, SchemaValidationError
 
 class TestCheckCloneData(TestCase):
     @responses.activate
@@ -48,3 +48,23 @@ class TestCheckCloneData(TestCase):
 
         with self.subTest(msg="Has correct error - SchemaValidationError."):
             self.assertIsInstance(results[0].error, SchemaValidationError)
+
+    @responses.activate
+    def test_for_failed_requests(self):
+        plate_name = "FP1"
+        well_name = "A03"
+        status_code = 500
+        responses.get(
+            f"http://localhost:8081/public_reports/well_genotyping_info/{plate_name}/{well_name}",
+            status=status_code,
+        )
+        clone_data = [{"plate_name": plate_name, "well_name": well_name}]
+
+        results = check_clone_data(clone_data)
+
+        with self.subTest(msg="Has a single result."):
+            self.assertEqual(len(results), 1)
+
+        with self.subTest(msg="Has correct error - Non200HTMLStatus."):
+            self.assertIsInstance(results[0].error, Non200HTMLStatus)
+            self.assertEqual(results[0].error.status_code, status_code)
