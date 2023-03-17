@@ -95,6 +95,8 @@ clone_data_unit_type_tests:
   image: python:latest
   tags:
     - autoscale
+  before_script:
+    - echo "Over-riding default to avoid docker login attempt"
   script:
     - cd bin/clone_data
     - pip install -r clone_data_requirements.txt
