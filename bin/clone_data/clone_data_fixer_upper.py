@@ -55,7 +55,7 @@ def init(data_base_details):
     return metadata
 
 
-def get_clones():
+def get_clones(*, expected_number_of_clones):
     Clone = namedtuple("Clone", ["plate", "well"])
     with open("bin/get_list_of_clones.sql") as clones_sql:
         with engine.connect() as conn:
@@ -64,6 +64,9 @@ def get_clones():
                 Clone(*result)
                 for result in results
             }
+
+    assert len(clones) == expected_number_of_clones, f"Expected {expected_number_of_clones} clones, found {len(clones)}."
+
     return clones
 
 
@@ -297,9 +300,8 @@ if __name__ == "__main__":
     init(data_base_details)
 
     # This might change if staging db is updated, but shouldn't decrease.
-    clones = get_clones()
     expected_number_of_clones = 1866
-    assert len(clones) == expected_number_of_clones, f"Expected {expected_number_of_clones} clones, found {len(clones)}."
+    clones = get_clones(expected_number_of_clones=expected_number_of_clones)
 
     fp_wells = get_fp_wells_from_clones(clones)
     # Should be one well for each clone.
