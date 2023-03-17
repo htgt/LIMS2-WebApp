@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
-from clone_data_tests import (
+from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
     get_clones as get_clones_for_checking,
@@ -261,7 +261,7 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
 
 
 def create_missing_piq_miseq_well_relations(docker_image):
-    with open("bin/clone_data_tests/missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+    with open("bin/clone_data/missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
     for row in rows_with_miseq_data:
@@ -271,7 +271,7 @@ def create_missing_piq_miseq_well_relations(docker_image):
                 " --rm"
                 " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
                 f" {docker_image}"
-                " ./bin/clone_data_tests/add-piq-to-miseq-process-between-wells.pl"
+                " ./bin/clone_data/add-piq-to-miseq-process-between-wells.pl"
                     f" --piq_plate_name {row['piq_plate']}"
                     f" --piq_well_name {row['piq_well']}"
                     f" --miseq_plate_name {row['miseq_plate']}"
