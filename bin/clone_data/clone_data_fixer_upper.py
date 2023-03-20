@@ -289,6 +289,8 @@ if __name__ == "__main__":
 
     check_the_server_is_up_and_running()
 
+    init(data_base_details)
+
     # This might change if staging db is updated, but shouldn't decrease.
     expected_number_of_clones = 1866
     clones = get_clones(expected_number_of_clones=expected_number_of_clones)
@@ -296,9 +298,6 @@ if __name__ == "__main__":
     results_from_checking = check_clone_data(clones)
     print("Results before fixing:")
     print_clone_data_results(results_from_checking)
-
-
-    init(data_base_details)
 
     fp_wells = get_fp_wells_from_clones(clones)
     # Should be one well for each clone.
