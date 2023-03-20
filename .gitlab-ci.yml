@@ -90,6 +90,21 @@ test:
       --env LIMS2_DB=LIMS2_TEST_USER
       $CI_REGISTRY/sci/lims2-webapp/lims2-test:$CI_COMMIT_SHORT_SHA
 
+clone_data_unit_type_tests:
+  stage: test
+  image: python:latest
+  tags:
+    - autoscale
+  before_script:
+    - echo "Over-riding default to avoid docker login attempt"
+  script:
+    - cd bin/clone_data
+    - pip install -r clone_data_requirements.txt
+    - python -m unittest
+  cache:
+    paths:
+      - ~/.cache/pip/
+
 test-clone-data:
   stage: test
   script:
