@@ -11,6 +11,7 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
+from analyse_it import get_well_graph_from_graph
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
@@ -319,7 +320,9 @@ if __name__ == "__main__":
     for graph in graphs:
         add_piq_wells_to_graph(graph)
         add_miseq_wells_to_graph(graph)
-    equivalence_classes = create_equivalence_classes(graphs)
+    equivalence_classes = create_equivalence_classes(
+        [get_well_graph_from_graph(graph) for graph in graphs]
+    )
     assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes)
 
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
