@@ -25,10 +25,11 @@ Process = None
 Well = None
 MiseqWellExperiment = None
 MiseqExperiment = None
+Experiment = None
 
 
 def init(data_base_details):
-    global engine, Plate, Process, Well, MiseqWellExperiment, MiseqExperiment
+    global engine, Plate, Process, Well, MiseqWellExperiment, MiseqExperiment, Experiment
     engine = create_engine(f"postgresql://{data_base_details}")
     metadata = MetaData()
     metadata.reflect(
@@ -41,6 +42,7 @@ def init(data_base_details):
             "miseq_experiment",
             "miseq_well_experiment",
             "wells",
+            "experiments",
         ]
     )
     Base = automap_base(metadata=metadata)
@@ -65,6 +67,7 @@ def init(data_base_details):
     Process = Base.classes.processes
     MiseqWellExperiment = Base.classes.miseq_well_experiment
     MiseqExperiment = Base.classes.miseq_experiment
+    Experiment = Base.classes.experiments
     return metadata
 
 
