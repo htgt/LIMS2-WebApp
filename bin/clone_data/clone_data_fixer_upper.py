@@ -54,7 +54,7 @@ def init(data_base_details):
 
 def get_clones(*, expected_number_of_clones):
     Clone = namedtuple("Clone", ["plate", "well"])
-    with open("bin/get_list_of_clones.sql") as clones_sql:
+    with open("get_list_of_clones.sql") as clones_sql:
         with engine.connect() as conn:
             results = conn.execute(text(clones_sql.read())).all()
             clones = {
@@ -261,7 +261,7 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
 
 
 def create_missing_piq_miseq_well_relations(docker_image):
-    with open("bin/clone_data/missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
     for row in rows_with_miseq_data:
