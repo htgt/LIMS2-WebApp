@@ -1,4 +1,4 @@
-fp_plate	fp_well	piq_plate	piq_well	miseq_plate	miseq_well	notes			
+fp_plate	fp_well	piq_plate	piq_well	miseq_plate	miseq_well	miseq_experiment_name	notes		
 HUPFP0021_14	B01	HUEDQ0509	C03	Miseq_018	163				
 HUPFP0021_14	G11	HUEDQ0506	H02	Miseq_016	112				
 HUPFP0021_14	A02	HUEDQ0509	B03	Miseq_018	162				
@@ -17,20 +17,20 @@ HUPFP0067A5	A03	HUEDQ0560	E08	Miseq_094	157
 HUPFP0067A5	A04	HUEDQ0560	F08	Miseq_094	158				
 HUPFP0067A5	A06	HUEDQ0561	A10	Miseq_097	169				
 HUPFP0067A5	A11	HUEDQ0560	G08	Miseq_094	159				
-HUPFP0028_15	B02	HUEDQ0519	A02	Miseq_030	177	I couldn't find B02 or B06 on any of the HUEDQ cards, when I looked at the freeze plate HUPFP0028_15 it is split into 2 (first half of the plate was HUPFP0028_14 second half _15 so HUPFP0028_15_B02 and A06 doesn't exist. If you shift the plate to the second half of the plate then the locations are correct for B08 and A12			
-HUPFP0028_15	A06	HUEDQ0519	B02	Miseq_030	178	I couldn't find B02 or B06 on any of the HUEDQ cards, when I looked at the freeze plate HUPFP0028_15 it is split into 2 (first half of the plate was HUPFP0028_14 second half _15 so HUPFP0028_15_B02 and A06 doesn't exist. If you shift the plate to the second half of the plate then the locations are correct for B08 and A12			
+HUPFP0028_15	B02	HUEDQ0519	A02	Miseq_030	177		I couldn't find B02 or B06 on any of the HUEDQ cards, when I looked at the freeze plate HUPFP0028_15 it is split into 2 (first half of the plate was HUPFP0028_14 second half _15 so HUPFP0028_15_B02 and A06 doesn't exist. If you shift the plate to the second half of the plate then the locations are correct for B08 and A12		
+HUPFP0028_15	A06	HUEDQ0519	B02	Miseq_030	178		I couldn't find B02 or B06 on any of the HUEDQ cards, when I looked at the freeze plate HUPFP0028_15 it is split into 2 (first half of the plate was HUPFP0028_14 second half _15 so HUPFP0028_15_B02 and A06 doesn't exist. If you shift the plate to the second half of the plate then the locations are correct for B08 and A12		
 HUPFP0068B8	B08	HUEDQ0563	A11	Miseq_100	177				
 HUPFP0072A8	F06	HUEDQ0563	A10	Miseq_100	169				
 HUPFP0072A8	C07	HUEDQ0562	B03	Miseq_099	18				
 HUPFP0029_14_15	H02	HUEDQ0517	H01	Miseq_028	128				
 HUPFP0029_14_15	A01	HUEDQ0517	F01	Miseq_028	126				
 HUPFP0029_14_15	E04	HUEDQ0517	G01	Miseq_028	127				
-HUPFP0029_14_15	A10	HUEDQ0517	E01	Miseq_028	129	Different clone on HUEDQ0517 should be KAT6A D04. Can't find A10 on any other HUEDQ plates			
+HUPFP0029_14_15	A10	HUEDQ0517	E01	Miseq_028	129		Different clone on HUEDQ0517 should be KAT6A D04. Can't find A10 on any other HUEDQ plates		
 HUPFP0067A2	H01	HUEDQ0558	F09	Miseq_092	166				
 HUPFP0067A2	B02	HUEDQ0558	B09	Miseq_092	162				
 HUPFP0067A2	D04	HUEDQ0558	D09	Miseq_092	164				
 HUPFP0067A2	A05	HUEDQ0558	G08	Miseq_092	159				
-HUPFP0067A2	A07	HUEDQ0559	D08	Miseq_093	156	Wrong clones on HUEDQ plate should be;			C03
+HUPFP0067A2	A07	HUEDQ0559	D08	Miseq_093	156		Wrong clones on HUEDQ plate should be;		C03
 HUPFP0067A2	B07	HUEDQ0559	E08	Miseq_093	157				D06
 HUPFP0067A2	C07	HUEDQ0559	F08	Miseq_093	158				C10
 HUPFP0067A2	D07	HUEDQ0559	G08	Miseq_093	159				D07
@@ -47,19 +47,19 @@ HUPFP0026_1	H01	HUEDQ0519	H01	Miseq_030	176
 HUPFP0026_1	B03	HUEDQ0513	A01	Miseq_023	169				
 HUPFP0026_1	F03	HUEDQ0516	B03	Miseq_027	114				
 HUPFP0026_1	G03	HUEDQ0519	F01	Miseq_030	174				
-HUPFP0026_1	H03	HUEDQ0515	B02			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
+HUPFP0026_1	H03	HUEDQ0515	B02				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
 HUPFP0026_1	E04	HUEDQ0513	D01	Miseq_023	172				
 HUPFP0026_1	G04	HUEDQ0519	G01	Miseq_030	175				
 HUPFP0026_1	D05	HUEDQ0513	B01	Miseq_023	170				
 HUPFP0026_1	B06	HUEDQ0519	E01	Miseq_030	173				
-HUPFP0026_1	D07	HUEDQ0517	F02			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
-HUPFP0026_1	E07	HUEDQ0515	G01			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
+HUPFP0026_1	D07	HUEDQ0517	F02				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
+HUPFP0026_1	E07	HUEDQ0515	G01				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
 HUPFP0026_1	H07	HUEDQ0516	G02	Miseq_027	111				
-HUPFP0026_1	E08	HUEDQ0515	C02			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
+HUPFP0026_1	E08	HUEDQ0515	C02				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
 HUPFP0026_1	E09	HUEDQ0516	H02	Miseq_027	112				
 HUPFP0026_1	G09	HUEDQ0513	E01	Miseq_023	173				
-HUPFP0026_1	A10	HUEDQ0515	A02			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
-HUPFP0026_1	C12	HUEDQ0515	H01			None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??			
+HUPFP0026_1	A10	HUEDQ0515	A02				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
+HUPFP0026_1	C12	HUEDQ0515	H01				None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??		
 HUPFP0042_2B	G10	HUEDQ0537	C03	Miseq_054	139				
 HUPFP0042_2B	D03	HUEDQ0537	D03	Miseq_054	140				
 HUPFP0042_2B	A06	HUEDQ0537	E03	Miseq_054	141				
