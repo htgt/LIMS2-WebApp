@@ -24,6 +24,7 @@ use Sub::Exporter -setup => {
               query_miseq_tree_from_experiment
               get_alleles_freq_path
               get_csv_from_tsv_lines
+              get_experiment_from_well 
               get_api
           )
     ]
@@ -990,7 +991,7 @@ sub _get_miseq_data_from_well {
         return undef;
     }
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
-    my $experiment_in_well =  _get_experiment_from_well($well);
+    my $experiment_in_well =  get_experiment_from_well($well);
     my @miseq_well_experiments = $miseq_plate_well
         ->miseq_well_experiments
 	->search(
@@ -1018,7 +1019,7 @@ sub _get_miseq_data_from_well {
 
 }
 
-sub _get_experiment_from_well {
+sub get_experiment_from_well {
     my $well = shift;
     my @experiments_in_well = $well
         ->result_source

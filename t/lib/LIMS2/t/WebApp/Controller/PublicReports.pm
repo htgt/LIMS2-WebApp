@@ -786,6 +786,23 @@ sub targeting_type_validation : Tests {
 
 }
 
+sub getting_of_experiment_from_clone_id : Tests {
+    note("Returns correct ID when well and experiment exist");
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+        $mech->default_header("Accept" => "application/json");
+
+        $mech->get_ok("/public_reports/get_experiment_id_from_clone/$plate_name/$well_name");
+
+        my $data = decode_json($mech->content);
+
+        # Checking one attribute should be enough to convince it's working.
+        is($data->[0], 108);
+    }
+}
+
 =head1 AUTHOR
 
 Josh Kent
