@@ -116,6 +116,12 @@ def get_miseq_wells_from_piq_well(piq_well):
     return miseq_wells
 
 
+def get_miseq_well_experiments_from_miseq_well(miseq_well):
+    with Session(engine) as session:
+        session.add(miseq_well)
+        return miseq_well.miseq_well_experiment_collection
+
+
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
     graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
@@ -136,6 +142,14 @@ def add_miseq_wells_to_graph(graph):
         for miseq_well in get_miseq_wells_from_piq_well(piq_well):
             graph.add_node(miseq_well, **{"type": "miseq_well", "layer": 3})
             graph.add_edge(piq_well, miseq_well)
+
+
+def add_miseq_well_experiments_to_graph(graph):
+    miseq_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "miseq_well"]
+    for miseq_well in miseq_wells:
+        for miseq_well_experiment in get_miseq_well_experiments_from_miseq_well(miseq_well):
+            graph.add_node(miseq_well_experiment, **{"type": "miseq_well_experiment", "layer": 4})
+            graph.add_edge(miseq_well, miseq_well_experiment)
 
 
 def create_equivalence_classes(graphs):
@@ -335,6 +349,7 @@ if __name__ == "__main__":
     for graph in graphs:
         add_piq_wells_to_graph(graph)
         add_miseq_wells_to_graph(graph)
+        add_miseq_well_experiments_to_graph(graph)
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
     )
