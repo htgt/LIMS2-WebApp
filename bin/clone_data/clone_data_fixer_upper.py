@@ -145,6 +145,41 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
         return miseq_well_experiment.miseq_experiment
 
 
+def get_experiment_id_from_fp_plate_and_well_names(plate_name, well_name):
+    print(f"Getting experiment for {plate_name}_{well_name}")
+    response = get(
+        f"http://localhost:8081/public_reports/get_experiment_id_from_clone/{plate_name}/{well_name}",
+        headers={"accept": "application/json"},
+    )
+    response.raise_for_status()
+    experiment_id = response.json()[0]
+    print(f"Experiment ID: {experiment_id}")
+    return experiment_id
+
+
+def add_experiments_to_miseq_experiments():
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+        reader = DictReader(f, delimiter="\t")
+        rows_with_miseq_experiment = [row for row in reader if row["miseq_experiment_name"]]
+        for row in rows_with_miseq_experiment:
+            experiment_id = get_experiment_id_from_fp_plate_and_well_names(row["fp_plate"], row["fp_well"])
+            with Session(engine) as session, session.begin():
+                results = session.execute(
+                    select(MiseqExperiment).where(MiseqExperiment.name == row["miseq_experiment_name"])
+                )
+                miseq_experiments = [
+                    r.miseq_experiment
+                    for r in results
+                ]
+                for miseq_experiment in miseq_experiments:
+                    print(f"Attempting to fix up miseq-experiment {miseq_experiment.id}:{miseq_experiment.name}")
+                    if miseq_experiment.experiment_id is None:
+                        print(f"Miseq-exp {miseq_experiment.id} does not have an experiment")
+                        miseq_experiment.experiment_id = experiment_id
+
+
+
+
 def get_experiment_from_fp_well(fp_well):
     try:
         experiment_id = get_experiment_id_for_clone(fp_well.plates.name, fp_well.name)
@@ -482,6 +517,7 @@ if __name__ == "__main__":
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
 
     create_missing_piq_miseq_well_relations(docker_image)
+    add_experiments_to_miseq_experiments()
 
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
