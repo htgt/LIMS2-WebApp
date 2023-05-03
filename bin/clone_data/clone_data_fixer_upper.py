@@ -159,6 +159,7 @@ def add_experiments_to_miseq_experiments():
                     r.miseq_experiment
                     for r in results
                 ]
+                assert len(miseq_experiments) == 1, f"Expecting only miseq-experiment with name {row['miseq_experiment_name']} but found {len(miseq_experiments)}"
                 for miseq_experiment in miseq_experiments:
                     print(f"Attempting to fix up miseq-experiment {miseq_experiment.id}:{miseq_experiment.name}")
                     if miseq_experiment.experiment_id is None:
