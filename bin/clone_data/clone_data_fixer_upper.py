@@ -7,6 +7,8 @@ from collections import namedtuple
 
 from matplotlib.pyplot import savefig, subplots
 from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
+from requests import get
+from requests.exceptions import HTTPError
 from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
@@ -130,6 +132,27 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
         return miseq_well_experiment.miseq_experiment
 
 
+def get_experiment_from_fp_well(fp_well):
+    response = get(
+        f"http://localhost:8081/public_reports/get_experiment_id_from_clone/{fp_well.plates.name}/{fp_well.name}",
+        headers={"accept": "application/json"},
+    )
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        print(f"No experiment for: {fp_well.plates.name}_{fp_well.name}")
+        return
+    experiment_id = response.json()[0]
+    with Session(engine) as session:
+        experiments = session.execute(
+            select(Experiment).where(Experiment.id == experiment_id)
+        )
+        experiment = experiments.scalar_one_or_none()
+        if experiment is None:
+            raise RuntimeError(f"No experiment found for {experiment_id}")
+        return experiment
+
+
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
     graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
@@ -171,6 +194,16 @@ def add_miseq_experiments_to_graph(graph):
         if miseq_experiment:
             graph.add_node(miseq_experiment, **{"type": "miseq_experiment", "layer": 5})
             graph.add_edge(miseq_well_experiment, miseq_experiment)
+
+
+def add_experiments_to_graph(graph):
+    fp_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "fp_well"]
+    for fp_well in fp_wells:
+        experiment = get_experiment_from_fp_well(fp_well)
+        if experiment is None:
+            continue
+        graph.add_node(experiment, **{"type": "experiment", "layer": 1})
+        graph.add_edge(fp_well, experiment)
 
 
 def create_equivalence_classes(graphs):
@@ -386,8 +419,8 @@ if __name__ == "__main__":
         add_miseq_wells_to_graph(graph)
         add_miseq_well_experiments_to_graph(graph)
         add_miseq_experiments_to_graph(graph)
+        add_experiments_to_graph(graph)
     assert_miseq_experiment_correct_for_known_example(graphs)
-
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
     )
