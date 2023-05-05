@@ -11,6 +11,7 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
+from analyse_it import get_well_graph_from_graph
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
@@ -22,13 +23,26 @@ engine = None
 Plate = None
 Process = None
 Well = None
+MiseqWellExperiment = None
+MiseqExperiment = None
 
 
 def init(data_base_details):
-    global engine, Plate, Process, Well
+    global engine, Plate, Process, Well, MiseqWellExperiment, MiseqExperiment
     engine = create_engine(f"postgresql://{data_base_details}")
     metadata = MetaData()
-    metadata.reflect(engine, only=["plates", "process_input_well", "process_output_well", "processes", "wells"])
+    metadata.reflect(
+        engine,
+        only=[
+            "plates",
+            "process_input_well",
+            "process_output_well",
+            "processes",
+            "miseq_experiment",
+            "miseq_well_experiment",
+            "wells",
+        ]
+    )
     Base = automap_base(metadata=metadata)
     wells = metadata.tables["wells"]
     processes = metadata.tables["processes"]
@@ -49,6 +63,8 @@ def init(data_base_details):
     Base.prepare()
     Plate = Base.classes.plates
     Process = Base.classes.processes
+    MiseqWellExperiment = Base.classes.miseq_well_experiment
+    MiseqExperiment = Base.classes.miseq_experiment
     return metadata
 
 
@@ -100,6 +116,17 @@ def get_miseq_wells_from_piq_well(piq_well):
     return miseq_wells
 
 
+def get_miseq_well_experiments_from_miseq_well(miseq_well):
+    with Session(engine) as session:
+        session.add(miseq_well)
+        return miseq_well.miseq_well_experiment_collection
+
+def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
+    with Session(engine) as session:
+        session.add(miseq_well_experiment)
+        return miseq_well_experiment.miseq_experiment
+
+
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
     graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
@@ -120,6 +147,27 @@ def add_miseq_wells_to_graph(graph):
         for miseq_well in get_miseq_wells_from_piq_well(piq_well):
             graph.add_node(miseq_well, **{"type": "miseq_well", "layer": 3})
             graph.add_edge(piq_well, miseq_well)
+
+
+def add_miseq_well_experiments_to_graph(graph):
+    miseq_wells = [node for node, attributes in graph.nodes.items() if attributes["type"] == "miseq_well"]
+    for miseq_well in miseq_wells:
+        for miseq_well_experiment in get_miseq_well_experiments_from_miseq_well(miseq_well):
+            graph.add_node(miseq_well_experiment, **{"type": "miseq_well_experiment", "layer": 4})
+            graph.add_edge(miseq_well, miseq_well_experiment)
+
+
+def add_miseq_experiments_to_graph(graph):
+    miseq_well_experiments = [
+        node for node, attributes
+        in graph.nodes.items()
+        if attributes["type"] == "miseq_well_experiment"
+    ]
+    for miseq_well_experiment in miseq_well_experiments:
+        miseq_experiment = get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment)
+        if miseq_experiment:
+            graph.add_node(miseq_experiment, **{"type": "miseq_experiment", "layer": 5})
+            graph.add_edge(miseq_well_experiment, miseq_experiment)
 
 
 def create_equivalence_classes(graphs):
@@ -144,6 +192,20 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
         biggest_ec_example,
         node_match=lambda n1, n2: n1["type"] == n2["type"]
     )
+
+
+def assert_miseq_experiment_correct_for_known_example(graphs):
+    # We test using the example HUPFP0085A1_C10 from 
+    # https://jira.sanger.ac.uk/browse/LIMS-46
+    for graph in graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        if fp_well.plates.name == "HUPFP0085A1" and fp_well.name == "C10":
+            break
+    else:
+        assert False, "Can't find graph for clone HUPFP0085A1_C10"
+    miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
+    # Just check required miseq experiment is in list of all miseq experiments - others will exist.
+    assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
 
 
 def plot_graphs(equivalence_classes):
@@ -319,7 +381,13 @@ if __name__ == "__main__":
     for graph in graphs:
         add_piq_wells_to_graph(graph)
         add_miseq_wells_to_graph(graph)
-    equivalence_classes = create_equivalence_classes(graphs)
+        add_miseq_well_experiments_to_graph(graph)
+        add_miseq_experiments_to_graph(graph)
+    assert_miseq_experiment_correct_for_known_example(graphs)
+
+    equivalence_classes = create_equivalence_classes(
+        [get_well_graph_from_graph(graph) for graph in graphs]
+    )
     assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes)
 
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
