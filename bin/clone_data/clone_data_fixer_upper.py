@@ -517,6 +517,7 @@ if __name__ == "__main__":
 
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
+    assert sorted([len(ec) for ec in equivalence_classes]) == [1184, 499, 114, 30, 23, 9, 4, 2, 1]
 
     plot_graphs(equivalence_classes)
 
