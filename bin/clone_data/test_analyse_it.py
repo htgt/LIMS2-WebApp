@@ -12,7 +12,7 @@ class TestGetWellsSubgraph(TestCase):
         input_graph.add_node("FP1", type="fp_well")
         input_graph.add_node("PIQ2", type="piq_well")
         input_graph.add_node("Miseq3", type="miseq_well")
-        input_graph.add_node("MiseqWellExp4", type="miseq_welli_experiment")
+        input_graph.add_node("MiseqWellExp4", type="miseq_well_experiment")
         input_graph.add_edges_from([
             ("FP1", "PIQ2"),
             ("PIQ2", "Miseq3"),
