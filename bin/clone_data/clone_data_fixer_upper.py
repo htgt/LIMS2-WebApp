@@ -203,8 +203,7 @@ def assert_miseq_experiment_correct_for_known_example(graphs):
             break
     else:
         assert False, "Can't find graph for clone HUPFP0085A1_C10"
-    miseq_experiments = get_miseq_experiments_from_graph(graph)
-    miseq_experiment_names = [me.name for me in miseq_experiments]
+    miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     # Just check required miseq experiment is in list of all miseq experiments - others will exist.
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
 
@@ -229,11 +228,6 @@ def get_fp_well_from_graph(graph):
 def get_piq_wells_from_graph(graph):
     piq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "piq_well"]
     return piq_wells
-
-
-def get_miseq_experiments_from_graph(graph):
-    miseq_experiments = [n for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
-    return miseq_experiments
 
 
 def get_plate_names_from_graphs(graphs):
