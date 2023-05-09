@@ -323,6 +323,10 @@ def assert_miseq_experiment_correct_for_known_example(graphs):
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
 
 
+def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
+    assert len(graphs) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(graphs)}."
+
+
 def plot_graphs(equivalence_classes):
     fig, axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
     for equivalence_class, axis in zip(equivalence_classes, axes):
@@ -499,8 +503,6 @@ if __name__ == "__main__":
     print_clone_data_results(results_from_checking)
 
     fp_wells = get_fp_wells_from_clones(clones)
-    # Should be one well for each clone.
-    assert len(fp_wells) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(fp_wells)}."
     # Check that known clone, HUPFP0085A1_C10 from LIMS-46 tests, is in returned data.
     try:
         test_fp_well = list(filter(
@@ -515,6 +517,7 @@ if __name__ == "__main__":
     full_well_name = test_piq_well.plates.name + "_" + test_piq_well.name
     assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
     graphs = create_graphs_from_clones(clones)
+    assert_correct_number_of_graphs(graphs, expected_number_of_clones)
     assert_miseq_experiment_correct_for_known_example(graphs)
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
