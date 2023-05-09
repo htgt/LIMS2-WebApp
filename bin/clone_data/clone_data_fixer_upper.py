@@ -140,8 +140,19 @@ def get_experiment_from_fp_well(fp_well):
     try:
         response.raise_for_status()
     except HTTPError:
-        print(f"No experiment for: {fp_well.plates.name}_{fp_well.name}")
-        return
+        clone_name = fp_well.plates.name + "_" + fp_well.name
+        if clone_name in [
+           "HUPFP0039_2_F10",
+           "HUPFP0039_2_E10",
+           "HUPFP0020_10_E08",
+           "HUPFP0020_10_C12",
+           "HUPFP0020_10_G05",
+           "HUPFP0020_10_G07",
+        ]:
+            print(f"Known missing experiment for: {clone_name}")
+            return
+        print(f"Unexpected missing experiment for: {clone_name}")
+        raise
     experiment_id = response.json()[0]
     with Session(engine) as session:
         experiments = session.execute(
