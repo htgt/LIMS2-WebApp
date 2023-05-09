@@ -273,6 +273,18 @@ def add_experiments_to_graph(graph):
         graph.add_edge(fp_well, experiment)
 
 
+def create_graphs_from_clones(clones):
+    fp_wells = get_fp_wells_from_clones(clones)
+    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
+    for graph in graphs:
+        add_piq_wells_to_graph(graph)
+        add_miseq_wells_to_graph(graph)
+        add_miseq_well_experiments_to_graph(graph)
+        add_miseq_experiments_to_graph(graph)
+        add_experiments_to_graph(graph)
+    return graphs
+
+
 def create_equivalence_classes(graphs):
     equivalence_classes = []
     for graph in graphs:
@@ -502,13 +514,7 @@ if __name__ == "__main__":
     test_piq_well = test_piq_wells[0]
     full_well_name = test_piq_well.plates.name + "_" + test_piq_well.name
     assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
-    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
-    for graph in graphs:
-        add_piq_wells_to_graph(graph)
-        add_miseq_wells_to_graph(graph)
-        add_miseq_well_experiments_to_graph(graph)
-        add_miseq_experiments_to_graph(graph)
-        add_experiments_to_graph(graph)
+    graphs = create_graphs_from_clones(clones)
     assert_miseq_experiment_correct_for_known_example(graphs)
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
