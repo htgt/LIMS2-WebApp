@@ -520,6 +520,17 @@ if __name__ == "__main__":
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
 
     create_missing_piq_miseq_well_relations(docker_image)
+
+    # We need to 'refresh' the graph to take in to account the changes from
+    # adding the missing miseq_well relations.
+    fp_wells = get_fp_wells_from_clones(clones)
+    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
+    for graph in graphs:
+        add_piq_wells_to_graph(graph)
+        add_miseq_wells_to_graph(graph)
+        add_miseq_well_experiments_to_graph(graph)
+        add_miseq_experiments_to_graph(graph)
+        add_experiments_to_graph(graph)
     add_experiments_to_miseq_experiments(graphs)
 
     results_from_checking = check_clone_data(clones)
