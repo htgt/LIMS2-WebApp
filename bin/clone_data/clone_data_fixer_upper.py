@@ -309,6 +309,26 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
     )
 
 
+def assert_wells_correct_for_known_example(graphs):
+    graph = get_graph_containing_fp_well("HUPFP0085A1", "C10")
+    assert is_isomorphic(
+        get_well_graph_from_graph(well_graph),
+        happy_shape(),
+        node_match=lambda n1, n2: n1["type"] == n2["type"],
+    )
+    fp_well = get_fp_well_from_graph(graph)
+    assert fp_well.plates.name == "HUPFP0085A1"
+    assert fp_well.name == "C10"
+    piq_wells = get_piq_wells_from_graph(graph)
+    assert len(piq_wells) == 1
+    assert piq_wells[0].plates_name == "HUEDQ0591"
+    assert piq_wells[0] == "B01"
+    miseq_wells = get_miseq_wells_from_graph(graph)
+    assert len(miseq_wells) == 1
+    assert miseq_wells[0].plates_name == "Miseq_116"
+    assert miseq_wells[0] == "J13"
+
+
 def assert_miseq_experiment_correct_for_known_example(graphs):
     # We test using the example HUPFP0085A1_C10 from 
     # https://jira.sanger.ac.uk/browse/LIMS-46
@@ -342,6 +362,11 @@ def get_fp_well_from_graph(graph):
 def get_piq_wells_from_graph(graph):
     piq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "piq_well"]
     return piq_wells
+
+
+def get_miseq_wells_from_graph(graph):
+    miseq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "miseq_well"]
+    return miseq_wells
 
 
 def get_miseq_experiments_from_graph(graph):
@@ -513,6 +538,7 @@ if __name__ == "__main__":
     assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
     graphs = create_graphs_from_clones(clones)
     assert_correct_number_of_graphs(graphs, expected_number_of_clones)
+    assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
