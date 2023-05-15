@@ -145,24 +145,12 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
         return miseq_well_experiment.miseq_experiment
 
 
-def get_experiment_id_from_fp_plate_and_well_names(plate_name, well_name):
-    print(f"Getting experiment for {plate_name}_{well_name}")
-    response = get(
-        f"http://localhost:8081/public_reports/get_experiment_id_from_clone/{plate_name}/{well_name}",
-        headers={"accept": "application/json"},
-    )
-    response.raise_for_status()
-    experiment_id = response.json()[0]
-    print(f"Experiment ID: {experiment_id}")
-    return experiment_id
-
-
 def add_experiments_to_miseq_experiments():
     with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_experiment = [row for row in reader if row["miseq_experiment_name"]]
         for row in rows_with_miseq_experiment:
-            experiment_id = get_experiment_id_from_fp_plate_and_well_names(row["fp_plate"], row["fp_well"])
+            experiment_id = get_experiment_id_for_clone(row["fp_plate"], row["fp_well"])
             with Session(engine) as session, session.begin():
                 results = session.execute(
                     select(MiseqExperiment).where(MiseqExperiment.name == row["miseq_experiment_name"])
