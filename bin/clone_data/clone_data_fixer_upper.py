@@ -20,6 +20,19 @@ from check_it import (
     print_clone_data_results,
 )
 
+
+class DataFixerUpperException(Exception):
+    pass
+
+
+class ExpectedMissingExperiment(DataFixerUpperException):
+    """Raised when we can't find an experiment ID, and we weren't expecting to."""
+
+
+class UnexpectedMissingExperiment(DataFixerUpperException):
+    """Raised when we can't find an experiment ID, and we were expecting to."""
+
+
 engine = None
 
 Plate = None
@@ -133,14 +146,29 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
 
 
 def get_experiment_from_fp_well(fp_well):
+    try:
+        experiment_id = get_experiment_id_for_clone(fp_well.plates.name, fp_well.name)
+    except ExpectedMissingExperiment:
+        return
+    with Session(engine) as session:
+        experiments = session.execute(
+            select(Experiment).where(Experiment.id == experiment_id)
+        )
+        experiment = experiments.scalar_one_or_none()
+        if experiment is None:
+            raise RuntimeError(f"No experiment found for {experiment_id}")
+        return experiment
+
+
+def get_experiment_id_for_clone(plate_name, well_name):
     response = get(
-        f"http://localhost:8081/public_reports/get_experiment_id_from_clone/{fp_well.plates.name}/{fp_well.name}",
+        f"http://localhost:8081/public_reports/get_experiment_id_from_clone/{plate_name}/{well_name}",
         headers={"accept": "application/json"},
     )
     try:
         response.raise_for_status()
     except HTTPError:
-        clone_name = fp_well.plates.name + "_" + fp_well.name
+        clone_name = plate_name + "_" + well_name
         if clone_name in [
            "HUPFP0039_2_F10",
            "HUPFP0039_2_E10",
@@ -150,18 +178,11 @@ def get_experiment_from_fp_well(fp_well):
            "HUPFP0020_10_G07",
         ]:
             print(f"Known missing experiment for: {clone_name}")
-            return
+            raise ExpectedMissingExperiment()
         print(f"Unexpected missing experiment for: {clone_name}")
-        raise
+        raise UnexpectedMissingExperiment()
     experiment_id = response.json()[0]
-    with Session(engine) as session:
-        experiments = session.execute(
-            select(Experiment).where(Experiment.id == experiment_id)
-        )
-        experiment = experiments.scalar_one_or_none()
-        if experiment is None:
-            raise RuntimeError(f"No experiment found for {experiment_id}")
-        return experiment
+    return experiment_id
 
 
 def create_graph_from_fp_well(fp_well):
