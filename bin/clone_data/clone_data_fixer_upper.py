@@ -167,7 +167,9 @@ def get_experiment_id_for_clone(plate_name, well_name):
     )
     try:
         response.raise_for_status()
-    except HTTPError:
+    except HTTPError as e:
+        if e.response.status_code != 500:
+            raise
         clone_name = plate_name + "_" + well_name
         if clone_name in [
            "HUPFP0039_2_F10",
