@@ -711,6 +711,46 @@ sub all_tests  : Tests {
     }
 
 
+    note('Gets miseq data related to latest PIQ well');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        my $plate = model->create_plate({
+            "name" => "OldPlate",
+            "species" => "Human",
+            "type" => "PIQ",
+            "created_by" => "test_user_1",  #Same as other PIQ plate
+            "created_at" => "2000-01-01",
+        });
+        my $well = model->create_well({
+            "plate_name" => "OldPlate",
+            "well_name" => "A01",
+            "process_data" => {
+                "type" => "dist_qc",
+                "input_wells" => [{"plate_name" => $plate_name, "well_name" => $well_name}],
+            },
+            "created_by" => "test_user_1",
+            "created_at" => "2000-01-01",
+        });
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        # Check for miseq-exeriment name as basic that we have miseq data
+        # related to newer PIQ well.
+        my $page = $mech->content();
+        assert_table_has_row_with_contents(
+            $page,
+            "miseq-overview",
+            ["Experiment", "HUEDQ1234_ADNP"],
+        );
+ 
+        # Delete plate - we don't want this to affect other tests.
+        model->delete_plate({"name" => "OldPlate"});
+    }
+
+
     note('User is warned if searching for non-FP plates');
     {
         my $plate_name = "MISEQ1";
