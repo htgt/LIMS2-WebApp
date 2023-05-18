@@ -310,7 +310,7 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
 
 
 def assert_wells_correct_for_known_example(graphs):
-    graph = get_graph_containing_fp_well("HUPFP0085A1", "C10")
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
     assert is_isomorphic(
         get_well_graph_from_graph(well_graph),
         happy_shape(),
@@ -332,7 +332,7 @@ def assert_wells_correct_for_known_example(graphs):
 def assert_miseq_experiment_correct_for_known_example(graphs):
     # We test using the example HUPFP0085A1_C10 from 
     # https://jira.sanger.ac.uk/browse/LIMS-46
-    graph = get_graph_containing_fp_well("HUPFP0085A1", "C10")
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
     miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     # Just check required miseq experiment is in list of all miseq experiments - others will exist.
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
