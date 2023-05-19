@@ -312,7 +312,7 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
 def assert_wells_correct_for_known_example(graphs):
     graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
     assert is_isomorphic(
-        get_well_graph_from_graph(well_graph),
+        get_well_graph_from_graph(graph),
         happy_shape(),
         node_match=lambda n1, n2: n1["type"] == n2["type"],
     )
