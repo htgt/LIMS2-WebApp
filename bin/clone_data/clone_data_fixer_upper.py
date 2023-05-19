@@ -321,12 +321,12 @@ def assert_wells_correct_for_known_example(graphs):
     assert fp_well.name == "C10"
     piq_wells = get_piq_wells_from_graph(graph)
     assert len(piq_wells) == 1
-    assert piq_wells[0].plates_name == "HUEDQ0591"
-    assert piq_wells[0] == "B01"
+    assert piq_wells[0].plates.name == "HUEDQ0591"
+    assert piq_wells[0].name == "B01"
     miseq_wells = get_miseq_wells_from_graph(graph)
     assert len(miseq_wells) == 1
-    assert miseq_wells[0].plates_name == "Miseq_116"
-    assert miseq_wells[0] == "J13"
+    assert miseq_wells[0].plates.name == "Miseq_116"
+    assert miseq_wells[0].name == "J13"
 
 
 def assert_miseq_experiment_correct_for_known_example(graphs):
