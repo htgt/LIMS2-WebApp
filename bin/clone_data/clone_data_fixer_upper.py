@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
-from analyse_it import get_well_graph_from_graph
+from analyse_it import get_well_graph_from_graph, get_equivalence_class_by_shape
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
@@ -415,6 +415,21 @@ def missing_miseq_shape():
     return graph
 
 
+def two_piqs_two_miseq_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_node(3, **{"type": "piq_well"})
+    graph.add_node(4, **{"type": "miseq_well"})
+    graph.add_node(5, **{"type": "miseq_well"})
+    graph.add_edge(1,2)
+    graph.add_edge(1,3)
+    graph.add_edge(2,4)
+    graph.add_edge(3,5)
+
+    return graph
+
+
 def get_all_piq_plate_names(graphs):
     all_piq_wells = chain(*[get_piq_wells_from_graph(g) for g in graphs])
     return {
@@ -545,6 +560,13 @@ if __name__ == "__main__":
     happy_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, happy_shape())
     missing_miseq_plate_names = get_plate_names_by_shape(equivalence_classes_and_plate_names, missing_miseq_shape())
 
+    graphs_with_two_piq_plates_and_two_miseq_wells = get_equivalence_class_by_shape(equivalence_classes, two_piqs_two_miseq_shape())
+    clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells = {
+        str(get_fp_well_from_graph(graph))
+        for graph in graphs_with_two_piq_plates_and_two_miseq_wells 
+    }
+    print(f"clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells: {clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells}")
+
     print(f"Plates with just happy wells: {happy_plate_names - missing_miseq_plate_names}")
     print(f"Plates with happy and missing-miseq wells: {happy_plate_names & missing_miseq_plate_names}")
     plates_with_just_missing_miseq_wells = missing_miseq_plate_names - happy_plate_names
@@ -563,3 +585,9 @@ if __name__ == "__main__":
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
     print_clone_data_results(results_from_checking)
+
+    print("Good clones that previously had two PIQ/Miseq wells:")
+    good_clone_names = {result.clone_name for result in results_from_checking if result.error is None}
+    good_and_two_piq_miseq = good_clone_names & clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells 
+    print(good_and_two_piq_miseq)
+
