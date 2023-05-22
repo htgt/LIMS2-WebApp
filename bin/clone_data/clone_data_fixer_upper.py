@@ -81,12 +81,21 @@ def init(data_base_details):
         )
         def __repr__(self):
             return self.plates.name + "_" + self.name
+    class MiseqWellExperiment(Base):
+        __tablename__ = "miseq_well_experiment"
+        def __repr__(self):
+            return str(self.id)
+    class MiseqExperiment(Base):
+        __tablename__ = "miseq_experiment"
+        def __repr__(self):
+            return str(self.id) + ":" + self.name
+    class Experiment(Base):
+        __tablename__ = "experiments"
+        def __repr__(self):
+            return str(self.id) + ":" + self.name
     Base.prepare()
     Plate = Base.classes.plates
     Process = Base.classes.processes
-    MiseqWellExperiment = Base.classes.miseq_well_experiment
-    MiseqExperiment = Base.classes.miseq_experiment
-    Experiment = Base.classes.experiments
     return metadata
 
 
