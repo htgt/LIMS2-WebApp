@@ -3,7 +3,12 @@ from unittest import TestCase
 from networkx import Graph
 from networkx.utils import graphs_equal
 
-from analyse_it import get_well_graph_from_graph, get_equivalence_class_by_shape, EquivalenceClassDoesNotExist
+from analyse_it import (
+    filter_graphs_by_shape,
+    get_well_graph_from_graph,
+    get_equivalence_class_by_shape,
+    EquivalenceClassDoesNotExist
+)
 
 
 class TestGetWellsSubgraph(TestCase):
@@ -97,3 +102,8 @@ class TestGetEquivalenceClassByShape(TestCase):
 
         with self.assertRaises(EquivalenceClassDoesNotExist):
             get_equivalence_class_by_shape(equivalence_classes, input_graph)
+
+
+class TestFilterGraphsBySHape(TestCase):
+    def test_fail(self):
+        self.fail()
