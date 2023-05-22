@@ -155,7 +155,7 @@ def get_miseq_well_experiments_from_miseq_well(miseq_well):
 def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
     with Session(engine) as session:
         session.add(miseq_well_experiment)
-        return miseq_well_experiment.miseq_experiment
+        return miseq_well_experiment.miseqexperiment
 
 
 def add_experiments_to_miseq_experiments(graphs):
