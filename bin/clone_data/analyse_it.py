@@ -24,5 +24,6 @@ def get_equivalence_class_by_shape(equivalence_classes, shape):
 
 def filter_graphs_by_shape(graphs, shape):
     return [
-        graph for graph in graphs if is_isomorphic(graph, shape)
+        graph for graph in graphs
+        if is_isomorphic(graph, shape, node_match=lambda n1, n2: n1["type"] == n2["type"])
     ]

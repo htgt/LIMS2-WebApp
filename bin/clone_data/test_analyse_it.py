@@ -105,7 +105,7 @@ class TestGetEquivalenceClassByShape(TestCase):
 
 
 class TestFilterGraphsBySHape(TestCase):
-    def test_fail(self):
+    def test_only_returns_isomorphic_graphs(self):
         graph_shape = Graph()
         graph_shape.add_node("A", type="fp_well")
         graph_shape.add_node("B", type="piq_well")
@@ -137,4 +137,24 @@ class TestFilterGraphsBySHape(TestCase):
         output_graphs = filter_graphs_by_shape(input_graphs, graph_shape)
 
         expected_graphs = [graph_of_correct_shape]
+        self.assertCountEqual(output_graphs, expected_graphs)
+
+    def test_takes_in_to_account_node_types(self):
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+        ])
+        graph_with_wrong_node_types = Graph()
+        graph_with_wrong_node_types.add_node("FP1", type="fp_well")
+        graph_with_wrong_node_types.add_node("PIQ2", type="miseq_well")
+        graph_with_wrong_node_types.add_edges_from([
+            ("FP1", "PIQ2"),
+        ])
+        input_graphs = [graph_with_wrong_node_types]
+
+        output_graphs = filter_graphs_by_shape(input_graphs, graph_shape)
+
+        expected_graphs = []
         self.assertCountEqual(output_graphs, expected_graphs)
