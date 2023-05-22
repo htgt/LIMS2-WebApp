@@ -158,3 +158,38 @@ class TestFilterGraphsBySHape(TestCase):
 
         expected_graphs = []
         self.assertCountEqual(output_graphs, expected_graphs)
+
+    def test_can_filter_for_isomorphism_only_for_some_node_types(self):
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_node("C", type="miseq_well")
+        graph_shape.add_node("D", type="miseq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+            ("B", "C"),
+            ("B", "D"),
+        ])
+
+        graph_with_isomorphic_fp_and_piq_wells = Graph()
+        graph_with_isomorphic_fp_and_piq_wells.add_node("EXP", type="experiment")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("FP1", type="fp_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("PIQ2", type="piq_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("MISEQ3", type="miseq_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_edges_from([
+            ("FP1", "EXP"),
+            ("FP1", "PIQ2"),
+            ("PIQ2", "MISEQ3"),
+            ("FP1", "EXP"),
+        ])
+        input_graphs = [graph_with_isomorphic_fp_and_piq_wells]
+
+        output_graphs = filter_graphs_by_shape(
+            input_graphs,
+            graph_shape,
+            with_respect_to_types=["fp_well", "piq_well"]
+        )
+
+        expected_graphs = []
+        self.assertCountEqual(output_graphs, expected_graphs)
+
