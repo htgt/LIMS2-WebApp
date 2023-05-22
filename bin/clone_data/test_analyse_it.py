@@ -106,4 +106,35 @@ class TestGetEquivalenceClassByShape(TestCase):
 
 class TestFilterGraphsBySHape(TestCase):
     def test_fail(self):
-        self.fail()
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+        ])
+        graph_of_correct_shape = Graph()
+        graph_of_correct_shape.add_node("FP1", type="fp_well")
+        graph_of_correct_shape.add_node("PIQ2", type="piq_well")
+        graph_of_correct_shape.add_edges_from([
+            ("FP1", "PIQ2"),
+        ])
+        graph_missing_node = Graph()
+        graph_missing_node.add_node("FP1", type="fp_well")
+        graph_with_extra_node = Graph()
+        graph_with_extra_node.add_node("FP1", type="fp_well")
+        graph_with_extra_node.add_node("PIQ2", type="piq_well")
+        graph_with_extra_node.add_node("Miseq3", type="miseq_well")
+        graph_with_extra_node.add_edges_from([
+            ("FP1", "PIQ2"),
+            ("PIQ2", "Miseq3"),
+        ])
+        input_graphs = [
+            graph_of_correct_shape,
+            graph_missing_node,
+            graph_with_extra_node,
+        ]
+
+        output_graphs = filter_graphs_by_shape(input_graphs, graph_shape)
+
+        expected_graphs = [graph_of_correct_shape]
+        self.assertCountEqual(output_graphs, expected_graphs)
