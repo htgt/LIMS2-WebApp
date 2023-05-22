@@ -92,7 +92,7 @@ def init(data_base_details):
     class Experiment(Base):
         __tablename__ = "experiments"
         def __repr__(self):
-            return str(self.id) + ":" + self.name
+            return str(self.id)
     Base.prepare()
     Plate = Base.classes.plates
     Process = Base.classes.processes
