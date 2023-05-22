@@ -587,10 +587,10 @@ if __name__ == "__main__":
     print_clone_data_results(results_from_checking)
 
     print("Good clones that previously had two PIQ/Miseq wells:")
-    good_and_two_piq_miseq = {
+    good_and_two_piq_miseq = [
         result for result in results_from_checking
         if result.clone_name in clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells 
-    }
+    ]
     print("Clone name, Miseq experiment")
     for result in good_and_two_piq_miseq:
         print(result.clone_name + ", " + result.json_data["miseq_data"]["experiment_name"])
