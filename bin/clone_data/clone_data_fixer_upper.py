@@ -5,7 +5,7 @@ from subprocess import run
 from sys import argv
 from collections import namedtuple
 
-from matplotlib.pyplot import savefig, subplots
+from matplotlib.pyplot import savefig, subplots, show as show_plot
 from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
 from requests import get
 from requests.exceptions import HTTPError
@@ -527,6 +527,16 @@ def create_missing_piq_miseq_well_relations(docker_image):
             check=True,
             shell=True,
         )
+
+
+def show_graph(graph):
+    """Renders the graph to screem.
+
+    This exists to be used interactively from a python shell.
+    It's not used as part of the script.
+    """
+    draw_networkx(graph, pos=multipartite_layout(graph, subset_key="layer"))
+    show_plot()
 
 
 if __name__ == "__main__":
