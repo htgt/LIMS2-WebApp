@@ -190,6 +190,6 @@ class TestFilterGraphsBySHape(TestCase):
             with_respect_to_types=["fp_well", "piq_well"]
         )
 
-        expected_graphs = []
+        expected_graphs = [graph_with_isomorphic_fp_and_piq_wells]
         self.assertCountEqual(output_graphs, expected_graphs)
 
