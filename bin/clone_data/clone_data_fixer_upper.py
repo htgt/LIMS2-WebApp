@@ -439,6 +439,19 @@ def two_piqs_two_miseq_shape():
     return graph
 
 
+def one_piq_two_miseq_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_node(3, **{"type": "miseq_well"})
+    graph.add_node(4, **{"type": "miseq_well"})
+    graph.add_edge(1,2)
+    graph.add_edge(2,3)
+    graph.add_edge(2,4)
+
+    return graph
+
+
 def get_all_piq_plate_names(graphs):
     all_piq_wells = chain(*[get_piq_wells_from_graph(g) for g in graphs])
     return {
