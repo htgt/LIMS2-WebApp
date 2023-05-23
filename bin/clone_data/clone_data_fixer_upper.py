@@ -166,6 +166,8 @@ def add_experiments_to_miseq_experiments(graphs):
                 if miseq_experiment is not None and miseq_experiment.experiment_id is None:
                     print(f"Adding experiment {experiment_id} to miseq experiment {miseq_experiment.id}")
                     miseq_experiment.experiment_id = experiment_id
+                if miseq_experiment is None:
+                    print(f"Couldn't fix up experiment/miseq-experiment data for {row['fp_plate']}_{row['fp_well']}")
 
 
 def get_experiment_from_fp_well(fp_well):
