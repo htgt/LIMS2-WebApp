@@ -351,7 +351,7 @@ def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
     assert len(graphs) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(graphs)}."
 
 
-def plot_graphs(equivalence_classes):
+def plot_equivalence_class_exmaples(equivalence_classes):
     fig, axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
     for equivalence_class, axis in zip(equivalence_classes, axes):
         graph = equivalence_class[0]
@@ -582,7 +582,7 @@ if __name__ == "__main__":
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
     assert sorted([len(ec) for ec in equivalence_classes], reverse=True) == [1184, 499, 114, 30, 23, 9, 4, 2, 1]
 
-    plot_graphs(equivalence_classes)
+    plot_equivalence_class_exmaples(equivalence_classes)
 
     equivalence_classes_and_plate_names = [
         (ec, get_plate_names_from_graphs(ec))
