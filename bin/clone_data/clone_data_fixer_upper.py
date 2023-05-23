@@ -13,7 +13,11 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
-from analyse_it import get_well_graph_from_graph, get_equivalence_class_by_shape
+from analyse_it import (
+    filter_graphs_by_shape,
+    get_well_graph_from_graph,
+    get_equivalence_class_by_shape
+)
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
@@ -362,6 +366,21 @@ def plot_equivalence_class_exmaples(equivalence_classes):
     savefig("well_graphs.png")
 
 
+def plot_one_piq_two_miseq_graphs(graphs):
+    one_piq_two_miseq_graphs = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=one_piq_two_miseq_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    fig, axes = subplots(nrows=len(one_piq_two_miseq_graphs), **{"figsize": (10, 50)})
+    for graph, axis in zip(one_piq_two_miseq_graphs, axes):
+        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
+        fp_well = get_fp_well_from_graph(graph)
+        axis.set_title(f"Clone: {fp_well}")
+    fig.tight_layout()
+    savefig("one_piq_two_miseq_graphs.png")
+
+
 def get_fp_well_from_graph(graph):
     fp_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"]
     assert len(fp_wells) == 1
@@ -573,15 +592,16 @@ if __name__ == "__main__":
     assert_correct_number_of_graphs(graphs, expected_number_of_clones)
     assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
+
+    plot_one_piq_two_miseq_graphs(graphs)
+
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
     )
     assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes)
-
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
     assert sorted([len(ec) for ec in equivalence_classes], reverse=True) == [1184, 499, 114, 30, 23, 9, 4, 2, 1]
-
     plot_equivalence_class_exmaples(equivalence_classes)
 
     equivalence_classes_and_plate_names = [
