@@ -146,7 +146,7 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
 
 
 def add_experiments_to_miseq_experiments(graphs):
-    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_experiment = [row for row in reader if row["miseq_experiment_name"]]
         for row in rows_with_miseq_experiment:
@@ -431,7 +431,7 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
 
 
 def create_missing_piq_miseq_well_relations(docker_image):
-    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
     for row in rows_with_miseq_data:
