@@ -589,6 +589,7 @@ if __name__ == "__main__":
     print("Good clones that previously had two PIQ/Miseq wells:")
     good_and_two_piq_miseq = [
         result for result in results_from_checking
+        if result.error == None
         if result.clone_name in clone_names_for_graphs_with_two_piq_plates_and_two_miseq_wells 
     ]
     print("Clone name, Miseq experiment")
