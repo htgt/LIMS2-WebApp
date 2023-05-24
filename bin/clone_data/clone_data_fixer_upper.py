@@ -594,9 +594,5 @@ if __name__ == "__main__":
     ]
     print("Clone name, Miseq experiment")
     for result in good_and_two_piq_miseq:
-        print(result.clone_name)
-        result.json_data
-        result.json_data["miseq_data"]
-        result.json_data["miseq_data"]["experiment_name"]
         print(result.clone_name + ", " + result.json_data["miseq_data"]["experiment_name"])
 
