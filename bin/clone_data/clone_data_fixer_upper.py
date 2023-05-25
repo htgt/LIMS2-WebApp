@@ -372,7 +372,7 @@ def plot_one_piq_two_miseq_graphs(graphs):
         shape=one_piq_two_miseq_shape(),
         with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
     )
-    fig, axes = subplots(nrows=len(one_piq_two_miseq_graphs), **{"figsize": (10, 50)})
+    fig, axes = subplots(nrows=len(one_piq_two_miseq_graphs), **{"figsize": (10, 5*len(one_piq_two_miseq_graphs))})
     for graph, axis in zip(one_piq_two_miseq_graphs, axes):
         draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
         fp_well = get_fp_well_from_graph(graph)
