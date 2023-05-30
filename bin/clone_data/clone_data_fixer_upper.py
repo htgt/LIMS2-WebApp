@@ -145,6 +145,31 @@ def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
         return miseq_well_experiment.miseq_experiment
 
 
+def add_experiments_to_miseq_experiments(graphs):
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows_with_miseq_experiment = [row for row in reader if row["miseq_experiment_name"]]
+        for row in rows_with_miseq_experiment:
+            experiment_id = get_experiment_id_for_clone(row["fp_plate"], row["fp_well"])
+            graph_for_row = get_graph_containing_fp_well(graphs, row["fp_plate"], row["fp_well"])
+            ids_of_miseq_experiments_in_graph = [
+                me.id
+                for me in get_miseq_experiments_from_graph(graph_for_row)
+            ]
+            with Session(engine) as session, session.begin():
+                results = session.execute(
+                    select(MiseqExperiment)
+                    .where(MiseqExperiment.name == row["miseq_experiment_name"])
+                    .where(MiseqExperiment.id.in_(ids_of_miseq_experiments_in_graph))
+                )
+                miseq_experiment = results.scalar_one_or_none()
+                if miseq_experiment is not None and miseq_experiment.experiment_id is None:
+                    print(f"Adding experiment {experiment_id} to miseq experiment {miseq_experiment.id}")
+                    miseq_experiment.experiment_id = experiment_id
+                if miseq_experiment is None:
+                    print(f"Couldn't fix up experiment/miseq-experiment data for {row['fp_plate']}_{row['fp_well']}")
+
+
 def get_experiment_from_fp_well(fp_well):
     try:
         experiment_id = get_experiment_id_for_clone(fp_well.plates.name, fp_well.name)
@@ -300,6 +325,11 @@ def get_piq_wells_from_graph(graph):
     return piq_wells
 
 
+def get_miseq_experiments_from_graph(graph):
+    miseq_experiments = [n for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
+    return miseq_experiments
+
+
 def get_plate_names_from_graphs(graphs):
     return {
         get_fp_well_from_graph(graph).plates.name
@@ -351,6 +381,16 @@ def get_graphs_containing_wells_in_piq_plate(graphs, piq_plate_name):
     return piq_plate_name_graphs
 
 
+def get_graph_containing_fp_well(graphs, plate_name, well_name):
+    fp_well_graphs = []
+    for graph in graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        if fp_well.plates.name == plate_name and fp_well.name == well_name:
+            fp_well_graphs.append(graph)
+    assert len(fp_well_graphs) == 1, f"Expecting only one graph but found {len(fp_well_graphs)}"
+    return fp_well_graphs[0]
+
+
 def plot_graphs_grouped_by_piq_plate(graphs, piq_plate_names):
     mkdir("graphs_grouped_by_piq_plate")
     for piq_plate_name in piq_plate_names:
@@ -393,7 +433,7 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
 
 
 def create_missing_piq_miseq_well_relations(docker_image):
-    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv") as f:
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
     for row in rows_with_miseq_data:
@@ -482,6 +522,18 @@ if __name__ == "__main__":
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
 
     create_missing_piq_miseq_well_relations(docker_image)
+
+    # We need to 'refresh' the graph to take in to account the changes from
+    # adding the missing miseq_well relations.
+    fp_wells = get_fp_wells_from_clones(clones)
+    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
+    for graph in graphs:
+        add_piq_wells_to_graph(graph)
+        add_miseq_wells_to_graph(graph)
+        add_miseq_well_experiments_to_graph(graph)
+        add_miseq_experiments_to_graph(graph)
+        add_experiments_to_graph(graph)
+    add_experiments_to_miseq_experiments(graphs)
 
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
