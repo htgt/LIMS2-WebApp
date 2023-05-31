@@ -33,6 +33,10 @@ class UnexpectedMissingExperiment(DataFixerUpperException):
     """Raised when we can't find an experiment ID, and we were expecting to."""
 
 
+class NoUniqueExperiment(DataFixerUpperException):
+    """Raised when there is either no or multiple experiments linked to a clone."""
+
+
 engine = None
 
 Plate = None
@@ -150,8 +154,12 @@ def add_experiments_to_miseq_experiments(graphs):
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_experiment = [row for row in reader if row["miseq_experiment_name"]]
         for row in rows_with_miseq_experiment:
-            experiment_id = get_experiment_id_for_clone(row["fp_plate"], row["fp_well"])
             graph_for_row = get_graph_containing_fp_well(graphs, row["fp_plate"], row["fp_well"])
+            try:
+                experiment = get_experiment_from_graph(graph_for_row)
+            except NoUniqueExperiment:
+                print(f"No unique experiment for {row['fp_plate']}_{row['fp_well']}")
+                return
             ids_of_miseq_experiments_in_graph = [
                 me.id
                 for me in get_miseq_experiments_from_graph(graph_for_row)
@@ -164,8 +172,8 @@ def add_experiments_to_miseq_experiments(graphs):
                 )
                 miseq_experiment = results.scalar_one_or_none()
                 if miseq_experiment is not None and miseq_experiment.experiment_id is None:
-                    print(f"Adding experiment {experiment_id} to miseq experiment {miseq_experiment.id}")
-                    miseq_experiment.experiment_id = experiment_id
+                    print(f"Adding experiment {experiment.id} to miseq experiment {miseq_experiment.id}")
+                    miseq_experiment.experiment_id = experiment.id
                 if miseq_experiment is None:
                     print(f"Couldn't fix up experiment/miseq-experiment data for {row['fp_plate']}_{row['fp_well']}")
 
@@ -328,6 +336,13 @@ def get_piq_wells_from_graph(graph):
 def get_miseq_experiments_from_graph(graph):
     miseq_experiments = [n for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     return miseq_experiments
+
+
+def get_experiment_from_graph(graph):
+    experiments = [n for n, d in graph.nodes(data=True) if d["type"] == "experiment"]
+    if len(experiments) != 1:
+        raise NoUniqueExperiment()
+    return experiments[0]
 
 
 def get_plate_names_from_graphs(graphs):
