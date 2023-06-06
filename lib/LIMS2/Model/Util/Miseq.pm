@@ -1003,11 +1003,22 @@ sub _get_miseq_data_from_well {
         DEBUG("No miseq_well_experiments found.");
         return undef;
     }
+    my $miseq_well_experiment = undef;
     if (scalar @miseq_well_experiments > 1) {
         my @miseq_well_experiment_ids = map {$_->id} @miseq_well_experiments;
-        die "Expected at most one miseq well experiment, but found experiments with ID: " . Dumper(@miseq_well_experiment_ids);
+        DEBUG("Found multiple miseq-well-experiments. IDs: " . Dumper(@miseq_well_experiment_ids));
+        my @miseq_well_experiments_for_parent_plate = grep {
+            (defined $_->miseq_exp->parent_plate_id) && ($_->miseq_exp->parent_plate_id == $piq_plate_well->plate->id)
+        } @miseq_well_experiments;
+        if (scalar @miseq_well_experiments_for_parent_plate == 1) {
+            $miseq_well_experiment = $miseq_well_experiments_for_parent_plate[0];
+            DEBUG("Disambiguated by checking parent plate: " . $miseq_well_experiment->id);
+        } else {
+            die "Expected at most one miseq well experiment, but found experiments with ID: " . Dumper(@miseq_well_experiment_ids);
+        }
+    } else {
+        $miseq_well_experiment = $miseq_well_experiments[0];
     }
-    my $miseq_well_experiment = $miseq_well_experiments[0];
     my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
     my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
