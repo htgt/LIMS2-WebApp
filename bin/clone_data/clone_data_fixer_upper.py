@@ -273,6 +273,18 @@ def add_experiments_to_graph(graph):
         graph.add_edge(fp_well, experiment)
 
 
+def create_graphs_from_clones(clones):
+    fp_wells = get_fp_wells_from_clones(clones)
+    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
+    for graph in graphs:
+        add_piq_wells_to_graph(graph)
+        add_miseq_wells_to_graph(graph)
+        add_miseq_well_experiments_to_graph(graph)
+        add_miseq_experiments_to_graph(graph)
+        add_experiments_to_graph(graph)
+    return graphs
+
+
 def create_equivalence_classes(graphs):
     equivalence_classes = []
     for graph in graphs:
@@ -297,18 +309,37 @@ def assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equiva
     )
 
 
+def assert_wells_correct_for_known_example(graphs):
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
+    assert is_isomorphic(
+        get_well_graph_from_graph(graph),
+        happy_shape(),
+        node_match=lambda n1, n2: n1["type"] == n2["type"],
+    )
+    fp_well = get_fp_well_from_graph(graph)
+    assert fp_well.plates.name == "HUPFP0085A1"
+    assert fp_well.name == "C10"
+    piq_wells = get_piq_wells_from_graph(graph)
+    assert len(piq_wells) == 1
+    assert piq_wells[0].plates.name == "HUEDQ0591"
+    assert piq_wells[0].name == "B01"
+    miseq_wells = get_miseq_wells_from_graph(graph)
+    assert len(miseq_wells) == 1
+    assert miseq_wells[0].plates.name == "Miseq_116"
+    assert miseq_wells[0].name == "J13"
+
+
 def assert_miseq_experiment_correct_for_known_example(graphs):
     # We test using the example HUPFP0085A1_C10 from 
     # https://jira.sanger.ac.uk/browse/LIMS-46
-    for graph in graphs:
-        fp_well = get_fp_well_from_graph(graph)
-        if fp_well.plates.name == "HUPFP0085A1" and fp_well.name == "C10":
-            break
-    else:
-        assert False, "Can't find graph for clone HUPFP0085A1_C10"
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
     miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     # Just check required miseq experiment is in list of all miseq experiments - others will exist.
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
+
+
+def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
+    assert len(graphs) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(graphs)}."
 
 
 def plot_graphs(equivalence_classes):
@@ -331,6 +362,11 @@ def get_fp_well_from_graph(graph):
 def get_piq_wells_from_graph(graph):
     piq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "piq_well"]
     return piq_wells
+
+
+def get_miseq_wells_from_graph(graph):
+    miseq_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "miseq_well"]
+    return miseq_wells
 
 
 def get_miseq_experiments_from_graph(graph):
@@ -486,29 +522,9 @@ if __name__ == "__main__":
     print("Results before fixing:")
     print_clone_data_results(results_from_checking)
 
-    fp_wells = get_fp_wells_from_clones(clones)
-    # Should be one well for each clone.
-    assert len(fp_wells) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(fp_wells)}."
-    # Check that known clone, HUPFP0085A1_C10 from LIMS-46 tests, is in returned data.
-    try:
-        test_fp_well = list(filter(
-            lambda well: well.name == "C10" and well.plates.name == "HUPFP0085A1", fp_wells
-        ))[0]
-    except IndexError:
-        assert False, "Cannot find well for HUPFP0085A1_C10"
-
-    test_piq_wells = get_piq_wells_from_fp_well(test_fp_well)
-    assert len(test_piq_wells) == 1, f"Found {len(test_piq_wells)}"
-    test_piq_well = test_piq_wells[0]
-    full_well_name = test_piq_well.plates.name + "_" + test_piq_well.name
-    assert full_well_name == "HUEDQ0591_B01", f"Full well name is {full_well_name}"
-    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
-    for graph in graphs:
-        add_piq_wells_to_graph(graph)
-        add_miseq_wells_to_graph(graph)
-        add_miseq_well_experiments_to_graph(graph)
-        add_miseq_experiments_to_graph(graph)
-        add_experiments_to_graph(graph)
+    graphs = create_graphs_from_clones(clones)
+    assert_correct_number_of_graphs(graphs, expected_number_of_clones)
+    assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
@@ -517,6 +533,7 @@ if __name__ == "__main__":
 
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
+    assert sorted([len(ec) for ec in equivalence_classes], reverse=True) == [1184, 499, 114, 30, 23, 9, 4, 2, 1]
 
     plot_graphs(equivalence_classes)
 
@@ -540,14 +557,7 @@ if __name__ == "__main__":
 
     # We need to 'refresh' the graph to take in to account the changes from
     # adding the missing miseq_well relations.
-    fp_wells = get_fp_wells_from_clones(clones)
-    graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
-    for graph in graphs:
-        add_piq_wells_to_graph(graph)
-        add_miseq_wells_to_graph(graph)
-        add_miseq_well_experiments_to_graph(graph)
-        add_miseq_experiments_to_graph(graph)
-        add_experiments_to_graph(graph)
+    graphs = create_graphs_from_clones(clones)
     add_experiments_to_miseq_experiments(graphs)
 
     results_from_checking = check_clone_data(clones)
