@@ -737,7 +737,7 @@ sub all_tests  : Tests {
 
         $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
 
-        # Check for miseq-exeriment name as basic that we have miseq data
+        # Check for miseq-exeriment name as basic test that we have miseq data
         # related to newer PIQ well.
         my $page = $mech->content();
         assert_table_has_row_with_contents(
