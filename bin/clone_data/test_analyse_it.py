@@ -87,7 +87,7 @@ class TestGetEquivalenceClassByShape(TestCase):
         with self.assertRaises(EquivalenceClassDoesNotExist):
             get_equivalence_class_by_shape(equivalence_classes, input_graph)
 
-    def test_takses_in_to_account_type_of_nodes(self):
+    def test_takes_in_to_account_type_of_nodes(self):
         expected_graph = Graph()
         expected_graph.add_node("FP1", type="fp_well")
         expected_graph.add_node("PIQ2", type="piq_well")
