@@ -60,7 +60,7 @@ class TestGetEquivalenceClassByShape(TestCase):
         
         self.assertEqual(returned_equivalence_class, [expected_graph])
 
-    def test_raises_when_equivalence_class_of_correct_shape_does_not_Exist(self):
+    def test_raises_when_equivalence_class_of_correct_shape_does_not_exist(self):
         expected_graph = Graph()
         expected_graph.add_node("FP1", type="fp_well")
         expected_graph.add_node("PIQ2", type="piq_well")
