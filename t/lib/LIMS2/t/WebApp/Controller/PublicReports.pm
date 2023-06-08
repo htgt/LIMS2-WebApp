@@ -721,7 +721,7 @@ sub all_tests  : Tests {
             "name" => "OldPlate",
             "species" => "Human",
             "type" => "PIQ",
-            "created_by" => "test_user_1",  #Same as other PIQ plate
+            "created_by" => "test_user_1",  # Same as other PIQ plate
             "created_at" => "2000-01-01",
         });
         my $well = model->create_well({
