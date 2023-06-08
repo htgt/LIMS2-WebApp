@@ -1072,13 +1072,13 @@ sub _get_piq_plate_well_from_well {
             . ". Choosing most recent."
         );
         my $iso8601 = DateTime::Format::ISO8601->new();
-        my @pip_plate_wells_in_date_order = sort {
+        my @piq_plate_wells_in_date_order = sort {
             DateTime->compare(
                 $iso8601->parse_datetime($a->created_at),
                 $iso8601->parse_datetime($b->created_at)
             )
         } @piq_plate_wells;
-        return pop @pip_plate_wells_in_date_order;
+        return pop @piq_plate_wells_in_date_order;
     }
     return $piq_plate_wells[0];
 
