@@ -34,19 +34,25 @@ class TestGetWellsSubgraph(TestCase):
 
 
 class TestGetEquivalenceClassByShape(TestCase):
-    def test_returns_correct_equivalence_class_when_it_exists(self):
-        expected_graph = Graph()
-        expected_graph.add_node("FP1", type="fp_well")
-        expected_graph.add_node("PIQ2", type="piq_well")
-        expected_graph.add_edge("FP1", "PIQ2")
-        another_graph = Graph()
-        another_graph.add_node("FP1", type="fp_well")
-        another_graph.add_node("PIQ2", type="piq_well")
-        another_graph.add_node("Miseq3", type="miseq_well")
-        another_graph.add_edges_from([
+    def setUp(self):
+        self.one_fp_one_piq_graph = Graph()
+        self.one_fp_one_piq_graph.add_node("FP1", type="fp_well")
+        self.one_fp_one_piq_graph.add_node("PIQ2", type="piq_well")
+        self.one_fp_one_piq_graph.add_edge("FP1", "PIQ2")
+
+        self.one_fp_one_piq_one_miseq_graph = Graph()
+        self.one_fp_one_piq_one_miseq_graph.add_node("FP1", type="fp_well")
+        self.one_fp_one_piq_one_miseq_graph.add_node("PIQ2", type="piq_well")
+        self.one_fp_one_piq_one_miseq_graph.add_node("Miseq3", type="miseq_well")
+        self.one_fp_one_piq_one_miseq_graph.add_edges_from([
             ("FP1", "PIQ2"),
             ("PIQ2", "Miseq3"),
         ])
+
+
+    def test_returns_correct_equivalence_class_when_it_exists(self):
+        expected_graph = self.one_fp_one_piq_graph
+        another_graph = self.one_fp_one_piq_one_miseq_graph
         equivalence_classes = [
             [expected_graph],
             [another_graph],
@@ -61,18 +67,8 @@ class TestGetEquivalenceClassByShape(TestCase):
         self.assertEqual(returned_equivalence_class, [expected_graph])
 
     def test_raises_when_equivalence_class_of_correct_shape_does_not_exist(self):
-        expected_graph = Graph()
-        expected_graph.add_node("FP1", type="fp_well")
-        expected_graph.add_node("PIQ2", type="piq_well")
-        expected_graph.add_edge("FP1", "PIQ2")
-        another_graph = Graph()
-        another_graph.add_node("FP1", type="fp_well")
-        another_graph.add_node("PIQ2", type="piq_well")
-        another_graph.add_node("Miseq3", type="miseq_well")
-        another_graph.add_edges_from([
-            ("FP1", "PIQ2"),
-            ("PIQ2", "Miseq3"),
-        ])
+        expected_graph = self.one_fp_one_piq_graph
+        another_graph = self.one_fp_one_piq_one_miseq_graph
         equivalence_classes = [
             [expected_graph],
             [another_graph],
@@ -88,18 +84,8 @@ class TestGetEquivalenceClassByShape(TestCase):
             get_equivalence_class_by_shape(equivalence_classes, input_graph)
 
     def test_takes_in_to_account_type_of_nodes(self):
-        expected_graph = Graph()
-        expected_graph.add_node("FP1", type="fp_well")
-        expected_graph.add_node("PIQ2", type="piq_well")
-        expected_graph.add_edge("FP1", "PIQ2")
-        another_graph = Graph()
-        another_graph.add_node("FP1", type="fp_well")
-        another_graph.add_node("PIQ2", type="piq_well")
-        another_graph.add_node("Miseq3", type="miseq_well")
-        another_graph.add_edges_from([
-            ("FP1", "PIQ2"),
-            ("PIQ2", "Miseq3"),
-        ])
+        expected_graph = self.one_fp_one_piq_graph
+        another_graph = self.one_fp_one_piq_one_miseq_graph
         equivalence_classes = [
             [expected_graph],
             [another_graph],
