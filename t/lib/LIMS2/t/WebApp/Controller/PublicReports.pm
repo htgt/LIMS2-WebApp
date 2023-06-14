@@ -750,6 +750,42 @@ sub all_tests  : Tests {
         model->delete_plate({"name" => "OldPlate"});
     }
 
+    note('Uses parent plate when there are two miseq experiments for an experiment');
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+
+        my $miseq_experiment = model->create_miseq_experiment({
+            name => "ME_no_parentplate",
+            experiment_id => 108,  # Got by checking logs for previous test.
+            gene => "ADNP",
+            miseq_id => 44,  # Got by checking fixtures
+        });
+        my $miseq_well = model->retrieve_well({
+            id => 1147,  # Got by checking logs for previous test.
+        });
+        my $miseq_well_experiment = model->create_miseq_well_experiment({
+            well_id => $miseq_well->id,
+            classification => "K/O Hom",
+            miseq_exp_id => $miseq_experiment->id,
+        });
+
+        $mech->get_ok("/public_reports/well_genotyping_info/$plate_name/$well_name");
+
+        # Check for miseq-exeriment name as basic that we have miseq data
+        # related to newer PIQ well.
+        my $page = $mech->content();
+        assert_table_has_row_with_contents(
+            $page,
+            "miseq-overview",
+            ["Experiment", "HUEDQ1234_ADNP"],
+        );
+
+        # Cean up to avoid affecting other tests.
+        $miseq_well_experiment->delete();
+        $miseq_experiment->delete();
+    }
 
     note('User is warned if searching for non-FP plates');
     {
