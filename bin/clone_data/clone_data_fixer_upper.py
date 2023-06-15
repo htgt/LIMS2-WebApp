@@ -5,7 +5,7 @@ from subprocess import run
 from sys import argv
 from collections import namedtuple
 
-from matplotlib.pyplot import savefig, subplots
+from matplotlib.pyplot import savefig, subplots, show as show_plot
 from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
 from requests import get
 from requests.exceptions import HTTPError
@@ -13,7 +13,11 @@ from sqlalchemy import create_engine, select, text, MetaData, tuple_
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
-from analyse_it import get_well_graph_from_graph, get_equivalence_class_by_shape
+from analyse_it import (
+    filter_graphs_by_shape,
+    get_well_graph_from_graph,
+    get_equivalence_class_by_shape
+)
 from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
@@ -81,12 +85,21 @@ def init(data_base_details):
         )
         def __repr__(self):
             return self.plates.name + "_" + self.name
+    class MiseqWellExperiment(Base):
+        __tablename__ = "miseq_well_experiment"
+        def __repr__(self):
+            return str(self.id)
+    class MiseqExperiment(Base):
+        __tablename__ = "miseq_experiment"
+        def __repr__(self):
+            return str(self.id) + ":" + self.name
+    class Experiment(Base):
+        __tablename__ = "experiments"
+        def __repr__(self):
+            return str(self.id)
     Base.prepare()
     Plate = Base.classes.plates
     Process = Base.classes.processes
-    MiseqWellExperiment = Base.classes.miseq_well_experiment
-    MiseqExperiment = Base.classes.miseq_experiment
-    Experiment = Base.classes.experiments
     return metadata
 
 
@@ -141,12 +154,12 @@ def get_miseq_wells_from_piq_well(piq_well):
 def get_miseq_well_experiments_from_miseq_well(miseq_well):
     with Session(engine) as session:
         session.add(miseq_well)
-        return miseq_well.miseq_well_experiment_collection
+        return miseq_well.miseqwellexperiment_collection
 
 def get_miseq_experiment_from_miseq_well_experiment(miseq_well_experiment):
     with Session(engine) as session:
         session.add(miseq_well_experiment)
-        return miseq_well_experiment.miseq_experiment
+        return miseq_well_experiment.miseqexperiment
 
 
 def add_experiments_to_miseq_experiments(graphs):
@@ -342,7 +355,7 @@ def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
     assert len(graphs) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(graphs)}."
 
 
-def plot_graphs(equivalence_classes):
+def plot_equivalence_class_exmaples(equivalence_classes):
     fig, axes = subplots(nrows=len(equivalence_classes), **{"figsize": (10, 50)})
     for equivalence_class, axis in zip(equivalence_classes, axes):
         graph = equivalence_class[0]
@@ -351,6 +364,21 @@ def plot_graphs(equivalence_classes):
         axis.set_title(f"Number of cases: {len(equivalence_class)}  -  Example:  {fp_well}")
     fig.tight_layout()
     savefig("well_graphs.png")
+
+
+def plot_one_piq_two_miseq_graphs(graphs):
+    one_piq_two_miseq_graphs = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=one_piq_two_miseq_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    fig, axes = subplots(nrows=len(one_piq_two_miseq_graphs), **{"figsize": (10, 5*len(one_piq_two_miseq_graphs))})
+    for graph, axis in zip(one_piq_two_miseq_graphs, axes):
+        draw_networkx(graph, ax=axis, pos=multipartite_layout(graph, subset_key="layer"))
+        fp_well = get_fp_well_from_graph(graph)
+        axis.set_title(f"Clone: {fp_well}")
+    fig.tight_layout()
+    savefig("one_piq_two_miseq_graphs.png")
 
 
 def get_fp_well_from_graph(graph):
@@ -426,6 +454,19 @@ def two_piqs_two_miseq_shape():
     graph.add_edge(1,3)
     graph.add_edge(2,4)
     graph.add_edge(3,5)
+
+    return graph
+
+
+def one_piq_two_miseq_shape():
+    graph = Graph()
+    graph.add_node(1, **{"type": "fp_well"})
+    graph.add_node(2, **{"type": "piq_well"})
+    graph.add_node(3, **{"type": "miseq_well"})
+    graph.add_node(4, **{"type": "miseq_well"})
+    graph.add_edge(1,2)
+    graph.add_edge(2,3)
+    graph.add_edge(2,4)
 
     return graph
 
@@ -520,6 +561,16 @@ def create_missing_piq_miseq_well_relations(docker_image):
         )
 
 
+def show_graph(graph):
+    """Renders the graph to screem.
+
+    This exists to be used interactively from a python shell.
+    It's not used as part of the script.
+    """
+    draw_networkx(graph, pos=multipartite_layout(graph, subset_key="layer"))
+    show_plot()
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -541,16 +592,17 @@ if __name__ == "__main__":
     assert_correct_number_of_graphs(graphs, expected_number_of_clones)
     assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
+
+    plot_one_piq_two_miseq_graphs(graphs)
+
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
     )
     assert_the_biggest_equivalence_class_has_graphs_of_the_expected_shape(equivalence_classes)
-
     print(f"Number of equivalence classes: {len(equivalence_classes)}")
     print(f"Graphs in each equivalence class: {[len(ec) for ec in equivalence_classes]}")
     assert sorted([len(ec) for ec in equivalence_classes], reverse=True) == [1184, 499, 114, 30, 23, 9, 4, 2, 1]
-
-    plot_graphs(equivalence_classes)
+    plot_equivalence_class_exmaples(equivalence_classes)
 
     equivalence_classes_and_plate_names = [
         (ec, get_plate_names_from_graphs(ec))

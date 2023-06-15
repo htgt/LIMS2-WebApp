@@ -3,7 +3,12 @@ from unittest import TestCase
 from networkx import Graph
 from networkx.utils import graphs_equal
 
-from analyse_it import get_well_graph_from_graph, get_equivalence_class_by_shape, EquivalenceClassDoesNotExist
+from analyse_it import (
+    filter_graphs_by_shape,
+    get_well_graph_from_graph,
+    get_equivalence_class_by_shape,
+    EquivalenceClassDoesNotExist
+)
 
 
 class TestGetWellsSubgraph(TestCase):
@@ -97,3 +102,94 @@ class TestGetEquivalenceClassByShape(TestCase):
 
         with self.assertRaises(EquivalenceClassDoesNotExist):
             get_equivalence_class_by_shape(equivalence_classes, input_graph)
+
+
+class TestFilterGraphsBySHape(TestCase):
+    def test_only_returns_isomorphic_graphs(self):
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+        ])
+        graph_of_correct_shape = Graph()
+        graph_of_correct_shape.add_node("FP1", type="fp_well")
+        graph_of_correct_shape.add_node("PIQ2", type="piq_well")
+        graph_of_correct_shape.add_edges_from([
+            ("FP1", "PIQ2"),
+        ])
+        graph_missing_node = Graph()
+        graph_missing_node.add_node("FP1", type="fp_well")
+        graph_with_extra_node = Graph()
+        graph_with_extra_node.add_node("FP1", type="fp_well")
+        graph_with_extra_node.add_node("PIQ2", type="piq_well")
+        graph_with_extra_node.add_node("Miseq3", type="miseq_well")
+        graph_with_extra_node.add_edges_from([
+            ("FP1", "PIQ2"),
+            ("PIQ2", "Miseq3"),
+        ])
+        input_graphs = [
+            graph_of_correct_shape,
+            graph_missing_node,
+            graph_with_extra_node,
+        ]
+
+        output_graphs = filter_graphs_by_shape(input_graphs, graph_shape)
+
+        expected_graphs = [graph_of_correct_shape]
+        self.assertCountEqual(output_graphs, expected_graphs)
+
+    def test_takes_in_to_account_node_types(self):
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+        ])
+        graph_with_wrong_node_types = Graph()
+        graph_with_wrong_node_types.add_node("FP1", type="fp_well")
+        graph_with_wrong_node_types.add_node("PIQ2", type="miseq_well")
+        graph_with_wrong_node_types.add_edges_from([
+            ("FP1", "PIQ2"),
+        ])
+        input_graphs = [graph_with_wrong_node_types]
+
+        output_graphs = filter_graphs_by_shape(input_graphs, graph_shape)
+
+        expected_graphs = []
+        self.assertCountEqual(output_graphs, expected_graphs)
+
+    def test_can_filter_for_isomorphism_only_for_some_node_types(self):
+        graph_shape = Graph()
+        graph_shape.add_node("A", type="fp_well")
+        graph_shape.add_node("B", type="piq_well")
+        graph_shape.add_node("C", type="miseq_well")
+        graph_shape.add_node("D", type="miseq_well")
+        graph_shape.add_edges_from([
+            ("A", "B"),
+            ("B", "C"),
+            ("B", "D"),
+        ])
+
+        graph_with_isomorphic_fp_and_piq_wells = Graph()
+        graph_with_isomorphic_fp_and_piq_wells.add_node("EXP", type="experiment")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("FP1", type="fp_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("PIQ2", type="piq_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_node("MISEQ3", type="miseq_well")
+        graph_with_isomorphic_fp_and_piq_wells.add_edges_from([
+            ("FP1", "EXP"),
+            ("FP1", "PIQ2"),
+            ("PIQ2", "MISEQ3"),
+            ("FP1", "EXP"),
+        ])
+        input_graphs = [graph_with_isomorphic_fp_and_piq_wells]
+
+        output_graphs = filter_graphs_by_shape(
+            input_graphs,
+            graph_shape,
+            with_respect_to_types=["fp_well", "piq_well"]
+        )
+
+        expected_graphs = [graph_with_isomorphic_fp_and_piq_wells]
+        self.assertCountEqual(output_graphs, expected_graphs)
+
