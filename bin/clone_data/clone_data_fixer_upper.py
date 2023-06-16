@@ -381,6 +381,26 @@ def plot_one_piq_two_miseq_graphs(graphs):
     savefig("one_piq_two_miseq_graphs.png")
 
 
+def print_out_wells_for_one_piq_two_miseq_cases(graphs):
+    one_piq_two_miseq_graphs = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=one_piq_two_miseq_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    print("One PIQ - two Miseq Cases:")
+    print("fp_plate, fp_well, piq_plate, piq_well, possible_miseqs")
+    for graph in one_piq_two_miseq_graphs:
+        print(
+            "{}, {}, {}, {}, {}".format(
+                get_fp_well_from_graph(graph).plates.name,
+                get_fp_well_from_graph(graph).name,
+                get_piq_wells_from_graph(graph)[0].plates.name,
+                get_piq_wells_from_graph(graph)[0].name,
+                get_miseq_wells_from_graph(graph),
+            )
+        )
+
+
 def get_fp_well_from_graph(graph):
     fp_wells = [n for n, d in graph.nodes(data=True) if d["type"] == "fp_well"]
     assert len(fp_wells) == 1
@@ -594,6 +614,7 @@ if __name__ == "__main__":
     assert_miseq_experiment_correct_for_known_example(graphs)
 
     plot_one_piq_two_miseq_graphs(graphs)
+    print_out_wells_for_one_piq_two_miseq_cases(graphs)
 
     equivalence_classes = create_equivalence_classes(
         [get_well_graph_from_graph(graph) for graph in graphs]
