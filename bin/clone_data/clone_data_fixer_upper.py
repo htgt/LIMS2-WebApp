@@ -1,7 +1,7 @@
 from csv import DictReader, DictWriter
 from itertools import chain
 from os import mkdir
-from subprocess import run
+from subprocess import run, CalledProcessError
 from sys import argv
 from collections import namedtuple
 
@@ -14,6 +14,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
 from analyse_it import (
+    convert_numeric_well_name_to_alphanumeric,
     filter_graphs_by_shape,
     get_well_graph_from_graph,
     get_equivalence_class_by_shape
@@ -591,10 +592,68 @@ def create_missing_piq_miseq_well_relations(graphs, docker_image):
         )
 
 
+def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
+    one_piq_two_miseq_graphs = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=one_piq_two_miseq_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    for graph in one_piq_two_miseq_graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        piq_well = get_piq_wells_from_graph(graph)[0]
+        miseq_wells = get_miseq_wells_from_graph(graph)
+        try:
+            row_for_clone = get_row_for_clone(rows_with_miseq_data, fp_well.plates.name, fp_well.name)
+        except RuntimeError:
+            continue
+        bad_miseq_wells = [
+            miseq_well for miseq_well in miseq_wells
+            if not (
+                miseq_well.plates.name == row_for_clone["miseq_plate"]
+                and
+                miseq_well.name == convert_numeric_well_name_to_alphanumeric(
+                    row_for_clone["miseq_well"]
+                )
+            )
+        ]
+        if len(bad_miseq_wells) != len(miseq_wells) - 1:
+            print(f"bad: {bad_miseq_wells}, all: {miseq_wells}, row: {row_for_clone['miseq_plate']}_{convert_numeric_well_name_to_alphanumeric(row_for_clone['miseq_well'])}")
+            continue
+        for miseq_well in bad_miseq_wells:
+            try:
+                print(f"Deleting relation for {piq_well} - {miseq_well}.")
+                run(
+                    (
+                        "docker" " run"
+                        " --rm"
+                        " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+                        " --env" " PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
+                        f" {docker_image}"
+                        " ./bin/clone_data/delete-processes-between-wells.pl"
+                            f" --piq_plate_name {piq_well.plates.name}"
+                            f" --piq_well_name {piq_well.name}"
+                            f" --miseq_plate_name {miseq_well.plates.name}"
+                            f" --miseq_well_name {miseq_well.name}"
+                    ),
+                    check=True,
+                    shell=True,
+                    capture_output=True,
+                )
+            except CalledProcessError as e:
+                print(e.stdout)
+                print(e.stderr)
+                raise e
+
+
+
+
 def get_row_for_clone(rows, plate_name, well_name):
     rows_with_correct_plate_and_well = [
         row for row in rows
-        if row["fp_plate"] == plate_name and row["fp_well"] == well_name
+        if row["fp_plate"] == plate_name and row["fp_well"] == well_name       
     ]
     if len(rows_with_correct_plate_and_well) == 0:
         raise RuntimeError(f"No rows for {plate_name}_{well_name}")
@@ -676,6 +735,8 @@ if __name__ == "__main__":
     # adding the missing miseq_well relations.
     graphs = create_graphs_from_clones(clones)
     add_experiments_to_miseq_experiments(graphs)
+
+    delete_extraneous_piq_miseq_well_relations(graphs, docker_image)
 
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
