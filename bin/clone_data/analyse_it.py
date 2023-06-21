@@ -1,3 +1,5 @@
+import string
+
 from networkx import is_isomorphic
 
 
@@ -41,3 +43,9 @@ def _get_subgraph_with_nodes_of_types(graph, types):
     ]
 
     return graph.subgraph(nodes_of_correct_type)
+
+
+def convert_numeric_well_name_to_alphanumeric(numeric):
+    a, x = divmod(int(numeric)-1, 192)
+    b, c = divmod(x, 8)
+    return string.ascii_uppercase[8*a + c] + f"{b+1:02}"
