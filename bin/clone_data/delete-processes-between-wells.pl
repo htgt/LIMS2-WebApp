@@ -47,6 +47,6 @@ say "Number of processes: $number_of_processes";
 
 die "Expected 1 element but found $number_of_processes" unless $number_of_processes == 1;
 
-$model->delete_process({id => @processes[0]->id});
+$model->delete_process({id => $processes[0]->id});
 
 say "Deleted";
