@@ -581,6 +581,20 @@ def create_missing_piq_miseq_well_relations(docker_image):
         )
 
 
+
+
+def get_row_for_clone(rows, plate_name, well_name):
+    rows_with_correct_plate_and_well = [
+        row for row in rows
+        if row["fp_plate"] == plate_name and row["fp_well"] == well_name
+    ]
+    if len(row) == 0:
+        raise RuntimeError(f"No rows for {plate_name}_{well_name}")
+    if len(row) > 1:
+        raise RuntimeError(f"Multiple rows for {plate_name}_{well_name}")
+    return rows_with_correct_plate_and_well[0]
+
+
 def show_graph(graph):
     """Renders the graph to screem.
 
