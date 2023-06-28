@@ -559,11 +559,21 @@ def create_tsv_of_fp_and_piq_well_details_for_wells_with_missing_miseq_plates(pl
                 })
 
 
-def create_missing_piq_miseq_well_relations(docker_image):
+def create_missing_piq_miseq_well_relations(graphs, docker_image):
     with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
         reader = DictReader(f, delimiter="\t")
         rows_with_miseq_data = [row for row in reader if row["miseq_plate"] and row["miseq_well"]]
-    for row in rows_with_miseq_data:
+    one_piq_no_miseq_graphs = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=missing_miseq_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    for graph in one_piq_no_miseq_graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        try:
+            row_for_clone = get_row_for_clone(rows_with_miseq_data, fp_well.plates.name, fp_well.name)
+        except RuntimeError:
+            continue
         run(
             (
                 "docker" " run"
@@ -571,14 +581,26 @@ def create_missing_piq_miseq_well_relations(docker_image):
                 " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
                 f" {docker_image}"
                 " ./bin/clone_data/add-piq-to-miseq-process-between-wells.pl"
-                    f" --piq_plate_name {row['piq_plate']}"
-                    f" --piq_well_name {row['piq_well']}"
-                    f" --miseq_plate_name {row['miseq_plate']}"
-                    f" --miseq_well_number {row['miseq_well']}"
+                    f" --piq_plate_name {row_for_clone['piq_plate']}"
+                    f" --piq_well_name {row_for_clone['piq_well']}"
+                    f" --miseq_plate_name {row_for_clone['miseq_plate']}"
+                    f" --miseq_well_number {row_for_clone['miseq_well']}"
             ),
             check=True,
             shell=True,
         )
+
+
+def get_row_for_clone(rows, plate_name, well_name):
+    rows_with_correct_plate_and_well = [
+        row for row in rows
+        if row["fp_plate"] == plate_name and row["fp_well"] == well_name
+    ]
+    if len(rows_with_correct_plate_and_well) == 0:
+        raise RuntimeError(f"No rows for {plate_name}_{well_name}")
+    if len(rows_with_correct_plate_and_well) > 1:
+        raise RuntimeError(f"Multiple rows for {plate_name}_{well_name}")
+    return rows_with_correct_plate_and_well[0]
 
 
 def show_graph(graph):
@@ -648,7 +670,7 @@ if __name__ == "__main__":
     all_piq_plate_names = get_all_piq_plate_names(graphs)
     plot_graphs_grouped_by_piq_plate(graphs, all_piq_plate_names)
 
-    create_missing_piq_miseq_well_relations(docker_image)
+    create_missing_piq_miseq_well_relations(graphs, docker_image)
 
     # We need to 'refresh' the graph to take in to account the changes from
     # adding the missing miseq_well relations.
