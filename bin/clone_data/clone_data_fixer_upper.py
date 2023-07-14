@@ -14,6 +14,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
 from analyse_it import (
+    convert_alphanumeric_well_name_to_numeric,
     convert_numeric_well_name_to_alphanumeric,
     filter_graphs_by_shape,
     get_well_graph_from_graph,
@@ -753,6 +754,68 @@ def show_graph(graph):
     show_plot()
 
 
+def print_clones_with_extraneous_miseq_experiments(results, graphs):
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows = list(reader)
+    # Get all graphs with good well relations.
+    _ = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=happy_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    # Get those extraneous experiment - miseq-well-experiment relations.
+    _ = [
+        graph for graph in _ 
+        if len(get_experiment_miseq_experiment_subgraph(graph).edges) > 1
+    ]
+    # Exclude those for which we already have good results.
+    _ = [
+        graph for graph in _
+        if (
+            (fp_well:=get_fp_well_from_graph(graph)).plates.name + "_" + fp_well.name
+            not in 
+            [result.clone_name for result in results if result.error is None]
+        )
+    ]
+    # Exclude those already on our spreadsheet.
+    filtered_graphs = [
+        graph for graph in _
+        if len(
+            [
+                row for row in rows 
+                if (
+                    row["fp_plate"] == (fp_well:=get_fp_well_from_graph(graph)).plates.name
+                    and 
+                    row["fp_well"] == fp_well.name
+                )
+            ]
+        ) == 0
+    ]
+
+
+    print("Multiple miseq-experiment cases:")
+    print("fp_plate, fp_well, piq_plate, piq_well, miseq_plate, miseq_well, possible_miseq_experiments")
+    for graph in filtered_graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        piq_well = get_piq_wells_from_graph(graph)[0]
+        miseq_well = get_miseq_wells_from_graph(graph)[0]
+        associated_miseq_experiments = get_miseq_experiments_from_graph(
+            get_experiment_miseq_experiment_subgraph(graph)
+        )
+        print(
+            "{}, {}, {}, {}, {}, {}, {}".format(
+                fp_well.plates.name,
+                fp_well.name,
+                piq_well.plates.name,
+                piq_well.name,
+                miseq_well.plates.name,
+                convert_alphanumeric_well_name_to_numeric(miseq_well.name),
+                associated_miseq_experiments,
+            )
+        )
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -835,4 +898,9 @@ if __name__ == "__main__":
     print("Clone name, Miseq experiment")
     for result in good_and_two_piq_miseq:
         print(result.clone_name + ", " + result.json_data["miseq_data"]["experiment_name"])
+
+    # We need to 'refresh' the graph to take in to account the changes from
+    # deleting some extraneous ones.
+    graphs = create_graphs_from_clones(clones)
+    print_clones_with_extraneous_miseq_experiments(results_from_checking, graphs)
 
