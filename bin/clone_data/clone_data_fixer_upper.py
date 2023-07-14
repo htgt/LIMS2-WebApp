@@ -296,7 +296,10 @@ def add_experiments_to_graph(graph):
 
 
 def add_experiment_miseq_experiment_relation_to_graph(graph):
-    experiment = get_experiment_from_graph(graph)
+    try:
+        experiment = get_experiment_from_graph(graph)
+    except NoUniqueExperiment:
+        return
     miseq_experiments_for_experiment = [
         me for me in get_miseq_experiments_from_graph(graph)        
         if me.experiment_id == experiment.id
