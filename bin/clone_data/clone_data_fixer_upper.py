@@ -295,6 +295,16 @@ def add_experiments_to_graph(graph):
         graph.add_edge(fp_well, experiment)
 
 
+def add_experiment_miseq_experiment_relation_to_graph(graph):
+    experiment = get_experiment_from_graph(graph)
+    miseq_experiments_for_experiment = [
+        me for me in get_miseq_experiments_from_graph(graph)        
+        if me.experiment_id == experiment.id
+    ]
+    for miseq_experiment in miseq_experiments_for_experiment:
+        graph.add_edge(experiment, miseq_experiment)
+
+
 def create_graphs_from_clones(clones):
     fp_wells = get_fp_wells_from_clones(clones)
     graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
@@ -304,6 +314,7 @@ def create_graphs_from_clones(clones):
         add_miseq_well_experiments_to_graph(graph)
         add_miseq_experiments_to_graph(graph)
         add_experiments_to_graph(graph)
+        add_experiment_miseq_experiment_relation_to_graph(graph)
     return graphs
 
 
@@ -358,6 +369,17 @@ def assert_miseq_experiment_correct_for_known_example(graphs):
     miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     # Just check required miseq experiment is in list of all miseq experiments - others will exist.
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
+
+
+def assert_experiment_miseq_experiment_relation_correct_for_known_example(graphs):
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
+    experiment_miseq_experiment_graph = graph.subgraph(
+        get_experiment_from_graph(graph) + get_miseq_experiments_from_graph(graph)
+    )
+    edges = experiment_miseq_experiment_graph.edges
+    assert len(edges) == 1
+    assert edges[0][0].id == "2518"
+    assert edges[0][1].name == "HUEDQ0591_BRPF1"
 
 
 def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
