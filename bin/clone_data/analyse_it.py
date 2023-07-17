@@ -49,3 +49,10 @@ def convert_numeric_well_name_to_alphanumeric(numeric):
     a, x = divmod(int(numeric)-1, 192)
     b, c = divmod(x, 8)
     return string.ascii_uppercase[8*a + c] + f"{b+1:02}"
+
+
+def convert_alphanumeric_well_name_to_numeric(alphanumeric):
+    a, b = string.ascii_uppercase.index(alphanumeric[0]), int(alphanumeric[1:])
+    d, r = divmod(a, 8)
+    return str(192*d + 8*(b-1) + r+1)
+    return a, b
