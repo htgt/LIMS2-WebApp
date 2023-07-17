@@ -727,9 +727,12 @@ def delete_extraneous_miseq_well_experiments(graphs):
 
     
 def get_experiment_miseq_experiment_subgraph(graph):
-    return graph.subgraph(
-        [get_experiment_from_graph(graph)] + get_miseq_experiments_from_graph(graph)
-    )
+    try:
+        return graph.subgraph(
+            [get_experiment_from_graph(graph)] + get_miseq_experiments_from_graph(graph)
+        )
+    except NoUniqueExperiment:
+        return Graph()
 
 
 def get_row_for_clone(rows, plate_name, well_name):
