@@ -653,7 +653,7 @@ def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
 def get_row_for_clone(rows, plate_name, well_name):
     rows_with_correct_plate_and_well = [
         row for row in rows
-        if row["fp_plate"] == plate_name and row["fp_well"] == well_name       
+        if row["fp_plate"] == plate_name and row["fp_well"] == well_name
     ]
     if len(rows_with_correct_plate_and_well) == 0:
         raise RuntimeError(f"No rows for {plate_name}_{well_name}")
