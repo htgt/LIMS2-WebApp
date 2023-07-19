@@ -1271,7 +1271,7 @@ sub test_get_processes_for_wells : Test(3) {
             species => "Mouse",
             name => "MISEQ456",
         });
-        my $output_well = model->create_well({
+        my $miseq_well = model->create_well({
             well_name => "A01",
             plate_name => "MISEQ456",
             created_by => 'test_user@example.org',
@@ -1306,8 +1306,8 @@ sub test_get_processes_for_wells : Test(3) {
                 well_name => "A01",
             },
             output_well => {
-                plate_name => $output_well->plate->name,
-                well_name => $output_well->name,
+                plate_name => $miseq_well->plate->name,
+                well_name => $miseq_well->name,
             },
         });
 
@@ -1317,7 +1317,7 @@ sub test_get_processes_for_wells : Test(3) {
         my $input_well = @processes[0]->input_wells->first();
         is($input_well->id, $piq_well->id);
         my $output_well = @processes[0]->output_wells->first();
-        is($output_well->id, $output_well->id);
+        is($output_well->id, $miseq_well->id);
     }
 }
 
