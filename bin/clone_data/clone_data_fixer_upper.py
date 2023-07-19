@@ -635,10 +635,10 @@ def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
                 print(f"Deleting relation for {piq_well} - {miseq_well}.")
                 run(
                     (
-                        "docker" " run"
+                        "docker run"
                         " --rm"
-                        " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
-                        " --env" " PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
+                        " --env LIMS2_DB=LIMS2_CLONE_DATA"
+                        " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
                         f" {docker_image}"
                         " ./bin/clone_data/delete-processes-between-wells.pl"
                             f" --piq_plate_name {piq_well.plates.name}"
