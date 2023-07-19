@@ -617,18 +617,18 @@ def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
             row_for_clone = get_row_for_clone(rows_with_miseq_data, fp_well.plates.name, fp_well.name)
         except (NoRowForClone, MultipleRowsForClone):
             continue
+        miseq_plate =  row_for_clone["miseq_plate"]
+        miseq_well =  convert_numeric_well_name_to_alphanumeric(row_for_clone["miseq_well"])
         bad_miseq_wells = [
             miseq_well for miseq_well in miseq_wells
             if not (
-                miseq_well.plates.name == row_for_clone["miseq_plate"]
+                miseq_well.plates.name == miseq_plate
                 and
-                miseq_well.name == convert_numeric_well_name_to_alphanumeric(
-                    row_for_clone["miseq_well"]
-                )
+                miseq_well.name == miseq_well
             )
         ]
         if len(bad_miseq_wells) != len(miseq_wells) - 1:
-            print(f"bad: {bad_miseq_wells}, all: {miseq_wells}, row: {row_for_clone['miseq_plate']}_{convert_numeric_well_name_to_alphanumeric(row_for_clone['miseq_well'])}")
+            print(f"bad: {bad_miseq_wells}, all: {miseq_wells}, row: {miseq_plate}_{miseq_well}")
             continue
         for miseq_well in bad_miseq_wells:
             try:
