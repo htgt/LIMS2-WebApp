@@ -42,6 +42,14 @@ class NoUniqueExperiment(DataFixerUpperException):
     """Raised when there is either no or multiple experiments linked to a clone."""
 
 
+class NoRowForClone(DataFixerUpperException):
+    """Raised when the no row found in spreadsheet for clone"""
+
+
+class MultipleRowsForClone(DataFixerUpperException):
+    """Raised when multiple rows found in spreadsheet for clone"""
+
+
 engine = None
 
 Plate = None
@@ -573,7 +581,7 @@ def create_missing_piq_miseq_well_relations(graphs, docker_image):
         fp_well = get_fp_well_from_graph(graph)
         try:
             row_for_clone = get_row_for_clone(rows_with_miseq_data, fp_well.plates.name, fp_well.name)
-        except RuntimeError:
+        except (NoRowForClone, MultipleRowsForClone):
             continue
         run(
             (
@@ -607,7 +615,7 @@ def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
         miseq_wells = get_miseq_wells_from_graph(graph)
         try:
             row_for_clone = get_row_for_clone(rows_with_miseq_data, fp_well.plates.name, fp_well.name)
-        except RuntimeError:
+        except (NoRowForClone, MultipleRowsForClone):
             continue
         bad_miseq_wells = [
             miseq_well for miseq_well in miseq_wells
@@ -656,9 +664,9 @@ def get_row_for_clone(rows, plate_name, well_name):
         if row["fp_plate"] == plate_name and row["fp_well"] == well_name
     ]
     if len(rows_with_correct_plate_and_well) == 0:
-        raise RuntimeError(f"No rows for {plate_name}_{well_name}")
+        raise NoRowForClone(f"No rows for {plate_name}_{well_name}")
     if len(rows_with_correct_plate_and_well) > 1:
-        raise RuntimeError(f"Multiple rows for {plate_name}_{well_name}")
+        raise MultipleRowsForClone(f"Multiple rows for {plate_name}_{well_name}")
     return rows_with_correct_plate_and_well[0]
 
 
