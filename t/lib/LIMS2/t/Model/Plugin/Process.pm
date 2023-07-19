@@ -1313,7 +1313,7 @@ sub test_get_processes_for_wells : Test(3) {
 
         # As the process is created implicitly when we create the output_well,
         # we check that the got process connects the correct wells.
-        is(scalar @processes, 1);
+        is(scalar @processes, 1); # We want to ensure that *only* the correct process is returned.
         my $input_well = @processes[0]->input_wells->first();
         is($input_well->id, $piq_well->id);
         my $output_well = @processes[0]->output_wells->first();
