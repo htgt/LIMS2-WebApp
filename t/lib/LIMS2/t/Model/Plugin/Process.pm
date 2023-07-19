@@ -1311,7 +1311,7 @@ sub test_get_processes_for_wells : Test(3) {
             },
         });
 
-        # As the processes is created implicitly when we create the output_well,
+        # As the process is created implicitly when we create the output_well,
         # we check that the got process connects the correct wells.
         is(scalar @processes, 1);
         my $input_well = @processes[0]->input_wells->first();
