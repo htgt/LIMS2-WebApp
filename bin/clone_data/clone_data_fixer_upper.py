@@ -76,6 +76,8 @@ def init(data_base_details):
             "miseq_well_experiment",
             "wells",
             "experiments",
+            "miseq_alleles_frequency",
+            "indel_histogram",
         ]
     )
     Base = automap_base(metadata=metadata)
