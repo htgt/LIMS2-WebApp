@@ -407,6 +407,12 @@ def assert_experiment_miseq_experiment_relation_correct_for_known_example(graphs
     assert edges[0][1].name == "HUEDQ0591_BRPF1"
 
 
+def assert_gene_symbol_correct_for_known_example(graphs):
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
+    gene_symbol = get_gene_symbol_from_graph(graph)
+    assert gene_symbol == "BRPF1"
+
+
 def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
     assert len(graphs) == expected_number_of_clones, f"Expected {expected_number_of_clones} freeze plate wells,found {len(graphs)}."
 
