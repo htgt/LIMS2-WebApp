@@ -931,6 +931,7 @@ if __name__ == "__main__":
     assert_correct_number_of_graphs(graphs, expected_number_of_clones)
     assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
+    assert_experiment_miseq_experiment_relation_correct_for_known_example
 
     plot_one_piq_two_miseq_graphs(graphs)
     print_out_wells_for_one_piq_two_miseq_cases(graphs)
