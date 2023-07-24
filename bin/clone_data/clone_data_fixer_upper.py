@@ -250,6 +250,20 @@ def get_experiment_id_for_clone(plate_name, well_name):
     return experiment_id
 
 
+def get_gene_symbols_for_clone(plate_name, well_name):
+    response = get(
+        f"http://localhost:8081/public_reports/get_gene_symbols_from_clone/{plate_name}/{well_name}",
+        headers={"accept": "application/json"},
+    )
+    response.raise_for_status()
+    gene_symbols = response.json()[0].split(", ")
+    if len(gene_symbols > 1):
+        raise RuntimeError("Haven't considered this case yet")
+    if len(gene_symbols[0] == 0):
+        raise RuntimeError("All clones should have an experiment")
+    return gene_symbols[0]
+
+
 def create_graph_from_fp_well(fp_well):
     graph = Graph()
     graph.add_node(fp_well, **{"type": "fp_well", "layer": 1})
