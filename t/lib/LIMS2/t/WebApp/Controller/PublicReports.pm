@@ -879,6 +879,23 @@ sub getting_of_experiment_from_clone_id : Tests {
     }
 }
 
+sub getting_of_gene_symbol_from_clone_id : Tests {
+    note("Returns correct gene symbol for clone");
+    {
+        my $plate_name = "HUPFP1234A1";
+        my $well_name = "A01";
+        my $mech = LIMS2::Test::mech();
+        $mech->default_header("Accept" => "application/json");
+
+        $mech->get_ok("/public_reports/get_gene_symbols_from_clone/$plate_name/$well_name");
+
+        my $data = decode_json($mech->content);
+
+        # Checking one attribute should be enough to convince it's working.
+        is($data->[0], "ADNP");
+    }
+}
+
 =head1 AUTHOR
 
 Josh Kent
