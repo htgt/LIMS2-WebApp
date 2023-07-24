@@ -250,16 +250,16 @@ def get_experiment_id_for_clone(plate_name, well_name):
     return experiment_id
 
 
-def get_gene_symbols_for_clone(plate_name, well_name):
+def get_gene_symbol_for_clone(plate_name, well_name):
     response = get(
         f"http://localhost:8081/public_reports/get_gene_symbols_from_clone/{plate_name}/{well_name}",
         headers={"accept": "application/json"},
     )
     response.raise_for_status()
     gene_symbols = response.json()[0].split(", ")
-    if len(gene_symbols > 1):
+    if len(gene_symbols) > 1:
         raise RuntimeError("Haven't considered this case yet")
-    if len(gene_symbols[0] == 0):
+    if len(gene_symbols[0]) == 0:
         raise RuntimeError("All clones should have an experiment")
     return gene_symbols[0]
 
@@ -317,6 +317,13 @@ def add_experiments_to_graph(graph):
         graph.add_edge(fp_well, experiment)
 
 
+def add_gene_symbol_to_graph(graph):
+    fp_well = get_fp_well_from_graph(graph)
+    gene_symbol = get_gene_symbol_for_clone(fp_well.plates.name, fp_well.name)
+    graph.add_node(gene_symbol, **{"type": "gene_symbol", "layer": 1})
+    graph.add_edge(fp_well, gene_symbol)
+
+
 def add_experiment_miseq_experiment_relation_to_graph(graph):
     try:
         experiment = get_experiment_from_graph(graph)
@@ -339,6 +346,7 @@ def create_graphs_from_clones(clones):
         add_miseq_well_experiments_to_graph(graph)
         add_miseq_experiments_to_graph(graph)
         add_experiments_to_graph(graph)
+        add_gene_symbol_to_graph(graph)
         add_experiment_miseq_experiment_relation_to_graph(graph)
     return graphs
 
@@ -932,6 +940,7 @@ if __name__ == "__main__":
     assert_wells_correct_for_known_example(graphs)
     assert_miseq_experiment_correct_for_known_example(graphs)
     assert_experiment_miseq_experiment_relation_correct_for_known_example
+    assert_gene_symbol_correct_for_known_example(graphs)
 
     plot_one_piq_two_miseq_graphs(graphs)
     print_out_wells_for_one_piq_two_miseq_cases(graphs)
