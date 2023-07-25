@@ -1000,6 +1000,9 @@ if __name__ == "__main__":
     graphs = create_graphs_from_clones(clones)
     delete_extraneous_miseq_well_experiments(graphs)
 
+    graphs = create_graphs_from_clones(clones)
+    fix_up_using_gene_symbol(graphs)
+
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
     print_clone_data_results(results_from_checking)
