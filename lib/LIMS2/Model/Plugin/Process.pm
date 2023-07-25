@@ -191,6 +191,24 @@ sub append_process {
     return;
 }
 
+sub get_processes_for_wells {
+    # NOTE - This will return *all* processes that have the passed in input and
+    # output wells. This might include cases where there are multiple input or
+    # output wells. This may or may not be the desired behaviour.
+    my ( $self, $params ) = @_;
+    my $input_well = $self->retrieve_well($params->{input_well});
+    my $output_well = $self->retrieve_well($params->{output_well});
+    my @input_child_processes = $input_well->child_processes();
+    my @output_parent_processes = $output_well->parent_processes();
+    my @processes_for_both_wells = ();
+    foreach my $process (@input_child_processes) {
+        if (grep {$_->id eq $process->id} @output_parent_processes) {
+            push(@processes_for_both_wells, $process);
+        }
+    }
+    return @processes_for_both_wells;
+}
+
 1;
 
 __END__

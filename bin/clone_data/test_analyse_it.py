@@ -4,6 +4,7 @@ from networkx import Graph
 from networkx.utils import graphs_equal
 
 from analyse_it import (
+    convert_numeric_well_name_to_alphanumeric,
     filter_graphs_by_shape,
     get_well_graph_from_graph,
     get_equivalence_class_by_shape,
@@ -192,4 +193,34 @@ class TestFilterGraphsBySHape(TestCase):
 
         expected_graphs = [graph_with_isomorphic_fp_and_piq_wells]
         self.assertCountEqual(output_graphs, expected_graphs)
+
+
+class TestConvertNumericWellNameToAlphaNumeric(TestCase):
+    def test_correct_coversion(self):
+        cases = (
+            ("1", "A01"),
+            ("8", "H01"),
+            ("23", "G03"),
+            ("89", "A12"),
+            ("96", "H12"),
+            ("97", "A13"),
+            ("104", "H13"),
+            ("156", "D20"),
+            ("185", "A24"),
+            ("192", "H24"),
+            ("193", "I01"),
+            ("200", "P01"),
+            ("258", "J09"),
+            ("281", "I12"),
+            ("288", "P12"),
+            ("289", "I13"),
+            ("296", "P13"),
+            ("337", "I19"),
+            ("377", "I24"),
+            ("384", "P24"),
+        )
+        
+        for numeric, alphanumeric in cases:
+            with self.subTest(numeric=numeric, alphanumeric=alphanumeric):
+                self.assertEqual(convert_numeric_well_name_to_alphanumeric(numeric), alphanumeric)
 

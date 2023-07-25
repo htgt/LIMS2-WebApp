@@ -1262,6 +1262,65 @@ sub miseq_no_template_process : Test(3) {
     }
 }
 
+sub test_get_processes_for_wells : Test(3) {
+    note("Testing get_processes_for_wells");
+    {
+        my $plate_1 = model->create_plate({
+            type => "MISEQ",
+            created_by => 'test_user@example.org',
+            species => "Mouse",
+            name => "MISEQ456",
+        });
+        my $miseq_well = model->create_well({
+            well_name => "A01",
+            plate_name => "MISEQ456",
+            created_by => 'test_user@example.org',
+            process_data => {
+                type => "miseq_no_template",
+                input_wells => [{
+                    plate_name => "CRISPR_PIQ",
+                    well_name => "A01",
+                }],
+            },
+        });
+        my $another_well = model->create_well({
+            well_name => "A02",
+            plate_name => "MISEQ456",
+            created_by => 'test_user@example.org',
+            process_data => {
+                type => "miseq_no_template",
+                input_wells => [{
+                    plate_name => "CRISPR_PIQ",
+                    well_name => "A01",
+                }],
+            },
+        });
+        my $piq_well = model->retrieve_well({
+            plate_name => "CRISPR_PIQ",
+            well_name => "A01",
+        });
+
+        my @processes = model->get_processes_for_wells({
+            input_well => {
+                plate_name => "CRISPR_PIQ",
+                well_name => "A01",
+            },
+            output_well => {
+                plate_name => $miseq_well->plate->name,
+                well_name => $miseq_well->name,
+            },
+        });
+
+        # As the process is created implicitly when we create the output_well,
+        # we check that the got process connects the correct wells.
+        is(scalar @processes, 1); # We want to ensure that *only* the correct process is returned.
+        my $input_well = @processes[0]->input_wells->first();
+        is($input_well->id, $piq_well->id);
+        my $output_well = @processes[0]->output_wells->first();
+        is($output_well->id, $miseq_well->id);
+    }
+}
+
 1;
 
 __END__
