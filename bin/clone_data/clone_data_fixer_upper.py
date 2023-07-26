@@ -51,6 +51,10 @@ class MultipleRowsForClone(DataFixerUpperException):
     """Raised when multiple rows found in spreadsheet for clone"""
 
 
+class NoUniqueGeneSymbol(DataFixerUpperException):
+    """Raised when there is either no or multiple gene symbols linked to a clone."""
+
+
 engine = None
 
 Plate = None
@@ -497,6 +501,13 @@ def get_experiment_from_graph(graph):
     if len(experiments) != 1:
         raise NoUniqueExperiment()
     return experiments[0]
+
+
+def get_gene_symbol_from_graph(graph):
+    gene_symbols = [n for n, d in graph.nodes(data=True) if d["type"] == "gene_symbol"]
+    if len(gene_symbols) != 1:
+        raise NoUniqueGeneSymbol(f"Found {len(gene_symbols)}")
+    return gene_symbols[0]
 
 
 def get_plate_names_from_graphs(graphs):
