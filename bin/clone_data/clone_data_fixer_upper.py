@@ -778,7 +778,10 @@ def fix_up_using_gene_symbol(graphs):
         graph for graph in graphs_with_correct_well_relations
         if len(get_experiment_miseq_experiment_subgraph(graph).edges) == 0
     ]
+    print(f"Number of graphs {len(graphs_with_no_experiment_miseq_experiment_relation)}")
     for graph in graphs_with_no_experiment_miseq_experiment_relation:
+        fp_well = get_fp_well_from_graph(graph)
+        print(f"Investigating {fp_well}")
         try:
             experiment = get_experiment_from_graph(graph)
         except NoUniqueExperiment:
@@ -788,8 +791,8 @@ def fix_up_using_gene_symbol(graphs):
             me for me in get_miseq_experiments_from_graph(graph)
             if me.gene == gene_symbol
         ]
+        print(f"Number of miseq-experiments for gene: {len(miseq_experiments_for_gene)}")
         if len(miseq_experiments_for_gene) == 1:
-            fp_well = get_fp_well_from_graph(graph)
             miseq_experiment = miseq_experiments_for_gene[0]
             print(f"Associating {fp_well} to {miseq_experiment} using experiment: {experiment} because they share gene symbol: {gene_symbol}")
             with Session(engine) as session, session.begin():
