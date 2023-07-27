@@ -354,7 +354,7 @@ sub create_miseq_experiment {
         }
     );
 
-    return;
+    return $miseq;
 }
 
 sub pspec_update_miseq_experiment {
