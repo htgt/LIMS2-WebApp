@@ -14,6 +14,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import joinedload, relationship, Session
 
 from analyse_it import (
+    convert_alphanumeric_well_name_to_numeric,
     convert_numeric_well_name_to_alphanumeric,
     filter_graphs_by_shape,
     get_well_graph_from_graph,
@@ -75,6 +76,8 @@ def init(data_base_details):
             "miseq_well_experiment",
             "wells",
             "experiments",
+            "miseq_alleles_frequency",
+            "indel_histogram",
         ]
     )
     Base = automap_base(metadata=metadata)
@@ -200,6 +203,11 @@ def add_experiments_to_miseq_experiments(graphs):
                     print(f"Couldn't fix up experiment/miseq-experiment data for {row['fp_plate']}_{row['fp_well']}")
 
 
+def delete_miseq_well_experiment(miseq_well_experiment):
+    with Session(engine) as session, session.begin():
+        session.delete(miseq_well_experiment)
+
+
 def get_experiment_from_fp_well(fp_well):
     try:
         experiment_id = get_experiment_id_for_clone(fp_well.plates.name, fp_well.name)
@@ -295,6 +303,19 @@ def add_experiments_to_graph(graph):
         graph.add_edge(fp_well, experiment)
 
 
+def add_experiment_miseq_experiment_relation_to_graph(graph):
+    try:
+        experiment = get_experiment_from_graph(graph)
+    except NoUniqueExperiment:
+        return
+    miseq_experiments_for_experiment = [
+        me for me in get_miseq_experiments_from_graph(graph)        
+        if me.experiment_id == experiment.id
+    ]
+    for miseq_experiment in miseq_experiments_for_experiment:
+        graph.add_edge(experiment, miseq_experiment)
+
+
 def create_graphs_from_clones(clones):
     fp_wells = get_fp_wells_from_clones(clones)
     graphs = [create_graph_from_fp_well(fp_well) for fp_well in fp_wells]
@@ -304,6 +325,7 @@ def create_graphs_from_clones(clones):
         add_miseq_well_experiments_to_graph(graph)
         add_miseq_experiments_to_graph(graph)
         add_experiments_to_graph(graph)
+        add_experiment_miseq_experiment_relation_to_graph(graph)
     return graphs
 
 
@@ -358,6 +380,17 @@ def assert_miseq_experiment_correct_for_known_example(graphs):
     miseq_experiment_names = [n.name for n, d in graph.nodes(data=True) if d["type"] == "miseq_experiment"]
     # Just check required miseq experiment is in list of all miseq experiments - others will exist.
     assert "HUEDQ0591_BRPF1" in miseq_experiment_names, f"Found miseq experiment names: {miseq_experiment_names}"
+
+
+def assert_experiment_miseq_experiment_relation_correct_for_known_example(graphs):
+    graph = get_graph_containing_fp_well(graphs, "HUPFP0085A1", "C10")
+    experiment_miseq_experiment_graph = graph.subgraph(
+        get_experiment_from_graph(graph) + get_miseq_experiments_from_graph(graph)
+    )
+    edges = experiment_miseq_experiment_graph.edges
+    assert len(edges) == 1
+    assert edges[0][0].id == "2518"
+    assert edges[0][1].name == "HUEDQ0591_BRPF1"
 
 
 def assert_correct_number_of_graphs(graphs, expected_number_of_graphs):
@@ -656,6 +689,56 @@ def delete_extraneous_piq_miseq_well_relations(graphs, docker_image):
                 raise e
 
 
+def delete_extraneous_miseq_well_experiments(graphs):
+    print("Deleting extraeous miseq well experiments")
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows_with_miseq_experiment_data = [row for row in reader if row["miseq_experiment_name"]]
+    graphs_with_correct_well_relations = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=happy_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    graphs_with_multiple_experiment_miseq_experiment_relations = [
+        graph for graph in graphs_with_correct_well_relations 
+        if len(get_experiment_miseq_experiment_subgraph(graph).edges) > 1
+    ]
+    for graph in graphs_with_multiple_experiment_miseq_experiment_relations:
+        fp_well = get_fp_well_from_graph(graph)
+        try:
+            row_for_clone = get_row_for_clone(rows_with_miseq_experiment_data, fp_well.plates.name, fp_well.name)
+        except (NoRowForClone, MultipleRowsForClone):
+            continue
+        miseq_experiments = get_miseq_experiments_from_graph(
+            get_experiment_miseq_experiment_subgraph(graph)
+        )
+        bad_miseq_experiments = [
+            me for me in miseq_experiments 
+            if me.name != row_for_clone["miseq_experiment_name"]
+        ]
+        if len(bad_miseq_experiments) != len(miseq_experiments) - 1:
+            print(f"bad: {bad_miseq_experiments}, all: {miseq_experiments}, row: {row_for_clone['miseq_experiment_name']}")
+            continue
+        bad_miseq_well_experiments = [
+            n
+            for n, l in graph.nodes(data=True)
+            if l["type"] == "miseq_well_experiment" and n in sum([list(graph[m]) for m in bad_miseq_experiments], [])
+        ]
+        for miseq_well_experiment in bad_miseq_well_experiments:  
+            delete_miseq_well_experiment(miseq_well_experiment) 
+
+    
+def get_experiment_miseq_experiment_subgraph(graph):
+    try:
+        experiment = get_experiment_from_graph(graph)
+    except NoUniqueExperiment:
+        return Graph()
+    return (
+        graph
+        .subgraph([experiment] + get_miseq_experiments_from_graph(graph))
+        .subgraph([experiment] + list(graph[experiment]))
+    )
+
 
 
 def get_row_for_clone(rows, plate_name, well_name):
@@ -678,6 +761,68 @@ def show_graph(graph):
     """
     draw_networkx(graph, pos=multipartite_layout(graph, subset_key="layer"))
     show_plot()
+
+
+def print_clones_with_extraneous_miseq_experiments(results, graphs):
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows = list(reader)
+    # Get all graphs with good well relations.
+    _ = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=happy_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    # Get those extraneous experiment - miseq-well-experiment relations.
+    _ = [
+        graph for graph in _ 
+        if len(get_experiment_miseq_experiment_subgraph(graph).edges) > 1
+    ]
+    # Exclude those for which we already have good results.
+    _ = [
+        graph for graph in _
+        if (
+            (fp_well:=get_fp_well_from_graph(graph)).plates.name + "_" + fp_well.name
+            not in 
+            [result.clone_name for result in results if result.error is None]
+        )
+    ]
+    # Exclude those already on our spreadsheet.
+    filtered_graphs = [
+        graph for graph in _
+        if len(
+            [
+                row for row in rows 
+                if (
+                    row["fp_plate"] == (fp_well:=get_fp_well_from_graph(graph)).plates.name
+                    and 
+                    row["fp_well"] == fp_well.name
+                )
+            ]
+        ) == 0
+    ]
+
+
+    print("Multiple miseq-experiment cases:")
+    print("fp_plate, fp_well, piq_plate, piq_well, miseq_plate, miseq_well, possible_miseq_experiments")
+    for graph in filtered_graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        piq_well = get_piq_wells_from_graph(graph)[0]
+        miseq_well = get_miseq_wells_from_graph(graph)[0]
+        associated_miseq_experiments = get_miseq_experiments_from_graph(
+            get_experiment_miseq_experiment_subgraph(graph)
+        )
+        print(
+            "{}, {}, {}, {}, {}, {}, {}".format(
+                fp_well.plates.name,
+                fp_well.name,
+                piq_well.plates.name,
+                piq_well.name,
+                miseq_well.plates.name,
+                convert_alphanumeric_well_name_to_numeric(miseq_well.name),
+                associated_miseq_experiments,
+            )
+        )
 
 
 if __name__ == "__main__":
@@ -746,6 +891,9 @@ if __name__ == "__main__":
 
     delete_extraneous_piq_miseq_well_relations(graphs, docker_image)
 
+    graphs = create_graphs_from_clones(clones)
+    delete_extraneous_miseq_well_experiments(graphs)
+
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
     print_clone_data_results(results_from_checking)
@@ -759,4 +907,9 @@ if __name__ == "__main__":
     print("Clone name, Miseq experiment")
     for result in good_and_two_piq_miseq:
         print(result.clone_name + ", " + result.json_data["miseq_data"]["experiment_name"])
+
+    # We need to 'refresh' the graph to take in to account the changes from
+    # deleting some extraneous ones.
+    graphs = create_graphs_from_clones(clones)
+    print_clones_with_extraneous_miseq_experiments(results_from_checking, graphs)
 

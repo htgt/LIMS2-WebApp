@@ -4,6 +4,7 @@ from networkx import Graph
 from networkx.utils import graphs_equal
 
 from analyse_it import (
+    convert_alphanumeric_well_name_to_numeric,
     convert_numeric_well_name_to_alphanumeric,
     filter_graphs_by_shape,
     get_well_graph_from_graph,
@@ -224,3 +225,32 @@ class TestConvertNumericWellNameToAlphaNumeric(TestCase):
             with self.subTest(numeric=numeric, alphanumeric=alphanumeric):
                 self.assertEqual(convert_numeric_well_name_to_alphanumeric(numeric), alphanumeric)
 
+
+class ConvertAlphaNumericWellNameToNumeric(TestCase):
+    def test_correct_coversion(self):
+        cases = (
+            ("A01", "1"),
+            ("H01", "8"),
+            ("G03", "23"),
+            ("A12", "89"),
+            ("H12", "96"),
+            ("A13", "97"),
+            ("H13", "104"),
+            ("D20", "156"),
+            ("A24", "185"),
+            ("H24", "192"),
+            ("I01", "193"),
+            ("P01", "200"),
+            ("J09", "258"),
+            ("I12", "281"),
+            ("P12", "288"),
+            ("I13", "289"),
+            ("P13", "296"),
+            ("I19", "337"),
+            ("I24", "377"),
+            ("P24", "384"),
+        )
+
+        for alphanumeric, numeric in cases:
+            with self.subTest(alphanumeric=alphanumeric, numeric=numeric):
+                self.assertEqual(convert_alphanumeric_well_name_to_numeric(alphanumeric), numeric)
