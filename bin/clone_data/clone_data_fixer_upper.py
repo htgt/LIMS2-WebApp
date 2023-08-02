@@ -825,6 +825,71 @@ def print_clones_with_extraneous_miseq_experiments(results, graphs):
         )
 
 
+def print_clones_with_missing_miseq_experiments(graphs):
+    with open("missing-misseq-wells - fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv", newline='') as f:
+        reader = DictReader(f, delimiter="\t")
+        rows = list(reader)
+    # Get all graphs with good well relations.
+    _ = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=happy_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    # Exclude those without a LIMS2 experiment.
+    _ = [
+        graph for graph in _
+        if _has_unique_experiment_experiment_exists(graph)
+    ]
+    # Filter for those with no associated miseq-experiment.
+    _ = [
+        graph for graph in _
+        if len(get_experiment_miseq_experiment_subgraph(graph).edges) == 0
+    ]
+    # Exclude those already on our spreadsheet.
+    filtered_graphs = [
+        graph for graph in _
+        if len(
+            [
+                row for row in rows 
+                if (
+                    row["fp_plate"] == (fp_well:=get_fp_well_from_graph(graph)).plates.name
+                    and 
+                    row["fp_well"] == fp_well.name
+                )
+            ]
+        ) == 0
+    ]
+
+    print("Missing miseq-experiment cases:")
+    print("fp_plate, fp_well, piq_plate, piq_well, miseq_plate, miseq_well, possible_miseq_experiments")
+    for graph in filtered_graphs:
+        fp_well = get_fp_well_from_graph(graph)
+        piq_well = get_piq_wells_from_graph(graph)[0]
+        miseq_well = get_miseq_wells_from_graph(graph)[0]
+        miseq_experiments = get_miseq_experiments_from_graph(graph)
+
+        print(
+            "{}, {}, {}, {}, {}, {}, {}".format(
+                fp_well.plates.name,
+                fp_well.name,
+                piq_well.plates.name,
+                piq_well.name,
+                miseq_well.plates.name,
+                convert_alphanumeric_well_name_to_numeric(miseq_well.name),
+                miseq_experiments,
+            )
+        )
+
+
+def _has_unique_experiment_experiment_exists(graph):
+    try:
+        get_experiment_from_graph(graph)
+    except NoUniqueExperiment:
+        return False
+    return True
+
+
+
 if __name__ == "__main__":
 
     data_base_details = argv[1]
@@ -912,4 +977,4 @@ if __name__ == "__main__":
     # deleting some extraneous ones.
     graphs = create_graphs_from_clones(clones)
     print_clones_with_extraneous_miseq_experiments(results_from_checking, graphs)
-
+    print_clones_with_missing_miseq_experiments(graphs)
