@@ -8,7 +8,7 @@ use LIMS2::Model::Util::EngSeqParams qw( generate_well_eng_seq_params );
 use LIMS2::Model::Util::CrisprESQCView qw(crispr_damage_type_for_ep_pick);
 use LIMS2::Model::Util::Crisprs qw( crisprs_for_design );
 use LIMS2::Model::Util::Crisprs qw( get_crispr_group_by_crispr_ids );
-use LIMS2::Model::Util::Miseq qw( miseq_genotyping_info get_experiment_from_well );
+use LIMS2::Model::Util::Miseq qw( miseq_genotyping_info get_experiment_from_well get_gene_symbols_from_well);
 use LIMS2::Model::Util::SponsorReportII;
 
 use List::MoreUtils qw( uniq );
@@ -1101,6 +1101,25 @@ sub get_experiment_id_from_clone :Path( '/public_reports/get_experiment_id_from_
     my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
     my $experiment = get_experiment_from_well($well);
     $c->stash(json_data => [$experiment->id]);
+    $c->forward("View::JSON");
+}
+
+
+=head2 get_gene_symbols_from_clone
+
+This only exists to facilitate the correction of clone data for this ticket
+
+https://jira.sanger.ac.uk/browse/LIMS-46
+
+If the ticket is now closed, this can all be deleted.
+
+=cut
+sub get_gene_symbols_from_clone :Path( '/public_reports/get_gene_symbols_from_clone' ) :Args() {
+    my ( $self, $c, $plate_name, $well_name ) = @_;
+
+    my $well = $c->model('Golgi')->retrieve_well( { plate_name => $plate_name, well_name => $well_name } );
+    my $gene_symbols = get_gene_symbols_from_well($c, $well);
+    $c->stash(json_data => [$gene_symbols]);
     $c->forward("View::JSON");
 }
 
