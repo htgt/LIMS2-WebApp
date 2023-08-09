@@ -766,6 +766,39 @@ def delete_extraneous_miseq_well_experiments(graphs):
         for miseq_well_experiment in bad_miseq_well_experiments:  
             delete_miseq_well_experiment(miseq_well_experiment) 
 
+
+def fix_up_using_gene_symbol(graphs):
+    print("Fixing up using gene symbol")
+    graphs_with_correct_well_relations = filter_graphs_by_shape(
+        graphs=graphs,
+        shape=happy_shape(),
+        with_respect_to_types=["fp_well", "piq_well", "miseq_well"]
+    )
+    graphs_with_no_experiment_miseq_experiment_relation = [
+        graph for graph in graphs_with_correct_well_relations
+        if len(get_experiment_miseq_experiment_subgraph(graph).edges) == 0
+    ]
+    print(f"Number of graphs {len(graphs_with_no_experiment_miseq_experiment_relation)}")
+    for graph in graphs_with_no_experiment_miseq_experiment_relation:
+        fp_well = get_fp_well_from_graph(graph)
+        print(f"Investigating {fp_well}")
+        try:
+            experiment = get_experiment_from_graph(graph)
+        except NoUniqueExperiment:
+            continue
+        gene_symbol = get_gene_symbol_from_graph(graph)
+        miseq_experiments_for_gene = [
+            me for me in get_miseq_experiments_from_graph(graph)
+            if me.gene == gene_symbol
+        ]
+        print(f"Number of miseq-experiments for gene: {len(miseq_experiments_for_gene)}")
+        if len(miseq_experiments_for_gene) == 1:
+            miseq_experiment = miseq_experiments_for_gene[0]
+            print(f"Associating {fp_well} to {miseq_experiment} using experiment: {experiment} because they share gene symbol: {gene_symbol}")
+            with Session(engine) as session, session.begin():
+                session.add(miseq_experiment)
+                miseq_experiment.experiment_id = experiment.id
+
     
 def get_experiment_miseq_experiment_subgraph(graph):
     try:
@@ -999,6 +1032,9 @@ if __name__ == "__main__":
 
     graphs = create_graphs_from_clones(clones)
     delete_extraneous_miseq_well_experiments(graphs)
+
+    graphs = create_graphs_from_clones(clones)
+    fix_up_using_gene_symbol(graphs)
 
     results_from_checking = check_clone_data(clones)
     print("Results after fixing:")
