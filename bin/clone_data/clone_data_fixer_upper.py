@@ -108,7 +108,7 @@ def init(data_base_details):
     class MiseqExperiment(Base):
         __tablename__ = "miseq_experiment"
         def __repr__(self):
-            return str(self.id) + ":" + self.name
+            return str(self.id) + ":" + self.name + ":" + self.gene
     class Experiment(Base):
         __tablename__ = "experiments"
         def __repr__(self):
