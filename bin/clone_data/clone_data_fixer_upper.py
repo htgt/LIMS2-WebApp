@@ -949,7 +949,7 @@ def print_clones_with_missing_miseq_experiments(graphs):
                 piq_well.name,
                 miseq_well.plates.name,
                 convert_alphanumeric_well_name_to_numeric(miseq_well.name),
-                gene + ":" + miseq_experiments,
+                f"{gene}:{miseq_experiments}",
             )
         )
 
