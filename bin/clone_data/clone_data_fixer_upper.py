@@ -108,7 +108,7 @@ def init(data_base_details):
     class MiseqExperiment(Base):
         __tablename__ = "miseq_experiment"
         def __repr__(self):
-            return str(self.id) + ":" + self.name
+            return str(self.id) + ":" + self.name + ":" + self.gene
     class Experiment(Base):
         __tablename__ = "experiments"
         def __repr__(self):
@@ -933,22 +933,23 @@ def print_clones_with_missing_miseq_experiments(graphs):
     ]
 
     print("Missing miseq-experiment cases:")
-    print("fp_plate, fp_well, piq_plate, piq_well, miseq_plate, miseq_well, possible_miseq_experiments")
+    print("fp_plate\t fp_well\t piq_plate\t piq_well\t miseq_plate\t miseq_well\t miseq_experiment\t notes")
     for graph in filtered_graphs:
         fp_well = get_fp_well_from_graph(graph)
         piq_well = get_piq_wells_from_graph(graph)[0]
         miseq_well = get_miseq_wells_from_graph(graph)[0]
         miseq_experiments = get_miseq_experiments_from_graph(graph)
+        gene = get_gene_symbol_from_graph(graph)
 
         print(
-            "{}, {}, {}, {}, {}, {}, {}".format(
+            "{}\t {}\t {}\t {}\t {}\t {}\t\t {}".format(
                 fp_well.plates.name,
                 fp_well.name,
                 piq_well.plates.name,
                 piq_well.name,
                 miseq_well.plates.name,
                 convert_alphanumeric_well_name_to_numeric(miseq_well.name),
-                miseq_experiments,
+                f"{gene}:{miseq_experiments}",
             )
         )
 
