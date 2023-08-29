@@ -40,6 +40,7 @@ use List::Util qw( sum first min sum0 );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
+use Text::CSV qw (csv);
 use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
@@ -982,6 +983,17 @@ sub _reformat_strand_info_into_plus_minus_form {
 
 sub _get_miseq_data_from_well {
     my $well = shift;
+    my $plate = $well->plate;
+    my @clone_miseq_mapping = csv(
+        in => "bin/clone_data/clone-miseq-map.tsv",
+        headers => "auto",
+        sep_char => "\t",
+        filter => {
+            fp_plate => sub {$_ eq $plate->name},
+            fp_well => sub {$_ eq $well->name}
+        }
+    );
+    DEBUG("Number of clone data points: " . scalar(@clone_miseq_mapping));
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
         return undef;
