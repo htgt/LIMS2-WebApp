@@ -984,13 +984,15 @@ sub _reformat_strand_info_into_plus_minus_form {
 sub _get_miseq_data_from_well {
     my $well = shift;
     my $plate = $well->plate;
+    my $plate_name = "HUPFP1234A1";
+    my $well_name = "A01";
     my $clone_miseq_mapping = csv(
         in => "bin/clone_data/clone-miseq-map.tsv",
         headers => "auto",
         sep_char => "\t",
         filter => {
-            fp_plate => sub {$_ eq $plate->name},
-            fp_well => sub {$_ eq $well->name}
+            fp_plate => sub {$_ eq $plate_name},
+            fp_well => sub {$_ eq $well_name}
         }
     );
     if (scalar(@{$clone_miseq_mapping}) > 1) {
