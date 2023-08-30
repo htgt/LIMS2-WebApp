@@ -881,7 +881,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
-        miseq_data          => _get_miseq_data_from_well($well),
+        miseq_data          => _get_miseq_data_from_well($c, $well),
     };
 
     return $experiments;
@@ -982,14 +982,23 @@ sub _reformat_strand_info_into_plus_minus_form {
 }
 
 sub _get_miseq_data_from_well {
-    my $well = shift;
+    my ($c, $well) = @_;
     my $plate = $well->plate;
     my $plate_name = "HUPFP1234A1";
     my $well_name = "A01";
     my $entry = _get_entry_from_list($plate_name, $well_name);
     if (defined $entry) {
         DEBUG("It's defined");
-
+        my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
+            {
+                'miseq_exp.name' => $entry->{"miseq_experiment_name"},
+                'well.name' => $entry->{"miseq_well"},
+                'plate.name' => $entry->{"miseq_plate"},
+            },
+            {prefetch => ['miseq_exp', 'well', { well => 'plate'}]},
+        );
+        if (scalar(@miseq_well_experiments) != 1) {die "There can only be one..."};
+        DEBUG($miseq_well_experiments[0]);
     }
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
