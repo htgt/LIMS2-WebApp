@@ -984,7 +984,7 @@ sub _reformat_strand_info_into_plus_minus_form {
 sub _get_miseq_data_from_well {
     my $well = shift;
     my $plate = $well->plate;
-    my @clone_miseq_mapping = csv(
+    my $clone_miseq_mapping = csv(
         in => "bin/clone_data/clone-miseq-map.tsv",
         headers => "auto",
         sep_char => "\t",
@@ -993,7 +993,14 @@ sub _get_miseq_data_from_well {
             fp_well => sub {$_ eq $well->name}
         }
     );
-    DEBUG("Number of clone data points: " . scalar(@clone_miseq_mapping));
+    if (scalar(@{$clone_miseq_mapping}) > 1) {
+        die "There should only be one entry on the list but found two for $well";
+    } elsif (scalar(@{$clone_miseq_mapping}) == 1) {
+        DEBUG("Found an entry");
+    } else {
+        DEBUG("Didn't find an entry for $well");
+    }
+    DEBUG(Dumper($clone_miseq_mapping));
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
         return undef;
