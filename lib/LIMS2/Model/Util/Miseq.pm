@@ -986,23 +986,11 @@ sub _get_miseq_data_from_well {
     my $plate = $well->plate;
     my $plate_name = "HUPFP1234A1";
     my $well_name = "A01";
-    my $clone_miseq_mapping = csv(
-        in => "bin/clone_data/clone-miseq-map.tsv",
-        headers => "auto",
-        sep_char => "\t",
-        filter => {
-            fp_plate => sub {$_ eq $plate_name},
-            fp_well => sub {$_ eq $well_name}
-        }
-    );
-    if (scalar(@{$clone_miseq_mapping}) > 1) {
-        die "There should only be one entry on the list but found two for $well";
-    } elsif (scalar(@{$clone_miseq_mapping}) == 1) {
-        DEBUG("Found an entry");
-    } else {
-        DEBUG("Didn't find an entry for $well");
+    my $entry = _get_entry_from_list($plate_name, $well_name);
+    if (defined $entry) {
+        DEBUG("It's defined");
+
     }
-    DEBUG(Dumper($clone_miseq_mapping));
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
         return undef;
@@ -1012,6 +1000,7 @@ sub _get_miseq_data_from_well {
     if (! defined $miseq_plate_well) {
         return undef;
     }
+    DEBUG("Miseq well: $miseq_plate_well");
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
     my $experiment_in_well =  get_experiment_from_well($well);
     my @miseq_well_experiments = $miseq_plate_well
@@ -1050,6 +1039,34 @@ sub _get_miseq_data_from_well {
         "allele_data" => $allele_data,
     };
 
+}
+
+sub _get_entry_from_list {
+    my ($plate_name, $well_name) = @_;
+    my $clone_miseq_mapping = csv(
+        in => "bin/clone_data/clone-miseq-map.tsv",
+        headers => "auto",
+        sep_char => "\t",
+        filter => {
+            fp_plate => sub {$_ eq $plate_name},
+            fp_well => sub {$_ eq $well_name}
+        }
+    );
+    DEBUG(Dumper($clone_miseq_mapping));
+    if (scalar(@{$clone_miseq_mapping}) > 1) {
+        die "There should only be one entry on the list but found two for ${plate_name}_${well_name}";
+    } elsif (scalar(@{$clone_miseq_mapping}) == 1) {
+        DEBUG("Found an entry");
+        my $entry = $clone_miseq_mapping->[0];
+        DEBUG(Dumper($entry));
+        my $someEmpty = grep { !defined($_) or $_ eq '' } values %{$entry};
+        DEBUG($someEmpty);
+        if ($someEmpty) {die "All entries should be non-empty";}
+        return $entry;
+    } else {
+        DEBUG("Didn't find an entry for ${plate_name}_${well_name}");
+        return undef;
+    }
 }
 
 sub get_experiment_from_well {
