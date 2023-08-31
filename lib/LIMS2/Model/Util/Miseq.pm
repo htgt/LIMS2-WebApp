@@ -48,6 +48,8 @@ use Math::Round qw( round );
 use Data::Dumper;
 use DateTime::Format::ISO8601;
 
+use LIMS2::Model::Util::WellName qw( convert_numeric_well_names_to_alphanumeric );
+
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
      SELECT pr.id, pr_in.well_id, pr_out.well_id, pr_out.well_id
@@ -990,7 +992,7 @@ sub _get_miseq_data_from_well {
         my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
             {
                 'miseq_exp.name' => $entry->{"miseq_experiment_name"},
-                'well.name' => $entry->{"miseq_well"},
+                'well.name' => convert_numeric_well_names_to_alphanumeric($entry->{"miseq_well"}),
                 'plate.name' => $entry->{"miseq_plate"},
             },
             {prefetch => ['miseq_exp', 'well', { well => 'plate'}]},
