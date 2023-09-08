@@ -18,6 +18,10 @@ class Non200HTMLStatus(CloneDataError):
 class NotJSONData(CloneDataError):
     pass
 
+class KnownMissingMiseqData(CloneDataError):
+    def __init__(self, message):
+        self.message = message
+
 Result = namedtuple("Result", ["clone_name", "json_data", "error"])
 Clone = namedtuple("Clone", ["plate", "well"])
 
@@ -51,10 +55,28 @@ def check_clone_data(clones):
                         {
                             "type": "object",
                             "properties": {
-                                "miseq_data": {"type": "object"},
+                                "miseq": {
+                                    "type": "object",
+                                    "oneOf": [
+                                        {
+                                            "properties": {"data": {"type": "object"}},
+                                            "additionalProperties": False,
+                                        },
+                                        {
+                                            "properties": {"error": {"type": "string", "minLength": 2}},
+                                            "additionalProperties": False,
+                                        },
+                                    ]
+                                },
                             },
                         },
                     )
+                    try: 
+                        error_attribute = json_data["miseq"]["error"]
+                    except KeyError:
+                        pass
+                    else:
+                        error = KnownMissingMiseqData(message=error_attribute)
                 except SchemaValidationError as e:
                     error = e
             except JSONDecodeError:

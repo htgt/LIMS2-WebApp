@@ -80,16 +80,16 @@
 
 <h2>MiSeq QA</h2>
 
-[% IF data.miseq_data %]
+[% IF data.miseq.data %]
 
 <table id="miseq-overview" class="table table-bordered table-condensed table-striped">
     <tr>
       <th>Experiment</th>
-      <td>[% data.miseq_data.experiment_name %]</td>
+      <td>[% data.miseq.data.experiment_name %]</td>
     </tr>
     <tr>
       <th>Classification</th>
-      <td>[% data.miseq_data.classification %]</td>
+      <td>[% data.miseq.data.classification %]</td>
     </tr>
 </table>
 
@@ -104,7 +104,7 @@
             </tr>
         </theader>
         <tbody>
-            [%- FOR indel_data IN data.miseq_data.indel_data %]
+            [%- FOR indel_data IN data.miseq.data.indel_data %]
                 <tr>
                     <td>[% indel_data.indel %]</td>
                     <td>[% indel_data.frequency %]</td>
@@ -131,7 +131,7 @@
         </tr>
     </theader>
     <tbody>
-        [%- FOR allele_datum IN data.miseq_data.allele_data %]
+        [%- FOR allele_datum IN data.miseq.data.allele_data %]
             <tr>
                 <td>[% allele_datum.aligned_sequence %]</td>
                 <td>[% allele_datum.nhej %]</td>
@@ -146,6 +146,12 @@
         [%- END %]
     </tbody>
 </table>
+
+[% ELSIF data.miseq.error %]
+
+<p>No MiSeq information available for this well</p>
+<p><b>Note:</b>
+[% data.miseq.error.note %]
 
 [% ELSE %]
 
