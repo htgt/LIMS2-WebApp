@@ -40,12 +40,15 @@ use List::Util qw( sum first min sum0 );
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
+use Text::CSV qw (csv);
 use Try::Tiny;
 use Carp;
 use WebAppCommon::Util::FileAccess;
 use Math::Round qw( round );
 use Data::Dumper;
 use DateTime::Format::ISO8601;
+
+use LIMS2::Model::Util::WellName qw( convert_numeric_well_names_to_alphanumeric );
 
 const my $QUERY_INHERITED_EXPERIMENT => <<'EOT';
 WITH RECURSIVE well_hierarchy(process_id, input_well_id, output_well_id, start_well_id) AS (
@@ -880,7 +883,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
-        miseq_data          => _get_miseq_data_from_well($well),
+        miseq_data          => _get_miseq_data_from_well($c, $well),
     };
 
     return $experiments;
@@ -981,7 +984,30 @@ sub _reformat_strand_info_into_plus_minus_form {
 }
 
 sub _get_miseq_data_from_well {
-    my $well = shift;
+    my ($c, $well) = @_;
+    my $plate = $well->plate;
+    my $entry = _get_entry_from_list($plate->name, $well->name);
+    if (defined $entry) {
+        DEBUG("It's defined");
+        my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
+            {
+                'miseq_exp.name' => $entry->{"miseq_experiment_name"},
+                'well.name' => convert_numeric_well_names_to_alphanumeric($entry->{"miseq_well"}),
+                'plate.name' => $entry->{"miseq_plate"},
+            },
+            {prefetch => ['miseq_exp', 'well', { well => 'plate'}]},
+        );
+        if (scalar(@miseq_well_experiments) != 1) {die "There can only be one..."};
+        my $miseq_well_experiment = $miseq_well_experiments[0];
+        my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
+        my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
+        return {
+            "experiment_name" => $miseq_well_experiment->experiment,
+            "classification" => $miseq_well_experiment->class,
+            "indel_data" => $indel_data,
+            "allele_data" => $allele_data,
+        };
+    }
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
         return undef;
@@ -991,6 +1017,7 @@ sub _get_miseq_data_from_well {
     if (! defined $miseq_plate_well) {
         return undef;
     }
+    DEBUG("Miseq well: $miseq_plate_well");
     DEBUG("Miseq well id: " .  $miseq_plate_well->id);
     my $experiment_in_well =  get_experiment_from_well($well);
     my @miseq_well_experiments = $miseq_plate_well
@@ -1029,6 +1056,34 @@ sub _get_miseq_data_from_well {
         "allele_data" => $allele_data,
     };
 
+}
+
+sub _get_entry_from_list {
+    my ($plate_name, $well_name) = @_;
+    my $clone_miseq_mapping = csv(
+        in => "bin/clone_data/clone-miseq-map.tsv",
+        headers => "auto",
+        sep_char => "\t",
+        filter => {
+            fp_plate => sub {$_ eq $plate_name},
+            fp_well => sub {$_ eq $well_name}
+        }
+    );
+    DEBUG(Dumper($clone_miseq_mapping));
+    if (scalar(@{$clone_miseq_mapping}) > 1) {
+        die "There should only be one entry on the list but found two for ${plate_name}_${well_name}";
+    } elsif (scalar(@{$clone_miseq_mapping}) == 1) {
+        DEBUG("Found an entry");
+        my $entry = $clone_miseq_mapping->[0];
+        DEBUG(Dumper($entry));
+        my $someEmpty = grep { !defined($_) or $_ eq '' } values %{$entry};
+        DEBUG($someEmpty);
+        if ($someEmpty) {die "All entries should be non-empty";}
+        return $entry;
+    } else {
+        DEBUG("Didn't find an entry for ${plate_name}_${well_name}");
+        return undef;
+    }
 }
 
 sub get_experiment_from_well {
