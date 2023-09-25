@@ -1004,7 +1004,7 @@ sub _get_miseq_data_from_well {
         return {
             "data" => {
                 "miseq_plate" => $entry->{"miseq_plate"},
-                "miseq_well" => $entry->{"miseq_well"},
+                "miseq_well" => convert_numeric_well_names_to_alphanumeric($entry->{"miseq_well"}),
                 "experiment_name" => $miseq_well_experiment->experiment,
                 "classification" => $miseq_well_experiment->class,
                 "indel_data" => $indel_data,
