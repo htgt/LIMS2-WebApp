@@ -1003,6 +1003,8 @@ sub _get_miseq_data_from_well {
         my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
         return {
             "data" => {
+                "miseq_plate" => $entry->{"miseq_plate"},
+                "miseq_well" => $entry->{"miseq_well"},
                 "experiment_name" => $miseq_well_experiment->experiment,
                 "classification" => $miseq_well_experiment->class,
                 "indel_data" => $indel_data,
@@ -1061,6 +1063,8 @@ sub _get_miseq_data_from_well {
     my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
         "data" => {
+            "miseq_plate" => $miseq_plate_well->plate->name,
+            "miseq_well" => $miseq_plate_well->name,
             "experiment_name" => $miseq_well_experiment->experiment,
             "classification" => $miseq_well_experiment->class,
             "indel_data" => $indel_data,
