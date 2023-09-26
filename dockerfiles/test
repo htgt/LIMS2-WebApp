@@ -17,7 +17,7 @@ ARG file_api_url
 # WepAppCommon::Util::Jobrunner. Although the env-var neds to be set, the file pointed to doesn't need to
 # exist (to get the tests to pass)
 ENV FILE_API_URL=$file_api_url \
-    LIMS2_MISEQ_PROCESS_PATH=/lustre/scratch117/sciops/team87/MiSeq \
+    LIMS2_MISEQ_PROCESS_PATH=/lustre/scratch125/sciops/team87/MiSeq \
     LIMS2_MISEQ_RAW_PATH=/warehouse/team229_wh01/illumina_managed_miseq_archive/miseq_import \
     LIMS2_MISEQ_SCRIPTS_PATH=/nfs/team87/farm5/software/LIMS2-Scripts/bin \
     LIMS2_MISEQ_STORAGE_PATH=/warehouse/team229_wh01/lims2_managed_miseq_data/miseq_import \

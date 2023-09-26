@@ -40,7 +40,7 @@ use POSIX qw(strftime);
 use JSON qw( encode_json );
 
 const my $DEFAULT_DESIGNS_DIR =>  $ENV{ DEFAULT_DESIGNS_DIR } //
-                                    '/lustre/scratch117/sciops/team87/lims2_designs';
+                                    '/lustre/scratch125/sciops/team87/lims2_designs';
 
 has model => (
     is       => 'ro',

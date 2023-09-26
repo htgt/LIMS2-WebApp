@@ -71,7 +71,7 @@ sub _build_ensembl_util {
 
 #use this default if the env var isnt set.
 const my $DEFAULT_DESIGNS_DIR => dir( $ENV{DEFAULT_DESIGNS_DIR} //
-                                    '/lustre/scratch117/sciops/team87/lims2_designs' );
+                                    '/lustre/scratch125/sciops/team87/lims2_designs' );
 const my @DESIGN_TYPES => (
             { cmd => 'ins-del-design --design-method deletion', display_name => 'Deletion' }, #the cmd will change
             #{ cmd => 'insertion-design', display_name => 'Insertion' },

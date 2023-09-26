@@ -37,7 +37,7 @@ use Bio::Perl qw( revcom );
 with 'MooseX::Log::Log4perl';
 
 const my $DEFAULT_QC_DIR => $ENV{ DEFAULT_CRISPR_ES_QC_DIR } //
-                                    '/lustre/scratch117/sciops/team87/lims2_crispr_es_qc';
+                                    '/lustre/scratch125/sciops/team87/lims2_crispr_es_qc';
 const my $BWA_MEM_CMD => $ENV{BWA_MEM_CMD} //
                                     '/software/vertres/bin-external/bwa-0.7.5a-r406/bwa';
 const my $BLAT_CMD => $ENV{BLAT_CMD} //
