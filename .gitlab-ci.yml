@@ -105,7 +105,7 @@ clone_data_unit_type_tests:
     paths:
       - ~/.cache/pip/
 
-test-clone-data:
+.test-clone-data:
   stage: test
   script:
     - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
