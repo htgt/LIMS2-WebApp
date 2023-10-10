@@ -20,6 +20,15 @@ def get_readcount_data(data):
         "fp_well": data["well_name"],
         "total_reads": data["miseq"]["data"]["total_reads"],
     }
+
+def get_classification_data(data):
+    return {
+        "fp_plate": data["plate_name"],
+        "fp_well": data["well_name"],
+        "miseq_plate": data["miseq"]["data"]["miseq_plate"],
+        "miseq_well": to_numeric(data["miseq"]["data"]["miseq_well"]),
+        "classification": data["miseq"]["data"]["classification"],
+    }
     
 def filter_results_data_for_good_clones(results):
     return [
@@ -35,6 +44,13 @@ def transform_to_read_count_data(data):
     return [
         get_readcount_data(datum) for datum in data
     ]
+
+def transform_to_classification_data(data):
+    return [
+        get_classification_data(datum) for datum in data
+    ]
+
+get_classification_data
     
 def order_by_fp(data):
     return sorted(data, key=lambda d: (d["fp_plate"], d["fp_well"]))
@@ -56,6 +72,17 @@ def get_all_relevant_good_clone_data():
 def get_read_counts_for_all_good_clones():
     return order_by_total_reads(
             transform_to_read_count_data(
+                filter_results_data_for_good_clones(
+                    check_clone_data(
+                        get_clones(expected_number_of_clones=1866)
+                    )
+                )
+            )
+        )
+
+def get_classification_for_all_good_clones():
+    return order_by_fp(
+            transform_to_classification_data(
                 filter_results_data_for_good_clones(
                     check_clone_data(
                         get_clones(expected_number_of_clones=1866)
