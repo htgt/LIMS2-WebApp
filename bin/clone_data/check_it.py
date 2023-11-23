@@ -18,6 +18,10 @@ class Non200HTMLStatus(CloneDataError):
 class NotJSONData(CloneDataError):
     pass
 
+class KnownMissingMiseqData(CloneDataError):
+    def __init__(self, message):
+        self.message = message
+
 Result = namedtuple("Result", ["clone_name", "json_data", "error"])
 Clone = namedtuple("Clone", ["plate", "well"])
 
@@ -51,10 +55,28 @@ def check_clone_data(clones):
                         {
                             "type": "object",
                             "properties": {
-                                "miseq_data": {"type": "object"},
+                                "miseq": {
+                                    "type": "object",
+                                    "oneOf": [
+                                        {
+                                            "properties": {"data": {"type": "object"}},
+                                            "additionalProperties": False,
+                                        },
+                                        {
+                                            "properties": {"error": {"type": "string", "minLength": 2}},
+                                            "additionalProperties": False,
+                                        },
+                                    ]
+                                },
                             },
                         },
                     )
+                    try: 
+                        error_attribute = json_data["miseq"]["error"]
+                    except KeyError:
+                        pass
+                    else:
+                        error = KnownMissingMiseqData(message=error_attribute)
                 except SchemaValidationError as e:
                     error = e
             except JSONDecodeError:
@@ -74,11 +96,13 @@ def check_clone_data(clones):
 
 def print_clone_data_results(results):
     good_clones = [result for result in results if result.error is None]
+    clones_with_known_missing_miseq_data =  [result.clone_name for result in results if isinstance(result.error, KnownMissingMiseqData)]
     clones_with_non_200_http_status = [result.clone_name for result in results if isinstance(result.error, Non200HTMLStatus)]
     clones_with_non_json_result = [result.clone_name for result in results if isinstance(result.error, NotJSONData)]
     clones_with_missing_miseq_data = [result.clone_name for result in results if isinstance(result.error, SchemaValidationError)]
     print("Total number of clones: ", len(results))
     print("Total number of 'good' clones: ", len(good_clones))
+    print("Total number of known missing-miseq clones: ", len(clones_with_known_missing_miseq_data))
     print(f"Clones with non-200 HTTP status ({len(clones_with_non_200_http_status)}): {clones_with_non_200_http_status}")
     print(f"Clones with non-JSON result (probably due to being pipeline I) ({len(clones_with_non_json_result)}): , {clones_with_non_json_result}")
     print(f"Clones with missing miseq data ({len(clones_with_missing_miseq_data)}): {clones_with_missing_miseq_data}")

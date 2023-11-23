@@ -883,7 +883,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
-        miseq_data          => _get_miseq_data_from_well($c, $well),
+        miseq               => _get_miseq_data_from_well($c, $well),
     };
 
     return $experiments;
@@ -986,7 +986,7 @@ sub _reformat_strand_info_into_plus_minus_form {
 sub _get_miseq_data_from_well {
     my ($c, $well) = @_;
     my $plate = $well->plate;
-    my $entry = _get_entry_from_list($plate->name, $well->name);
+    my $entry = _get_entry_from_list("clone-miseq-map.tsv", $plate->name, $well->name);
     if (defined $entry) {
         DEBUG("It's defined");
         my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
@@ -1002,12 +1002,22 @@ sub _get_miseq_data_from_well {
         my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
         my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
         return {
-            "experiment_name" => $miseq_well_experiment->experiment,
-            "classification" => $miseq_well_experiment->class,
-            "indel_data" => $indel_data,
-            "allele_data" => $allele_data,
+            "data" => {
+                "experiment_name" => $miseq_well_experiment->experiment,
+                "classification" => $miseq_well_experiment->class,
+                "indel_data" => $indel_data,
+                "allele_data" => $allele_data,
+            },
         };
     }
+    my $missing_entry = _get_entry_from_list("missing-miseq.tsv", $plate->name, $well->name);
+    if (defined $missing_entry) {
+        DEBUG("Looks like Miseq data is missing for $well");
+        return {
+            "error" => $missing_entry->{"note"},
+        };
+    }
+
     my $piq_plate_well = _get_piq_plate_well_from_well($well);
     if (! defined $piq_plate_well) {
         return undef;
@@ -1050,18 +1060,20 @@ sub _get_miseq_data_from_well {
     my $indel_data = _get_indel_data_from_miseq_well_experiment($miseq_well_experiment);
     my $allele_data = _get_allele_data_from_miseq_well_experiment($miseq_well_experiment);
     return {
-        "experiment_name" => $miseq_well_experiment->experiment,
-        "classification" => $miseq_well_experiment->class,
-        "indel_data" => $indel_data,
-        "allele_data" => $allele_data,
+        "data" => {
+            "experiment_name" => $miseq_well_experiment->experiment,
+            "classification" => $miseq_well_experiment->class,
+            "indel_data" => $indel_data,
+            "allele_data" => $allele_data,
+        },
     };
 
 }
 
 sub _get_entry_from_list {
-    my ($plate_name, $well_name) = @_;
+    my ($tsv_file, $plate_name, $well_name) = @_;
     my $clone_miseq_mapping = csv(
-        in => "bin/clone_data/clone-miseq-map.tsv",
+        in => "bin/clone_data/$tsv_file",
         headers => "auto",
         sep_char => "\t",
         filter => {
