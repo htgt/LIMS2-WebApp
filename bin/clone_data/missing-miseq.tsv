@@ -1,2 +1,23 @@
 fp_plate	fp_well	note
 HUPFP0019_3	D02	Not on HUEDQ0517 and can't find anywhere else
+HUPFPPlate10	A03	Comment on HUEDQ501 Trello card saying unable to track
+HUPFPPlate10	B03	Comment on HUEDQ501 Trello card saying unable to track
+HUPFP0028_8	D04	Incorrect gene, clone in this location on the HUEDQ plate is KAT6A_1 D04
+HUPFP0092A2	G10	Doesn't fit with either clone on Miseq_114
+HUPFP0023_2	B05	Can't find on 510 (or 511 or 512 which the other clones are on)
+HUPFP0035_1	D01	Can't find on 534 (or 530 which the other clones are on)
+HUPFP0050A3	G05	Clones do not appear on any of the sugested HUEDQ cards but I don't think it matters as these ones didn't pass final QC
+HUPFP0050A3	D07	Clones do not appear on any of the sugested HUEDQ cards but I don't think it matters as these ones didn't pass final QC
+HUPFP0050A3	F09	Clones do not appear on any of the sugested HUEDQ cards but I don't think it matters as these ones didn't pass final QC
+HUPFP0050A3	D10	Clones do not appear on any of the sugested HUEDQ cards but I don't think it matters as these ones didn't pass final QC
+HUPFP0052A6	A08	Can't find clone son associated HUEDQ plate only clones from HUPFP0052A6 are on HUEDQ0543
+HUPFP0052A6	D08	Can't find clone son associated HUEDQ plate only clones from HUPFP0052A6 are on HUEDQ0543
+HUPFP0052A6	B10	Can't find clone son associated HUEDQ plate only clones from HUPFP0052A6 are on HUEDQ0543
+HUPFP0093A3	A07	Can't find on any asociated HUEDQ plates but doesn't look to have passed primary QC anyway
+HUPFPPlate9	B01	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	C01	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	E01	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	C03	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	E04	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	F05	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFPPlate9	H05	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
