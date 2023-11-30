@@ -151,7 +151,7 @@
 
 <p>No MiSeq information available for this well</p>
 <p><b>Note:</b>
-[% data.miseq.error.note %]
+[% data.miseq.error %]
 
 [% ELSE %]
 
