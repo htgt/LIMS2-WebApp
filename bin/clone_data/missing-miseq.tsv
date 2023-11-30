@@ -1,4 +1,5 @@
 fp_plate	fp_well	note
+HUPFP0019_3	A03	Not on HUEDQ0517 and can't find anywhere else
 HUPFP0019_3	D02	Not on HUEDQ0517 and can't find anywhere else
 HUPFPPlate10	A03	Comment on HUEDQ501 Trello card saying unable to track
 HUPFPPlate10	B03	Comment on HUEDQ501 Trello card saying unable to track
@@ -21,3 +22,12 @@ HUPFPPlate9	C03	Vey old clones that I can't find the data for. We have more rece
 HUPFPPlate9	E04	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
 HUPFPPlate9	F05	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
 HUPFPPlate9	H05	Vey old clones that I can't find the data for. We have more recent QC passable clones so I think we can conclude efforts to find the data for this
+HUPFP0026_1	H03	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
+HUPFP0068A3	B04	Wrong gene name on HUEDQ plate but I'm confident this is the correct clone
+HUPFP0021_12	E08	Not on either HUEDQ plates and can't find anywhere else
+HUPFP0026_1	E08	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
+HUPFP0026_1	C12	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
+HUPFP0026_1	E07	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
+HUPFP0026_1	A10	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
+HUPFP0027_11	D01	Clones don't appear on any of the HUEDQ plates
+HUPFP0027_11	E04	Clones don't appear on any of the HUEDQ plates
