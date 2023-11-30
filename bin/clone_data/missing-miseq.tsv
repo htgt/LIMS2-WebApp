@@ -31,3 +31,6 @@ HUPFP0026_1	E07	None of the clones seem to appear (or should appear) on HUEDQ051
 HUPFP0026_1	A10	None of the clones seem to appear (or should appear) on HUEDQ0515 and I can't find where these clones are??
 HUPFP0027_11	D01	Clones don't appear on any of the HUEDQ plates
 HUPFP0027_11	E04	Clones don't appear on any of the HUEDQ plates
+HUPFP0021_7	F11	Correct well (Miseq_018 - 146 - HUEDQ0509_IFITM3_3) but no sequencing result for it
+HUPFP0033_14	A01	Correct well (Miseq_040 - 173 - HUEDQ0527_FOXG1_2) but no sequencing result for it
+HUPFP0021_3	B01	Correct well (Miseq_018 - 158 - HUEDQ0509_NHLRC2_1) but no sequencing result for it
