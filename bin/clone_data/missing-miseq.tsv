@@ -36,3 +36,4 @@ HUPFP0033_14	A01	Correct well (Miseq_040 - 173 - HUEDQ0527_FOXG1_2) but no seque
 HUPFP0021_3	B01	Correct well (Miseq_018 - 158 - HUEDQ0509_NHLRC2_1) but no sequencing result for it
 HUPFP0067B6	C05	Comment on trello to say clone failed sequencing
 HUPFP0008_2	A11	This clone doesn't appear on HUEDQ0508. From Trello the only passable clones are A01, E01, B01 and C01 which are on HUEDQ0506. 
+HUPFPPlate8	A08	Data history incomplete. There are newer clones targeting the same gene.
