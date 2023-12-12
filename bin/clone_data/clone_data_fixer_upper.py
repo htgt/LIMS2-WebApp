@@ -988,7 +988,7 @@ if __name__ == "__main__":
             " --rm"
             " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
             f" {docker_image}"
-            " echo 'WOOORKKKINNN'"
+            " ./bin/clone_data/classify-miseq-experiment.pl"
         ),
         check=True,
         shell=True,
