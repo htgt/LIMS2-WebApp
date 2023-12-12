@@ -27,6 +27,7 @@ use Sub::Exporter -setup => {
               get_experiment_from_well 
               get_gene_symbols_from_well
               get_api
+              classify_reads
           )
     ]
 };
@@ -1224,6 +1225,11 @@ sub get_api {
     } else {
         return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
     }
+}
+
+sub classify_reads {
+    my $allele_data = shift;
+    return "WT";
 }
 
 1;

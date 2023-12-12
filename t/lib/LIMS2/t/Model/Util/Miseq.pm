@@ -148,7 +148,37 @@ sub test_get_csv_from_tsv_lines : Test(3) {
 }
 
 sub test_set_classification: Test(1) {
-    note("This is a note");
+    note("Classifies as wild-type when single entry is more than 99%:");
+    {
+        my $allele_data = [
+	  {
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.991,
+	    "n_reads" => 991,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GGACAA"
+	  },
+	  {
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.009,
+	    "n_reads" => 9,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 1,
+	    "aligned_sequence" => "GGACA"
+	  },
+        ];
+
+        my $classification = classify_reads($allele_data);
+
+	is($classification, "WT");
+    }
 }
 
 1;
