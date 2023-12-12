@@ -982,6 +982,18 @@ if __name__ == "__main__":
     print("Results:")
     print_clone_data_results(results_from_checking)
 
+    run(
+        (
+            "docker" " run"
+            " --rm"
+            " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+            f" {docker_image}"
+            " echo 'WOOORKKKINNN'"
+        ),
+        check=True,
+        shell=True,
+    )
+
     good_enough_clones = [
         result for result in results_from_checking
         if result.error is None or  isinstance(result.error, KnownMissingMiseqData)
