@@ -147,4 +147,8 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
+sub test_set_classification: Test(1) {
+    note("This is a note");
+}
+
 1;
