@@ -10,6 +10,6 @@ use strict;
 use warnings;
 use feature qw(say);
 
-use LIMS2::Model::Util::Miseq qw/ classify_reads /;
+#use LIMS2::Model::Util::Miseq qw/ classify_reads /;
 
-classify_reads();
+#classify_reads();
