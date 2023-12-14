@@ -11,6 +11,7 @@ use warnings;
 use feature qw(say);
 use Getopt::Long;
 
+use LIMS2::Model;
 use LIMS2::Model::Util::Miseq qw/ classify_reads /;
 
 my $fp_plate_name = "";
@@ -19,6 +20,8 @@ GetOptions(
     'fp_plate_name=s' => \$fp_plate_name,
     'fp_well_name=s' => \$fp_well_name,
 ) or die();
+
+my $model = LIMS2::Model->new( user => 'lims2' );
 
 
 classify_reads();
