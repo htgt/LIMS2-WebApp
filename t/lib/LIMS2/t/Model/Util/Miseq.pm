@@ -147,8 +147,8 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
-sub test_set_classification: Test(1) {
-    note("Classifies as wild-type when single entry is more than 99%:");
+sub test_set_classification: Test(3) {
+    note("Classifies as wild-type when single unmodified entry is more than 99%:");
     {
         my $allele_data = [
 	  {
@@ -163,7 +163,7 @@ sub test_set_classification: Test(1) {
 	    "aligned_sequence" => "GGACAA"
 	  },
 	  {
-	    "unmodified" => 1,
+	    "unmodified" => 0,
 	    "percentage_reads" => 0.009,
 	    "n_reads" => 9,
 	    "hdr" => 0,
@@ -172,6 +172,92 @@ sub test_set_classification: Test(1) {
 	    "n_mutated" => 0,
 	    "n_deleted" => 1,
 	    "aligned_sequence" => "GGACA"
+	  },
+        ];
+
+        my $classification = classify_reads($allele_data);
+
+	is($classification, "WT");
+    }
+
+    note("Classifies as wild-type if multiple unmodified entries sum to more than 99%:");
+    {
+        my $allele_data = [
+	  {
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.891,
+	    "n_reads" => 891,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GGACAA"
+	  },
+	  {
+	    "unmodified" => 0,
+	    "percentage_reads" => 0.009,
+	    "n_reads" => 9,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 1,
+	    "aligned_sequence" => "GGACA"
+	  },
+	  {
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.1,
+	    "n_reads" => 100,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GGACAA"
+	  },
+        ];
+
+        my $classification = classify_reads($allele_data);
+
+	is($classification, "WT");
+    }
+
+    note("Classifies as wild-type when unmodified is greater than 98% and no single modified is more than 2%:");
+    {
+        my $allele_data = [
+	  {
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.962,
+	    "n_reads" => 891,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GGACAA"
+	  },
+	  {
+	    "unmodified" => 0,
+	    "percentage_reads" => 0.019,
+	    "n_reads" => 19,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 1,
+	    "aligned_sequence" => "GGACA"
+	  },
+	  {
+	    "unmodified" => 0,
+	    "percentage_reads" => 0.019,
+	    "n_reads" => 19,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 1,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GTACAA"
 	  },
         ];
 
