@@ -984,10 +984,10 @@ if __name__ == "__main__":
 
     good_clones = [result for result in results_from_checking if result.error is None]
     unclassified_clones_before_fixing = [
-        clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
+        clone for clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
     ]
     classified_clones_before_fixing = [
-        clone in good_clones if clone not in unclassified_clones_before_fixing
+        clone for  clone in good_clones if clone not in unclassified_clones_before_fixing
     ]
     print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
     for clone in good_clones:
@@ -1011,10 +1011,10 @@ if __name__ == "__main__":
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
     unclassified_clones_after_fixing = [
-        clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
+        clone for clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
     ]
     classified_clones_after_fixing = [
-        clone in good_clones if clone not in unclassified_clones_after_fixing
+        clone for clone in good_clones if clone not in unclassified_clones_after_fixing
     ]
     print(f"Number of unclassified after fixing: {len(unclassified_clones_before_fixing)}")
     reclassified = []
