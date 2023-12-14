@@ -982,17 +982,24 @@ if __name__ == "__main__":
     print("Results:")
     print_clone_data_results(results_from_checking)
 
-    run(
-        (
-            "docker" " run"
-            " --rm"
-            " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
-            f" {docker_image}"
-            " ./bin/clone_data/classify-miseq-experiments.pl"
-        ),
-        check=True,
-        shell=True,
-    )
+    good_clones = [result for result in results if result.error is None]
+    for clone in good_clones:
+        clone_name = clone.clone_name
+        plate_name = "_".join(clone_name.split("_")[:-1])
+        well_name = clone_name.split("_")[-1]
+        run(
+            (
+                "docker" " run"
+                " --rm"
+                " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+                f" {docker_image}"
+                " ./bin/clone_data/classify-miseq-experiments.pl"
+                f" --plate_name={plate_name}"
+                f" --well_name={well_name}"
+            ),
+            check=True,
+            shell=True,
+        )
 
     good_enough_clones = [
         result for result in results_from_checking
