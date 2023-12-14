@@ -9,7 +9,16 @@ Add the classification for the clones in a miseq-well-experiment.
 use strict;
 use warnings;
 use feature qw(say);
+use Getopt::Long;
 
-#use LIMS2::Model::Util::Miseq qw/ classify_reads /;
+use LIMS2::Model::Util::Miseq qw/ classify_reads /;
 
-#classify_reads();
+my $fp_plate_name = "";
+my $fp_well_name = "";
+GetOptions(
+    'fp_plate_name=s' => \$fp_plate_name,
+    'fp_well_name=s' => \$fp_well_name,
+) or die();
+
+
+classify_reads();
