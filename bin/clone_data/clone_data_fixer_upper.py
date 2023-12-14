@@ -1022,7 +1022,7 @@ if __name__ == "__main__":
         classification_before = clone.json_data["miseq_data"]["data"]["classification"]
         classification_after = [
             c for c in good_clones
-            if c.clone_name = clone.clone_name
+            if c.clone_name == clone.clone_name
         ][0].json_data["miseq_data"]["data"]["classification"]
         if classification_before != classification_after:
             reclassified.append((clone.clone_name, classification_before, classification_after))
