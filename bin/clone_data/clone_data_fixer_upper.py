@@ -982,7 +982,14 @@ if __name__ == "__main__":
     print("Results:")
     print_clone_data_results(results_from_checking)
 
-    good_clones = [result for result in results if result.error is None]
+    good_clones = [result for result in results_from_checking if result.error is None]
+    unclassified_clones = [
+        clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
+    ]
+    classified_clones = [
+        clone in good_clones if clone not in unclassified_clones
+    ]
+    print(f"Number of unclassified: {len(unclassified_clones)}")
     for clone in good_clones:
         clone_name = clone.clone_name
         plate_name = "_".join(clone_name.split("_")[:-1])
