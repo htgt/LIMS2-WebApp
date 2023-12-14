@@ -992,6 +992,7 @@ if __name__ == "__main__":
                 "docker" " run"
                 " --rm"
                 " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+                " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
                 f" {docker_image}"
                 " ./bin/clone_data/classify-miseq-experiments.pl"
                 f" --plate_name={plate_name}"
