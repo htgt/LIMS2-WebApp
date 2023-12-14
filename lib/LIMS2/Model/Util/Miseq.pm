@@ -28,6 +28,7 @@ use Sub::Exporter -setup => {
               get_gene_symbols_from_well
               get_api
               classify_reads
+              _get_miseq_data_from_well 
           )
     ]
 };
