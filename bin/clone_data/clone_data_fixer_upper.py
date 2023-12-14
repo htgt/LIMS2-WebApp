@@ -1002,8 +1002,8 @@ if __name__ == "__main__":
                 " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
                 f" {docker_image}"
                 " ./bin/clone_data/classify-miseq-experiments.pl"
-                f" --plate_name={plate_name}"
-                f" --well_name={well_name}"
+                f" --fp_plate_name={plate_name}"
+                f" --fp_well_name={well_name}"
             ),
             check=True,
             shell=True,
