@@ -983,13 +983,13 @@ if __name__ == "__main__":
     print_clone_data_results(results_from_checking)
 
     good_clones = [result for result in results_from_checking if result.error is None]
-    unclassified_clones = [
+    unclassified_clones_before_fixing = [
         clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
     ]
-    classified_clones = [
-        clone in good_clones if clone not in unclassified_clones
+    classified_clones_before_fixing = [
+        clone in good_clones if clone not in unclassified_clones_before_fixing
     ]
-    print(f"Number of unclassified: {len(unclassified_clones)}")
+    print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
     for clone in good_clones:
         clone_name = clone.clone_name
         plate_name = "_".join(clone_name.split("_")[:-1])
@@ -1008,6 +1008,27 @@ if __name__ == "__main__":
             check=True,
             shell=True,
         )
+    results_after_fixing_classification = check_clone_data(clones)
+    good_clones = [result for result in results_after_fixing_classification if result.error is None]
+    unclassified_clones_after_fixing = [
+        clone in good_clones if clone.json_data["miseq_data"]["data"]["classification"] == "Not Called"
+    ]
+    classified_clones_after_fixing = [
+        clone in good_clones if clone not in unclassified_clones_after_fixing
+    ]
+    print(f"Number of unclassified after fixing: {len(unclassified_clones_before_fixing)}")
+    reclassified = []
+    for clone in classified_clones_before_fixing:
+        classification_before = clone.json_data["miseq_data"]["data"]["classification"]
+        classification_after = [
+            c for c in good_clones
+            if c.clone_name = clone.clone_name
+        ][0].json_data["miseq_data"]["data"]["classification"]
+        if classification_before != classification_after:
+            reclassified.append((clone.clone_name, classification_before, classification_after))
+    print(f"Number reclassified: {len(reclassified)}.")
+    for r in reclassified:
+        print(f"Clone: {r[0]}, Before: {r[1]}, After: {r[2]}")
 
     good_enough_clones = [
         result for result in results_from_checking
