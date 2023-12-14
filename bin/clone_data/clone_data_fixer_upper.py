@@ -1019,11 +1019,11 @@ if __name__ == "__main__":
     print(f"Number of unclassified after fixing: {len(unclassified_clones_before_fixing)}")
     reclassified = []
     for clone in classified_clones_before_fixing:
-        classification_before = clone.json_data["miseq_data"]["data"]["classification"]
+        classification_before = clone.json_data["miseq"]["data"]["classification"]
         classification_after = [
             c for c in good_clones
             if c.clone_name == clone.clone_name
-        ][0].json_data["miseq_data"]["data"]["classification"]
+        ][0].json_data["miseq"]["data"]["classification"]
         if classification_before != classification_after:
             reclassified.append((clone.clone_name, classification_before, classification_after))
     print(f"Number reclassified: {len(reclassified)}.")
