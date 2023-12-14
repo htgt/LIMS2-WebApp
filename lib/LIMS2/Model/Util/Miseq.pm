@@ -885,7 +885,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
-        miseq               => _get_miseq_data_from_well($c, $well),
+        miseq               => _get_miseq_data_from_well($c->model("Golgi"), $well),
     };
 
     return $experiments;
@@ -986,12 +986,12 @@ sub _reformat_strand_info_into_plus_minus_form {
 }
 
 sub _get_miseq_data_from_well {
-    my ($c, $well) = @_;
+    my ($model, $well) = @_;
     my $plate = $well->plate;
     my $entry = _get_entry_from_list("clone-miseq-map.tsv", $plate->name, $well->name);
     if (defined $entry) {
         DEBUG("It's defined");
-        my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
+        my @miseq_well_experiments = $model->schema->resultset('MiseqWellExperiment')->search(
             {
                 'miseq_exp.name' => $entry->{"miseq_experiment_name"},
                 'well.name' => convert_numeric_well_names_to_alphanumeric($entry->{"miseq_well"}),
