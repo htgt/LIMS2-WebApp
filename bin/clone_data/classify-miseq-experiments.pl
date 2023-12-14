@@ -23,5 +23,6 @@ GetOptions(
 
 my $model = LIMS2::Model->new( user => 'lims2' );
 
+my $fp_well = $model->retrieve_well( { plate_name => $fp_plate_name, well_name => $fp_well_name } );
 
 classify_reads();
