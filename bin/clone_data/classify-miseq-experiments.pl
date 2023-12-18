@@ -21,7 +21,7 @@ foreach my $line ( <STDIN> ) {
     say($fp_well_name);
 }
 
-die("Only want to test up to here anyway");
+#die("Only want to test up to here anyway");
 
 my $model = LIMS2::Model->new( user => 'lims2' );
 
