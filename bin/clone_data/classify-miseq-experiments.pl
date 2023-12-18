@@ -14,12 +14,14 @@ use Getopt::Long;
 use LIMS2::Model;
 use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well /;
 
-my $fp_plate_name = "";
-my $fp_well_name = "";
-GetOptions(
-    'fp_plate_name=s' => \$fp_plate_name,
-    'fp_well_name=s' => \$fp_well_name,
-) or die();
+foreach my $line ( <STDIN> ) {
+    chomp( $line );
+    my ($fp_plate_name, $fp_well_name) = split(',', $line);
+    say($fp_plate_name);
+    say($fp_well_name);
+}
+
+die("Only want to test up to here anyway");
 
 my $model = LIMS2::Model->new( user => 'lims2' );
 
