@@ -27,5 +27,24 @@ my $fp_well = $model->retrieve_well( { plate_name => $fp_plate_name, well_name =
 my $miseq_data = _get_miseq_data_from_well($model, $fp_well);
 my $allele_data = $miseq_data->{data}->{allele_data};
 
-my $output = classify_reads($allele_data);
-say($output);
+my $classification = classify_reads($allele_data);
+
+say ("Classification: $classification");
+
+my @miseq_well_experiments = $model->schema->resultset('MiseqWellExperiment')->search(
+    {
+        'miseq_exp.name' => $miseq_data->{data}->{experiment_name},
+        'well.name' => $miseq_data->{data}->{miseq_well},
+        'plate.name' => $miseq_data->{data}->{miseq_plate},
+    },
+    {prefetch => ['miseq_exp', 'well', { well => 'plate'}]},
+);
+if (scalar(@miseq_well_experiments) != 1) {die "There can only be one..."};
+my $miseq_well_experiment = $miseq_well_experiments[0];
+
+say("Miseq well experiment ID: " . $miseq_well_experiment->id);
+
+#$model->update_miseq_well_experiment({
+   #id =>  $miseq_well_experiment->id,
+   #classification => $classification,
+#});
