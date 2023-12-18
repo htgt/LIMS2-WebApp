@@ -1000,7 +1000,9 @@ if __name__ == "__main__":
     clone_io.seek(0)
     run(
         (
-            "docker" " run"
+            f"echo" " {clone_io.read()}"
+            " |"
+            " docker" " run"
             " --rm"
             " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
             " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
@@ -1009,8 +1011,6 @@ if __name__ == "__main__":
         ),
         check=True,
         shell=True,
-        input=clone_io.read(),
-        text=True,
     )
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
