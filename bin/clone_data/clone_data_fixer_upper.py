@@ -1000,7 +1000,7 @@ if __name__ == "__main__":
     clone_io.seek(0)
     run(
         (
-            f"echo" " {clone_io.read()}"
+            "echo" f" {clone_io.read()}"
             " |"
             " docker" " run"
             " --rm"
