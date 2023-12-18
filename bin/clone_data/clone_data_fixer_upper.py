@@ -993,7 +993,7 @@ if __name__ == "__main__":
     ]
     print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
     with NamedTemporaryFile() as temp_file:
-        writer = csv_writer()
+        writer = csv_writer(temp_file)
         for clone in good_clones:
             clone_name = clone.clone_name
             plate_name = "_".join(clone_name.split("_")[:-1])
