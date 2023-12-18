@@ -998,7 +998,7 @@ if __name__ == "__main__":
             clone_name = clone.clone_name
             plate_name = "_".join(clone_name.split("_")[:-1])
             well_name = clone_name.split("_")[-1]
-            writer.write_row([plate_name, well_name])
+            writer.writerow([plate_name, well_name])
         run(
             (
                 "cat" f" {temp_file.name}"
