@@ -1,10 +1,11 @@
-from csv import DictReader, DictWriter
+from csv import DictReader, DictWriter, writer as csv_writer
 from io import StringIO
 from itertools import chain
 from os import mkdir
 from subprocess import run, CalledProcessError
 from sys import argv
 from collections import namedtuple
+from tempfile import NamedTemporaryFile
 
 from matplotlib.pyplot import savefig, subplots, show as show_plot
 from networkx import multipartite_layout, draw_networkx, Graph, is_isomorphic
@@ -991,27 +992,27 @@ if __name__ == "__main__":
         clone for  clone in good_clones if clone not in unclassified_clones_before_fixing
     ]
     print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
-    clone_io = StringIO()
-    for clone in good_clones:
-        clone_name = clone.clone_name
-        plate_name = "_".join(clone_name.split("_")[:-1])
-        well_name = clone_name.split("_")[-1]
-        clone_io.write(f"{plate_name},{well_name}\n")
-    clone_io.seek(0)
-    run(
-        (
-            "echo" f" {clone_io.read()}"
-            " |"
-            " docker" " run"
-            " --rm"
-            " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
-            " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
-            f" {docker_image}"
-            " ./bin/clone_data/classify-miseq-experiments.pl"
-        ),
-        check=True,
-        shell=True,
-    )
+    with NamedTemporaryFile() as temp_file:
+        writer = csv_writer()
+        for clone in good_clones:
+            clone_name = clone.clone_name
+            plate_name = "_".join(clone_name.split("_")[:-1])
+            well_name = clone_name.split("_")[-1]
+            writer.write_row([plate_name, well_name])
+        run(
+            (
+                "cat" f" temp_file.name}"
+                " |"
+                " docker" " run"
+                " --rm"
+                " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
+                " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
+                f" {docker_image}"
+                " ./bin/clone_data/classify-miseq-experiments.pl"
+            ),
+            check=True,
+            shell=True,
+        )
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
     unclassified_clones_after_fixing = [
