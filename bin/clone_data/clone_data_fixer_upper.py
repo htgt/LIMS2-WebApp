@@ -997,6 +997,7 @@ if __name__ == "__main__":
         plate_name = "_".join(clone_name.split("_")[:-1])
         well_name = clone_name.split("_")[-1]
         clone_io.write(f"{plate_name},{well_name}\n")
+    clone_io.seek(0)
     run(
         (
             "docker" " run"
@@ -1008,7 +1009,8 @@ if __name__ == "__main__":
         ),
         check=True,
         shell=True,
-        stdin=clone_io
+        input=clone_io.read(),
+        text=True,
     )
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
