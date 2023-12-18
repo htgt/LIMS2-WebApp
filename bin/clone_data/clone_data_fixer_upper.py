@@ -1001,7 +1001,7 @@ if __name__ == "__main__":
             writer.write_row([plate_name, well_name])
         run(
             (
-                "cat" f" temp_file.name}"
+                "cat" f" {temp_file.name}"
                 " |"
                 " docker" " run"
                 " --rm"
