@@ -41,7 +41,7 @@ RUN git clone https://github.com/htgt/WebApp-Common.git /tmp/WebApp-Common && \
   git clone https://github.com/htgt/Dist-Zilla-PluginBundle-Author-HTGT.git /tmp/Dist-Zilla-PluginBundle-Author-HTGT && \
   git clone https://github.com/htgt/LIMS2-REST-Client.git /tmp/LIMS2-REST-Client && \
   git clone https://github.com/htgt/LIMS2-Tasks.git /tmp/LIMS2-Tasks && \
-  git clone https://github.com/htgt/LIMS2-WebApp.git /tmp/LIMS2-WebApp && \
+  git clone --depth=1 https://github.com/htgt/LIMS2-WebApp.git /tmp/LIMS2-WebApp && \
   git clone https://github.com/htgt/HTGT-QC-Common.git /tmp/HTGT-QC-Common && \
   git clone https://github.com/htgt/LIMS2-Exception.git /tmp/LIMS2-Exception && \
   git clone https://github.com/fschwach/Bio-Tools-Primer3Redux.git /tmp/Bio-Tools-Primer3Redux && \
