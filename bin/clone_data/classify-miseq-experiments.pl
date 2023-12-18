@@ -44,7 +44,7 @@ my $miseq_well_experiment = $miseq_well_experiments[0];
 
 say("Miseq well experiment ID: " . $miseq_well_experiment->id);
 
-#$model->update_miseq_well_experiment({
-   #id =>  $miseq_well_experiment->id,
-   #classification => $classification,
-#});
+$model->update_miseq_well_experiment({
+   id =>  $miseq_well_experiment->id,
+   classification => $classification,
+});
