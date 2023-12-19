@@ -14,6 +14,8 @@ use Getopt::Long;
 use LIMS2::Model;
 use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well /;
 
+say("Running the perl script");
+
 foreach my $line ( <STDIN> ) {
     chomp( $line );
     my ($fp_plate_name, $fp_well_name) = split(',', $line);
