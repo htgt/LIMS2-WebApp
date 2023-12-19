@@ -999,6 +999,7 @@ if __name__ == "__main__":
             plate_name = "_".join(clone_name.split("_")[:-1])
             well_name = clone_name.split("_")[-1]
             writer.writerow([plate_name, well_name])
+        temp_file.flush()
         run(
             (
                 "cat" f" {temp_file.name}"
