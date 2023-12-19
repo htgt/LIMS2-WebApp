@@ -993,14 +993,13 @@ if __name__ == "__main__":
     ]
     print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
     with NamedTemporaryFile(mode="w") as temp_file:
-        writer = csv_writer(temp_file)
         for clone in good_clones:
             clone_name = clone.clone_name
             plate_name = "_".join(clone_name.split("_")[:-1])
             well_name = clone_name.split("_")[-1]
-            writer.writerow([plate_name, well_name])
+            temp_file.write(f"{plate_name},{well_name}\n")
         temp_file.flush()
-        run(
+        cp = run(
             (
                 "cat" f" {temp_file.name}"
                 " |"
@@ -1014,7 +1013,7 @@ if __name__ == "__main__":
             check=True,
             shell=True,
         )
-    print("Checking the clones again...")
+    print(f"CP: {cp}")
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
     unclassified_clones_after_fixing = [
