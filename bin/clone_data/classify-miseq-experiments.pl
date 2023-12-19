@@ -16,13 +16,13 @@ use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well /;
 
 say("Running the perl script");
 
+my $model = LIMS2::Model->new( user => 'lims2' );
+
 foreach my $line ( <STDIN> ) {
     chomp( $line );
     my ($fp_plate_name, $fp_well_name) = split(',', $line);
     say($fp_plate_name);
     say($fp_well_name);
-
-    my $model = LIMS2::Model->new( user => 'lims2' );
 
     my $fp_well = $model->retrieve_well( { plate_name => $fp_plate_name, well_name => $fp_well_name } );
     my $miseq_data = _get_miseq_data_from_well($model, $fp_well);
