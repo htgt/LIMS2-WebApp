@@ -1013,6 +1013,7 @@ if __name__ == "__main__":
             check=True,
             shell=True,
         )
+    print("Checking the clones again...")
     results_after_fixing_classification = check_clone_data(clones)
     good_clones = [result for result in results_after_fixing_classification if result.error is None]
     unclassified_clones_after_fixing = [
