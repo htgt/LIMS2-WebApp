@@ -148,13 +148,13 @@ sub test_get_csv_from_tsv_lines : Test(3) {
 }
 
 sub test_set_classification: Test(3) {
-    note("Classifies as wild-type when single unmodified entry is more than 99%:");
+    note("Classifies as wild-type when single unmodified entry is more than 98%:");
     {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.991,
-	    "n_reads" => 991,
+	    "percentage_reads" => 0.981,
+	    "n_reads" => 981,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
@@ -180,13 +180,13 @@ sub test_set_classification: Test(3) {
 	is($classification, "WT");
     }
 
-    note("Classifies as wild-type if multiple unmodified entries sum to more than 99%:");
+    note("Classifies as wild-type if multiple unmodified entries sum to more than 98%:");
     {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.891,
-	    "n_reads" => 891,
+	    "percentage_reads" => 0.881,
+	    "n_reads" => 881,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
@@ -196,8 +196,8 @@ sub test_set_classification: Test(3) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.009,
-	    "n_reads" => 9,
+	    "percentage_reads" => 0.019,
+	    "n_reads" => 19,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
@@ -223,13 +223,13 @@ sub test_set_classification: Test(3) {
 	is($classification, "WT");
     }
 
-    note("Classifies as wild-type when unmodified is greater than 98% and no single modified is more than 2%:");
+    note("Does not classify as wild-type if multiple unmodified entries do not sum to more than 98%:");
     {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.962,
-	    "n_reads" => 891,
+	    "percentage_reads" => 0.871,
+	    "n_reads" => 871,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
@@ -239,8 +239,8 @@ sub test_set_classification: Test(3) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.019,
-	    "n_reads" => 19,
+	    "percentage_reads" => 0.029,
+	    "n_reads" => 29,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
@@ -249,22 +249,23 @@ sub test_set_classification: Test(3) {
 	    "aligned_sequence" => "GGACA"
 	  },
 	  {
-	    "unmodified" => 0,
-	    "percentage_reads" => 0.019,
-	    "n_reads" => 19,
+	    "unmodified" => 1,
+	    "percentage_reads" => 0.1,
+	    "n_reads" => 100,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
 	    "nhej" => 0,
-	    "n_mutated" => 1,
+	    "n_mutated" => 0,
 	    "n_deleted" => 0,
-	    "aligned_sequence" => "GTACAA"
+	    "aligned_sequence" => "GGACAA"
 	  },
         ];
 
         my $classification = classify_reads($allele_data);
 
-	is($classification, "WT");
+	isnt($classification, "WT");
     }
+
 }
 
 1;
