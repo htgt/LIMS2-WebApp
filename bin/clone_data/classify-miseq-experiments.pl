@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use feature qw(say);
 use Getopt::Long;
+use Log::Log4perl qw( :easy );
 
 use LIMS2::Model;
 use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well /;
@@ -21,16 +22,17 @@ my $model = LIMS2::Model->new( user => 'lims2' );
 foreach my $line ( <STDIN> ) {
     chomp( $line );
     my ($fp_plate_name, $fp_well_name) = split(',', $line);
-    say($fp_plate_name);
-    say($fp_well_name);
+    DEBUG("Classifying for ${fp_plate_name}_${fp_well_name}");
 
     my $fp_well = $model->retrieve_well( { plate_name => $fp_plate_name, well_name => $fp_well_name } );
     my $miseq_data = _get_miseq_data_from_well($model, $fp_well);
     my $allele_data = $miseq_data->{data}->{allele_data};
 
+    DEBUG("Old classification: " .  $miseq_data->{data}->{classification});
+
     my $classification = classify_reads($allele_data);
 
-    say ("Classification: $classification");
+    DEBUG(defined($classification) ? "New classification: $classification" : "New classification: undef");
 
     if (defined $classification) {
         my @miseq_well_experiments = $model->schema->resultset('MiseqWellExperiment')->search(
@@ -44,7 +46,7 @@ foreach my $line ( <STDIN> ) {
         if (scalar(@miseq_well_experiments) != 1) {die "There can only be one..."};
         my $miseq_well_experiment = $miseq_well_experiments[0];
  
-        say("Miseq well experiment ID: " . $miseq_well_experiment->id);
+        DEBUG("Miseq well experiment ID: " . $miseq_well_experiment->id);
  
         $model->update_miseq_well_experiment({
            id =>  $miseq_well_experiment->id,
