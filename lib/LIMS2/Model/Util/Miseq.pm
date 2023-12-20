@@ -1235,6 +1235,7 @@ sub classify_reads {
         my $total_percentage_unmodified_reads = sum map { $_->{'percentage_reads'} } @$unmodified;
         if ($total_percentage_unmodified_reads > 0.98) {return "WT"};
     }
+    return;
 }
 
 1;
