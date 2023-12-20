@@ -1233,7 +1233,7 @@ sub classify_reads {
     my $unmodified = [ grep { $_->{'unmodified'} == 1 } @$allele_data ];
     if (@$unmodified) {
         my $total_percentage_unmodified_reads = sum map { $_->{'percentage_reads'} } @$unmodified;
-        if ($total_percentage_unmodified_reads > 0.98) {return "WT"};
+        if ($total_percentage_unmodified_reads > 98) {return "WT"};
     }
     return;
 }

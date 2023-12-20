@@ -153,7 +153,7 @@ sub test_set_classification: Test(4) {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.981,
+	    "percentage_reads" => 98.1,
 	    "n_reads" => 981,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -164,7 +164,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.009,
+	    "percentage_reads" => 0.9,
 	    "n_reads" => 9,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -185,7 +185,7 @@ sub test_set_classification: Test(4) {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.881,
+	    "percentage_reads" => 88.1,
 	    "n_reads" => 881,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -196,7 +196,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.019,
+	    "percentage_reads" => 1.9,
 	    "n_reads" => 19,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -207,7 +207,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.1,
+	    "percentage_reads" => 10,
 	    "n_reads" => 100,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -228,7 +228,7 @@ sub test_set_classification: Test(4) {
         my $allele_data = [
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.871,
+	    "percentage_reads" => 87.1,
 	    "n_reads" => 871,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -239,7 +239,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.029,
+	    "percentage_reads" => 2.9,
 	    "n_reads" => 29,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -250,7 +250,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 1,
-	    "percentage_reads" => 0.1,
+	    "percentage_reads" => 10,
 	    "n_reads" => 100,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
@@ -271,7 +271,7 @@ sub test_set_classification: Test(4) {
         my $allele_data = [
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.871,
+	    "percentage_reads" => 87.1,
 	    "n_reads" => 871,
 	    "hdr" => 0,
 	    "n_inserted" => 1,
@@ -282,7 +282,7 @@ sub test_set_classification: Test(4) {
 	  },
 	  {
 	    "unmodified" => 0,
-	    "percentage_reads" => 0.129,
+	    "percentage_reads" => 12.9,
 	    "n_reads" => 129,
 	    "hdr" => 0,
 	    "n_inserted" => 0,
