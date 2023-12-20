@@ -147,7 +147,7 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
-sub test_set_classification: Test(3) {
+sub test_set_classification: Test(4) {
     note("Classifies as wild-type when single unmodified entry is more than 98%:");
     {
         my $allele_data = [
@@ -258,6 +258,38 @@ sub test_set_classification: Test(3) {
 	    "n_mutated" => 0,
 	    "n_deleted" => 0,
 	    "aligned_sequence" => "GGACAA"
+	  },
+        ];
+
+        my $classification = classify_reads($allele_data);
+
+	isnt($classification, "WT");
+    }
+
+    note("Works in cases with no unmodified");
+    {
+        my $allele_data = [
+	  {
+	    "unmodified" => 0,
+	    "percentage_reads" => 0.871,
+	    "n_reads" => 871,
+	    "hdr" => 0,
+	    "n_inserted" => 1,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 0,
+	    "aligned_sequence" => "GAGACAA"
+	  },
+	  {
+	    "unmodified" => 0,
+	    "percentage_reads" => 0.129,
+	    "n_reads" => 129,
+	    "hdr" => 0,
+	    "n_inserted" => 0,
+	    "nhej" => 0,
+	    "n_mutated" => 0,
+	    "n_deleted" => 1,
+	    "aligned_sequence" => "GGACA"
 	  },
         ];
 

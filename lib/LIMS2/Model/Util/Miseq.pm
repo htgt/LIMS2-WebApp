@@ -1231,8 +1231,10 @@ sub get_api {
 sub classify_reads {
     my $allele_data = shift;
     my $unmodified = [ grep { $_->{'unmodified'} == 1 } @$allele_data ];
-    my $total_percentage_unmodified_reads = sum map { $_->{'percentage_reads'} } @$unmodified;
-    if ($total_percentage_unmodified_reads > 0.98) {return "WT"};
+    if (@$unmodified) {
+        my $total_percentage_unmodified_reads = sum map { $_->{'percentage_reads'} } @$unmodified;
+        if ($total_percentage_unmodified_reads > 0.98) {return "WT"};
+    }
 }
 
 1;
