@@ -160,14 +160,14 @@
 [% END %]
 
 
-[% IF data.miseq_data %]
+[% IF data.miseq.data %]
     <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
     <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
     <script type="text/javascript">
         document.getElementById("miseq-indels-container").replaceChildren();
         var indelData = [
-            [%- FOR indel_data IN data.miseq_data.indel_data %]
+            [%- FOR indel_data IN data.miseq.data.indel_data %]
 	        {'indel': [% indel_data.indel %], 'frequency': [% indel_data.frequency %]},
             [%- END %]
         ];
