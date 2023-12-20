@@ -1023,7 +1023,7 @@ if __name__ == "__main__":
     classified_clones_after_fixing = [
         clone for clone in good_clones if clone not in unclassified_clones_after_fixing
     ]
-    print(f"Number of unclassified after fixing: {len(unclassified_clones_before_fixing)}")
+    print(f"Number of unclassified after fixing: {len(unclassified_clones_after_fixing)}")
     reclassified = []
     for clone in classified_clones_before_fixing:
         classification_before = clone.json_data["miseq"]["data"]["classification"]
