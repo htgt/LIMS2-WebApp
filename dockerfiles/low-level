@@ -97,7 +97,7 @@ DBD::Pg
 
 #
 # Install Perl modules
-RUN cpan -i Moose \
+RUN cpan -T Moose \
 Class::Load \
 YAML::XS \
 Test::Most \
