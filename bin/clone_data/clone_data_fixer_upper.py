@@ -24,7 +24,9 @@ from check_it import (
     check_clone_data,
     check_the_server_is_up_and_running,
     print_clone_data_results,
+    KnownMissingMiseqData,
 )
+from make_single_tsv_of_data import create_tsv, flatten_single_record
 
 
 class DataFixerUpperException(Exception):
@@ -979,3 +981,11 @@ if __name__ == "__main__":
     results_from_checking = check_clone_data(clones)
     print("Results:")
     print_clone_data_results(results_from_checking)
+
+    good_enough_clones = [
+        result for result in results_from_checking
+        if result.error is None or  isinstance(result.error, KnownMissingMiseqData)
+    ]
+    good_enough_data = [flatten_single_record(r.json_data) for r in good_enough_clones ]
+
+    create_tsv(good_enough_data, "flattened_clone_data.tsv")
