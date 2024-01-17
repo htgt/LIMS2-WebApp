@@ -1229,12 +1229,14 @@ sub get_api {
 }
 
 sub classify_reads {
-    my $allele_data = shift;
-    my $unmodified = [ grep { $_->{'unmodified'} == 1 } @$allele_data ];
-    if (@$unmodified) {
-        my $total_percentage_unmodified_reads = sum map { $_->{'percentage_reads'} } @$unmodified;
-        if ($total_percentage_unmodified_reads > 98) {return "WT"};
-    }
+    my ($allele_data, $indel_data) = @_;
+    my $most_common_allele = (sort { $b->{n_reads} <=> $a->{n_reads} } @$allele_data)[0];
+    unless (defined $most_common_allele) {die "Looks like there aren't any alleles"};
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
+    my $number_of_zero_indels = (grep { $_->{indel} ==  0} @$indel_data)[0]->{frequency};
+    my $ratio_of_zero_indels = $number_of_zero_indels / $total_number_of_indels;
+    if ($ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return "WT"};
     return;
 }
 
