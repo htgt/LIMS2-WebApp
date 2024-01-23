@@ -1236,25 +1236,20 @@ sub classify_reads {
 
 sub _is_wildtype {
     my ($allele_data, $indel_data) = @_;
-    DEBUG("All the indel data: ");
-    DEBUG(Dumper( $indel_data));
+    DEBUG("All the indel data: " . Dumper( $indel_data));
     my $most_common_allele = (sort { $b->{n_reads} <=> $a->{n_reads} } @$allele_data)[0];
     unless (defined $most_common_allele) {die "Looks like there aren't any alleles"};
     my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
     unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
     my @zero_indels = (grep { $_->{indel} ==  0} @$indel_data);
-    DEBUG("The zero indels: ");
-    DEBUG(Dumper(@zero_indels));
+    DEBUG("The zero indels: " . Dumper(@zero_indels));
     my $number_of_zero_indels = undef;
     my $ratio_of_zero_indels = undef;
     if (scalar  @zero_indels == 1) {
         $number_of_zero_indels = $zero_indels[0]->{frequency};
         $ratio_of_zero_indels = $number_of_zero_indels / $total_number_of_indels;
     }
-    DEBUG("Ratio of zero indels:");
-    DEBUG($ratio_of_zero_indels);
-    #DEBUG("Most common allele: ");
-    #DEBUG(Dumper($most_common_allele));
+    DEBUG("Ratio of zero indels:" . Dumper($ratio_of_zero_indels));
     if (defined($ratio_of_zero_indels) && $ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return 1};
     return 0;
 
