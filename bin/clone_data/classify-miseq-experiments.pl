@@ -27,10 +27,11 @@ foreach my $line ( <STDIN> ) {
     my $fp_well = $model->retrieve_well( { plate_name => $fp_plate_name, well_name => $fp_well_name } );
     my $miseq_data = _get_miseq_data_from_well($model, $fp_well);
     my $allele_data = $miseq_data->{data}->{allele_data};
+    my $indel_data = $miseq_data->{data}->{indel_data};
 
     DEBUG("Old classification: " .  $miseq_data->{data}->{classification});
 
-    my $classification = classify_reads($allele_data);
+    my $classification = classify_reads($allele_data, $indel_data);
 
     DEBUG(defined($classification) ? "New classification: $classification" : "New classification: undef");
 
