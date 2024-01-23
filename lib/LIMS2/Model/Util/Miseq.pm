@@ -1231,6 +1231,7 @@ sub get_api {
 sub classify_reads {
     my ($allele_data, $indel_data) = @_;
     if (_is_wildtype($allele_data, $indel_data)) {return "WT"};
+    if (_is_ko_hom($indel_data)) {return "K/O Hom"};
     return;
 }
 
@@ -1253,6 +1254,19 @@ sub _is_wildtype {
     if (defined($ratio_of_zero_indels) && $ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return 1};
     return 0;
 
+}
+
+sub _is_ko_hom {
+    my $indel_data = shift;
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
+    my @sorted = sort { $b->{frequency} <=> $a->{frequency} } @$indel_data;
+    my $most_frequent_indel = $sorted[0];
+    my $number_of_most_frequent = $most_frequent_indel->{frequency};
+    my $ratio_of_most_frequent = $number_of_most_frequent / $total_number_of_indels;
+    my $indel_of_most_frequent = $most_frequent_indel->{indel};
+    if ($ratio_of_most_frequent > 0.98 && $indel_of_most_frequent != 0 && $indel_of_most_frequent % 3 != 0) {return 1};
+    return 0;
 }
 
 1;
