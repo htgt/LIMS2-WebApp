@@ -1230,6 +1230,12 @@ sub get_api {
 
 sub classify_reads {
     my ($allele_data, $indel_data) = @_;
+    if (_is_wildtype($allele_data, $indel_data)) {return "WT"};
+    return;
+}
+
+sub _is_wildtype {
+    my ($allele_data, $indel_data) = @_;
     DEBUG("All the indel data: ");
     DEBUG(Dumper( $indel_data));
     my $most_common_allele = (sort { $b->{n_reads} <=> $a->{n_reads} } @$allele_data)[0];
@@ -1249,8 +1255,9 @@ sub classify_reads {
     DEBUG($ratio_of_zero_indels);
     #DEBUG("Most common allele: ");
     #DEBUG(Dumper($most_common_allele));
-    if (defined($ratio_of_zero_indels) && $ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return "WT"};
-    return;
+    if (defined($ratio_of_zero_indels) && $ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return 1};
+    return 0;
+
 }
 
 1;
