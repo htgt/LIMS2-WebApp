@@ -130,13 +130,14 @@ test-clone-data:
     - cd bin/clone_data
     - pip install -r clone_data_requirements.txt
     - python clone_data_fixer_upper.py ${LIMS2_CLONE_DATA_DATABASE_DETAILS} ${CI_REGISTRY}/sci/lims2-webapp/lims2:${CI_COMMIT_SHORT_SHA}
+    - mv flattened_clone_data.tsv flattened_clone_data_${CI_COMMIT_SHORT_SHA}.tsv
   artifacts:
     paths:
       - bin/clone_data/well_graphs.png
       - bin/clone_data/graphs_grouped_by_piq_plate
       - bin/clone_data/fp_and_piq_wells_for_fp_plates_that_only_have_missing_miseq_wells.tsv
       - bin/clone_data/one_piq_two_miseq_graphs.png
-      - bin/clone_data/flattened_clone_data.tsv
+      - bin/clone_data/flattened_clone_data_${CI_COMMIT_SHORT_SHA}.tsv
 
 deploy-staging:
   stage: deploy
