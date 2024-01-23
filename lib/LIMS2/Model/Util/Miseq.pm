@@ -1232,6 +1232,7 @@ sub classify_reads {
     my ($allele_data, $indel_data) = @_;
     if (_is_wildtype($allele_data, $indel_data)) {return "WT"};
     if (_is_ko_hom($indel_data)) {return "K/O Hom"};
+    if (_is_ko_het($indel_data)) {return "K/O Het"};
     return;
 }
 
@@ -1267,6 +1268,26 @@ sub _is_ko_hom {
     my $indel_of_most_frequent = $most_frequent_indel->{indel};
     if ($ratio_of_most_frequent > 0.98 && $indel_of_most_frequent != 0 && $indel_of_most_frequent % 3 != 0) {return 1};
     return 0;
+}
+
+sub _is_ko_het {
+    my $indel_data = shift;
+    unless (scalar @$indel_data > 1) {return 0};
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    my @sorted = sort { $b->{frequency} <=> $a->{frequency} } @$indel_data;
+    my $most_frequent_indel = $sorted[0];
+    my $next_most_frequent_indel = $sorted[1];
+    unless ($most_frequent_indel->{indel} == 0 || $next_most_frequent_indel->{indel} == 0) {return 0};
+    unless ($most_frequent_indel->{indel} % 3 != 0 || $next_most_frequent_indel->{indel} % 3 != 0) {return 0};
+    my $ratio_of_two_most_frequent =
+        ($most_frequent_indel->{frequency} + $next_most_frequent_indel->{frequency})
+        / $total_number_of_indels;
+    unless ($ratio_of_two_most_frequent > 0.98) {return 0};
+    my $ratio_of_most_frequent_to_next_most_frequent =
+        $most_frequent_indel->{frequency}
+        / ($most_frequent_indel->{frequency} + $next_most_frequent_indel->{frequency});
+    unless ($ratio_of_most_frequent_to_next_most_frequent <= 0.6) {return 0};
+    return 1;
 }
 
 1;
