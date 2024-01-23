@@ -231,7 +231,7 @@ sub test_set_classification: Test(4) {
 
 	isnt($classification, "WT");
     }
-    note("Classify as WT when most common read is unmodified, but less than 99% of reads are 0 indel");
+    note("Do not classify as WT when most common read is unmodified, but less than 98% of reads are 0 indel");
     {
         my $allele_data = [
           {
@@ -265,6 +265,48 @@ sub test_set_classification: Test(4) {
             {
                 "frequency" => 979,
                 "indel" => 0
+            }
+        ];
+
+	my $classification = classify_reads($allele_data, $indel_data);
+
+	isnt($classification, "WT");
+    }
+
+    note("Doesn't classify as WT when no reads are 0 indel");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 51.1,
+            "n_reads" => 511,
+            "hdr" => 0,
+            "n_inserted" => 1,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 1.9,
+            "n_reads" => 19,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GGACA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -1,
+	         "frequency" => 21,
+            },
+            {
+                "frequency" => 979,
+                "indel" => 1
             }
         ];
 
