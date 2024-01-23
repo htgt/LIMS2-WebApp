@@ -27,6 +27,8 @@ use Sub::Exporter -setup => {
               get_experiment_from_well 
               get_gene_symbols_from_well
               get_api
+              classify_reads
+              _get_miseq_data_from_well 
           )
     ]
 };
@@ -883,7 +885,7 @@ sub miseq_genotyping_info {
         oligos              => _get_oligo_from_well($well),
         hdr_template        => _get_hdr_template_from_well($well),
         crispr              => _get_crispr_from_well($well),
-        miseq               => _get_miseq_data_from_well($c, $well),
+        miseq               => _get_miseq_data_from_well($c->model("Golgi"), $well),
     };
 
     return $experiments;
@@ -984,12 +986,12 @@ sub _reformat_strand_info_into_plus_minus_form {
 }
 
 sub _get_miseq_data_from_well {
-    my ($c, $well) = @_;
+    my ($model, $well) = @_;
     my $plate = $well->plate;
     my $entry = _get_entry_from_list("clone-miseq-map.tsv", $plate->name, $well->name);
     if (defined $entry) {
         DEBUG("It's defined");
-        my @miseq_well_experiments = $c->model('Golgi')->schema->resultset('MiseqWellExperiment')->search(
+        my @miseq_well_experiments = $model->schema->resultset('MiseqWellExperiment')->search(
             {
                 'miseq_exp.name' => $entry->{"miseq_experiment_name"},
                 'well.name' => convert_numeric_well_names_to_alphanumeric($entry->{"miseq_well"}),
@@ -1224,6 +1226,33 @@ sub get_api {
     } else {
         return WebAppCommon::Util::FileAccess->construct({server => $ENV{LIMS2_FILE_ACCESS_SERVER}});
     }
+}
+
+sub classify_reads {
+    my ($allele_data, $indel_data) = @_;
+    if (_is_wildtype($allele_data, $indel_data)) {return "WT"};
+    return;
+}
+
+sub _is_wildtype {
+    my ($allele_data, $indel_data) = @_;
+    DEBUG("All the indel data: " . Dumper( $indel_data));
+    my $most_common_allele = (sort { $b->{n_reads} <=> $a->{n_reads} } @$allele_data)[0];
+    unless (defined $most_common_allele) {die "Looks like there aren't any alleles"};
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
+    my @zero_indels = (grep { $_->{indel} ==  0} @$indel_data);
+    DEBUG("The zero indels: " . Dumper(@zero_indels));
+    my $number_of_zero_indels = undef;
+    my $ratio_of_zero_indels = undef;
+    if (scalar  @zero_indels == 1) {
+        $number_of_zero_indels = $zero_indels[0]->{frequency};
+        $ratio_of_zero_indels = $number_of_zero_indels / $total_number_of_indels;
+    }
+    DEBUG("Ratio of zero indels:" . Dumper($ratio_of_zero_indels));
+    if (defined($ratio_of_zero_indels) && $ratio_of_zero_indels > 0.98 && $most_common_allele->{unmodified} == 1) {return 1};
+    return 0;
+
 }
 
 1;
