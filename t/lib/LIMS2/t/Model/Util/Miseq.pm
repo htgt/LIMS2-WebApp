@@ -147,7 +147,7 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
-sub test_set_classification: Test(4) {
+sub test_set_classification: Test(7) {
     note("Classify as WT when greater than 98% of of reads have 0 indels AND most common read is unmodified");
     {
         my $allele_data = [
@@ -313,6 +313,180 @@ sub test_set_classification: Test(4) {
 	my $classification = classify_reads($allele_data, $indel_data);
 
 	isnt($classification, "WT");
+    }
+
+    note("Claasify as 'K/O Hom' if most frequent indel is not 0, not a multiple of 3, and is more than 98% of reads");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 1,
+            "percentage_reads" => 1.1,
+            "n_reads" => 11,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 98.1,
+            "n_reads" => 981,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 0.8,
+            "n_reads" => 8,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 2,
+            "aligned_sequence" => "GAAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -2,
+	         "frequency" =>8,
+            },
+            {
+	        "indel" => -1,
+	         "frequency" => 981,
+            },
+            {
+	        "indel" => 0,
+	         "frequency" => 11,
+            },
+        ];
+
+	my $classification = classify_reads($allele_data, $indel_data);
+
+	is($classification, "K/O Hom");
+    
+    }
+
+    note("Doesn't claasify as 'K/O Hom' if most no indel is more than 98% of reads");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 1,
+            "percentage_reads" => 1.1,
+            "n_reads" => 11,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 97.9,
+            "n_reads" => 981,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 0.8,
+            "n_reads" => 8,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 2,
+            "aligned_sequence" => "GAAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -2,
+	         "frequency" => 10,
+            },
+            {
+	        "indel" => -1,
+	         "frequency" => 979,
+            },
+            {
+	        "indel" => 0,
+	         "frequency" => 11,
+            },
+        ];
+
+	my $classification = classify_reads($allele_data, $indel_data);
+
+	isnt($classification, "K/O Hom");
+    
+    }
+
+    note("Claasify as 'K/O Hom' if most frequent indel is not 0, and is more than 98% of reads, but IS a multiple of 3");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 1,
+            "percentage_reads" => 1.1,
+            "n_reads" => 11,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 98.1,
+            "n_reads" => 981,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 3,
+            "aligned_sequence" => "GAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 0.8,
+            "n_reads" => 8,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 2,
+            "aligned_sequence" => "GAAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -2,
+	         "frequency" =>8,
+            },
+            {
+	        "indel" => -3,
+	         "frequency" => 981,
+            },
+            {
+	        "indel" => 0,
+	         "frequency" => 11,
+            },
+        ];
+
+	my $classification = classify_reads($allele_data, $indel_data);
+
+	isnt($classification, "K/O Hom");
+    
     }
 
 }
