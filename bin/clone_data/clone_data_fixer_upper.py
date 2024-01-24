@@ -1038,7 +1038,7 @@ if __name__ == "__main__":
         print(f"Clone: {r[0]}, Before: {r[1]}, After: {r[2]}")
 
     good_enough_clones = [
-        result for result in results_from_checking
+        result for result in results_after_fixing_classification
         if result.error is None or  isinstance(result.error, KnownMissingMiseqData)
     ]
     good_enough_data = [flatten_single_record(r.json_data) for r in good_enough_clones ]
