@@ -13,7 +13,7 @@ use Getopt::Long;
 use Log::Log4perl qw( :easy );
 
 use LIMS2::Model;
-use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well /;
+use LIMS2::Model::Util::Miseq qw/ classify_reads _get_miseq_data_from_well _get_crispr_from_well /;
 
 say("Running the perl script");
 
@@ -28,10 +28,12 @@ foreach my $line ( <STDIN> ) {
     my $miseq_data = _get_miseq_data_from_well($model, $fp_well);
     my $allele_data = $miseq_data->{data}->{allele_data};
     my $indel_data = $miseq_data->{data}->{indel_data};
+    my $crispr_data = _get_crispr_from_well($fp_well);
+    my $chromosome_name = $crispr_data->{locus}->{chr_name};
 
     DEBUG("Old classification: " .  $miseq_data->{data}->{classification});
 
-    my $classification = classify_reads($allele_data, $indel_data);
+    my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
     DEBUG(defined($classification) ? "New classification: $classification" : "New classification: undef");
 

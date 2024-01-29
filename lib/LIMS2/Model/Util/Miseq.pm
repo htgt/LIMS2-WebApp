@@ -29,6 +29,7 @@ use Sub::Exporter -setup => {
               get_api
               classify_reads
               _get_miseq_data_from_well 
+              _get_crispr_from_well
           )
     ]
 };
@@ -38,7 +39,7 @@ use LIMS2::Exception;
 use JSON;
 use File::Find;
 use Const::Fast;
-use List::Util qw( sum first min sum0 );
+use List::Util qw( sum first min sum0 any);
 use List::MoreUtils qw( uniq );
 use SQL::Abstract;
 use Bio::Perl;
@@ -1229,9 +1230,10 @@ sub get_api {
 }
 
 sub classify_reads {
-    my ($allele_data, $indel_data) = @_;
+    my ($allele_data, $indel_data, $chromosome_name) = @_;
     if (_is_wildtype($allele_data, $indel_data)) {return "WT"};
-    if (_is_ko_hom($indel_data)) {return "K/O Hom"};
+    if (_is_ko_hom($indel_data, $chromosome_name)) {return "K/O Hom"};
+    if (_is_ko_hemizygous($indel_data, $chromosome_name)) {return "K/O Hemizygous"};
     if (_is_ko_het($indel_data)) {return "K/O Het"};
     return;
 }
@@ -1258,7 +1260,22 @@ sub _is_wildtype {
 }
 
 sub _is_ko_hom {
-    my $indel_data = shift;
+    my ($indel_data, $chromosome_name) = @_;
+    if (any {$_ eq $chromosome_name} qw(X Y)) {return 0};  
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
+    my @sorted = sort { $b->{frequency} <=> $a->{frequency} } @$indel_data;
+    my $most_frequent_indel = $sorted[0];
+    my $number_of_most_frequent = $most_frequent_indel->{frequency};
+    my $ratio_of_most_frequent = $number_of_most_frequent / $total_number_of_indels;
+    my $indel_of_most_frequent = $most_frequent_indel->{indel};
+    if ($ratio_of_most_frequent > 0.98 && $indel_of_most_frequent != 0 && $indel_of_most_frequent % 3 != 0) {return 1};
+    return 0;
+}
+
+sub _is_ko_hemizygous {
+    my ($indel_data, $chromosome_name) = @_;
+    unless (any {$_ eq $chromosome_name} qw(X Y)) {return 0};  
     my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
     unless (defined $total_number_of_indels) {die "Looks like there are no indels"};
     my @sorted = sort { $b->{frequency} <=> $a->{frequency} } @$indel_data;
