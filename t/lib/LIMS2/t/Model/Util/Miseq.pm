@@ -147,7 +147,7 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
-sub test_set_classification: Test(11) {
+sub test_set_classification: Test(13) {
     note("Classify as WT when greater than 98% of of reads have 0 indels AND most common read is unmodified");
     {
         my $allele_data = [
@@ -184,8 +184,9 @@ sub test_set_classification: Test(11) {
                 "indel" => 0
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	is($classification, "WT");
     }
@@ -226,8 +227,9 @@ sub test_set_classification: Test(11) {
                 "indel" => 0
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "WT");
     }
@@ -267,8 +269,9 @@ sub test_set_classification: Test(11) {
                 "indel" => 0
             }
         ];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "WT");
     }
@@ -309,8 +312,9 @@ sub test_set_classification: Test(11) {
                 "indel" => 1
             }
         ];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "WT");
     }
@@ -366,8 +370,9 @@ sub test_set_classification: Test(11) {
 	         "frequency" => 11,
             },
         ];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	is($classification, "K/O Hom");
     
@@ -424,8 +429,9 @@ sub test_set_classification: Test(11) {
 	         "frequency" => 11,
             },
         ];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "K/O Hom");
     
@@ -482,8 +488,9 @@ sub test_set_classification: Test(11) {
 	         "frequency" => 11,
             },
         ];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "K/O Hom");
     
@@ -540,8 +547,9 @@ sub test_set_classification: Test(11) {
                 "indel" => -3
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	is($classification, "K/O Het");
     }
@@ -597,8 +605,9 @@ sub test_set_classification: Test(11) {
                 "indel" => -3
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
 
 	isnt($classification, "K/O Het");
     }
@@ -654,8 +663,10 @@ sub test_set_classification: Test(11) {
 	        "indel" => -1,
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
+
 
 	isnt($classification, "K/O Het");
     }
@@ -711,10 +722,130 @@ sub test_set_classification: Test(11) {
                 "indel" => -3
             }
 	];
+        my $chromosome_name = "12";
 
-	my $classification = classify_reads($allele_data, $indel_data);
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
+
 
 	isnt($classification, "K/O Het");
+    }
+
+    note("Classifies as hemizygous if on X chrom");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 1,
+            "percentage_reads" => 1.1,
+            "n_reads" => 11,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 98.1,
+            "n_reads" => 981,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 0.8,
+            "n_reads" => 8,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 2,
+            "aligned_sequence" => "GAAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -2,
+	         "frequency" =>8,
+            },
+            {
+	        "indel" => -1,
+	         "frequency" => 981,
+            },
+            {
+	        "indel" => 0,
+	         "frequency" => 11,
+            },
+        ];
+        my $chromosome_name = "X";
+
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
+
+	is($classification, "K/O Hemizygous");
+    
+    }
+
+    note("Classifies as hemizygous if on Y chrom");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 1,
+            "percentage_reads" => 1.1,
+            "n_reads" => 11,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 0,
+            "aligned_sequence" => "GGACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 98.1,
+            "n_reads" => 981,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GACAA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 0.8,
+            "n_reads" => 8,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 2,
+            "aligned_sequence" => "GAAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -2,
+	         "frequency" =>8,
+            },
+            {
+	        "indel" => -1,
+	         "frequency" => 981,
+            },
+            {
+	        "indel" => 0,
+	         "frequency" => 11,
+            },
+        ];
+        my $chromosome_name = "Y";
+
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
+
+	is($classification, "K/O Hemizygous");
+    
     }
 }
 
