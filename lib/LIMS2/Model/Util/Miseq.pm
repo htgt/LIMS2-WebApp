@@ -1190,6 +1190,7 @@ sub _get_allele_data_from_miseq_well_experiment {
     my @allele_data = map {
         {
             "aligned_sequence" => $_->aligned_sequence,
+            "reference_sequence" => $_->reference_sequence,
             "nhej" => $_->nhej,
             "unmodified" => $_->unmodified,
             "hdr" => $_->hdr,
