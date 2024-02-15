@@ -4,7 +4,7 @@
     width: 400px;
     white-space: nowrap;
     font-family: "Lucida Console", Monaco, monospace;
-    overflow-x: hidden;
+    overflow-x: scroll;
 }
 
 .target :not(.baseSwitch) {
