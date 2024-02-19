@@ -117,7 +117,7 @@
 <h3>Alleles</h3>
 
 <table id="miseq-alleles" class="table table-bordered table-condensed table-striped">
-    <theader>
+    <thead>
         <tr>
             <th>Aligned_Sequence</th>
             <th>NHEJ</th>
@@ -129,7 +129,7 @@
             <th>#Reads</th>
             <th>%Reads</th>
         </tr>
-    </theader>
+    </thead>
     <tbody>
         [%- FOR allele_datum IN data.miseq.data.allele_data %]
             <tr>
