@@ -1,3 +1,48 @@
+<style>
+
+.sequence {
+    width: 400px;
+    white-space: nowrap;
+    font-family: "Lucida Console", Monaco, monospace;
+    overflow-x: scroll;
+}
+
+.target :not(.baseSwitch) {
+    background-color: #0A606D; /* Blue-Grey */
+    color: white;
+}
+
+.possibleTarget :not(.baseSwitch) {
+    background-color: #FF9E00; /* Orange */
+    color: black;
+}
+
+.base- {
+    background-color: #661010 !important; /* Red */
+    color: white !important;
+}
+
+.insertion:not(.baseSwitch) {
+    background-color: #26C485 !important; /* Green */
+    color: black;
+}
+
+.mutation:not(.baseSwitch) {
+    background-color: #F61067 !important; /* Pink */
+    color: white;
+}
+
+.insertion, .mutation {
+    font-weight: bold;
+}
+
+.mutation {
+    text-decoration: underline;
+}
+
+</style>
+
+
 <h2>Design Information</h2>
 
 <table id="design" class="table table-bordered table-condensed table-striped">
@@ -117,7 +162,7 @@
 <h3>Alleles</h3>
 
 <table id="miseq-alleles" class="table table-bordered table-condensed table-striped">
-    <theader>
+    <thead>
         <tr>
             <th>Aligned_Sequence</th>
             <th>NHEJ</th>
@@ -129,11 +174,11 @@
             <th>#Reads</th>
             <th>%Reads</th>
         </tr>
-    </theader>
+    </thead>
     <tbody>
         [%- FOR allele_datum IN data.miseq.data.allele_data %]
             <tr>
-                <td>[% allele_datum.aligned_sequence %]</td>
+                <td class="sequence">[% allele_datum.aligned_sequence %]</td>
                 <td>[% allele_datum.nhej %]</td>
                 <td>[% allele_datum.unmodified %]</td>
                 <td>[% allele_datum.hdr %]</td>
@@ -142,10 +187,32 @@
                 <td>[% allele_datum.n_mutated %]</td>
                 <td>[% allele_datum.n_reads %]</td>
                 <td>[% allele_datum.percentage_reads %]</td>
-            <tr>
+            </tr>
         [%- END %]
     </tbody>
 </table>
+
+<svg id="crisprKey" visibility="hidden" width="300" height="60">
+    <g class="legend" transform="translate(0)">
+        <rect width="18" height="18" style="fill: #0A606D; stroke: #0A606D;"></rect><!-- Blue -->
+        <text x="22" y="14">Crispr Region</text>
+    </g>
+    <g class="legend" transform="translate(150,0)">
+        <rect width="18" height="18" style="fill: #26C485; stroke: #26C465;"></rect><!-- Green -->
+        <text x="4" y="15" class="insertion">N</text>
+        <text x="22" y="14">Insertion</text>
+    </g>
+    <g class="legend" transform="translate(150,20)">
+        <rect width="18" height="18" style="fill: #661010; stroke: #661010;"></rect><!-- Red -->
+        <text x="6" y="14" class="base-" style="fill: white" font-size="20">-</text>
+        <text x="22" y="14">Deletion</text>
+    </g>
+    <g class="legend" transform="translate(150,40)">
+        <rect width="18" height="18" style="fill: #F61067; stroke: #F61067;"></rect><!-- Pink -->
+        <text x="4" y="12" class="mutation" style="fill: white">N</text>
+        <text x="22" y="14">Mutation</text>
+    </g>
+</svg>
 
 [% ELSIF data.miseq.error %]
 
@@ -164,6 +231,7 @@
     <script src="[% c.uri_for( '/static/jquery/js/d3.min.js' ) %]"></script>
     <script src="[% c.uri_for( '/static/jquery/js/d3-tip.js' ) %]"></script>
     <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/indel_plot.js' ) %]"></script>
+    <script language="javascript" type="text/javascript" src="[% c.uri_for( '/static/js/highlight-bases.js' ) %]"></script>
     <script type="text/javascript">
         document.getElementById("miseq-indels-container").replaceChildren();
         var indelData = [
@@ -172,5 +240,25 @@
             [%- END %]
         ];
         buildIndelPlot("miseq-indels-container", prepareDataForIndelPlot(indelData));
+    </script>
+    <script type="text/javascript">
+        var crisprSequence = '[% data.crispr.fwd_seq %]';
+	var alleleData = [
+            [%- FOR allele_datum IN data.miseq.data.allele_data %]
+	        {
+                    'aligned_sequence': '[% allele_datum.aligned_sequence %]',
+                    'reference_sequence': '[% allele_datum.reference_sequence %]',
+                },
+            [%- END %]
+        ];
+        let table = document.getElementById('miseq-alleles');
+	let rows = Array.from(table.querySelectorAll('tbody tr'));
+        rows.forEach(
+            (row, i) => {
+                let cell = row.querySelector('td:first-child');
+                cell.innerHTML = highlightBases(cell.innerText, alleleData, crisprSequence);
+            }
+        );
+        document.getElementById('crisprKey').style.visibility = "visible";
     </script>
 [% END %]
