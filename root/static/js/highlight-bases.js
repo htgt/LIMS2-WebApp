@@ -44,7 +44,10 @@ function insertionDeletionOrMutaion(alignedSequence, referenceSequence) {
 }
 
 function getAlleleDataForSequence(sequence, alleleData) {
-    return alleleData.find(item => item.aligned_sequence == sequence);
+    let alleleDatum = alleleData.find(item => item.aligned_sequence == sequence);
+    if (alleleDatum == undefined) {throw `Cannot find allele data for ${sequence}` };
+    if (alleleDatum.reference_sequence.length != sequence.length) {throw `Missing or bad reference sequence for ${sequence}` };
+    return alleleDatum;
 }
 
 function positionOfCrisprInReferenceSequence(referenceSequence, crisprSequence) {
