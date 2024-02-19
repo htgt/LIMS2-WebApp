@@ -142,7 +142,7 @@
                 <td>[% allele_datum.n_mutated %]</td>
                 <td>[% allele_datum.n_reads %]</td>
                 <td>[% allele_datum.percentage_reads %]</td>
-            <tr>
+            </tr>
         [%- END %]
     </tbody>
 </table>
