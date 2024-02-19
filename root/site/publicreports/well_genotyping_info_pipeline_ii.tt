@@ -192,6 +192,28 @@
     </tbody>
 </table>
 
+<svg id="crisprKey" visibility="hidden" width="300" height="60">
+    <g class="legend" transform="translate(0)">
+        <rect width="18" height="18" style="fill: #0A606D; stroke: #0A606D;"></rect><!-- Blue -->
+        <text x="22" y="14">Crispr Region</text>
+    </g>
+    <g class="legend" transform="translate(150,0)">
+        <rect width="18" height="18" style="fill: #26C485; stroke: #26C465;"></rect><!-- Green -->
+        <text x="4" y="15" class="insertion">N</text>
+        <text x="22" y="14">Insertion</text>
+    </g>
+    <g class="legend" transform="translate(150,20)">
+        <rect width="18" height="18" style="fill: #661010; stroke: #661010;"></rect><!-- Red -->
+        <text x="6" y="14" class="base-" style="fill: white" font-size="20">-</text>
+        <text x="22" y="14">Deletion</text>
+    </g>
+    <g class="legend" transform="translate(150,40)">
+        <rect width="18" height="18" style="fill: #F61067; stroke: #F61067;"></rect><!-- Pink -->
+        <text x="4" y="12" class="mutation" style="fill: white">N</text>
+        <text x="22" y="14">Mutation</text>
+    </g>
+</svg>
+
 [% ELSIF data.miseq.error %]
 
 <p>No MiSeq information available for this well</p>
@@ -237,5 +259,6 @@
                 cell.innerHTML = highlightBases(cell.innerText, alleleData, crisprSequence);
             }
         );
+        document.getElementById('crisprKey').style.visibility = "visible";
     </script>
 [% END %]
