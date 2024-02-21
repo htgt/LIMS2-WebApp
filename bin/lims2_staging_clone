@@ -1,3 +1,4 @@
+#!/bin/bash
 perl ./script/lims2_clone_database.pl \
     --source_defn LIMS2_LIVE \
     --source_role lims2 \

@@ -135,6 +135,20 @@ test-clone-data:
     paths:
       - bin/clone_data/flattened_clone_data_${CI_COMMIT_SHORT_SHA}.tsv
 
+replicate-production-database-to-staging:
+  stage: deploy
+  script:
+    - docker pull $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+    - docker run
+      --rm
+      --env LIMS2_DB=LIMS2_STAGING
+      --env USER=user
+      $CI_REGISTRY/sci/lims2-webapp/lims2:$CI_COMMIT_SHORT_SHA
+      ./bin/lims2_staging_clone
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+
 deploy-staging:
   stage: deploy
   script:
