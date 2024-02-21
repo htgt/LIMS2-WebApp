@@ -1236,6 +1236,8 @@ sub classify_reads {
     if (_is_ko_hom($indel_data, $chromosome_name)) {return "K/O Hom"};
     if (_is_ko_hemizygous($indel_data, $chromosome_name)) {return "K/O Hemizygous"};
     if (_is_ko_het($indel_data)) {return "K/O Het"};
+    if (_is_ko_hom_compound($indel_data)) {return "K/O Hom Compound"};
+
     return;
 }
 
@@ -1297,6 +1299,25 @@ sub _is_ko_het {
     my $next_most_frequent_indel = $sorted[1];
     unless ($most_frequent_indel->{indel} == 0 || $next_most_frequent_indel->{indel} == 0) {return 0};
     unless ($most_frequent_indel->{indel} % 3 != 0 || $next_most_frequent_indel->{indel} % 3 != 0) {return 0};
+    my $ratio_of_two_most_frequent =
+        ($most_frequent_indel->{frequency} + $next_most_frequent_indel->{frequency})
+        / $total_number_of_indels;
+    unless ($ratio_of_two_most_frequent > 0.98) {return 0};
+    my $ratio_of_most_frequent_to_next_most_frequent =
+        $most_frequent_indel->{frequency}
+        / ($most_frequent_indel->{frequency} + $next_most_frequent_indel->{frequency});
+    unless ($ratio_of_most_frequent_to_next_most_frequent <= 0.6) {return 0};
+    return 1;
+}
+
+sub _is_ko_hom_compound {
+    my $indel_data = shift;
+    unless (scalar @$indel_data > 1) {return 0};
+    my $total_number_of_indels = sum map {$_->{frequency}} @$indel_data;
+    my @sorted = sort { $b->{frequency} <=> $a->{frequency} } @$indel_data;
+    my $most_frequent_indel = $sorted[0];
+    my $next_most_frequent_indel = $sorted[1];
+    unless ($most_frequent_indel->{indel} % 3 != 0 && $next_most_frequent_indel->{indel} % 3 != 0) {return 0};
     my $ratio_of_two_most_frequent =
         ($most_frequent_indel->{frequency} + $next_most_frequent_indel->{frequency})
         / $total_number_of_indels;

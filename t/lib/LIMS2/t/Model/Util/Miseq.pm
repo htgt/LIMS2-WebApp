@@ -147,7 +147,7 @@ sub test_get_csv_from_tsv_lines : Test(3) {
     return;
 }
 
-sub test_set_classification: Test(13) {
+sub test_set_classification: Test(14) {
     note("Classify as WT when greater than 98% of of reads have 0 indels AND most common read is unmodified");
     {
         my $allele_data = [
@@ -846,6 +846,68 @@ sub test_set_classification: Test(13) {
 
 	is($classification, "K/O Hemizygous");
     
+    }
+
+    note("Classifies as K/O Hom Compund if 
+           * The total number of reads for the two most frequent indel-types is >98%,
+           * The two most frequent indel-types are both not divisible by 3, (i.e. both are frameshifts),
+           * The ratio of the the most frequent to the second most frequent is no greater than 60:40.
+    ");
+    {
+        my $allele_data = [
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 49.0,
+            "n_reads" => 490,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 7,
+            "aligned_sequence" => "GG-----"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 49.1,
+            "n_reads" => 491,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 1,
+            "aligned_sequence" => "GGACA"
+          },
+          {
+            "unmodified" => 0,
+            "percentage_reads" => 1.9,
+            "n_reads" => 19,
+            "hdr" => 0,
+            "n_inserted" => 0,
+            "nhej" => 0,
+            "n_mutated" => 0,
+            "n_deleted" => 3,
+            "aligned_sequence" => "GAA"
+          },
+        ];
+        my $indel_data = [
+            {
+	        "indel" => -1,
+	         "frequency" => 491
+            },
+            {
+                "frequency" => 490,
+                "indel" => -7,
+            },
+            {
+                "frequency" => 19,
+                "indel" => -3
+            }
+	];
+        my $chromosome_name = "12";
+
+	my $classification = classify_reads($allele_data, $indel_data, $chromosome_name);
+
+	is($classification, "K/O Hom Compound");
     }
 }
 
