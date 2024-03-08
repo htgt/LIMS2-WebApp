@@ -985,60 +985,13 @@ if __name__ == "__main__":
     print_clone_data_results(results_from_checking)
 
     good_clones = [result for result in results_from_checking if result.error is None]
-    unclassified_clones_before_fixing = [
+    unclassified_clones = [
         clone for clone in good_clones if clone.json_data["miseq"]["data"]["classification"] == "Not Called"
     ]
-    classified_clones_before_fixing = [
-        clone for  clone in good_clones if clone not in unclassified_clones_before_fixing
-    ]
-    print(f"Number of unclassified before fixing: {len(unclassified_clones_before_fixing)}")
-    with NamedTemporaryFile(mode="w") as temp_file:
-        for clone in good_clones:
-            clone_name = clone.clone_name
-            plate_name = "_".join(clone_name.split("_")[:-1])
-            well_name = clone_name.split("_")[-1]
-            temp_file.write(f"{plate_name},{well_name}\n")
-        temp_file.flush()
-        cp = run(
-            (
-                "cat" f" {temp_file.name}"
-                " |"
-                " docker" " run"
-                " --rm"
-                " --interactive"
-                " --env" " LIMS2_DB=LIMS2_CLONE_DATA"
-                " --env PERL5LIB=/home/user/git_checkout/LIMS2-WebApp/lib/:/opt/sci/global/software/lims2/lib/"
-                f" {docker_image}"
-                " ./bin/clone_data/classify-miseq-experiments.pl"
-            ),
-            check=True,
-            shell=True,
-        )
-    print(f"CP: {cp}")
-    results_after_fixing_classification = check_clone_data(clones)
-    good_clones = [result for result in results_after_fixing_classification if result.error is None]
-    unclassified_clones_after_fixing = [
-        clone for clone in good_clones if clone.json_data["miseq"]["data"]["classification"] == "Not Called"
-    ]
-    classified_clones_after_fixing = [
-        clone for clone in good_clones if clone not in unclassified_clones_after_fixing
-    ]
-    print(f"Number of unclassified after fixing: {len(unclassified_clones_after_fixing)}")
-    reclassified = []
-    for clone in classified_clones_before_fixing:
-        classification_before = clone.json_data["miseq"]["data"]["classification"]
-        classification_after = [
-            c for c in good_clones
-            if c.clone_name == clone.clone_name
-        ][0].json_data["miseq"]["data"]["classification"]
-        if classification_before != classification_after:
-            reclassified.append((clone.clone_name, classification_before, classification_after))
-    print(f"Number reclassified: {len(reclassified)}.")
-    for r in reclassified:
-        print(f"Clone: {r[0]}, Before: {r[1]}, After: {r[2]}")
+    print(f"Number of unclassified: {len(unclassified_clones)}")
 
     good_enough_clones = [
-        result for result in results_after_fixing_classification
+        result for result in results_from_checking
         if result.error is None or  isinstance(result.error, KnownMissingMiseqData)
     ]
     good_enough_data = [flatten_single_record(r.json_data) for r in good_enough_clones ]
