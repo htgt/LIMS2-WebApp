@@ -109,7 +109,7 @@
           version: <strong>[% c.model('Golgi').software_version %]</strong> |
           database: <strong>[% c.model('Golgi').database_name %]</strong>
           <br />
-          Copyright &copy; 2015-2023 Genome Research Limited (reg no. 2742969) is a charity registered in England with number 1021457.
+          Copyright &copy; 2015-2024 Genome Research Limited (reg no. 2742969) is a charity registered in England with number 1021457.
           <br />
           <a href="http://www.sanger.ac.uk/legal/">Terms and conditions</a> | <a href="http://www.sanger.ac.uk/legal/cookiespolicy.html">Cookies policy</a>.
           </p>
